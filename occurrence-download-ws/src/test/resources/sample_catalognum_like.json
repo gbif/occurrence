@@ -1,0 +1,9 @@
+{
+  "creator":"admin",
+  "notification_addresses": ["gbif@mailinator.com"],  
+  "predicate":{
+    "type":"like",
+    "key":"CATALOG_NUMBER",
+    "value":"PAPS5-560%"
+  }
+}

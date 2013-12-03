@@ -1,0 +1,45 @@
+occurrence-download-workflow
+----------------------------
+This project contains the oozie workflow and hive queries needed to execute the occurrence download. The assembled
+project needs to be copied to hdfs so that each of the task trackers can find the workflow definition and supporting
+files.  Easiest is to use the setup.sh in /scripts to copy it over (please adapt local paths).
+
+To build the assembled jars a profile with the following properties is needed:  
+  * occurrence-download.occurrence_table_name
+  * occurrence-download.max_connection_pool
+  * occurrence-download.zookeeper.quorum
+  * occurrence-download.hbase.rootdir
+  * occurrence-download.hive.metastore.uris
+  * occurrence-download.zookeeper.namespace
+  * occurrence-download.zookeeper.sleep_time
+  * occurrence-download.zookeeper.max_retries
+  * occurrence-download.zookeeper.lock_name
+  * occurrence-download.max_global_threads
+  * occurrence-download.job.max_threads
+  * occurrence-download.job.min_records
+  * occurrence-download.file.max_records
+  * occurrence-download.solr.request_handler
+  * occurrence-download.solr.server.type
+  * occurrence-download.solr.server
+  * occurrence-download.solr.server.httpLbservers
+  * occurrence-download.solr.embedded
+  * occurrence-download.registry.ws.url
+  * occurrence-download.solr.embedded
+  * occurrence-download.ws.username
+  * occurrence-download.ws.password
+  
+Example: mvn -Poccurrence-download clean package assembly:single
+
+Installation
+-------------
+The workflow can be installed using the script bin/install.sh, this scripts builds the project
+and copies the workflow into the HDFS, the parameters required by the script are the maven profile and  the workflow destination in the HDFS, for example:
+./install.sh occurrence-download-workflow-dev /occurrence-download/dev/
+
+Headers file "inc/0"
+____________________
+This file is used for big downloads only, it is copied into the hive folder of the temporary table created; the name  was intentionally chosen to be 
+the first file to be merged during a FileUtil.copyMerge operation. 
+
+
+

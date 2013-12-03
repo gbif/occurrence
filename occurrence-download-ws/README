@@ -1,0 +1,35 @@
+occurrence-download-ws
+======================
+
+This is the webservice that orchestrates occurrence downloads by accepting a json download string, translating it
+into a Hive download, kicking off the Oozie workflow that calls Hive, and then responding to the original request
+with the location of the download.
+
+Setup
+-----
+
+To run this Web service you need to provide these properties in Maven, preferably in a profile, please adjust to your needs:
+  * occurrence-download.ws.url
+  * occurrence-download.ws.mount
+  * occurrence-download.registry.ws.url
+  * occurrence-download.jobtracker
+  * occurrence-download.namenode
+  * occurrence-download.oozie.url
+  * occurrence-download.oozie.workflow.path
+  * occurrence-download.oozie.mount
+  * occurrence-download.hive.table
+  * occurrence-download.hive.hdfs.out
+  * occurrence-download.mail.smtp
+  * occurrence-download.mail.from=XX@gbif.org
+  * occurrence-download.mail.bcc=X0@gbif.org; X1@gbif.org; X2@gbif.org (list of emails)
+
+
+
+Testing it
+----------
+
+An example json file as input to the service is included in src/test/resources and it can be posted to this
+webservice using curl as below:
+
+curl -X POST --header "Content-Type:application/json" --user username:password -d @sample_taxon_key.json http://localhost:8080/occurrence/download/request
+

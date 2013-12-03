@@ -1,0 +1,19 @@
+Occurrence Processor Service
+--------------------------------------
+This project listens for OccurrenceFragmentedMessages and then runs the entire processing chain, from
+fragment->hbase->verbatim->hbase->interpretation->hbase. It sends messages as it progresses through the processing
+chain, ending with OccurrencePersistedMessages. In order to use it you need to specify the following properties in a mvn
+profile:
+
+occurrencestore.postalservice.threadcount
+occurrencestore.postalservice.username
+occurrencestore.postalservice.password
+occurrencestore.postalservice.virtualhost
+occurrencestore.postalservice.hostname
+occurrencestore.postalservice.port
+occurrencestore.db.table_name
+occurrencestore.db.counter_table_name
+occurrencestore.db.max_connection_pool
+occurrencestore.db.id_lookup_table_name
+occurrencestore.processor.zookeeper.connection_string
+

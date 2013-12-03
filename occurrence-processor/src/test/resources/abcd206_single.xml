@@ -1,0 +1,104 @@
+<Unit>
+  <SourceInstitutionID>BGBM</SourceInstitutionID>
+  <SourceID>AlgaTerra</SourceID>
+  <UnitID>5834</UnitID>
+  <UnitGUID>0123456789ABCD</UnitGUID>
+  <ObservationUnit>
+    <ObservationUnitIdentifiers>
+      <ObservationUnitIdentifier>111222333444555</ObservationUnitIdentifier>
+    </ObservationUnitIdentifiers>
+  </ObservationUnit>
+  <SpecimenUnit>
+    <Accessions>
+      <AccessionNumber>999888777666</AccessionNumber>
+    </Accessions>
+    <History>
+      <PreviousUnits>
+        <PreviousUnit>
+          <PreviousUnitID>135791113</PreviousUnitID>
+        </PreviousUnit>
+      </PreviousUnits>
+    </History>
+  </SpecimenUnit>
+  <Sequences>
+    <Sequence>
+      <ID-in-Database>112358</ID-in-Database>
+    </Sequence>
+  </Sequences>
+  <Identifications>
+    <Identification>
+      <Result>
+        <TaxonIdentified>
+          <ScientificName>
+            <FullScientificNameString>Tetraedron caudatum (Corda) Hansg.</FullScientificNameString>
+            <NameAtomised>
+              <Botanical>
+                <GenusOrMonomial>Tetraedron</GenusOrMonomial>
+                <FirstEpithet>caudatum</FirstEpithet>
+                <Rank>sp.</Rank>
+                <AuthorTeamParenthesis>Corda</AuthorTeamParenthesis>
+                <AuthorTeam>Hansg.</AuthorTeam>
+              </Botanical>
+            </NameAtomised>
+          </ScientificName>
+        </TaxonIdentified>
+      </Result>
+      <PreferredFlag>true</PreferredFlag>
+      <Identifiers>
+        <Identifier>
+          <PersonName>
+            <FullName>Kusber, W.-H.</FullName>
+          </PersonName>
+        </Identifier>
+      </Identifiers>
+    </Identification>
+  </Identifications>
+  <RecordBasis>HumanObservation</RecordBasis>
+  <Gathering>
+    <DateTime>
+      <ISODateTimeBegin>1987-04-13T00:00:00</ISODateTimeBegin>
+    </DateTime>
+    <Agents>
+      <GatheringAgent>
+        <Person>
+          <FullName>Kusber, W.-H.</FullName>
+        </Person>
+      </GatheringAgent>
+    </Agents>
+    <LocalityText>Nikolassee, Berlin</LocalityText>
+    <Country>
+      <Name>Germany</Name>
+      <ISO3166Code>DE</ISO3166Code>
+    </Country>
+    <NamedAreas>
+      <NamedArea>
+        <AreaName language='en'>Europe</AreaName>
+      </NamedArea>
+    </NamedAreas>
+    <SiteCoordinateSets>
+      <SiteCoordinates>
+        <CoordinatesLatLong>
+          <LongitudeDecimal>13.191434</LongitudeDecimal>
+          <LatitudeDecimal>52.423798</LatitudeDecimal>
+          <CoordinateErrorDistanceInMeters>50</CoordinateErrorDistanceInMeters>
+        </CoordinatesLatLong>
+      </SiteCoordinates>
+    </SiteCoordinateSets>
+    <SiteImages>
+      <SiteImage>
+        <Context language='en'/>
+        <Comment language='en'/>
+      </SiteImage>
+    </SiteImages>
+    <Biotope>
+      <Text>Shallow lake</Text>
+    </Biotope>
+    <Altitude>
+      <MeasurementOrFactAtomised>
+        <LowerValue>400</LowerValue>
+        <UpperValue>500</UpperValue>
+      </MeasurementOrFactAtomised>
+    </Altitude>
+  </Gathering>
+  <CollectorsFieldNumber>19870413whk1</CollectorsFieldNumber>
+</Unit>

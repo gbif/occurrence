@@ -1,0 +1,9 @@
+{
+  "creator":"markus",
+  "notification_addresses": ["gbif@mailinator.com"],  
+  "predicate":{
+    "type":"equals",
+    "key":"DATASET_KEY",
+    "value":"8575f23e-f762-11e1-a439-00145eb45e9a"
+  }
+}

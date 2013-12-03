@@ -1,0 +1,11 @@
+Occurrence Persistence Service
+--------------------------------------
+This project serves as an implementation of the Occurrence Service that reads Occurrence objects from HBase. In order
+to use it you need to specify the following properties and make them available to Guice (presumably through a mvn
+profile that populates a properties file).
+
+occurrencestore.db.table_name
+occurrencestore.db.counter_table_name
+occurrencestore.db.id_lookup_table_name
+occurrencestore.db.max_connection_pool
+occurrencestore.db.zookeeper.connection_string

@@ -1,0 +1,15 @@
+<configuration>
+
+  <property name="defaultPattern" value="%-5level [%date{'yyyy-MM-dd HH:mm:ss,SSSZ'}] [%thread] %logger: %msg%n%xEx"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>${defaultPattern}</pattern>
+    </layout>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>
