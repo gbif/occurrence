@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>11</version>
+    <version>13</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -28,9 +28,15 @@
   <version>0.14-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Occurrence :: Mother POM</name>
+  <name>Occurrence</name>
   <description>Umbrella to hold all occurrence related work</description>
-  <url>http://sites.gbif.org/occurrencestore/occurrence</url>
+  <url>http://github.org/gbif/occurrence</url>
+
+  <scm>
+    <connection>scm:git:git@github.com:gbif/occurrence.git</connection>
+    <url>https://github.com/gbif/occurrence</url>
+    <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
+  </scm>
 
   <properties>
     <amqp-client.version>3.0.2</amqp-client.version>
@@ -89,30 +95,6 @@
     <yammer.version>2.2.0</yammer.version>
     <zookeeper.version>3.4.5-cdh4.2.1</zookeeper.version>
   </properties>
-
-  <scm>
-    <connection>scm:svn:http://gbif-occurrencestore.googlecode.com/svn/occurrence/trunk</connection>
-    <developerConnection>scm:svn:https://gbif-occurrencestore.googlecode.com/svn/occurrence/trunk</developerConnection>
-    <url>http://code.google.com/p/gbif-occurrencestore/source/browse/#svn/occurrence/trunk</url>
-  </scm>
-
-  <issueManagement>
-    <system>jira</system>
-    <url>http://dev.gbif.org/issues/browse/OCC</url>
-  </issueManagement>
-
-  <ciManagement>
-    <system>jenkins</system>
-    <url>http://builds.gbif.org/job/occurrence</url>
-  </ciManagement>
-
-  <distributionManagement>
-    <site>
-      <id>gbif-site</id>
-      <name>Site for the project</name>
-      <url>scp://tools.gbif.org:/var/www/html/sites/occurrencestore/occurrence</url>
-    </site>
-  </distributionManagement>
 
   <repositories>
     <repository>
