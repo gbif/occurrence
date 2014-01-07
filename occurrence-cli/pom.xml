@@ -29,30 +29,6 @@
     <zookeeper.version>3.4.5</zookeeper.version>
   </properties>
 
-  <scm>
-    <connection>scm:svn:http://gbif-occurrencestore.googlecode.com/svn/occurrence/trunk/occurrence-cli</connection>
-    <developerConnection>scm:svn:https://gbif-occurrencestore.googlecode.com/svn/occurrence/trunk/occurrence-cli</developerConnection>
-    <url>http://code.google.com/p/gbif-occurrencestore/source/browse/#svn/occurrence/trunk/occurrence-cli</url>
-  </scm>
-
-  <issueManagement>
-    <system>JIRA</system>
-    <url>http://dev.gbif.org/issues/browse/OCC</url>
-  </issueManagement>
-
-  <ciManagement>
-    <system>jenkins</system>
-    <url>http://builds.gbif.org/job/occurrence-cli</url>
-  </ciManagement>
-
-  <distributionManagement>
-    <site>
-      <id>gbif-site</id>
-      <name>Site for the project</name>
-      <url>scp://tools.gbif.org:/var/www/html/sites/occurrence/occurrence-cli</url>
-    </site>
-  </distributionManagement>
-
   <build>
     <resources>
       <resource>
