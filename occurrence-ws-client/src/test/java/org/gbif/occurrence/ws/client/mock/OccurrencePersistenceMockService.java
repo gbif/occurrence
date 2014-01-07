@@ -4,8 +4,11 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Kingdom;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.google.common.collect.Lists;
@@ -35,10 +38,12 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
 
     int ord = key % BasisOfRecord.values().length;
     occ.setBasisOfRecord(BasisOfRecord.values()[ord]);
-    occ.setOccurrenceYear(1800 + (key % 200));
+    occ.setYear(1800 + (key % 200));
     occ.setAltitude(key % 2000);
-    occ.setCatalogNumber("cat-" + key);
-    occ.setOccurrenceMonth(1 + (key % 12));
+    Map<Term, String> fields = occ.getFields();
+    fields.put(DwcTerm.catalogNumber, "cat-" + key);
+    occ.setFields(fields);
+    occ.setMonth(1 + (key % 12));
 
     ord = key % Kingdom.values().length;
     Kingdom k = Kingdom.values()[ord];

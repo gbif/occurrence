@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.13-SNAPSHOT</version>
+    <version>0.16-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-download-workflow</artifactId>
@@ -25,7 +25,7 @@
   <properties>
     <akka-actor.version>2.0.5</akka-actor.version>
     <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
-    <curator.version>2.1.0-incubating</curator.version>
+    <apache-curator.version>2.1.0-incubating</apache-curator.version>
     <freemarker.version>2.3.19</freemarker.version>
     <hive.version>0.10.0-cdh4.2.1</hive.version>
     <hbase.version>0.94.2-cdh4.2.1</hbase.version>
@@ -147,12 +147,12 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-client</artifactId>
-      <version>${curator.version}</version>
+      <version>${apache-curator.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
-      <version>${curator.version}</version>
+      <version>${apache-curator.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -268,7 +268,7 @@
       <artifactId>gbif-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.occurrence.download</groupId>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download-common</artifactId>
     </dependency>
     <dependency>

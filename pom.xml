@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>13</version>
+    <version>14</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.14-SNAPSHOT</version>
+  <version>0.16-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -52,7 +52,7 @@
     <dbunit.version>2.4.8</dbunit.version>
     <drupal-mybatis.version>0.6</drupal-mybatis.version>
     <dwc-api.version>1.5-SNAPSHOT</dwc-api.version>
-    <dwca-reader.version>1.14</dwca-reader.version>
+    <dwca-reader.version>1.16-SNAPSHOT</dwca-reader.version>
     <findbugs-jsr305.version>2.0.0</findbugs-jsr305.version>
     <gbif-api.version>0.12-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.14</gbif-common.version>
@@ -127,10 +127,10 @@
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
+    <module>occurrence-download-common</module>
     <module>occurrence-download-ws</module>
     <module>occurrence-download-ws-client</module>
     <module>occurrence-download-workflow</module>
-    <module>occurrence-download-common</module>
   </modules>
 
   <dependencyManagement>
@@ -218,7 +218,7 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.gbif.occurrence.download</groupId>
+        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-download-common</artifactId>
         <version>${project.version}</version>
       </dependency>

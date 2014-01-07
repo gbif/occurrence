@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.13-SNAPSHOT</version>
+    <version>0.16-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-processor</artifactId>
@@ -30,14 +30,6 @@
   <description>
     Takes xml/json occurrence fragments and persists them to HBase, then processes and interprets them.
   </description>
-
-  <properties>
-    <build.rpm>true</build.rpm>
-
-    <!-- for rpm building -->
-    <rpm.appname>occurrence-processor</rpm.appname>
-    <rpm.mainclass>org.gbif.occurrencestore.processor.Startup</rpm.mainclass>
-  </properties>
 
   <repositories>
     <repository>
@@ -68,17 +60,6 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-    <!-- for RPM building, fully declared in GBIF motherpom -->
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>appassembler-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
   </build>
 
   <dependencies>

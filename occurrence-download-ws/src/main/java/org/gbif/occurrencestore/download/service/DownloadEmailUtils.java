@@ -136,7 +136,8 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search filter used.
    */
   private String getHumanReadableFilter(Download download) {
-    HumanFilterBuilder filter = new HumanFilterBuilder(RESOURCES, datasetService, nameUsageService);
+    // TODO: should escapeXml be false here?
+    HumanFilterBuilder filter = new HumanFilterBuilder(RESOURCES, datasetService, nameUsageService, false);
     if (download.getRequest().getPredicate() != null) {
       StringBuilder stringBuilder = new StringBuilder();
       Map<OccurrenceSearchParameter, LinkedList<String>> params =
