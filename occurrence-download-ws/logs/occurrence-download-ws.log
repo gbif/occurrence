@@ -1,4 +1,0 @@
-INFO  [2014-01-07 14:49:55,475+0100] [main] org.gbif.occurrencestore.download.ws.resources.DownloadResource: Created new download job with key [FOO]
-WARN  [2014-01-07 14:49:55,499+0100] [main] org.gbif.occurrencestore.download.ws.resources.DownloadResource: Different user authenticated [foo] than download specifies [testuser]
-INFO  [2014-01-07 15:22:49,001+0100] [main] org.gbif.occurrencestore.download.ws.resources.DownloadResource: Created new download job with key [FOO]
-WARN  [2014-01-07 15:22:49,019+0100] [main] org.gbif.occurrencestore.download.ws.resources.DownloadResource: Different user authenticated [foo] than download specifies [testuser]
