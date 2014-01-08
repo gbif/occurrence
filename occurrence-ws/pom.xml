@@ -200,7 +200,7 @@
 
   <profiles>
     <profile>
-      <id>staging</id>
+      <id>dev</id>
       <properties>
         <occurrencestore.db.table_name>dev_occurrence</occurrencestore.db.table_name>
         <occurrencestore.db.counter_table_name>dev_occurrence_counter</occurrencestore.db.counter_table_name>
@@ -211,7 +211,7 @@
         <occurrencestore.postalservice.threadcount>10</occurrencestore.postalservice.threadcount>
         <occurrencestore.postalservice.username>staging</occurrencestore.postalservice.username>
         <occurrencestore.postalservice.password>staging</occurrencestore.postalservice.password>
-        <occurrencestore.postalservice.virtualhost>/crawler/dev</occurrencestore.postalservice.virtualhost>
+        <occurrencestore.postalservice.virtualhost>/appdev</occurrencestore.postalservice.virtualhost>
         <occurrencestore.postalservice.hostname>mq.gbif.org</occurrencestore.postalservice.hostname>
         <occurrencestore.postalservice.port>5672</occurrencestore.postalservice.port>
         <occurrencestore.processor.zookeeper.connection_string>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</occurrencestore.processor.zookeeper.connection_string>
@@ -224,8 +224,9 @@
         <registry.ws.url>http://apidev.gbif.org/</registry.ws.url>
       </properties>
     </profile>
+
     <profile>
-      <id>uat</id>
+      <id>prod</id>
       <properties>
         <occurrencestore.db.table_name>uat_occurrence</occurrencestore.db.table_name>
         <occurrencestore.db.counter_table_name>uat_occurrence_counter</occurrencestore.db.counter_table_name>
