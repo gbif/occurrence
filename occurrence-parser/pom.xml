@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.13-SNAPSHOT</version>
+    <version>0.16-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-parser</artifactId>
@@ -30,18 +30,6 @@
   <description>Parser that accepts streams of occurrence records as provided by publishers.
     In XML, using any of these schemas: DWC 1.0, DWC 1.4, ABCD 1.2, ABCD 2.06. It also handles DwCA
   </description>
-  <url>http://sites.gbif.org/occurrencestore/occurrence-parser</url>
-
-  <scm>
-    <connection>scm:svn:http://gbif-occurrencestore.googlecode.com/svn/trunk/occurrence-parser</connection>
-    <developerConnection>scm:svn:https://gbif-occurrencestore.googlecode.com/svn/trunk/occurrence-parser</developerConnection>
-    <url>http://code.google.com/p/gbif-occurrencestore/source/browse/#svn/trunk/occurrence-parser</url>
-  </scm>
-
-  <issueManagement>
-    <system>Google Code</system>
-    <url>http://code.google.com/p/gbif-occurrencestore/issues/list</url>
-  </issueManagement>
 
   <repositories>
     <repository>

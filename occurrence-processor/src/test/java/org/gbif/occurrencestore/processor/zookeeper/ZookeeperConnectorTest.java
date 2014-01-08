@@ -30,7 +30,7 @@ public class ZookeeperConnectorTest {
   @Before
   public void setUp() throws Exception {
     server = new TestingServer();
-    curator = CuratorFrameworkFactory.builder().namespace("crawler").connectString(server.getConnectString())
+    curator = CuratorFrameworkFactory.builder().namespace("crawlertest").connectString(server.getConnectString())
       .retryPolicy(new RetryNTimes(1, 1000)).build();
     curator.start();
     connector = new ZookeeperConnector(curator);

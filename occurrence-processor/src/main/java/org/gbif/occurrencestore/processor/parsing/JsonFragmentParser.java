@@ -75,7 +75,7 @@ public class JsonFragmentParser {
         .rank((String) jsonMap.get(DwcTerm.taxonRank.simpleName()))
         .kingdom((String) jsonMap.get(DwcTerm.kingdom.simpleName()))
         .phylum((String) jsonMap.get(DwcTerm.phylum.simpleName()))
-        .klass((String) jsonMap.get(DwcTerm.classs.simpleName()))
+        .klass((String) jsonMap.get(DwcTerm.class_.simpleName()))
         .order((String) jsonMap.get(DwcTerm.order.simpleName()))
         .family((String) jsonMap.get(DwcTerm.family.simpleName()))
         .genus((String) jsonMap.get(DwcTerm.genus.simpleName()))

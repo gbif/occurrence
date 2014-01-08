@@ -1,9 +1,10 @@
 /**
- * 
+ *
  */
 package org.gbif.occurrencestore.search.writers;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrencestore.util.BasisOfRecordConverter;
 
 import java.util.HashSet;
@@ -27,7 +28,6 @@ import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DATASET_K
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.GEOREFERENCED;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.MONTH;
@@ -97,18 +97,19 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     SolrInputDocument doc = new SolrInputDocument();
     final Double latitude = occurrence.getLatitude();
     final Double longitude = occurrence.getLongitude();
-    final Integer geospatialIssue = occurrence.getGeospatialIssue();
+    // TODO: geospatial issue has changed a lot
+//    final Integer geospatialIssue = occurrence.getGeospatialIssue();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
-    doc.setField(YEAR.getFieldName(), occurrence.getOccurrenceYear());
-    doc.setField(MONTH.getFieldName(), occurrence.getOccurrenceMonth());
+    doc.setField(YEAR.getFieldName(), occurrence.getYear());
+    doc.setField(MONTH.getFieldName(), occurrence.getMonth());
     doc.setField(BASIS_OF_RECORD.getFieldName(), BOR_CONVERTER.fromEnum(occurrence.getBasisOfRecord()));
-    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getCatalogNumber());
-    doc.setField(COLLECTOR_NAME.getFieldName(), occurrence.getCollectorName());
+    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
+    doc.setField(COLLECTOR_NAME.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
-    doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getHostCountry() == null ? null : occurrence
-      .getHostCountry().getIso2LetterCode());
+    doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
+      .getPublishingCountry().getIso2LetterCode());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     if (!taxonKey.isEmpty()) {
@@ -116,12 +117,12 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     }
     doc.setField(ALTITUDE.getFieldName(), occurrence.getAltitude());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
-    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getInstitutionCode());
-    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getCollectionCode());
-    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
+    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
+    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
+//    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
     doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
     doc.setField(DATE.getFieldName(),
-      occurrence.getOccurrenceDate() != null ? toDateQueryFormat(occurrence.getOccurrenceDate()) : null);
+      occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
     if (isValidCoordinate(latitude, longitude)) {
       doc.setField(COORDINATE.getFieldName(), COORD_JOINER.join(latitude, longitude));
     } else {
@@ -137,8 +138,8 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
 
     Set<Integer> taxonKey = new HashSet<Integer>();
 
-    if (occurrence.getNubKey() != null) {
-      taxonKey.add(occurrence.getNubKey());
+    if (occurrence.getTaxonKey() != null) {
+      taxonKey.add(occurrence.getTaxonKey());
     }
 
     if (occurrence.getKingdomKey() != null) {

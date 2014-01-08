@@ -1,13 +1,12 @@
 package org.gbif.occurrence.download.util;
 
-import org.gbif.dwc.terms.ConceptTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrencestore.common.model.constants.FieldName;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.CaseFormat;
@@ -39,7 +38,7 @@ public class HiveFieldUtil {
     FieldName.MONTH, FieldName.DAY, FieldName.BASIS_OF_RECORD, FieldName.IDENTIFIER_NAME,
     FieldName.IDENTIFICATION_DATE, FieldName.CREATED, FieldName.MODIFIED);
 
-  private static final Map<FieldName, ConceptTerm> NAME_MAP = ImmutableMap.<FieldName, ConceptTerm>builder()
+  private static final Map<FieldName, Term> NAME_MAP = ImmutableMap.<FieldName, Term>builder()
     .put(FieldName.ID, DwcTerm.occurrenceID)
     .put(FieldName.DATASET_KEY, DwcTerm.datasetID)
     .put(FieldName.INSTITUTION_CODE, DwcTerm.institutionCode)
@@ -49,7 +48,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_SCIENTIFIC_NAME, DwcTerm.scientificName)
     .put(FieldName.I_KINGDOM, DwcTerm.kingdom)
     .put(FieldName.I_PHYLUM, DwcTerm.phylum)
-    .put(FieldName.I_CLASS, DwcTerm.classs)
+    .put(FieldName.I_CLASS, DwcTerm.class_)
     .put(FieldName.I_ORDER, DwcTerm.order)
     .put(FieldName.I_FAMILY, DwcTerm.family)
     .put(FieldName.I_GENUS, DwcTerm.genus)
@@ -120,9 +119,9 @@ public class HiveFieldUtil {
    */
   private static final Map<FieldName, String> HIVE_MAP = new ImmutableMap.Builder<FieldName, String>()
     .put(FieldName.HOST_COUNTRY, "host_country").putAll(Maps.transformEntries(NAME_MAP,
-      new Maps.EntryTransformer<FieldName, ConceptTerm, String>() {
+      new Maps.EntryTransformer<FieldName, Term, String>() {
 
-        public String transformEntry(@NotNull FieldName key, @NotNull ConceptTerm value) {
+        public String transformEntry(@NotNull FieldName key, @NotNull Term value) {
           switch (key) {
             case ID:
               return "id";
@@ -166,7 +165,7 @@ public class HiveFieldUtil {
   /**
    * @return the concept term enum for an hbase field
    */
-  public static ConceptTerm getTerm(FieldName field) {
+  public static Term getTerm(FieldName field) {
     return NAME_MAP.get(field);
   }
 

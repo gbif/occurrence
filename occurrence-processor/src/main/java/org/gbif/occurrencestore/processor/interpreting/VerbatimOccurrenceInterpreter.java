@@ -59,9 +59,9 @@ public class VerbatimOccurrenceInterpreter {
 
     try {
       ExecutorService threadPool = Executors.newFixedThreadPool(3);
-      Future coordFuture = threadPool.submit(new CoordBasedInterpreter(verbatim, occ));
-      Future taxonomyFuture = threadPool.submit(new TaxonomyInterpreter(verbatim, occ));
-      Future hostCountryFuture = threadPool.submit(new OwningOrgInterpreter(occ));
+      Future<?> coordFuture = threadPool.submit(new CoordBasedInterpreter(verbatim, occ));
+      Future<?> taxonomyFuture = threadPool.submit(new TaxonomyInterpreter(verbatim, occ));
+      Future<?> hostCountryFuture = threadPool.submit(new OwningOrgInterpreter(occ));
       threadPool.shutdown();
 
       interpretAltitude(verbatim, occ);
@@ -71,9 +71,6 @@ public class VerbatimOccurrenceInterpreter {
       interpretDate(verbatim, occ);
 
       interpretDepth(verbatim, occ);
-
-      // for backwards compatibility
-      occ.setTaxonomicIssue(0);
 
       // TODO: if any errors, update messages
       //   possible errors:
@@ -138,9 +135,9 @@ public class VerbatimOccurrenceInterpreter {
     if (dateResult == null) {
       LOG.debug("Got date [null]");
     } else {
-      occ.setOccurrenceDate(dateResult.getDate());
-      occ.setOccurrenceMonth(dateResult.getMonth());
-      occ.setOccurrenceYear(dateResult.getYear());
+      occ.setEventDate(dateResult.getDate());
+      occ.setMonth(dateResult.getMonth());
+      occ.setYear(dateResult.getYear());
       LOG.debug("Got date [{}] month [{}] year [{}]",
         dateResult.getDate() == null ? "null" : dateResult.getDate().toString(),
         dateResult.getMonth() == null ? "null" : dateResult.getMonth().toString(),
@@ -167,23 +164,23 @@ public class VerbatimOccurrenceInterpreter {
   private Occurrence occurrenceFrom(VerbatimOccurrence verbatim) {
     Occurrence occ = new Occurrence();
     occ.setKey(verbatim.getKey());
-    occ.setInstitutionCode(verbatim.getInstitutionCode());
-    occ.setCollectionCode(verbatim.getCollectionCode());
-    occ.setCatalogNumber(verbatim.getCatalogNumber());
-    occ.setUnitQualifier(verbatim.getUnitQualifier());
+//    occ.setInstitutionCode(verbatim.getInstitutionCode());
+//    occ.setCollectionCode(verbatim.getCollectionCode());
+//    occ.setCatalogNumber(verbatim.getCatalogNumber());
+//    occ.setUnitQualifier(verbatim.getUnitQualifier());
     occ.setDatasetKey(verbatim.getDatasetKey());
     occ.setProtocol(verbatim.getProtocol());
 
     // these are the as-yet uninterpreted fields
-    occ.setCollectorName(verbatim.getCollectorName());
-    occ.setContinent(verbatim.getContinentOrOcean());
-    occ.setCounty(verbatim.getCounty());
-    occ.setDataProviderId(verbatim.getDataProviderId());
-    occ.setDataResourceId(verbatim.getDataResourceId());
-    occ.setIdentifierName(verbatim.getIdentifierName());
-    occ.setLocality(verbatim.getLocality());
-    occ.setOwningOrgKey(verbatim.getOwningOrgKey());
-    occ.setResourceAccessPointId(verbatim.getResourceAccessPointId());
+//    occ.setCollectorName(verbatim.getCollectorName());
+//    occ.setContinent(verbatim.getContinentOrOcean());
+//    occ.setCounty(verbatim.getCounty());
+//    occ.setDataProviderId(verbatim.getDataProviderId());
+//    occ.setDataResourceId(verbatim.getDataResourceId());
+//    occ.setIdentifierName(verbatim.getIdentifierName());
+//    occ.setLocality(verbatim.getLocality());
+//    occ.setOwningOrgKey(verbatim.getOwningOrgKey());
+//    occ.setResourceAccessPointId(verbatim.getResourceAccessPointId());
     occ.setStateProvince(verbatim.getStateOrProvince());
 
     return occ;

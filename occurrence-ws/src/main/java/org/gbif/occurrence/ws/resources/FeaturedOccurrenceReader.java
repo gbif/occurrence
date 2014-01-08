@@ -76,8 +76,11 @@ public class FeaturedOccurrenceReader {
       LOG.debug("No featured occurrence record found for key: {}", occurrenceIds[randomIndex]);
     } else {
       // filter for only good ones
-      if (occ.getScientificName() != null && occ.getLatitude() != null && occ.getLongitude() != null
-        && occ.getGeospatialIssue() == 0 && occ.getOwningOrgKey() != null) {
+//      if (occ.getScientificName() != null && occ.getLatitude() != null && occ.getLongitude() != null
+//        && occ.getGeospatialIssue() == 0 && occ.getPublishingOrgKey() != null) {
+      // TODO geospatial issue has changed
+        if (occ.getScientificName() != null && occ.getLatitude() != null && occ.getLongitude() != null
+            && occ.getPublishingOrgKey() != null) {
         results.add(occ);
       }
     }
@@ -92,13 +95,13 @@ public class FeaturedOccurrenceReader {
     Map<UUID, Organization> orgCache = Maps.newHashMap(); // reduce registry calls
     for (Occurrence o : results) {
       try {
-        Organization org = orgCache.get(o.getOwningOrgKey());
+        Organization org = orgCache.get(o.getPublishingOrgKey());
         if (org == null) {
-          org = organizationService.get(o.getOwningOrgKey());
+          org = organizationService.get(o.getPublishingOrgKey());
           if (org!=null) {
             orgCache.put(org.getKey(), org);
           } else {
-            LOG.warn("Suspicious that registry reports no org["+ o.getOwningOrgKey() +"] for occurrence[" + o.getKey() + "]");
+            LOG.warn("Suspicious that registry reports no org["+ o.getPublishingOrgKey() +"] for occurrence[" + o.getKey() + "]");
             registryFailures.mark(); // not communication, but still erroneous
             continue;
           }
@@ -109,7 +112,7 @@ public class FeaturedOccurrenceReader {
         }
       } catch (Exception e) {
         registryFailures.mark();
-        LOG.error("Unable to read organizaton[{}] from registry", o.getOwningOrgKey(), e);
+        LOG.error("Unable to read organizaton[{}] from registry", o.getPublishingOrgKey(), e);
       }
     }
     return featured;

@@ -26,18 +26,19 @@ public class OwningOrgInterpreter implements Runnable {
   public void run() {
     Organization org = OrganizationLookup.getOrgByDataset(occ.getDatasetKey());
     // update the occurrence's owning org if it's empty or out of sync
-    if (org != null && !org.getKey().equals(occ.getOwningOrgKey())) {
-      occ.setOwningOrgKey(org.getKey());
+
+    if (org != null && !org.getKey().equals(occ.getPublishingOrgKey())) {
+      occ.setPublishingOrgKey(org.getKey());
     }
 
-    if (occ.getOwningOrgKey() == null) {
+    if (occ.getPublishingOrgKey() == null) {
       LOG.info("Couldn't find owning org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
     } else {
-      Country country = OrganizationLookup.getOrgCountry(occ.getOwningOrgKey());
+      Country country = OrganizationLookup.getOrgCountry(occ.getPublishingOrgKey());
       if (country == null) {
-        LOG.info("Couldn't find country for owning org [{}]", occ.getOwningOrgKey());
+        LOG.info("Couldn't find country for owning org [{}]", occ.getPublishingOrgKey());
       } else {
-        occ.setHostCountry(country);
+        occ.setPublishingCountry(country);
       }
     }
   }

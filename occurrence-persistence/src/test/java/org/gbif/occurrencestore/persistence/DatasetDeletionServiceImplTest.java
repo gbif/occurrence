@@ -1,6 +1,5 @@
 package org.gbif.occurrencestore.persistence;
 
-import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.occurrencestore.common.model.HolyTriplet;
 import org.gbif.occurrencestore.common.model.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrencestore.common.model.UniqueIdentifier;
@@ -25,14 +24,13 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109 - also broken!")
+//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class DatasetDeletionServiceImplTest {
 
   private static final String TABLE_NAME = "occurrence_test";
@@ -109,35 +107,34 @@ public class DatasetDeletionServiceImplTest {
     fragmentService.insert(fragment, uniqueIds);
 
     // for dataResource
-    uniqueIds = Sets.newHashSet();
-    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn1", null));
-    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def1"));
-    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-    fragmentService.insert(fragment, uniqueIds);
-    Occurrence occ = occurrenceService.get(fragment.getKey());
-    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-    occurrenceService.update(occ);
-
-    uniqueIds = Sets.newHashSet();
-    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn2", null));
-    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def2"));
-    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-    fragmentService.insert(fragment, uniqueIds);
-    occ = occurrenceService.get(fragment.getKey());
-    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-    occurrenceService.update(occ);
-
-    uniqueIds = Sets.newHashSet();
-    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn3", null));
-    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def3"));
-    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-    fragmentService.insert(fragment, uniqueIds);
-    occ = occurrenceService.get(fragment.getKey());
-    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-    occurrenceService.update(occ);
+//    uniqueIds = Sets.newHashSet();
+//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn1", null));
+//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def1"));
+//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
+//    fragmentService.insert(fragment, uniqueIds);
+//    Occurrence occ = occurrenceService.get(fragment.getKey());
+//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
+//    occurrenceService.update(occ);
+//
+//    uniqueIds = Sets.newHashSet();
+//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn2", null));
+//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def2"));
+//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
+//    fragmentService.insert(fragment, uniqueIds);
+//    occ = occurrenceService.get(fragment.getKey());
+//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
+//    occurrenceService.update(occ);
+//
+//    uniqueIds = Sets.newHashSet();
+//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn3", null));
+//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def3"));
+//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
+//    fragmentService.insert(fragment, uniqueIds);
+//    occ = occurrenceService.get(fragment.getKey());
+//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
+//    occurrenceService.update(occ);
   }
 
-  // TODO: broken!
   @Test
   public void testDatasetKeyExists() {
     Iterator<Integer> iterator =
@@ -171,43 +168,6 @@ public class DatasetDeletionServiceImplTest {
     deletionService.deleteDataset(datasetKey);
 
     iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), FieldName.DATASET_KEY);
-    assertFalse(iterator.hasNext());
-  }
-
-  // TODO: broken!
-  @Test
-  public void testDataResourceExists() {
-    Iterator<Integer> iterator =
-      occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATA_RESOURCE_ID), FieldName.DATA_RESOURCE_ID);
-    int count = 0;
-    while (iterator.hasNext()) {
-      iterator.next();
-      count++;
-    }
-    assertEquals(3, count);
-    PublisherProvidedUniqueIdentifier uniqueId = new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def2");
-    Set<UniqueIdentifier> uniqueIdentifiers = Sets.newHashSet();
-    uniqueIdentifiers.add(uniqueId);
-    KeyLookupResult result = occurrenceKeyService.findKey(uniqueIdentifiers);
-    assertEquals(5, result.getKey());
-    deletionService.deleteDataResource(GOOD_DATA_RESOURCE_ID);
-
-    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATA_RESOURCE_ID), FieldName.DATA_RESOURCE_ID);
-    assertFalse(iterator.hasNext());
-
-    result = occurrenceKeyService.findKey(uniqueIdentifiers);
-    assertNull(result);
-  }
-
-  @Test
-  public void testDataResourceDoesntExist() {
-    int fakeId = 234;
-    Iterator<Integer> iterator =
-      occurrenceService.getKeysByColumn(Bytes.toBytes(fakeId), FieldName.DATA_RESOURCE_ID);
-    assertFalse(iterator.hasNext());
-    deletionService.deleteDataResource(fakeId);
-
-    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(fakeId), FieldName.DATA_RESOURCE_ID);
     assertFalse(iterator.hasNext());
   }
 }

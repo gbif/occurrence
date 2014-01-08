@@ -34,7 +34,7 @@ public class TaxonomyInterpreter implements Runnable {
     if (nubLookup == null) {
       LOG.debug("Got null nubLookup for sci name [{}]", occ.getScientificName());
     } else {
-      occ.setNubKey(nubLookup.getUsageKey());
+      occ.setTaxonKey(nubLookup.getUsageKey());
       occ.setKingdomKey(nubLookup.getKingdomKey());
       occ.setPhylumKey(nubLookup.getPhylumKey());
       occ.setClassKey(nubLookup.getClassKey());

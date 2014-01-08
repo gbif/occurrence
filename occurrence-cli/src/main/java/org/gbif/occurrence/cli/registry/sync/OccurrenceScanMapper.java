@@ -129,8 +129,8 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       Occurrence origOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
       // we have no clone or other easy copy method
       Occurrence updatedOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
-      updatedOcc.setOwningOrgKey(owningOrg.getKey());
-      updatedOcc.setHostCountry(owningOrg.getCountry());
+      updatedOcc.setPublishingOrgKey(owningOrg.getKey());
+      updatedOcc.setPublishingCountry(owningOrg.getCountry());
       OCCURRENCE_PERSISTENCE_SERVICE.update(updatedOcc);
 
       int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));
@@ -139,8 +139,8 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
 
       try {
         LOG.info("Sending update for key [{}], owning org changed from [{}] to [{}] and host country from [{}] to [{}]",
-          datasetKey, origOcc.getOwningOrgKey(), updatedOcc.getOwningOrgKey(), origOcc.getHostCountry(),
-          updatedOcc.getHostCountry());
+          datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
+          updatedOcc.getPublishingCountry());
         MESSAGE_PUBLISHER.send(msg);
       } catch (IOException e) {
         LOG.warn("Failed to send update message", e);

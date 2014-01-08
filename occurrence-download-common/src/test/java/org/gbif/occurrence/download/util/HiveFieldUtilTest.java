@@ -45,7 +45,7 @@ public class HiveFieldUtilTest {
     assertEquals(GbifTerm.verbatimBasisOfRecord, HiveFieldUtil.getTerm(FieldName.BASIS_OF_RECORD));
     assertEquals(GbifTerm.verbatimClass, HiveFieldUtil.getTerm(FieldName.CLASS));
     assertEquals(GbifTerm.verbatimOrder, HiveFieldUtil.getTerm(FieldName.ORDER));
-    assertEquals(DwcTerm.classs, HiveFieldUtil.getTerm(FieldName.I_CLASS));
+    assertEquals(DwcTerm.class_, HiveFieldUtil.getTerm(FieldName.I_CLASS));
     assertEquals(DwcTerm.order, HiveFieldUtil.getTerm(FieldName.I_ORDER));
     assertEquals(DwcTerm.taxonID, HiveFieldUtil.getTerm(FieldName.I_NUB_ID));
     assertEquals(GbifTerm.unitQualifier, HiveFieldUtil.getTerm(FieldName.UNIT_QUALIFIER));
