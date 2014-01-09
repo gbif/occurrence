@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrencestore.common.model.constants.FieldName;
 import org.gbif.occurrencestore.persistence.OccurrenceResultReader;
@@ -17,7 +18,6 @@ import org.gbif.occurrencestore.util.BasisOfRecordConverter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -113,35 +113,34 @@ public class OccurrenceBuilder {
       occ.setKey(key);
       occ.setAltitude(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE));
       occ.setBasisOfRecord(BOR_CONVERTER.toEnum(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD)));
-//      occ.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
+      occ.setField(DwcTerm.catalogNumber, OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
       occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_ID));
       occ.setClazz(OccurrenceResultReader.getString(row, FieldName.I_CLASS));
-//      occ.setCollectionCode(OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE));
-//      occ.setDataProviderId(OccurrenceResultReader.getInteger(row, FieldName.DATA_PROVIDER_ID));
-//      occ.setDataResourceId(OccurrenceResultReader.getInteger(row, FieldName.DATA_RESOURCE_ID));
+      occ.setField(DwcTerm.collectionCode, OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE));
       occ.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
       occ.setDepth(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH));
-//      occ.setOccurrenceId(OccurrenceResultReader.getString(row, FieldName.DWC_OCCURRENCE_ID));
+      occ.setField(DwcTerm.occurrenceID, OccurrenceResultReader.getString(row, FieldName.DWC_OCCURRENCE_ID));
       occ.setFamily(OccurrenceResultReader.getString(row, FieldName.I_FAMILY));
       occ.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID));
       occ.setGenus(OccurrenceResultReader.getString(row, FieldName.I_GENUS));
       occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
+      // TODO: how to deal with geospatial issues pre schema change?
 //      occ.setGeospatialIssue(OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE));
-//      occ.setHostCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.HOST_COUNTRY)));
-//      occ.setInstitutionCode(OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
+      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.HOST_COUNTRY)));
+      occ.setField(DwcTerm.institutionCode,OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
       occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));
       occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID));
       occ.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
       occ.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
       occ.setModified(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED));
-//      occ.setOccurrenceMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-//      occ.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID));
-//      occ.setOccurrenceDate(OccurrenceResultReader.getDate(row, FieldName.I_OCCURRENCE_DATE));
+      occ.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
+      occ.setTaxonKey(OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID));
+      occ.setEventDate(OccurrenceResultReader.getDate(row, FieldName.I_OCCURRENCE_DATE));
       occ.setOrder(OccurrenceResultReader.getString(row, FieldName.I_ORDER));
       occ.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID));
-//      occ.setOtherIssue(OccurrenceResultReader.getInteger(row, FieldName.I_OTHER_ISSUE));
-//      occ.setOwningOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
+      // TODO: how to deal with other issue pre schema change (only have null, 0, and 8 in current data)
+      occ.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
       occ.setPhylum(OccurrenceResultReader.getString(row, FieldName.I_PHYLUM));
       occ.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID));
       String rawEndpointType = OccurrenceResultReader.getString(row, FieldName.PROTOCOL);
@@ -151,19 +150,19 @@ public class OccurrenceBuilder {
         EndpointType endpointType = EndpointType.valueOf(rawEndpointType);
         occ.setProtocol(endpointType);
       }
-//      occ.setResourceAccessPointId(OccurrenceResultReader.getInteger(row, FieldName.RESOURCE_ACCESS_POINT_ID));
       occ.setScientificName(OccurrenceResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME));
       occ.setSpecies(OccurrenceResultReader.getString(row, FieldName.I_SPECIES));
       occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
-//      occ.setTaxonomicIssue(OccurrenceResultReader.getInteger(row, FieldName.I_TAXONOMIC_ISSUE));
+      // TODO: where does unit qualifier go now?
 //      occ.setUnitQualifier(OccurrenceResultReader.getString(row, FieldName.UNIT_QUALIFIER));
-//      occ.setOccurrenceYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
-//      occ.setLocality(OccurrenceResultReader.getString(row, FieldName.LOCALITY));
-//      occ.setCounty(OccurrenceResultReader.getString(row, FieldName.COUNTY));
+      occ.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
+      occ.setField(DwcTerm.locality, OccurrenceResultReader.getString(row, FieldName.LOCALITY));
+      occ.setField(DwcTerm.county, OccurrenceResultReader.getString(row, FieldName.COUNTY));
       occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.STATE_PROVINCE));
+      // TODO: interpret continent into a new column
 //      occ.setContinent(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN)); // no enums in hbase
-//      occ.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-//      occ.setIdentifierName(OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
+      occ.setField(DwcTerm.recordedBy, OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
+      occ.setField(DwcTerm.identifiedBy, OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
       occ.setIdentificationDate(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
       occ.setIdentifiers(extractIdentifiers(key, row, HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY));
       return occ;

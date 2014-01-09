@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrencestore.common.model.constants.FieldName;
 import org.gbif.occurrencestore.persistence.constants.HBaseTableConstants;
 import org.gbif.occurrencestore.persistence.hbase.HBaseFieldUtil;
@@ -80,15 +81,13 @@ public class OccurrencePersistenceServiceImplTest {
   private static final String ORDER = "Carnivora";
   private static final int ORDER_ID = 8973;
   private static final int OTHER = 3;
-  private static final UUID OWNING_ORG_KEY = UUID.randomUUID();
+  private static final UUID PUBLISHING_ORG_KEY = UUID.randomUUID();
   private static final String PHYLUM = "Chordata";
   private static final int PHYLUM_ID = 23;
   private static final EndpointType PROTOCOL = EndpointType.BIOCASE;
-  private static final int RAPI = 21345;
   private static final String SCI_NAME = "Panthera onca (Linnaeus, 1758)";
   private static final String SPECIES = "Onca";
   private static final int SPECIES_ID = 1425;
-  private static final int TAX_ISSUE = 2;
   private static final String UNIT_QUALIFIER = "Panthera onca (Linnaeus, 1758)";
   private static final int YEAR = 1972;
 
@@ -121,52 +120,51 @@ public class OccurrencePersistenceServiceImplTest {
 
     assertEquals((Integer) ALT, occ.getAltitude());
     assertEquals(BOR, occ.getBasisOfRecord());
-//    assertEquals(CAT, occ.getCatalogNumber());
+    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
     assertEquals((Integer) CLASS_ID, occ.getClassKey());
     assertEquals(CLASS, occ.getClazz());
-//    assertEquals(COL_CODE, occ.getCollectionCode());
-//    assertEquals((Integer) DPI, occ.getDataProviderId());
-//    assertEquals((Integer) DRI, occ.getDataResourceId());
+    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
     assertEquals(DATASET_KEY, occ.getDatasetKey());
     assertEquals((Integer) DEPTH, occ.getDepth());
-//    assertEquals(DWC_ID, occ.getOccurrenceId());
+    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
     assertEquals(FAMILY, occ.getFamily());
     assertEquals((Integer) FAMILY_ID, occ.getFamilyKey());
     assertEquals(GENUS, occ.getGenus());
     assertEquals((Integer) GENUS_ID, occ.getGenusKey());
+    // TODO: geospatial issue
 //    assertEquals((Integer) GEO, occ.getGeospatialIssue());
-//    assertEquals(HOST_COUNTRY, occ.getHostCountry());
-//    assertEquals(INST_CODE, occ.getInstitutionCode());
+    assertEquals(HOST_COUNTRY, occ.getPublishingCountry());
+    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
     assertEquals(ISO, occ.getCountry());
     assertEquals(KINGDOM, occ.getKingdom());
     assertEquals((Integer) KINGDOM_ID, occ.getKingdomKey());
     assertEquals(LAT, occ.getLatitude(), 0.0001);
     assertEquals(LNG, occ.getLongitude(), 0.0001);
     assertEquals(MOD, occ.getModified());
-//    assertEquals((Integer) MONTH, occ.getOccurrenceMonth());
-//    assertEquals((Integer) NUB_ID, occ.getNubKey());
-//    assertEquals(OCC_DATE, occ.getOccurrenceDate());
+    assertEquals((Integer) MONTH, occ.getMonth());
+    assertEquals((Integer) NUB_ID, occ.getTaxonKey());
+    assertEquals(OCC_DATE, occ.getEventDate());
     assertEquals(ORDER, occ.getOrder());
     assertEquals((Integer) ORDER_ID, occ.getOrderKey());
 //    assertEquals((Integer) OTHER, occ.getOtherIssue());
-//    assertEquals(OWNING_ORG_KEY, occ.getOwningOrgKey());
+    assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
     assertEquals(PHYLUM, occ.getPhylum());
     assertEquals((Integer) PHYLUM_ID, occ.getPhylumKey());
     assertEquals(PROTOCOL, occ.getProtocol());
-//    assertEquals((Integer) RAPI, occ.getResourceAccessPointId());
     assertEquals(SCI_NAME, occ.getScientificName());
     assertEquals(SPECIES, occ.getSpecies());
     assertEquals((Integer) SPECIES_ID, occ.getSpeciesKey());
-//    assertEquals((Integer) TAX_ISSUE, occ.getTaxonomicIssue());
+    // TODO: unit qualifier
 //    assertEquals(UNIT_QUALIFIER, occ.getUnitQualifier());
-//    assertEquals((Integer) YEAR, occ.getOccurrenceYear());
+    assertEquals((Integer) YEAR, occ.getYear());
 
+    // TODO: continent
 //    assertEquals(CONTINENT, occ.getContinent());
     assertEquals(STATE, occ.getStateProvince());
-//    assertEquals(COUNTY, occ.getCounty());
-//    assertEquals(LOCALITY, occ.getLocality());
-//    assertEquals(COLLECTOR_NAME, occ.getCollectorName());
-//    assertEquals(IDENTIFIER_NAME, occ.getIdentifierName());
+    assertEquals(COUNTY, occ.getField(DwcTerm.county));
+    assertEquals(LOCALITY, occ.getField(DwcTerm.locality));
+    assertEquals(COLLECTOR_NAME, occ.getField(DwcTerm.recordedBy));
+    assertEquals(IDENTIFIER_NAME, occ.getField(DwcTerm.identifiedBy));
   }
 
   @Before
@@ -188,11 +186,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_ID).getColumnName()),
       Bytes.toBytes(CLASS_ID));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS).getColumnName()), Bytes.toBytes(CLASS));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_PROVIDER_ID).getColumnName()),
-      Bytes.toBytes(DPI));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_RESOURCE_ID).getColumnName()),
-      Bytes.toBytes(DRI));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+        put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
       Bytes.toBytes(DATASET_KEY.toString()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DEPTH).getColumnName()), Bytes.toBytes(DEPTH));
     put
@@ -242,23 +236,19 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OTHER_ISSUE).getColumnName()),
       Bytes.toBytes(OTHER));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.OWNING_ORG_KEY).getColumnName()),
-      Bytes.toBytes(OWNING_ORG_KEY.toString()));
+      Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
     put
       .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM).getColumnName()), Bytes.toBytes(PHYLUM));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM_ID).getColumnName()),
       Bytes.toBytes(PHYLUM_ID));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PROTOCOL).getColumnName()),
       Bytes.toBytes(PROTOCOL.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.RESOURCE_ACCESS_POINT_ID).getColumnName()),
-      Bytes.toBytes(RAPI));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SCIENTIFIC_NAME).getColumnName()),
       Bytes.toBytes(SCI_NAME));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES).getColumnName()),
       Bytes.toBytes(SPECIES));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES_ID).getColumnName()),
       Bytes.toBytes(SPECIES_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXONOMIC_ISSUE).getColumnName()),
-      Bytes.toBytes(TAX_ISSUE));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()), Bytes.toBytes(YEAR));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
       Bytes.toBytes(UNIT_QUALIFIER));
@@ -427,7 +417,7 @@ public class OccurrencePersistenceServiceImplTest {
     String genus = "Trillium";
     int genusId = 7878;
     int geo = 0;
-    Country hostCountry = Country.ALBANIA;
+    Country publishingCountry = Country.ALBANIA;
     Country iso = Country.CANADA;
     String kingdom = "Plantae";
     int kingdomId = 2;
@@ -461,27 +451,26 @@ public class OccurrencePersistenceServiceImplTest {
     update.setGenusKey(genusId);
 //    update.setGeospatialIssue(geo);
     update.setCountry(iso);
-//    update.setHostCountry(hostCountry);
     update.setKingdom(kingdom);
     update.setKingdomKey(kingdomId);
     update.setLatitude(lat);
     update.setLongitude(lng);
     update.setModified(mod);
-//    update.setOccurrenceMonth(month);
-//    update.setNubKey(nubId);
-//    update.setOccurrenceDate(occDate);
+    update.setMonth(month);
+    update.setTaxonKey(nubId);
+    update.setEventDate(occDate);
     update.setOrder(order);
     update.setOrderKey(orderId);
 //    update.setOtherIssue(other);
     update.setPhylum(phylum);
     update.setPhylumKey(phylumId);
     update.setProtocol(protocol);
+    update.setPublishingCountry(publishingCountry);
     update.setScientificName(sciName);
     update.setSpecies(species);
     update.setSpeciesKey(speciesId);
-//    update.setTaxonomicIssue(taxIssue);
 //    update.setUnitQualifier(unitQualifier);
-//    update.setOccurrenceYear(year);
+    update.setYear(year);
 
     String id0 = "http://www.ala.org.au";
     IdentifierType idType0 = IdentifierType.GBIF_NODE;
@@ -498,50 +487,46 @@ public class OccurrencePersistenceServiceImplTest {
     Assert.assertNotNull(occ);
     assertTrue(alt == occ.getAltitude());
     assertEquals(bor, occ.getBasisOfRecord());
-//    assertEquals(CAT, occ.getCatalogNumber());
+    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
     assertTrue(classId == occ.getClassKey());
     assertEquals(clazz, occ.getClazz());
-//    assertEquals(COL_CODE, occ.getCollectionCode());
-//    assertTrue(DPI == occ.getDataProviderId());
-//    assertTrue(DRI == occ.getDataResourceId());
+    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
     assertEquals(DATASET_KEY, occ.getDatasetKey());
     assertTrue(depth == occ.getDepth());
-//    assertEquals(DWC_ID, occ.getOccurrenceId());
+    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
     assertEquals(family, occ.getFamily());
     assertTrue(familyId == occ.getFamilyKey());
     assertEquals(genus, occ.getGenus());
     assertTrue(genusId == occ.getGenusKey());
 //    assertTrue(geo == occ.getGeospatialIssue());
-//    assertEquals(hostCountry, occ.getHostCountry());
+    assertEquals(publishingCountry, occ.getPublishingCountry());
     assertTrue(update.getKey().intValue() == occ.getKey().intValue());
     assertEquals(1, occ.getIdentifiers().size());
     Identifier updatedRecord = occ.getIdentifiers().iterator().next();
     assertTrue(id0.equals(updatedRecord.getIdentifier()));
     assertEquals(idType0, updatedRecord.getType());
-//    assertEquals(INST_CODE, occ.getInstitutionCode());
+    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
     assertEquals(iso, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertTrue(kingdomId == occ.getKingdomKey());
     assertEquals(lat, occ.getLatitude(), 0.0001);
     assertEquals(lng, occ.getLongitude(), 0.0001);
     assertEquals(mod, occ.getModified());
-//    assertTrue(month == occ.getOccurrenceMonth());
-//    assertTrue(nubId == occ.getNubKey());
-//    assertEquals(occDate, occ.getOccurrenceDate());
+    assertTrue(month == occ.getMonth());
+    assertTrue(nubId == occ.getTaxonKey());
+    assertEquals(occDate, occ.getEventDate());
     assertEquals(order, occ.getOrder());
     assertTrue(orderId == occ.getOrderKey());
 //    assertTrue(other == occ.getOtherIssue());
-//    assertEquals(OWNING_ORG_KEY, occ.getOwningOrgKey());
+    assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
     assertEquals(protocol, occ.getProtocol());
     assertEquals(phylum, occ.getPhylum());
     assertTrue(phylumId == occ.getPhylumKey());
-//    assertTrue(RAPI == occ.getResourceAccessPointId());
     assertTrue(sciName.equals(occ.getScientificName()));
     assertEquals(species, occ.getSpecies());
     assertTrue(speciesId == occ.getSpeciesKey());
-//    assertTrue(taxIssue == occ.getTaxonomicIssue());
 //    assertEquals(unitQualifier, occ.getUnitQualifier());
-//    assertTrue(year == occ.getOccurrenceYear());
+    assertTrue(year == occ.getYear());
   }
 
   @Test
