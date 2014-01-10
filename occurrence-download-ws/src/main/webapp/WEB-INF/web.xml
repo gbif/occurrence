@@ -21,7 +21,7 @@
   <display-name>Occurrence Download Web service</display-name>
 
   <listener>
-    <listener-class>org.gbif.occurrencestore.download.ws.OccurrenceDownloadServiceListener</listener-class>
+    <listener-class>org.gbif.occurrence.download.ws.OccurrenceDownloadServiceListener</listener-class>
   </listener>
   <filter>
     <filter-name>Guice Filter</filter-name>

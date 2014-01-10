@@ -6,6 +6,6 @@ both CoordinateInterpreter and NubLookupInterpreter use live webservices.
 
 Your maven profile needs to specify the following properties (shown with typical example services):
 
-<occurrencestore.registry.ws.url>http://crawler.gbif.org:8080/registry-ws/</occurrencestore.registry.ws.url>
-<occurrencestore.nub.ws.url>http://apidev.gbif.org/lookup/name_usage/</occurrencestore.nub.ws.url>
-<occurrencestore.geo.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</occurrencestore.geo.ws.url>
+<occurrence.registry.ws.url>http://crawler.gbif.org:8080/registry-ws/</occurrence.registry.ws.url>
+<occurrence.nub.ws.url>http://apidev.gbif.org/lookup/name_usage/</occurrence.nub.ws.url>
+<occurrence.geo.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</occurrence.geo.ws.url>

@@ -2,19 +2,19 @@ package org.gbif.occurrence.cli;
 
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
-import org.gbif.occurrencestore.persistence.FragmentPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.OccurrenceKeyPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.VerbatimOccurrencePersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrencestore.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrencestore.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrencestore.persistence.api.VerbatimOccurrencePersistenceService;
-import org.gbif.occurrencestore.persistence.keygen.HBaseLockingKeyService;
-import org.gbif.occurrencestore.processor.InterpretedProcessor;
-import org.gbif.occurrencestore.processor.interpreting.VerbatimOccurrenceInterpreter;
-import org.gbif.occurrencestore.processor.messaging.VerbatimPersistedListener;
-import org.gbif.occurrencestore.processor.zookeeper.ZookeeperConnector;
+import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
+import org.gbif.occurrence.processor.InterpretedProcessor;
+import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
+import org.gbif.occurrence.processor.messaging.VerbatimPersistedListener;
+import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Collection;
 

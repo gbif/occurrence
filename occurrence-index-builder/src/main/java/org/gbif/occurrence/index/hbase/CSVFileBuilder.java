@@ -1,7 +1,7 @@
 package org.gbif.occurrence.index.hbase;
 
-import org.gbif.occurrencestore.common.model.constants.FieldName;
-import org.gbif.occurrencestore.persistence.OccurrenceResultReader;
+import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.OccurrenceResultReader;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class CSVFileBuilder {
 
   /**
    * Default constructor.
-   * 
+   *
    * @param props configuration properties
    */
   public CSVFileBuilder(Properties props) {
@@ -50,7 +50,7 @@ public class CSVFileBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static List<String> buildOccurrenceLine(@Nullable Result row) {

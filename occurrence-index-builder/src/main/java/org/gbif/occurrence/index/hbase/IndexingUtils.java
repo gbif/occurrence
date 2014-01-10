@@ -1,9 +1,9 @@
 package org.gbif.occurrence.index.hbase;
 
 import org.gbif.occurrence.index.solr.OccurrenceIndexDocument;
-import org.gbif.occurrencestore.common.model.constants.FieldName;
-import org.gbif.occurrencestore.persistence.OccurrenceResultReader;
-import org.gbif.occurrencestore.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.OccurrenceResultReader;
+import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.io.IOException;
 import java.util.Date;
@@ -23,27 +23,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.ALTITUDE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.COLLECTION_CODE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.COLLECTOR_NAME;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.COORDINATE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.COUNTRY;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DATASET_KEY;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DATE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.DEPTH;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.GEOREFERENCED;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.KEY;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.LATITUDE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.LONGITUDE;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.MODIFIED;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.MONTH;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.TAXON_KEY;
-import static org.gbif.occurrencestore.search.solr.OccurrenceSolrField.YEAR;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ALTITUDE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTOR_NAME;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MODIFIED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 
 
 /**
@@ -201,7 +201,7 @@ public class IndexingUtils {
 
   /**
    * Creates a scan instance using the list of fields.
-   * 
+   *
    * @param fieldNames list of {@link FieldName}
    * @return a Scan containing the field names
    */

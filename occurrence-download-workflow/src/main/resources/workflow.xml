@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~ 
-  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may 
-  not use this file except in compliance with the License. ~ You may obtain 
-  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ 
-  ~ Unless required by applicable law or agreed to in writing, software ~ distributed 
-  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES 
-  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for 
+<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~
+  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may
+  not use this file except in compliance with the License. ~ You may obtain
+  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~
+  ~ Unless required by applicable law or agreed to in writing, software ~ distributed
+  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
   the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="occurrence-download" xmlns="uri:oozie:workflow:0.2">
 
@@ -16,33 +16,33 @@
       <job-tracker>${jobtracker}</job-tracker>
       <name-node>${namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <main-class>org.gbif.occurrencestore.download.oozie.OccurrenceCount</main-class>
-      <arg>${solr_query}</arg>  
-      <arg>${wf:id()}</arg>    
+      <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
+      <arg>${solr_query}</arg>
+      <arg>${wf:id()}</arg>
       <capture-output/>
     </java>
 
     <ok to="make_query_decision" />
     <error to="kill" />
   </action>
-  
+
   <decision name="make_query_decision">
     <switch>
       <!-- it's a small download -->
       <case to="small_download">
         ${wf:actionData('occurrence_count')['is_small_download']}
-      </case>    
+      </case>
       <default to="big_download" />
     </switch>
   </decision>
-  
-  
+
+
   <action name="small_download">
     <java>
       <job-tracker>${jobtracker}</job-tracker>
       <name-node>${namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <main-class>org.gbif.occurrencestore.download.file.DownloadTableBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
       <arg>${query_result_table}</arg>
       <arg>${citation_table}</arg>
       <arg>${solr_query}</arg>
@@ -54,7 +54,7 @@
     <ok to="copy_and_zip" />
     <error to="failure_clean_hdfs_dirs" />
   </action>
-  
+
   <action name="big_download">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${jobtracker}</job-tracker>
@@ -99,7 +99,7 @@
         </property>
       </configuration>
 
-      <main-class>org.gbif.occurrencestore.download.oozie.ArchiveBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.ArchiveBuilder</main-class>
       <arg>${namenode}</arg>
       <arg>${hdfs_hive_path}</arg>
       <arg>${query_result_table}</arg>
@@ -109,30 +109,30 @@
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>
-      <arg>${registry_ws}</arg>      
+      <arg>${registry_ws}</arg>
       <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
     </java>
 
     <ok to="cleaning_decision" />
     <error to="failure_cleaning_decision" />
   </action>
-  
+
   <decision name="cleaning_decision">
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="clean_hdfs_dirs">
         ${wf:actionData('occurrence_count')['is_small_download']}
-      </case>    
+      </case>
       <default to="drop_table" />
     </switch>
   </decision>
-  
+
   <decision name="failure_cleaning_decision">
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="failure_clean_hdfs_dirs">
         ${wf:actionData('occurrence_count')['is_small_download']}
-      </case>    
+      </case>
       <default to="failure_drop_table" />
     </switch>
   </decision>
@@ -151,8 +151,8 @@
     <ok to="end" />
     <error to="kill" />
   </action>
-  
-  
+
+
   <action name="failure_drop_table">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${jobtracker}</job-tracker>
@@ -167,21 +167,21 @@
     <ok to="kill" />
     <error to="kill" />
   </action>
-  
+
   <action name="clean_hdfs_dirs">
     <fs>
       <delete path='${namenode}/${hdfs_hive_path}/${query_result_table}'/>
       <delete path='${namenode}/${hdfs_hive_path}/${citation_table}'/>
-    </fs>    
+    </fs>
     <ok to="end" />
     <error to="kill" />
   </action>
-  
+
   <action name="failure_clean_hdfs_dirs">
     <fs>
       <delete path='${namenode}/${hdfs_hive_path}/${query_result_table}'/>
       <delete path='${namenode}/${hdfs_hive_path}/${citation_table}'/>
-    </fs>    
+    </fs>
     <ok to="kill" />
     <error to="kill" />
   </action>

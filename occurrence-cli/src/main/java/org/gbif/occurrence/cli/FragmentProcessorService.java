@@ -2,15 +2,15 @@ package org.gbif.occurrence.cli;
 
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
-import org.gbif.occurrencestore.persistence.FragmentPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.OccurrenceKeyPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrencestore.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrencestore.persistence.keygen.HBaseLockingKeyService;
-import org.gbif.occurrencestore.persistence.keygen.KeyPersistenceService;
-import org.gbif.occurrencestore.processor.FragmentProcessor;
-import org.gbif.occurrencestore.processor.messaging.OccurrenceFragmentedListener;
-import org.gbif.occurrencestore.processor.zookeeper.ZookeeperConnector;
+import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
+import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
+import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
+import org.gbif.occurrence.processor.FragmentProcessor;
+import org.gbif.occurrence.processor.messaging.OccurrenceFragmentedListener;
+import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Collection;
 

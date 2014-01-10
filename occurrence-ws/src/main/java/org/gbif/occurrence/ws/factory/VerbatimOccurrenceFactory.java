@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
  */
 public class VerbatimOccurrenceFactory {
 
-  public static VerbatimOccurrence build(org.gbif.occurrencestore.persistence.api.VerbatimOccurrence from) {
+  public static VerbatimOccurrence build(org.gbif.occurrence.persistence.api.VerbatimOccurrence from) {
     VerbatimOccurrence vo = new VerbatimOccurrence();
     vo.setKey(from.getKey());
     Builder<Term, String> b = ImmutableMap.builder();

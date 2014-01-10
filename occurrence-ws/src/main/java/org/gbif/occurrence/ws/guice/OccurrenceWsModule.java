@@ -3,8 +3,8 @@ package org.gbif.occurrence.ws.guice;
 
 import org.gbif.checklistbank.ws.client.guice.ChecklistBankWsClientModule;
 import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
-import org.gbif.occurrencestore.persistence.guice.OccurrencePersistenceModule;
-import org.gbif.occurrencestore.search.guice.OccurrenceSearchModule;
+import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
+import org.gbif.occurrence.search.guice.OccurrenceSearchModule;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.ws.client.guice.AnonymousAuthModule;
@@ -29,7 +29,7 @@ public class OccurrenceWsModule extends GbifServletListener {
    */
   private static class FeaturedModule extends PrivateServiceModule {
 
-    private static final String PREFIX = "occurrencestore.db.";
+    private static final String PREFIX = "occurrence.db.";
 
     public FeaturedModule(Properties properties) {
       super(PREFIX, properties);

@@ -25,9 +25,9 @@ import org.gbif.occurrence.parsing.xml.rules.Dwc10RuleSet;
 import org.gbif.occurrence.parsing.xml.rules.Dwc14RuleSet;
 import org.gbif.occurrence.parsing.xml.rules.Dwc2009RuleSet;
 import org.gbif.occurrence.parsing.xml.rules.DwcManisRuleSet;
-import org.gbif.occurrencestore.common.model.HolyTriplet;
-import org.gbif.occurrencestore.common.model.PublisherProvidedUniqueIdentifier;
-import org.gbif.occurrencestore.common.model.UniqueIdentifier;
+import org.gbif.occurrence.common.identifier.HolyTriplet;
+import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
+import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

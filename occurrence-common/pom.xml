@@ -42,6 +42,14 @@
       <artifactId>gbif-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>dwc-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -50,8 +58,14 @@
       <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+    </dependency>
+    <!-- testing -->
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
+
   </dependencies>
 </project>

@@ -3,10 +3,10 @@ package org.gbif.occurrence.cli.dataset.service;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.dataset.DeleteDatasetListener;
-import org.gbif.occurrencestore.persistence.OccurrenceKeyPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrencestore.persistence.keygen.HBaseLockingKeyService;
-import org.gbif.occurrencestore.persistence.keygen.KeyPersistenceService;
+import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
+import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
+import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.apache.hadoop.hbase.HBaseConfiguration;

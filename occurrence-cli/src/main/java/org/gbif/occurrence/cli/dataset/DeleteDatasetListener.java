@@ -5,7 +5,7 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
 import org.gbif.common.messaging.api.messages.DeleteOccurrenceMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
-import org.gbif.occurrencestore.persistence.api.OccurrenceKeyPersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 
 import java.io.IOException;
 import java.util.Set;

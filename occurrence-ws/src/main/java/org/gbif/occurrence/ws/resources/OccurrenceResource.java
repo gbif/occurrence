@@ -4,7 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.ws.factory.VerbatimOccurrenceFactory;
-import org.gbif.occurrencestore.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.ws.server.interceptor.NullToNotFound;
 import org.gbif.ws.util.ExtraMediaTypes;
 

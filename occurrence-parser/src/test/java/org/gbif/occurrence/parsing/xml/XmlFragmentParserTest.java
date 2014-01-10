@@ -1,12 +1,12 @@
 package org.gbif.occurrence.parsing.xml;
 
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.occurrence.common.identifier.HolyTriplet;
+import org.gbif.occurrence.common.identifier.OccurrenceKeyHelper;
+import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
+import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.parsing.RawXmlOccurrence;
-import org.gbif.occurrencestore.common.model.HolyTriplet;
-import org.gbif.occurrencestore.common.model.PublisherProvidedUniqueIdentifier;
-import org.gbif.occurrencestore.common.model.UniqueIdentifier;
-import org.gbif.occurrencestore.util.OccurrenceKeyHelper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

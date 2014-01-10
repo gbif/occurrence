@@ -2,16 +2,16 @@ package org.gbif.occurrence.cli.delete.service;
 
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
-import org.gbif.occurrencestore.deleter.OccurrenceDeletionService;
-import org.gbif.occurrencestore.deleter.messaging.DeleteOccurrenceListener;
-import org.gbif.occurrencestore.persistence.OccurrenceKeyPersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.VerbatimOccurrencePersistenceServiceImpl;
-import org.gbif.occurrencestore.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrencestore.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrencestore.persistence.api.VerbatimOccurrencePersistenceService;
-import org.gbif.occurrencestore.persistence.keygen.HBaseLockingKeyService;
-import org.gbif.occurrencestore.persistence.keygen.KeyPersistenceService;
+import org.gbif.occurrence.deleter.OccurrenceDeletionService;
+import org.gbif.occurrence.deleter.messaging.DeleteOccurrenceListener;
+import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
+import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
+import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.apache.hadoop.hbase.HBaseConfiguration;

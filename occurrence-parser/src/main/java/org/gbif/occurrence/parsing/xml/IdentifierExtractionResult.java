@@ -1,6 +1,6 @@
 package org.gbif.occurrence.parsing.xml;
 
-import org.gbif.occurrencestore.common.model.UniqueIdentifier;
+import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 
 import java.util.Set;
 import javax.annotation.Nullable;

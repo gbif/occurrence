@@ -1,0 +1,2 @@
+INFO  [2014-01-10 12:07:52,916+0100] [main] org.gbif.occurrence.download.ws.resources.DownloadResource: Created new download job with key [FOO]
+WARN  [2014-01-10 12:07:52,923+0100] [main] org.gbif.occurrence.download.ws.resources.DownloadResource: Different user authenticated [foo] than download specifies [testuser]

@@ -12,8 +12,8 @@ import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.common.messaging.guice.PostalServiceModule;
 import org.gbif.occurrence.cli.registry.RegistryObjectMapperContextResolver;
-import org.gbif.occurrencestore.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrencestore.persistence.guice.OccurrencePersistenceModule;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
 
