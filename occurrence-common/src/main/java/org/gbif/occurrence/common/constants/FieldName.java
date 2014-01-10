@@ -96,7 +96,7 @@ public enum FieldName {
   I_ALTITUDE(FieldType.INT),
   I_DEPTH(FieldType.INT),
   I_MODIFIED(FieldType.LONG),
-  HOST_COUNTRY(FieldType.STRING);
+  PUBLISHING_COUNTRY(FieldType.STRING);
 
   private final FieldType fieldType;
 

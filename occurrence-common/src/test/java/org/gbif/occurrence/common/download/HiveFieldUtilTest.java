@@ -2,12 +2,13 @@ package org.gbif.occurrence.common.download;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class HiveFieldUtilTest {
 
@@ -24,6 +25,14 @@ public class HiveFieldUtilTest {
     assertEquals("unit_qualifier", HiveFieldUtil.getHiveField(FieldName.UNIT_QUALIFIER));
     assertEquals("created", HiveFieldUtil.getHiveField(FieldName.CREATED));
     assertEquals("geospatial_issue", HiveFieldUtil.getHiveField(FieldName.I_GEOSPATIAL_ISSUE));
+  }
+
+  @Test
+  public void testAllDownloadTerms() throws Exception {
+    for (FieldName fn : HiveFieldUtil.DOWNLOAD_COLUMNS) {
+      Term term = HiveFieldUtil.getTerm(fn);
+      assertNotNull("Every download column must be mapped to a (dwc) term. Missing term for column " + fn, term);
+    }
   }
 
   @Test

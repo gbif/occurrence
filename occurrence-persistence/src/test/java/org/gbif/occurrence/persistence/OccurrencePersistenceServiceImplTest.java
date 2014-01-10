@@ -198,7 +198,7 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(GENUS_ID));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GEOSPATIAL_ISSUE).getColumnName()),
       Bytes.toBytes(GEO));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HOST_COUNTRY).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUBLISHING_COUNTRY).getColumnName()),
       Bytes.toBytes(HOST_COUNTRY.getIso2LetterCode()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
       Bytes.toBytes(INST_CODE));

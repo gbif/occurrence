@@ -220,7 +220,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       occ.getGenusKey() == null ? null : Bytes.toBytes(occ.getGenusKey()), dn, cf, put, del);
 //    HBaseHelper.writeField(FieldName.I_GEOSPATIAL_ISSUE,
 //      occ.getGeospatialIssue() == null ? null : Bytes.toBytes(occ.getGeospatialIssue()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.HOST_COUNTRY,
+    HBaseHelper.writeField(FieldName.PUBLISHING_COUNTRY,
       occ.getPublishingCountry() == null ? null : Bytes.toBytes(occ.getPublishingCountry().getIso2LetterCode()), dn, cf, put,
       del);
     HBaseHelper.writeField(FieldName.INSTITUTION_CODE,

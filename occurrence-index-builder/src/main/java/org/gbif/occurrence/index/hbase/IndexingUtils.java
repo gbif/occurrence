@@ -105,7 +105,7 @@ public class IndexingUtils {
     doc.setField(CATALOG_NUMBER.getFieldName(), OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
     doc.setField(COLLECTOR_NAME.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
     doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
-    doc.setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.HOST_COUNTRY));
+    doc.setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY));
     doc.setField(DATASET_KEY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
 
     Set<Integer> taxonKey = buildTaxonKey(row);

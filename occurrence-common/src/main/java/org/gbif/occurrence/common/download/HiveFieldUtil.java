@@ -3,6 +3,7 @@ package org.gbif.occurrence.common.download;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class HiveFieldUtil {
     FieldName.I_NUB_ID, FieldName.I_KINGDOM, FieldName.I_PHYLUM, FieldName.I_CLASS, FieldName.I_ORDER,
     FieldName.I_FAMILY, FieldName.I_GENUS, FieldName.I_SPECIES, FieldName.I_KINGDOM_ID, FieldName.I_PHYLUM_ID,
     FieldName.I_CLASS_ID, FieldName.I_ORDER_ID, FieldName.I_FAMILY_ID, FieldName.I_GENUS_ID, FieldName.I_SPECIES_ID,
-    FieldName.I_ISO_COUNTRY_CODE, FieldName.HOST_COUNTRY, FieldName.I_LATITUDE,
+    FieldName.I_ISO_COUNTRY_CODE, FieldName.PUBLISHING_COUNTRY, FieldName.I_LATITUDE,
     FieldName.I_LONGITUDE, FieldName.I_YEAR, FieldName.I_MONTH, FieldName.I_OCCURRENCE_DATE, FieldName.I_ALTITUDE,
     FieldName.I_DEPTH, FieldName.SCIENTIFIC_NAME, FieldName.RANK,
     FieldName.KINGDOM, FieldName.PHYLUM, FieldName.CLASS, FieldName.ORDER, FieldName.FAMILY, FieldName.GENUS,
@@ -112,13 +113,14 @@ public class HiveFieldUtil {
     .put(FieldName.I_GEOSPATIAL_ISSUE, GbifTerm.geospatialIssueFlag)
     .put(FieldName.I_OTHER_ISSUE, GbifTerm.otherIssueFlag)
     .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
+    .put(FieldName.PUBLISHING_COUNTRY, new UnknownTerm("http://rs.gbif.org/terms/1.0/", "publishingCountry"))
     .build();
 
   /**
    * This map contains the hive names.
    */
   private static final Map<FieldName, String> HIVE_MAP = new ImmutableMap.Builder<FieldName, String>()
-    .put(FieldName.HOST_COUNTRY, "host_country").putAll(Maps.transformEntries(NAME_MAP,
+    .putAll(Maps.transformEntries(NAME_MAP,
       new Maps.EntryTransformer<FieldName, Term, String>() {
 
         public String transformEntry(@NotNull FieldName key, @NotNull Term value) {
@@ -141,6 +143,8 @@ public class HiveFieldUtil {
               return "owning_organization";
             case I_GEOSPATIAL_ISSUE:
               return "geospatial_issue";
+            case PUBLISHING_COUNTRY:
+              return "host_country";
             default:
               return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, value.simpleName())
                 .replace("_i_d", "_id");

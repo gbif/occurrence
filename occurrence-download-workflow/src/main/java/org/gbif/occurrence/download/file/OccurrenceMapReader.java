@@ -87,7 +87,7 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.I_GENUS_ID), getInteger(row, FieldName.I_GENUS_ID));
       occ.put(getHiveField(FieldName.I_SPECIES_ID), getInteger(row, FieldName.I_SPECIES_ID));
       occ.put(getHiveField(FieldName.I_ISO_COUNTRY_CODE), getString(row, FieldName.I_ISO_COUNTRY_CODE));
-      occ.put(getHiveField(FieldName.HOST_COUNTRY), getString(row, FieldName.HOST_COUNTRY));
+      occ.put(getHiveField(FieldName.PUBLISHING_COUNTRY), getString(row, FieldName.PUBLISHING_COUNTRY));
       occ.put(getHiveField(FieldName.OWNING_ORG_KEY), getUuid(row, FieldName.OWNING_ORG_KEY));
       occ.put(getHiveField(FieldName.I_LATITUDE), getDouble(row, FieldName.I_LATITUDE));
       occ.put(getHiveField(FieldName.I_LONGITUDE), getDouble(row, FieldName.I_LONGITUDE));

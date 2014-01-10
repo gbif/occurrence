@@ -17,9 +17,10 @@ import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
 import org.gbif.dwc.text.ArchiveFile;
 import org.gbif.dwc.text.MetaDescriptorWriter;
+import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.common.download.HiveFieldUtil;
-import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -149,7 +151,8 @@ public class ArchiveBuilder {
    * @param hdfsPath like /user/hive/warehouse
    * @throws IOException on any read or write problems
    */
-  private ArchiveBuilder(String downloadId, String user, String query,
+  @VisibleForTesting
+  protected ArchiveBuilder(String downloadId, String user, String query,
     DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
     Configuration conf, FileSystem hdfs,
     FileSystem localfs, File archiveDir, String dataTable, String citationTable, String hdfsPath, String downloadLink,
@@ -225,11 +228,13 @@ public class ArchiveBuilder {
 
   private static void logError(String msg) {
     System.err.println(msg);
+    throw new DownloadException(msg);
   }
 
   private static void logError(String msg, Exception e) {
     System.err.println(msg);
     e.printStackTrace();
+    throw new DownloadException(e);
   }
 
   /**
@@ -237,16 +242,16 @@ public class ArchiveBuilder {
    *
    * @param zipFile the final zip file holding the entire archive
    */
-  public void buildArchive(File zipFile) throws IOException {
+  public void buildArchive(File zipFile) throws DownloadException {
     log("Start building the archive ...");
 
-    // oozie might try several times to run this job, so make sure our filesystem is clean
-    cleanupFS();
-
-    // create the temp archive dir
-    archiveDir.mkdirs();
-
     try {
+      // oozie might try several times to run this job, so make sure our filesystem is clean
+      cleanupFS();
+
+      // create the temp archive dir
+      archiveDir.mkdirs();
+
       // occurrence file
       addOccurrenceDataFile();
 
@@ -262,6 +267,9 @@ public class ArchiveBuilder {
       // zip up
       log(String.format("Zipping archive %s", archiveDir.toString()));
       CompressionUtil.zipDir(archiveDir, zipFile, true);
+
+    } catch (IOException e) {
+      throw new DownloadException(e);
 
     } finally {
       // always cleanUp temp dir
@@ -295,7 +303,8 @@ public class ArchiveBuilder {
   /**
    * Builds the meta.xml dwc archive descriptor so this archive is indeed a compliant and readable dwc archive.
    */
-  private void addArchiveDescriptor() {
+  @VisibleForTesting
+  protected void addArchiveDescriptor() {
     log("Add archive meta.xml descriptor");
     ArchiveFile occ = createCoreFile();
 
@@ -439,10 +448,14 @@ public class ArchiveBuilder {
   /**
    * Removes all temporary file system artifacts but the final zip archive.
    */
-  private void cleanupFS() throws IOException {
+  private void cleanupFS() throws DownloadException {
     log("Cleaning up archive directory");
-    localfs.delete(new Path(archiveDir.toURI()), true);
-    archiveDir.delete();
+    try {
+      localfs.delete(new Path(archiveDir.toURI()), true);
+      archiveDir.delete();
+    } catch (IOException e) {
+      throw new DownloadException(e);
+    }
   }
 
   /**
@@ -464,7 +477,7 @@ public class ArchiveBuilder {
     occ.addLocation(DATA_FILENAME);
     occ.setRowType(DwcTerm.Occurrence.qualifiedName());
     occ.setEncoding(Charsets.UTF_8.displayName());
-    occ.setIgnoreHeaderLines(0);
+    occ.setIgnoreHeaderLines(1);
     occ.setFieldsEnclosedBy(null);
     occ.setFieldsTerminatedBy("\t");
     occ.setLinesTerminatedBy("\n");

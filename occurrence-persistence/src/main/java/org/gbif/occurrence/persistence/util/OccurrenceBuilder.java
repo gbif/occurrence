@@ -126,7 +126,7 @@ public class OccurrenceBuilder {
       occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
       // TODO: how to deal with geospatial issues pre schema change?
 //      occ.setGeospatialIssue(OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE));
-      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.HOST_COUNTRY)));
+      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
       occ.setField(DwcTerm.institutionCode,OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
       occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));

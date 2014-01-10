@@ -111,7 +111,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.MODIFIED, FieldName.MODIFIED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_ISO_COUNTRY_CODE)
-    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.HOST_COUNTRY)
+    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUBLISHING_COUNTRY)
     .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
     .build();
 

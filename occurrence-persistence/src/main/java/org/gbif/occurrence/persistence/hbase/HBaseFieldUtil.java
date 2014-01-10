@@ -110,7 +110,7 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.I_ALTITUDE, new HBaseColumn(cf, "ialt"));
     NAME_MAP.put(FieldName.I_DEPTH, new HBaseColumn(cf, "idep"));
     NAME_MAP.put(FieldName.I_MODIFIED, new HBaseColumn(cf, "imod"));
-    NAME_MAP.put(FieldName.HOST_COUNTRY, new HBaseColumn(cf, "hc"));
+    NAME_MAP.put(FieldName.PUBLISHING_COUNTRY, new HBaseColumn(cf, "hc"));
   }
 
   /**
