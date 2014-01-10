@@ -8,7 +8,6 @@ import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.user.guice.DrupalMyBatisModule;
-import org.gbif.ws.client.guice.AnonymousAuthModule;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
 import org.gbif.ws.server.guice.GbifServletListener;
 import org.gbif.ws.server.guice.WsAuthModule;
@@ -51,8 +50,6 @@ public class OccurrenceWsListener extends GbifServletListener {
 
     @Override
     protected void configureService() {
-      install(new RegistryWsClientModule(this.getVerbatimProperties()));
-      install(new AnonymousAuthModule());
       bind(FeaturedOccurrenceReader.class);
       expose(FeaturedOccurrenceReader.class);
     }
@@ -71,13 +68,15 @@ public class OccurrenceWsListener extends GbifServletListener {
   @Override
   protected List<Module> getModules(Properties properties) {
     List<Module> modules = Lists.newArrayList();
-    modules.add(new WsAuthModule(properties));
+    // client stuff
     modules.add(new SingleUserAuthModule(properties.getProperty(DOWNLOAD_USER_KEY),
                                          properties.getProperty(DOWNLOAD_PASSWORD_KEY)));
     modules.add(new RegistryWsClientModule(properties));
-    modules.add(new DrupalMyBatisModule(properties));
-    modules.add(new ValidationModule());
     modules.add(new ChecklistBankWsClientModule(properties, false, true, true));
+    // others
+    modules.add(new WsAuthModule(properties));
+    modules.add(new ValidationModule());
+    modules.add(new DrupalMyBatisModule(properties));
     modules.add(new OccurrencePersistenceModule(properties));
     modules.add(new OccurrenceSearchModule(properties));
     modules.add(new OccurrenceDownloadServiceModule(properties));

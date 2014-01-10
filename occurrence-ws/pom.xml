@@ -265,11 +265,11 @@
       <id>dev</id>
       <properties>
         <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://appdev.gbif.org/</checklistbank.ws.url>
-        <registry.ws.url>http://appdev.gbif.org/</registry.ws.url>
-        <drupal.db.url></drupal.db.url>
-        <drupal.db.username></drupal.db.username>
-        <appkeys.file></appkeys.file>
+        <checklistbank.ws.url>http://appdev.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
+        <registry.ws.url>http://appdev.gbif.org:8080/registry-ws</registry.ws.url>
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_devel</drupal.db.username>
+        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
 
         <occurrence.db.table_name>dev_occurrence</occurrence.db.table_name>
         <occurrence.db.counter_table_name>dev_occurrence_counter</occurrence.db.counter_table_name>
@@ -290,9 +290,9 @@
         <occurrence.search.solr.server.httpLbservers />
         <occurrence.search.solr.request_handler />
 
-        <occurrence.download.ws.url></occurrence.download.ws.url>
+        <occurrence.download.ws.url>http://appdev.gbif.org</occurrence.download.ws.url>
         <occurrence.download.ws.mount>/mnt/auto/occurrence-download</occurrence.download.ws.mount>
-        <occurrence.download.registry.ws.url></occurrence.download.registry.ws.url>
+        <occurrence.download.ws.username></occurrence.download.ws.username>
         <occurrence.download.jobtracker></occurrence.download.jobtracker>
         <occurrence.download.namenode></occurrence.download.namenode>
         <occurrence.download.oozie.url></occurrence.download.oozie.url>
@@ -300,10 +300,9 @@
         <occurrence.download.oozie.mount></occurrence.download.oozie.mount>
         <occurrence.download.hive.table></occurrence.download.hive.table>
         <occurrence.download.hive.hdfs.out></occurrence.download.hive.hdfs.out>
-        <occurrence.download.mail.smtp></occurrence.download.mail.smtp>
-        <occurrence.download.mail.from></occurrence.download.mail.from>
-        <occurrence.download.mail.bcc></occurrence.download.mail.bcc>
-        <occurrence.download.ws.username></occurrence.download.ws.username>
+        <occurrence.download.mail.smtp>smtp.gbif.org</occurrence.download.mail.smtp>
+        <occurrence.download.mail.from>downloads@gbif.org</occurrence.download.mail.from>
+        <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
       </properties>
     </profile>
 
