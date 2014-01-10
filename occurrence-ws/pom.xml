@@ -228,16 +228,16 @@
     <profile>
       <id>prod</id>
       <properties>
-        <occurrence.db.table_name>uat_occurrence</occurrence.db.table_name>
-        <occurrence.db.counter_table_name>uat_occurrence_counter</occurrence.db.counter_table_name>
-        <occurrence.db.id_lookup_table_name>uat_occurrence_lookup</occurrence.db.id_lookup_table_name>
-        <occurrence.db.featured_table_name>uat_featured_occurrence</occurrence.db.featured_table_name>
+        <occurrence.db.table_name>prod_occurrence</occurrence.db.table_name>
+        <occurrence.db.counter_table_name>prod_occurrence_counter</occurrence.db.counter_table_name>
+        <occurrence.db.id_lookup_table_name>prod_occurrence_lookup</occurrence.db.id_lookup_table_name>
+        <occurrence.db.featured_table_name>prod_featured_occurrence</occurrence.db.featured_table_name>
         <occurrence.db.max_connection_pool>10</occurrence.db.max_connection_pool>
         <occurrence.db.zookeeper.connection_string>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</occurrence.db.zookeeper.connection_string>
         <occurrence.postalservice.threadcount>10</occurrence.postalservice.threadcount>
-        <occurrence.postalservice.username>uat</occurrence.postalservice.username>
-        <occurrence.postalservice.password>uat</occurrence.postalservice.password>
-        <occurrence.postalservice.virtualhost>/crawler/uat</occurrence.postalservice.virtualhost>
+        <occurrence.postalservice.username>prod</occurrence.postalservice.username>
+        <occurrence.postalservice.password>prod</occurrence.postalservice.password>
+        <occurrence.postalservice.virtualhost>/production</occurrence.postalservice.virtualhost>
         <occurrence.postalservice.hostname>mq.gbif.org</occurrence.postalservice.hostname>
         <occurrence.postalservice.port>5672</occurrence.postalservice.port>
         <occurrence.processor.zookeeper.connection_string>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</occurrence.processor.zookeeper.connection_string>
