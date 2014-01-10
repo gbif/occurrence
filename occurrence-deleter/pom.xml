@@ -26,7 +26,7 @@
   <artifactId>occurrence-deleter</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: Deleter</name>
+  <name>Occurrence Deleter</name>
   <description>
     Takes messages requesting deletion of single occurrence or entire datasets and acts on them.
   </description>

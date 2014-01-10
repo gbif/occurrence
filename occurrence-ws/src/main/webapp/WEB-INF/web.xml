@@ -6,7 +6,7 @@
   <display-name>ChecklistBank Web service</display-name>
 
   <listener>
-    <listener-class>org.gbif.occurrence.ws.guice.OccurrenceWsModule</listener-class>
+    <listener-class>org.gbif.occurrence.ws.OccurrenceWsListener</listener-class>
   </listener>
   <filter>
     <filter-name>Guice Filter</filter-name>

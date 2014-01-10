@@ -40,14 +40,14 @@ public class OccurrenceCount {
 
   /**
    * Inner Guice Module: installs a SolrModule and only exposes instances of the OccurrenceCount class.
-   * The properties file accepted should contain the prefix 'occurrence-download.' for the expected Solr configuration
+   * The properties file accepted should contain the prefix 'occurrence.download.' for the expected Solr configuration
    * settings and the
    * 'file.max_records' configuration.
    */
   private static final class OccurrenceSearchCountModule extends PrivateServiceModule {
 
 
-    private static final String PREFIX = "occurrence-download.";
+    private static final String PREFIX = "occurrence.download.";
 
 
     public OccurrenceSearchCountModule(Properties properties) {

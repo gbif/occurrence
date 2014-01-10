@@ -26,7 +26,7 @@
   <artifactId>occurrence-processor</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: Processor</name>
+  <name>Occurrence Processor</name>
   <description>
     Takes xml/json occurrence fragments and persists them to HBase, then processes and interprets them.
   </description>

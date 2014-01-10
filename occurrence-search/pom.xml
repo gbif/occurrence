@@ -16,7 +16,7 @@
     <super-csv.version>2.0.1</super-csv.version>
   </properties>
 
-  <name>Occurrence :: Search service</name>
+  <name>Occurrence Search service</name>
 
   <build>
     <testResources>

@@ -11,7 +11,7 @@
   <artifactId>occurrence-ws-client</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: Web service client</name>
+  <name>Occurrence Web service client</name>
 
   <build>
     <resources>

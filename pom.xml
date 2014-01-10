@@ -38,6 +38,22 @@
     <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
   </scm>
 
+  <modules>
+    <module>occurrence-cli</module>
+    <module>occurrence-common</module>
+    <module>occurrence-deleter</module>
+    <module>occurrence-download-workflow</module>
+    <module>occurrence-index-builder</module>
+    <module>occurrence-index-builder-workflow</module>
+    <module>occurrence-interpreters</module>
+    <module>occurrence-persistence</module>
+    <module>occurrence-parser</module>
+    <module>occurrence-processor</module>
+    <module>occurrence-search</module>
+    <module>occurrence-ws</module>
+    <module>occurrence-ws-client</module>
+  </modules>
+
   <properties>
     <amqp-client.version>3.0.2</amqp-client.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
@@ -92,6 +108,7 @@
     <!--Solr/Lucene projects use the same versioning -->
     <solr-lucene.version>4.4.0</solr-lucene.version>
     <validation-api.version>1.0.0.GA</validation-api.version>
+    <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
     <zookeeper.version>3.4.5-cdh4.2.1</zookeeper.version>
   </properties>
@@ -113,24 +130,6 @@
       </snapshots>
     </repository>
   </repositories>
-
-  <modules>
-    <module>occurrence-cli</module>
-    <module>occurrence-common</module>
-    <module>occurrence-deleter</module>
-    <module>occurrence-index-builder</module>
-    <module>occurrence-index-builder-workflow</module>
-    <module>occurrence-interpreters</module>
-    <module>occurrence-persistence</module>
-    <module>occurrence-parser</module>
-    <module>occurrence-processor</module>
-    <module>occurrence-search</module>
-    <module>occurrence-ws</module>
-    <module>occurrence-ws-client</module>
-    <module>occurrence-download-ws</module>
-    <module>occurrence-download-ws-client</module>
-    <module>occurrence-download-workflow</module>
-  </modules>
 
   <dependencyManagement>
     <dependencies>
@@ -276,6 +275,11 @@
         <version>${checklistbank-ws-client.version}</version>
       </dependency>
       <!-- Other -->
+      <dependency>
+        <groupId>xml-apis</groupId>
+        <artifactId>xml-apis</artifactId>
+        <version>${xml-apis.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.rabbitmq</groupId>
         <artifactId>amqp-client</artifactId>

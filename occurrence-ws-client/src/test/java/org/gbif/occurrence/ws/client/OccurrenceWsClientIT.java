@@ -2,7 +2,6 @@ package org.gbif.occurrence.ws.client;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.ws.client.guice.OccurrenceWsClientModule;
 import org.gbif.occurrence.ws.client.mock.OccurrenceWsTestModule;
 import org.gbif.ws.client.BaseResourceTest;
 import org.gbif.ws.client.guice.UrlBindingModule;

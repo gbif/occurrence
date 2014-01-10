@@ -30,8 +30,8 @@ public class RegistryClientUtil {
 
   private static final int REGISTRY_CLIENT_TO = 600000; // registry client default timeout
 
-  private static final String DOWNLOAD_USER_KEY = "occurrence-download.ws.username";
-  private static final String DOWNLOAD_PASSWORD_KEY = "occurrence-download.ws.password";
+  private static final String DOWNLOAD_USER_KEY = "occurrence.download.ws.username";
+  private static final String DOWNLOAD_PASSWORD_KEY = "occurrence.download.ws.password";
 
   private final Injector injector;
 

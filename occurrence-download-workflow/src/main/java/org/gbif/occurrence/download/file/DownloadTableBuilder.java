@@ -56,7 +56,7 @@ public class DownloadTableBuilder {
 
     private final String downloadId;
 
-    private static final String PROPERTIES_PREFIX = "occurrence-download.";
+    private static final String PROPERTIES_PREFIX = "occurrence.download.";
 
     /**
      * Default constructor.

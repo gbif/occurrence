@@ -10,7 +10,7 @@
   <artifactId>occurrence-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: CLI</name>
+  <name>Occurrence CLI</name>
 
   <properties>
     <gbif-cli.version>0.4</gbif-cli.version>

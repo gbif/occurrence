@@ -19,7 +19,7 @@
   <artifactId>occurrence-download-workflow</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Download :: Oozie Workflow</name>
+  <name>Occurrence Download Oozie Workflow</name>
   <description>Oozie Workflow backing the Occurrence Download Service</description>
 
   <properties>

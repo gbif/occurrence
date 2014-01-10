@@ -11,7 +11,7 @@
   <artifactId>occurrence-index-builder</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: Index Builder</name>
+  <name>Occurrence Index Builder</name>
 
   <properties>
     <!-- by default we use an embedded solr server -->

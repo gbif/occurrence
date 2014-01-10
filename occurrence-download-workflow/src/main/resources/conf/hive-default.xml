@@ -25,16 +25,16 @@
   <!-- Hive Execution Parameters -->
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>${occurrence-download.zookeeper.quorum}</value>
+    <value>${occurrence.download.zookeeper.quorum}</value>
   </property>
- 
+
   <property>
     <name>hive.metastore.local</name>
     <value>false</value>
   </property>
   <property>
     <name>hive.metastore.uris</name>
-    <value>${occurrence-download.hive.metastore.uris}</value>
+    <value>${occurrence.download.hive.metastore.uris}</value>
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
@@ -62,7 +62,7 @@
   </property>
   <property>
     <name>hive.exec.scratchdir</name>
-    <value>/tmp/hive-occurrence-download</value>
+    <value>/tmp/hive-occurrence.download</value>
     <description>Scratch space for Hive jobs</description>
   </property>
   <property>

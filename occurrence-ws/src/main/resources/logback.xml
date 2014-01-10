@@ -37,6 +37,17 @@
     </layout>
   </appender>
 
+  <appender name="DOWNLOAD" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/occurrence-ws-downloads.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/occurrence-ws-downloads.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <maxHistory>14</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${defaultPattern}</pattern>
+    </encoder>
+  </appender>
+
   <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>logs/occurrence-ws_error.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -51,12 +62,29 @@
     </encoder>
   </appender>
 
-  <logger name="org.gbif" level="DEBUG"/>
+  <appender name="EMAIL" class="ch.qos.logback.classic.net.SMTPAppender">
+    <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+      <marker>NOTIFY_ADMIN</marker>
+    </evaluator>
+    <smtpHost>${occurrence.download.service.smtp_server}</smtpHost>
+    <from>${occurrence.download.service.from_address}</from>
+    <to>${occurrence.download.service.admin_email}</to>
+    <layout class="ch.qos.logback.classic.html.HTMLLayout"/>
+    <cyclicBufferTracker class="ch.qos.logback.core.spi.CyclicBufferTrackerImpl">
+      <bufferSize>1</bufferSize>
+    </cyclicBufferTracker>
+  </appender>
 
-  <root level="INFO">
-    <!--appender-ref ref="CONSOLE"/-->
+  <logger name="org.gbif" level="INFO"/>
+  <logger name="org.gbif.occurrence.download" level="INFO">
+    <appender-ref ref="DOWNLOAD" />
+  </logger>
+  <logger name="org.apache.tomcat.util.digester.Digester" level="INFO"/>
+
+  <root level="WARN">
     <appender-ref ref="FILE"/>
     <appender-ref ref="ERROR_FILE"/>
+    <appender-ref ref="EMAIL"/>
   </root>
 
 </configuration>

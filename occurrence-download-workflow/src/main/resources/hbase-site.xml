@@ -24,7 +24,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>${occurrence-download.hbase.rootdir}</value>
+    <value>${occurrence.download.hbase.rootdir}</value>
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
@@ -41,7 +41,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>${occurrence-download.zookeeper.quorum}</value>
+    <value>${occurrence.download.zookeeper.quorum}</value>
   </property>
   <property>
     <name>hbase.client.scanner.caching</name>
@@ -77,5 +77,5 @@
     <name>hbase.hstore.blockingStoreFiles</name>
     <value>200</value>
   </property>
-	
+
 </configuration>

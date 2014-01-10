@@ -16,7 +16,7 @@
     <hive.version>0.10.0-cdh4.2.1</hive.version>
   </properties>
 
-  <name>Occurrence Index Builder :: Oozie workflow</name>
+  <name>Occurrence Index Builder Oozie workflow</name>
 
   <profiles>
     <profile>

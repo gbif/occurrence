@@ -26,7 +26,7 @@
   <artifactId>occurrence-common</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence :: Common</name>
+  <name>Occurrence Common</name>
   <description>Common objects for the Occurrence module that don't belong in the API</description>
 
   <repositories>
