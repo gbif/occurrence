@@ -303,6 +303,7 @@
         <occurrence.download.mail.smtp>smtp.gbif.org</occurrence.download.mail.smtp>
         <occurrence.download.mail.from>downloads@gbif.org</occurrence.download.mail.from>
         <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
+        <occurrence.download.registry.ws.url>http://appdev.gbif.org:8080/registry-ws</occurrence.download.registry.ws.url>
       </properties>
     </profile>
 
