@@ -53,10 +53,11 @@ public class DownloadTableBuilder {
   private static final class DownloadTableBuilderModule extends PrivateServiceModule {
 
     private static final String LOCKING_PATH = "/runningJobs/";
+    private static final String PROPERTIES_PREFIX = "occurrence.download.";
 
     private final String downloadId;
+    private final String regUrl;
 
-    private static final String PROPERTIES_PREFIX = "occurrence.download.";
 
     /**
      * Default constructor.
@@ -64,6 +65,7 @@ public class DownloadTableBuilder {
     public DownloadTableBuilderModule(Properties properties, String downloadId) {
       super(PROPERTIES_PREFIX, properties);
       this.downloadId = downloadId;
+      regUrl = properties.getProperty("registry.ws.url");
     }
 
     @Override
@@ -95,10 +97,9 @@ public class DownloadTableBuilder {
 
     @Provides
     @Singleton
-    DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-      @Named("registry.ws.url") String registryWsUri) {
+    DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService() {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil(this.getVerbatimProperties());
-      return registryClientUtil.setupDatasetUsageService(registryWsUri);
+      return registryClientUtil.setupDatasetUsageService(regUrl);
     }
 
     @Provides
@@ -119,8 +120,6 @@ public class DownloadTableBuilder {
     }
 
   }
-
-  private static final String CONF_FILE = "occurrence-download.properties";
 
 
   /**
@@ -170,7 +169,7 @@ public class DownloadTableBuilder {
    */
   private Injector createInjector(String jobId) {
     try {
-      return Guice.createInjector(new DownloadTableBuilderModule(PropertiesUtil.loadProperties(CONF_FILE), jobId));
+      return Guice.createInjector(new DownloadTableBuilderModule(PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES), jobId));
     } catch (IllegalArgumentException e) {
       Throwables.propagate(e);
     } catch (IOException e) {

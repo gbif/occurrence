@@ -48,10 +48,12 @@ public class OccurrenceCount {
 
 
     private static final String PREFIX = "occurrence.download.";
+    private final String regUrl;
 
 
     public OccurrenceSearchCountModule(Properties properties) {
       super(PREFIX, properties);
+      regUrl = properties.getProperty("registry.ws.url");
     }
 
     @Override
@@ -64,10 +66,9 @@ public class OccurrenceCount {
 
     @Provides
     @Singleton
-    OccurrenceDownloadService provideOccurrenceDownloadService(
-      @Named("registry.ws.url") String registryWsUri) {
+    OccurrenceDownloadService provideOccurrenceDownloadService() {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil(this.getVerbatimProperties());
-      return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
+      return registryClientUtil.setupOccurrenceDownloadService(regUrl);
     }
 
   }
@@ -75,8 +76,6 @@ public class OccurrenceCount {
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
 
   private static final String IS_SMALL_DOWNLOAD = "is_small_download";
-
-  private static final String OCC_PROPERTIES = "occurrence-download.properties";
 
   private static final String IS_SMALL_DOWNLOAD_KEY = "file.max_records";
 
@@ -112,7 +111,7 @@ public class OccurrenceCount {
    */
   private static Injector getInjector() {
     try {
-      return Guice.createInjector(new OccurrenceSearchCountModule(PropertiesUtil.loadProperties(OCC_PROPERTIES)));
+      return Guice.createInjector(new OccurrenceSearchCountModule(PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES)));
     } catch (IllegalArgumentException e) {
       System.err.println("Error creating Guice module");
       e.printStackTrace();

@@ -440,6 +440,11 @@
     <profile>
       <id>dev</id>
       <properties>
+        <registry.ws.url>http://appdev.gbif.org:8080/registry-ws/</registry.ws.url>
+
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
+
         <occurrence.download.occurrence_table_name>dev.occurrence_hdfs</occurrence.download.occurrence_table_name>
         <occurrence.download.max_connection_pool>10</occurrence.download.max_connection_pool>
         <occurrence.download.zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</occurrence.download.zookeeper.quorum>
@@ -459,9 +464,6 @@
         <occurrence.download.solr.collection></occurrence.download.solr.collection>
         <occurrence.download.solr.server.httpLbservers></occurrence.download.solr.server.httpLbservers>
         <occurrence.download.solr.embedded>false</occurrence.download.solr.embedded>
-        <occurrence.download.registry.ws.url>http://appdev.gbif.org:8080/registry-ws/</occurrence.download.registry.ws.url>
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
-        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
       </properties>
     </profile>
   </profiles>

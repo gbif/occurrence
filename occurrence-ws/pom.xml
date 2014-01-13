@@ -334,20 +334,6 @@
         <occurrence.search.solr.server.type>HTTP</occurrence.search.solr.server.type>
         <occurrence.search.solr.request_handler />
 
-        <occurrence.download.ws.url></occurrence.download.ws.url>
-        <occurrence.download.ws.mount></occurrence.download.ws.mount>
-        <occurrence.download.registry.ws.url></occurrence.download.registry.ws.url>
-        <occurrence.download.jobtracker></occurrence.download.jobtracker>
-        <occurrence.download.namenode></occurrence.download.namenode>
-        <occurrence.download.oozie.url></occurrence.download.oozie.url>
-        <occurrence.download.oozie.workflow.path></occurrence.download.oozie.workflow.path>
-        <occurrence.download.oozie.mount></occurrence.download.oozie.mount>
-        <occurrence.download.hive.table></occurrence.download.hive.table>
-        <occurrence.download.hive.hdfs.out></occurrence.download.hive.hdfs.out>
-        <occurrence.download.mail.smtp></occurrence.download.mail.smtp>
-        <occurrence.download.mail.from></occurrence.download.mail.from>
-        <occurrence.download.mail.bcc></occurrence.download.mail.bcc>
-        <occurrence.download.ws.username></occurrence.download.ws.username>
       </properties>
     </profile>
   </profiles>

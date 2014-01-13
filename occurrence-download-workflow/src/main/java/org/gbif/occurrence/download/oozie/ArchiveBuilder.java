@@ -199,7 +199,7 @@ public class ArchiveBuilder {
 
     // create temporary, local, download specific directory
     File archiveDir = new File(downloadDir, downloadId);
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil("occurrence-download.properties");
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
     // create registry client
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);

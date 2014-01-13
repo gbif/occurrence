@@ -30,6 +30,7 @@ public class RegistryClientUtil {
 
   private static final int REGISTRY_CLIENT_TO = 600000; // registry client default timeout
 
+  public static final String OCC_PROPERTIES = "occurrence-download.properties";
   private static final String DOWNLOAD_USER_KEY = "occurrence.download.ws.username";
   private static final String DOWNLOAD_PASSWORD_KEY = "occurrence.download.ws.password";
 
@@ -45,11 +46,11 @@ public class RegistryClientUtil {
 
 
   /**
-   * Constructs an instance using a properties file name.
+   * Constructs an instance using the default properties file.
    */
-  public RegistryClientUtil(String propertiesFile) {
+  public RegistryClientUtil() {
     try {
-      injector = Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(propertiesFile)));
+      injector = Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(OCC_PROPERTIES)));
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (IOException e) {

@@ -20,9 +20,11 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   private static final String PREFIX = "occurrence.download.";
   private static final String JOB_TRACKER = "jobtracker";
   private static final String NAME_NODE = "namenode";
+  private final String regUrl;
 
   public OccurrenceDownloadServiceModule(Properties properties) {
     super(PREFIX, properties);
+    regUrl = properties.getProperty("registry.ws.url");
   }
 
   @Override
@@ -56,7 +58,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Named("oozie.default_properties")
   Map<String, String> providesOozieDefaultProperties(@Named(NAME_NODE) String nameNode,
     @Named(JOB_TRACKER) String jobTracker, @Named("oozie.workflow.path") String workflowPath,
-    @Named("hive.hdfs.out") String hdfsOutput, @Named("ws.url") String wsUrl, @Named("registry.ws.url") String regUrl,
+    @Named("hive.hdfs.out") String hdfsOutput, @Named("ws.url") String wsUrl,
     @Named("hive.table") String occurrenceTable, @Named("oozie.mount") String oozieDownloadMount) {
 
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
