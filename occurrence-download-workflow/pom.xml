@@ -7,7 +7,8 @@
   under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
   OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
   the specific language governing permissions and ~ limitations under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -434,5 +435,35 @@
       <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <occurrence.download.occurrence_table_name>dev.occurrence_hdfs</occurrence.download.occurrence_table_name>
+        <occurrence.download.max_connection_pool>10</occurrence.download.max_connection_pool>
+        <occurrence.download.zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</occurrence.download.zookeeper.quorum>
+        <occurrence.download.zookeeper.namespace>appdev_occurrencedownload</occurrence.download.zookeeper.namespace>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
+
+        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+
+        <occurrence.download.solr.request_handler></occurrence.download.solr.request_handler>
+        <occurrence.download.solr.server.type>HTTP</occurrence.download.solr.server.type>
+        <occurrence.download.solr.server>http://boma.gbif.org:8081/occurrence-solr/</occurrence.download.solr.server>
+        <occurrence.download.solr.collection></occurrence.download.solr.collection>
+        <occurrence.download.solr.server.httpLbservers></occurrence.download.solr.server.httpLbservers>
+        <occurrence.download.solr.embedded>false</occurrence.download.solr.embedded>
+        <occurrence.download.registry.ws.url>http://appdev.gbif.org:8080/registry-ws/</occurrence.download.registry.ws.url>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>
