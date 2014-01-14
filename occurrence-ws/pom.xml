@@ -297,13 +297,12 @@
         <occurrence.download.namenode>hdfs://c1n8.gbif.org:8020</occurrence.download.namenode>
         <occurrence.download.oozie.url>http://c1n8.gbif.org:11000/oozie</occurrence.download.oozie.url>
         <occurrence.download.oozie.workflow.path>hdfs://c1n8.gbif.org:8020/occurrence-download/appdev</occurrence.download.oozie.workflow.path>
-        <occurrence.download.oozie.mount></occurrence.download.oozie.mount>
+        <occurrence.download.oozie.mount>/mnt/auto/appdev/occurrence-download</occurrence.download.oozie.mount>
         <occurrence.download.hive.table>dev.occurrence_hdfs</occurrence.download.hive.table>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse</occurrence.download.hive.hdfs.out>
         <occurrence.download.mail.smtp>smtp.gbif.org</occurrence.download.mail.smtp>
         <occurrence.download.mail.from>downloads@gbif.org</occurrence.download.mail.from>
         <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
-        <occurrence.download.registry.ws.url>http://appdev.gbif.org:8080/registry-ws</occurrence.download.registry.ws.url>
       </properties>
     </profile>
 
