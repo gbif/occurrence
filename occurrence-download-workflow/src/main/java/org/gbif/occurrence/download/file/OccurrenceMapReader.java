@@ -59,8 +59,8 @@ public class OccurrenceMapReader {
    * @return A Map, or an empty map if the result row parameter is null or empty.
    */
   public static Map<String, Object> buildOccurrence(@Nullable Result row) {
+    Map<String, Object> occ = Maps.newHashMap();
     if (row != null && !row.isEmpty()) {
-      Map<String, Object> occ = Maps.newHashMap();
       Integer key = Bytes.toInt(row.getRow());
       occ.put(getHiveField(FieldName.ID), key);
       occ.put(getHiveField(FieldName.DATASET_KEY), getUuid(row, FieldName.DATASET_KEY));
@@ -130,9 +130,8 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.PROTOCOL), getString(row, FieldName.PROTOCOL));
       occ.put(getHiveField(FieldName.CREATED), toISO8601Date(getDate(row, FieldName.CREATED)));
       occ.put(getHiveField(FieldName.MODIFIED), toISO8601Date(getDate(row, FieldName.MODIFIED)));
-      return occ;
     }
-    return null;
+    return occ;
   }
 
   /**
@@ -160,7 +159,6 @@ public class OccurrenceMapReader {
    */
   public Map<String, Object> get(@Nonnull Integer key) throws IOException {
     Preconditions.checkNotNull(key, "Ocurrence key can't be null");
-    Map<String, Object> occurrence = null;
     HTableInterface table = null;
     Closer closer = Closer.create();
     try {
@@ -172,12 +170,12 @@ public class OccurrenceMapReader {
         LOG.debug("Couldn't find occurrence for key [{}], returning null", key);
         return null;
       }
-      occurrence = buildOccurrence(result);
+      return buildOccurrence(result);
+
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
     } finally {
       closer.close();
     }
-    return occurrence;
   }
 }
