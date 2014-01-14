@@ -290,7 +290,7 @@
         <occurrence.search.solr.server.httpLbservers />
         <occurrence.search.solr.request_handler />
 
-        <occurrence.download.ws.url>http://appdev.gbif.org</occurrence.download.ws.url>
+        <occurrence.download.ws.url>http://appdev.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
         <occurrence.download.ws.mount>/mnt/auto/occurrence-download</occurrence.download.ws.mount>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.jobtracker>c1n10.gbif.org:8021</occurrence.download.jobtracker>
