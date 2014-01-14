@@ -445,7 +445,7 @@
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
 
-        <occurrence.download.occurrence_table_name>dev.occurrence</occurrence.download.occurrence_table_name>
+        <occurrence.download.occurrence_table_name>appdev_occurrence</occurrence.download.occurrence_table_name>
         <occurrence.download.max_connection_pool>10</occurrence.download.max_connection_pool>
         <occurrence.download.zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</occurrence.download.zookeeper.quorum>
         <occurrence.download.zookeeper.namespace>appdev_occurrencedownload</occurrence.download.zookeeper.namespace>
