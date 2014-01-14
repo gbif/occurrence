@@ -13,7 +13,7 @@
   <name>Occurrence CLI</name>
 
   <properties>
-    <gbif-cli.version>0.4</gbif-cli.version>
+    <gbif-cli.version>0.6-SNAPSHOT</gbif-cli.version>
     <!-- override motherpom guava version to match gbif-cli -->
     <guava.version>15.0</guava.version>
     <!-- specific versions for solr -->
