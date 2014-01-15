@@ -4,6 +4,7 @@ import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -49,12 +50,11 @@ public class CitationsFileWriter {
    */
   public static void createCitationFile(final Map<UUID, Long> datasetUsages, String citationFileName,
     DatasetOccurrenceDownloadUsageService datasetOccUsageService, String downloadKey) throws IOException {
-    if (datasetUsages != null && !datasetUsages.isEmpty()) {
-      ICsvBeanWriter beanWriter = null;
-      Closer closer = Closer.create();
-      try {
-        beanWriter =
-          new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+
+    Closer closer = Closer.create();
+    try {
+      if (datasetUsages != null && !datasetUsages.isEmpty()) {
+        ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
         closer.register(beanWriter);
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {
@@ -62,14 +62,18 @@ public class CitationsFileWriter {
             persistDatasetUsage(entry, downloadKey, datasetOccUsageService);
           }
         }
-      } catch (IOException e) {
-        closer.rethrow(e);
-      } finally {
-        if (beanWriter != null) {
-          beanWriter.flush();
-        }
-        closer.close();
+      } else {
+        // create empty file
+        System.err.println("No citations to write, creating empty file " + citationFileName);
+        File f = new File(citationFileName);
+        f.createNewFile();
       }
+
+    } catch (IOException e) {
+      closer.rethrow(e);
+
+    } finally {
+      closer.close();
     }
   }
 
