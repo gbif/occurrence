@@ -284,7 +284,7 @@
         <occurrence.postalservice.hostname>mq.gbif.org</occurrence.postalservice.hostname>
         <occurrence.postalservice.port>5672</occurrence.postalservice.port>
         <occurrence.processor.zookeeper.connection_string>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</occurrence.processor.zookeeper.connection_string>
-        <occurrence.search.solr.server>http://boma.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.search.solr.server>http://appdev.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.search.solr.collection/>
         <occurrence.search.solr.server.type>HTTP</occurrence.search.solr.server.type>
         <occurrence.search.solr.server.httpLbservers />
