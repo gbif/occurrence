@@ -18,13 +18,9 @@ import org.apache.oozie.client.OozieClient;
 public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
 
   private static final String PREFIX = "occurrence.download.";
-  private static final String JOB_TRACKER = "jobtracker";
-  private static final String NAME_NODE = "namenode";
-  private final String regUrl;
 
   public OccurrenceDownloadServiceModule(Properties properties) {
     super(PREFIX, properties);
-    regUrl = properties.getProperty("registry.ws.url");
   }
 
   @Override
@@ -56,10 +52,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Provides
   @Singleton
   @Named("oozie.default_properties")
-  Map<String, String> providesOozieDefaultProperties(@Named(NAME_NODE) String nameNode,
-    @Named(JOB_TRACKER) String jobTracker, @Named("oozie.workflow.path") String workflowPath,
-    @Named("hive.hdfs.out") String hdfsOutput, @Named("ws.url") String wsUrl,
-    @Named("hive.table") String occurrenceTable, @Named("oozie.mount") String oozieDownloadMount) {
+  Map<String, String> providesOozieDefaultProperties(@Named("ws.url") String wsUrl, @Named("oozie.workflow.path") String workflowPath) {
 
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 
@@ -67,13 +60,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
       .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
         DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
-      .put(JOB_TRACKER, jobTracker)
-      .put(NAME_NODE, nameNode)
-      .put("hdfs_hive_path", hdfsOutput)
-      .put("occurrence_table", occurrenceTable)
-      .put("download_mount", oozieDownloadMount)
-      .put("mapreduce.task.classpath.user.precedence", "true")
-      .put("registry_ws", regUrl);
+      .put("mapreduce.task.classpath.user.precedence", "true");
     // we dont have a specific downloadId yet, submit a placeholder
     String downloadLinkTemplate = DownloadUtils.concatUrlPaths(wsUrl,
       "occurrence/download/" + DownloadUtils.DOWNLOAD_ID_PLACEHOLDER + ".zip");

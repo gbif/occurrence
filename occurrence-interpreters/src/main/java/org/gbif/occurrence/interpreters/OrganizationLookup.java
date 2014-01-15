@@ -39,7 +39,7 @@ public class OrganizationLookup {
   private static final Logger LOG = LoggerFactory.getLogger(OrganizationLookup.class);
 
   private static final String WEB_SERVICE_URL;
-  private static final String WEB_SERVICE_URL_PROPERTY = "occurrence.registry.ws.url";
+  private static final String WEB_SERVICE_URL_PROPERTY = "registry.ws.url";
   private static final DatasetWsClient DATASET_CLIENT;
   private static final OrganizationWsClient ORG_CLIENT;
 

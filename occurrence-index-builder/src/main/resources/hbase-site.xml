@@ -24,7 +24,7 @@
 <configuration>
  <property>
    <name>hbase.rootdir</name>
-   <value>hdfs://c1n8.gbif.org:8020/hbase</value>
+   <value>${hdfs.namenode}/hbase</value>
  </property>
  <property>
    <name>hbase.cluster.distributed</name>
@@ -49,6 +49,6 @@
  </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>c1n8.gbif.org,c1n9.gbif.org,c1n10.gbif.org</value>
+    <value>${zookeeper.quorum}</value>
   </property>
 </configuration>

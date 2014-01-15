@@ -6,7 +6,7 @@
 <configuration>
 	<property>
     <name>mapred.job.tracker</name>
-    <value>c1n10.gbif.org:8021</value>
+    <value>${hadoop.jobtracker}</value>
   </property>
 
   <property>
