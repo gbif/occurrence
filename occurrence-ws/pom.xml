@@ -278,8 +278,8 @@
         <occurrence.db.max_connection_pool>10</occurrence.db.max_connection_pool>
         <occurrence.db.zookeeper.connection_string>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</occurrence.db.zookeeper.connection_string>
         <occurrence.postalservice.threadcount>10</occurrence.postalservice.threadcount>
-        <occurrence.postalservice.username>dev</occurrence.postalservice.username>
-        <occurrence.postalservice.password>dev</occurrence.postalservice.password>
+        <occurrence.postalservice.username>appdev</occurrence.postalservice.username>
+        <occurrence.postalservice.password>appdev</occurrence.postalservice.password>
         <occurrence.postalservice.virtualhost>/appdev</occurrence.postalservice.virtualhost>
         <occurrence.postalservice.hostname>mq.gbif.org</occurrence.postalservice.hostname>
         <occurrence.postalservice.port>5672</occurrence.postalservice.port>
