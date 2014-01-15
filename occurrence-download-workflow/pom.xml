@@ -460,7 +460,7 @@
 
         <occurrence.download.solr.request_handler></occurrence.download.solr.request_handler>
         <occurrence.download.solr.server.type>HTTP</occurrence.download.solr.server.type>
-        <occurrence.download.solr.server>http://boma.gbif.org:8081/occurrence-solr/</occurrence.download.solr.server>
+        <occurrence.download.solr.server>http://appdev.gbif.org:8081/occurrence-solr/</occurrence.download.solr.server>
         <occurrence.download.solr.collection></occurrence.download.solr.collection>
         <occurrence.download.solr.server.httpLbservers></occurrence.download.solr.server.httpLbservers>
         <occurrence.download.solr.embedded>false</occurrence.download.solr.embedded>
