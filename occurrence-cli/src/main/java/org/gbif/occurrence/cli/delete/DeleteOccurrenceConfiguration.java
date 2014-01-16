@@ -16,6 +16,8 @@ public class DeleteOccurrenceConfiguration {
   public MessagingConfiguration messaging = new MessagingConfiguration();
 
   @Parameter(names = "--occurrence-key")
-  @NotNull
-  public int key;
+  public Integer key;
+
+  @Parameter(names = "--occurrence-key-file")
+  public String keyFileName;
 }
