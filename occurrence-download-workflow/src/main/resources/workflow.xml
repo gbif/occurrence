@@ -13,8 +13,8 @@
 
   <action name="occurrence_count">
     <java>
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
       <arg>${solr_query}</arg>
@@ -39,15 +39,15 @@
 
   <action name="small_download">
     <java>
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
       <arg>${query_result_table}</arg>
       <arg>${citation_table}</arg>
       <arg>${solr_query}</arg>
-      <arg>${namenode}</arg>
-      <arg>${hdfs_hive_path}</arg>
+      <arg>${hdfs.namenode}</arg>
+      <arg>${hive.hdfs.out}</arg>
       <arg>${wf:id()}</arg>
     </java>
 
@@ -57,12 +57,12 @@
 
   <action name="big_download">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/query.q</script>
 
-      <param>occurrence_record=${occurrence_table}</param>
+      <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select}</param>
       <param>query=${query}</param>
       <param>query_result=${query_result_table}</param>
@@ -74,8 +74,8 @@
 
   <action name="citation">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/citation.q</script>
 
@@ -89,8 +89,8 @@
 
   <action name="copy_and_zip">
     <java>
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <configuration>
         <property>
@@ -100,16 +100,16 @@
       </configuration>
 
       <main-class>org.gbif.occurrence.download.oozie.ArchiveBuilder</main-class>
-      <arg>${namenode}</arg>
-      <arg>${hdfs_hive_path}</arg>
+      <arg>${hdfs.namenode}</arg>
+      <arg>${hive.hdfs.out}</arg>
       <arg>${query_result_table}</arg>
       <arg>${citation_table}</arg>
-      <arg>${download_mount}</arg>
+      <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
       <arg>${wf:id()}</arg>
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>
-      <arg>${registry_ws}</arg>
+      <arg>${registry.ws.url}</arg>
       <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
     </java>
 
@@ -139,8 +139,8 @@
 
   <action name="drop_table">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
@@ -155,8 +155,8 @@
 
   <action name="failure_drop_table">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
@@ -170,8 +170,8 @@
 
   <action name="clean_hdfs_dirs">
     <fs>
-      <delete path='${namenode}/${hdfs_hive_path}/${query_result_table}'/>
-      <delete path='${namenode}/${hdfs_hive_path}/${citation_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="end" />
     <error to="kill" />
@@ -179,8 +179,8 @@
 
   <action name="failure_clean_hdfs_dirs">
     <fs>
-      <delete path='${namenode}/${hdfs_hive_path}/${query_result_table}'/>
-      <delete path='${namenode}/${hdfs_hive_path}/${citation_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="kill" />
     <error to="kill" />

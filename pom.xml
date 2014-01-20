@@ -55,6 +55,25 @@
   </modules>
 
   <properties>
+    <!-- default configurations for all GBIF environments -->
+    <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
+    <zookeeper.quorum>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</zookeeper.quorum>
+    <postalservice.threadcount>10</postalservice.threadcount>
+    <postalservice.port>5672</postalservice.port>
+    <postalservice.hostname>mq.gbif.org</postalservice.hostname>
+    <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
+    <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+    <hive.hdfs.out>/user/hive/warehouse</hive.hdfs.out>
+    <mail.smtp>smtp.gbif.org</mail.smtp>
+    <!-- download defaults -->
+    <occurrence.download.ws.mount>/mnt/auto/occurrence-download</occurrence.download.ws.mount>
+    <occurrence.download.mail.from>downloads@gbif.org</occurrence.download.mail.from>
+    <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
+
+
+    <!-- VERSIONS -->
     <amqp-client.version>3.0.2</amqp-client.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
@@ -701,5 +720,34 @@
     </dependencies>
   </dependencyManagement>
 
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.environment>appdev</occurrence.environment>
+        <!-- webservices -->
+        <occurrence.search.solr.server>http://appdev.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://appdev.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://appdev.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
+        <registry.ws.url>http://appdev.gbif.org:8080/registry-ws</registry.ws.url>
+        <geocode.ws.url></geocode.ws.url>
+        <!-- security -->
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_devel</drupal.db.username>
+        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
+      </properties>
+    </profile>
+
+
+    <profile>
+      <id>prod</id>
+      <properties>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>

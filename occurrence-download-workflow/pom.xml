@@ -24,6 +24,15 @@
   <description>Oozie Workflow backing the Occurrence Download Service</description>
 
   <properties>
+    <!-- DOWNLOAD DEFAULTS -->
+    <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+    <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+    <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+    <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
+    <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
+    <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
+    <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+    <!-- VERSIONS -->
     <akka-actor.version>2.0.5</akka-actor.version>
     <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
     <apache-curator.version>2.1.0-incubating</apache-curator.version>
@@ -435,37 +444,5 @@
       <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>dev</id>
-      <properties>
-        <registry.ws.url>http://appdev.gbif.org:8080/registry-ws/</registry.ws.url>
-
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
-        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
-
-        <occurrence.download.occurrence_table_name>appdev_occurrence</occurrence.download.occurrence_table_name>
-        <occurrence.download.max_connection_pool>10</occurrence.download.max_connection_pool>
-        <occurrence.download.zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</occurrence.download.zookeeper.quorum>
-        <occurrence.download.zookeeper.namespace>appdev_occurrencedownload</occurrence.download.zookeeper.namespace>
-        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
-        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
-        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
-        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
-
-        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
-        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
-        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
-
-        <occurrence.download.solr.request_handler></occurrence.download.solr.request_handler>
-        <occurrence.download.solr.server.type>HTTP</occurrence.download.solr.server.type>
-        <occurrence.download.solr.server>http://boma.gbif.org:8081/occurrence-solr/</occurrence.download.solr.server>
-        <occurrence.download.solr.collection></occurrence.download.solr.collection>
-        <occurrence.download.solr.server.httpLbservers></occurrence.download.solr.server.httpLbservers>
-        <occurrence.download.solr.embedded>false</occurrence.download.solr.embedded>
-      </properties>
-    </profile>
-  </profiles>
 
 </project>

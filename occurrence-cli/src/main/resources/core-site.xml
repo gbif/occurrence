@@ -6,7 +6,7 @@
 <configuration>
   <property>
     <name>fs.defaultFS</name>
-    <value>hdfs://c1n8.gbif.org:8020</value>
+    <value>${hdfs.namenode}</value>
   </property>
 
   <property>

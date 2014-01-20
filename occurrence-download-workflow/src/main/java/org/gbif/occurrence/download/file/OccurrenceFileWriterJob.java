@@ -85,10 +85,12 @@ class OccurrenceFileWriterJob implements Callable<Result> {
         final QueryResponse response = solrServer.query(solrQuery);
         for (Iterator<SolrDocument> itResults = response.getResults().iterator(); itResults.hasNext(); recordCount++) {
           final Integer occKey = (Integer) itResults.next().getFieldValue(OccurrenceSolrField.KEY.getFieldName());
-          // Writes the occurrence record obtained from HBase as Map<String,Object>.
+          // Writes the occurrence record obtained from HBase as Map<String,Object> or null if not found.
           Map<String, Object> occurrenceRecordMap = occurrenceHBaseReader.get(occKey);
-          incrementDatasetUsage(datasetUsages, occurrenceRecordMap);
-          csvWriter.write(occurrenceRecordMap, HEADER);
+          if (occurrenceRecordMap != null) {
+            incrementDatasetUsage(datasetUsages, occurrenceRecordMap);
+            csvWriter.write(occurrenceRecordMap, HEADER);
+          }
         }
       }
     } catch (IOException e) {
