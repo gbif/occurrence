@@ -34,9 +34,9 @@ public class CoordBasedInterpreter implements Runnable {
 
     interpretCoords(occ, coordLookup);
 
-//    interpretOtherIssue(occ, cleanedCountry, coordLookup);
+    interpretOtherIssue(occ, cleanedCountry, coordLookup);
 
-//    interpretGeospatialIssue(occ, coordLookup);
+    interpretGeospatialIssue(occ, coordLookup);
 
     interpretCountry(occ, cleanedCountry, coordLookup);
   }
@@ -52,21 +52,22 @@ public class CoordBasedInterpreter implements Runnable {
     LOG.debug("Got iso country [{}]", occ.getCountry());
   }
 
-//  private static void interpretGeospatialIssue(Occurrence occ, CoordinateInterpretationResult coordLookup) {
+  private static void interpretGeospatialIssue(Occurrence occ, CoordinateInterpretationResult coordLookup) {
+    // TODO: adapt to new enum based issues
 //    occ.setGeospatialIssue(coordLookup.getGeoSpatialIssue());
-//    LOG.debug("Got geospatial issue [{}]", coordLookup.getGeoSpatialIssue());
-//  }
+    LOG.debug("Got geospatial issue [{}]", coordLookup.getGeoSpatialIssue());
+  }
 
-//  private static void interpretOtherIssue(Occurrence occ, String cleanedCountry,
-//    CoordinateInterpretationResult coordLookup) {
-//    // TODO: Other issue should be enum
+  private static void interpretOtherIssue(Occurrence occ, String cleanedCountry,
+    CoordinateInterpretationResult coordLookup) {
+    // TODO: adapt to new enum based issues
 //    if (cleanedCountry == null && coordLookup.getCountryCode() != null) {
 //      occ.setOtherIssue(8);
 //    } else {
 //      occ.setOtherIssue(0);
 //    }
 //    LOG.debug("Got other issue [{}]", occ.getOtherIssue());
-//  }
+  }
 
   private static void interpretCoords(Occurrence occ, CoordinateInterpretationResult coordLookup) {
     occ.setLatitude(coordLookup.getLatitude());

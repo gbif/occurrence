@@ -3,6 +3,7 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.interpreters.AltitudeInterpreter;
 import org.gbif.occurrence.interpreters.BasisOfRecordInterpreter;
@@ -164,23 +165,20 @@ public class VerbatimOccurrenceInterpreter {
   private Occurrence occurrenceFrom(VerbatimOccurrence verbatim) {
     Occurrence occ = new Occurrence();
     occ.setKey(verbatim.getKey());
-//    occ.setInstitutionCode(verbatim.getInstitutionCode());
-//    occ.setCollectionCode(verbatim.getCollectionCode());
-//    occ.setCatalogNumber(verbatim.getCatalogNumber());
+    occ.setField(DwcTerm.institutionCode, verbatim.getInstitutionCode());
+    occ.setField(DwcTerm.collectionCode, verbatim.getCollectionCode());
+    occ.setField(DwcTerm.catalogNumber, verbatim.getCatalogNumber());
 //    occ.setUnitQualifier(verbatim.getUnitQualifier());
     occ.setDatasetKey(verbatim.getDatasetKey());
     occ.setProtocol(verbatim.getProtocol());
 
     // these are the as-yet uninterpreted fields
-//    occ.setCollectorName(verbatim.getCollectorName());
+    occ.setField(DwcTerm.recordedBy, verbatim.getCollectorName());
 //    occ.setContinent(verbatim.getContinentOrOcean());
-//    occ.setCounty(verbatim.getCounty());
-//    occ.setDataProviderId(verbatim.getDataProviderId());
-//    occ.setDataResourceId(verbatim.getDataResourceId());
-//    occ.setIdentifierName(verbatim.getIdentifierName());
-//    occ.setLocality(verbatim.getLocality());
-//    occ.setOwningOrgKey(verbatim.getOwningOrgKey());
-//    occ.setResourceAccessPointId(verbatim.getResourceAccessPointId());
+    occ.setField(DwcTerm.county, verbatim.getCounty());
+    occ.setField(DwcTerm.identifiedBy, verbatim.getIdentifierName());
+    occ.setField(DwcTerm.locality, verbatim.getLocality());
+    occ.setPublishingOrgKey(verbatim.getOwningOrgKey());
     occ.setStateProvince(verbatim.getStateOrProvince());
 
     return occ;

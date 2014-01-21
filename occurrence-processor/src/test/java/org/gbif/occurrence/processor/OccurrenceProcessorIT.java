@@ -10,6 +10,7 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.OccurrenceFragmentedMessage;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -131,9 +132,9 @@ public class OccurrenceProcessorIT {
 
     Occurrence got = occurrenceService.get(1);
     assertNotNull(got);
-//    assertEquals("BGBM", got.getInstitutionCode());
-//    assertEquals("AlgaTerra", got.getCollectionCode());
-//    assertEquals("5834", got.getCatalogNumber());
+    assertEquals("BGBM", got.getField(DwcTerm.institutionCode));
+    assertEquals("AlgaTerra", got.getField(DwcTerm.collectionCode));
+    assertEquals("5834", got.getField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
 //    assertNull(got.getUnitQualifier());
 
@@ -142,20 +143,20 @@ public class OccurrenceProcessorIT {
     assertEquals(13.191434, got.getLongitude().doubleValue(), 0.00001);
     assertEquals(450, got.getAltitude().intValue());
     assertEquals(Country.fromIsoCode("DE"), got.getCountry());
-//    assertEquals("Kusber, W.-H.", got.getCollectorName());
-//    assertEquals("Nikolassee, Berlin", got.getLocality());
+    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.recordedBy));
+    assertEquals("Nikolassee, Berlin", got.getField(DwcTerm.locality));
     Calendar c = Calendar.getInstance();
     c.set(1987, 3, 13);
     c.set(Calendar.HOUR_OF_DAY, 0);
     c.set(Calendar.MINUTE, 0);
     c.set(Calendar.SECOND, 0);
     c.set(Calendar.MILLISECOND, 0);
-//    assertEquals(c.getTimeInMillis(), got.getOccurrenceDate().getTime());
+    assertEquals(c.getTimeInMillis(), got.getEventDate().getTime());
     assertEquals(BasisOfRecord.valueOf("OBSERVATION"), got.getBasisOfRecord());
-//    assertEquals("Kusber, W.-H.", got.getIdentifierName());
+    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.identifiedBy));
 
-//    assertEquals(BGBM_KEY, got.getOwningOrgKey().toString());
-//    assertEquals(Country.GERMANY, got.getHostCountry());
+    assertEquals(BGBM_KEY, got.getPublishingOrgKey().toString());
+    assertEquals(Country.GERMANY, got.getPublishingCountry());
     assertEquals(EndpointType.BIOCASE, got.getProtocol());
   }
 
