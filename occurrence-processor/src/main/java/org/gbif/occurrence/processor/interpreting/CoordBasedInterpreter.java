@@ -1,11 +1,12 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.interpreters.CoordinateInterpreter;
 import org.gbif.occurrence.interpreters.CountryInterpreter;
 import org.gbif.occurrence.interpreters.result.CoordinateInterpretationResult;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,11 @@ public class CoordBasedInterpreter implements Runnable {
 
   @Override
   public void run() {
-    String cleanedCountry = CountryInterpreter.interpretCountry(verbatim.getCountry());
-    CoordinateInterpretationResult coordLookup =
-      CoordinateInterpreter.interpretCoordinates(verbatim.getLatitude(), verbatim.getLongitude(), cleanedCountry);
+    String country = verbatim.hasField(DwcTerm.countryCode) ? verbatim.getField(DwcTerm.countryCode) : verbatim.getField(DwcTerm.country);
+    String cleanedCountry = CountryInterpreter.interpretCountry(country);
+
+    CoordinateInterpretationResult coordLookup = CoordinateInterpreter.interpretCoordinates(
+      verbatim.getField(DwcTerm.decimalLatitude), verbatim.getField(DwcTerm.decimalLongitude), cleanedCountry);
 
     interpretCoords(occ, coordLookup);
 

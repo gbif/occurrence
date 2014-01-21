@@ -2,12 +2,12 @@ package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.interpreting.InterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
@@ -37,7 +37,7 @@ public class InterpretedProcessor {
 
   private final FragmentPersistenceService fragmentPersister;
   private final VerbatimOccurrenceInterpreter verbatimInterpreter;
-  private final VerbatimOccurrencePersistenceService verbatimPersister;
+  private final OccurrencePersistenceService occurrencePersister;
   private final MessagePublisher messagePublisher;
   private final ZookeeperConnector zookeeperConnector;
 
@@ -52,11 +52,11 @@ public class InterpretedProcessor {
 
   @Inject
   public InterpretedProcessor(FragmentPersistenceService fragmentPersister,
-    VerbatimOccurrenceInterpreter verbatimInterpreter, VerbatimOccurrencePersistenceService verbatimPersister,
+    VerbatimOccurrenceInterpreter verbatimInterpreter, OccurrencePersistenceService occurrencePersister,
     MessagePublisher messagePublisher, ZookeeperConnector zookeeperConnector) {
     this.fragmentPersister = checkNotNull(fragmentPersister, "fragmentPersister can't be null");
     this.verbatimInterpreter = checkNotNull(verbatimInterpreter, "verbatimInterpreter can't be null");
-    this.verbatimPersister = checkNotNull(verbatimPersister, "verbatimPersister can't be null");
+    this.occurrencePersister = checkNotNull(occurrencePersister, "occurrencePersister can't be null");
     this.messagePublisher = checkNotNull(messagePublisher, "messagePublisher can't be null");
     this.zookeeperConnector = checkNotNull(zookeeperConnector, "zookeeperConnector can't be null");
   }
@@ -99,7 +99,7 @@ public class InterpretedProcessor {
       localAttemptId = fragment.getCrawlId();
     }
 
-    VerbatimOccurrence verbatim = verbatimPersister.get(occurrenceKey);
+    VerbatimOccurrence verbatim = occurrencePersister.get(occurrenceKey);
     if (verbatim == null) {
       logError("Could not find", occurrenceKey, datasetKey, fromCrawl);
       return;

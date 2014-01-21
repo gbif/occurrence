@@ -3,7 +3,6 @@ package org.gbif.occurrence.ws.client;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.api.service.occurrence.VerbatimOccurrenceService;
 import org.gbif.ws.client.guice.GbifWsClientModule;
 
 import java.util.Properties;
@@ -43,12 +42,10 @@ public class OccurrenceWsClientModule extends GbifWsClientModule {
   @Override
   protected void configureClient() {
     bind(OccurrenceService.class).to(OccurrenceWsClient.class).in(Scopes.SINGLETON);
-    bind(VerbatimOccurrenceService.class).to(OccurrenceWsClient.class).in(Scopes.SINGLETON);
     bind(OccurrenceSearchService.class).to(OccurrenceWsSearchClient.class).in(Scopes.SINGLETON);
     bind(DownloadRequestService.class).to(OccurrenceDownloadWsClient.class).in(Scopes.SINGLETON);
     expose(DownloadRequestService.class);
     expose(OccurrenceService.class);
-    expose(VerbatimOccurrenceService.class);
     expose(OccurrenceSearchService.class);
   }
 }

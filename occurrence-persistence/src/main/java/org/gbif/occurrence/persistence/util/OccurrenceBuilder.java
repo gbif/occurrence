@@ -2,6 +2,7 @@ package org.gbif.occurrence.persistence.util;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
@@ -12,7 +13,6 @@ import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 
 import java.util.Date;
@@ -175,80 +175,8 @@ public class OccurrenceBuilder {
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
-    if (row == null || row.isEmpty()) {
-      return null;
-    } else {
-      String rawDatasetKey = OccurrenceResultReader.getString(row, FieldName.DATASET_KEY);
-      UUID datasetKey = rawDatasetKey == null ? null : UUID.fromString(rawDatasetKey);
-
-      String rawProtocol = OccurrenceResultReader.getString(row, FieldName.PROTOCOL);
-      EndpointType protocol = rawProtocol == null ? null : EndpointType.valueOf(rawProtocol);
-
-      VerbatimOccurrence occ = VerbatimOccurrence.builder().key(Bytes.toInt(row.getRow())).datasetKey(datasetKey)
-        .dataProviderId(OccurrenceResultReader.getInteger(row, FieldName.DATA_PROVIDER_ID))
-        .dataResourceId(OccurrenceResultReader.getInteger(row, FieldName.DATA_RESOURCE_ID))
-        .institutionCode(OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE))
-        .collectionCode(OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE))
-        .catalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER))
-        .unitQualifier(OccurrenceResultReader.getString(row, FieldName.UNIT_QUALIFIER))
-
-        .kingdom(OccurrenceResultReader.getString(row, FieldName.KINGDOM))
-        .phylum(OccurrenceResultReader.getString(row, FieldName.PHYLUM))
-        .order(OccurrenceResultReader.getString(row, FieldName.ORDER))
-        .klass(OccurrenceResultReader.getString(row, FieldName.CLASS))
-        .family(OccurrenceResultReader.getString(row, FieldName.FAMILY))
-        .genus(OccurrenceResultReader.getString(row, FieldName.GENUS))
-        .species(OccurrenceResultReader.getString(row, FieldName.SPECIES))
-        .subspecies(OccurrenceResultReader.getString(row, FieldName.SUBSPECIES))
-        .scientificName(OccurrenceResultReader.getString(row, FieldName.SCIENTIFIC_NAME))
-        .rank(OccurrenceResultReader.getString(row, FieldName.RANK))
-        .author(OccurrenceResultReader.getString(row, FieldName.AUTHOR))
-        .basisOfRecord(OccurrenceResultReader.getString(row, FieldName.BASIS_OF_RECORD))
-        .collectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME))
-        .identifierName(OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME))
-
-        .continentOrOcean(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN))
-        .country(OccurrenceResultReader.getString(row, FieldName.COUNTRY))
-        .county(OccurrenceResultReader.getString(row, FieldName.COUNTY))
-        .stateOrProvince(OccurrenceResultReader.getString(row, FieldName.STATE_PROVINCE))
-        .locality(OccurrenceResultReader.getString(row, FieldName.LOCALITY))
-
-        .altitudePrecision(OccurrenceResultReader.getString(row, FieldName.ALTITUDE_PRECISION))
-        .minAltitude(OccurrenceResultReader.getString(row, FieldName.MIN_ALTITUDE))
-        .maxAltitude(OccurrenceResultReader.getString(row, FieldName.MAX_ALTITUDE))
-        .depthPrecision(OccurrenceResultReader.getString(row, FieldName.DEPTH_PRECISION))
-        .minDepth(OccurrenceResultReader.getString(row, FieldName.MIN_DEPTH))
-        .maxDepth(OccurrenceResultReader.getString(row, FieldName.MAX_DEPTH))
-
-        .latitude(OccurrenceResultReader.getString(row, FieldName.LATITUDE))
-        .longitude(OccurrenceResultReader.getString(row, FieldName.LONGITUDE))
-        .latLongPrecision(OccurrenceResultReader.getString(row, FieldName.LAT_LNG_PRECISION))
-
-        .modified(OccurrenceResultReader.getLong(row, FieldName.MODIFIED))
-
-        .protocol(protocol)
-
-        // TODO: old mysql records were longs, but parsing thinks they're strings - resolve
-        // .dateIdentified(OccurrenceResultReader.getLong(result, FieldName.IDENTIFICATION_DATE))
-        // TODO: fill in when parsing reads these
-        // .dayIdentified();
-        // .monthIdentified();
-        // .yearIdentified();
-
-        // TODO: include as part of identifiers
-        // .dwcOccurrenceId(OccurrenceResultReader.getString(result, FieldName.DWC_OCCURRENCE_ID))
-
-        .day(OccurrenceResultReader.getString(row, FieldName.DAY))
-        .month(OccurrenceResultReader.getString(row, FieldName.MONTH))
-        .year(OccurrenceResultReader.getString(row, FieldName.YEAR))
-        .occurrenceDate(OccurrenceResultReader.getString(row, FieldName.OCCURRENCE_DATE))
-
-        .resourceAccessPointId(OccurrenceResultReader.getInteger(row, FieldName.RESOURCE_ACCESS_POINT_ID))
-        .dataProviderId(OccurrenceResultReader.getInteger(row, FieldName.DATA_PROVIDER_ID))
-        .dataResourceId(OccurrenceResultReader.getInteger(row, FieldName.DATA_RESOURCE_ID)).build();
-
-      return occ;
-    }
+    //TODO: new implementation
+    return null;
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result, String columnFamily) {

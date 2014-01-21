@@ -6,7 +6,6 @@ import org.gbif.common.messaging.guice.PostalServiceModule;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 import org.gbif.service.guice.PrivateServiceModule;
@@ -37,7 +36,6 @@ public class OccurrenceProcessorModule extends PrivateServiceModule {
     expose(OccurrenceService.class);
     expose(OccurrencePersistenceService.class);
     expose(OccurrenceKeyPersistenceService.class);
-    expose(VerbatimOccurrencePersistenceService.class);
     expose(FragmentPersistenceService.class);
     install(new PostalServiceModule("occurrence", getVerbatimProperties()));
     expose(MessagePublisher.class);

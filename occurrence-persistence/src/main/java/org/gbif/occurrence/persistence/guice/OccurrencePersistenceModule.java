@@ -5,12 +5,10 @@ import org.gbif.occurrence.persistence.DatasetDeletionServiceImpl;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
@@ -45,7 +43,6 @@ public class OccurrencePersistenceModule extends PrivateServiceModule {
     bind(OccurrenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrencePersistenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrenceKeyPersistenceService.class).to(OccurrenceKeyPersistenceServiceImpl.class);
-    bind(VerbatimOccurrencePersistenceService.class).to(VerbatimOccurrencePersistenceServiceImpl.class);
     bind(FragmentPersistenceService.class).to(FragmentPersistenceServiceImpl.class);
     bind(ZookeeperLockManager.class).toProvider(ThreadLocalLockProvider.class);
     bind(new TypeLiteral<KeyPersistenceService<Integer>>(){}).to(HBaseLockingKeyService.class);
@@ -54,7 +51,6 @@ public class OccurrencePersistenceModule extends PrivateServiceModule {
     expose(OccurrenceService.class);
     expose(OccurrencePersistenceService.class);
     expose(OccurrenceKeyPersistenceService.class);
-    expose(VerbatimOccurrencePersistenceService.class);
     expose(FragmentPersistenceService.class);
     expose(ZookeeperLockManager.class);
     expose(new TypeLiteral<KeyPersistenceService<Integer>>(){});

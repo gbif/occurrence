@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
@@ -14,7 +15,6 @@ import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 import org.gbif.occurrence.processor.interpreting.InterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
@@ -81,21 +81,61 @@ public class VerbatimOccurrenceInterpreterTest {
     fragmentPersister.insert(fragment, uniqueIds);
     OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceMock(fragmentPersister);
     interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
-    VerbatimOccurrence.Builder builder =
-      VerbatimOccurrence.builder().altitudePrecision("10").author("Linneaus").basisOfRecord("specimen")
-        .collectorName("Hobern").continentOrOcean("Europe").country("Danmark").county("Copenhagen").catalogNumber("cn")
-        .collectionCode("cc").dataProviderId(123).dataResourceId(456).dateIdentified("10-11-12").day("22")
-        .dayIdentified("10").depthPrecision("10").datasetKey(DATASET_KEY).family("Felidae").genus("Panthera")
-        .key(fragment.getKey()).identifierName("Hobern").institutionCode("ic").kingdom("Animalia").klass("Mammalia")
-        .latitude("55.6750").latLongPrecision("20.123").locality("copenhagen").longitude("12.5687").maxAltitude("1200")
-        .maxDepth("500").minAltitude("100").minDepth("20").modified(MODIFIED).month("4").monthIdentified("11")
-        .occurrenceDate("1990-04-22").order("Carnivora").phylum("Chordata")
-        .protocol(EndpointType.DWC_ARCHIVE).rank("Species").resourceAccessPointId(890)
-        .scientificName("Panthera onca onca").species("onca").stateOrProvince("Copenhagen").subspecies("onca")
-        .year("1990").yearIdentified("2012");
 
-    verb = builder.scientificName("Panthera onca onca").build();
-    verbMod = builder.scientificName("Panthera onca goldmani").build();
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setKey(fragment.getKey());
+    v.setDatasetKey(DATASET_KEY);
+    v.setLastCrawled(new Date(MODIFIED));
+    v.setProtocol(EndpointType.DWC_ARCHIVE);
+
+    v.setField(DwcTerm.scientificNameAuthorship, "Linneaus");
+    v.setField(DwcTerm.basisOfRecord, "specimen");
+    v.setField(DwcTerm.recordedBy, "Hobern");
+    v.setField(DwcTerm.continent, "Europe");
+    v.setField(DwcTerm.country, "Danmark");
+    v.setField(DwcTerm.county, "Copenhagen");
+    v.setField(DwcTerm.catalogNumber, "cn");
+    v.setField(DwcTerm.collectionCode, "cc");
+    //dataProviderId 123
+    //dataResourceId(456)
+    //resourceAccessPointId(890)
+    v.setField(DwcTerm.dateIdentified, "10-11-12");
+    v.setField(DwcTerm.day, "22");
+    //dayIdentified("10")
+    //monthIdentified("11")
+    //depthPrecision("10")
+    //yearIdentified("2012")
+    v.setField(DwcTerm.family, "Felidae");
+    v.setField(DwcTerm.genus, "Panthera");
+    v.setField(DwcTerm.identifiedBy, "Hobern");
+    v.setField(DwcTerm.institutionCode, "ic");
+    v.setField(DwcTerm.kingdom, "Animalia");
+    v.setField(DwcTerm.class_, "Mammalia");
+    v.setField(DwcTerm.decimalLatitude, "55.6750");
+    v.setField(DwcTerm.decimalLongitude, "12.5687");
+    v.setField(DwcTerm.coordinatePrecision, "20.123");
+    v.setField(DwcTerm.locality, "copenhagen");
+    v.setField(DwcTerm.maximumElevationInMeters, "1200");
+    v.setField(DwcTerm.maximumDepthInMeters, "500");
+    v.setField(DwcTerm.minimumElevationInMeters, "100");
+    v.setField(DwcTerm.minimumDepthInMeters, "20");
+    v.setField(DwcTerm.month, "4");
+    v.setField(DwcTerm.eventDate, "1990-04-22");
+    v.setField(DwcTerm.order, "Carnivora");
+    v.setField(DwcTerm.phylum, "Chordata");
+    v.setField(DwcTerm.taxonRank, "Species");
+    v.setField(DwcTerm.scientificName, "Panthera onca onca");
+    v.setField(DwcTerm.specificEpithet, "onca");
+    v.setField(DwcTerm.infraspecificEpithet, "onca");
+    v.setField(DwcTerm.stateProvince, "Copenhagen");
+    v.setField(DwcTerm.year, "1990");
+    v.setField(DwcTerm.collectionCode, "");
+    v.setField(DwcTerm.collectionCode, "");
+
+    verb = v;
+
+    //TODO: make copy of v and replace scientificName!!!
+    verbMod = v; //builder.scientificName("Panthera onca goldmani").build();
   }
 
   @Test

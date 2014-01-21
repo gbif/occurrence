@@ -1,21 +1,20 @@
 package org.gbif.occurrence.deleter;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 
@@ -59,7 +58,6 @@ public class OccurrenceDeletionServiceTest {
   private OccurrenceKeyPersistenceService occurrenceKeyService;
   private FragmentPersistenceService fragmentService;
   private OccurrencePersistenceService occurrenceService;
-  private VerbatimOccurrencePersistenceService verbatimService;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -82,8 +80,7 @@ public class OccurrenceDeletionServiceTest {
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     fragmentService = new FragmentPersistenceServiceImpl(TABLE_NAME, tablePool, occurrenceKeyService);
     occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
-    verbatimService = new VerbatimOccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
-    occurrenceDeletionService = new OccurrenceDeletionService(occurrenceService, occurrenceKeyService, verbatimService);
+    occurrenceDeletionService = new OccurrenceDeletionService(occurrenceService, occurrenceKeyService);
 
     // add some occurrences
     long created = System.currentTimeMillis();
@@ -103,10 +100,8 @@ public class OccurrenceDeletionServiceTest {
     Fragment fragment =
       new Fragment(GOOD_DATASET_KEY, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    VerbatimOccurrence verbatim =
-      VerbatimOccurrence.builder().key(1).datasetKey(GOOD_DATASET_KEY).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    VerbatimOccurrence verbatim = build(1, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
 
     uniqueIds = Sets.newHashSet();
     cn = "cn2";
@@ -115,10 +110,8 @@ public class OccurrenceDeletionServiceTest {
     fragment =
       new Fragment(GOOD_DATASET_KEY, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim =
-      VerbatimOccurrence.builder().key(2).datasetKey(GOOD_DATASET_KEY).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    verbatim = build(2, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
 
     uniqueIds = Sets.newHashSet();
     cn = "cn3";
@@ -127,10 +120,8 @@ public class OccurrenceDeletionServiceTest {
     fragment =
       new Fragment(GOOD_DATASET_KEY, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim =
-      VerbatimOccurrence.builder().key(3).datasetKey(GOOD_DATASET_KEY).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    verbatim = build(3, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
 
     // singles (will be keys 4-6)
     UUID datasetKey = UUID.randomUUID();
@@ -142,10 +133,8 @@ public class OccurrenceDeletionServiceTest {
     fragment =
       new Fragment(datasetKey, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim =
-      VerbatimOccurrence.builder().key(4).datasetKey(datasetKey).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    verbatim = build(4, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
 
     ic = "ic4";
     datasetKey = UUID.randomUUID();
@@ -154,10 +143,8 @@ public class OccurrenceDeletionServiceTest {
     fragment =
       new Fragment(datasetKey, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim =
-      VerbatimOccurrence.builder().key(5).datasetKey(datasetKey).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    verbatim = build(5, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
 
     ic = "ic5";
     datasetKey = UUID.randomUUID();
@@ -166,10 +153,18 @@ public class OccurrenceDeletionServiceTest {
     fragment =
       new Fragment(datasetKey, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim =
-      VerbatimOccurrence.builder().key(6).datasetKey(datasetKey).institutionCode(ic).collectionCode(cc).catalogNumber(cn)
-        .build();
-    verbatimService.update(verbatim);
+    verbatim = build(6, GOOD_DATASET_KEY, cn,cc,ic);
+    occurrenceService.update(verbatim);
+  }
+
+  private VerbatimOccurrence build(Integer key, UUID datasetKey, String cn, String cc, String ic) {
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setKey(key);
+    v.setDatasetKey(datasetKey);
+    v.setField(DwcTerm.catalogNumber, cn);
+    v.setField(DwcTerm.collectionCode, cc);
+    v.setField(DwcTerm.institutionCode, ic);
+    return v;
   }
 
   @Test

@@ -1,6 +1,7 @@
 package org.gbif.occurrence.ws.client.mock;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Kingdom;
@@ -51,6 +52,11 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
     occ.setKingdom(StringUtils.capitalize(k.name().toLowerCase()));
 
     return occ;
+  }
+
+  @Override
+  public VerbatimOccurrence getVerbatim(Integer key) {
+    return new VerbatimOccurrence();
   }
 
   @Override

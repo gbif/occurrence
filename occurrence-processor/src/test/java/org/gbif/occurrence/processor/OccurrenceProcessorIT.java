@@ -14,7 +14,6 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.messaging.FragmentPersistedListener;
 import org.gbif.occurrence.processor.messaging.OccurrenceFragmentedListener;
@@ -52,7 +51,6 @@ public class OccurrenceProcessorIT {
   private OccurrenceFragmentedListener occurrenceFragmentedListener;
   private FragmentPersistedListener fragmentPersistedListener;
   private VerbatimPersistedListener verbatimPersistedListener;
-  private final VerbatimOccurrencePersistenceService verbatimPersister = new VerbatimOccurrenceServiceMock();
   private final OccurrencePersistenceService occurrenceService =
     new OccurrencePersistenceServiceMock(fragmentPersister);
   private MessageListener messageListener;
@@ -100,11 +98,11 @@ public class OccurrenceProcessorIT {
     occurrenceFragmentedListener = new OccurrenceFragmentedListener(fragmentProcessor);
     messageListener.listen("occ_frag_test_" + now, 1, occurrenceFragmentedListener);
     verbatimProcessor =
-      new VerbatimProcessor(fragmentPersister, verbatimPersister, messagePublisher, zookeeperConnector);
+      new VerbatimProcessor(fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector);
     fragmentPersistedListener = new FragmentPersistedListener(verbatimProcessor);
     messageListener.listen("frag_persisted_test_" + now, 1, fragmentPersistedListener);
     verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
-    interpretedProcessor = new InterpretedProcessor(fragmentPersister, verbatimInterpreter, verbatimPersister, messagePublisher, zookeeperConnector);
+    interpretedProcessor = new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher, zookeeperConnector);
     verbatimPersistedListener = new VerbatimPersistedListener(interpretedProcessor);
     messageListener.listen("verb_persisted_test_" + now, 1, verbatimPersistedListener);
   }

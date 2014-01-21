@@ -2,7 +2,10 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.interpreters.AltitudeInterpreter;
@@ -11,10 +14,10 @@ import org.gbif.occurrence.interpreters.DateInterpreter;
 import org.gbif.occurrence.interpreters.DepthInterpreter;
 import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -56,7 +59,7 @@ public class VerbatimOccurrenceInterpreter {
    */
   public InterpretationResult interpret(VerbatimOccurrence verbatim, OccurrencePersistenceStatus status,
     boolean fromCrawl) {
-    Occurrence occ = occurrenceFrom(verbatim);
+    Occurrence occ = new Occurrence(verbatim);
 
     try {
       ExecutorService threadPool = Executors.newFixedThreadPool(3);
@@ -124,15 +127,18 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private static void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
-    Integer depth =
-      DepthInterpreter.interpretDepth(verbatim.getMinDepth(), verbatim.getMaxDepth(), verbatim.getDepthPrecision());
+    Integer depth = DepthInterpreter.interpretDepth(
+      verbatim.getField(DwcTerm.minimumDepthInMeters), verbatim.getField(DwcTerm.maximumDepthInMeters), null);
     occ.setDepth(depth);
     LOG.debug("Got depth [{}]", depth);
   }
 
   private static void interpretDate(VerbatimOccurrence verbatim, Occurrence occ) {
-    DateInterpretationResult dateResult = DateInterpreter
-      .interpretDate(verbatim.getYear(), verbatim.getMonth(), verbatim.getDay(), verbatim.getOccurrenceDate());
+    DateInterpretationResult dateResult = DateInterpreter.interpretDate(verbatim.getField(DwcTerm.year),
+                                                                        verbatim.getField(DwcTerm.month),
+                                                                        verbatim.getField(DwcTerm.day),
+                                                                        verbatim.getField(DwcTerm.eventDate));
+
     if (dateResult == null) {
       LOG.debug("Got date [null]");
     } else {
@@ -147,8 +153,9 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private static void interpretAltitude(VerbatimOccurrence verbatim, Occurrence occ) {
-    Integer alt = AltitudeInterpreter
-      .interpretAltitude(verbatim.getMinAltitude(), verbatim.getMaxAltitude(), verbatim.getAltitudePrecision());
+    Integer alt = AltitudeInterpreter.interpretAltitude(verbatim.getField(DwcTerm.minimumElevationInMeters),
+                                                        verbatim.getField(DwcTerm.maximumElevationInMeters),
+                                                        null);
     occ.setAltitude(alt);
     LOG.debug("Got altitude [{}]", alt);
   }
@@ -156,31 +163,10 @@ public class VerbatimOccurrenceInterpreter {
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {
     // TODO: interpretation should produce enum
     BasisOfRecordConverter borConv = new BasisOfRecordConverter();
-    Integer basisOfRecord = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getBasisOfRecord());
+    Integer basisOfRecord = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getField(DwcTerm.basisOfRecord));
     BasisOfRecord bor = borConv.toEnum(basisOfRecord);
     occ.setBasisOfRecord(bor);
     LOG.debug("Got BOR [{}]", bor.toString());
   }
 
-  private Occurrence occurrenceFrom(VerbatimOccurrence verbatim) {
-    Occurrence occ = new Occurrence();
-    occ.setKey(verbatim.getKey());
-    occ.setField(DwcTerm.institutionCode, verbatim.getInstitutionCode());
-    occ.setField(DwcTerm.collectionCode, verbatim.getCollectionCode());
-    occ.setField(DwcTerm.catalogNumber, verbatim.getCatalogNumber());
-//    occ.setUnitQualifier(verbatim.getUnitQualifier());
-    occ.setDatasetKey(verbatim.getDatasetKey());
-    occ.setProtocol(verbatim.getProtocol());
-
-    // these are the as-yet uninterpreted fields
-    occ.setField(DwcTerm.recordedBy, verbatim.getCollectorName());
-//    occ.setContinent(verbatim.getContinentOrOcean());
-    occ.setField(DwcTerm.county, verbatim.getCounty());
-    occ.setField(DwcTerm.identifiedBy, verbatim.getIdentifierName());
-    occ.setField(DwcTerm.locality, verbatim.getLocality());
-    occ.setPublishingOrgKey(verbatim.getOwningOrgKey());
-    occ.setStateProvince(verbatim.getStateOrProvince());
-
-    return occ;
-  }
 }

@@ -1,10 +1,11 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.interpreters.NubLookupInterpreter;
 import org.gbif.occurrence.interpreters.TaxonInterpreter;
 import org.gbif.occurrence.interpreters.result.NubLookupInterpretationResult;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +24,17 @@ public class TaxonomyInterpreter implements Runnable {
 
   @Override
   public void run() {
-    NubLookupInterpretationResult nubLookup = NubLookupInterpreter
-      .nubLookup(TaxonInterpreter.mapKingdom(TaxonInterpreter.cleanTaxon(verbatim.getKingdom())),
-        TaxonInterpreter.mapPhylum(TaxonInterpreter.cleanTaxon(verbatim.getPhylum())),
-        TaxonInterpreter.cleanTaxon(verbatim.getKlass()), TaxonInterpreter.cleanTaxon(verbatim.getOrder()),
-        TaxonInterpreter.cleanTaxon(verbatim.getFamily()), TaxonInterpreter.cleanTaxon(verbatim.getGenus()),
-        TaxonInterpreter.parseName(TaxonInterpreter.cleanTaxon(verbatim.getScientificName())),
-        TaxonInterpreter.cleanAuthor(verbatim.getAuthor()));
+    //TODO: handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
+    // see http://dev.gbif.org/issues/browse/POR-1724
+    NubLookupInterpretationResult nubLookup = NubLookupInterpreter.nubLookup(
+      TaxonInterpreter.mapKingdom(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.kingdom))),
+      TaxonInterpreter.mapPhylum(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.phylum))),
+      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.class_)),
+      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.order)),
+      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.family)),
+      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.genus)),
+      TaxonInterpreter.parseName(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.scientificName))),
+      TaxonInterpreter.cleanAuthor(verbatim.getField(DwcTerm.scientificNameAuthorship)));
 
     if (nubLookup == null) {
       LOG.debug("Got null nubLookup for sci name [{}]", occ.getScientificName());

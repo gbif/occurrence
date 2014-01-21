@@ -3,7 +3,6 @@ package org.gbif.occurrence.persistence.guice;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
 
 import java.util.Properties;
@@ -30,10 +29,6 @@ public class OccurrencePersistenceModuleTest {
     Injector injector = Guice.createInjector(new OccurrencePersistenceModule(props));
     OccurrenceService occService = injector.getInstance(OccurrenceService.class);
     assertNotNull(occService);
-    VerbatimOccurrencePersistenceService verbService1 = injector.getInstance(VerbatimOccurrencePersistenceService.class);
-    assertNotNull(verbService1);
-    VerbatimOccurrencePersistenceService verbService2 = injector.getInstance(VerbatimOccurrencePersistenceService.class);
-    assertEquals(verbService1, verbService2);
     FragmentPersistenceService fragService = injector.getInstance(FragmentPersistenceService.class);
     assertNotNull(fragService);
     ZookeeperLockManager lockManager1 = injector.getInstance(ZookeeperLockManager.class);

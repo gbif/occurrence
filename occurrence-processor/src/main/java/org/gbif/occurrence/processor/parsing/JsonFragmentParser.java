@@ -1,13 +1,15 @@
 package org.gbif.occurrence.processor.parsing;
 
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.parsing.xml.IdentifierExtractionResult;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
+import org.gbif.occurrence.parsing.xml.IdentifierExtractionResult;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class JsonFragmentParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(JsonFragmentParser.class);
+  private static final TermFactory termFactory = TermFactory.instance();
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   // should not be instantiated
   private JsonFragmentParser() {
@@ -47,64 +51,21 @@ public class JsonFragmentParser {
     checkNotNull(fragment, "fragment can't be null");
     checkArgument(fragment.getFragmentType() == Fragment.FragmentType.JSON, "fragment must be of type JSON");
 
-    VerbatimOccurrence verbatim = null;
+    VerbatimOccurrence verbatim = new VerbatimOccurrence();
+    verbatim.setDatasetKey(fragment.getDatasetKey());
+    verbatim.setProtocol(fragment.getProtocol());
+    verbatim.setLastCrawled(fragment.getHarvestedDate());
 
     // jackson untyped bind of data to object
-    ObjectMapper mapper = new ObjectMapper();
     try {
       Map<String, Object> jsonMap = mapper.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
-
-      String verbatimLatitude = (String) jsonMap.get(DwcTerm.verbatimLatitude.simpleName());
-      String verbatimLongitude = (String) jsonMap.get(DwcTerm.verbatimLongitude.simpleName());
-      String decimalLatitude = (String) jsonMap.get(DwcTerm.decimalLatitude.simpleName());
-      String decimalLongitude = (String) jsonMap.get(DwcTerm.decimalLongitude.simpleName());
-
-      String continent = (String) jsonMap.get(DwcTerm.continent.simpleName());
-      String waterBody = (String) jsonMap.get(DwcTerm.waterBody.simpleName());
-
-      String country = (String) jsonMap.get(DwcTerm.country.simpleName());
-      String countryCode = (String) jsonMap.get(DwcTerm.countryCode.simpleName());
-
-      verbatim = VerbatimOccurrence.builder().key(fragment.getKey()).datasetKey(fragment.getDatasetKey())
-        .unitQualifier(fragment.getUnitQualifier())
-        .institutionCode((String) jsonMap.get(DwcTerm.institutionCode.simpleName()))
-        .collectionCode((String) jsonMap.get(DwcTerm.collectionCode.simpleName()))
-        .catalogNumber((String) jsonMap.get(DwcTerm.catalogNumber.simpleName()))
-        .scientificName((String) jsonMap.get(DwcTerm.scientificName.simpleName()))
-        .author((String) jsonMap.get(DwcTerm.scientificNameAuthorship.simpleName()))
-        .rank((String) jsonMap.get(DwcTerm.taxonRank.simpleName()))
-        .kingdom((String) jsonMap.get(DwcTerm.kingdom.simpleName()))
-        .phylum((String) jsonMap.get(DwcTerm.phylum.simpleName()))
-        .klass((String) jsonMap.get(DwcTerm.class_.simpleName()))
-        .order((String) jsonMap.get(DwcTerm.order.simpleName()))
-        .family((String) jsonMap.get(DwcTerm.family.simpleName()))
-        .genus((String) jsonMap.get(DwcTerm.genus.simpleName()))
-        .species((String) jsonMap.get(DwcTerm.specificEpithet.simpleName()))
-        .subspecies((String) jsonMap.get(DwcTerm.infraspecificEpithet.simpleName()))
-          // prefer the decimal versions if both exist
-        .latitude(decimalLatitude == null ? verbatimLatitude : decimalLatitude)
-        .longitude(decimalLongitude == null ? verbatimLongitude : decimalLongitude)
-        .latLongPrecision((String) jsonMap.get(DwcTerm.coordinatePrecision.simpleName()))
-        .maxAltitude((String) jsonMap.get(DwcTerm.maximumElevationInMeters.simpleName()))
-        .minAltitude((String) jsonMap.get(DwcTerm.minimumElevationInMeters.simpleName()))
-          // no altitude precision
-        .maxDepth((String) jsonMap.get(DwcTerm.maximumDepthInMeters.simpleName()))
-        .minDepth((String) jsonMap.get(DwcTerm.minimumDepthInMeters.simpleName()))
-          // no depth precision
-        .continentOrOcean(continent == null ? waterBody : continent)
-        .country(countryCode == null ? country : countryCode)
-        .stateOrProvince((String) jsonMap.get(DwcTerm.stateProvince.simpleName()))
-        .county((String) jsonMap.get(DwcTerm.county.simpleName()))
-        .collectorName((String) jsonMap.get(DwcTerm.recordedBy.simpleName()))
-        .locality((String) jsonMap.get(DwcTerm.locality.simpleName()))
-        .year((String) jsonMap.get(DwcTerm.year.simpleName())).month((String) jsonMap.get(DwcTerm.month.simpleName()))
-        .day((String) jsonMap.get(DwcTerm.day.simpleName()))
-        .occurrenceDate((String) jsonMap.get(DwcTerm.eventDate.simpleName()))
-        .basisOfRecord((String) jsonMap.get(DwcTerm.basisOfRecord.simpleName()))
-        .identifierName((String) jsonMap.get(DwcTerm.identifiedBy.simpleName()))
-          // no day-, month- or year-identified in DwcTerm
-        .dateIdentified((String) jsonMap.get(DwcTerm.dateIdentified.simpleName())).modified(System.currentTimeMillis())
-        .build();
+      for (String simpleTermName : jsonMap.keySet()) {
+        Term term = termFactory.findTerm(simpleTermName);
+        if (term != null) {
+          Object value = jsonMap.get(simpleTermName);
+          verbatim.setField(term, value.toString());
+        }
+      }
     } catch (IOException e) {
       LOG.warn("Unable to parse JSON data, returning null VerbatimOccurrence", e);
     }

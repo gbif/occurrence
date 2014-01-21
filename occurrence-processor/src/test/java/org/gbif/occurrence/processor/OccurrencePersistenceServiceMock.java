@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
@@ -10,12 +11,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Maps;
 
 public class OccurrencePersistenceServiceMock implements OccurrencePersistenceService {
 
   private final FragmentPersistenceService fragService;
   private final Map<Integer, Occurrence> cache = Maps.newHashMap();
+  private final Map<Integer, VerbatimOccurrence> vCache = Maps.newHashMap();
+
+
 
   public OccurrencePersistenceServiceMock(FragmentPersistenceService fragService) {
     this.fragService = fragService;
@@ -24,6 +30,12 @@ public class OccurrencePersistenceServiceMock implements OccurrencePersistenceSe
   @Override
   public Occurrence get(Integer key) {
     return cache.get(key);
+  }
+
+  @Nullable
+  @Override
+  public VerbatimOccurrence getVerbatim(Integer key) {
+    return vCache.get(key);
   }
 
   @Override
@@ -35,6 +47,11 @@ public class OccurrencePersistenceServiceMock implements OccurrencePersistenceSe
   @Override
   public void update(Occurrence occurrence) {
     cache.put(occurrence.getKey(), occurrence);
+  }
+
+  @Override
+  public void update(VerbatimOccurrence occurrence) {
+    vCache.put(occurrence.getKey(), occurrence);
   }
 
   @Override

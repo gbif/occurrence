@@ -3,6 +3,7 @@ package org.gbif.occurrence.persistence;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -23,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -150,6 +152,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     } finally {
       closeTable(occTable);
     }
+  }
+
+  @Override
+  public void update(VerbatimOccurrence occurrence) {
+    //TODO: implement as reuse when persisting the full interpreted occurrence
+    throw new NotImplementedException("Tbd soon");
   }
 
   @Override
@@ -339,5 +347,11 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
       }
     }
+  }
+
+  @Nullable
+  @Override
+  public VerbatimOccurrence getVerbatim(Integer key) {
+    return null;
   }
 }

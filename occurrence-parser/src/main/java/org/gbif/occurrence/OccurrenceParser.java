@@ -19,12 +19,10 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.occurrence.constants.ExtractionSimpleXPaths;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.parsing.RawXmlOccurrence;
-import org.gbif.occurrence.parsing.dwca.BufferedDwcaParser;
 import org.gbif.occurrence.parsing.response_file.ParsedSearchResponse;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
 import org.gbif.occurrence.util.XmlSanitizingReader;
 import org.gbif.utils.file.CharsetDetection;
-import org.gbif.utils.file.CompressionUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -277,63 +275,6 @@ public class OccurrenceParser {
       rors.addAll(innerRors);
     }
     return rors;
-  }
-
-  /**
-   * Takes a dwca file and parses into RawOccurrenceRecords. The file can be any of:
-   * 1) valid dwca with .zip or .tar.gz compression and extension
-   * 2) single text file with delimiters (eg tab, space, comma)
-   * 3) as 2), but compressed using gzip or zip
-   *
-   * @param dwca the file containing dwc records
-   *
-   * @return an iterable collection of RawOccurrenceRecords
-   */
-  public Iterable<RawOccurrenceRecord> parseDwca(File dwca) {
-
-    File workingFile = dwca;
-
-    // uncompress any files with extensions suggesting compression into a temporary directory
-    if (dwca.getPath().endsWith(".zip") || dwca.getPath().endsWith(".gz")) {
-      try {
-        workingFile = File.createTempFile(System.currentTimeMillis() + "", "");
-        workingFile.delete();
-        workingFile.mkdir();
-        /** TODO: cleaning up on jvm shutdown may not be often enough! */
-        workingFile.deleteOnExit();
-      } catch (IOException e) {
-        LOG.warn("Could not create temporary directory for extracting archive file [{}]", dwca.getPath(), e);
-        return null;
-      }
-    }
-
-    if (dwca.getPath().endsWith(".zip")) {
-      try {
-        CompressionUtil.unzipFile(workingFile, dwca);
-      } catch (IOException e) {
-        LOG.warn("Could not open [{}] as a Zip archive", e);
-        return null;
-      }
-    } else if (dwca.getPath().endsWith(".tar.gz")) {
-      try {
-        CompressionUtil.ungzipFile(workingFile, dwca);
-      } catch (IOException e) {
-        LOG.warn("Could not open [{}] as a tar.gz archive", e);
-        return null;
-      }
-    } else if (dwca.getPath().endsWith(".gz")) {
-      try {
-        CompressionUtil.ungzipFile(workingFile, dwca, false);
-      } catch (IOException e) {
-        LOG.warn("Could not open [{}] as a gzip archive", e);
-        return null;
-      }
-    }
-
-    BufferedDwcaParser dwcaParser = new BufferedDwcaParser(workingFile, 10000);
-    LOG.info("Reading dwca from [{}]", workingFile.getAbsolutePath());
-
-    return dwcaParser;
   }
 
 }

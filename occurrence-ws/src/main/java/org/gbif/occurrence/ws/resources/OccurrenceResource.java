@@ -3,23 +3,18 @@ package org.gbif.occurrence.ws.resources;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.ws.factory.VerbatimOccurrenceFactory;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.ws.server.interceptor.NullToNotFound;
 import org.gbif.ws.util.ExtraMediaTypes;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.Lists;
-
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +32,11 @@ public class OccurrenceResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
   private final OccurrenceService occurrenceService;
-  private final VerbatimOccurrencePersistenceService verbatimOccurrenceService;
   private final FeaturedOccurrenceReader featuredOccurrenceReader;
 
   @Inject
-  public OccurrenceResource(OccurrenceService occurrenceService,
-    VerbatimOccurrencePersistenceService verbatimOccurrenceService, FeaturedOccurrenceReader featuredOccurrenceReader) {
+  public OccurrenceResource(OccurrenceService occurrenceService, FeaturedOccurrenceReader featuredOccurrenceReader) {
     this.occurrenceService = occurrenceService;
-    this.verbatimOccurrenceService = verbatimOccurrenceService;
     this.featuredOccurrenceReader = featuredOccurrenceReader;
   }
 
@@ -88,7 +80,7 @@ public class OccurrenceResource {
   @NullToNotFound
   public VerbatimOccurrence getVerbatim(@PathParam("key") Integer key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
-    return VerbatimOccurrenceFactory.build(verbatimOccurrenceService.get(key));
+    return occurrenceService.getVerbatim(key);
   }
 
   /**

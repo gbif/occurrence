@@ -1,9 +1,9 @@
 package org.gbif.occurrence.processor.parsing;
 
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
 
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -67,25 +67,11 @@ public class FragmentParser {
     return verbatim;
   }
 
-  // TODO: identifier records
+  // TODO: implement if really needed!!!
   private static VerbatimOccurrence buildVerbatim(RawOccurrenceRecord ror, Fragment frag) {
-    VerbatimOccurrence v = VerbatimOccurrence.builder().key(frag.getKey()).datasetKey(frag.getDatasetKey())
-      .altitudePrecision(ror.getAltitudePrecision()).author(ror.getAuthor()).basisOfRecord(ror.getBasisOfRecord())
-      .catalogNumber(ror.getCatalogueNumber()).collectionCode(ror.getCollectionCode())
-      .collectorName(ror.getCollectorName()).continentOrOcean(ror.getContinentOrOcean()).country(ror.getCountry())
-      .county(ror.getCounty()).dataProviderId(ror.getDataProviderId()).dataResourceId(ror.getDataResourceId())
-      .dateIdentified(ror.getDateIdentified()).day(ror.getDay()).dayIdentified(ror.getDayIdentified())
-      .dateIdentified(ror.getDateIdentified()).depthPrecision(ror.getDepthPrecision()).family(ror.getFamily())
-      .genus(ror.getGenus()).identifierName(ror.getIdentifierName()).institutionCode(ror.getInstitutionCode())
-      .kingdom(ror.getKingdom()).klass(ror.getKlass()).latitude(ror.getLatitude()).longitude(ror.getLongitude())
-      .latLongPrecision(ror.getLatLongPrecision()).locality(ror.getLocality()).maxAltitude(ror.getMaxAltitude())
-      .maxDepth(ror.getMaxDepth()).minAltitude(ror.getMinAltitude()).minDepth(ror.getMinDepth())
-      .modified(ror.getModified()).month(ror.getMonth()).monthIdentified(ror.getMonthIdentified())
-      .occurrenceDate(ror.getOccurrenceDate()).order(ror.getOrder()).phylum(ror.getPhylum()).rank(ror.getRank())
-      .resourceAccessPointId(ror.getResourceAccessPointId()).scientificName(ror.getScientificName())
-      .species(ror.getSpecies()).stateOrProvince(ror.getStateOrProvince()).subspecies(ror.getSubspecies())
-      .unitQualifier(ror.getUnitQualifier()).year(ror.getYear()).yearIdentified(ror.getYearIdentified()).build();
-
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setKey(frag.getKey());
+    v.setDatasetKey(frag.getDatasetKey());
     return v;
   }
 }

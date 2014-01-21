@@ -1,12 +1,12 @@
 package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.VerbatimPersistedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrence;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.parsing.FragmentParser;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class VerbatimProcessor {
 
   private final FragmentPersistenceService fragmentPersister;
-  private final VerbatimOccurrencePersistenceService verbatimPersister;
+  private final OccurrencePersistenceService occurrencePersister;
   private final MessagePublisher messagePublisher;
   private final ZookeeperConnector zookeeperConnector;
 
@@ -46,10 +46,10 @@ public class VerbatimProcessor {
 
   @Inject
   public VerbatimProcessor(FragmentPersistenceService fragmentPersister,
-    VerbatimOccurrencePersistenceService verbatimPersister, MessagePublisher messagePublisher,
+                           OccurrencePersistenceService occurrencePersister, MessagePublisher messagePublisher,
     ZookeeperConnector zookeeperConnector) {
     this.fragmentPersister = checkNotNull(fragmentPersister, "fragmentPersister can't be null");
-    this.verbatimPersister = checkNotNull(verbatimPersister, "verbatimPersister can't be null");
+    this.occurrencePersister = checkNotNull(occurrencePersister, "occurrencePersister can't be null");
     this.messagePublisher = checkNotNull(messagePublisher, "messagePublisher can't be null");
     this.zookeeperConnector = checkNotNull(zookeeperConnector, "zookeeperConnector can't be null");
   }
@@ -97,7 +97,7 @@ public class VerbatimProcessor {
       return;
     }
 
-    verbatimPersister.update(verbatim);
+    occurrencePersister.update(verbatim);
 
     if (fromCrawl) {
       LOG.debug("Updating zookeeper for VerbatimOccurrencePersistedSuccess");

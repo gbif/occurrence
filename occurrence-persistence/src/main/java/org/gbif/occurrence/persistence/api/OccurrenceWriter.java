@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.api;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -21,6 +22,16 @@ public interface OccurrenceWriter {
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
   void update(Occurrence occurrence);
+
+  /**
+   * Updates an existing occurrence. If the key field of the occurrence is null an IllegalArgumentException is thrown.
+   *
+   * @param occurrence the verbatim occurrence to update
+   *
+   * @throws IllegalArgumentException if the occurrence key is null
+   * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
+   */
+  void update(VerbatimOccurrence occurrence);
 
   /**
    * Deletes the occurrence having the given key. Returns the deleted occurrence, or null if the occurrence was not

@@ -3,7 +3,6 @@ package org.gbif.occurrence.ws.client;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.api.service.occurrence.VerbatimOccurrenceService;
 import org.gbif.ws.client.BaseWsGetClient;
 
 import com.google.inject.Inject;
@@ -14,8 +13,7 @@ import static org.gbif.ws.paths.OccurrencePaths.FRAGMENT_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 
-public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> implements OccurrenceService,
-  VerbatimOccurrenceService {
+public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> implements OccurrenceService {
 
   private final static GenericType<VerbatimOccurrence> GT_VERBATIM_OCCURRENCE = new GenericType<VerbatimOccurrence>() {
   };
