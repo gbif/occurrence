@@ -5,10 +5,12 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.constants.FieldName;
 
+import com.google.common.base.Strings;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class HiveFieldUtilTest {
 
@@ -32,6 +34,10 @@ public class HiveFieldUtilTest {
     for (FieldName fn : HiveFieldUtil.DOWNLOAD_COLUMNS) {
       Term term = HiveFieldUtil.getTerm(fn);
       assertNotNull("Every download column must be mapped to a (dwc) term. Missing term for column " + fn, term);
+      assertNotNull("Every download term must have a simple name. Missing term for column " + fn,
+                    Strings.emptyToNull(term.simpleName()));
+      assertTrue("All download term qualified names must end with their simple name. Bad term names for column " + fn,
+                 term.qualifiedName().endsWith(term.simpleName()));
     }
   }
 
