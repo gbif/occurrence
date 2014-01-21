@@ -6,10 +6,8 @@ import org.gbif.occurrence.deleter.OccurrenceDeletionService;
 import org.gbif.occurrence.deleter.messaging.DeleteOccurrenceListener;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 
@@ -37,10 +35,8 @@ public class DeleterService extends AbstractIdleService {
       new HBaseLockingKeyService(config.lookupTable, config.counterTable, config.occTable, tablePool);
     OccurrenceKeyPersistenceService occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyService);
     OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceImpl(config.occTable, tablePool);
-    VerbatimOccurrencePersistenceService verbatimService =
-      new VerbatimOccurrencePersistenceServiceImpl(config.occTable, tablePool);
     OccurrenceDeletionService occurrenceDeletionService =
-      new OccurrenceDeletionService(occurrenceService, occurrenceKeyService, verbatimService);
+      new OccurrenceDeletionService(occurrenceService, occurrenceKeyService);
 
     listener = new MessageListener(config.messaging.getConnectionParameters());
     listener.listen(config.queueName, 1, new DeleteOccurrenceListener(occurrenceDeletionService,

@@ -4,10 +4,10 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
-import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.processor.VerbatimProcessor;
@@ -57,9 +57,11 @@ public class VerbatimProcessorService extends AbstractIdleService {
 
     tablePool = new HTablePool(HBaseConfiguration.create(), individualPoolSize);
     tablePools.add(tablePool);
-    VerbatimOccurrencePersistenceService verbatimPersister =
-      new VerbatimOccurrencePersistenceServiceImpl(configuration.occTable, tablePool);
-    VerbatimProcessor verbatimProcessor = new VerbatimProcessor(fragmentPersister, verbatimPersister,
+
+    OccurrencePersistenceService occurrenceService =
+      new OccurrencePersistenceServiceImpl(configuration.occTable, tablePool);
+
+    VerbatimProcessor verbatimProcessor = new VerbatimProcessor(fragmentPersister, occurrenceService,
       new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()), zkConnector);
 
     messageListener = new MessageListener(configuration.messaging.getConnectionParameters());

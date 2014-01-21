@@ -5,11 +5,9 @@ import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrence.persistence.VerbatimOccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.api.VerbatimOccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.processor.InterpretedProcessor;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
@@ -46,8 +44,6 @@ public class InterpretedProcessorService extends AbstractIdleService {
     int individualPoolSize = configuration.hbasePoolSize / 2;
     HTablePool tablePool = new HTablePool(HBaseConfiguration.create(), individualPoolSize);
     tablePools.add(tablePool);
-    VerbatimOccurrencePersistenceService verbatimPersister =
-      new VerbatimOccurrencePersistenceServiceImpl(configuration.occTable, tablePool);
 
     tablePool = new HTablePool(HBaseConfiguration.create(), individualPoolSize);
     tablePools.add(tablePool);
@@ -64,7 +60,7 @@ public class InterpretedProcessorService extends AbstractIdleService {
       new InterpretedProcessor(
         fragmentPersister,
         verbatimInterpreter,
-        verbatimPersister,
+        occurrenceService,
         new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
         zkConnector);
     messageListener = new MessageListener(configuration.messaging.getConnectionParameters());
