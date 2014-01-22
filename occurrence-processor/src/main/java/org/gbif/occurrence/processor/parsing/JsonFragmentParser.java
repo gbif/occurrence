@@ -61,8 +61,8 @@ public class JsonFragmentParser {
       Map<String, Object> jsonMap = mapper.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
       for (String simpleTermName : jsonMap.keySet()) {
         Term term = termFactory.findTerm(simpleTermName);
-        if (term != null) {
-          Object value = jsonMap.get(simpleTermName);
+        Object value = jsonMap.get(simpleTermName);
+        if (term != null && value != null) {
           verbatim.setField(term, value.toString());
         }
       }
