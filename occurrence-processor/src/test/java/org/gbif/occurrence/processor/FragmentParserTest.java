@@ -3,6 +3,8 @@ package org.gbif.occurrence.processor;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.processor.parsing.FragmentParser;
 
@@ -16,7 +18,9 @@ import org.apache.commons.io.Charsets;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class FragmentParserTest {
 
@@ -39,28 +43,25 @@ public class FragmentParserTest {
 
     VerbatimOccurrence got = FragmentParser.parse(frag);
     assertNotNull(got);
-    /*
-
-    assertEquals("BGBM", got.getInstitutionCode());
-    assertEquals("AlgaTerra", got.getCollectionCode());
-    assertEquals("5834", got.getCatalogNumber());
+    assertEquals("BGBM", got.getField(DwcTerm.institutionCode));
+    assertEquals("AlgaTerra", got.getField(DwcTerm.collectionCode));
+    assertEquals("5834", got.getField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertNull(got.getUnitQualifier());
+    assertNull(got.getField(GbifTerm.unitQualifier));
 
     assertEquals(1, got.getKey().intValue());
-    assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getScientificName());
-    assertEquals("52.423798", got.getLatitude());
-    assertEquals("13.191434", got.getLongitude());
-    assertEquals("50", got.getLatLongPrecision());
-    assertEquals("400", got.getMinAltitude());
-    assertEquals("500", got.getMaxAltitude());
-    assertEquals("DE", got.getCountry());
-    assertEquals("Kusber, W.-H.", got.getCollectorName());
-    assertEquals("Nikolassee, Berlin", got.getLocality());
-    assertEquals("1987-04-13T00:00:00", got.getOccurrenceDate());
-    assertEquals("HumanObservation", got.getBasisOfRecord());
-    assertEquals("Kusber, W.-H.", got.getIdentifierName());
-     */
+    assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getField(DwcTerm.scientificName));
+    assertEquals("52.423798", got.getField(DwcTerm.decimalLatitude));
+    assertEquals("13.191434", got.getField(DwcTerm.decimalLongitude));
+    assertEquals("50", got.getField(DwcTerm.coordinatePrecision));
+    assertEquals("400", got.getField(DwcTerm.minimumElevationInMeters));
+    assertEquals("500", got.getField(DwcTerm.maximumElevationInMeters));
+    assertEquals("DE", got.getField(DwcTerm.country));
+    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.recordedBy));
+    assertEquals("Nikolassee, Berlin", got.getField(DwcTerm.locality));
+    assertEquals("1987-04-13T00:00:00", got.getField(DwcTerm.eventDate));
+    assertEquals("HumanObservation", got.getField(DwcTerm.basisOfRecord));
+    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.identifiedBy));
 
   }
 
@@ -75,28 +76,25 @@ public class FragmentParserTest {
     VerbatimOccurrence got = FragmentParser.parse(frag);
     assertNotNull(got);
 
-    /*
-
-    assertEquals("UGENT", got.getInstitutionCode());
-    assertEquals("vertebrata", got.getCollectionCode());
-    assertEquals("50058", got.getCatalogNumber());
+    assertEquals("UGENT", got.getField(DwcTerm.institutionCode));
+    assertEquals("vertebrata", got.getField(DwcTerm.collectionCode));
+    assertEquals("50058", got.getField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertNull(got.getUnitQualifier());
+    assertNull(got.getField(GbifTerm.unitQualifier));
 
-    assertEquals("Alouatta villosa Gray, 1845", got.getScientificName());
-    assertEquals("Gray, 1845", got.getAuthor());
-    assertEquals("Animalia", got.getKingdom());
-    assertEquals("Chordata", got.getPhylum());
-    assertEquals("Mammalia", got.getKlass());
-    assertEquals("Primates", got.getOrder());
-    assertEquals("Atelidae", got.getFamily());
-    assertEquals("Alouatta", got.getGenus());
-    assertEquals("villosa", got.getSpecies());
-    assertEquals("25", got.getLatLongPrecision());
-    assertEquals("200", got.getMinAltitude());
-    assertEquals("400", got.getMaxAltitude());
-    assertEquals("PreservedSpecimen", got.getBasisOfRecord());
-     */
+    assertEquals("Alouatta villosa Gray, 1845", got.getField(DwcTerm.scientificName));
+    assertEquals("Gray, 1845", got.getField(DwcTerm.scientificNameAuthorship));
+    assertEquals("Animalia", got.getField(DwcTerm.kingdom));
+    assertEquals("Chordata", got.getField(DwcTerm.phylum));
+    assertEquals("Mammalia", got.getField(DwcTerm.class_));
+    assertEquals("Primates", got.getField(DwcTerm.order));
+    assertEquals("Atelidae", got.getField(DwcTerm.family));
+    assertEquals("Alouatta", got.getField(DwcTerm.genus));
+    assertEquals("villosa", got.getField(DwcTerm.specificEpithet));
+    assertEquals("25", got.getField(DwcTerm.coordinatePrecision));
+    assertEquals("200", got.getField(DwcTerm.minimumElevationInMeters));
+    assertEquals("400", got.getField(DwcTerm.maximumElevationInMeters));
+    assertEquals("PreservedSpecimen", got.getField(DwcTerm.basisOfRecord));
   }
 
 }
