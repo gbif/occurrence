@@ -68,28 +68,6 @@
           </execution>
         </executions>
       </plugin>
-<<<<<<< HEAD
-=======
-      <!--<plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>wagon-maven-plugin</artifactId>-->
-        <!--<version>1.0-beta-4</version>-->
-        <!--<configuration>-->
-          <!--<fromFile>${project.build.directory}/${project.artifactId}.jar</fromFile>-->
-          <!--<url>scp://crap@minicrawler.gbif.org/home/crap/lib</url>-->
-        <!--</configuration>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>deploy-crawler</id>-->
-            <!--<phase>install</phase>-->
-            <!--<goals>-->
-              <!--<goal>upload-single</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
-
->>>>>>> ccdc686f4c1d8b9e65eae33fcf0d63c7445ba78e
     </plugins>
   </build>
 
