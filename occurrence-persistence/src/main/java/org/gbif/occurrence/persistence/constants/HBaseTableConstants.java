@@ -14,6 +14,9 @@ public class HBaseTableConstants {
   // the one column family for all columns of the occurrence table
   public static final String OCCURRENCE_COLUMN_FAMILY = "o";
 
+  // a single occurrence will have many dwc Terms. Each term column is prefixed
+  public static final String TERM_PREFIX = "t_";
+
   // An occurrence can have 0-n identifiers, each of a certain type. Their column names look like t1, i1, t2, i2, etc.
   public static final String IDENTIFIER_TYPE_COLUMN = "t";
   public static final String IDENTIFIER_COLUMN = "i";

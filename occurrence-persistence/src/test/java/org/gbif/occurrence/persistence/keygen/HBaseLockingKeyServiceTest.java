@@ -20,7 +20,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
+//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class HBaseLockingKeyServiceTest {
 
   private static final String A = "a";
