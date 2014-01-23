@@ -169,7 +169,7 @@ public class OccurrenceBuilder {
       //      occ.setContinent(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN)); // no enums in hbase
       occ.setField(DwcTerm.recordedBy, OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
       occ.setField(DwcTerm.identifiedBy, OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
-      occ.setIdentificationDate(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
+      occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
       occ.setIdentifiers(extractIdentifiers(key, row, HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY));
       return occ;
     }

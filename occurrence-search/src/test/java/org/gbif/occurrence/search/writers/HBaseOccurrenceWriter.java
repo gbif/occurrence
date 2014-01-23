@@ -196,9 +196,9 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
         Bytes.toBytes(occ.getField(DwcTerm.identifiedBy)));
     }
 
-    if (occ.getIdentificationDate() != null) {
+    if (occ.getDateIdentified() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFICATION_DATE).getColumnName()),
-        Bytes.toBytes(occ.getIdentificationDate().getTime()));
+        Bytes.toBytes(occ.getDateIdentified().getTime()));
     }
 
     if (occ.getModified() != null) {
