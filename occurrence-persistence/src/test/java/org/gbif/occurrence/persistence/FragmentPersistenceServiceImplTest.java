@@ -2,10 +2,10 @@ package org.gbif.occurrence.persistence;
 
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
-import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
@@ -38,7 +38,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -49,7 +48,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
+//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class FragmentPersistenceServiceImplTest {
 
   private static final String TABLE_NAME = "occurrence_test";

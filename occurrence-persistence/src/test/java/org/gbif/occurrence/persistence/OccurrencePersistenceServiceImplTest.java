@@ -2,21 +2,29 @@ package org.gbif.occurrence.persistence;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
-import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
@@ -37,6 +45,8 @@ import static org.junit.Assert.assertTrue;
 //@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class OccurrencePersistenceServiceImplTest {
 
+  // TODO: handle unit qualifier as a Term
+
   private static final String TABLE_NAME = "occurrence_test";
   private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
   private static final String CF_NAME = "o";
@@ -51,8 +61,6 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int CLASS_ID = 99;
   private static final String CLASS = "Mammalia";
   private static final String COL_CODE = "Big cats";
-  private static final int DPI = 1234;
-  private static final int DRI = 5960;
   private static final UUID DATASET_KEY = UUID.randomUUID();
   private static final int DEPTH = 90;
   private static final String DWC_ID = "asdf-hasdf-234-dwcid";
@@ -61,6 +69,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final String GENUS = "Panthera";
   private static final int GENUS_ID = 9737;
   private static final int GEO = 1;
+  private static final Date HARVESTED_DATE = new Date();
   private static final Country HOST_COUNTRY = Country.CANADA;
   private static final String INST_CODE = "BGBM";
   private static final String CONTINENT = "Europe";
@@ -90,8 +99,9 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int SPECIES_ID = 1425;
   private static final String UNIT_QUALIFIER = "Panthera onca (Linnaeus, 1758)";
   private static final int YEAR = 1972;
-
   private static final String XML = "<record>some fake xml</record>";
+
+  private static final String TERM_VALUE_PREFIX = "I am ";
 
   private static final String ID_0 = "http://gbif.org";
   private static final String ID_TYPE_0 = "URL";
@@ -115,57 +125,6 @@ public class OccurrencePersistenceServiceImplTest {
     TEST_UTIL.createTable(TABLE, CF);
   }
 
-  private void assertEquivalence(Occurrence occ) {
-    assertNotNull(occ);
-
-    assertEquals((Integer) ALT, occ.getAltitude());
-    assertEquals(BOR, occ.getBasisOfRecord());
-    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
-    assertEquals((Integer) CLASS_ID, occ.getClassKey());
-    assertEquals(CLASS, occ.getClazz());
-    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
-    assertEquals(DATASET_KEY, occ.getDatasetKey());
-    assertEquals((Integer) DEPTH, occ.getDepth());
-    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
-    assertEquals(FAMILY, occ.getFamily());
-    assertEquals((Integer) FAMILY_ID, occ.getFamilyKey());
-    assertEquals(GENUS, occ.getGenus());
-    assertEquals((Integer) GENUS_ID, occ.getGenusKey());
-    // TODO: geospatial issue
-//    assertEquals((Integer) GEO, occ.getGeospatialIssue());
-    assertEquals(HOST_COUNTRY, occ.getPublishingCountry());
-    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
-    assertEquals(ISO, occ.getCountry());
-    assertEquals(KINGDOM, occ.getKingdom());
-    assertEquals((Integer) KINGDOM_ID, occ.getKingdomKey());
-    assertEquals(LAT, occ.getLatitude(), 0.0001);
-    assertEquals(LNG, occ.getLongitude(), 0.0001);
-    assertEquals(MOD, occ.getModified());
-    assertEquals((Integer) MONTH, occ.getMonth());
-    assertEquals((Integer) NUB_ID, occ.getTaxonKey());
-    assertEquals(OCC_DATE, occ.getEventDate());
-    assertEquals(ORDER, occ.getOrder());
-    assertEquals((Integer) ORDER_ID, occ.getOrderKey());
-//    assertEquals((Integer) OTHER, occ.getOtherIssue());
-    assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
-    assertEquals(PHYLUM, occ.getPhylum());
-    assertEquals((Integer) PHYLUM_ID, occ.getPhylumKey());
-    assertEquals(PROTOCOL, occ.getProtocol());
-    assertEquals(SCI_NAME, occ.getScientificName());
-    assertEquals(SPECIES, occ.getSpecies());
-    assertEquals((Integer) SPECIES_ID, occ.getSpeciesKey());
-    // TODO: unit qualifier
-//    assertEquals(UNIT_QUALIFIER, occ.getUnitQualifier());
-    assertEquals((Integer) YEAR, occ.getYear());
-
-    // TODO: continent
-//    assertEquals(CONTINENT, occ.getContinent());
-    assertEquals(STATE, occ.getStateProvince());
-    assertEquals(COUNTY, occ.getField(DwcTerm.county));
-    assertEquals(LOCALITY, occ.getField(DwcTerm.locality));
-    assertEquals(COLLECTOR_NAME, occ.getField(DwcTerm.recordedBy));
-    assertEquals(IDENTIFIER_NAME, occ.getField(DwcTerm.identifiedBy));
-  }
 
   @Before
   public void setUp() throws Exception {
@@ -179,14 +138,14 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ALTITUDE).getColumnName()), Bytes.toBytes(ALT));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_BASIS_OF_RECORD).getColumnName()),
       Bytes.toBytes(BOR_INT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CATALOG_NUMBER).getColumnName()),
-      Bytes.toBytes(CAT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTION_CODE).getColumnName()),
-      Bytes.toBytes(COL_CODE));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CATALOG_NUMBER).getColumnName()),
+    //      Bytes.toBytes(CAT));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTION_CODE).getColumnName()),
+    //      Bytes.toBytes(COL_CODE));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_ID).getColumnName()),
       Bytes.toBytes(CLASS_ID));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS).getColumnName()), Bytes.toBytes(CLASS));
-        put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
       Bytes.toBytes(DATASET_KEY.toString()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DEPTH).getColumnName()), Bytes.toBytes(DEPTH));
     put
@@ -200,21 +159,23 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(GEO));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUBLISHING_COUNTRY).getColumnName()),
       Bytes.toBytes(HOST_COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
-      Bytes.toBytes(INST_CODE));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
+    //      Bytes.toBytes(INST_CODE));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ISO_COUNTRY_CODE).getColumnName()),
       Bytes.toBytes(ISO.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CONTINENT_OCEAN).getColumnName()),
-      Bytes.toBytes(CONTINENT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.STATE_PROVINCE).getColumnName()),
-      Bytes.toBytes(STATE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COUNTY).getColumnName()), Bytes.toBytes(COUNTY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LOCALITY).getColumnName()),
-      Bytes.toBytes(LOCALITY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTOR_NAME).getColumnName()),
-      Bytes.toBytes(COLLECTOR_NAME));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_NAME).getColumnName()),
-      Bytes.toBytes(IDENTIFIER_NAME));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CONTINENT_OCEAN).getColumnName()),
+    //      Bytes.toBytes(CONTINENT));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.STATE_PROVINCE).getColumnName()),
+    //      Bytes.toBytes(STATE));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COUNTY).getColumnName()), Bytes.toBytes(COUNTY));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LOCALITY).getColumnName()),
+    //      Bytes.toBytes(LOCALITY));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTOR_NAME).getColumnName()),
+    //      Bytes.toBytes(COLLECTOR_NAME));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+      Bytes.toBytes(HARVESTED_DATE.getTime()));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_NAME).getColumnName()),
+    //      Bytes.toBytes(IDENTIFIER_NAME));
 
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM).getColumnName()),
       Bytes.toBytes(KINGDOM));
@@ -233,8 +194,8 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER).getColumnName()), Bytes.toBytes(ORDER));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER_ID).getColumnName()),
       Bytes.toBytes(ORDER_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OTHER_ISSUE).getColumnName()),
-      Bytes.toBytes(OTHER));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OTHER_ISSUE).getColumnName()),
+    //      Bytes.toBytes(OTHER));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.OWNING_ORG_KEY).getColumnName()),
       Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
     put
@@ -250,10 +211,10 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES_ID).getColumnName()),
       Bytes.toBytes(SPECIES_ID));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()), Bytes.toBytes(YEAR));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
-      Bytes.toBytes(UNIT_QUALIFIER));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DWC_OCCURRENCE_ID).getColumnName()),
-      Bytes.toBytes(DWC_ID));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
+    //      Bytes.toBytes(UNIT_QUALIFIER));
+    //    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DWC_OCCURRENCE_ID).getColumnName()),
+    //      Bytes.toBytes(DWC_ID));
 
     put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
     put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
@@ -264,10 +225,31 @@ public class OccurrencePersistenceServiceImplTest {
 
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), Bytes.toBytes(XML));
 
+    for (DwcTerm term : DwcTerm.values()) {
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+        Bytes.toBytes("I am " + term.toString()));
+    }
+    for (Term term : GbifTerm.values()) {
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+        Bytes.toBytes("I am " + term.toString()));
+    }
+    for (Term term : IucnTerm.values()) {
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+        Bytes.toBytes("I am " + term.toString()));
+    }
+    for (Term term : DcTerm.values()) {
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+        Bytes.toBytes("I am " + term.toString()));
+    }
+    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
+    put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      Bytes.toBytes("I am " + term.toString()));
+
     table.put(put);
     table.flushCommits();
     table.close();
   }
+
 
   private void setUpIdentifiers() throws IOException {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
@@ -307,100 +289,6 @@ public class OccurrencePersistenceServiceImplTest {
     Occurrence occ = occurrenceService.get(BAD_ID);
     assertNull(occ);
   }
-
-  // todo convert to update test
-  //  @Test
-  //  public void testInsertFull() throws IOException {
-  //    setUpIdentifiers();
-  //    Occurrence got = occurrenceService.get(ID);
-  //    got.setKey(null);
-  //    Occurrence written = occurrenceService.insert(got);
-  //    assertNotNull(written.getKey());
-  //
-  //    Occurrence occ = occurrenceService.get(written.getKey());
-  //    assertEquivalence(occ);
-  //    assertEquals(3, occ.getIdentifiers().size());
-  //    assertEquals((Integer) 1, occ.getKey());
-  //  }
-
-  // todo convert to update test
-  //  @Test
-  //  public void testInsertPartial() {
-  //    // this get just to populate a record with known values - this is still an insert test
-  //    Occurrence got = occurrenceService.get(ID);
-  //    got.setKey(null);
-  //    got.setOrder(null);
-  //    got.setOrderKey(null);
-  //    got.setOccurrenceId(null);
-  //    got.setFamily(null);
-  //    got.setFamilyKey(null);
-  //    got.setGenus(null);
-  //    got.setGenusKey(null);
-  //    got.setOwningOrgKey(null);
-  //    got.setModified(null);
-  //    got.setUnitQualifier(null);
-  //    got.setIdentifiers(null);
-  //    Occurrence written = occurrenceService.insert(got);
-  //    assertNotNull(written.getKey());
-  //
-  //    Occurrence occ = occurrenceService.get(written.getKey());
-  //    assertNotNull(occ);
-  //
-  //    assertTrue(ALT == occ.getAltitude());
-  //    assertEquals(BOR, occ.getBasisOfRecord());
-  //    assertEquals(CAT, occ.getCatalogNumber());
-  //    assertTrue(CLASS_ID == occ.getClassKey());
-  //    assertEquals(CLASS, occ.getClazz());
-  //    assertEquals(COL_CODE, occ.getCollectionCode());
-  //    assertTrue(DPI == occ.getDataProviderId());
-  //    assertTrue(DRI == occ.getDataResourceId());
-  //    assertEquals(DATASET_KEY, occ.getDatasetKey());
-  //    assertTrue(DEPTH == occ.getDepth());
-  //    assertEquals(0, occ.getIdentifiers().size());
-  //    assertNull(occ.getFamily());
-  //    assertNull(occ.getFamilyKey());
-  //    assertNull(occ.getGenus());
-  //    assertNull(occ.getGenusKey());
-  //    assertTrue(GEO == occ.getGeospatialIssue());
-  //    assertTrue(written.getKey() == occ.getKey());
-  //    assertEquals(INST_CODE, occ.getInstitutionCode());
-  //    assertEquals(ISO, occ.getCountry());
-  //    assertEquals(KINGDOM, occ.getKingdom());
-  //    assertTrue(KINGDOM_ID == occ.getKingdomKey());
-  //    assertEquals(LAT, occ.getLatitude());
-  //    assertEquals(LNG, occ.getLongitude());
-  //    assertNull(occ.getModified());
-  //    assertTrue(MONTH == occ.getOccurrenceMonth());
-  //    assertTrue(NUB_ID == occ.getNubKey());
-  //    assertEquals(OCC_DATE, occ.getOccurrenceDate());
-  //    assertNull(occ.getOrder());
-  //    assertNull(occ.getOrderKey());
-  //    assertTrue(OTHER == occ.getOtherIssue());
-  //    assertNull(occ.getOwningOrgKey());
-  //    assertEquals(PHYLUM, occ.getPhylum());
-  //    assertTrue(PHYLUM_ID == occ.getPhylumKey());
-  //    assertTrue(RAPI == occ.getResourceAccessPointId());
-  //    assertTrue(SCI_NAME.equals(occ.getScientificName()));
-  //    assertEquals(SPECIES, occ.getSpecies());
-  //    assertTrue(SPECIES_ID == occ.getSpeciesKey());
-  //    assertTrue(TAX_ISSUE == occ.getTaxonomicIssue());
-  //    assertTrue(YEAR == occ.getOccurrenceYear());
-  //  }
-
-//  @Test
-//  public void testPreEpochDateSerDe() {
-//    Occurrence got = occurrenceService.get(ID);
-//    Calendar cal = Calendar.getInstance();
-//    cal.set(1898, 4, 20);
-//    cal.set(Calendar.HOUR, 0);
-//    cal.set(Calendar.SECOND, 0);
-//    cal.set(Calendar.MILLISECOND, 0);
-//    got.setOccurrenceDate(cal.getTime());
-//    occurrenceService.update(got);
-//
-//    Occurrence test = occurrenceService.get(ID);
-//    assertEquals(cal.getTimeInMillis(), test.getOccurrenceDate().getTime());
-//  }
 
   @Test
   public void testUpdateFull() {
@@ -449,7 +337,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setFamilyKey(familyId);
     update.setGenus(genus);
     update.setGenusKey(genusId);
-//    update.setGeospatialIssue(geo);
+    //    update.setGeospatialIssue(geo);
     update.setCountry(iso);
     update.setKingdom(kingdom);
     update.setKingdomKey(kingdomId);
@@ -461,7 +349,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setEventDate(occDate);
     update.setOrder(order);
     update.setOrderKey(orderId);
-//    update.setOtherIssue(other);
+    //    update.setOtherIssue(other);
     update.setPhylum(phylum);
     update.setPhylumKey(phylumId);
     update.setProtocol(protocol);
@@ -469,7 +357,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setScientificName(sciName);
     update.setSpecies(species);
     update.setSpeciesKey(speciesId);
-//    update.setUnitQualifier(unitQualifier);
+    //    update.setUnitQualifier(unitQualifier);
     update.setYear(year);
 
     String id0 = "http://www.ala.org.au";
@@ -487,25 +375,25 @@ public class OccurrencePersistenceServiceImplTest {
     Assert.assertNotNull(occ);
     assertTrue(alt == occ.getAltitude());
     assertEquals(bor, occ.getBasisOfRecord());
-    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
+//    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
     assertTrue(classId == occ.getClassKey());
     assertEquals(clazz, occ.getClazz());
-    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
+//    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
     assertEquals(DATASET_KEY, occ.getDatasetKey());
     assertTrue(depth == occ.getDepth());
-    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
+//    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
     assertEquals(family, occ.getFamily());
     assertTrue(familyId == occ.getFamilyKey());
     assertEquals(genus, occ.getGenus());
     assertTrue(genusId == occ.getGenusKey());
-//    assertTrue(geo == occ.getGeospatialIssue());
+    //    assertTrue(geo == occ.getGeospatialIssue());
     assertEquals(publishingCountry, occ.getPublishingCountry());
     assertTrue(update.getKey().intValue() == occ.getKey().intValue());
     assertEquals(1, occ.getIdentifiers().size());
     Identifier updatedRecord = occ.getIdentifiers().iterator().next();
     assertTrue(id0.equals(updatedRecord.getIdentifier()));
     assertEquals(idType0, updatedRecord.getType());
-    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
+//    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
     assertEquals(iso, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertTrue(kingdomId == occ.getKingdomKey());
@@ -517,7 +405,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(occDate, occ.getEventDate());
     assertEquals(order, occ.getOrder());
     assertTrue(orderId == occ.getOrderKey());
-//    assertTrue(other == occ.getOtherIssue());
+    //    assertTrue(other == occ.getOtherIssue());
     assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
     assertEquals(protocol, occ.getProtocol());
     assertEquals(phylum, occ.getPhylum());
@@ -525,7 +413,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(sciName.equals(occ.getScientificName()));
     assertEquals(species, occ.getSpecies());
     assertTrue(speciesId == occ.getSpeciesKey());
-//    assertEquals(unitQualifier, occ.getUnitQualifier());
+    //    assertEquals(unitQualifier, occ.getUnitQualifier());
     assertTrue(year == occ.getYear());
   }
 
@@ -566,5 +454,149 @@ public class OccurrencePersistenceServiceImplTest {
       count++;
     }
     assertEquals(1, count);
+  }
+
+  @Test
+  public void getVerbatim() {
+    VerbatimOccurrence expected = new VerbatimOccurrence();
+    expected.setKey(ID);
+    expected.setDatasetKey(DATASET_KEY);
+    expected.setPublishingOrgKey(PUBLISHING_ORG_KEY);
+    expected.setPublishingCountry(HOST_COUNTRY);
+    expected.setLastCrawled(HARVESTED_DATE);
+    expected.setProtocol(PROTOCOL);
+    addTerms(expected, TERM_VALUE_PREFIX);
+
+    VerbatimOccurrence verb = occurrenceService.getVerbatim(ID);
+    assertNotNull(verb);
+    assertEquivalence(expected, verb);
+  }
+
+  @Test
+  public void getVerbatimNull() {
+    VerbatimOccurrence verb = occurrenceService.getVerbatim(BAD_ID);
+    assertNull(verb);
+  }
+
+  // todo: ensure fields get cleaned up (eg if set to null on update)
+  @Test
+  public void testUpdateVerbatim() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(ID);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setLastCrawled(new Date());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    addTerms(orig, "I was ");
+    occurrenceService.update(orig);
+
+    VerbatimOccurrence got = occurrenceService.getVerbatim(ID);
+    assertNotNull(got);
+    assertEquivalence(orig, got);
+  }
+
+  @Test
+  public void testUpdateVerbatimRemovingFields() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(ID);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setLastCrawled(new Date());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    addTerms(orig, "I was ");
+    Map<Term, String> fields = orig.getFields();
+    fields.remove(DwcTerm.acceptedNameUsage);
+    fields.remove(DcTerm.accessRights);
+    fields.remove(IucnTerm.threatStatus);
+    orig.setFields(fields);
+    occurrenceService.update(orig);
+
+    VerbatimOccurrence got = occurrenceService.getVerbatim(ID);
+    assertNotNull(got);
+    assertEquivalence(orig, got);
+    assertNull(got.getField(DwcTerm.acceptedNameUsage));
+    assertNull(got.getField(DcTerm.accessRights));
+    assertNull(got.getField(IucnTerm.threatStatus));
+  }
+
+  private void addTerms(VerbatimOccurrence occ, String prefix) {
+    Map<Term, String> fields = Maps.newHashMap();
+
+    for (DwcTerm term : DwcTerm.values()) {
+      fields.put(term, prefix + term.toString());
+    }
+    for (Term term : GbifTerm.values()) {
+      fields.put(term, prefix + term.toString());
+    }
+    for (Term term : IucnTerm.values()) {
+      fields.put(term, prefix + term.toString());
+    }
+    for (Term term : DcTerm.values()) {
+      fields.put(term, prefix + term.toString());
+    }
+    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
+    fields.put(term, prefix + term.toString());
+
+    occ.setFields(fields);
+  }
+
+  private void assertEquivalence(Occurrence occ) {
+    assertNotNull(occ);
+
+    assertEquals((Integer) ALT, occ.getAltitude());
+    assertEquals(BOR, occ.getBasisOfRecord());
+//    assertEquals(CAT, occ.getField(DwcTerm.catalogNumber));
+    assertEquals((Integer) CLASS_ID, occ.getClassKey());
+    assertEquals(CLASS, occ.getClazz());
+//    assertEquals(COL_CODE, occ.getField(DwcTerm.collectionCode));
+    assertEquals(DATASET_KEY, occ.getDatasetKey());
+    assertEquals((Integer) DEPTH, occ.getDepth());
+//    assertEquals(DWC_ID, occ.getField(DwcTerm.occurrenceID));
+    assertEquals(FAMILY, occ.getFamily());
+    assertEquals((Integer) FAMILY_ID, occ.getFamilyKey());
+    assertEquals(GENUS, occ.getGenus());
+    assertEquals((Integer) GENUS_ID, occ.getGenusKey());
+    // TODO: geospatial issue
+    //    assertEquals((Integer) GEO, occ.getGeospatialIssue());
+    assertEquals(HOST_COUNTRY, occ.getPublishingCountry());
+//    assertEquals(INST_CODE, occ.getField(DwcTerm.institutionCode));
+    assertEquals(ISO, occ.getCountry());
+    assertEquals(KINGDOM, occ.getKingdom());
+    assertEquals((Integer) KINGDOM_ID, occ.getKingdomKey());
+    assertEquals(LAT, occ.getLatitude(), 0.0001);
+    assertEquals(LNG, occ.getLongitude(), 0.0001);
+    assertEquals(MOD, occ.getModified());
+    assertEquals((Integer) MONTH, occ.getMonth());
+    assertEquals((Integer) NUB_ID, occ.getTaxonKey());
+    assertEquals(OCC_DATE, occ.getEventDate());
+    assertEquals(ORDER, occ.getOrder());
+    assertEquals((Integer) ORDER_ID, occ.getOrderKey());
+    //    assertEquals((Integer) OTHER, occ.getOtherIssue());
+    assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
+    assertEquals(PHYLUM, occ.getPhylum());
+    assertEquals((Integer) PHYLUM_ID, occ.getPhylumKey());
+    assertEquals(PROTOCOL, occ.getProtocol());
+    assertEquals(SCI_NAME, occ.getScientificName());
+    assertEquals(SPECIES, occ.getSpecies());
+    assertEquals((Integer) SPECIES_ID, occ.getSpeciesKey());
+    assertEquals((Integer) YEAR, occ.getYear());
+
+    // TODO: continent
+    //    assertEquals(CONTINENT, occ.getContinent());
+//    assertEquals(STATE, occ.getStateProvince());
+//    assertEquals(COUNTY, occ.getField(DwcTerm.county));
+//    assertEquals(LOCALITY, occ.getField(DwcTerm.locality));
+//    assertEquals(COLLECTOR_NAME, occ.getField(DwcTerm.recordedBy));
+//    assertEquals(IDENTIFIER_NAME, occ.getField(DwcTerm.identifiedBy));
+  }
+
+  private void assertEquivalence(VerbatimOccurrence a, VerbatimOccurrence b) {
+    assertEquals(a.getKey(), b.getKey());
+    assertEquals(a.getDatasetKey(), b.getDatasetKey());
+    assertEquals(a.getLastCrawled(), b.getLastCrawled());
+    assertEquals(a.getProtocol(), b.getProtocol());
+    assertEquals(a.getPublishingCountry(), b.getPublishingCountry());
+    assertEquals(a.getPublishingOrgKey(), b.getPublishingOrgKey());
+    for (DwcTerm term : DwcTerm.values()) {
+      assertEquals(a.getField(term), b.getField(term));
+    }
   }
 }

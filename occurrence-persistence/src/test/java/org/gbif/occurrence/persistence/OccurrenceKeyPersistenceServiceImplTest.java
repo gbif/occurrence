@@ -28,7 +28,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -37,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
+//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class OccurrenceKeyPersistenceServiceImplTest {
 
   private static final String LOOKUP_TABLE_NAME = "occurrence_lookup_test";

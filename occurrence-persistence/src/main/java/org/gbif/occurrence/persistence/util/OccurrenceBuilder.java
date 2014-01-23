@@ -8,6 +8,8 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
@@ -22,6 +24,7 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
 import com.google.common.collect.Lists;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -43,7 +46,9 @@ public class OccurrenceBuilder {
    * Builds a Fragment object from the given result, assigning the passed in key.
    *
    * @param result an HBase scan/get Result
+   *
    * @return the Fragment or null if the passed in Result is null
+   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -125,9 +130,10 @@ public class OccurrenceBuilder {
       occ.setGenus(OccurrenceResultReader.getString(row, FieldName.I_GENUS));
       occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
       // TODO: how to deal with geospatial issues pre schema change?
-//      occ.setGeospatialIssue(OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE));
-      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
-      occ.setField(DwcTerm.institutionCode,OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
+      //      occ.setGeospatialIssue(OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE));
+      occ
+        .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
+      occ.setField(DwcTerm.institutionCode, OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
       occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));
       occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID));
@@ -154,13 +160,13 @@ public class OccurrenceBuilder {
       occ.setSpecies(OccurrenceResultReader.getString(row, FieldName.I_SPECIES));
       occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
       // TODO: where does unit qualifier go now?
-//      occ.setUnitQualifier(OccurrenceResultReader.getString(row, FieldName.UNIT_QUALIFIER));
+      //      occ.setUnitQualifier(OccurrenceResultReader.getString(row, FieldName.UNIT_QUALIFIER));
       occ.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
       occ.setField(DwcTerm.locality, OccurrenceResultReader.getString(row, FieldName.LOCALITY));
       occ.setField(DwcTerm.county, OccurrenceResultReader.getString(row, FieldName.COUNTY));
       occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.STATE_PROVINCE));
       // TODO: interpret continent into a new column
-//      occ.setContinent(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN)); // no enums in hbase
+      //      occ.setContinent(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN)); // no enums in hbase
       occ.setField(DwcTerm.recordedBy, OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
       occ.setField(DwcTerm.identifiedBy, OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
       occ.setIdentificationDate(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
@@ -175,8 +181,32 @@ public class OccurrenceBuilder {
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
-    //TODO: new implementation
-    return null;
+    if (row == null || row.isEmpty()) {
+      return null;
+    } else {
+      VerbatimOccurrence verb = new VerbatimOccurrence();
+      verb.setKey(Bytes.toInt(row.getRow()));
+      verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
+      verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
+      verb
+        .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
+      verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
+      verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
+      buildFields(verb, row);
+
+      return verb;
+    }
+  }
+
+  private static void buildFields(VerbatimOccurrence occ, Result row) {
+    // all Term fields in row are prefixed
+    for (KeyValue kv : row.raw()) {
+      String colName = Bytes.toString(kv.getQualifier());
+      if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
+        Term term = TermFactory.instance().findTerm(colName.substring(2));
+        occ.setField(term, Bytes.toString(kv.getValue()));
+      }
+    }
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result, String columnFamily) {
