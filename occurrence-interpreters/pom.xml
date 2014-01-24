@@ -29,11 +29,6 @@
   <name>Occurrence Interpreters</name>
   <description>Interpretation libraries for getting from verbatim occurrences to interpreted occurrences</description>
 
-  <properties>
-    <gbif-parsers.version>0.5</gbif-parsers.version>
-    <geocode.version>0.1</geocode.version>
-  </properties>
-
   <build>
     <resources>
       <resource>
@@ -66,17 +61,14 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-parsers</artifactId>
-      <version>${gbif-parsers.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.geocode</groupId>
       <artifactId>geocode-api</artifactId>
-      <version>${geocode.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-jaxrs</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -89,18 +81,15 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-apache-client</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <!-- Has to be added explicitly because otherwise the version from HBase will overwrite it which leads to errors -->
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-json</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
