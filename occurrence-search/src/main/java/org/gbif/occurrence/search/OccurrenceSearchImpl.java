@@ -78,7 +78,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   /**
    * Builds a SearchResponse instance using the current builder state.
-   *
+   * 
    * @return a new instance of a SearchResponse.
    */
   public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(QueryResponse queryResponse,
@@ -145,10 +145,15 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     return suggestTermByField(prefix, OccurrenceSearchParameter.INSTITUTION_CODE, limit);
   }
 
+  @Override
+  public List<String> suggestRecordNumbers(String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.RECORD_NUMBER, limit);
+  }
+
 
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.
-   *
+   * 
    * @param prefix search term
    * @param parameter mapped field to be searched
    * @param limit of maximum matches
@@ -175,7 +180,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   /**
    * Tries to get the corresponding name usage keys from the scientific_name parameter values.
-   *
+   * 
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific name was found
    *         false: if none scientific name was found
    */

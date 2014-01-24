@@ -1,17 +1,30 @@
 package org.gbif.occurrence.search;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.io.File;
 import java.io.FileReader;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.Optional;
@@ -19,8 +32,8 @@ import org.supercsv.cellprocessor.ParseDate;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
-import org.supercsv.io.CsvBeanReader;
-import org.supercsv.io.ICsvBeanReader;
+import org.supercsv.io.CsvMapReader;
+import org.supercsv.io.ICsvMapReader;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
@@ -29,11 +42,11 @@ import org.supercsv.util.CsvContext;
  * The expected columns in that file are:
  * "key","altitude","basisOfRecord","catalogNumber","classKey","clazz","collectionCode","dataProviderId",
  * "dataResourceId","datasetKey","depth","occurrenceId","family","familyKey","genus",
- * "genusKey","geospatialIssue","institutionCode","country","kingdom","kingdomKey","latitude","longitude","modified",
- * "occurrenceMonth","nubKey","occurrenceDate","order","orderKey","otherIssue",
- * "owningOrgKey","phylum","phylumKey","resourceAccessPointId","scientificName","species","speciesKey","taxonomicIssue",
- * "unitQualifier","occurrenceYear","locality","county","stateProvince","continent",
- * "collectorName","identifierName", "identificationDate".
+ * "genusKey","institutionCode","country","kingdom","kingdomKey","latitude","longitude","modified",
+ * "occurrenceMonth","taxonKey","occurrenceDate","order","orderKey","otherIssue",
+ * "owningOrgKey","phylum","phylumKey","scientificName","species","speciesKey",
+ * "unitQualifier","year","locality","county","stateProvince","continent",
+ * "collectorName","collectorNumber","identifierName", "identificationDate".
  * Each cvs line is interpreted into an Occurrence object; to process each object a predicate or list of predicates are
  * passed as parameters to the function loadOccurrences.
  */
@@ -49,6 +62,21 @@ public class OccurrenceDataLoader {
       return BOR_CONVERTER.toEnum(Integer.parseInt((String) value));
     }
 
+  }
+
+  /**
+   * Produces a Continent instance.
+   */
+  private static class ContinentProcessor implements CellProcessor {
+
+    @Override
+    public Continent execute(Object value, CsvContext context) {
+      Enum<?> continent = VocabularyUtils.lookupEnum((String) value, Continent.class);
+      if (continent != null) {
+        return (Continent) continent;
+      }
+      return null;
+    }
   }
 
   /**
@@ -95,8 +123,6 @@ public class OccurrenceDataLoader {
     new Optional(new ParseInt()), // classKey
     new Optional(), // clazz
     new Optional(), // collectionCode
-    new Optional(new ParseInt()), // dataProviderId
-    new Optional(new ParseInt()), // dataResourceId
     new Optional(new UUIDProcessor()), // datasetKey
     new Optional(new ParseInt()),// depth
     new Optional(),// occurrenceId
@@ -104,7 +130,6 @@ public class OccurrenceDataLoader {
     new Optional(new ParseInt()),// familyKey
     new Optional(),// genus
     new Optional(new ParseInt()),// genusKey
-    new Optional(new ParseInt()),// geospatialIssue
     new Optional(),// institutionCode
     new Optional(new CountryProcessor()),// country
     new Optional(),// kingdom
@@ -112,27 +137,25 @@ public class OccurrenceDataLoader {
     new Optional(new ParseDouble()),// latitude
     new Optional(new ParseDouble()),// longitude
     new Optional(new ParseDate(DATE_FORMAT)),// modified
-    new Optional(new ParseInt()),// occurrenceMonth
-    new Optional(new ParseInt()),// nubKey
-    new Optional(new ParseDate(DATE_FORMAT)),// occurrenceDate
+    new Optional(new ParseInt()),// month
+    new Optional(new ParseInt()),// taxonKey
+    new Optional(new ParseDate(DATE_FORMAT)),// eventDate
     new Optional(),// order
     new Optional(new ParseInt()),// orderKey
-    new Optional(new ParseInt()),// otherIssue
-    new Optional(new UUIDProcessor()),// owningOrgKey
+    new Optional(new UUIDProcessor()),// publishingOrgKey
     new Optional(),// phylum
     new Optional(new ParseInt()),// phylumKey
-    new Optional(new ParseInt()),// resourceAccessPointId
     new Optional(),// scientificName
     new Optional(),// species
     new Optional(new ParseInt()),// speciesKey
-    new Optional(new ParseInt()),// taxonomicIssue
     new Optional(),// unitQualifier
-    new Optional(new ParseInt()),// occurrenceYear
+    new Optional(new ParseInt()),// year
     new Optional(),// locality
     new Optional(),// county
     new Optional(),// stateProvince
-    new Optional(),// continent
+    new Optional(new ContinentProcessor()),// continent
     new Optional(),// collectorName
+    new Optional(),// recordNumber
     new Optional(),// identifierName
     new Optional(new ParseDate(DATE_FORMAT))// identificationDate
   };
@@ -147,8 +170,6 @@ public class OccurrenceDataLoader {
     "classKey",
     "clazz",
     "collectionCode",
-    "dataProviderId",
-    "dataResourceId",
     "datasetKey",
     "depth",
     "occurrenceId",
@@ -156,7 +177,6 @@ public class OccurrenceDataLoader {
     "familyKey",
     "genus",
     "genusKey",
-    "geospatialIssue",
     "institutionCode",
     "country",
     "kingdom",
@@ -164,49 +184,63 @@ public class OccurrenceDataLoader {
     "latitude",
     "longitude",
     "modified",
-    "occurrenceMonth",
-    "nubKey",
-    "occurrenceDate",
+    "month",
+    "taxonKey",
+    "eventDate",
     "order",
     "orderKey",
-    "otherIssue",
-    "owningOrgKey",
+    "publishingOrgKey",
     "phylum",
     "phylumKey",
-    "resourceAccessPointId",
     "scientificName",
     "species",
     "speciesKey",
-    "taxonomicIssue",
     "unitQualifier",
-    "occurrenceYear",
+    "year",
     "locality",
     "county",
     "stateProvince",
     "continent",
-    "collectorName",
-    "identifierName",
+    "recordedBy",
+    "recordNumber",
+    "identifiedBy",
     "identificationDate"
   };
+
+
+  // Verbatim field names
+  private final static Set<String> VERBATIM_FIELDS = new ImmutableSet.Builder<String>().add(
+    "catalogNumber",
+    "collectionCode",
+    "occurrenceId",
+    "institutionCode",
+    "unitQualifier",
+    "locality",
+    "county",
+    "stateProvince",
+    "recordedBy",
+    "recordNumber",
+    "identifiedBy").build();
 
 
   /**
    * Reads a CSV file and produces occurrence records for each line.
    * Each occurrence object is processed by the list of processors.
-   *
+   * 
    * @param fileName CSV file
    * @param processors list of processors(predicates) that consume occurrence objects
    */
   public static void processOccurrences(String fileName, Predicate<Occurrence>... processors) {
-    ICsvBeanReader reader = null;
+    ICsvMapReader reader = null;
     int line = 1;
     try {
       reader =
-        new CsvBeanReader(new FileReader(new File(Resources.getResource(fileName).toURI())),
+        new CsvMapReader(new FileReader(new File(Resources.getResource(fileName).toURI())),
           CsvPreference.STANDARD_PREFERENCE);
       reader.getHeader(true);
-      Occurrence occurrence;
-      while ((occurrence = reader.read(Occurrence.class, HEADER, CELL_PROCESSORS)) != null) {
+      Map<String, Object> occurrenceMap;
+      while ((occurrenceMap = reader.read(HEADER, CELL_PROCESSORS)) != null) {
+        Occurrence occurrence = convertMap(occurrenceMap);
         for (Predicate<Occurrence> predicate : processors) {
           predicate.apply(occurrence);
         }
@@ -218,4 +252,49 @@ public class OccurrenceDataLoader {
       Closeables.closeQuietly(reader);
     }
   }
+
+  private static Occurrence convertMap(Map<String, Object> occurrenceMap) {
+    Occurrence occurrence = new Occurrence();
+    for (Entry<String, Object> field : occurrenceMap.entrySet()) {
+      if (VERBATIM_FIELDS.contains(field.getKey())) {
+        Entry<? extends Term, String> verbatimField = toTermEntry(field);
+        occurrence.setField(verbatimField.getKey(), verbatimField.getValue());
+      } else {
+        setInterpretedField(field, occurrence);
+      }
+
+    }
+    return occurrence;
+  }
+
+
+  private static Entry<? extends Term, String> toTermEntry(Entry<String, Object> field) {
+    String strValue = null;
+    if (field.getValue() != null) {
+      strValue = (String) field.getValue();
+    }
+    if (field.getKey().equals(GbifTerm.unitQualifier.name())) {
+      return Maps.immutableEntry(GbifTerm.unitQualifier, strValue);
+    } else {
+      Enum<?> term = VocabularyUtils.lookupEnum(field.getKey(), DwcTerm.class);
+      if (term != null) {
+        return Maps.immutableEntry((DwcTerm) term, strValue);
+      }
+    }
+    return null;
+  }
+
+
+  private static void setInterpretedField(Entry<String, Object> rawField, Occurrence occurrence) {
+    try {
+      PropertyUtils.setProperty(occurrence, rawField.getKey(), rawField.getValue());
+    } catch (IllegalAccessException e) {
+      Throwables.propagate(e);
+    } catch (InvocationTargetException e) {
+      Throwables.propagate(e);
+    } catch (NoSuchMethodException e) {
+      Throwables.propagate(e);
+    }
+  }
+
 }

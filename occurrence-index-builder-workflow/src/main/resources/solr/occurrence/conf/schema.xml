@@ -60,7 +60,8 @@
     <field name="altitude" type="int" indexed="true" stored="false" />
     <field name="depth" type="int" indexed="true" stored="false" />    
     <field name="catalog_number" type="string" indexed="true" stored="false" />
-    <field name="collector_name" type="string" indexed="true" stored="false" />
+    <field name="recorded_by" type="string" indexed="true" stored="false" />
+    <field name="record_number" type="string" indexed="true" stored="false" />
     <field name="institution_code" type="string" indexed="true" stored="false" />
     <field name="collection_code" type="string" indexed="true" stored="false" />
     <field name="country" type="string" indexed="true" stored="false" />

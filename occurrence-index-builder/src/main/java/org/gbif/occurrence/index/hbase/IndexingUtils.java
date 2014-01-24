@@ -1,7 +1,7 @@
 package org.gbif.occurrence.index.hbase;
 
-import org.gbif.occurrence.index.solr.OccurrenceIndexDocument;
 import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.index.solr.OccurrenceIndexDocument;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
@@ -27,7 +27,6 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ALTITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTOR_NAME;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
@@ -42,6 +41,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MODIFIED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 
@@ -103,9 +103,10 @@ public class IndexingUtils {
     doc.setField(MONTH.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
     doc.setField(BASIS_OF_RECORD.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
     doc.setField(CATALOG_NUMBER.getFieldName(), OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
-    doc.setField(COLLECTOR_NAME.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
+    doc.setField(RECORDED_BY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
     doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
-    doc.setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY));
+    doc
+      .setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY));
     doc.setField(DATASET_KEY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
 
     Set<Integer> taxonKey = buildTaxonKey(row);
@@ -201,7 +202,7 @@ public class IndexingUtils {
 
   /**
    * Creates a scan instance using the list of fields.
-   *
+   * 
    * @param fieldNames list of {@link FieldName}
    * @return a Scan containing the field names
    */
@@ -226,7 +227,7 @@ public class IndexingUtils {
     doc.setField(YEAR.getFieldName(), occurrenceIndexDocument.getYear());
     doc.setField(MONTH.getFieldName(), occurrenceIndexDocument.getMonth());
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrenceIndexDocument.getCatalogNumber());
-    doc.setField(COLLECTOR_NAME.getFieldName(), occurrenceIndexDocument.getCollectorName());
+    doc.setField(RECORDED_BY.getFieldName(), occurrenceIndexDocument.getCollectorName());
     doc.setField(TAXON_KEY.getFieldName(), occurrenceIndexDocument.getNubKey());
     doc.setField(DATASET_KEY.getFieldName(), occurrenceIndexDocument.getDatasetKey());
     doc.setField(TAXON_KEY.getFieldName(), occurrenceIndexDocument.getKingdomKey());

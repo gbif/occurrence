@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
@@ -50,7 +51,8 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.YEAR, OccurrenceSolrField.YEAR)
       .put(OccurrenceSearchParameter.MONTH, OccurrenceSolrField.MONTH)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, OccurrenceSolrField.CATALOG_NUMBER)
-      .put(OccurrenceSearchParameter.COLLECTOR_NAME, OccurrenceSolrField.COLLECTOR_NAME)
+      .put(OccurrenceSearchParameter.COLLECTOR_NAME, OccurrenceSolrField.RECORDED_BY)
+      .put(OccurrenceSearchParameter.RECORD_NUMBER, OccurrenceSolrField.RECORD_NUMBER)
       .put(OccurrenceSearchParameter.COLLECTION_CODE, OccurrenceSolrField.COLLECTION_CODE)
       .put(OccurrenceSearchParameter.INSTITUTION_CODE, OccurrenceSolrField.INSTITUTION_CODE)
       .put(OccurrenceSearchParameter.DEPTH, OccurrenceSolrField.DEPTH)

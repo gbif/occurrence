@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
  * Internally loads data from a csv file into a HBase minicluster and an embedded Solr server; both server instances are
  * shared among test cases.
  */
-@Ignore("claims it can't find solrconfig.xml in classpath")
 public class OccurrenceSearchTestIT {
 
   /**
@@ -148,7 +147,7 @@ public class OccurrenceSearchTestIT {
 
   /**
    * Creates an instance of a guice injector using the OccurrenceSearchTestModule.
-   *
+   * 
    * @return
    */
   private static Injector getInjector() {
@@ -239,6 +238,18 @@ public class OccurrenceSearchTestIT {
   public void testSearchByCollectorName() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest.addCollectorNameFilter("Kupke");
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+      occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() > 0);
+  }
+
+  /**
+   * Performs a search by RecordNumber.
+   */
+  @Test
+  public void testSearchByRecordNumber() {
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addRecordNumberFilter("c1");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
