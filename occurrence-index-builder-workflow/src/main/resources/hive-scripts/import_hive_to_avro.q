@@ -6,6 +6,7 @@ SELECT
   COALESCE(collection_code,""),
   COALESCE(catalog_number,""),
   COALESCE(recorded_by,""),
+  COALESCE(record_number,""),
   COALESCE(modified, CAST(-1 AS BIGINT)),
   array(COALESCE(kingdom_id,-1),COALESCE(phylum_id,-1),COALESCE(class_id,-1),COALESCE(order_id,-1),COALESCE(family_id,-1),COALESCE(genus_id,-1),COALESCE(species_id,-1),COALESCE(taxon_id,-1)), --taxon_key
   COALESCE(country_code,""),

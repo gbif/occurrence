@@ -88,6 +88,11 @@ public class OccurrenceWsSearchClient extends
   }
 
   @Override
+  public List<String> suggestRecordNumbers(String prefix, @Nullable Integer limit) {
+    return suggestTerms(COLLECTOR_NAME_PATH, prefix, limit);
+  }
+
+  @Override
   public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
     return suggestTerms(COLLECTOR_NAME_PATH, prefix, limit);
   }
