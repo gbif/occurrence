@@ -95,7 +95,9 @@
     <gbif-common-search.version>0.13</gbif-common-search.version>
     <gbif-common-service.version>0.8</gbif-common-service.version>
     <gbif-common-ws.version>0.13-SNAPSHOT</gbif-common-ws.version>
+    <geocode.version>0.1</geocode.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
+    <gbif-parsers.version>0.7-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.8</gbif-postal-service.version>
     <gbif-registry.version>2.9</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
@@ -172,6 +174,16 @@
         <groupId>org.gbif</groupId>
         <artifactId>gbif-httputils</artifactId>
         <version>${gbif-httputils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>gbif-parsers</artifactId>
+        <version>${gbif-parsers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.geocode</groupId>
+        <artifactId>geocode-api</artifactId>
+        <version>${geocode.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>

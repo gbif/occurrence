@@ -66,7 +66,7 @@ public class DateInterpreter {
 
     // will be true when dateString is not null and the ymd parse ended in FAIL or ERROR
     if (tryDateString) {
-      Date fromString = parseDateString(dateString);
+      Date fromString = interpretDate(dateString);
       if (fromString != null) {
         finalDate = fromString;
       }
@@ -87,8 +87,8 @@ public class DateInterpreter {
     return result;
   }
 
-  // TODO this is very naive string parsing - make it better
-  private static Date parseDateString(String dateString) {
+  // TODO use the gbif parser library
+  public static Date interpretDate(String dateString) {
     Date result = null;
     String[] dateFormats =
       new String[] {"yyyy-MM-dd", "dd-MM-yyyy", "yyyy/MM/dd", "dd/MM/yyyy", "dd.MM.yyyy", "yyyy.MM.dd"};
