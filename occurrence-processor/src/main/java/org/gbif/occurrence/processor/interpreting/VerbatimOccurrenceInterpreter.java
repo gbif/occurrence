@@ -4,8 +4,6 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.interpreters.AltitudeInterpreter;
@@ -17,7 +15,6 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -84,7 +81,7 @@ public class VerbatimOccurrenceInterpreter {
       //     TEMPORAL: dates uninterpretable (eg 10-11-12)
       //     ALT_DEPTH: any errors?
 
-      occ.setModified(new Date());
+      occ.setLastInterpreted(new Date());
 
       // wait for the ws calls
       if (!threadPool.awaitTermination(2, TimeUnit.MINUTES)) {

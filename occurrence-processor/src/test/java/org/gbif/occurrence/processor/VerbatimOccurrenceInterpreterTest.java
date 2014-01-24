@@ -166,7 +166,7 @@ public class VerbatimOccurrenceInterpreterTest {
     assertEquals(Double.valueOf(55.6750), result.getLatitude());
     assertEquals("copenhagen", result.getField(DwcTerm.locality));
     assertEquals(Double.valueOf(12.5687), result.getLongitude());
-    assertTrue(MODIFIED <= result.getModified().getTime());
+    assertTrue(MODIFIED <= result.getLastInterpreted().getTime());
     assertEquals(7193916, result.getTaxonKey().intValue());
     Calendar cal = Calendar.getInstance();
     cal.set(1990, 3, 22);
