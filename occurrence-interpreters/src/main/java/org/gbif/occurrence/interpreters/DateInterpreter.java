@@ -5,11 +5,11 @@ import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.common.parsers.date.YearMonthDay;
 import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,25 +87,16 @@ public class DateInterpreter {
     return result;
   }
 
-  // TODO use the gbif parser library
+  // TODO deal with time and timezone
   public static Date interpretDate(String dateString) {
-    Date result = null;
-    String[] dateFormats =
-      new String[] {"yyyy-MM-dd", "dd-MM-yyyy", "yyyy/MM/dd", "dd/MM/yyyy", "dd.MM.yyyy", "yyyy.MM.dd"};
-
-    for (String dateFormat : dateFormats) {
-      try {
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-        // lenient sdf will happily match 24-12-2001 to yyyy-MM-dd with completely wrong results
-        sdf.setLenient(false);
-        result = sdf.parse(dateString);
-        break;
-      } catch (ParseException e) {
-        LOG.debug("Failed to parse dateString [{}] with pattern [{}], trying other patterns.", dateString, dateFormat);
+    if (Strings.isNullOrEmpty(dateString)) {
+      ParseResult<Date> result = DateParseUtils.parse(dateString);
+      if (result.isSuccessful()) {
+        return result.getPayload();
+      } else {
+        LOG.debug("Failed to parse dateString [{}].", dateString);
       }
     }
-
-    if (result == null) LOG.debug("Failed to parse dateString [{}] - giving up.", dateString);
-    return result;
+    return null;
   }
 }
