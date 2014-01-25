@@ -87,12 +87,14 @@ public class DateInterpreter {
     return result;
   }
 
-  // TODO deal with time and timezone
+  // TODO deal with partial ISO dates: http://dev.gbif.org/issues/browse/POR-1742
   public static Date interpretDate(String dateString) {
     if (Strings.isNullOrEmpty(dateString)) {
       ParseResult<Date> result = DateParseUtils.parse(dateString);
       if (result.isSuccessful()) {
-        return result.getPayload();
+        Date d = result.getPayload();
+        //TODO: check year makes sense
+        return d;
       } else {
         LOG.debug("Failed to parse dateString [{}].", dateString);
       }
