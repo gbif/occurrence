@@ -34,6 +34,7 @@ import com.netflix.curator.retry.RetryNTimes;
 import com.netflix.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -41,7 +42,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("requires real webservices and messaging")
+@Ignore("requires real webservices and messaging")
 public class VerbatimOccurrenceInterpreterTest {
 
   // BoGART from BGBM
