@@ -138,10 +138,10 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private static void interpretEventDate(VerbatimOccurrence verbatim, Occurrence occ) {
-    DateInterpretationResult dateResult = DateInterpreter.interpretDate(verbatim.getField(DwcTerm.year),
-                                                                        verbatim.getField(DwcTerm.month),
-                                                                        verbatim.getField(DwcTerm.day),
-                                                                        verbatim.getField(DwcTerm.eventDate));
+    DateInterpretationResult dateResult = DateInterpreter.interpretRecordedDate(verbatim.getField(DwcTerm.year),
+                                                                                verbatim.getField(DwcTerm.month),
+                                                                                verbatim.getField(DwcTerm.day),
+                                                                                verbatim.getField(DwcTerm.eventDate));
 
     if (dateResult == null) {
       LOG.debug("Got date [null]");

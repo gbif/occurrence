@@ -5,7 +5,7 @@ import com.google.common.base.Objects;
 /**
  * The immutable result of a nub lookup.
  */
-public class NubLookupInterpretationResult {
+public class NubLookupInterpretationResult extends InterpretationResult{
 
   private final Integer usageKey;
   private final Integer kingdomKey;

@@ -5,7 +5,7 @@ import com.google.common.base.Objects;
 /**
  * The immutable result of a Coordinate interpretation.
  */
-public class CoordinateInterpretationResult {
+public class CoordinateInterpretationResult extends InterpretationResult{
 
   private final Double latitude;
   private final Double longitude;
