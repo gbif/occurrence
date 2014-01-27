@@ -1,7 +1,8 @@
 package org.gbif.occurrence.interpreters;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
-import org.gbif.occurrence.interpreters.result.NubLookupInterpretationResult;
+import org.gbif.api.vocabulary.OccurrenceValidationRule;
+import org.gbif.occurrence.interpreters.result.InterpretationResult;
 import org.gbif.occurrence.interpreters.util.RetryingWebserviceClient;
 
 import java.io.IOException;
@@ -75,15 +76,15 @@ public class NubLookupInterpreter {
   private NubLookupInterpreter() {
   }
 
-  public static NubLookupInterpretationResult nubLookup(String kingdom, String phylum, String clazz, String order,
+  public static InterpretationResult<NameUsageMatch> nubLookup(String kingdom, String phylum, String clazz, String order,
     String family, String genus, String scientificName, String author) {
 
     if (kingdom == null && phylum == null && clazz == null && order == null && family == null && genus == null
-        && scientificName == null && author == null) {
-      return new NubLookupInterpretationResult();
+        && scientificName == null) {
+      return new InterpretationResult<NameUsageMatch>(null);
     }
 
-    NubLookupInterpretationResult result = null;
+    InterpretationResult<NameUsageMatch> result = null;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("kingdom", kingdom);
     queryParams.add("phylum", phylum);
@@ -92,7 +93,7 @@ public class NubLookupInterpreter {
     queryParams.add("family", family);
     queryParams.add("genus", genus);
     queryParams.add("name", scientificName);
-    /** TODO: include author in query */
+    // TODO: include author in query
 
     if (scientificName != null) {
       for (int i = 0; i < NUM_RETRIES; i++) {
@@ -100,19 +101,22 @@ public class NubLookupInterpreter {
         try {
           NameUsageMatch lookup = CACHE.get(RESOURCE.queryParams(queryParams));
           if (lookup != null) {
-            if (lookup.getMatchType() == NameUsageMatch.MatchType.NONE) {
-              LOG.info("Nub lookup for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
-            } else {
-              if (lookup.getMatchType() != NameUsageMatch.MatchType.EXACT) {
-                LOG.debug("Nub lookup for [{}] was not exact. Match type [{}] with note: [{}]", scientificName,
-                  lookup.getMatchType(), lookup.getNote());
-              }
-              result =
-                new NubLookupInterpretationResult(lookup.getUsageKey(), lookup.getKingdomKey(), lookup.getPhylumKey(),
-                  lookup.getClassKey(), lookup.getOrderKey(), lookup.getFamilyKey(), lookup.getGenusKey(),
-                  lookup.getSpeciesKey(), lookup.getKingdom(), lookup.getPhylum(), lookup.getClazz(), lookup.getOrder(),
-                  lookup.getFamily(), lookup.getGenus(), lookup.getSpecies(), lookup.getScientificName(),
-                  lookup.getConfidence());
+            result = new InterpretationResult<NameUsageMatch>(lookup);
+            switch (lookup.getMatchType()) {
+              case NONE:
+                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_NONE, true);
+                LOG.info("Nub lookup for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
+                break;
+              case FUZZY:
+                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_FUZZY, true);
+                LOG.debug("Nub lookup for [{}] was fuzzy. Match note: [{}]", scientificName, lookup.getNote());
+                break;
+              case HIGHERRANK:
+                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_HIGHERRANK, true);
+                LOG.debug("Nub lookup for [{}] was to higher rank only. Match note: [{}]",
+                          scientificName,
+                          lookup.getNote());
+                break;
             }
           }
 

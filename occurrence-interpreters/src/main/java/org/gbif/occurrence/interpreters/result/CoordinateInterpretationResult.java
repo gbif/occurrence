@@ -1,30 +1,27 @@
 package org.gbif.occurrence.interpreters.result;
 
+import org.gbif.api.vocabulary.Country;
+
 import com.google.common.base.Objects;
 
 /**
  * The immutable result of a Coordinate interpretation.
  */
-public class CoordinateInterpretationResult extends InterpretationResult{
+public class CoordinateInterpretationResult extends InterpretationResult<Country> {
 
   private final Double latitude;
   private final Double longitude;
-  private final String countryCode;
-  private final Integer geoSpatialIssue;
 
   public CoordinateInterpretationResult() {
+    super(null);
     this.latitude = null;
     this.longitude = null;
-    this.countryCode = null;
-    this.geoSpatialIssue = null;
   }
 
-  public CoordinateInterpretationResult(Double latitude, Double longitude, String countryCode,
-    Integer geoSpatialIssue) {
+  public CoordinateInterpretationResult(Double latitude, Double longitude, Country country) {
+    super(country);
     this.latitude = latitude;
     this.longitude = longitude;
-    this.countryCode = countryCode;
-    this.geoSpatialIssue = geoSpatialIssue;
   }
 
   public Double getLatitude() {
@@ -35,21 +32,17 @@ public class CoordinateInterpretationResult extends InterpretationResult{
     return longitude;
   }
 
-  public String getCountryCode() {
-    return countryCode;
-  }
-
-  public Integer getGeoSpatialIssue() {
-    return geoSpatialIssue;
+  public Country getCountry() {
+    return getPayload();
   }
 
   public boolean isEmpty() {
-    return latitude == null && longitude == null && countryCode == null && geoSpatialIssue == null;
+    return latitude == null && longitude == null && getPayload() == null;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(latitude, longitude, countryCode, geoSpatialIssue);
+    return Objects.hashCode(latitude, longitude);
   }
 
   @Override
@@ -60,8 +53,11 @@ public class CoordinateInterpretationResult extends InterpretationResult{
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
+    if (!super.equals(obj)) {
+      return false;
+    }
     final CoordinateInterpretationResult other = (CoordinateInterpretationResult) obj;
-    return Objects.equal(this.latitude, other.latitude) && Objects.equal(this.longitude, other.longitude) && Objects
-      .equal(this.countryCode, other.countryCode) && Objects.equal(this.geoSpatialIssue, other.geoSpatialIssue);
+    return Objects.equal(this.latitude, other.latitude)
+           && Objects.equal(this.longitude, other.longitude);
   }
 }

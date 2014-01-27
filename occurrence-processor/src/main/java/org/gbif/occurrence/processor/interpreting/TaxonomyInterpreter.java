@@ -1,11 +1,14 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import org.gbif.api.model.checklistbank.NameUsageMatch;
+import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.interpreters.NubLookupInterpreter;
-import org.gbif.occurrence.interpreters.TaxonInterpreter;
-import org.gbif.occurrence.interpreters.result.NubLookupInterpretationResult;
+import org.gbif.occurrence.interpreters.result.InterpretationResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,37 +27,37 @@ public class TaxonomyInterpreter implements Runnable {
 
   @Override
   public void run() {
-    //TODO: handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
-    // see http://dev.gbif.org/issues/browse/POR-1724
-    NubLookupInterpretationResult nubLookup = NubLookupInterpreter.nubLookup(
-      TaxonInterpreter.mapKingdom(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.kingdom))),
-      TaxonInterpreter.mapPhylum(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.phylum))),
-      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.class_)),
-      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.order)),
-      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.family)),
-      TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.genus)),
-      TaxonInterpreter.parseName(TaxonInterpreter.cleanTaxon(verbatim.getField(DwcTerm.scientificName))),
-      TaxonInterpreter.cleanAuthor(verbatim.getField(DwcTerm.scientificNameAuthorship)));
+    String sciname = ClassificationUtils.clean(verbatim.getField(DwcTerm.scientificName));
+    if (sciname == null) {
+      // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
+      ParsedName pn = new ParsedName();
+      pn.setGenusOrAbove(verbatim.getField(DwcTerm.genus));
+      pn.setSpecificEpithet(verbatim.getField(DwcTerm.specificEpithet));
+      pn.setInfraSpecificEpithet(verbatim.getField(DwcTerm.infraspecificEpithet));
+      sciname = pn.canonicalName();
+    }
 
-    if (nubLookup == null) {
+    InterpretationResult<NameUsageMatch> nubLookup = NubLookupInterpreter.nubLookup(
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.kingdom)),
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.phylum)),
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.class_)),
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.order)),
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.family)),
+      ClassificationUtils.clean(verbatim.getField(DwcTerm.genus)),
+      sciname,
+      ClassificationUtils.cleanAuthor(verbatim.getField(DwcTerm.scientificNameAuthorship)));
+
+    if (nubLookup == null || nubLookup.getPayload() == null) {
       LOG.debug("Got null nubLookup for sci name [{}]", occ.getScientificName());
+
     } else {
-      occ.setTaxonKey(nubLookup.getUsageKey());
-      occ.setKingdomKey(nubLookup.getKingdomKey());
-      occ.setPhylumKey(nubLookup.getPhylumKey());
-      occ.setClassKey(nubLookup.getClassKey());
-      occ.setOrderKey(nubLookup.getOrderKey());
-      occ.setFamilyKey(nubLookup.getFamilyKey());
-      occ.setGenusKey(nubLookup.getGenusKey());
-      occ.setSpeciesKey(nubLookup.getSpeciesKey());
-      occ.setKingdom(nubLookup.getKingdom());
-      occ.setPhylum(nubLookup.getPhylum());
-      occ.setClazz(nubLookup.getClazz());
-      occ.setOrder(nubLookup.getOrder());
-      occ.setFamily(nubLookup.getFamily());
-      occ.setGenus(nubLookup.getGenus());
-      occ.setSpecies(nubLookup.getSpecies());
-      occ.setScientificName(nubLookup.getScientificName());
+      NameUsageMatch match = nubLookup.getPayload();
+      occ.setTaxonKey(nubLookup.getPayload().getUsageKey());
+      occ.setScientificName(nubLookup.getPayload().getScientificName());
+      for (Rank r : Rank.DWC_RANKS) {
+        org.gbif.api.util.ClassificationUtils.setHigherRank(occ, r, match.getHigherRank(r));
+        org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
+      }
       LOG.debug("Got nub sci name [{}]", occ.getScientificName());
     }
   }

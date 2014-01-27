@@ -1,6 +1,7 @@
 package org.gbif.occurrence.interpreters;
 
-
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.OccurrenceValidationRule;
 import org.gbif.occurrence.interpreters.result.CoordinateInterpretationResult;
 
 import org.junit.Ignore;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore("requires live webservice")
 public class CoordinateInterpreterTest {
@@ -17,13 +19,13 @@ public class CoordinateInterpreterTest {
   public void testLookupCountryMatch() {
     Double lat = 43.65;
     Double lng = -79.40;
-    String country = "CA";
+    Country country = Country.CANADA;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
-    assertEquals(country, result.getCountryCode());
-    assertEquals(0, result.getGeoSpatialIssue().intValue());
+    assertEquals(country, result.getCountry());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 
   @Test
@@ -34,73 +36,73 @@ public class CoordinateInterpreterTest {
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null);
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
-    assertEquals("AU", result.getCountryCode());
-    assertEquals(0, result.getGeoSpatialIssue().intValue());
+    assertEquals(Country.AUSTRALIA, result.getCountry());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 
   @Test
   public void testLookupCountryMisMatch() {
     Double lat = 55.68;
     Double lng = 12.57;
-    String country = "SE";
+    Country country = Country.SWEDEN;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
-    assertEquals(country, result.getCountryCode());
-    assertEquals(32, result.getGeoSpatialIssue().intValue());
+    assertEquals(country, result.getCountry());
+    assertTrue(result.getValidationRules().get(OccurrenceValidationRule.COUNTRY_COORDINATE_MISMATCH));
   }
 
   @Test
   public void testLookupIllegalCoord() {
     Double lat = 200d;
     Double lng = 200d;
-    String country = "asdf";
+    Country country = null; // "asdf"
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertNull(result.getLatitude());
     assertNull(result.getLongitude());
-    assertEquals(country, result.getCountryCode());
-    assertEquals(16, result.getGeoSpatialIssue().intValue());
+    assertEquals(country, result.getCountry());
+    assertTrue(result.getValidationRules().get(OccurrenceValidationRule.COORDINATES_OUT_OF_RANGE));
   }
 
   @Test
   public void testLookupLatLngReversed() {
     Double lat = 43.65;
     Double lng = 79.40;
-    String country = "CA";
+    Country country = Country.CANADA;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
-    assertEquals(country, result.getCountryCode());
-    assertEquals(2, result.getGeoSpatialIssue().intValue());
+    assertEquals(country, result.getCountry());
+    assertTrue(result.getValidationRules().get(OccurrenceValidationRule.PRESUMED_NEGATED_LONGITUDE));
   }
 
   @Test
   public void testLookupNulls() {
     String lat = null;
     String lng = null;
-    String country = null;
+    Country country = null;
     CoordinateInterpretationResult result = CoordinateInterpreter.interpretCoordinates(lat, lng, country);
     assertNotNull(result);
-    assertNull(result.getCountryCode());
+    assertNull(result.getCountry());
     assertNull(result.getLatitude());
     assertNull(result.getLongitude());
-    assertNull(result.getGeoSpatialIssue());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 
   @Test
   public void testLookupOneNull() {
     String lat = "45";
     String lng = null;
-    String country = null;
+    Country country = null;
     CoordinateInterpretationResult result = CoordinateInterpreter.interpretCoordinates(lat, lng, country);
     assertNotNull(result);
-    assertNull(result.getCountryCode());
+    assertNull(result.getCountry());
     assertNull(result.getLatitude());
     assertNull(result.getLongitude());
-    assertNull(result.getGeoSpatialIssue());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 
   @Test
@@ -110,18 +112,18 @@ public class CoordinateInterpreterTest {
     // expect max 5 decimals
     double roundedLat = Math.round(lat * Math.pow(10, 5)) / Math.pow(10, 5);
     double roundedLng = Math.round(lng * Math.pow(10, 5)) / Math.pow(10, 5);
-    String country = "CA";
+    Country country = Country.CANADA;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(roundedLat, result.getLatitude(), 0.000001);
     assertEquals(roundedLng, result.getLongitude(), 0.000001);
-    assertEquals(country, result.getCountryCode());
-    assertEquals(0, result.getGeoSpatialIssue().intValue());
+    assertEquals(country, result.getCountry());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 
   @Test
   public void testNotNumbers() {
-    CoordinateInterpretationResult result = CoordinateInterpreter.interpretCoordinates("asdf", "qwer", "zxcv");
+    CoordinateInterpretationResult result = CoordinateInterpreter.interpretCoordinates("asdf", "qwer", null);
     assertNotNull(result);
   }
 
@@ -130,18 +132,18 @@ public class CoordinateInterpreterTest {
     // Belfast is GB not IE
     Double lat = 54.597;
     Double lng = -5.93;
-    String country = "IE";
+    Country country = Country.IRELAND;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals("GB", result.getCountryCode());
-    assertEquals(0, result.getGeoSpatialIssue().intValue());
+    assertEquals(Country.UNITED_KINGDOM, result.getCountry());
+    assertTrue(result.getValidationRules().isEmpty());
 
     // Isle of Man is IM not GB
     lat = 54.25;
     lng = -4.5;
-    country = "GB";
+    country = Country.UNITED_KINGDOM;
     result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals("IM", result.getCountryCode());
-    assertEquals(0, result.getGeoSpatialIssue().intValue());
+    assertEquals(Country.ISLE_OF_MAN, result.getCountry());
+    assertTrue(result.getValidationRules().isEmpty());
   }
 }

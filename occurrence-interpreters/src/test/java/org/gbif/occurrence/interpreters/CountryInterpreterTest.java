@@ -1,5 +1,8 @@
 package org.gbif.occurrence.interpreters;
 
+import org.gbif.api.vocabulary.Country;
+import org.gbif.occurrence.interpreters.result.InterpretationResult;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -9,29 +12,25 @@ public class CountryInterpreterTest {
 
   @Test
   public void testGoodCountry() {
-    String country = "Canada";
-    String result = CountryInterpreter.interpretCountry(country);
-    assertEquals("CA", result);
+    InterpretationResult<Country> result = CountryInterpreter.interpretCountry("Canada");
+    assertEquals(Country.CANADA, result.getPayload());
   }
 
   @Test
   public void testBadCaseCountry() {
-    String country = "CanAda";
-    String result = CountryInterpreter.interpretCountry(country);
-    assertEquals("CA", result);
+    InterpretationResult<Country> result = CountryInterpreter.interpretCountry("CanAda");
+    assertEquals(Country.CANADA, result.getPayload());
   }
 
   @Test
   public void testBadCountry() {
-    String country = "Caa";
-    String result = CountryInterpreter.interpretCountry(country);
-    assertNull(result);
+    InterpretationResult<Country> result = CountryInterpreter.interpretCountry("Caa");
+    assertNull(result.getPayload());
   }
 
   @Test
   public void testNullCountry() {
-    String country = null;
-    String result = CountryInterpreter.interpretCountry(country);
-    assertNull(result);
+    InterpretationResult<Country> result = CountryInterpreter.interpretCountry(null);
+    assertNull(result.getPayload());
   }
 }

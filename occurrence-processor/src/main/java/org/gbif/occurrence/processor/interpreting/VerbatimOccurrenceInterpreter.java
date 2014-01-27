@@ -7,10 +7,8 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
-import org.gbif.occurrence.interpreters.AltitudeInterpreter;
 import org.gbif.occurrence.interpreters.BasisOfRecordInterpreter;
 import org.gbif.occurrence.interpreters.DateInterpreter;
-import org.gbif.occurrence.interpreters.DepthInterpreter;
 import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
@@ -61,14 +59,11 @@ public class VerbatimOccurrenceInterpreter {
 
     try {
       ExecutorService threadPool = Executors.newFixedThreadPool(3);
-      Future<?> coordFuture = threadPool.submit(new CoordBasedInterpreter(verbatim, occ));
+      Future<?> coordFuture = threadPool.submit(new LocationInterpreter(verbatim, occ));
       Future<?> taxonomyFuture = threadPool.submit(new TaxonomyInterpreter(verbatim, occ));
       Future<?> hostCountryFuture = threadPool.submit(new OwningOrgInterpreter(occ));
       threadPool.shutdown();
 
-      interpretAltitude(verbatim, occ);
-
-      interpretDepth(verbatim, occ);
 
       interpretBor(verbatim, occ);
 
@@ -127,41 +122,24 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private static void interpretModifiedDate(VerbatimOccurrence verbatim, Occurrence occ) {
-    occ.setModified(DateInterpreter.interpretDate(verbatim.getField(DcTerm.modified)));
+    occ.setModified(DateInterpreter.interpretDate(verbatim.getField(DcTerm.modified), 1900));
   }
 
-  private static void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
-    Integer depth = DepthInterpreter.interpretDepth(
-      verbatim.getField(DwcTerm.minimumDepthInMeters), verbatim.getField(DwcTerm.maximumDepthInMeters), null);
-    occ.setDepth(depth);
-    LOG.debug("Got depth [{}]", depth);
-  }
 
   private static void interpretEventDate(VerbatimOccurrence verbatim, Occurrence occ) {
     DateInterpretationResult dateResult = DateInterpreter.interpretRecordedDate(verbatim.getField(DwcTerm.year),
                                                                                 verbatim.getField(DwcTerm.month),
                                                                                 verbatim.getField(DwcTerm.day),
                                                                                 verbatim.getField(DwcTerm.eventDate));
+    occ.setEventDate(dateResult.getDate());
+    occ.setMonth(dateResult.getMonth());
+    occ.setYear(dateResult.getYear());
+    occ.setDay(dateResult.getDay());
+    // copy rules
+    occ.getValidations().putAll(dateResult.getValidationRules());
 
-    if (dateResult == null) {
-      LOG.debug("Got date [null]");
-    } else {
-      occ.setEventDate(dateResult.getDate());
-      occ.setMonth(dateResult.getMonth());
-      occ.setYear(dateResult.getYear());
-      LOG.debug("Got date [{}] month [{}] year [{}]",
-        dateResult.getDate() == null ? "null" : dateResult.getDate().toString(),
-        dateResult.getMonth() == null ? "null" : dateResult.getMonth().toString(),
-        dateResult.getYear() == null ? "null" : dateResult.getYear().toString());
-    }
-  }
-
-  private static void interpretAltitude(VerbatimOccurrence verbatim, Occurrence occ) {
-    Integer alt = AltitudeInterpreter.interpretAltitude(verbatim.getField(DwcTerm.minimumElevationInMeters),
-                                                        verbatim.getField(DwcTerm.maximumElevationInMeters),
-                                                        null);
-    occ.setAltitude(alt);
-    LOG.debug("Got altitude [{}]", alt);
+    LOG.debug("Got recorded date [{}]: day [{}] month [{}] year [{}]",
+      dateResult.getDate(), dateResult.getDay(), dateResult.getMonth(), dateResult.getYear());
   }
 
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {

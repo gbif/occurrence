@@ -35,6 +35,8 @@ public class DateInterpreter {
    * Partially valid dates are not supported and null will be returned instead. The only exception is the year alone
    * which will be used as the last resort if nothing else works.
    * Years are verified to be before or next year and after 1700.
+   *
+   * @return interpretation result, never null
    */
   public static DateInterpretationResult interpretRecordedDate(String year, String month, String day, String dateString) {
     if (year == null && month == null && day == null && Strings.isNullOrEmpty(dateString)) {
@@ -117,11 +119,14 @@ public class DateInterpreter {
     return new DateInterpretationResult(year, ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate, invalid, mismatch, unlikely);
   }
 
-  // TODO deal with partial ISO dates: http://dev.gbif.org/issues/browse/POR-1742
   public static Date interpretDate(String dateString) {
     return interpretDate(dateString, null);
   }
 
+  /**
+   * @param minYear optional minimum year to be verified. If given the year is also checked to not be in the future.
+   * @return the (valid) date or null
+   */
   // TODO deal with partial ISO dates: http://dev.gbif.org/issues/browse/POR-1742
   public static Date interpretDate(String dateString, Integer minYear) {
     if (!Strings.isNullOrEmpty(dateString)) {
@@ -132,7 +137,7 @@ public class DateInterpreter {
         if (minYear != null) {
           Calendar c = Calendar.getInstance();
           c.setTime(d);
-          if (c.get(Calendar.YEAR) < minYear) {
+          if (c.get(Calendar.YEAR) <= minYear) {
             LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
             return null;
           }
