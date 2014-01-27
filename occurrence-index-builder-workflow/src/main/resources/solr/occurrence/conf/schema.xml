@@ -73,6 +73,7 @@
     <field name="longitude" type="double" indexed="true" stored="false" />
     <field name="date" type="date" indexed="true" stored="false" /> 
     <field name="modified" type="date" indexed="true" stored="false" />
+    <field name="type_status" type="int" indexed="true" stored="false"/>
     <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
 	<!-- Field to use to determine and enforce document uniqueness. Unless this 

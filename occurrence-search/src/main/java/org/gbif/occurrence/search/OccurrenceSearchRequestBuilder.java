@@ -66,6 +66,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.COUNTRY, OccurrenceSolrField.COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceSolrField.PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
+      .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
       .build();
 
   private static final BasisOfRecordConverter BASIS_OF_RECORD_CONVERTER = new BasisOfRecordConverter();
