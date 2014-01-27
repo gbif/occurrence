@@ -106,6 +106,7 @@ public class CoordinateInterpreter {
     cc.getClasses().add(JacksonJsonProvider.class);
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);
+    LOG.info("Creating new geo lookup service at " + WEB_SERVICE_URL);
 
     if (FUZZY_COUNTRY_FILE == null) {
       LOG.warn("Fuzzy country file property [{}] not set, so not loading any fuzzy country pairs.",
