@@ -30,6 +30,7 @@ import com.netflix.curator.retry.RetryNTimes;
 import com.netflix.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.gbif.api.model.occurrence.OccurrencePersistenceStatus.NEW;
@@ -37,7 +38,7 @@ import static org.gbif.api.model.occurrence.OccurrencePersistenceStatus.NEW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-//@Ignore("requires real messaging")
+@Ignore("requires real messaging")
 public class VerbatimOccurrenceProcessorTest {
 
   // BoGART from BGBM
