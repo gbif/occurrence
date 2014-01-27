@@ -31,7 +31,6 @@ import org.apache.commons.io.Charsets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,7 +40,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@Ignore("requires real messaging")
+//@Ignore("requires real messaging")
 public class FragmentProcessorTest {
 
   private FragmentProcessor fragmentProcessor;

@@ -52,6 +52,7 @@ public class JsonFragmentParser {
     checkArgument(fragment.getFragmentType() == Fragment.FragmentType.JSON, "fragment must be of type JSON");
 
     VerbatimOccurrence verbatim = new VerbatimOccurrence();
+    verbatim.setKey(fragment.getKey());
     verbatim.setDatasetKey(fragment.getDatasetKey());
     verbatim.setProtocol(fragment.getProtocol());
     verbatim.setLastCrawled(fragment.getHarvestedDate());
