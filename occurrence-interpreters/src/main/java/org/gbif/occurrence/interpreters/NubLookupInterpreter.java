@@ -67,6 +67,7 @@ public class NubLookupInterpreter {
     cc.getClasses().add(JacksonJsonProvider.class);
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);
+    LOG.info("Creating new nub lookup service at " + WEB_SERVICE_URL);
   }
 
   // if the WS is not responding, we drop into a retry count

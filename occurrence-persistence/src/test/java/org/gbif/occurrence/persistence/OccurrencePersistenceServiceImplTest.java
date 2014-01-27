@@ -478,7 +478,6 @@ public class OccurrencePersistenceServiceImplTest {
     assertNull(verb);
   }
 
-  // todo: ensure fields get cleaned up (eg if set to null on update)
   @Test
   public void testUpdateVerbatim() {
     VerbatimOccurrence orig = occurrenceService.getVerbatim(ID);

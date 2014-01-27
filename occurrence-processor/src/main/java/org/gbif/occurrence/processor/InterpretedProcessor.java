@@ -99,7 +99,7 @@ public class InterpretedProcessor {
       localAttemptId = fragment.getCrawlId();
     }
 
-    VerbatimOccurrence verbatim = occurrencePersister.get(occurrenceKey);
+    VerbatimOccurrence verbatim = occurrencePersister.getVerbatim(occurrenceKey);
     if (verbatim == null) {
       logError("Could not find", occurrenceKey, datasetKey, fromCrawl);
       return;

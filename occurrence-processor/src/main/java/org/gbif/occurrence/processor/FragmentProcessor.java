@@ -8,9 +8,9 @@ import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.common.messaging.api.Message;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.FragmentPersistedMessage;
+import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.parsing.xml.IdentifierExtractionResult;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
-import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
@@ -263,20 +263,20 @@ public class FragmentProcessor {
     fragment.setHarvestedDate(new Date());
     fragment.setCrawlId(crawlId);
 
-    //    if (LOG.isDebugEnabled()) {
-    //      if (status != OccurrencePersistenceStatus.NEW) {
-    StringBuilder uniques = new StringBuilder(64);
+    if (LOG.isDebugEnabled()) {
+      if (status != OccurrencePersistenceStatus.NEW) {
+        StringBuilder uniques = new StringBuilder(64);
 
-    for (UniqueIdentifier uniqueIdentifier : uniqueIds) {
-      if (uniques.length() > 0) {
-        uniques.append(" ||| ");
+        for (UniqueIdentifier uniqueIdentifier : uniqueIds) {
+          if (uniques.length() > 0) {
+            uniques.append(" ||| ");
+          }
+          uniques.append(uniqueIdentifier.getUniqueString());
+        }
+        LOG.debug("Persisting fragment of status [{}] for key [{}] uniqueIds [{}]", status.toString(),
+          fragment.getKey() == null ? "null" : fragment.getKey().toString(), uniques.toString());
       }
-      uniques.append(uniqueIdentifier.getUniqueString());
     }
-    LOG.debug("Persisting fragment of status [{}] for key [{}] uniqueIds [{}]", status.toString(),
-      fragment.getKey() == null ? "null" : fragment.getKey().toString(), uniques.toString());
-    //      }
-    //    }
 
     final TimerContext context = persistenceTimer.time();
     try {

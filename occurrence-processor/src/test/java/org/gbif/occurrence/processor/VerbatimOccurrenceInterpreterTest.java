@@ -10,6 +10,7 @@ import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -87,7 +88,8 @@ public class VerbatimOccurrenceInterpreterTest {
     v.setDatasetKey(DATASET_KEY);
     v.setLastCrawled(new Date(MODIFIED));
     v.setProtocol(EndpointType.DWC_ARCHIVE);
-
+    v.setPublishingOrgKey(OWNING_ORG_KEY);
+    v.setPublishingCountry(Country.GERMANY);
     v.setField(DwcTerm.scientificNameAuthorship, "Linneaus");
     v.setField(DwcTerm.basisOfRecord, "specimen");
     v.setField(DwcTerm.recordedBy, "Hobern");
@@ -96,15 +98,8 @@ public class VerbatimOccurrenceInterpreterTest {
     v.setField(DwcTerm.county, "Copenhagen");
     v.setField(DwcTerm.catalogNumber, "cn");
     v.setField(DwcTerm.collectionCode, "cc");
-    //dataProviderId 123
-    //dataResourceId(456)
-    //resourceAccessPointId(890)
     v.setField(DwcTerm.dateIdentified, "10-11-12");
     v.setField(DwcTerm.day, "22");
-    //dayIdentified("10")
-    //monthIdentified("11")
-    //depthPrecision("10")
-    //yearIdentified("2012")
     v.setField(DwcTerm.family, "Felidae");
     v.setField(DwcTerm.genus, "Panthera");
     v.setField(DwcTerm.identifiedBy, "Hobern");
@@ -129,8 +124,7 @@ public class VerbatimOccurrenceInterpreterTest {
     v.setField(DwcTerm.infraspecificEpithet, "onca");
     v.setField(DwcTerm.stateProvince, "Copenhagen");
     v.setField(DwcTerm.year, "1990");
-    v.setField(DwcTerm.collectionCode, "");
-    v.setField(DwcTerm.collectionCode, "");
+    v.setField(DwcTerm.collectionCode, "cc");
 
     verb = v;
 
@@ -140,22 +134,22 @@ public class VerbatimOccurrenceInterpreterTest {
 
   @Test
   public void testFullNew() {
+    // TODO: continent, geospatial issue, other issue
     InterpretationResult interpResult = interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
     assertNotNull(interpResult);
     Occurrence result = interpResult.getUpdated();
+    assertEquals(verb.getKey(), result.getKey());
     assertEquals(650, result.getAltitude().intValue());
     assertEquals(BasisOfRecord.PRESERVED_SPECIMEN, result.getBasisOfRecord());
     assertEquals("cn", result.getField(DwcTerm.catalogNumber));
     assertEquals("cc", result.getField(DwcTerm.collectionCode));
     assertEquals("Hobern", result.getField(DwcTerm.recordedBy));
-//    assertEquals("Europe", result.getContinent());
     assertEquals(Country.fromIsoCode("DK"), result.getCountry());
     assertEquals("Copenhagen", result.getField(DwcTerm.county));
     assertEquals(DATASET_KEY, result.getDatasetKey());
     assertEquals(260, result.getDepth().intValue());
     assertEquals("Felidae", result.getFamily());
     assertEquals(9703, result.getFamilyKey().intValue());
-//    assertEquals(0, result.getGeospatialIssue().intValue());
     assertEquals("Panthera", result.getGenus());
     assertEquals(2435194, result.getGenusKey().intValue());
     assertEquals("Hobern", result.getField(DwcTerm.identifiedBy));
@@ -177,19 +171,18 @@ public class VerbatimOccurrenceInterpreterTest {
     assertEquals(cal.getTime(), result.getEventDate());
     assertEquals(4, result.getMonth().intValue());
     assertEquals(1990, result.getYear().intValue());
-//    assertEquals(0, result.getOtherIssue().intValue());
     assertEquals(OWNING_ORG_KEY, result.getPublishingOrgKey());
     assertEquals("Carnivora", result.getOrder());
     assertEquals(732, result.getOrderKey().intValue());
     assertEquals("Chordata", result.getPhylum());
     assertEquals(44, result.getPhylumKey().intValue());
     assertEquals("Panthera onca subsp. onca", result.getScientificName());
-    assertEquals("Copenhagen", result.getStateProvince());
+    assertEquals("Copenhagen", result.getField(DwcTerm.county));
     assertEquals("Panthera onca", result.getSpecies());
     assertEquals(5219426, result.getSpeciesKey().intValue());
     assertNull(result.getSubgenus());
     assertNull(result.getSubgenusKey());
-//    assertNull(result.getUnitQualifier());
+    assertNull(result.getField(GbifTerm.unitQualifier));
     assertEquals(Country.GERMANY, result.getPublishingCountry());
     assertEquals(EndpointType.DWC_ARCHIVE, result.getProtocol());
   }

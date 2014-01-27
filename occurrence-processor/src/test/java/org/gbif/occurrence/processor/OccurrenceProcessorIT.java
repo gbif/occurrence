@@ -134,7 +134,6 @@ public class OccurrenceProcessorIT {
     assertEquals("AlgaTerra", got.getField(DwcTerm.collectionCode));
     assertEquals("5834", got.getField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-//    assertNull(got.getUnitQualifier());
 
     assertEquals("Tetraedron caudatum (Corda) Hansgirg", got.getScientificName());
     assertEquals(52.423798, got.getLatitude().doubleValue(), 0.00001);
