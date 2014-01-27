@@ -32,7 +32,9 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORD_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 
 
@@ -106,6 +108,9 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     doc.setField(BASIS_OF_RECORD.getFieldName(), BOR_CONVERTER.fromEnum(occurrence.getBasisOfRecord()));
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
+    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getField(DwcTerm.recordNumber));
+    doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
+      .ordinal());
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence

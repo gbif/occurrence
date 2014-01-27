@@ -204,7 +204,7 @@ public class OccurrenceDataLoader {
     "recordedBy",
     "recordNumber",
     "identifiedBy",
-    "identificationDate"
+    "dateIdentified"
   };
 
 
