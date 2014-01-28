@@ -36,7 +36,7 @@ public class CoordinateInterpreterTest {
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
     assertEquals(Country.AUSTRALIA, result.getCountry());
-    assertTrue(result.getIssues().isEmpty());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
 
   @Test
@@ -128,21 +128,33 @@ public class CoordinateInterpreterTest {
 
   @Test
   public void testFuzzyCountry() {
-    // Belfast is GB not IE
+    // Belfast is UK not IE
     Double lat = 54.597;
     Double lng = -5.93;
     Country country = Country.IRELAND;
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(Country.UNITED_KINGDOM, result.getCountry());
-    Assert.assertTrue(result.getIssues().isEmpty());
+    assertEquals(1, result.getIssues().size());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
 
-    // Isle of Man is IM not GB
+    // Isle of Man is IM not UK
     lat = 54.25;
     lng = -4.5;
     country = Country.UNITED_KINGDOM;
     result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(Country.ISLE_OF_MAN, result.getCountry());
-    assertTrue(result.getIssues().isEmpty());
+    assertEquals(1, result.getIssues().size());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+  }
+
+  @Test
+  public void testCountryLoopedupIssue() {
+    // Belfast is UK
+    Double lat = 54.597;
+    Double lng = -5.93;
+    CoordinateInterpretationResult result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null);
+    assertEquals(Country.UNITED_KINGDOM, result.getCountry());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
 }

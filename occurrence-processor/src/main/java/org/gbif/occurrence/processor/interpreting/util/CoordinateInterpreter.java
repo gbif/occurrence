@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -165,6 +166,9 @@ public class CoordinateInterpreter {
   public static CoordinateInterpretationResult interpretCoordinates(String latitude, String longitude, final Country country) {
     if (latitude == null || longitude == null) return new CoordinateInterpretationResult();
 
+    //TODO: cleanup code to set issues directly into this set and use less of the parsing results
+    final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
+
     ParseResult<LatLngIssue> parseResult = GeospatialParseUtils.parseLatLng(latitude, longitude);
 
     // round to 5 decimals (~1m precision) since no way we're getting anything legitimately more precise
@@ -183,11 +187,16 @@ public class CoordinateInterpreter {
         // we have nothing to say about coord accuracy, but can try to fetch the right country
         if (!latLngCountries.isEmpty()) {
           finalCountry = latLngCountries.get(0);
+          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
         }
 
       } else if (matchCountry(country, latLngCountries)) {
         // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
+        if (!finalCountry.equals(latLngCountries.get(0))) {
+          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+        }
         finalCountry = latLngCountries.get(0);
+
 
       } else {
         boolean match = false;
@@ -217,6 +226,8 @@ public class CoordinateInterpreter {
       result = new CoordinateInterpretationResult();
     }
 
+    // copy issues
+    result.getIssues().addAll(issues);
     return result;
   }
 
