@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.common.parsers.geospatial.CellIdUtils;
 import org.gbif.common.parsers.geospatial.UnableToGenerateCellIdException;

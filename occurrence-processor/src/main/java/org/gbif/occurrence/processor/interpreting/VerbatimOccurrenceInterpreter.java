@@ -7,9 +7,9 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
-import org.gbif.occurrence.interpreters.BasisOfRecordInterpreter;
-import org.gbif.occurrence.interpreters.DateInterpreter;
-import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
+import org.gbif.occurrence.processor.interpreting.util.BasisOfRecordInterpreter;
+import org.gbif.occurrence.processor.interpreting.util.DateInterpreter;
+import org.gbif.occurrence.processor.interpreting.result.DateInterpretationResult;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
@@ -136,7 +136,7 @@ public class VerbatimOccurrenceInterpreter {
     occ.setYear(dateResult.getYear());
     occ.setDay(dateResult.getDay());
     // copy rules
-    occ.getValidations().putAll(dateResult.getValidationRules());
+    occ.getIssues().addAll(dateResult.getIssues());
 
     LOG.debug("Got recorded date [{}]: day [{}] month [{}] year [{}]",
       dateResult.getDate(), dateResult.getDay(), dateResult.getMonth(), dateResult.getYear());

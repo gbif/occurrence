@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.occurrence.interpreters.result.InterpretationResult;
@@ -26,7 +26,7 @@ public class NubLookupInterpreterTest {
   public void testNubLookupAllNulls() {
     InterpretationResult<NameUsageMatch> result =
       NubLookupInterpreter.nubLookup(null, null, null, null, null, null, null, null);
-    assertNotNull(result);
-    assertNull(result.getPayload().getScientificName());
+    Assert.assertNotNull(result);
+    Assert.assertNull(result.getPayload().getScientificName());
   }
 }

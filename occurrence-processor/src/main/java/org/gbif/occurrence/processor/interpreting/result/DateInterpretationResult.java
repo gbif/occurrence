@@ -1,8 +1,9 @@
-package org.gbif.occurrence.interpreters.result;
+package org.gbif.occurrence.processor.interpreting.result;
 
-import org.gbif.api.vocabulary.OccurrenceValidationRule;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 
 import java.util.Date;
+import java.util.Set;
 
 import com.google.common.base.Objects;
 
@@ -25,21 +26,17 @@ public class DateInterpretationResult extends InterpretationResult<Date> {
     this.month = null;
     this.day = null;
     this.time = null;
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_DATE_INVALID, true);
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_DATE_MISMATCH, true);
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_YEAR_UNLIKELY, true);
   }
 
-  public DateInterpretationResult(Integer year, Integer month, Integer day, Integer time, Date date,
-                                  boolean invalid, boolean mismatch, boolean unlikely) {
+  public DateInterpretationResult(Integer year, Integer month, Integer day, Integer time, Date date, Set<OccurrenceIssue> issues) {
     super(date);
     this.year = year;
     this.month = month;
     this.day = day;
     this.time = time;
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_DATE_INVALID, invalid);
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_DATE_MISMATCH, mismatch);
-    this.setValidationRule(OccurrenceValidationRule.RECORDED_YEAR_UNLIKELY, unlikely);
+    if (issues != null) {
+      this.getIssues().addAll(issues);
+    }
   }
 
   public Integer getYear() {

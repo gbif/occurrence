@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters.util;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import java.net.URI;
 import java.net.URL;

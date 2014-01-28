@@ -1,9 +1,8 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
-import org.gbif.api.vocabulary.OccurrenceValidationRule;
-import org.gbif.occurrence.interpreters.result.InterpretationResult;
-import org.gbif.occurrence.interpreters.util.RetryingWebserviceClient;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,15 +104,15 @@ public class NubLookupInterpreter {
             result = new InterpretationResult<NameUsageMatch>(lookup);
             switch (lookup.getMatchType()) {
               case NONE:
-                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_NONE, true);
+                result.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
                 LOG.info("Nub lookup for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
                 break;
               case FUZZY:
-                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_FUZZY, true);
+                result.addIssue(OccurrenceIssue.TAXON_MATCH_FUZZY);
                 LOG.debug("Nub lookup for [{}] was fuzzy. Match note: [{}]", scientificName, lookup.getNote());
                 break;
               case HIGHERRANK:
-                result.setValidationRule(OccurrenceValidationRule.TAXON_MATCH_HIGHERRANK, true);
+                result.addIssue(OccurrenceIssue.TAXON_MATCH_HIGHERRANK);
                 LOG.debug("Nub lookup for [{}] was to higher rank only. Match note: [{}]",
                           scientificName,
                           lookup.getNote());

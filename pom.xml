@@ -45,7 +45,6 @@
     <module>occurrence-download-workflow</module>
     <module>occurrence-index-builder</module>
     <module>occurrence-index-builder-workflow</module>
-    <module>occurrence-interpreters</module>
     <module>occurrence-persistence</module>
     <module>occurrence-parser</module>
     <module>occurrence-processor</module>
@@ -277,11 +276,6 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-parser</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-interpreters</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -745,7 +739,6 @@
         <checklistbank.ws.url>http://appdev.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://appdev.gbif.org:8080/registry-ws</registry.ws.url>
         <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
-        <geocode.fuzzycountryfile>fuzzy-country-pairs.txt</geocode.fuzzycountryfile>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>

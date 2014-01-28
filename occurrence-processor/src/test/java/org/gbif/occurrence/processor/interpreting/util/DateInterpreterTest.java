@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
 
@@ -32,16 +32,16 @@ public class DateInterpreterTest {
   public void test0Month() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate("1984", "0", "22", null);
     assertEquals(1984, result.getYear().intValue());
-    assertNull(result.getMonth());
-    assertNull(result.getDate());
+    Assert.assertNull(result.getMonth());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
   public void testOldYear() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate("1684", "3", "22", null);
-    assertNotNull(result);
-    assertNull(result.getDate());
-    assertNull(result.getYear());
+    Assert.assertNotNull(result);
+    Assert.assertNull(result.getDate());
+    Assert.assertNull(result.getYear());
     assertEquals(3, result.getMonth().intValue());
     assertEquals(22, result.getDay().intValue());
   }
@@ -57,7 +57,7 @@ public class DateInterpreterTest {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate("1984", "3", "32", null);
     assertEquals(1984, result.getYear().intValue());
     assertEquals(3, result.getMonth().intValue());
-    assertNull(result.getDate());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
@@ -71,11 +71,11 @@ public class DateInterpreterTest {
   @Test
   public void testStringBad() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate(null, null, null, "22-17-1984");
-    assertNotNull(result);
-    assertNull(result.getMonth());
-    assertNull(result.getDate());
-    assertNull(result.getYear());
-    assertNull(result.getDate());
+    Assert.assertNotNull(result);
+    Assert.assertNull(result.getMonth());
+    Assert.assertNull(result.getDate());
+    Assert.assertNull(result.getYear());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
@@ -91,34 +91,34 @@ public class DateInterpreterTest {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate("1984", "3", null, "22-17-1984");
     assertEquals(1984, result.getYear().intValue());
     assertEquals(3, result.getMonth().intValue());
-    assertNull(result.getDate());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
   public void testOnlyMonth() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate(null, "3", null, null);
-    assertNotNull(result);
+    Assert.assertNotNull(result);
     assertEquals(3, result.getMonth().intValue());
   }
 
   @Test
   public void testOnlyDay() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate(null, null, "23", null);
-    assertNotNull(result);
-    assertNull(result.getMonth());
-    assertNull(result.getDate());
-    assertNull(result.getYear());
-    assertNull(result.getDate());
+    Assert.assertNotNull(result);
+    Assert.assertNull(result.getMonth());
+    Assert.assertNull(result.getDate());
+    Assert.assertNull(result.getYear());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
   public void testAllNulls() {
     DateInterpretationResult result = DateInterpreter.interpretRecordedDate(null, null, null, null);
-    assertNotNull(result);
-    assertNull(result.getMonth());
-    assertNull(result.getDate());
-    assertNull(result.getYear());
-    assertNull(result.getDate());
+    Assert.assertNotNull(result);
+    Assert.assertNull(result.getMonth());
+    Assert.assertNull(result.getDate());
+    Assert.assertNull(result.getYear());
+    Assert.assertNull(result.getDate());
   }
 
   @Test
@@ -142,11 +142,11 @@ public class DateInterpreterTest {
    */
   private void assertDate(String expected, DateInterpretationResult result){
     if (expected == null) {
-      assertNull(result.getDate());
+      Assert.assertNull(result.getDate());
     } else {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      assertNotNull("Missing date", result.getDate());
-      assertEquals(expected, sdf.format(result.getDate()));
+      Assert.assertNotNull("Missing date", result.getDate());
+      Assert.assertEquals(expected, sdf.format(result.getDate()));
     }
   }
 }

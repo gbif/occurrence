@@ -7,8 +7,8 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.interpreters.NubLookupInterpreter;
-import org.gbif.occurrence.interpreters.result.InterpretationResult;
+import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
+import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

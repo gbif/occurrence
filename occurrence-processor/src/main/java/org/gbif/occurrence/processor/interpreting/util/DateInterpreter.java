@@ -1,13 +1,16 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.ParseResult;
 import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.common.parsers.date.YearMonthDay;
-import org.gbif.occurrence.interpreters.result.DateInterpretationResult;
+import org.gbif.occurrence.processor.interpreting.result.DateInterpretationResult;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Set;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +46,7 @@ public class DateInterpreter {
       return new DateInterpretationResult();
     }
 
-    boolean invalid = false;
-    boolean mismatch = false;
-    boolean unlikely = false;
+    Set<OccurrenceIssue> issues = Sets.newHashSet();
 
     /**
      * First, attempt year, month, day parsing
@@ -67,7 +68,7 @@ public class DateInterpreter {
     if (ymdYear != null && stringYear != null) {
       if (!ymdYear.equals(stringYear)) {
         LOG.debug("String and YMD based years differ: {} vs {}.", ymdYear, stringYear);
-        mismatch = true;
+        issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
         // ignore string based date
         stringDate = null;
 
@@ -75,7 +76,7 @@ public class DateInterpreter {
         long diff = ymdDate.getTime() - stringDate.getTime();
         if (diff > MAX_DIFFERENCE) {
           LOG.debug("String and YMD based dates differ: {} vs {}.", ymdDate, stringDate);
-          mismatch = true;
+          issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
           // ignore string based date
           stringDate = null;
         }
@@ -88,15 +89,15 @@ public class DateInterpreter {
       if (stringYear >= EARLIEST_RECORDED_YEAR && stringYear <= LATEST_RECORDED_YEAR) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(stringDate);
-        return new DateInterpretationResult(stringYear, cal.get(Calendar.MONTH)+1, cal.get(Calendar.DAY_OF_MONTH), null, stringDate, invalid, mismatch, unlikely);
+        return new DateInterpretationResult(stringYear, cal.get(Calendar.MONTH)+1, cal.get(Calendar.DAY_OF_MONTH), null, stringDate, issues);
       }
-      unlikely = true;
+      issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
       LOG.debug("Bad recording year: [{}] / [{}].", dateString, ymd);
 
     }
 
     // try to use partial dates from YMD as last resort:
-    return interpretYMD(ymd, ymdDate, invalid, mismatch, unlikely);
+    return interpretYMD(ymd, ymdDate, issues);
   }
 
   private static Integer year(Date d) {
@@ -108,15 +109,14 @@ public class DateInterpreter {
     return null;
   }
 
-  private static DateInterpretationResult interpretYMD(YearMonthDay ymd, Date ymdDate,
-                              boolean invalid, boolean mismatch, boolean unlikely) {
+  private static DateInterpretationResult interpretYMD(YearMonthDay ymd, Date ymdDate, Set<OccurrenceIssue> issues) {
     Integer year = ymd.getIntegerYear();
     if (year != null && (year < EARLIEST_RECORDED_YEAR || year > LATEST_RECORDED_YEAR)) {
       year = null;
       ymdDate = null;
-      unlikely = true;
+      issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
     }
-    return new DateInterpretationResult(year, ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate, invalid, mismatch, unlikely);
+    return new DateInterpretationResult(year, ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate, issues);
   }
 
   public static Date interpretDate(String dateString) {

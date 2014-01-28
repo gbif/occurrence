@@ -1,13 +1,12 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.OccurrenceValidationRule;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.ParseResult;
 import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
 import org.gbif.common.parsers.geospatial.LatLngIssue;
 import org.gbif.geocode.api.model.Location;
-import org.gbif.occurrence.interpreters.result.CoordinateInterpretationResult;
-import org.gbif.occurrence.interpreters.util.RetryingWebserviceClient;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateInterpretationResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,8 +54,7 @@ public class CoordinateInterpreter {
   private static final String WEB_SERVICE_URL;
   private static final String WEB_SERVICE_URL_PROPERTY = "occurrence.geo.ws.url";
 
-  private static final String FUZZY_COUNTRY_FILE;
-  private static final String FUZZY_COUNTRY_FILE_PROPERTY = "occurrence.geo.fuzzycountryfile";
+  private static final String FUZZY_COUNTRY_FILE = "fuzzy-country-pairs.txt";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private static final LoadingCache<WebResource, Location[]> CACHE =
@@ -65,8 +63,8 @@ public class CoordinateInterpreter {
 
   private static final WebResource RESOURCE;
 
-  private static final Map<OccurrenceValidationRule, Integer[]> TRANSFORMS =
-    new EnumMap<OccurrenceValidationRule, Integer[]>(OccurrenceValidationRule.class);
+  private static final Map<OccurrenceIssue, Integer[]> TRANSFORMS =
+    new EnumMap<OccurrenceIssue, Integer[]>(OccurrenceIssue.class);
 
   /*
    Some countries are commonly mislabeled and are close to correct, so we want to accommodate them, e.g. Northern
@@ -77,9 +75,9 @@ public class CoordinateInterpreter {
   private static final Map<Country, Set<Country>> FUZZY_COUNTRIES = Maps.newHashMap();
 
   static {
-    TRANSFORMS.put(OccurrenceValidationRule.PRESUMED_NEGATED_LATITUDE, new Integer[] {-1, 1});
-    TRANSFORMS.put(OccurrenceValidationRule.PRESUMED_NEGATED_LONGITUDE, new Integer[] {1, -1});
-    TRANSFORMS.put(OccurrenceValidationRule.PRESUMED_SWAPPED_COORDINATE, new Integer[] {-1, -1});
+    TRANSFORMS.put(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, new Integer[] {-1, 1});
+    TRANSFORMS.put(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, new Integer[] {1, -1});
+    TRANSFORMS.put(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, new Integer[] {-1, -1});
 
     try {
       InputStream is =
@@ -91,7 +89,6 @@ public class CoordinateInterpreter {
         Properties props = new Properties();
         props.load(is);
         WEB_SERVICE_URL = props.getProperty(WEB_SERVICE_URL_PROPERTY);
-        FUZZY_COUNTRY_FILE = props.getProperty(FUZZY_COUNTRY_FILE_PROPERTY);
       } finally {
         is.close();
       }
@@ -108,35 +105,30 @@ public class CoordinateInterpreter {
     RESOURCE = client.resource(WEB_SERVICE_URL);
     LOG.info("Creating new geo lookup service at " + WEB_SERVICE_URL);
 
-    if (FUZZY_COUNTRY_FILE == null) {
-      LOG.warn("Fuzzy country file property [{}] not set, so not loading any fuzzy country pairs.",
-        FUZZY_COUNTRY_FILE_PROPERTY);
-    } else {
-      InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(FUZZY_COUNTRY_FILE);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+    InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(FUZZY_COUNTRY_FILE);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+    try {
+      String nextLine;
+      while ((nextLine = reader.readLine()) != null) {
+        if (!nextLine.startsWith("#")) {
+          String[] countries = nextLine.split(",");
+          String countryA = countries[0].trim().toUpperCase();
+          String countryB = countries[1].trim().toUpperCase();
+          LOG.info("Adding [{}][{}] pair to fuzzy country matches.", countryA, countryB);
+          addFuzzyCountry(countryA, countryB);
+          addFuzzyCountry(countryB, countryA);
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Can't read [" + FUZZY_COUNTRY_FILE + "] - aborting", e);
+    } finally {
       try {
-        String nextLine;
-        while ((nextLine = reader.readLine()) != null) {
-          if (!nextLine.startsWith("#")) {
-            String[] countries = nextLine.split(",");
-            String countryA = countries[0].trim().toUpperCase();
-            String countryB = countries[1].trim().toUpperCase();
-            LOG.info("Adding [{}][{}] pair to fuzzy country matches.", countryA, countryB);
-            addFuzzyCountry(countryA, countryB);
-            addFuzzyCountry(countryB, countryA);
-          }
+        reader.close();
+        if (in != null) {
+          in.close();
         }
       } catch (IOException e) {
-        throw new RuntimeException("Can't read [" + FUZZY_COUNTRY_FILE + "] - aborting", e);
-      } finally {
-        try {
-          reader.close();
-          if (in != null) {
-            in.close();
-          }
-        } catch (IOException e) {
-          LOG.warn("Couldn't close [{}] - continuing anyway", FUZZY_COUNTRY_FILE, e);
-        }
+        LOG.warn("Couldn't close [{}] - continuing anyway", FUZZY_COUNTRY_FILE, e);
       }
     }
   }
@@ -199,7 +191,7 @@ public class CoordinateInterpreter {
 
       } else {
         boolean match = false;
-        for (Map.Entry<OccurrenceValidationRule, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
+        for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
           Integer[] transform = geospatialIssueEntry.getValue();
           if (matchCountry(country, getCountryForLatLng(lat * transform[0], lng * transform[1]))) {
             parseResult = ParseResult.fail(new LatLngIssue(lat, lng, geospatialIssueEntry.getKey()));
@@ -210,7 +202,7 @@ public class CoordinateInterpreter {
 
         // if we made it here no transforms worked and the point is either in international waters or really weird
         parseResult = match ? parseResult
-          : ParseResult.fail(new LatLngIssue(lat, lng, OccurrenceValidationRule.COUNTRY_COORDINATE_MISMATCH));
+          : ParseResult.fail(new LatLngIssue(lat, lng, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
       }
     }
 
@@ -218,8 +210,9 @@ public class CoordinateInterpreter {
     if (parseResult.getStatus() == ParseResult.STATUS.SUCCESS || parseResult.getStatus() == ParseResult.STATUS.FAIL) {
       result = new CoordinateInterpretationResult(lat, lng, finalCountry);
       if (parseResult.getPayload().getIssue() != null) {
-        result.setValidationRule(parseResult.getPayload().getIssue(), true);
+        result.getIssues().add(parseResult.getPayload().getIssue());
       }
+
     } else {
       result = new CoordinateInterpretationResult();
     }

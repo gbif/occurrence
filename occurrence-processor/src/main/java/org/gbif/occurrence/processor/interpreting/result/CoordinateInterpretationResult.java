@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters.result;
+package org.gbif.occurrence.processor.interpreting.result;
 
 import org.gbif.api.vocabulary.Country;
 

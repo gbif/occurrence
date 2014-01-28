@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
@@ -20,18 +20,18 @@ public class OrganizationLookupTest {
   @Test
   public void testOrgLookup(){
     Organization org = OrganizationLookup.getOrgByDataset(UUID.fromString(BOGART_DATASET_KEY));
-    assertEquals(BGBM_KEY, org.getKey().toString());
+    Assert.assertEquals(BGBM_KEY, org.getKey().toString());
   }
 
   @Test
   public void testCountryLookup() {
     Country result = OrganizationLookup.getOrgCountry(UUID.fromString(BGBM_KEY));
-    assertEquals(Country.GERMANY, result);
+    Assert.assertEquals(Country.GERMANY, result);
   }
 
   @Test
   public void testBadCountryLookup() {
     Country result = OrganizationLookup.getOrgCountry(UUID.randomUUID());
-    assertNull(result);
+    Assert.assertNull(result);
   }
 }

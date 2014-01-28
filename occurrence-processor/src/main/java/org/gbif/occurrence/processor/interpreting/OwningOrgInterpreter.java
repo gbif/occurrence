@@ -3,7 +3,7 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.occurrence.interpreters.OrganizationLookup;
+import org.gbif.occurrence.processor.interpreting.util.OrganizationLookup;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

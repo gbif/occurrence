@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;

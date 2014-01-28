@@ -3,15 +3,14 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.OccurrenceValidationRule;
 import org.gbif.common.parsers.ParseResult;
 import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
 import org.gbif.common.parsers.geospatial.IntPrecisionIssue;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.interpreters.CoordinateInterpreter;
-import org.gbif.occurrence.interpreters.CountryInterpreter;
-import org.gbif.occurrence.interpreters.result.CoordinateInterpretationResult;
-import org.gbif.occurrence.interpreters.result.InterpretationResult;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateInterpretationResult;
+import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
+import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
+import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +42,7 @@ public class LocationInterpreter implements Runnable {
   private Country interpretCountry() {
     InterpretationResult<Country> inter = CountryInterpreter.interpretCountry(verbatim.getField(DwcTerm.countryCode), verbatim.getField(DwcTerm.country));
     occ.setCountry(inter.getPayload());
-    occ.getValidations().putAll(inter.getValidationRules());
+    occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
   }
 
@@ -53,7 +52,7 @@ public class LocationInterpreter implements Runnable {
 
     occ.setLatitude(coordLookup.getLatitude());
     occ.setLongitude(coordLookup.getLongitude());
-    occ.getValidations().putAll(coordLookup.getValidationRules());
+    occ.getIssues().addAll(coordLookup.getIssues());
 
     LOG.debug("Got lat [{}] lng [{}]", coordLookup.getLatitude(), coordLookup.getLongitude());
   }
@@ -65,10 +64,7 @@ public class LocationInterpreter implements Runnable {
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setDepth( result.getPayload().getValue() );
       occ.setDepthAccuracy(result.getPayload().getPrecision());
-
-      for (OccurrenceValidationRule issue : result.getPayload().getIssues()) {
-        occ.getValidations().put(issue, true);
-      }
+      occ.getIssues().addAll(result.getPayload().getIssues());
     }
   }
 
@@ -79,10 +75,7 @@ public class LocationInterpreter implements Runnable {
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setAltitude( result.getPayload().getValue() );
       occ.setAltitudeAccuracy(result.getPayload().getPrecision());
-
-      for (OccurrenceValidationRule issue : result.getPayload().getIssues()) {
-        occ.getValidations().put(issue, true);
-      }
+      occ.getIssues().addAll(result.getPayload().getIssues());
     }
   }
 

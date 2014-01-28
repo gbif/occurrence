@@ -1,4 +1,4 @@
-package org.gbif.occurrence.interpreters;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.Country;
 import org.gbif.occurrence.interpreters.result.InterpretationResult;
@@ -25,12 +25,12 @@ public class CountryInterpreterTest {
   @Test
   public void testBadCountry() {
     InterpretationResult<Country> result = CountryInterpreter.interpretCountry("Caa");
-    assertNull(result.getPayload());
+    Assert.assertNull(result.getPayload());
   }
 
   @Test
   public void testNullCountry() {
     InterpretationResult<Country> result = CountryInterpreter.interpretCountry(null);
-    assertNull(result.getPayload());
+    Assert.assertNull(result.getPayload());
   }
 }
