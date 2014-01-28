@@ -154,7 +154,7 @@ public class VerbatimOccurrenceInterpreter {
     //TODO: log issues
     BasisOfRecord bor = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getField(DwcTerm.basisOfRecord)).getPayload();
     occ.setBasisOfRecord(bor);
-    LOG.debug("Got BOR [{}]", bor.toString());
+    LOG.debug("Got BOR [{}]", bor);
   }
 
 
