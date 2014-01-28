@@ -40,6 +40,7 @@ public class OrganizationLookup {
 
   private static final String WEB_SERVICE_URL;
   private static final String WEB_SERVICE_URL_PROPERTY = "registry.ws.url";
+  private static final String OCCURRENCE_PROPS_FILE = "occurrence-processor.properties";
   private static final DatasetWsClient DATASET_CLIENT;
   private static final OrganizationWsClient ORG_CLIENT;
 
@@ -68,8 +69,10 @@ public class OrganizationLookup {
 
   static {
     try {
-      InputStream is =
-        NubLookupInterpreter.class.getClassLoader().getResourceAsStream("occurrence-interpreter.properties");
+      InputStream is = NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
+      if (is == null) {
+        throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']');
+      }
       try {
         Properties props = new Properties();
         props.load(is);
@@ -78,7 +81,7 @@ public class OrganizationLookup {
         is.close();
       }
     } catch (IOException e) {
-      throw new RuntimeException("Can't load properties file [occurrence-interpreter.properties]", e);
+      throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']', e);
     }
 
     ClientConfig cc = new DefaultClientConfig();

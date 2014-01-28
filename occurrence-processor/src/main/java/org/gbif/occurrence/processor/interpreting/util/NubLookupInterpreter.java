@@ -36,6 +36,7 @@ public class NubLookupInterpreter {
 
   private static final String WEB_SERVICE_URL;
   private static final String WEB_SERVICE_URL_PROPERTY = "occurrence.nub.ws.url";
+  private static final String OCCURRENCE_PROPS_FILE = "occurrence-processor.properties";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private static final LoadingCache<WebResource, NameUsageMatch> CACHE =
@@ -46,10 +47,9 @@ public class NubLookupInterpreter {
 
   static {
     try {
-      InputStream is =
-        NubLookupInterpreter.class.getClassLoader().getResourceAsStream("occurrence-interpreter.properties");
+      InputStream is = NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
       if (is == null) {
-        throw new RuntimeException("Can't load properties file [occurrence-interpreter.properties]");
+        throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']');
       }
       try {
         Properties props = new Properties();
@@ -59,7 +59,7 @@ public class NubLookupInterpreter {
         is.close();
       }
     } catch (IOException e) {
-      throw new RuntimeException("Can't load properties file [occurrence-interpreter.properties]", e);
+      throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']', e);
     }
     ClientConfig cc = new DefaultClientConfig();
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);

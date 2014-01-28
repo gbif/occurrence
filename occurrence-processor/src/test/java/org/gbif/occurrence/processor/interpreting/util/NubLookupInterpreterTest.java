@@ -27,6 +27,6 @@ public class NubLookupInterpreterTest {
     InterpretationResult<NameUsageMatch> result =
       NubLookupInterpreter.nubLookup(null, null, null, null, null, null, null, null);
     assertNotNull(result);
-    assertNull(result.getPayload().getScientificName());
+    assertNull(result.getPayload());
   }
 }

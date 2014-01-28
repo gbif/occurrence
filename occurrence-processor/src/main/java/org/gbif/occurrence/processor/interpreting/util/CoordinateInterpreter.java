@@ -56,6 +56,7 @@ public class CoordinateInterpreter {
   private static final String WEB_SERVICE_URL_PROPERTY = "occurrence.geo.ws.url";
 
   private static final String FUZZY_COUNTRY_FILE = "fuzzy-country-pairs.txt";
+  private static final String OCCURRENCE_PROPS_FILE = "occurrence-processor.properties";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private static final LoadingCache<WebResource, Location[]> CACHE =
@@ -82,9 +83,9 @@ public class CoordinateInterpreter {
 
     try {
       InputStream is =
-        NubLookupInterpreter.class.getClassLoader().getResourceAsStream("occurrence-interpreter.properties");
+        NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
       if (is == null) {
-        throw new RuntimeException("Can't load properties file [occurrence-interpreter.properties]");
+        throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']');
       }
       try {
         Properties props = new Properties();
@@ -94,7 +95,7 @@ public class CoordinateInterpreter {
         is.close();
       }
     } catch (IOException e) {
-      throw new RuntimeException("Can't load properties file [occurrence-interpreter.properties]", e);
+      throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']', e);
     }
 
     ClientConfig cc = new DefaultClientConfig();
