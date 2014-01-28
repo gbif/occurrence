@@ -6,11 +6,10 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
+import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.processor.interpreting.result.DateInterpretationResult;
 import org.gbif.occurrence.processor.interpreting.util.BasisOfRecordInterpreter;
 import org.gbif.occurrence.processor.interpreting.util.DateInterpreter;
-import org.gbif.occurrence.processor.interpreting.result.DateInterpretationResult;
-import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
@@ -50,10 +49,10 @@ public class VerbatimOccurrenceInterpreter {
    *
    * @param verbatim the verbatim occurrence to interpret
    *
-   * @return an InterpretationResult that contains an "updated" Occurrence with interpreted fields and an "original"
+   * @return an OccurrenceInterpretationResult that contains an "updated" Occurrence with interpreted fields and an "original"
    *         occurrence iff this was an update to an existing record (will be null otherwise)
    */
-  public InterpretationResult interpret(VerbatimOccurrence verbatim, OccurrencePersistenceStatus status,
+  public OccurrenceInterpretationResult interpret(VerbatimOccurrence verbatim, OccurrencePersistenceStatus status,
     boolean fromCrawl) {
     Occurrence occ = new Occurrence(verbatim);
 
@@ -106,7 +105,7 @@ public class VerbatimOccurrenceInterpreter {
       // TODO: compare original with interp - if identical then return unchanged flag on result, so downstream
       // doesn't need to do anything
     }
-    InterpretationResult result = new InterpretationResult(original, occ);
+    OccurrenceInterpretationResult result = new OccurrenceInterpretationResult(original, occ);
 
     // persist the record (considered an update in all cases because the key must already exist on verbatim)
     LOG.debug("Persisting interpreted occurrence");
@@ -143,12 +142,12 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {
-    // TODO: interpretation should produce enum
-    BasisOfRecordConverter borConv = new BasisOfRecordConverter();
-    Integer basisOfRecord = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getField(DwcTerm.basisOfRecord));
-    BasisOfRecord bor = borConv.toEnum(basisOfRecord);
+    //TODO: log issues
+    BasisOfRecord bor = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getField(DwcTerm.basisOfRecord)).getPayload();
     occ.setBasisOfRecord(bor);
     LOG.debug("Got BOR [{}]", bor.toString());
   }
+
+
 
 }

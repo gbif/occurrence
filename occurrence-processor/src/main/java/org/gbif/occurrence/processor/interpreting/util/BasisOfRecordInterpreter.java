@@ -1,17 +1,19 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
+import org.gbif.api.model.common.InterpretedEnum;
+import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.common.parsers.ParseResult;
-import org.gbif.common.parsers.basisofrecord.BasisOfRecordParser;
-import org.gbif.common.parsers.utils.MappingUtils;
+import org.gbif.common.parsers.basisofrecord.InterpretedBasisOfRecordParser;
+import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
+
+import com.google.common.base.Strings;
 
 /**
  * Interpret basis of records and return controlled values.
- * TODO: return a java enum rather than int
  */
 public class BasisOfRecordInterpreter {
 
-  private static final Integer DEFAULT_RESULT = 0;
-  private static final BasisOfRecordParser PARSER = BasisOfRecordParser.getInstance();
+  private static final InterpretedBasisOfRecordParser PARSER = InterpretedBasisOfRecordParser.getInstance();
 
   private BasisOfRecordInterpreter() {
   }
@@ -23,22 +25,14 @@ public class BasisOfRecordInterpreter {
    *
    * @return integer value corresponding to matching basis of record from controlled vocabulary
    */
-  public static Integer interpretBasisOfRecord(String basisOfRecord) {
-    if (basisOfRecord == null) {
-      return DEFAULT_RESULT;
-    }
+  public static InterpretationResult<BasisOfRecord> interpretBasisOfRecord(String basisOfRecord) {
+    if (!Strings.isNullOrEmpty(basisOfRecord)) {
+      ParseResult<InterpretedEnum<String,BasisOfRecord>> parseResult = PARSER.parse(basisOfRecord);
 
-    ParseResult<String> parseResult = PARSER.parse(basisOfRecord.toString());
-    if (!parseResult.isSuccessful()) {
-      return DEFAULT_RESULT;
+      if (parseResult.isSuccessful()) {
+        return new InterpretationResult<BasisOfRecord>(parseResult.getPayload().getInterpreted());
+      }
     }
-
-    Integer result = DEFAULT_RESULT;
-    Integer id = MappingUtils.mapBasisOfRecord(parseResult.getPayload());
-    if (id != null) {
-      result = id;
-    }
-
-    return result;
+    return InterpretationResult.fail();
   }
 }

@@ -2,14 +2,13 @@ package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.occurrence.interpreters.result.CoordinateInterpretationResult;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateInterpretationResult;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Ignore("requires live webservice")
@@ -25,7 +24,7 @@ public class CoordinateInterpreterTest {
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
     assertEquals(country, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    Assert.assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
@@ -37,7 +36,7 @@ public class CoordinateInterpreterTest {
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
     assertEquals(Country.AUSTRALIA, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
@@ -50,7 +49,7 @@ public class CoordinateInterpreterTest {
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
     assertEquals(country, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().get(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
   }
 
   @Test
@@ -63,7 +62,7 @@ public class CoordinateInterpreterTest {
     Assert.assertNull(result.getLatitude());
     Assert.assertNull(result.getLongitude());
     assertEquals(country, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().get(OccurrenceIssue.COORDINATES_OUT_OF_RANGE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATES_OUT_OF_RANGE));
   }
 
   @Test
@@ -76,7 +75,7 @@ public class CoordinateInterpreterTest {
     assertEquals(lat, result.getLatitude().doubleValue(), 0.0001);
     assertEquals(lng, result.getLongitude().doubleValue(), 0.0001);
     assertEquals(country, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().get(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
   }
 
   @Test
@@ -89,7 +88,7 @@ public class CoordinateInterpreterTest {
     Assert.assertNull(result.getCountry());
     Assert.assertNull(result.getLatitude());
     Assert.assertNull(result.getLongitude());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
@@ -102,7 +101,7 @@ public class CoordinateInterpreterTest {
     Assert.assertNull(result.getCountry());
     Assert.assertNull(result.getLatitude());
     Assert.assertNull(result.getLongitude());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
@@ -118,7 +117,7 @@ public class CoordinateInterpreterTest {
     assertEquals(roundedLat, result.getLatitude(), 0.000001);
     assertEquals(roundedLng, result.getLongitude(), 0.000001);
     assertEquals(country, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
@@ -136,7 +135,7 @@ public class CoordinateInterpreterTest {
     CoordinateInterpretationResult result =
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(Country.UNITED_KINGDOM, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    Assert.assertTrue(result.getIssues().isEmpty());
 
     // Isle of Man is IM not GB
     lat = 54.25;
@@ -144,6 +143,6 @@ public class CoordinateInterpreterTest {
     country = Country.UNITED_KINGDOM;
     result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
     assertEquals(Country.ISLE_OF_MAN, result.getCountry());
-    Assert.assertTrue(result.getValidationRules().isEmpty());
+    assertTrue(result.getIssues().isEmpty());
   }
 }

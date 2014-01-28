@@ -16,7 +16,7 @@ import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.processor.interpreting.InterpretationResult;
+import org.gbif.occurrence.processor.interpreting.OccurrenceInterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
@@ -135,7 +135,7 @@ public class VerbatimOccurrenceInterpreterTest {
   @Test
   public void testFullNew() {
     // TODO: continent, geospatial issue, other issue
-    InterpretationResult interpResult = interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
+    OccurrenceInterpretationResult interpResult = interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
     assertNotNull(interpResult);
     Occurrence result = interpResult.getUpdated();
     assertEquals(verb.getKey(), result.getKey());
@@ -190,7 +190,7 @@ public class VerbatimOccurrenceInterpreterTest {
   @Test
   public void testUpdate() {
     interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
-    InterpretationResult interpResultMod = interpreter.interpret(verbMod, OccurrencePersistenceStatus.UPDATED, true);
+    OccurrenceInterpretationResult interpResultMod = interpreter.interpret(verbMod, OccurrencePersistenceStatus.UPDATED, true);
     System.out.println("original\n" + interpResultMod.getOriginal().toString());
     System.out.println("updated\n" + interpResultMod.getUpdated().toString());
     assertNotNull(interpResultMod.getUpdated());

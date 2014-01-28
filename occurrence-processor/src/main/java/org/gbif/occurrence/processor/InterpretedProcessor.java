@@ -8,7 +8,7 @@ import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.processor.interpreting.InterpretationResult;
+import org.gbif.occurrence.processor.interpreting.OccurrenceInterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
@@ -105,7 +105,7 @@ public class InterpretedProcessor {
       return;
     }
 
-    InterpretationResult interpretationResult;
+    OccurrenceInterpretationResult interpretationResult;
     final TimerContext interpContext = interpTimer.time();
     try {
       interpretationResult = verbatimInterpreter.interpret(verbatim, status, fromCrawl);

@@ -21,6 +21,19 @@ public class InterpretationResult<T> {
     this.payload = payload;
   }
 
+  /**
+   * @return an empty interpretation result with null payload and optional issues set
+   */
+  public static <T> InterpretationResult<T> fail(OccurrenceIssue ... issues) {
+    InterpretationResult<T> result = new InterpretationResult<T>(null);
+    if (issues != null) {
+      for (OccurrenceIssue issue : issues) {
+        result.addIssue(issue);
+      }
+    }
+    return result;
+  }
+
   public T getPayload() {
     return payload;
   }

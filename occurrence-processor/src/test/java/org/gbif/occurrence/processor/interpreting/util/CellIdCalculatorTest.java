@@ -10,36 +10,36 @@ public class CellIdCalculatorTest {
   @Test
   public void testCellIdSuccess() {
     Integer cellId = CellIdCalculator.calculateCellId(45.123d, 45.456d);
-    Assert.assertEquals(48825, cellId.intValue());
+    assertEquals(48825, cellId.intValue());
   }
 
   @Test
   public void testCellIdNull() {
     Integer cellId = CellIdCalculator.calculateCellId(200d, 200d);
-    Assert.assertNull(cellId);
+    assertNull(cellId);
   }
 
   @Test
   public void testCentiCellIdSuccess() {
     Integer cellId = CellIdCalculator.calculateCentiCellId(45.123d, 45.456d);
-    Assert.assertEquals(14, cellId.intValue());
+    assertEquals(14, cellId.intValue());
   }
 
   @Test
   public void testCentiCellIdNull() {
     Integer cellId = CellIdCalculator.calculateCentiCellId(200d, 200d);
-    Assert.assertNull(cellId);
+    assertNull(cellId);
   }
 
   @Test
   public void testMod360Success() {
     Integer cellId = CellIdCalculator.calculateMod360CellId(45.456);
-    Assert.assertEquals(225, cellId.intValue());
+    assertEquals(225, cellId.intValue());
   }
 
   @Test
   public void testMod360Null() {
     Integer cellId = CellIdCalculator.calculateMod360CellId(null);
-    Assert.assertNull(cellId);
+    assertNull(cellId);
   }
 }

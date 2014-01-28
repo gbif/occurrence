@@ -20,18 +20,18 @@ public class OrganizationLookupTest {
   @Test
   public void testOrgLookup(){
     Organization org = OrganizationLookup.getOrgByDataset(UUID.fromString(BOGART_DATASET_KEY));
-    Assert.assertEquals(BGBM_KEY, org.getKey().toString());
+    assertEquals(BGBM_KEY, org.getKey().toString());
   }
 
   @Test
   public void testCountryLookup() {
     Country result = OrganizationLookup.getOrgCountry(UUID.fromString(BGBM_KEY));
-    Assert.assertEquals(Country.GERMANY, result);
+    assertEquals(Country.GERMANY, result);
   }
 
   @Test
   public void testBadCountryLookup() {
     Country result = OrganizationLookup.getOrgCountry(UUID.randomUUID());
-    Assert.assertNull(result);
+    assertNull(result);
   }
 }
