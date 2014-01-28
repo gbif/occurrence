@@ -6,6 +6,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.IdentifierType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
@@ -16,11 +17,13 @@ import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
+import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -45,7 +48,7 @@ public class OccurrenceBuilder {
 
   /**
    * Builds a Fragment object from the given result, assigning the passed in key.
-   * 
+   *
    * @param result an HBase scan/get Result
    * @return the Fragment or null if the passed in Result is null
    * @throws ValidationException if the fragment as stored in the table is invalid
@@ -105,7 +108,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static Occurrence buildOccurrence(@Nullable Result row) {
@@ -128,8 +131,6 @@ public class OccurrenceBuilder {
       occ.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID));
       occ.setGenus(OccurrenceResultReader.getString(row, FieldName.I_GENUS));
       occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
-      // TODO: how to deal with geospatial issues pre schema change?
-      // occ.setGeospatialIssue(OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE));
       occ
         .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
       occ.setField(DwcTerm.institutionCode, OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
@@ -144,7 +145,6 @@ public class OccurrenceBuilder {
       occ.setEventDate(OccurrenceResultReader.getDate(row, FieldName.I_OCCURRENCE_DATE));
       occ.setOrder(OccurrenceResultReader.getString(row, FieldName.I_ORDER));
       occ.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID));
-      // TODO: how to deal with other issue pre schema change (only have null, 0, and 8 in current data)
       occ.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
       occ.setPhylum(OccurrenceResultReader.getString(row, FieldName.I_PHYLUM));
       occ.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID));
@@ -158,8 +158,6 @@ public class OccurrenceBuilder {
       occ.setScientificName(OccurrenceResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME));
       occ.setSpecies(OccurrenceResultReader.getString(row, FieldName.I_SPECIES));
       occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
-      // TODO: where does unit qualifier go now?
-      // occ.setUnitQualifier(OccurrenceResultReader.getString(row, FieldName.UNIT_QUALIFIER));
       occ.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
       occ.setField(DwcTerm.locality, OccurrenceResultReader.getString(row, FieldName.LOCALITY));
       occ.setField(DwcTerm.county, OccurrenceResultReader.getString(row, FieldName.COUNTY));
@@ -170,13 +168,15 @@ public class OccurrenceBuilder {
       occ.setField(DwcTerm.identifiedBy, OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
       occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
       occ.setIdentifiers(extractIdentifiers(key, row, HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY));
+      occ.setIssues(extractIssues(row));
+
       return occ;
     }
   }
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
@@ -235,5 +235,18 @@ public class OccurrenceBuilder {
       }
     }
     return records;
+  }
+
+  private static Set<OccurrenceIssue> extractIssues(Result result) {
+    Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
+    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
+      HBaseFieldUtil.HBaseColumn column = HBaseFieldUtil.getHBaseColumn(issue);
+      byte[] val = result.getValue(Bytes.toBytes(column.getColumnFamilyName()), Bytes.toBytes(column.getColumnName()));
+      if (val != null) {
+        issues.add(issue);
+      }
+    }
+
+    return issues;
   }
 }

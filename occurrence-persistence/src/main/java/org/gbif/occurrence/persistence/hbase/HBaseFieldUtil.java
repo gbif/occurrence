@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.hbase;
 
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
@@ -126,6 +127,11 @@ public class HBaseFieldUtil {
   public static HBaseColumn getHBaseColumn(Term term) {
     return new HBaseColumn(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY,
       HBaseTableConstants.TERM_PREFIX + term.toString());
+  }
+
+  public static HBaseColumn getHBaseColumn(OccurrenceIssue issue) {
+    return new HBaseColumn(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY,
+      HBaseTableConstants.ISSUE_PREFIX + issue.name());
   }
 
   public static class HBaseColumn {

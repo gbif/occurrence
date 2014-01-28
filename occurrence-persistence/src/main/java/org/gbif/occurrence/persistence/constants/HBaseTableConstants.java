@@ -5,6 +5,8 @@ package org.gbif.occurrence.persistence.constants;
  */
 public class HBaseTableConstants {
 
+
+
   /**
    * Should never be instantiated.
    */
@@ -16,6 +18,9 @@ public class HBaseTableConstants {
 
   // a single occurrence will have many dwc Terms. Each term column is prefixed
   public static final String TERM_PREFIX = "t_";
+
+  // a single occurrence will have 0 or more OccurrenceIssues. Once column per issue, each one prefixed
+  public static final String ISSUE_PREFIX = "iss_";
 
   // An occurrence can have 0-n identifiers, each of a certain type. Their column names look like t1, i1, t2, i2, etc.
   public static final String IDENTIFIER_TYPE_COLUMN = "t";

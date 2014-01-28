@@ -4,6 +4,7 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.constants.FieldName;
@@ -365,11 +366,25 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     HBaseHelper
       .writeField(FieldName.I_YEAR, occ.getYear() == null ? null : Bytes.toBytes(occ.getYear()), dn, cf, put, del);
 
+    // Identifiers
     if (dn) {
       deleteOldIdentifiers(occTable, occ.getKey(), cf);
     }
     if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
       addIdentifiersToPut(put, cf, occ.getIdentifiers());
+    }
+
+    // OccurrenceIssues
+    if (dn) {
+      // schedule deletes for all Issues not on the occurrence
+      for (OccurrenceIssue issue : OccurrenceIssue.values()) {
+        if (!occ.getIssues().contains(issue)) {
+          del.deleteColumns(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(issue).getColumnName()));
+        }
+      }
+    }
+    for (OccurrenceIssue issue : occ.getIssues()) {
+      put.add(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(issue).getColumnName()), Bytes.toBytes(1));
     }
 
     occTable.put(put);
