@@ -1,9 +1,13 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import org.gbif.api.model.common.InterpretedEnum;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.common.parsers.ParseResult;
+import org.gbif.common.parsers.typestatus.InterpretedTypeStatusParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -32,6 +36,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class VerbatimOccurrenceInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(VerbatimOccurrenceInterpreter.class);
+
+  private static final InterpretedTypeStatusParser typeParser = InterpretedTypeStatusParser.getInstance();
 
   private final OccurrencePersistenceService occurrenceService;
   private final ZookeeperConnector zookeeperConnector;
@@ -70,13 +76,7 @@ public class VerbatimOccurrenceInterpreter {
 
       interpretModifiedDate(verbatim, occ);
 
-      // TODO: if any errors, update messages
-      //   possible errors:
-      //     GEO: lat/lng out of bounds, lat/lng reversed for given country, others?
-      //     TAXONOMY: name not found, others?
-      //     BASIS: basis not interpreted, basis not provided, others?
-      //     TEMPORAL: dates uninterpretable (eg 10-11-12)
-      //     ALT_DEPTH: any errors?
+      interpretTypification(verbatim, occ);
 
       occ.setLastInterpreted(new Date());
 
@@ -118,6 +118,15 @@ public class VerbatimOccurrenceInterpreter {
     }
 
     return result;
+  }
+
+  private void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {
+    if (verbatim.hasField(DwcTerm.typeStatus)) {
+      ParseResult<InterpretedEnum<String, TypeStatus>> parsed = typeParser.parse(verbatim.getField(DwcTerm.typeStatus));
+      if (parsed.isSuccessful()) {
+        occ.setTypeStatus(parsed.getPayload().getInterpreted());
+      }
+    }
   }
 
   private static void interpretModifiedDate(VerbatimOccurrence verbatim, Occurrence occ) {
