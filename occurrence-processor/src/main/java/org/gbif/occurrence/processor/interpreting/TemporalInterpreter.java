@@ -92,6 +92,9 @@ public class TemporalInterpreter {
     ParseResult<Date> parseResult = DateParseUtils.parse(ymd.getYear(), ymd.getMonth(), ymd.getDay());
     final Date ymdDate = parseResult.getStatus() == ParseResult.STATUS.SUCCESS ? parseResult.getPayload() : null;
     final Integer ymdYear = ymd.getIntegerYear();
+    if (!Strings.isNullOrEmpty(year) && ymd.getIntegerYear() == null) {
+      issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+    }
 
     // string based date
     Date stringDate = DateParseUtils.parse(dateString).getPayload();
@@ -132,17 +135,23 @@ public class TemporalInterpreter {
     }
 
     if (result == null) {
-      // try to use partial dates from YMD as last resort:
-      if (ymd.getIntegerYear() != null && !VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear())) {
-        ymd.setYear(null);
-        issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+      if (!ymd.representsNull()) {
+        // try to use partial dates from YMD as last resort
+        if ( (ymd.getIntegerYear() != null && VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear()))
+          || (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))
+        ) {
+          result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
+                                       new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
+        }
       }
-
-      result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
-                 new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
     }
 
-    // return result with all issues
+    // if its still null then its a fail
+    if (result == null) {
+      result = ParseResult.fail();
+    }
+
+      // return result with all issues
     result.getIssues().addAll(issues);
     return result;
   }
@@ -165,7 +174,7 @@ public class TemporalInterpreter {
         if (VALID_MODIFIED_DATE_RANGE.contains(result.getPayload())) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           // Use correct new issue for dc modified
-          result.addIssue(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+          result.addIssue(OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
         }
       }
       return result;

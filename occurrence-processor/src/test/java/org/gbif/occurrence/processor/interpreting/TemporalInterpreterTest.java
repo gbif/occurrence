@@ -53,7 +53,7 @@ public class TemporalInterpreterTest {
   @Test
   public void testOldYear() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate("1684", "3", "22", null);
-    assertResult(null, 3, 22, null, result);
+    assertNullResult(result);
   }
 
   @Test
@@ -77,7 +77,7 @@ public class TemporalInterpreterTest {
   @Test
   public void testStringBad() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "22-17-1984");
-    assertResult(1984, null, null, null, result);
+    assertNullResult(result);
   }
 
   @Test
