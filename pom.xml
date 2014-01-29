@@ -753,6 +753,11 @@
     </profile>
 
     <profile>
+      <!--
+       Configured to use the same lookup services (nub and geo, now on boma) as the uat portal.
+       All settings exist but we need this password from somewhere else:
+       <occurrence.download.ws.password>
+      -->
       <id>dev</id>
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
@@ -769,7 +774,6 @@
         <drupal.db.username>drupal_devel</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
-        <occurrence.download.ws.password>occdownload1</occurrence.download.ws.password>
       </properties>
     </profile>
 
