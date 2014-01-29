@@ -1,17 +1,14 @@
 package org.gbif.occurrence.processor.interpreting.result;
 
-import org.gbif.api.vocabulary.OccurrenceIssue;
-
 import java.util.Date;
-import java.util.Set;
 
 import com.google.common.base.Objects;
 
 /**
  * The immutable result of a Date interpretation.
  */
-public class DateInterpretationResult extends InterpretationResult<Date> {
-
+public class DateYearMonthDay{
+  private final Date date;
   private final Integer year;
   private final Integer month;
   private final Integer day;
@@ -20,23 +17,20 @@ public class DateInterpretationResult extends InterpretationResult<Date> {
   /**
    * Creates an empty "no" result with all recorded date validation rules passed.
    */
-  public DateInterpretationResult() {
-    super(null);
+  public DateYearMonthDay() {
+    this.date = null;
     this.year = null;
     this.month = null;
     this.day = null;
     this.time = null;
   }
 
-  public DateInterpretationResult(Integer year, Integer month, Integer day, Integer time, Date date, Set<OccurrenceIssue> issues) {
-    super(date);
+  public DateYearMonthDay(Integer year, Integer month, Integer day, Integer time, Date date) {
+    this.date = date;
     this.year = year;
     this.month = month;
     this.day = day;
     this.time = time;
-    if (issues != null) {
-      this.getIssues().addAll(issues);
-    }
   }
 
   public Integer getYear() {
@@ -47,10 +41,6 @@ public class DateInterpretationResult extends InterpretationResult<Date> {
     return month;
   }
 
-  public Date getDate() {
-    return getPayload();
-  }
-
   public Integer getDay() {
     return day;
   }
@@ -59,9 +49,13 @@ public class DateInterpretationResult extends InterpretationResult<Date> {
     return time;
   }
 
+  public Date getDate() {
+    return date;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), year, month, day);
+    return Objects.hashCode(year, month, day, time, date);
   }
 
   @Override
@@ -72,13 +66,11 @@ public class DateInterpretationResult extends InterpretationResult<Date> {
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    if (!super.equals(obj)) {
-      return false;
-    }
-    final DateInterpretationResult other = (DateInterpretationResult) obj;
+    final DateYearMonthDay other = (DateYearMonthDay) obj;
     return Objects.equal(this.year, other.year)
            && Objects.equal(this.month, other.month)
            && Objects.equal(this.day, other.day)
-           && Objects.equal(this.time, other.time);
+           && Objects.equal(this.time, other.time)
+           && Objects.equal(this.date, other.date);
   }
 }
