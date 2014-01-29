@@ -64,6 +64,10 @@ public class JsonFragmentParser {
         Term term = termFactory.findTerm(simpleTermName);
         Object value = jsonMap.get(simpleTermName);
         if (term != null && value != null) {
+          if (!term.qualifiedName().toLowerCase().startsWith("http")) {
+            // this is not a term URI, sth else
+            continue;
+          }
           verbatim.setField(term, value.toString());
         }
       }

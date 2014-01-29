@@ -2,11 +2,11 @@ package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.common.parsers.ParseResult;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
-import org.gbif.common.parsers.geospatial.LatLngIssue;
+import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateInterpretationResult;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -164,13 +164,13 @@ public class CoordinateInterpreter {
    *         latitude
    *         or longitude are null
    */
-  public static CoordinateInterpretationResult interpretCoordinates(String latitude, String longitude, final Country country) {
-    if (latitude == null || longitude == null) return new CoordinateInterpretationResult();
+  public static ParseResult<CoordinateCountry> interpretCoordinates(String latitude, String longitude, final Country country) {
+    if (latitude == null || longitude == null) return ParseResult.fail();
 
     //TODO: cleanup code to set issues directly into this set and use less of the parsing results
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
-    ParseResult<LatLngIssue> parseResult = GeospatialParseUtils.parseLatLng(latitude, longitude);
+    ParseResult<LatLng> parseResult = GeospatialParseUtils.parseLatLng(latitude, longitude);
 
     // round to 5 decimals (~1m precision) since no way we're getting anything legitimately more precise
     Double lat = parseResult.getPayload() == null || parseResult.getPayload().getLat() == null ? null
@@ -204,7 +204,7 @@ public class CoordinateInterpreter {
         for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
           Integer[] transform = geospatialIssueEntry.getValue();
           if (matchCountry(country, getCountryForLatLng(lat * transform[0], lng * transform[1]))) {
-            parseResult = ParseResult.fail(new LatLngIssue(lat, lng, geospatialIssueEntry.getKey()));
+            parseResult = ParseResult.fail(new LatLng(lat, lng), geospatialIssueEntry.getKey());
             match = true;
             break;
           }
@@ -212,23 +212,16 @@ public class CoordinateInterpreter {
 
         // if we made it here no transforms worked and the point is either in international waters or really weird
         parseResult = match ? parseResult
-          : ParseResult.fail(new LatLngIssue(lat, lng, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
+          : ParseResult.fail(new LatLng(lat, lng), OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
       }
     }
 
-    CoordinateInterpretationResult result;
-    if (parseResult.getStatus() == ParseResult.STATUS.SUCCESS || parseResult.getStatus() == ParseResult.STATUS.FAIL) {
-      result = new CoordinateInterpretationResult(lat, lng, finalCountry);
-      if (parseResult.getPayload().getIssue() != null) {
-        result.getIssues().add(parseResult.getPayload().getIssue());
-      }
 
-    } else {
-      result = new CoordinateInterpretationResult();
-    }
-
-    // copy issues
+    ParseResult<CoordinateCountry> result = ParseResult.success(parseResult.getConfidence(),
+                                                                new CoordinateCountry(lat, lng, finalCountry));
     result.getIssues().addAll(issues);
+    result.getIssues().addAll(parseResult.getIssues());
+
     return result;
   }
 

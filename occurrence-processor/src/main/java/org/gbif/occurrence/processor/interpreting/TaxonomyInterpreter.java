@@ -5,10 +5,10 @@ import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Rank;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
-import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class TaxonomyInterpreter implements Runnable {
       sciname = pn.canonicalName();
     }
 
-    InterpretationResult<NameUsageMatch> nubLookup = NubLookupInterpreter.nubLookup(
+    ParseResult<NameUsageMatch> nubLookup = NubLookupInterpreter.nubLookup(
       ClassificationUtils.clean(verbatim.getField(DwcTerm.kingdom)),
       ClassificationUtils.clean(verbatim.getField(DwcTerm.phylum)),
       ClassificationUtils.clean(verbatim.getField(DwcTerm.class_)),

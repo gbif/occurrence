@@ -1,19 +1,15 @@
 package org.gbif.occurrence.processor.interpreting;
 
-import org.gbif.api.model.common.InterpretedEnum;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.TypeStatus;
-import org.gbif.common.parsers.ParseResult;
-import org.gbif.common.parsers.typestatus.InterpretedTypeStatusParser;
-import org.gbif.dwc.terms.DcTerm;
+import org.gbif.common.parsers.BasisOfRecordParser;
+import org.gbif.common.parsers.TypeStatusParser;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.processor.interpreting.result.DateInterpretationResult;
-import org.gbif.occurrence.processor.interpreting.util.BasisOfRecordInterpreter;
-import org.gbif.occurrence.processor.interpreting.util.DateInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
@@ -37,7 +33,8 @@ public class VerbatimOccurrenceInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(VerbatimOccurrenceInterpreter.class);
 
-  private static final InterpretedTypeStatusParser typeParser = InterpretedTypeStatusParser.getInstance();
+  private static final TypeStatusParser TYPE_PARSER = TypeStatusParser.getInstance();
+  private static final BasisOfRecordParser BOR_PARSER = BasisOfRecordParser.getInstance();
 
   private final OccurrencePersistenceService occurrenceService;
   private final ZookeeperConnector zookeeperConnector;
@@ -69,14 +66,9 @@ public class VerbatimOccurrenceInterpreter {
       Future<?> hostCountryFuture = threadPool.submit(new OwningOrgInterpreter(occ));
       threadPool.shutdown();
 
-
       interpretBor(verbatim, occ);
-
-      interpretEventDate(verbatim, occ);
-
-      interpretModifiedDate(verbatim, occ);
-
       interpretTypification(verbatim, occ);
+      TemporalInterpreter.interpretTemporal(verbatim, occ);
 
       occ.setLastInterpreted(new Date());
 
@@ -122,41 +114,20 @@ public class VerbatimOccurrenceInterpreter {
 
   private void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {
     if (verbatim.hasField(DwcTerm.typeStatus)) {
-      ParseResult<InterpretedEnum<String, TypeStatus>> parsed = typeParser.parse(verbatim.getField(DwcTerm.typeStatus));
-      if (parsed.isSuccessful()) {
-        occ.setTypeStatus(parsed.getPayload().getInterpreted());
-      }
+      ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getField(DwcTerm.typeStatus));
+      occ.setTypeStatus(parsed.getPayload());
+      occ.getIssues().addAll(parsed.getIssues());
     }
   }
 
-  private static void interpretModifiedDate(VerbatimOccurrence verbatim, Occurrence occ) {
-    occ.setModified(DateInterpreter.interpretDate(verbatim.getField(DcTerm.modified), 1900));
-  }
-
-
-  private static void interpretEventDate(VerbatimOccurrence verbatim, Occurrence occ) {
-    DateInterpretationResult dateResult = DateInterpreter.interpretRecordedDate(verbatim.getField(DwcTerm.year),
-                                                                                verbatim.getField(DwcTerm.month),
-                                                                                verbatim.getField(DwcTerm.day),
-                                                                                verbatim.getField(DwcTerm.eventDate));
-    occ.setEventDate(dateResult.getDate());
-    occ.setMonth(dateResult.getMonth());
-    occ.setYear(dateResult.getYear());
-    occ.setDay(dateResult.getDay());
-    // copy rules
-    occ.getIssues().addAll(dateResult.getIssues());
-
-    LOG.debug("Got recorded date [{}]: day [{}] month [{}] year [{}]",
-      dateResult.getDate(), dateResult.getDay(), dateResult.getMonth(), dateResult.getYear());
-  }
-
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {
-    //TODO: log issues
-    BasisOfRecord bor = BasisOfRecordInterpreter.interpretBasisOfRecord(verbatim.getField(DwcTerm.basisOfRecord)).getPayload();
-    occ.setBasisOfRecord(bor);
-    LOG.debug("Got BOR [{}]", bor);
+    ParseResult<BasisOfRecord> parsed = BOR_PARSER.parse(verbatim.getField(DwcTerm.basisOfRecord));
+    if (parsed.isSuccessful()) {
+      occ.setBasisOfRecord(parsed.getPayload());
+    } else {
+      LOG.debug("Unknown BOR [{}]", verbatim.getField(DwcTerm.basisOfRecord));
+    }
   }
-
 
 
 }

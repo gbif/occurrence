@@ -7,21 +7,16 @@ import com.google.common.base.Objects;
 /**
  * The immutable result of a Coordinate interpretation.
  */
-public class CoordinateInterpretationResult extends InterpretationResult<Country> {
+public class CoordinateCountry {
 
   private final Double latitude;
   private final Double longitude;
+  private final Country country;
 
-  public CoordinateInterpretationResult() {
-    super(null);
-    this.latitude = null;
-    this.longitude = null;
-  }
-
-  public CoordinateInterpretationResult(Double latitude, Double longitude, Country country) {
-    super(country);
+  public CoordinateCountry(Double latitude, Double longitude, Country country) {
     this.latitude = latitude;
     this.longitude = longitude;
+    this.country = country;
   }
 
   public Double getLatitude() {
@@ -33,16 +28,16 @@ public class CoordinateInterpretationResult extends InterpretationResult<Country
   }
 
   public Country getCountry() {
-    return getPayload();
+    return country;
   }
 
   public boolean isEmpty() {
-    return latitude == null && longitude == null && getPayload() == null;
+    return latitude == null && longitude == null && country == null;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(latitude, longitude);
+    return Objects.hashCode(latitude, longitude, country);
   }
 
   @Override
@@ -53,11 +48,9 @@ public class CoordinateInterpretationResult extends InterpretationResult<Country
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    if (!super.equals(obj)) {
-      return false;
-    }
-    final CoordinateInterpretationResult other = (CoordinateInterpretationResult) obj;
+    final CoordinateCountry other = (CoordinateCountry) obj;
     return Objects.equal(this.latitude, other.latitude)
-           && Objects.equal(this.longitude, other.longitude);
+           && Objects.equal(this.longitude, other.longitude)
+           && Objects.equal(this.country, other.country);
   }
 }
