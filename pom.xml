@@ -728,6 +728,31 @@
 
   <profiles>
     <profile>
+      <!--
+       Configured to use the same lookup services (nub and geo, now on boma) as the appdev portal.
+       All settings exist but we need this password from somewhere else:
+       <occurrence.download.ws.password>
+      -->
+      <id>uat</id>
+      <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.environment>uat</occurrence.environment>
+        <!-- webservices -->
+        <occurrence.search.solr.server>http://uat.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://uat.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://uat.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
+        <registry.ws.url>http://uat.gbif.org:8080/registry-ws</registry.ws.url>
+        <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
+        <!-- security -->
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_devel</drupal.db.username>
+        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+      </properties>
+    </profile>
+
+    <profile>
       <id>dev</id>
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
