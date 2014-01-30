@@ -27,6 +27,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
@@ -99,8 +100,6 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     SolrInputDocument doc = new SolrInputDocument();
     final Double latitude = occurrence.getLatitude();
     final Double longitude = occurrence.getLongitude();
-    // TODO: geospatial issue has changed a lot
-// final Integer geospatialIssue = occurrence.getGeospatialIssue();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
@@ -124,7 +123,7 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
     doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
     doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
-// doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
+    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
     doc.setField(DATE.getFieldName(),
       occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);

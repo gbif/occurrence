@@ -28,6 +28,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
@@ -36,6 +37,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MODIFIED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORD_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
@@ -103,8 +105,6 @@ public class SolrOccurrenceWriter {
     SolrInputDocument doc = new SolrInputDocument();
     final Double latitude = occurrence.getLatitude();
     final Double longitude = occurrence.getLongitude();
-    // TODO: geospatial issue has changed
-// final Integer geospatialIssue = occurrence.getGeospatialIssue();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
@@ -114,6 +114,7 @@ public class SolrOccurrenceWriter {
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
       .ordinal());
+    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getField(DwcTerm.recordNumber));
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
@@ -129,7 +130,7 @@ public class SolrOccurrenceWriter {
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
     doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
     doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
-// doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
+    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(LATITUDE.getFieldName(), latitude);
     doc.setField(LONGITUDE.getFieldName(), longitude);
     doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
