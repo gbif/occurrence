@@ -12,6 +12,7 @@ import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
 
 import com.beust.jcommander.internal.Sets;
@@ -33,6 +34,9 @@ public class TemporalInterpreter {
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE =
     Range.closed(1700, Calendar.getInstance().get(Calendar.YEAR) + 1);
+  @VisibleForTesting
+  protected static final Range<Date> VALID_RECORDED_DATE_RANGE =
+    Range.closed(new GregorianCalendar(1700, 0, 1).getTime(), new Date());
 
   // modified date for a record cant be before unix time
   @VisibleForTesting
@@ -42,12 +46,6 @@ public class TemporalInterpreter {
   }
 
   public static void interpretTemporal(VerbatimOccurrence verbatim, Occurrence occ) {
-    if (verbatim.hasField(DcTerm.modified)) {
-      ParseResult<Date> parsed = TemporalInterpreter.interpretModifiedDate(verbatim.getField(DcTerm.modified));
-      occ.setModified(parsed.getPayload());
-      occ.getIssues().addAll(parsed.getIssues());
-    }
-
     ParseResult<DateYearMonthDay> eventResult = interpretRecordedDate(verbatim);
     if (eventResult.isSuccessful()) {
       occ.setEventDate(eventResult.getPayload().getDate());
@@ -56,6 +54,20 @@ public class TemporalInterpreter {
       occ.setDay(eventResult.getPayload().getDay());
     }
     occ.getIssues().addAll(eventResult.getIssues());
+
+    if (verbatim.hasField(DcTerm.modified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getField(DcTerm.modified),
+                                               VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
+      occ.setModified(parsed.getPayload());
+      occ.getIssues().addAll(parsed.getIssues());
+    }
+
+    if (verbatim.hasField(DwcTerm.dateIdentified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getField(DwcTerm.dateIdentified),
+                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKLEY);
+      occ.setDateIdentified(parsed.getPayload());
+      occ.getIssues().addAll(parsed.getIssues());
+    }
   }
 
   /**
@@ -182,4 +194,18 @@ public class TemporalInterpreter {
     return ParseResult.fail();
   }
 
+  public static ParseResult<Date> interpretDate(String dateString, Range<Date> likelyRange, OccurrenceIssue unlikelyIssue) {
+    if (!Strings.isNullOrEmpty(dateString)) {
+      ParseResult<Date> result = DateParseUtils.parse(dateString);
+      if (result.isSuccessful()) {
+        // check year makes sense
+        if (likelyRange.contains(result.getPayload())) {
+          LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
+          result.addIssue(unlikelyIssue);
+        }
+      }
+      return result;
+    }
+    return ParseResult.fail();
+  }
 }
