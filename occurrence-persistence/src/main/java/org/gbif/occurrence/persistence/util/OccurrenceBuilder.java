@@ -191,20 +191,17 @@ public class OccurrenceBuilder {
         .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
       verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
       verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
-      buildFields(verb, row);
+
+      // all Term fields in row are prefixed
+      for (KeyValue kv : row.raw()) {
+        String colName = Bytes.toString(kv.getQualifier());
+        if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
+          Term term = TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.TERM_PREFIX.length()));
+          verb.setField(term, Bytes.toString(kv.getValue()));
+        }
+      }
 
       return verb;
-    }
-  }
-
-  private static void buildFields(VerbatimOccurrence occ, Result row) {
-    // all Term fields in row are prefixed
-    for (KeyValue kv : row.raw()) {
-      String colName = Bytes.toString(kv.getQualifier());
-      if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
-        Term term = TermFactory.instance().findTerm(colName.substring(2));
-        occ.setField(term, Bytes.toString(kv.getValue()));
-      }
     }
   }
 
