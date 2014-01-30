@@ -2,12 +2,19 @@ package org.gbif.occurrence.persistence.hbase;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 
 import java.util.Map;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
 import com.google.common.collect.Maps;
+import org.apache.hadoop.hbase.util.Bytes;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 /**
@@ -120,16 +127,48 @@ public class HBaseFieldUtil {
   private HBaseFieldUtil() {
   }
 
-  public static HBaseColumn getHBaseColumn(FieldName field) {
+  public static HBaseColumn getHBaseColumn(@NotNull FieldName field) {
+    checkNotNull(field, "field can't be null");
+
     return NAME_MAP.get(field);
   }
 
-  public static HBaseColumn getHBaseColumn(Term term) {
+  @Nullable
+  public static HBaseColumn getHBaseColumn(@NotNull Term term) {
+    checkNotNull(term, "term can't be null");
+
+    // unknown terms will never be mapped in Hive, and we can't replace : with anything and guarantee that it will
+    // be reversible
+    if (term instanceof UnknownTerm) {
+      return new HBaseColumn(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY,
+        HBaseTableConstants.UNKNOWN_TERM_PREFIX + term.toString());
+    }
+
+    // known terms are regularly mapped in Hive and Hive can't handle : in the hbase column name
+    String safeTerm = term.toString().replaceAll(":", HBaseTableConstants.COLON_REPLACEMENT);
     return new HBaseColumn(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY,
-      HBaseTableConstants.TERM_PREFIX + term.toString());
+      HBaseTableConstants.KNOWN_TERM_PREFIX + safeTerm);
   }
 
-  public static HBaseColumn getHBaseColumn(OccurrenceIssue issue) {
+  @Nullable
+  public static Term getTermFromColumn(@NotNull byte[] qualifier) {
+    checkNotNull(qualifier, "qualifier can't be null");
+
+    Term term = null;
+    String colName = Bytes.toString(qualifier);
+    if (colName.startsWith(HBaseTableConstants.KNOWN_TERM_PREFIX)) {
+      String rawName = colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length());
+      term = TermFactory.instance().findTerm(rawName.replaceAll(HBaseTableConstants.COLON_REPLACEMENT, ":"));
+    } else if (colName.startsWith(HBaseTableConstants.UNKNOWN_TERM_PREFIX)) {
+      term = TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.UNKNOWN_TERM_PREFIX.length()));
+    }
+
+    return term;
+  }
+
+  public static HBaseColumn getHBaseColumn(@NotNull OccurrenceIssue issue) {
+    checkNotNull(issue, "issue can't be null");
+
     return new HBaseColumn(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY,
       HBaseTableConstants.ISSUE_PREFIX + issue.name());
   }

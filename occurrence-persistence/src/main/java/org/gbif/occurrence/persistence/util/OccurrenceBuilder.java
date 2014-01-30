@@ -10,7 +10,6 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
@@ -50,7 +49,9 @@ public class OccurrenceBuilder {
    * Builds a Fragment object from the given result, assigning the passed in key.
    *
    * @param result an HBase scan/get Result
+   *
    * @return the Fragment or null if the passed in Result is null
+   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -182,27 +183,25 @@ public class OccurrenceBuilder {
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
     if (row == null || row.isEmpty()) {
       return null;
-    } else {
-      VerbatimOccurrence verb = new VerbatimOccurrence();
-      verb.setKey(Bytes.toInt(row.getRow()));
-      verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
-      verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
-      verb
-        .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
-      verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
-      verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
-
-      // all Term fields in row are prefixed
-      for (KeyValue kv : row.raw()) {
-        String colName = Bytes.toString(kv.getQualifier());
-        if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
-          Term term = TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.TERM_PREFIX.length()));
-          verb.setField(term, Bytes.toString(kv.getValue()));
-        }
-      }
-
-      return verb;
     }
+
+    VerbatimOccurrence verb = new VerbatimOccurrence();
+    verb.setKey(Bytes.toInt(row.getRow()));
+    verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
+    verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
+    verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
+    verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
+    verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
+
+    // all Term fields in row are prefixed
+    for (KeyValue kv : row.raw()) {
+      Term term = HBaseFieldUtil.getTermFromColumn(kv.getQualifier());
+      if (term != null) {
+        verb.setField(term, Bytes.toString(kv.getValue()));
+      }
+    }
+
+    return verb;
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result, String columnFamily) {

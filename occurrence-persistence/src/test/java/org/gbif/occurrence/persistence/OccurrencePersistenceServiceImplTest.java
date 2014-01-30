@@ -13,7 +13,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
@@ -193,23 +193,23 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : GbifTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
-    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
+    put.add(CF, Bytes.toBytes(HBaseTableConstants.UNKNOWN_TERM_PREFIX + term.toString()),
       Bytes.toBytes("I am " + term.toString()));
 
     table.put(put);
@@ -457,7 +457,9 @@ public class OccurrencePersistenceServiceImplTest {
     VerbatimOccurrence verb = occurrenceService.getVerbatim(ID);
     assertNotNull(verb);
     assertEquivalence(expected, verb);
-    assertTrue(expected.hasField(DwcTerm.basisOfRecord));
+    assertTrue(verb.hasField(DwcTerm.basisOfRecord));
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
+    assertTrue(verb.hasField(term));
   }
 
   @Test
@@ -519,7 +521,7 @@ public class OccurrencePersistenceServiceImplTest {
     for (Term term : DcTerm.values()) {
       fields.put(term, prefix + term.toString());
     }
-    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     fields.put(term, prefix + term.toString());
 
     occ.setFields(fields);
