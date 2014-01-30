@@ -1,23 +1,18 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
-import org.gbif.api.model.common.InterpretedEnum;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.common.parsers.ParseResult;
-import org.gbif.common.parsers.countryname.InterpretedCountryParser;
-import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
-
-import java.util.Set;
+import org.gbif.common.parsers.CountryParser;
+import org.gbif.common.parsers.core.ParseResult;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 /**
  * Attempts to convert given country strings to the country enumeration and checks if they both match up.
  */
 public class CountryInterpreter {
 
-  private static final InterpretedCountryParser PARSER = InterpretedCountryParser.getInstance();
+  private static final CountryParser PARSER = CountryParser.getInstance();
 
   private CountryInterpreter() {
   }
@@ -28,34 +23,39 @@ public class CountryInterpreter {
    *
    * @param country verbatim country strings, e.g. dwc:country or dwc:countryCode
    */
-  public static InterpretationResult<Country> interpretCountry(String ... country) {
-    Country c = null;
-    Set<OccurrenceIssue> issues = Sets.newHashSet();
+  public static ParseResult<Country> interpretCountry(String ... country) {
+    if (country == null) {
+      return ParseResult.fail();
+    }
 
-    if (country != null) {
-      for (String verbatim : country) {
-        if (!Strings.isNullOrEmpty(verbatim)) {
-          ParseResult<InterpretedEnum<String,Country>> parseResult = PARSER.parse(verbatim);
-          if (parseResult.isSuccessful()) {
-            if (c == null) {
-              c = parseResult.getPayload().getInterpreted();
-            } else {
-              Country c2 = parseResult.getPayload().getInterpreted();
-              if (!c.equals(c2)) {
-                issues.add(OccurrenceIssue.COUNTRY_MISMATCH);
-              }
+    ParseResult<Country> result = null;
+    for (String verbatim : country) {
+      if (!Strings.isNullOrEmpty(verbatim)) {
+        if (result == null) {
+          result = PARSER.parse(verbatim);
+
+        } else if (result.isSuccessful()) {
+          ParseResult<Country> result2 = PARSER.parse(verbatim);
+          if (result2.isSuccessful()) {
+            // only inspect secondary parsing if its also successful
+            if (!result2.getPayload().equals(result.getPayload())) {
+              result.getIssues().add(OccurrenceIssue.COUNTRY_MISMATCH);
             }
-          } else {
-            issues.add(OccurrenceIssue.COUNTRY_INVALID);
           }
+
+        } else {
+          // failed before. Use new parsing and add issue
+          result = PARSER.parse(verbatim);
+          result.getIssues().add(OccurrenceIssue.COUNTRY_INVALID);
         }
       }
     }
 
-    InterpretationResult<Country> result = new InterpretationResult<Country>(c);
-    // copy issues
-    result.getIssues().addAll(issues);
-
+    if (!result.isSuccessful()) {
+      result.getIssues().add(OccurrenceIssue.COUNTRY_INVALID);
+    }
     return result;
   }
+
+
 }

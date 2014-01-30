@@ -2,7 +2,7 @@ package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
+import org.gbif.common.parsers.core.ParseResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,15 +76,15 @@ public class NubLookupInterpreter {
   private NubLookupInterpreter() {
   }
 
-  public static InterpretationResult<NameUsageMatch> nubLookup(String kingdom, String phylum, String clazz, String order,
+  public static ParseResult<NameUsageMatch> nubLookup(String kingdom, String phylum, String clazz, String order,
     String family, String genus, String scientificName, String author) {
 
     if (kingdom == null && phylum == null && clazz == null && order == null && family == null && genus == null
         && scientificName == null) {
-      return new InterpretationResult<NameUsageMatch>(null);
+      return ParseResult.fail();
     }
 
-    InterpretationResult<NameUsageMatch> result = null;
+    ParseResult<NameUsageMatch> result = null;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("kingdom", kingdom);
     queryParams.add("phylum", phylum);
@@ -101,7 +101,7 @@ public class NubLookupInterpreter {
         try {
           NameUsageMatch lookup = CACHE.get(RESOURCE.queryParams(queryParams));
           if (lookup != null) {
-            result = new InterpretationResult<NameUsageMatch>(lookup);
+            result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
             switch (lookup.getMatchType()) {
               case NONE:
                 result.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);

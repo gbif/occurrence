@@ -1,7 +1,7 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
-import org.gbif.occurrence.processor.interpreting.result.InterpretationResult;
+import org.gbif.common.parsers.core.ParseResult;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,7 +15,7 @@ public class NubLookupInterpreterTest {
 
   @Test
   public void testNubLookupGood() {
-    InterpretationResult<NameUsageMatch> result =
+    ParseResult<NameUsageMatch> result =
       NubLookupInterpreter.nubLookup("Animalia", null, null, null, null, "Puma", "Puma concolor", null);
     assertEquals(2435099, result.getPayload().getUsageKey().intValue());
     assertEquals(1, result.getPayload().getKingdomKey().intValue());
@@ -24,7 +24,7 @@ public class NubLookupInterpreterTest {
 
   @Test
   public void testNubLookupAllNulls() {
-    InterpretationResult<NameUsageMatch> result =
+    ParseResult<NameUsageMatch> result =
       NubLookupInterpreter.nubLookup(null, null, null, null, null, null, null, null);
     assertNotNull(result);
     assertNull(result.getPayload());
