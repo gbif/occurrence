@@ -18,7 +18,12 @@ SELECT
   COALESCE(i_month,-1),
   COALESCE(i_event_date,CAST(-1 AS BIGINT)),
   COALESCE(i_basis_of_record,-1),
-  COALESCE(i_geospatial_issue,0) > 0, --geospatial_issue as boolean
+  (COALESCE(iss_PRESUMED_NEGATED_LATITUDE,0) > 0 AND
+   COALESCE(iss_PRESUMED_NEGATED_LONGITUDE,0) > 0 AND
+   COALESCE(iss_PRESUMED_SWAPPED_COORDINATE,0) > 0 AND
+   COALESCE(iss_ZERO_COORDINATE,0) > 0 AND
+   COALESCE(iss_COORDINATES_OUT_OF_RANGE,0) > 0 AND
+   COALESCE(iss_COUNTRY_COORDINATE_MISMATCH,0) > 0), --geospatial_issue as boolean
   COALESCE(i_latitude,-1000) != -1000 AND COALESCE(i_longitude,-1000) != -1000, --georeferenced
   COALESCE(i_altitude,-1000000),
   COALESCE(i_depth,-1000000)
