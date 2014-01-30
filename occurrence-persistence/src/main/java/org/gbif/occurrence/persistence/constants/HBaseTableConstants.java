@@ -16,8 +16,12 @@ public class HBaseTableConstants {
   // the one column family for all columns of the occurrence table
   public static final String OCCURRENCE_COLUMN_FAMILY = "o";
 
-  // a single occurrence will have many dwc Terms. Each term column is prefixed
-  public static final String TERM_PREFIX = "t_";
+  // a single occurrence will have many dwc Terms. Each _known_ term (e.g. DwcTerm, DcTerm, etc) column is prefixed
+  public static final String KNOWN_TERM_PREFIX = "t_";
+  // each UnknownTerm is prefixed differently
+  public static final String UNKNOWN_TERM_PREFIX = "ut_";
+  // each known term has to have : replaced with _ so that hive can map those columns without getting mad
+  public static final String COLON_REPLACEMENT = "_";
 
   // a single occurrence will have 0 or more OccurrenceIssues. Once column per issue, each one prefixed
   public static final String ISSUE_PREFIX = "iss_";

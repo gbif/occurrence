@@ -13,7 +13,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
@@ -121,7 +121,7 @@ public class OccurrencePersistenceServiceImplTest {
   public void setUp() throws Exception {
     TEST_UTIL.truncateTable(TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
+    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 20);
 
     occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
     HTableInterface table = tablePool.getTable(TABLE_NAME);
@@ -193,23 +193,23 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : GbifTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
-    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.TERM_PREFIX + term.toString()),
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
+    put.add(CF, Bytes.toBytes(HBaseTableConstants.UNKNOWN_TERM_PREFIX + term.toString()),
       Bytes.toBytes("I am " + term.toString()));
 
     table.put(put);
@@ -264,7 +264,7 @@ public class OccurrencePersistenceServiceImplTest {
   }
 
   @Test
-  public void testGetNoIssues() throws IOException{
+  public void testGetNoIssues() throws IOException {
     Occurrence occ = occurrenceService.get(ID);
     assertEquivalence(occ);
     assertEquals((Integer) ID, occ.getKey());
@@ -396,7 +396,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(speciesId == occ.getSpeciesKey());
     assertTrue(year == occ.getYear());
 
-    assertEquals(OccurrenceIssue.values().length, occ.getIssues().size()+3);
+    assertEquals(OccurrenceIssue.values().length, occ.getIssues().size() + 3);
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_MIN_MAX_SWAPPED));
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_NON_NUMERIC));
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ZERO_COORDINATE));
@@ -443,7 +443,7 @@ public class OccurrencePersistenceServiceImplTest {
   }
 
   @Test
-  public void getVerbatim() {
+  public void testGetVerbatim() {
     VerbatimOccurrence expected = new VerbatimOccurrence();
     expected.setKey(ID);
     expected.setDatasetKey(DATASET_KEY);
@@ -452,14 +452,18 @@ public class OccurrencePersistenceServiceImplTest {
     expected.setLastCrawled(HARVESTED_DATE);
     expected.setProtocol(PROTOCOL);
     addTerms(expected, TERM_VALUE_PREFIX);
+    assertTrue(expected.hasField(DwcTerm.basisOfRecord));
 
     VerbatimOccurrence verb = occurrenceService.getVerbatim(ID);
     assertNotNull(verb);
     assertEquivalence(expected, verb);
+    assertTrue(verb.hasField(DwcTerm.basisOfRecord));
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
+    assertTrue(verb.hasField(term));
   }
 
   @Test
-  public void getVerbatimNull() {
+  public void testGetVerbatimNull() {
     VerbatimOccurrence verb = occurrenceService.getVerbatim(BAD_ID);
     assertNull(verb);
   }
@@ -517,7 +521,7 @@ public class OccurrencePersistenceServiceImplTest {
     for (Term term : DcTerm.values()) {
       fields.put(term, prefix + term.toString());
     }
-    UnknownTerm term = new UnknownTerm("fancyTestUnknownThing", "Test");
+    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     fields.put(term, prefix + term.toString());
 
     occ.setFields(fields);
@@ -564,11 +568,11 @@ public class OccurrencePersistenceServiceImplTest {
 
     // TODO: continent
     //    assertEquals(CONTINENT, occ.getContinent());
-//    assertEquals(STATE, occ.getStateProvince());
-//    assertEquals(COUNTY, occ.getField(DwcTerm.county));
-//    assertEquals(LOCALITY, occ.getField(DwcTerm.locality));
-//    assertEquals(COLLECTOR_NAME, occ.getField(DwcTerm.recordedBy));
-//    assertEquals(IDENTIFIER_NAME, occ.getField(DwcTerm.identifiedBy));
+    //    assertEquals(STATE, occ.getStateProvince());
+    //    assertEquals(COUNTY, occ.getField(DwcTerm.county));
+    //    assertEquals(LOCALITY, occ.getField(DwcTerm.locality));
+    //    assertEquals(COLLECTOR_NAME, occ.getField(DwcTerm.recordedBy));
+    //    assertEquals(IDENTIFIER_NAME, occ.getField(DwcTerm.identifiedBy));
   }
 
   private void assertEquivalence(VerbatimOccurrence a, VerbatimOccurrence b) {

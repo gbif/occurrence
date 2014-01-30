@@ -257,8 +257,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       Result row = occTable.get(get);
       for (KeyValue kv : row.raw()) {
         String colName = Bytes.toString(kv.getQualifier());
-        if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
-          Term term = TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.TERM_PREFIX.length()));
+        if (colName.startsWith(HBaseTableConstants.KNOWN_TERM_PREFIX)) {
+          Term term = TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length()));
           if (occ.getField(term) == null) {
             del.deleteColumns(cf, kv.getQualifier());
           }

@@ -6,6 +6,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import org.junit.Test;
 
@@ -32,6 +33,26 @@ public class TemporalInterpreterTest {
 
     assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2100));
   }
+
+  @Test
+  public void testLikelyIdentifiedRanges() {
+    Calendar cal = Calendar.getInstance();
+
+    cal.set(1987, 0, 31);
+    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+
+    cal.set(1787, 2, 27);
+    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+
+    cal.set(2014, 0, 11);
+    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+
+    cal.set(2020, 0, 31);
+    assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+
+    assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+  }
+
   @Test
   public void testGoodDate() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", "22", null);

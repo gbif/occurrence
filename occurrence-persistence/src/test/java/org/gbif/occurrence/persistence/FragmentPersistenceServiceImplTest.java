@@ -48,7 +48,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class FragmentPersistenceServiceImplTest {
 
   private static final String TABLE_NAME = "occurrence_test";

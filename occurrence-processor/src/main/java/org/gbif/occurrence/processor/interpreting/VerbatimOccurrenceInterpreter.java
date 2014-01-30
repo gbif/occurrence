@@ -7,6 +7,8 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.parsers.BasisOfRecordParser;
 import org.gbif.common.parsers.TypeStatusParser;
+import org.gbif.common.parsers.TypifiedNameParser;
+import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -34,6 +36,7 @@ public class VerbatimOccurrenceInterpreter {
   private static final Logger LOG = LoggerFactory.getLogger(VerbatimOccurrenceInterpreter.class);
 
   private static final TypeStatusParser TYPE_PARSER = TypeStatusParser.getInstance();
+  private static final Parsable<String> TYPE_NAME_PARSER = TypifiedNameParser.getInstance();
   private static final BasisOfRecordParser BOR_PARSER = BasisOfRecordParser.getInstance();
 
   private final OccurrencePersistenceService occurrenceService;
@@ -117,6 +120,10 @@ public class VerbatimOccurrenceInterpreter {
       ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getField(DwcTerm.typeStatus));
       occ.setTypeStatus(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
+
+      ParseResult<String> parsedName = TYPE_NAME_PARSER.parse(verbatim.getField(DwcTerm.typeStatus));
+      occ.setTypifiedName(parsedName.getPayload());
+      occ.getIssues().addAll(parsedName.getIssues());
     }
   }
 
