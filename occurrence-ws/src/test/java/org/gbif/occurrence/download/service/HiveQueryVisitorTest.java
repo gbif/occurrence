@@ -33,15 +33,13 @@ public class HiveQueryVisitorTest {
     Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer%");
     Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB");
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
-    Predicate spatialIssuesPredicate = new EqualsPredicate(OccurrenceSearchParameter.SPATIAL_ISSUES, "true");
     Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.GEOREFERENCED, "true");
 
-    ConjunctionPredicate p =
-      new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, spatialIssuesPredicate,
-        georeferencedPredicate));
+    ConjunctionPredicate p = new ConjunctionPredicate(
+      Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
-      "(((taxon_id = 212 OR kingdom_id = 212 OR phylum_id = 212 OR class_id = 212 OR order_id = 212 OR family_id = 212 OR genus_id = 212 OR species_id = 212)) AND (country_code = \'GB\') AND (scientific_name LIKE \'Passer%\') AND (year <= 1989) AND (geospatial_issue > 0) AND (latitude IS NOT NULL AND longitude IS NOT NULL))",
+      "(((taxon_id = 212 OR kingdom_id = 212 OR phylum_id = 212 OR class_id = 212 OR order_id = 212 OR family_id = 212 OR genus_id = 212 OR species_id = 212)) AND (country_code = \'GB\') AND (scientific_name LIKE \'Passer%\') AND (year <= 1989) AND (latitude IS NOT NULL AND longitude IS NOT NULL))",
       where);
   }
 

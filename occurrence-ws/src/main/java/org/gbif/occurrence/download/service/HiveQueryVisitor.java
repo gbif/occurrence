@@ -122,11 +122,11 @@ class HiveQueryVisitor {
     + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.LONGITUDE)
     + IS_NULL_OPERATOR + ')';
 
-  private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-    + GREATER_THAN_OPERATOR + '0';
-  private static final String NO_SPATIAL_ISSUES_CHECK = '(' + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES) + EQUALS_OPERATOR
-    + "0)";
+//  private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
+//    + GREATER_THAN_OPERATOR + '0';
+//  private static final String NO_SPATIAL_ISSUES_CHECK = '(' + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
+//    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES) + EQUALS_OPERATOR
+//    + "0)";
 
   private StringBuilder builder;
 
@@ -290,11 +290,11 @@ class HiveQueryVisitor {
    * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
    */
   private void appendSpatialIssuePredicate(String value) {
-    if (Boolean.parseBoolean(value)) {
-      builder.append(SPATIAL_ISSUES_CHECK);
-    } else {
-      builder.append(NO_SPATIAL_ISSUES_CHECK);
-    }
+//    if (Boolean.parseBoolean(value)) {
+//      builder.append(SPATIAL_ISSUES_CHECK);
+//    } else {
+//      builder.append(NO_SPATIAL_ISSUES_CHECK);
+//    }
   }
 
   /**
