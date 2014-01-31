@@ -95,7 +95,7 @@ public class IndexingUtils {
     final Double latitude = OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE);
     final Double longitude = OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE);
     final Integer geospatialIssue = OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE);
-    final Date occurrenceDate = OccurrenceResultReader.getDate(row, FieldName.I_OCCURRENCE_DATE);
+    final Date occurrenceDate = OccurrenceResultReader.getDate(row, FieldName.I_EVENT_DATE);
     final Date modified = OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED);
 
     doc.setField(KEY.getFieldName(), OccurrenceResultReader.getKey(row));
@@ -106,7 +106,7 @@ public class IndexingUtils {
     doc.setField(RECORDED_BY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
     doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
     doc
-      .setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY));
+      .setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY));
     doc.setField(DATASET_KEY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
 
     Set<Integer> taxonKey = buildTaxonKey(row);
@@ -146,15 +146,15 @@ public class IndexingUtils {
     occurrenceIndexDocument.setDay(OccurrenceResultReader.getString(row, FieldName.DAY));
     occurrenceIndexDocument.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
     occurrenceIndexDocument.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    occurrenceIndexDocument.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID));
+    occurrenceIndexDocument.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
     occurrenceIndexDocument.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
-    occurrenceIndexDocument.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID));
-    occurrenceIndexDocument.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID));
-    occurrenceIndexDocument.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_ID));
-    occurrenceIndexDocument.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID));
-    occurrenceIndexDocument.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID));
-    occurrenceIndexDocument.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
-    occurrenceIndexDocument.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
+    occurrenceIndexDocument.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
+    occurrenceIndexDocument.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
+    occurrenceIndexDocument.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
+    occurrenceIndexDocument.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY));
+    occurrenceIndexDocument.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
+    occurrenceIndexDocument.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
+    occurrenceIndexDocument.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
     occurrenceIndexDocument.setBasisOfRecord(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
     occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.LATITUDE));
     occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.LONGITUDE));
@@ -166,11 +166,11 @@ public class IndexingUtils {
    */
   public static Scan buildOccurrenceScan() {
     return buildScan(FieldName.I_LATITUDE, FieldName.I_LONGITUDE, FieldName.I_GEOSPATIAL_ISSUE, FieldName.I_YEAR,
-      FieldName.I_MONTH, FieldName.CATALOG_NUMBER, FieldName.I_NUB_ID, FieldName.DATASET_KEY, FieldName.I_KINGDOM_ID,
-      FieldName.I_PHYLUM_ID, FieldName.I_CLASS_ID, FieldName.I_ORDER_ID, FieldName.I_FAMILY_ID, FieldName.I_GENUS_ID,
-      FieldName.I_SPECIES_ID, FieldName.I_ISO_COUNTRY_CODE, FieldName.DAY, FieldName.I_BASIS_OF_RECORD,
+      FieldName.I_MONTH, FieldName.CATALOG_NUMBER, FieldName.I_TAXON_KEY, FieldName.DATASET_KEY, FieldName.I_KINGDOM_KEY,
+      FieldName.I_PHYLUM_KEY, FieldName.I_CLASS_KEY, FieldName.I_ORDER_KEY, FieldName.I_FAMILY_KEY, FieldName.I_GENUS_KEY,
+      FieldName.I_SPECIES_KEY, FieldName.I_ISO_COUNTRY_CODE, FieldName.DAY, FieldName.I_BASIS_OF_RECORD,
       FieldName.COLLECTOR_NAME, FieldName.I_ALTITUDE, FieldName.I_DEPTH, FieldName.INSTITUTION_CODE,
-      FieldName.COLLECTION_CODE, FieldName.I_OCCURRENCE_DATE, FieldName.I_MODIFIED);
+      FieldName.COLLECTION_CODE, FieldName.I_EVENT_DATE, FieldName.I_MODIFIED);
   }
 
   /**
@@ -187,22 +187,22 @@ public class IndexingUtils {
     occurrenceWritable.setDay(OccurrenceResultReader.getString(row, FieldName.DAY));
     occurrenceWritable.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
     occurrenceWritable.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    occurrenceWritable.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID));
+    occurrenceWritable.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
     occurrenceWritable.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
-    occurrenceWritable.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID));
-    occurrenceWritable.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID));
-    occurrenceWritable.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_ID));
-    occurrenceWritable.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID));
-    occurrenceWritable.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID));
-    occurrenceWritable.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
-    occurrenceWritable.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
+    occurrenceWritable.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
+    occurrenceWritable.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
+    occurrenceWritable.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
+    occurrenceWritable.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY));
+    occurrenceWritable.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
+    occurrenceWritable.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
+    occurrenceWritable.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
     occurrenceWritable.setBasisOfRecord(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
     return occurrenceWritable;
   }
 
   /**
    * Creates a scan instance using the list of fields.
-   * 
+   *
    * @param fieldNames list of {@link FieldName}
    * @return a Scan containing the field names
    */
@@ -252,42 +252,42 @@ public class IndexingUtils {
   private static Set<Integer> buildTaxonKey(Result row) {
     Set<Integer> taxonKey = new HashSet<Integer>();
 
-    Integer taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID);
+    Integer taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID);
+    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }

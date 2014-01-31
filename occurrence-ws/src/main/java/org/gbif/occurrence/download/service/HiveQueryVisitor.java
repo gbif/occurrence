@@ -80,14 +80,14 @@ class HiveQueryVisitor {
 
 
   private static final List<FieldName> NUB_KEY_COLUMNS = ImmutableList.of(
-    FieldName.I_NUB_ID,
-    FieldName.I_KINGDOM_ID,
-    FieldName.I_PHYLUM_ID,
-    FieldName.I_CLASS_ID,
-    FieldName.I_ORDER_ID,
-    FieldName.I_FAMILY_ID,
-    FieldName.I_GENUS_ID,
-    FieldName.I_SPECIES_ID);
+    FieldName.I_TAXON_KEY,
+    FieldName.I_KINGDOM_KEY,
+    FieldName.I_PHYLUM_KEY,
+    FieldName.I_CLASS_KEY,
+    FieldName.I_ORDER_KEY,
+    FieldName.I_FAMILY_KEY,
+    FieldName.I_GENUS_KEY,
+    FieldName.I_SPECIES_KEY);
 
   private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
 
@@ -107,11 +107,11 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
-    .put(OccurrenceSearchParameter.DATE, FieldName.I_OCCURRENCE_DATE)
-    .put(OccurrenceSearchParameter.MODIFIED, FieldName.MODIFIED)
+    .put(OccurrenceSearchParameter.DATE, FieldName.I_EVENT_DATE)
+    .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_CRAWLED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_ISO_COUNTRY_CODE)
-    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUBLISHING_COUNTRY)
+    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY)
     .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
     .build();
 

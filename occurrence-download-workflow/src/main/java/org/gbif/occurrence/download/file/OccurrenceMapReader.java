@@ -62,7 +62,7 @@ public class OccurrenceMapReader {
     Map<String, Object> occ = Maps.newHashMap();
     if (row != null && !row.isEmpty()) {
       Integer key = Bytes.toInt(row.getRow());
-      occ.put(getHiveField(FieldName.ID), key);
+      occ.put(getHiveField(FieldName.KEY), key);
       occ.put(getHiveField(FieldName.DATASET_KEY), getUuid(row, FieldName.DATASET_KEY));
       occ.put(getHiveField(FieldName.INSTITUTION_CODE), getCleanString(row, FieldName.INSTITUTION_CODE));
       occ.put(getHiveField(FieldName.COLLECTION_CODE), getCleanString(row, FieldName.COLLECTION_CODE));
@@ -71,7 +71,7 @@ public class OccurrenceMapReader {
         BOR_CONVERTER.toEnum(getInteger(row, FieldName.I_BASIS_OF_RECORD)));
       occ.put(getHiveField(FieldName.I_SCIENTIFIC_NAME), getString(row, FieldName.I_SCIENTIFIC_NAME));
       occ.put(getHiveField(FieldName.AUTHOR), getCleanString(row, FieldName.AUTHOR));
-      occ.put(getHiveField(FieldName.I_NUB_ID), getInteger(row, FieldName.I_NUB_ID));
+      occ.put(getHiveField(FieldName.I_TAXON_KEY), getInteger(row, FieldName.I_TAXON_KEY));
       occ.put(getHiveField(FieldName.I_KINGDOM), getString(row, FieldName.I_KINGDOM));
       occ.put(getHiveField(FieldName.I_PHYLUM), getString(row, FieldName.I_PHYLUM));
       occ.put(getHiveField(FieldName.I_CLASS), getString(row, FieldName.I_CLASS));
@@ -79,21 +79,21 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.I_FAMILY), getString(row, FieldName.I_FAMILY));
       occ.put(getHiveField(FieldName.I_GENUS), getString(row, FieldName.I_GENUS));
       occ.put(getHiveField(FieldName.I_SPECIES), getString(row, FieldName.I_SPECIES));
-      occ.put(getHiveField(FieldName.I_KINGDOM_ID), getInteger(row, FieldName.I_KINGDOM_ID));
-      occ.put(getHiveField(FieldName.I_PHYLUM_ID), getInteger(row, FieldName.I_PHYLUM_ID));
-      occ.put(getHiveField(FieldName.I_CLASS_ID), getInteger(row, FieldName.I_CLASS_ID));
-      occ.put(getHiveField(FieldName.I_ORDER_ID), getInteger(row, FieldName.I_ORDER_ID));
-      occ.put(getHiveField(FieldName.I_FAMILY_ID), getInteger(row, FieldName.I_FAMILY_ID));
-      occ.put(getHiveField(FieldName.I_GENUS_ID), getInteger(row, FieldName.I_GENUS_ID));
-      occ.put(getHiveField(FieldName.I_SPECIES_ID), getInteger(row, FieldName.I_SPECIES_ID));
+      occ.put(getHiveField(FieldName.I_KINGDOM_KEY), getInteger(row, FieldName.I_KINGDOM_KEY));
+      occ.put(getHiveField(FieldName.I_PHYLUM_KEY), getInteger(row, FieldName.I_PHYLUM_KEY));
+      occ.put(getHiveField(FieldName.I_CLASS_KEY), getInteger(row, FieldName.I_CLASS_KEY));
+      occ.put(getHiveField(FieldName.I_ORDER_KEY), getInteger(row, FieldName.I_ORDER_KEY));
+      occ.put(getHiveField(FieldName.I_FAMILY_KEY), getInteger(row, FieldName.I_FAMILY_KEY));
+      occ.put(getHiveField(FieldName.I_GENUS_KEY), getInteger(row, FieldName.I_GENUS_KEY));
+      occ.put(getHiveField(FieldName.I_SPECIES_KEY), getInteger(row, FieldName.I_SPECIES_KEY));
       occ.put(getHiveField(FieldName.I_ISO_COUNTRY_CODE), getString(row, FieldName.I_ISO_COUNTRY_CODE));
-      occ.put(getHiveField(FieldName.PUBLISHING_COUNTRY), getString(row, FieldName.PUBLISHING_COUNTRY));
-      occ.put(getHiveField(FieldName.OWNING_ORG_KEY), getUuid(row, FieldName.OWNING_ORG_KEY));
+      occ.put(getHiveField(FieldName.PUB_COUNTRY), getString(row, FieldName.PUB_COUNTRY));
+      occ.put(getHiveField(FieldName.PUB_ORG_KEY), getUuid(row, FieldName.PUB_ORG_KEY));
       occ.put(getHiveField(FieldName.I_LATITUDE), getDouble(row, FieldName.I_LATITUDE));
       occ.put(getHiveField(FieldName.I_LONGITUDE), getDouble(row, FieldName.I_LONGITUDE));
       occ.put(getHiveField(FieldName.I_YEAR), getInteger(row, FieldName.I_YEAR));
       occ.put(getHiveField(FieldName.I_MONTH), getInteger(row, FieldName.I_MONTH));
-      occ.put(getHiveField(FieldName.I_OCCURRENCE_DATE), toISO8601Date(getDate(row, FieldName.I_OCCURRENCE_DATE)));
+      occ.put(getHiveField(FieldName.I_EVENT_DATE), toISO8601Date(getDate(row, FieldName.I_EVENT_DATE)));
       occ.put(getHiveField(FieldName.I_ALTITUDE), getInteger(row, FieldName.I_ALTITUDE));
       occ.put(getHiveField(FieldName.I_DEPTH), getInteger(row, FieldName.I_DEPTH));
       occ.put(getHiveField(FieldName.SCIENTIFIC_NAME), getCleanString(row, FieldName.SCIENTIFIC_NAME));
@@ -129,7 +129,7 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.IDENTIFICATION_DATE), toISO8601Date(getDate(row, FieldName.IDENTIFICATION_DATE)));
       occ.put(getHiveField(FieldName.PROTOCOL), getString(row, FieldName.PROTOCOL));
       occ.put(getHiveField(FieldName.CREATED), toISO8601Date(getDate(row, FieldName.CREATED)));
-      occ.put(getHiveField(FieldName.MODIFIED), toISO8601Date(getDate(row, FieldName.MODIFIED)));
+      occ.put(getHiveField(FieldName.LAST_CRAWLED), toISO8601Date(getDate(row, FieldName.LAST_CRAWLED)));
     }
     return occ;
   }

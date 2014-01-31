@@ -48,13 +48,6 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
     LOG.debug("Completed deletion of dataset for datasetKey [{}]", datasetKey);
   }
 
-  @Override
-  public void deleteDataResource(int dataResourceId) {
-    LOG.debug("Deleting dataset for dataResourceId [{}]", dataResourceId);
-    deleteByColumn(Bytes.toBytes(dataResourceId), FieldName.DATA_RESOURCE_ID);
-    LOG.debug("Completed deletion of dataset for dataResourceId [{}]", dataResourceId);
-  }
-
   /**
    * Deletes both the secondary indexes ("lookups") as well as the occurrence proper for the scan that matches the
    * given column and value. Note any exceptions thrown during the deletions will cause this method to fail, leaving

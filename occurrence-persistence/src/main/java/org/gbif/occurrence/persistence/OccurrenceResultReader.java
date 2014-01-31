@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.constants.FieldType;
@@ -43,13 +44,25 @@ public class OccurrenceResultReader {
     return getString(row, column, null);
   }
 
+  public static String getTermString(Result row, Term term) {
+    checkNotNull(row, "row can't be null");
+    checkNotNull(term, "term can't be null");
+
+    HBaseFieldUtil.HBaseColumn hBaseColumn = HBaseFieldUtil.getHBaseColumn(term);
+    if (hBaseColumn == null) {
+      return null;
+    }
+    return ResultReader.getString(row, hBaseColumn.getColumnFamilyName(), hBaseColumn.getColumnName(), null);
+  }
+
   public static String getString(Result row, FieldName column, @Nullable String defaultValue) {
     checkNotNull(row, "row can't be null");
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.STRING, "FieldName [" + column.toString() + "] is not of type String");
 
-    return ResultReader.getString(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
-      HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
+    HBaseFieldUtil.HBaseColumn col = HBaseFieldUtil.getHBaseColumn(column);
+    String result = ResultReader.getString(row, col.getColumnFamilyName(), col.getColumnName(), defaultValue);
+    return result;
   }
 
   public static Double getDouble(Result row, FieldName column) {
@@ -61,9 +74,8 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.DOUBLE, "FieldName [" + column.toString() + "] is not of type Double");
 
-    return ResultReader
-      .getDouble(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
-        HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
+    return ResultReader.getDouble(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+      HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
   public static Integer getInteger(Result row, FieldName column) {
@@ -75,9 +87,8 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.INT, "FieldName [" + column.toString() + "] is not of type Integer");
 
-    return ResultReader
-      .getInteger(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
-        HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
+    return ResultReader.getInteger(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+      HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
   public static Date getDate(Result row, FieldName column) {
@@ -94,9 +105,8 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.LONG, "FieldName [" + column.toString() + "] is not of type Long");
 
-    return ResultReader
-      .getLong(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
-        HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
+    return ResultReader.getLong(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+      HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
   public static byte[] getBytes(Result row, FieldName column) {
@@ -108,9 +118,8 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.BYTES, "FieldName [" + column.toString() + "] is not of type byte[]");
 
-    return ResultReader
-      .getBytes(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
-        HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
+    return ResultReader.getBytes(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+      HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
   public static Object get(Result row, FieldName column) {

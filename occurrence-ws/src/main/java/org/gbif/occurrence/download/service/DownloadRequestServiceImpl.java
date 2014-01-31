@@ -100,16 +100,16 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       }
       String colName = HiveFieldUtil.getHiveField(f);
       switch (f) {
-        case ID:
+        case KEY:
         case DATASET_KEY:
-        case I_NUB_ID:
-        case I_KINGDOM_ID:
-        case I_PHYLUM_ID:
-        case I_CLASS_ID:
-        case I_ORDER_ID:
-        case I_FAMILY_ID:
-        case I_GENUS_ID:
-        case I_SPECIES_ID:
+        case I_TAXON_KEY:
+        case I_KINGDOM_KEY:
+        case I_PHYLUM_KEY:
+        case I_CLASS_KEY:
+        case I_ORDER_KEY:
+        case I_FAMILY_KEY:
+        case I_GENUS_KEY:
+        case I_SPECIES_KEY:
         case I_ALTITUDE:
         case I_DEPTH:
         case I_LATITUDE:
@@ -120,9 +120,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           selectSB.append("cleanNull(" + colName + ")");
           break;
         case CREATED:
-        case MODIFIED:
+        case LAST_CRAWLED:
         case I_MODIFIED:
-        case I_OCCURRENCE_DATE:
+        case I_EVENT_DATE:
           selectSB.append("toISO8601(" + colName + ")");
           break;
         case I_BASIS_OF_RECORD:

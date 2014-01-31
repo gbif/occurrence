@@ -52,9 +52,8 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
 
   /**
    * Writes the occurrence record into the hbase table.
-   * 
+   *
    * @param occ occurrence object that will be written to hbase
-   * @throws IOException
    */
   private void write(Occurrence occ) throws IOException {
     Put put = new Put(Bytes.toBytes(occ.getKey()));
@@ -75,7 +74,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getClassKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_KEY).getColumnName()),
         Bytes.toBytes(occ.getClassKey()));
     }
     if (occ.getClazz() != null) {
@@ -89,15 +88,15 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     // deprecated - remove
-// if (occ.getDataProviderId() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_PROVIDER_ID).getColumnName()),
-// Bytes.toBytes(occ.getDataProviderId()));
-// }
-//
-// if (occ.getDataResourceId() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_RESOURCE_ID).getColumnName()),
-// Bytes.toBytes(occ.getDataResourceId()));
-// }
+    // if (occ.getDataProviderId() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_PROVIDER_ID).getColumnName()),
+    // Bytes.toBytes(occ.getDataProviderId()));
+    // }
+    //
+    // if (occ.getDataResourceId() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_RESOURCE_ID).getColumnName()),
+    // Bytes.toBytes(occ.getDataResourceId()));
+    // }
 
     if (occ.getDatasetKey() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
@@ -115,7 +114,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getFamilyKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_FAMILY_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_FAMILY_KEY).getColumnName()),
         Bytes.toBytes(occ.getFamilyKey()));
     }
 
@@ -125,15 +124,15 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getGenusKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS_KEY).getColumnName()),
         Bytes.toBytes(occ.getGenusKey()));
     }
 
     // TODO geospatial issue has changed a lot
-// if (occ.getGeospatialIssue() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GEOSPATIAL_ISSUE).getColumnName()),
-// Bytes.toBytes(occ.getGeospatialIssue()));
-// }
+    // if (occ.getGeospatialIssue() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GEOSPATIAL_ISSUE).getColumnName()),
+    // Bytes.toBytes(occ.getGeospatialIssue()));
+    // }
 
     if (occ.getField(DwcTerm.institutionCode) != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
@@ -146,7 +145,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getKingdomKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM_KEY).getColumnName()),
         Bytes.toBytes(occ.getKingdomKey()));
     }
 
@@ -161,43 +160,42 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getField(DwcTerm.locality) != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LOCALITY).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.locality).getColumnName()),
         Bytes.toBytes(occ.getField(DwcTerm.locality)));
     }
 
     if (occ.getCountry() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ISO_COUNTRY_CODE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_COUNTRY).getColumnName()),
         Bytes.toBytes(occ.getCountry().getIso2LetterCode()));
     }
 
     if (occ.getField(DwcTerm.county) != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COUNTY).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.county).getColumnName()),
         Bytes.toBytes(occ.getField(DwcTerm.county)));
     }
 
     if (occ.getStateProvince() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.STATE_PROVINCE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_STATE_PROVINCE).getColumnName()),
         Bytes.toBytes(occ.getStateProvince()));
     }
 
-    // TODO: continent is now an enum
-// if (occ.getContinent() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CONTINENT_OCEAN).getColumnName()),
-// Bytes.toBytes(occ.getContinent()));
-// }
+    if (occ.getContinent() != null) {
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CONTINENT).getColumnName()),
+        Bytes.toBytes(occ.getContinent().name()));
+    }
 
     if (occ.getField(DwcTerm.recordedBy) != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTOR_NAME).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.recordedBy).getColumnName()),
         Bytes.toBytes(occ.getField(DwcTerm.recordedBy)));
     }
 
     if (occ.getField(DwcTerm.identifiedBy) != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_NAME).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.identifiedBy).getColumnName()),
         Bytes.toBytes(occ.getField(DwcTerm.identifiedBy)));
     }
 
     if (occ.getDateIdentified() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFICATION_DATE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DATE_IDENTIFIED).getColumnName()),
         Bytes.toBytes(occ.getDateIdentified().getTime()));
     }
 
@@ -212,12 +210,12 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getTaxonKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_NUB_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXON_KEY).getColumnName()),
         Bytes.toBytes(occ.getTaxonKey()));
     }
 
     if (occ.getEventDate() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OCCURRENCE_DATE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_EVENT_DATE).getColumnName()),
         Bytes.toBytes(occ.getEventDate().getTime()));
     }
 
@@ -227,18 +225,18 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getOrderKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER_KEY).getColumnName()),
         Bytes.toBytes(occ.getOrderKey()));
     }
 
     // TODO: other issue now deprecated
-// if (occ.getOtherIssue() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OTHER_ISSUE).getColumnName()),
-// Bytes.toBytes(occ.getOtherIssue()));
-// }
+    // if (occ.getOtherIssue() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_OTHER_ISSUE).getColumnName()),
+    // Bytes.toBytes(occ.getOtherIssue()));
+    // }
 
     if (occ.getPublishingOrgKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.OWNING_ORG_KEY).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_ORG_KEY).getColumnName()),
         Bytes.toBytes(occ.getPublishingOrgKey().toString()));
     }
 
@@ -248,15 +246,15 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getPhylumKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM_KEY).getColumnName()),
         Bytes.toBytes(occ.getPhylumKey()));
     }
 
     // deprecated
-// if (occ.getResourceAccessPointId() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.RESOURCE_ACCESS_POINT_ID).getColumnName()),
-// Bytes.toBytes(occ.getResourceAccessPointId()));
-// }
+    // if (occ.getResourceAccessPointId() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.RESOURCE_ACCESS_POINT_ID).getColumnName()),
+    // Bytes.toBytes(occ.getResourceAccessPointId()));
+    // }
 
     if (occ.getScientificName() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SCIENTIFIC_NAME).getColumnName()),
@@ -269,21 +267,21 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getSpeciesKey() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES_ID).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES_KEY).getColumnName()),
         Bytes.toBytes(occ.getSpeciesKey()));
     }
 
     // TODO: deprecated
-// if (occ.getTaxonomicIssue() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXONOMIC_ISSUE).getColumnName()),
-// Bytes.toBytes(occ.getTaxonomicIssue()));
-// }
+    // if (occ.getTaxonomicIssue() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXONOMIC_ISSUE).getColumnName()),
+    // Bytes.toBytes(occ.getTaxonomicIssue()));
+    // }
 
     // TODO: deprecated
-// if (occ.getUnitQualifier() != null) {
-// put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
-// Bytes.toBytes(occ.getUnitQualifier()));
-// }
+    // if (occ.getUnitQualifier() != null) {
+    // put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
+    // Bytes.toBytes(occ.getUnitQualifier()));
+    // }
 
     if (occ.getYear() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()),

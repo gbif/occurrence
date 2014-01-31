@@ -3,9 +3,9 @@ package org.gbif.occurrence.persistence;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -18,15 +18,13 @@ import static org.junit.Assert.assertEquals;
 
 public class OccurrenceResultReaderTest {
 
-  private static final String CF1_NAME = "o";
-  private static final byte[] CF1 = Bytes.toBytes(CF1_NAME);
   private static final int KEY_NAME = 12345;
   private static final byte[] KEY = Bytes.toBytes(KEY_NAME);
 
   private static final int INT_VAL_1 = 1111;
   private static final double DOUBLE_VAL_1 = 2.2222222222222222222d;
-  private static final long LONG_VAL_1 = 33333333333333l;
-  private static final String STRING_VAL_1 = "not numbers";
+  private static final long LONG_VAL_1 = 33333333333333L;
+  private static final String STRING_VAL_1 = "just a string";
 
   private Result result = null;
 
@@ -34,24 +32,23 @@ public class OccurrenceResultReaderTest {
   public ExpectedException exception = ExpectedException.none();
 
   @Before
-  public void setup() {
-    List<KeyValue> kvs = new ArrayList<KeyValue>();
+  public void setup() throws InterruptedException {
+    List<KeyValue> kvs = Lists.newArrayList();
 
     // mimic four fields of an occurrence row
-    KeyValue kv = new KeyValue(KEY, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_PROVIDER_ID).getColumnFamilyName()),
-      Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATA_PROVIDER_ID).getColumnName()), Bytes.toBytes(INT_VAL_1));
-    kvs.add(kv);
-    kv = new KeyValue(KEY, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LATITUDE).getColumnFamilyName()),
-      Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LATITUDE).getColumnName()), Bytes.toBytes(DOUBLE_VAL_1));
-    kvs.add(kv);
-    kv = new KeyValue(KEY, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.MODIFIED).getColumnFamilyName()),
-      Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.MODIFIED).getColumnName()), Bytes.toBytes(LONG_VAL_1));
-    kvs.add(kv);
-    kv = new KeyValue(KEY, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.SCIENTIFIC_NAME).getColumnFamilyName()),
-      Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.SCIENTIFIC_NAME).getColumnName()), Bytes.toBytes(STRING_VAL_1));
-    kvs.add(kv);
+    kvs.add(buildKv(FieldName.I_ALTITUDE_ACC, Bytes.toBytes(INT_VAL_1)));
+    kvs.add(buildKv(FieldName.I_LONGITUDE, Bytes.toBytes(DOUBLE_VAL_1)));
+    kvs.add(buildKv(FieldName.I_STATE_PROVINCE, Bytes.toBytes(STRING_VAL_1)));
+    kvs.add(buildKv(FieldName.LAST_CRAWLED, Bytes.toBytes(LONG_VAL_1)));
 
     result = new Result(kvs);
+  }
+
+  private static KeyValue buildKv(FieldName fieldName, byte[] value) {
+    HBaseFieldUtil.HBaseColumn hbaseCol = HBaseFieldUtil.getHBaseColumn(fieldName);
+    KeyValue kv =
+      new KeyValue(KEY, Bytes.toBytes(hbaseCol.getColumnFamilyName()), Bytes.toBytes(hbaseCol.getColumnName()), value);
+    return kv;
   }
 
   @Test
@@ -62,59 +59,59 @@ public class OccurrenceResultReaderTest {
 
   @Test
   public void testString() {
-    String test = OccurrenceResultReader.getString(result, FieldName.SCIENTIFIC_NAME, null);
+    String test = OccurrenceResultReader.getString(result, FieldName.I_STATE_PROVINCE, null);
     assertEquals(STRING_VAL_1, test);
   }
 
   @Test
   public void testStringFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [MODIFIED] is not of type String");
-    OccurrenceResultReader.getString(result, FieldName.MODIFIED, null);
+    exception.expectMessage("FieldName [LAST_CRAWLED] is not of type String");
+    OccurrenceResultReader.getString(result, FieldName.LAST_CRAWLED, null);
   }
 
   @Test
   public void testInteger() {
-    Integer test = OccurrenceResultReader.getInteger(result, FieldName.DATA_PROVIDER_ID, null);
+    Integer test = OccurrenceResultReader.getInteger(result, FieldName.I_ALTITUDE_ACC, null);
     assertEquals(INT_VAL_1, test.intValue());
   }
 
   @Test
   public void testIntegerFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [MODIFIED] is not of type Integer");
-    OccurrenceResultReader.getInteger(result, FieldName.MODIFIED, null);
+    exception.expectMessage("FieldName [LAST_CRAWLED] is not of type Integer");
+    OccurrenceResultReader.getInteger(result, FieldName.LAST_CRAWLED, null);
   }
 
   @Test
   public void testLong() {
-    Long test = OccurrenceResultReader.getLong(result, FieldName.MODIFIED, null);
+    Long test = OccurrenceResultReader.getLong(result, FieldName.LAST_CRAWLED, null);
     assertEquals(LONG_VAL_1, test.longValue());
   }
 
   @Test
   public void testLongFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [SCIENTIFIC_NAME] is not of type Long");
-    OccurrenceResultReader.getLong(result, FieldName.SCIENTIFIC_NAME, null);
+    exception.expectMessage("FieldName [I_WATERBODY] is not of type Long");
+    OccurrenceResultReader.getLong(result, FieldName.I_WATERBODY, null);
   }
 
   @Test
   public void testDouble() {
-    Double test = OccurrenceResultReader.getDouble(result, FieldName.I_LATITUDE, null);
+    Double test = OccurrenceResultReader.getDouble(result, FieldName.I_LONGITUDE, null);
     assertEquals(DOUBLE_VAL_1, test, 0.00001);
   }
 
   @Test
   public void testDoubleFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [SCIENTIFIC_NAME] is not of type Double");
-    OccurrenceResultReader.getDouble(result, FieldName.SCIENTIFIC_NAME, null);
+    exception.expectMessage("FieldName [I_WATERBODY] is not of type Double");
+    OccurrenceResultReader.getDouble(result, FieldName.I_WATERBODY, null);
   }
 
   @Test
   public void testObject() {
-    Object test = OccurrenceResultReader.get(result, FieldName.I_LATITUDE);
+    Object test = OccurrenceResultReader.get(result, FieldName.I_LONGITUDE);
     assertEquals(DOUBLE_VAL_1, (Double) test, 0.00001);
   }
 }
