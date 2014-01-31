@@ -104,12 +104,12 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
-    doc.setField(BASIS_OF_RECORD.getFieldName(), BOR_CONVERTER.fromEnum(occurrence.getBasisOfRecord()));
+    doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord().name());
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
     doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getField(DwcTerm.recordNumber));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
-      .ordinal());
+      .name());
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence

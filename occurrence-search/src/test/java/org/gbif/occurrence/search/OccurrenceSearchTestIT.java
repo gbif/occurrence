@@ -9,6 +9,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.search.writers.HBaseOccurrenceWriter;
@@ -439,6 +440,18 @@ public class OccurrenceSearchTestIT {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest
       .addGeometryFilter("POLYGON ((-127.265 28.304,-76.640 55.776,94.218 -38.822,-86.484 -50.289,-127.265 28.304))");
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+      occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() > 0);
+  }
+
+  /**
+   * Performs a search by TypeStatus.
+   */
+  @Test
+  public void testSearchByTypeStatus() {
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addTypeStatusFilter(TypeStatus.TYPE);
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);

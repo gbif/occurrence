@@ -5,6 +5,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -59,10 +60,32 @@ public class OccurrenceDataLoader {
 
     @Override
     public BasisOfRecord execute(Object value, CsvContext context) {
-      return BOR_CONVERTER.toEnum(Integer.parseInt((String) value));
+      Enum<?> basisOfRecord = VocabularyUtils.lookupEnum((String) value, BasisOfRecord.class);
+      if (basisOfRecord != null) {
+        return (BasisOfRecord) basisOfRecord;
+      }
+      return null;
     }
 
   }
+
+
+  /**
+   * Produces a TypeStatus instance.
+   */
+  private static class TypeStatusProcessor implements CellProcessor {
+
+    @Override
+    public TypeStatus execute(Object value, CsvContext context) {
+      Enum<?> typeStatus = VocabularyUtils.lookupEnum((String) value, TypeStatus.class);
+      if (typeStatus != null) {
+        return (TypeStatus) typeStatus;
+      }
+      return null;
+    }
+
+  }
+
 
   /**
    * Produces a Continent instance.
@@ -157,7 +180,8 @@ public class OccurrenceDataLoader {
     new Optional(),// collectorName
     new Optional(),// recordNumber
     new Optional(),// identifierName
-    new Optional(new ParseDate(DATE_FORMAT))// identificationDate
+    new Optional(new ParseDate(DATE_FORMAT)),// identificationDate
+    new Optional(new TypeStatusProcessor()),// typeStatus
   };
 
 
@@ -204,7 +228,8 @@ public class OccurrenceDataLoader {
     "recordedBy",
     "recordNumber",
     "identifiedBy",
-    "dateIdentified"
+    "dateIdentified",
+    "typeStatus"
   };
 
 

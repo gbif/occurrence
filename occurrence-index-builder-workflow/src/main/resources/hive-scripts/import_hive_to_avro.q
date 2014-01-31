@@ -17,7 +17,8 @@ SELECT
   COALESCE(i_year,-1),
   COALESCE(i_month,-1),
   COALESCE(i_event_date,CAST(-1 AS BIGINT)),
-  COALESCE(i_basis_of_record,-1),
+  COALESCE(i_basis_of_record,"UNKNOWN"),
+  COALESCE(i_type_status,"-1"),
   (COALESCE(iss_PRESUMED_NEGATED_LATITUDE,0) > 0 AND
    COALESCE(iss_PRESUMED_NEGATED_LONGITUDE,0) > 0 AND
    COALESCE(iss_PRESUMED_SWAPPED_COORDINATE,0) > 0 AND

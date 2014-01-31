@@ -3,7 +3,6 @@ package org.gbif.occurrence.search;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
-import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
@@ -173,12 +172,7 @@ public class OccurrenceSearchRequestBuilder {
           SearchTypeValidator.validate(param, value);
           OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
           if (solrField != null && param.type() != Date.class) {
-            String parsedValue;
-            if (solrField == OccurrenceSolrField.BASIS_OF_RECORD) {
-              parsedValue = BASIS_OF_RECORD_CONVERTER.fromEnum(BasisOfRecord.valueOf(value)).toString();
-            } else {
-              parsedValue = QueryUtils.parseQueryValue(value);
-            }
+            String parsedValue = QueryUtils.parseQueryValue(value);
             if (QueryUtils.isRangeQuery(parsedValue)) {
               parsedValue = parsedValue.replace(",", " TO ");
             }

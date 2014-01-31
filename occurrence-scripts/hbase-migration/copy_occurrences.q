@@ -60,7 +60,7 @@ i_longitude,
 i_year,
 i_month,
 i_occurrence_date,
-i_basis_of_record,
+CASE i_basis_of_record WHEN 0 THEN 'UNKNOWN' WHEN 1 THEN 'OBSERVATION' WHEN 2 THEN 'PRESERVED_SPECIMEN' WHEN 3 THEN 'LIVING_SPECIMEN' WHEN 4 THEN 'LIVING_SPECIMEN' WHEN 5 THEN 'FOSSIL_SPECIMEN' WHEN 6 THEN 'LITERATURE' WHEN 7 THEN 'HUMAN_OBSERVATION' WHEN 8 THEN 'MACHINE_OBSERVATION' ELSE NULL END,
 IF(i_other_issue = 8,1,0),
 i_altitude,
 i_depth,
@@ -83,6 +83,3 @@ IF(i_geospatial_issue = 16,1,0),
 IF(i_geospatial_issue = 32,1,0)
 
 FROM src_migration_occurrence_tmp;
-
-DROP TABLE src_migration_occurrence_tmp;
-DROP TABLE target_migration_occurrence_tmp;

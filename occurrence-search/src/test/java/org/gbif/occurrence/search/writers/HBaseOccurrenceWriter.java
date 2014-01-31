@@ -52,7 +52,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
 
   /**
    * Writes the occurrence record into the hbase table.
-   *
+   * 
    * @param occ occurrence object that will be written to hbase
    */
   private void write(Occurrence occ) throws IOException {
@@ -66,7 +66,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
 
     if (occ.getBasisOfRecord() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_BASIS_OF_RECORD).getColumnName()),
-        Bytes.toBytes(BOR_CONVERTER.fromEnum(occ.getBasisOfRecord())));
+        Bytes.toBytes(occ.getBasisOfRecord().name()));
     }
     if (occ.getField(DwcTerm.catalogNumber) != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CATALOG_NUMBER).getColumnName()),
@@ -286,6 +286,11 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     if (occ.getYear() != null) {
       put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()),
         Bytes.toBytes(occ.getYear()));
+    }
+
+    if (occ.getTypeStatus() != null) {
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TYPE_STATUS).getColumnName()),
+        Bytes.toBytes(occ.getTypeStatus().name()));
     }
 
     hTable.put(put);
