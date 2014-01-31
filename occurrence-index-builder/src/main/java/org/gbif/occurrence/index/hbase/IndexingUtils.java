@@ -33,7 +33,6 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
@@ -94,7 +93,7 @@ public class IndexingUtils {
   public static void buildOccSolrDocument(Result row, SolrInputDocument doc) {
     final Double latitude = OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE);
     final Double longitude = OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE);
-    final Integer geospatialIssue = OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE);
+//    final Integer geospatialIssue = OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE);
     final Date occurrenceDate = OccurrenceResultReader.getDate(row, FieldName.I_EVENT_DATE);
     final Date modified = OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED);
 
@@ -103,8 +102,8 @@ public class IndexingUtils {
     doc.setField(MONTH.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
     doc.setField(BASIS_OF_RECORD.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
     doc.setField(CATALOG_NUMBER.getFieldName(), OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
-    doc.setField(RECORDED_BY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
+//    doc.setField(RECORDED_BY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
+    doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
     doc
       .setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY));
     doc.setField(DATASET_KEY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
@@ -119,7 +118,7 @@ public class IndexingUtils {
     doc.setField(DEPTH.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH));
     doc.setField(INSTITUTION_CODE.getFieldName(), OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
     doc.setField(COLLECTION_CODE.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE));
-    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
+//    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
     doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
     doc.setField(LATITUDE.getFieldName(), latitude);
     doc.setField(LONGITUDE.getFieldName(), longitude);
@@ -140,12 +139,12 @@ public class IndexingUtils {
     occurrenceIndexDocument.setKey(OccurrenceResultReader.getKey(row));
     occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
     occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
-    occurrenceIndexDocument.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
+    occurrenceIndexDocument.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
     occurrenceIndexDocument.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
     occurrenceIndexDocument.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-    occurrenceIndexDocument.setDay(OccurrenceResultReader.getString(row, FieldName.DAY));
+    occurrenceIndexDocument.setDay(OccurrenceResultReader.getString(row, FieldName.I_DAY));
     occurrenceIndexDocument.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
-    occurrenceIndexDocument.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
+//    occurrenceIndexDocument.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
     occurrenceIndexDocument.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
     occurrenceIndexDocument.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
     occurrenceIndexDocument.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
@@ -156,8 +155,8 @@ public class IndexingUtils {
     occurrenceIndexDocument.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
     occurrenceIndexDocument.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
     occurrenceIndexDocument.setBasisOfRecord(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
-    occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.LATITUDE));
-    occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.LONGITUDE));
+    occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
+    occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
     return occurrenceIndexDocument;
   }
 
@@ -165,11 +164,11 @@ public class IndexingUtils {
    * Builds the occurrence scan using the that will be indexed in Solr.
    */
   public static Scan buildOccurrenceScan() {
-    return buildScan(FieldName.I_LATITUDE, FieldName.I_LONGITUDE, FieldName.I_GEOSPATIAL_ISSUE, FieldName.I_YEAR,
+    return buildScan(FieldName.I_LATITUDE, FieldName.I_LONGITUDE, FieldName.I_YEAR,
       FieldName.I_MONTH, FieldName.CATALOG_NUMBER, FieldName.I_TAXON_KEY, FieldName.DATASET_KEY, FieldName.I_KINGDOM_KEY,
       FieldName.I_PHYLUM_KEY, FieldName.I_CLASS_KEY, FieldName.I_ORDER_KEY, FieldName.I_FAMILY_KEY, FieldName.I_GENUS_KEY,
-      FieldName.I_SPECIES_KEY, FieldName.I_ISO_COUNTRY_CODE, FieldName.DAY, FieldName.I_BASIS_OF_RECORD,
-      FieldName.COLLECTOR_NAME, FieldName.I_ALTITUDE, FieldName.I_DEPTH, FieldName.INSTITUTION_CODE,
+      FieldName.I_SPECIES_KEY, FieldName.I_COUNTRY, FieldName.I_DAY, FieldName.I_BASIS_OF_RECORD,
+      FieldName.I_ALTITUDE, FieldName.I_DEPTH, FieldName.INSTITUTION_CODE,
       FieldName.COLLECTION_CODE, FieldName.I_EVENT_DATE, FieldName.I_MODIFIED);
   }
 
@@ -181,12 +180,12 @@ public class IndexingUtils {
     occurrenceWritable.setKey(OccurrenceResultReader.getKey(row));
     occurrenceWritable.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
     occurrenceWritable.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
-    occurrenceWritable.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE));
+    occurrenceWritable.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
     occurrenceWritable.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
     occurrenceWritable.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-    occurrenceWritable.setDay(OccurrenceResultReader.getString(row, FieldName.DAY));
+    occurrenceWritable.setDay(OccurrenceResultReader.getString(row, FieldName.I_DAY));
     occurrenceWritable.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
-    occurrenceWritable.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
+//    occurrenceWritable.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
     occurrenceWritable.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
     occurrenceWritable.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
     occurrenceWritable.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));

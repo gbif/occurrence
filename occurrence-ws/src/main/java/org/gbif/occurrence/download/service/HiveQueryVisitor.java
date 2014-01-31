@@ -31,9 +31,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
 import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
+import org.gbif.occurrence.common.download.HiveFieldUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -89,8 +88,6 @@ class HiveQueryVisitor {
     FieldName.I_GENUS_KEY,
     FieldName.I_SPECIES_KEY);
 
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
-
   // parameter that map directly to Hive, boundingBox, coordinate and taxonKey are treated special !
   private static final Map<OccurrenceSearchParameter, FieldName> PARAM_TO_FIELD = ImmutableMap
     .<OccurrenceSearchParameter, FieldName>builder()
@@ -104,15 +101,15 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
     .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
     .put(OccurrenceSearchParameter.CATALOG_NUMBER, FieldName.CATALOG_NUMBER)
-    .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
+//    .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
     .put(OccurrenceSearchParameter.DATE, FieldName.I_EVENT_DATE)
     .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_CRAWLED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
-    .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_ISO_COUNTRY_CODE)
+    .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY)
-    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
+//    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
     .build();
 
   // IS_GEOREFERENCED_CHECK, IS_NOT_GEOREFERENCED_CHECK, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
@@ -145,7 +142,7 @@ class HiveQueryVisitor {
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
    *
-   * @param download to translate
+   * @param predicate to translate
    * @return WHERE clause
    */
   public String getHiveQuery(Predicate predicate) throws QueryBuildingException {
@@ -330,9 +327,8 @@ class HiveQueryVisitor {
    */
   private String toHiveValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
     if (param == OccurrenceSearchParameter.BASIS_OF_RECORD) {
-      // special int
       BasisOfRecord bor = (BasisOfRecord) VocabularyUtils.lookupEnum(value, BasisOfRecord.class);
-      return bor == null ? "" : BOR_CONVERTER.fromEnum(bor).toString();
+      return bor == null ? "" : bor.name();
     } else if (param == OccurrenceSearchParameter.COUNTRY) {
       // upper case 2 letter iso code
       return '\'' + value.toUpperCase() + '\'';

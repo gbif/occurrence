@@ -116,7 +116,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         case I_LONGITUDE:
         case I_YEAR:
         case I_MONTH:
-        case I_ISO_COUNTRY_CODE:
+        case I_COUNTRY:
           selectSB.append("cleanNull(" + colName + ")");
           break;
         case CREATED:
