@@ -5,7 +5,6 @@ package org.gbif.occurrence.cli.index;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -58,9 +57,6 @@ public class SolrOccurrenceWriter {
   // Allowed longitude range
   private static final Range<Double> LNG_RANGE = Range.closed(-180.0, 180.0);
 
-  // Basis of record converter
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
-
   // SolrServer that stores the occurrence records
   private final SolrServer solrServer;
 
@@ -109,7 +105,8 @@ public class SolrOccurrenceWriter {
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
-    doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord().name());
+    doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord() == null ? null : occurrence
+      .getBasisOfRecord().name());
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
