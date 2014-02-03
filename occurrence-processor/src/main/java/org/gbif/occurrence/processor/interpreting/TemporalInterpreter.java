@@ -183,7 +183,7 @@ public class TemporalInterpreter {
       ParseResult<Date> result = DateParseUtils.parse(dateString);
       if (result.isSuccessful()) {
         // check year makes sense
-        if (VALID_MODIFIED_DATE_RANGE.contains(result.getPayload())) {
+        if (!VALID_MODIFIED_DATE_RANGE.contains(result.getPayload())) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           // Use correct new issue for dc modified
           result.addIssue(OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
