@@ -1,12 +1,15 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import org.junit.Test;
 
@@ -17,6 +20,27 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class TemporalInterpreterTest {
+
+  @Test
+  public void testAllDates() {
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setField(DwcTerm.year, "1879.");
+    v.setField(DwcTerm.month, "11 ");
+    v.setField(DwcTerm.day, "1");
+    v.setField(DwcTerm.eventDate, "1.11.1879");
+    v.setField(DwcTerm.dateIdentified, "2012-01-11");
+    v.setField(DcTerm.modified, "2014-01-11");
+
+    Occurrence o = new Occurrence();
+    TemporalInterpreter.interpretTemporal(v,o);
+
+    assertDate("2014-01-11", o.getModified());
+    assertDate("2012-01-11", o.getDateIdentified());
+    assertDate("1879-11-01", o.getEventDate());
+    assertEquals(1879, o.getYear().intValue());
+    assertEquals(11, o.getMonth().intValue());
+    assertEquals(1, o.getDay().intValue());
+  }
 
   @Test
   public void testLikelyYearRanges() {
@@ -51,6 +75,11 @@ public class TemporalInterpreterTest {
     assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
 
     assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+  }
+
+  @Test
+  public void testIdentificationDates() {
+    assertDate("2013-05-10", TemporalInterpreter.interpretDate("2013-05-10", TemporalInterpreter.VALID_RECORDED_DATE_RANGE, null).getPayload());
   }
 
   @Test
@@ -160,6 +189,19 @@ public class TemporalInterpreterTest {
     }
   }
 
+  /**
+   * @param expected expected date in ISO yyyy-MM-dd format
+   */
+  private void assertDate(String expected, Date result){
+    if (expected == null) {
+      assertNull(result);
+    } else {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      assertNotNull("Missing date", result);
+      assertEquals(expected, sdf.format(result));
+    }
+  }
+
   private void assertInts(Integer expected, Integer x) {
     if (expected == null) {
       assertNull(x);
@@ -190,4 +232,5 @@ public class TemporalInterpreterTest {
 
     return TemporalInterpreter.interpretRecordedDate(v);
   }
+
 }

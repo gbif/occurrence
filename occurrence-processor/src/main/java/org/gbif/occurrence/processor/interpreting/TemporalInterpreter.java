@@ -199,7 +199,7 @@ public class TemporalInterpreter {
       ParseResult<Date> result = DateParseUtils.parse(dateString);
       if (result.isSuccessful()) {
         // check year makes sense
-        if (likelyRange.contains(result.getPayload())) {
+        if (!likelyRange.contains(result.getPayload())) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           result.addIssue(unlikelyIssue);
         }
