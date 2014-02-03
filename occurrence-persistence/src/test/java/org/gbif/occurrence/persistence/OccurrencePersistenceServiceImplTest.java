@@ -310,6 +310,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Integer) KEY, occ.getKey());
     assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
+    assertTrue(occ.hasField(DwcTerm.basisOfRecord));
   }
 
   @Test
@@ -416,6 +417,10 @@ public class OccurrencePersistenceServiceImplTest {
     issues.remove(OccurrenceIssue.ZERO_COORDINATE);
     update.setIssues(issues);
 
+    Map<Term, String> fields = Maps.newHashMap();
+    fields.put(DwcTerm.basisOfRecord, "PRESERVED_SPECIMEN");
+    update.setFields(fields);
+
     occurrenceService.update(update);
 
     Occurrence occ = occurrenceService.get(KEY);
@@ -461,6 +466,10 @@ public class OccurrencePersistenceServiceImplTest {
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_NON_NUMERIC));
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ZERO_COORDINATE));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
+
+    assertTrue(occ.hasField(DwcTerm.basisOfRecord));
+    assertEquals("PRESERVED_SPECIMEN", occ.getField(DwcTerm.basisOfRecord));
+    assertFalse(occ.hasField(DwcTerm.occurrenceID));
   }
 
   @Test
