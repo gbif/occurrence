@@ -105,7 +105,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
     .put(OccurrenceSearchParameter.DATE, FieldName.I_EVENT_DATE)
-    .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_CRAWLED)
+    .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_PARSED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY)

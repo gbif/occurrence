@@ -16,7 +16,7 @@ public enum FieldName {
 
   // parsing fragment
   CRAWL_ID(FieldType.INT),
-  HARVESTED_DATE(FieldType.LONG),
+  LAST_CRAWLED(FieldType.LONG),
   FRAGMENT(FieldType.BYTES),
   FRAGMENT_HASH(FieldType.BYTES),
   XML_SCHEMA(FieldType.STRING),
@@ -24,7 +24,7 @@ public enum FieldName {
   CREATED(FieldType.LONG),
 
   // verbatim occurrence
-  LAST_CRAWLED(FieldType.LONG),
+  LAST_PARSED(FieldType.LONG),
 
   // interpreted occurrence
   LAST_INTERPRETED(FieldType.LONG),

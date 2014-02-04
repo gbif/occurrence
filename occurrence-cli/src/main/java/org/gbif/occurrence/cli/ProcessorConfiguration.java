@@ -37,9 +37,12 @@ public class ProcessorConfiguration {
   @Min(1)
   public int hbasePoolSize = 5;
 
-  @Parameter(names = "--queue-name")
+  @Parameter(names = "--primary-queue-name")
   @NotNull
-  public String queueName;
+  public String primaryQueueName;
+
+  @Parameter(names = "--secondary-queue-name")
+  public String secondaryQueueName;
 
   @Parameter(names = "--occ-table")
   @NotNull
@@ -56,7 +59,7 @@ public class ProcessorConfiguration {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("messaging", messaging).add("zooKeeper", zooKeeper).add("ganglia", ganglia)
-      .add("msgPoolSize", msgPoolSize).add("hbasePoolSize", hbasePoolSize).add("queueName", queueName)
+      .add("msgPoolSize", msgPoolSize).add("hbasePoolSize", hbasePoolSize).add("queueName", primaryQueueName)
       .add("occTable", occTable).add("counterTable", counterTable).add("lookupTable", lookupTable).toString();
   }
 }

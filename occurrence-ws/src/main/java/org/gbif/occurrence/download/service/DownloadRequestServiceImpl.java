@@ -120,7 +120,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           selectSB.append("cleanNull(" + colName + ")");
           break;
         case CREATED:
-        case LAST_CRAWLED:
+        case LAST_PARSED:
         case I_MODIFIED:
         case I_EVENT_DATE:
           selectSB.append("toISO8601(" + colName + ")");

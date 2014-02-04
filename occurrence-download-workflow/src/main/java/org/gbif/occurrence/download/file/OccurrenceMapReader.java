@@ -126,7 +126,7 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.I_DATE_IDENTIFIED), toISO8601Date(getDate(row, FieldName.I_DATE_IDENTIFIED)));
       occ.put(getHiveField(FieldName.PROTOCOL), getString(row, FieldName.PROTOCOL));
       occ.put(getHiveField(FieldName.CREATED), toISO8601Date(getDate(row, FieldName.CREATED)));
-      occ.put(getHiveField(FieldName.LAST_CRAWLED), toISO8601Date(getDate(row, FieldName.LAST_CRAWLED)));
+      occ.put(getHiveField(FieldName.LAST_PARSED), toISO8601Date(getDate(row, FieldName.LAST_PARSED)));
     }
     return occ;
   }

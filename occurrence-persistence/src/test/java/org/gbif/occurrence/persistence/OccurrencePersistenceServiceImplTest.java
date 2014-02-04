@@ -165,7 +165,7 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(GENUS_KEY));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_COUNTRY).getColumnName()),
       Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVESTED_DATE.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM).getColumnName()),
       Bytes.toBytes(KINGDOM));

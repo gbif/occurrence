@@ -6,11 +6,10 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DeleteOccurrenceMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
+import org.gbif.occurrence.cli.common.HueCsvReader;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import org.kohsuke.MetaInfServices;
 import org.slf4j.Logger;
@@ -39,34 +38,20 @@ public class DeleteOccurrenceCommand extends BaseCommand {
       return;
     }
 
-    BufferedReader br = null;
-    MessagePublisher publisher;
     try {
-      publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
+      MessagePublisher publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
       if (config.key != null) {
         sendDeleteMessage(publisher, config.key);
       } else {
-        br = new BufferedReader(new FileReader(config.keyFileName));
-        String line;
-        while ((line = br.readLine()) != null) {
-          String key = line.replaceAll("\"", "");
-          if (!"id".equals(key)) {
+        List<String> keys = HueCsvReader.readKeys(config.keyFileName);
+        if (keys != null && !keys.isEmpty()) {
+          for (String key : keys) {
             sendDeleteMessage(publisher, Integer.valueOf(key));
           }
         }
       }
-    } catch (FileNotFoundException e) {
-      LOG.error("Could not find occurrence key file [{}]. Exiting", config.keyFileName, e);
     } catch (IOException e) {
       LOG.error("Caught exception while sending delete occurrence message", e);
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't close key file. Attempting to continue anyway.", e);
-        }
-      }
     }
   }
 

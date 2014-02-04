@@ -155,7 +155,7 @@ public class ZookeeperConnectorTest {
     tp.awaitTermination(10, TimeUnit.MINUTES);
     stopwatch.stop();
     System.out.println(
-      "zk counter adds took [" + stopwatch + "] for an average of [" + (stopwatch.elapsedMillis() / totalCounts)
+      "zk counter adds took [" + stopwatch + "] for an average of [" + stopwatch.elapsed(TimeUnit.MILLISECONDS) / totalCounts
       + " ms/write]");
     fail();
   }

@@ -1,7 +1,7 @@
 package org.gbif.occurrence.processor;
 
-import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.VerbatimPersistedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -46,7 +46,7 @@ public class VerbatimProcessor {
 
   @Inject
   public VerbatimProcessor(FragmentPersistenceService fragmentPersister,
-                           OccurrencePersistenceService occurrencePersister, MessagePublisher messagePublisher,
+    OccurrencePersistenceService occurrencePersister, MessagePublisher messagePublisher,
     ZookeeperConnector zookeeperConnector) {
     this.fragmentPersister = checkNotNull(fragmentPersister, "fragmentPersister can't be null");
     this.occurrencePersister = checkNotNull(occurrencePersister, "occurrencePersister can't be null");

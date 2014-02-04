@@ -16,6 +16,7 @@ import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -278,7 +279,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     HBaseHelper
       .writeField(FieldName.PUB_ORG_KEY, HBaseHelper.nullSafeBytes(occ.getPublishingOrgKey()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.PROTOCOL, HBaseHelper.nullSafeBytes(occ.getProtocol()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.HARVESTED_DATE, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_CRAWLED, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(new Date()), dn, cf, put, del);
   }
 
   private static void writeOccurrence(HTableInterface occTable, byte[] cf, Occurrence occ, boolean dn)

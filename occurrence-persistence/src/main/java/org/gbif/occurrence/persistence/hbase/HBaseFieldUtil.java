@@ -40,13 +40,13 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.FRAGMENT, new HBaseColumn(cf, "x"));
     NAME_MAP.put(FieldName.FRAGMENT_HASH, new HBaseColumn(cf, "xh"));
     NAME_MAP.put(FieldName.XML_SCHEMA, new HBaseColumn(cf, "xs"));
-    NAME_MAP.put(FieldName.HARVESTED_DATE, new HBaseColumn(cf, "hd"));
+    NAME_MAP.put(FieldName.LAST_CRAWLED, new HBaseColumn(cf, "lc"));
     NAME_MAP.put(FieldName.CRAWL_ID, new HBaseColumn(cf, "ci"));
     NAME_MAP.put(FieldName.PROTOCOL, new HBaseColumn(cf, "pr"));
 
     // verbatim occurrence
     NAME_MAP.put(FieldName.CREATED, new HBaseColumn(cf, "crtd"));
-    NAME_MAP.put(FieldName.LAST_CRAWLED, new HBaseColumn(cf, "lc"));
+    NAME_MAP.put(FieldName.LAST_PARSED, new HBaseColumn(cf, "lp"));
 
     // interpreted occurrence
     NAME_MAP.put(FieldName.LAST_INTERPRETED, new HBaseColumn(cf, "li"));
