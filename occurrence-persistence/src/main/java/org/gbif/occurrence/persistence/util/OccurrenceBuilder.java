@@ -207,6 +207,7 @@ public class OccurrenceBuilder {
     verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
     verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY)));
     verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.LAST_CRAWLED));
+    verb.setLastParsed(OccurrenceResultReader.getDate(row, FieldName.LAST_PARSED));
     verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
 
     // all Term fields in row are prefixed

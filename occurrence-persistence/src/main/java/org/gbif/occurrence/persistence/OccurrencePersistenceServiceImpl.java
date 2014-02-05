@@ -16,7 +16,6 @@ import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -239,7 +238,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     Delete del = new Delete(key);
 
     doVerbatimPutDelete(occTable, cf, put, del, occ, dn);
-    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(new Date()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(occ.getLastParsed()), dn, cf, put, del);
 
     occTable.put(put);
     if (dn && !del.isEmpty()) {
