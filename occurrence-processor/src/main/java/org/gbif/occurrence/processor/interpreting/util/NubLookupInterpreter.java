@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Attempts to lookup the nub key and nub classification for a given classification.
+ * TODO: Make this a non static singleton with non static methods so we can mock it to better test classes using it
  */
 public class NubLookupInterpreter {
 
