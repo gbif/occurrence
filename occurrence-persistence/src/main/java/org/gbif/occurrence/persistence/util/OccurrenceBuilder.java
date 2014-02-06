@@ -78,7 +78,7 @@ public class OccurrenceBuilder {
     if (crawlId == null) {
       throw new ValidationException("Fragment with key [" + key + "] has no crawlId.");
     }
-    Long harvested = OccurrenceResultReader.getLong(result, FieldName.HARVESTED_DATE);
+    Long harvested = OccurrenceResultReader.getLong(result, FieldName.LAST_CRAWLED);
     if (harvested == null) {
       throw new ValidationException("Fragment with key [" + key + "] has no harvestedDate.");
     }
@@ -206,7 +206,8 @@ public class OccurrenceBuilder {
     verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
     verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
     verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY)));
-    verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
+    verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.LAST_CRAWLED));
+    verb.setLastParsed(OccurrenceResultReader.getDate(row, FieldName.LAST_PARSED));
     verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
 
     // all Term fields in row are prefixed

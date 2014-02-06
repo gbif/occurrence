@@ -97,7 +97,7 @@
     <geocode.version>0.1</geocode.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.7-SNAPSHOT</gbif-parsers.version>
-    <gbif-postal-service.version>0.8</gbif-postal-service.version>
+    <gbif-postal-service.version>0.10-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>2.9</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.4</checklistbank-ws-client.version>

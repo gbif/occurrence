@@ -167,7 +167,7 @@ public class FragmentPersistenceServiceImplTest {
       Bytes.toBytes(UNIT_QUALIFIER));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));
@@ -192,7 +192,7 @@ public class FragmentPersistenceServiceImplTest {
       Bytes.toBytes(INST_CODE));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));

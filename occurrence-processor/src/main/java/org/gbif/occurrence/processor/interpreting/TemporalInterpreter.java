@@ -177,22 +177,6 @@ public class TemporalInterpreter {
     return null;
   }
 
-  // TODO deal with partial ISO dates: http://dev.gbif.org/issues/browse/POR-1742
-  public static ParseResult<Date> interpretModifiedDate(String dateString) {
-    if (!Strings.isNullOrEmpty(dateString)) {
-      ParseResult<Date> result = DateParseUtils.parse(dateString);
-      if (result.isSuccessful()) {
-        // check year makes sense
-        if (!VALID_MODIFIED_DATE_RANGE.contains(result.getPayload())) {
-          LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
-          // Use correct new issue for dc modified
-          result.addIssue(OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
-        }
-      }
-      return result;
-    }
-    return ParseResult.fail();
-  }
 
   public static ParseResult<Date> interpretDate(String dateString, Range<Date> likelyRange, OccurrenceIssue unlikelyIssue) {
     if (!Strings.isNullOrEmpty(dateString)) {

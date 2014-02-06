@@ -24,7 +24,7 @@ public class TemporalInterpreterTest {
   @Test
   public void testAllDates() {
     VerbatimOccurrence v = new VerbatimOccurrence();
-    v.setField(DwcTerm.year, "1879.");
+    v.setField(DwcTerm.year, "1879");
     v.setField(DwcTerm.month, "11 ");
     v.setField(DwcTerm.day, "1");
     v.setField(DwcTerm.eventDate, "1.11.1879");
@@ -40,6 +40,8 @@ public class TemporalInterpreterTest {
     assertEquals(1879, o.getYear().intValue());
     assertEquals(11, o.getMonth().intValue());
     assertEquals(1, o.getDay().intValue());
+
+    assertEquals(0, o.getIssues().size());
   }
 
   @Test

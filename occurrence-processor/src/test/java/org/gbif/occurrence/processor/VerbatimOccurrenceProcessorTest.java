@@ -33,7 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.gbif.api.model.occurrence.OccurrencePersistenceStatus.NEW;
+import static org.gbif.api.vocabulary.OccurrencePersistenceStatus.NEW;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

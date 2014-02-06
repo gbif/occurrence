@@ -1,9 +1,9 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.parsers.BasisOfRecordParser;
 import org.gbif.common.parsers.TypeStatusParser;

@@ -88,7 +88,7 @@ public class HiveFieldUtil {
 //    FieldName.IDENTIFIER_NAME,
 //    FieldName.IDENTIFICATION_DATE,
     FieldName.CREATED,
-    FieldName.LAST_CRAWLED);
+    FieldName.LAST_PARSED);
 
   private static final Map<FieldName, Term> NAME_MAP = ImmutableMap.<FieldName, Term>builder()
     .put(FieldName.KEY, DwcTerm.occurrenceID)
@@ -149,7 +149,7 @@ public class HiveFieldUtil {
 //    .put(FieldName.BASIS_OF_RECORD, GbifTerm.verbatimBasisOfRecord)
     // internal things
     .put(FieldName.CREATED, GbifTerm.created)
-    .put(FieldName.LAST_CRAWLED, GbifTerm.modified)
+    .put(FieldName.LAST_PARSED, GbifTerm.modified)
     .put(FieldName.I_KINGDOM_KEY, GbifTerm.kingdomID)
     .put(FieldName.I_PHYLUM_KEY, GbifTerm.phylumID)
     .put(FieldName.I_CLASS_KEY, GbifTerm.classID)

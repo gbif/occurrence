@@ -2,8 +2,8 @@ package org.gbif.occurrence.processor;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.crawler.DwcaValidationReport;
-import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.common.messaging.api.Message;
 import org.gbif.common.messaging.api.MessagePublisher;

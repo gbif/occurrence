@@ -1,8 +1,8 @@
 package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;

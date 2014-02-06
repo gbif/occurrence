@@ -169,7 +169,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
       frag.getCrawlId() == null ? null : Bytes.toBytes(frag.getCrawlId()), dn, cf, put, del);
     HBaseHelper.writeField(GbifTerm.unitQualifier,
       frag.getUnitQualifier() == null ? null : Bytes.toBytes(frag.getUnitQualifier()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.HARVESTED_DATE,
+    HBaseHelper.writeField(FieldName.LAST_CRAWLED,
       frag.getHarvestedDate() == null ? null : Bytes.toBytes(frag.getHarvestedDate().getTime()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.FRAGMENT, frag.getData(), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.FRAGMENT_HASH, frag.getDataHash(), dn, cf, put, del);

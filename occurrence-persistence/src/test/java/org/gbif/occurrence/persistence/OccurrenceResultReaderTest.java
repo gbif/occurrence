@@ -39,7 +39,7 @@ public class OccurrenceResultReaderTest {
     kvs.add(buildKv(FieldName.I_ALTITUDE_ACC, Bytes.toBytes(INT_VAL_1)));
     kvs.add(buildKv(FieldName.I_LONGITUDE, Bytes.toBytes(DOUBLE_VAL_1)));
     kvs.add(buildKv(FieldName.I_STATE_PROVINCE, Bytes.toBytes(STRING_VAL_1)));
-    kvs.add(buildKv(FieldName.LAST_CRAWLED, Bytes.toBytes(LONG_VAL_1)));
+    kvs.add(buildKv(FieldName.LAST_PARSED, Bytes.toBytes(LONG_VAL_1)));
 
     result = new Result(kvs);
   }
@@ -66,8 +66,8 @@ public class OccurrenceResultReaderTest {
   @Test
   public void testStringFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [LAST_CRAWLED] is not of type String");
-    OccurrenceResultReader.getString(result, FieldName.LAST_CRAWLED, null);
+    exception.expectMessage("FieldName [LAST_PARSED] is not of type String");
+    OccurrenceResultReader.getString(result, FieldName.LAST_PARSED, null);
   }
 
   @Test
@@ -79,13 +79,13 @@ public class OccurrenceResultReaderTest {
   @Test
   public void testIntegerFail() {
     exception.expect(IllegalArgumentException.class);
-    exception.expectMessage("FieldName [LAST_CRAWLED] is not of type Integer");
-    OccurrenceResultReader.getInteger(result, FieldName.LAST_CRAWLED, null);
+    exception.expectMessage("FieldName [LAST_PARSED] is not of type Integer");
+    OccurrenceResultReader.getInteger(result, FieldName.LAST_PARSED, null);
   }
 
   @Test
   public void testLong() {
-    Long test = OccurrenceResultReader.getLong(result, FieldName.LAST_CRAWLED, null);
+    Long test = OccurrenceResultReader.getLong(result, FieldName.LAST_PARSED, null);
     assertEquals(LONG_VAL_1, test.longValue());
   }
 

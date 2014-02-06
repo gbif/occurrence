@@ -25,7 +25,6 @@ import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -70,7 +69,6 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int FAMILY_KEY = 90897087;
   private static final String GENUS = "Panthera";
   private static final int GENUS_KEY = 9737;
-  private static final Date HARVESTED_DATE = new Date();
   private static final Country PUB_COUNTRY = Country.CANADA;
   private static final String KINGDOM = "Animalia";
   private static final int KINGDOM_ID = 1;
@@ -103,6 +101,8 @@ public class OccurrencePersistenceServiceImplTest {
   private static final EstablishmentMeans ESTAB_MEANS = EstablishmentMeans.NATIVE;
   private static final String GEO_DATUM = "WGS84";
   private static final Integer INDIVIDUAL_COUNT = 123;
+  private static final Date LAST_CRAWLED = new Date();
+  private static final Date LAST_PARSED = new Date();
   private static final Date LAST_INTERPRETED = new Date();
   private static final LifeStage LIFE_STAGE = LifeStage.ADULT;
   private static final Sex SEX = Sex.FEMALE;
@@ -165,8 +165,14 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(GENUS_KEY));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_COUNTRY).getColumnName()),
       Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
-      Bytes.toBytes(HARVESTED_DATE.getTime()));
+
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
+      Bytes.toBytes(LAST_CRAWLED.getTime()));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_PARSED).getColumnName()),
+      Bytes.toBytes(LAST_PARSED.getTime()));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_INTERPRETED).getColumnName()),
+      Bytes.toBytes(LAST_INTERPRETED.getTime()));
+
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM).getColumnName()),
       Bytes.toBytes(KINGDOM));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM_KEY).getColumnName()),
@@ -344,6 +350,7 @@ public class OccurrencePersistenceServiceImplTest {
     // update everything but unique identifier pieces
     Occurrence update = occurrenceService.get(KEY);
 
+    Date origLastParsed = update.getLastParsed();
     int alt = 1234;
     BasisOfRecord bor = BasisOfRecord.OBSERVATION;
     int classId = 88;
@@ -372,6 +379,7 @@ public class OccurrencePersistenceServiceImplTest {
     String species = "T. grandiflorum";
     int speciesId = 3444;
     int year = 1988;
+    Date lastInterpreted = new Date();
 
     update.setAltitude(alt);
     update.setBasisOfRecord(bor);
@@ -385,6 +393,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setCountry(iso);
     update.setKingdom(kingdom);
     update.setKingdomKey(kingdomId);
+    update.setLastInterpreted(lastInterpreted);
     update.setLatitude(lat);
     update.setLongitude(lng);
     update.setModified(mod);
@@ -444,6 +453,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(iso, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertTrue(kingdomId == occ.getKingdomKey());
+    assertEquals(lastInterpreted, occ.getLastInterpreted());
     assertEquals(lat, occ.getLatitude(), 0.0001);
     assertEquals(lng, occ.getLongitude(), 0.0001);
     assertEquals(mod, occ.getModified());
@@ -459,6 +469,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(sciName.equals(occ.getScientificName()));
     assertEquals(species, occ.getSpecies());
     assertTrue(speciesId == occ.getSpeciesKey());
+    assertEquals(origLastParsed, occ.getLastParsed());
     assertTrue(year == occ.getYear());
 
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size() + 3);
@@ -518,13 +529,16 @@ public class OccurrencePersistenceServiceImplTest {
     expected.setDatasetKey(DATASET_KEY);
     expected.setPublishingOrgKey(PUBLISHING_ORG_KEY);
     expected.setPublishingCountry(PUB_COUNTRY);
-    expected.setLastCrawled(HARVESTED_DATE);
+    expected.setLastCrawled(LAST_CRAWLED);
+    expected.setLastParsed(LAST_PARSED);
     expected.setProtocol(PROTOCOL);
     addTerms(expected, TERM_VALUE_PREFIX);
     assertTrue(expected.hasField(DwcTerm.basisOfRecord));
 
     VerbatimOccurrence verb = occurrenceService.getVerbatim(KEY);
     assertNotNull(verb);
+    assertNotNull(verb.getLastParsed());
+    System.out.println("verb last crawled [" + verb.getLastCrawled() + "] parsed [" + verb.getLastParsed() + ']');
     assertEquivalence(expected, verb);
     assertTrue(verb.hasField(DwcTerm.basisOfRecord));
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
@@ -542,13 +556,16 @@ public class OccurrencePersistenceServiceImplTest {
     VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
     orig.setPublishingCountry(Country.VENEZUELA);
     orig.setPublishingOrgKey(UUID.randomUUID());
-    orig.setLastCrawled(new Date());
     orig.setProtocol(EndpointType.DIGIR_MANIS);
+    orig.setLastParsed(new Date());
     addTerms(orig, "I was ");
+    System.out.println("verb orig crawl [" + orig.getLastCrawled() + "] and parse [" + orig.getLastParsed() + ']');
     occurrenceService.update(orig);
 
     VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
+    System.out.println("verb updated crawl [" + got.getLastCrawled() + "] and parse [" + got.getLastParsed() + ']');
     assertNotNull(got);
+    assertNotNull(got.getLastParsed());
     assertEquivalence(orig, got);
   }
 
@@ -594,11 +611,6 @@ public class OccurrencePersistenceServiceImplTest {
     fields.put(term, prefix + term.toString());
 
     occ.setFields(fields);
-  }
-
-  private void addIssues(Occurrence occ) {
-    Set<OccurrenceIssue> issues = EnumSet.allOf(OccurrenceIssue.class);
-    occ.setIssues(issues);
   }
 
   private void assertEquivalence(Occurrence occ) {
@@ -670,6 +682,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(a.getKey(), b.getKey());
     assertEquals(a.getDatasetKey(), b.getDatasetKey());
     assertEquals(a.getLastCrawled(), b.getLastCrawled());
+    assertEquals(a.getLastParsed(), b.getLastParsed());
     assertEquals(a.getProtocol(), b.getProtocol());
     assertEquals(a.getPublishingCountry(), b.getPublishingCountry());
     assertEquals(a.getPublishingOrgKey(), b.getPublishingOrgKey());

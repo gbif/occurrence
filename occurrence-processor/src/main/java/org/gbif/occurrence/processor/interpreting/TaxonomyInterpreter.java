@@ -8,6 +8,8 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.nameparser.NameParser;
+import org.gbif.nameparser.UnparsableException;
 import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
 
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class TaxonomyInterpreter implements Runnable {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
+  private static final NameParser parser = new NameParser();
 
   private VerbatimOccurrence verbatim;
   private Occurrence occ;
@@ -54,6 +57,17 @@ public class TaxonomyInterpreter implements Runnable {
       NameUsageMatch match = nubLookup.getPayload();
       occ.setTaxonKey(nubLookup.getPayload().getUsageKey());
       occ.setScientificName(nubLookup.getPayload().getScientificName());
+      occ.setTaxonRank(nubLookup.getPayload().getRank());
+      // parse name into pieces - we dont get them from the nub lookup
+      try {
+        ParsedName pn = parser.parse(occ.getScientificName());
+        occ.setGenericName(pn.getGenusOrAbove());
+        occ.setSpecificEpithet(pn.getSpecificEpithet());
+        occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());
+      } catch (UnparsableException e) {
+        LOG.warn("Fail to parse backbone name {}: {}", occ.getScientificName(), e);
+      }
+
       for (Rank r : Rank.DWC_RANKS) {
         org.gbif.api.util.ClassificationUtils.setHigherRank(occ, r, match.getHigherRank(r));
         org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));

@@ -12,11 +12,14 @@ import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.processor.VerbatimProcessor;
 import org.gbif.occurrence.processor.messaging.FragmentPersistedListener;
+import org.gbif.occurrence.processor.messaging.ParseFragmentListener;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Collection;
+import java.util.Set;
 
 import com.beust.jcommander.internal.Lists;
+import com.beust.jcommander.internal.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.netflix.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -25,8 +28,8 @@ import org.apache.hadoop.hbase.client.HTablePool;
 public class VerbatimProcessorService extends AbstractIdleService {
 
   private final ProcessorConfiguration configuration;
-  private MessageListener messageListener;
   private CuratorFramework curator;
+  private final Set<MessageListener> listeners = Sets.newHashSet();
   private final Collection<HTablePool> tablePools = Lists.newArrayList();
 
   public VerbatimProcessorService(ProcessorConfiguration configuration) {
@@ -64,17 +67,27 @@ public class VerbatimProcessorService extends AbstractIdleService {
     VerbatimProcessor verbatimProcessor = new VerbatimProcessor(fragmentPersister, occurrenceService,
       new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()), zkConnector);
 
-    messageListener = new MessageListener(configuration.messaging.getConnectionParameters());
-    messageListener
-      .listen(configuration.queueName, configuration.msgPoolSize, new FragmentPersistedListener(verbatimProcessor));
+    MessageListener listener = new MessageListener(configuration.messaging.getConnectionParameters());
+    listener.listen(configuration.primaryQueueName, configuration.msgPoolSize,
+      new FragmentPersistedListener(verbatimProcessor));
+    listeners.add(listener);
+
+    listener = new MessageListener(configuration.messaging.getConnectionParameters());
+    listener.listen(configuration.secondaryQueueName, configuration.msgPoolSize,
+      new ParseFragmentListener(verbatimProcessor));
+    listeners.add(listener);
   }
 
   @Override
   protected void shutDown() throws Exception {
-    if (messageListener != null) {
-      messageListener.close();
+    for (MessageListener listener : listeners) {
+      if (listener != null) {
+        listener.close();
+      }
     }
-    curator.close();
+    if (curator != null) {
+      curator.close();
+    }
     for (HTablePool pool : tablePools) {
       if (pool != null) {
         pool.close();

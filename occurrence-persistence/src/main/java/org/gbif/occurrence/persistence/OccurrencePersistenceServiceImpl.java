@@ -238,6 +238,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     Delete del = new Delete(key);
 
     doVerbatimPutDelete(occTable, cf, put, del, occ, dn);
+    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(occ.getLastParsed()), dn, cf, put, del);
 
     occTable.put(put);
     if (dn && !del.isEmpty()) {
@@ -278,7 +279,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     HBaseHelper
       .writeField(FieldName.PUB_ORG_KEY, HBaseHelper.nullSafeBytes(occ.getPublishingOrgKey()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.PROTOCOL, HBaseHelper.nullSafeBytes(occ.getProtocol()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.HARVESTED_DATE, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_CRAWLED, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), dn, cf, put, del);
   }
 
   private static void writeOccurrence(HTableInterface occTable, byte[] cf, Occurrence occ, boolean dn)

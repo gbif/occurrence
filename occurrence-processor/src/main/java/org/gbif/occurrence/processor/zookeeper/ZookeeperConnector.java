@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import com.google.inject.Singleton;
 import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.imps.CuratorFrameworkState;
 import com.netflix.curator.framework.recipes.atomic.DistributedAtomicLong;
 import com.netflix.curator.retry.RetryNTimes;
 import com.yammer.metrics.Metrics;
@@ -49,7 +50,7 @@ public class ZookeeperConnector {
    */
   public ZookeeperConnector(final CuratorFramework curator) {
     checkNotNull(curator, "curator can't be null");
-    if (!curator.isStarted()) {
+    if (curator.getState() != CuratorFrameworkState.STARTED) {
       curator.start();
     }
     this.curator = curator;
