@@ -738,17 +738,17 @@
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>uat</occurrence.environment>
         <!-- webservices -->
-        <occurrence.search.solr.server>http://appuat.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://appuat.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
-        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://uat.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
-        <registry.ws.url>http://uat.gbif.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
+        <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://apps.gbif-uat.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
+        <registry.ws.url>http://api.gbif-uat.org/v0.9/</registry.ws.url>
+        <geocode.ws.url>http://api.gbif-uat.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.username>occdownload.gbif-uat.org</occurrence.download.ws.username>
       </properties>
     </profile>
 
