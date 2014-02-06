@@ -738,8 +738,8 @@
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>uat</occurrence.environment>
         <!-- webservices -->
-        <occurrence.search.solr.server>http://uat.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://uat.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <occurrence.search.solr.server>http://appuat.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://appuat.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
         <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://uat.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://uat.gbif.org:8080/registry-ws</registry.ws.url>
