@@ -110,10 +110,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         case I_FAMILY_KEY:
         case I_GENUS_KEY:
         case I_SPECIES_KEY:
-        case I_ALTITUDE:
+        case I_ELEVATION:
         case I_DEPTH:
-        case I_LATITUDE:
-        case I_LONGITUDE:
+        case I_DECIMAL_LATITUDE:
+        case I_DECIMAL_LONGITUDE:
         case I_YEAR:
         case I_MONTH:
         case I_COUNTRY:

@@ -85,14 +85,14 @@ public class OccurrenceMapReader {
       occ.put(getHiveField(FieldName.I_FAMILY_KEY), getInteger(row, FieldName.I_FAMILY_KEY));
       occ.put(getHiveField(FieldName.I_GENUS_KEY), getInteger(row, FieldName.I_GENUS_KEY));
       occ.put(getHiveField(FieldName.I_SPECIES_KEY), getInteger(row, FieldName.I_SPECIES_KEY));
-      occ.put(getHiveField(FieldName.PUB_COUNTRY), getString(row, FieldName.PUB_COUNTRY));
+      occ.put(getHiveField(FieldName.PUB_COUNTRY_CODE), getString(row, FieldName.PUB_COUNTRY_CODE));
       occ.put(getHiveField(FieldName.PUB_ORG_KEY), getUuid(row, FieldName.PUB_ORG_KEY));
-      occ.put(getHiveField(FieldName.I_LATITUDE), getDouble(row, FieldName.I_LATITUDE));
-      occ.put(getHiveField(FieldName.I_LONGITUDE), getDouble(row, FieldName.I_LONGITUDE));
+      occ.put(getHiveField(FieldName.I_DECIMAL_LATITUDE), getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+      occ.put(getHiveField(FieldName.I_DECIMAL_LONGITUDE), getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
       occ.put(getHiveField(FieldName.I_YEAR), getInteger(row, FieldName.I_YEAR));
       occ.put(getHiveField(FieldName.I_MONTH), getInteger(row, FieldName.I_MONTH));
       occ.put(getHiveField(FieldName.I_EVENT_DATE), toISO8601Date(getDate(row, FieldName.I_EVENT_DATE)));
-      occ.put(getHiveField(FieldName.I_ALTITUDE), getInteger(row, FieldName.I_ALTITUDE));
+      occ.put(getHiveField(FieldName.I_ELEVATION), getInteger(row, FieldName.I_ELEVATION));
       occ.put(getHiveField(FieldName.I_DEPTH), getInteger(row, FieldName.I_DEPTH));
 //      occ.put(getHiveField(FieldName.SCIENTIFIC_NAME), getCleanString(row, FieldName.SCIENTIFIC_NAME));
 //      occ.put(getHiveField(FieldName.RANK), getCleanString(row, FieldName.RANK));

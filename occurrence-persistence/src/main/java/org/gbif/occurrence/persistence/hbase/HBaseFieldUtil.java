@@ -30,7 +30,7 @@ public class HBaseFieldUtil {
     String cf = HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY;
     NAME_MAP.put(FieldName.DATASET_KEY, new HBaseColumn(cf, "dk"));
     NAME_MAP.put(FieldName.PUB_ORG_KEY, new HBaseColumn(cf, "pok"));
-    NAME_MAP.put(FieldName.PUB_COUNTRY, new HBaseColumn(cf, "pc"));
+    NAME_MAP.put(FieldName.PUB_COUNTRY_CODE, new HBaseColumn(cf, "pcc"));
     NAME_MAP.put(FieldName.INSTITUTION_CODE, new HBaseColumn(cf, "ic"));
     NAME_MAP.put(FieldName.COLLECTION_CODE, new HBaseColumn(cf, "cc"));
     NAME_MAP.put(FieldName.CATALOG_NUMBER, new HBaseColumn(cf, "cn"));
@@ -60,6 +60,10 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.I_SUBGENUS, new HBaseColumn(cf, "isg"));
     NAME_MAP.put(FieldName.I_SPECIES, new HBaseColumn(cf, "is"));
     NAME_MAP.put(FieldName.I_SCIENTIFIC_NAME, new HBaseColumn(cf, "isn"));
+    NAME_MAP.put(FieldName.I_SPECIFIC_EPITHET, new HBaseColumn(cf, "ise"));
+    NAME_MAP.put(FieldName.I_INFRASPECIFIC_EPITHET, new HBaseColumn(cf, "iise"));
+    NAME_MAP.put(FieldName.I_GENERIC_NAME, new HBaseColumn(cf, "ign"));
+    NAME_MAP.put(FieldName.I_TAXON_RANK, new HBaseColumn(cf, "itr"));
     NAME_MAP.put(FieldName.I_KINGDOM_KEY, new HBaseColumn(cf, "ikk"));
     NAME_MAP.put(FieldName.I_PHYLUM_KEY, new HBaseColumn(cf, "ipk"));
     NAME_MAP.put(FieldName.I_CLASS_KEY, new HBaseColumn(cf, "ick"));
@@ -75,14 +79,16 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.I_STATE_PROVINCE, new HBaseColumn(cf, "isp"));
     NAME_MAP.put(FieldName.I_WATERBODY, new HBaseColumn(cf, "iwb"));
 
-    NAME_MAP.put(FieldName.I_LATITUDE, new HBaseColumn(cf, "ilat"));
-    NAME_MAP.put(FieldName.I_LONGITUDE, new HBaseColumn(cf, "ilng"));
+    NAME_MAP.put(FieldName.I_DECIMAL_LATITUDE, new HBaseColumn(cf, "ilat"));
+    NAME_MAP.put(FieldName.I_DECIMAL_LONGITUDE, new HBaseColumn(cf, "ilng"));
     NAME_MAP.put(FieldName.I_COORD_ACCURACY, new HBaseColumn(cf, "icdacc"));
     NAME_MAP.put(FieldName.I_GEODETIC_DATUM, new HBaseColumn(cf, "igd"));
-    NAME_MAP.put(FieldName.I_ALTITUDE, new HBaseColumn(cf, "ialt"));
-    NAME_MAP.put(FieldName.I_ALTITUDE_ACC, new HBaseColumn(cf, "ialtacc"));
+    NAME_MAP.put(FieldName.I_ELEVATION, new HBaseColumn(cf, "ialt"));
+    NAME_MAP.put(FieldName.I_ELEVATION_ACC, new HBaseColumn(cf, "ialtacc"));
     NAME_MAP.put(FieldName.I_DEPTH, new HBaseColumn(cf, "idep"));
     NAME_MAP.put(FieldName.I_DEPTH_ACC, new HBaseColumn(cf, "idepacc"));
+    NAME_MAP.put(FieldName.I_DIST_ABOVE_SURFACE, new HBaseColumn(cf, "idas"));
+    NAME_MAP.put(FieldName.I_DIST_ABOVE_SURFACE_ACC, new HBaseColumn(cf, "idasacc"));
 
     NAME_MAP.put(FieldName.I_YEAR, new HBaseColumn(cf, "iy"));
     NAME_MAP.put(FieldName.I_MONTH, new HBaseColumn(cf, "im"));

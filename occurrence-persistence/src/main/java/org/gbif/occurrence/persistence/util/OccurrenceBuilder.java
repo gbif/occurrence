@@ -12,6 +12,7 @@ import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.GbifTerm;
@@ -124,7 +125,7 @@ public class OccurrenceBuilder {
       Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
       Integer key = Bytes.toInt(row.getRow());
       occ.setKey(key);
-      occ.setElevation(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE));
+      occ.setElevation(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION));
       occ.setBasisOfRecord(HBaseHelper
         .nullSafeEnum(BasisOfRecord.class, OccurrenceResultReader.getString(row, FieldName.I_BASIS_OF_RECORD)));
       occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
@@ -135,12 +136,12 @@ public class OccurrenceBuilder {
       occ.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
       occ.setGenus(OccurrenceResultReader.getString(row, FieldName.I_GENUS));
       occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
-      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY)));
+      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY_CODE)));
       occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));
       occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
-      occ.setDecimalLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
-      occ.setDecimalLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
+      occ.setDecimalLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+      occ.setDecimalLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
       occ.setModified(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED));
       occ.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
       occ.setTaxonKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
@@ -162,10 +163,12 @@ public class OccurrenceBuilder {
       occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.I_DATE_IDENTIFIED));
 
       // new for occurrence widening
-      occ.setElevationAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE_ACC));
+      occ.setElevationAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION_ACC));
       occ.setCoordinateAccuracy(OccurrenceResultReader.getDouble(row, FieldName.I_COORD_ACCURACY));
       occ.setDay(OccurrenceResultReader.getInteger(row, FieldName.I_DAY));
       occ.setDepthAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH_ACC));
+      occ.setDistanceAboveSurface(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE));
+      occ.setDistanceAboveSurfaceAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE_ACC));
       occ.setEstablishmentMeans(HBaseHelper
         .nullSafeEnum(EstablishmentMeans.class, OccurrenceResultReader.getString(row, FieldName.I_ESTAB_MEANS)));
       occ.setIndividualCount(OccurrenceResultReader.getInteger(row, FieldName.I_INDIVIDUAL_COUNT));
@@ -180,6 +183,11 @@ public class OccurrenceBuilder {
       occ.setTypeStatus(
         HBaseHelper.nullSafeEnum(TypeStatus.class, OccurrenceResultReader.getString(row, FieldName.I_TYPE_STATUS)));
       occ.setTypifiedName(OccurrenceResultReader.getString(row, FieldName.I_TYPIFIED_NAME));
+
+      occ.setGenericName(OccurrenceResultReader.getString(row, FieldName.I_GENERIC_NAME));
+      occ.setSpecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_SPECIFIC_EPITHET));
+      occ.setInfraspecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_INFRASPECIFIC_EPITHET));
+      occ.setTaxonRank(HBaseHelper.nullSafeEnum(Rank.class, OccurrenceResultReader.getString(row, FieldName.I_TAXON_RANK)));
 
       occ.setIdentifiers(extractIdentifiers(key, row, HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY));
       occ.setIssues(extractIssues(row));
@@ -202,7 +210,7 @@ public class OccurrenceBuilder {
     verb.setKey(Bytes.toInt(row.getRow()));
     verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
     verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
-    verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY)));
+    verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY_CODE)));
     verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.LAST_CRAWLED));
     verb.setLastParsed(OccurrenceResultReader.getDate(row, FieldName.LAST_PARSED));
     verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));

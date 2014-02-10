@@ -59,7 +59,7 @@ public class CSVFileBuilder {
       return null;
     } else {
       result.add(objectToString(Integer.toString(Bytes.toInt(row.getRow()))));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE)));
+      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION)));
       result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD)));
       result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER)));
       result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY)));
@@ -75,8 +75,8 @@ public class CSVFileBuilder {
       result.add(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
       result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM)));
       result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE)));
-      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE)));
+      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE)));
+      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE)));
       result.add(objectToString(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED)));
       result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH)));
       result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY)));

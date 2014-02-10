@@ -11,6 +11,7 @@ import org.gbif.api.vocabulary.EstablishmentMeans;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DcTerm;
@@ -59,7 +60,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int KEY = 1000000;
   private static final int BAD_KEY = 2000000;
 
-  private static final int ALT = 1000;
+  private static final int ELEV = 1000;
   private static final BasisOfRecord BOR = BasisOfRecord.PRESERVED_SPECIMEN;
   private static final int CLASS_ID = 99;
   private static final String CLASS = "Mammalia";
@@ -91,7 +92,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final String XML = "<record>some fake xml</record>";
 
   // newer fields from occurrence widening
-  private static final Integer ALT_ACC = 10;
+  private static final Integer ELEV_ACC = 10;
   private static final Double COORD_ACC = 10.0;
   private static final Continent CONTINENT = Continent.AFRICA;
   private static final Country COUNTRY = Country.TANZANIA;
@@ -112,6 +113,13 @@ public class OccurrencePersistenceServiceImplTest {
   private static final Integer SUBGENUS_KEY = 123;
   private static final TypeStatus TYPE_STATUS = TypeStatus.EPITYPE;
   private static final String TYPIFIED_NAME = "Aloo gobi";
+  // even newer fields
+  private static final Integer DIST_ABOVE_SURFACE = 50;
+  private static final Integer DIST_ABOVE_SURFACE_ACC = 10;
+  private static final String GENERIC_NAME = "generic name";
+  private static final String SPECIFIC_EPITHET = "onca";
+  private static final String INFRA_SPECIFIC_EPITHET = "infraonca";
+  private static final Rank TAXON_RANK = Rank.SPECIES;
 
   private static final String ID_0 = "http://gbif.org";
   private static final String ID_TYPE_0 = "URL";
@@ -147,7 +155,7 @@ public class OccurrencePersistenceServiceImplTest {
     occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ALTITUDE).getColumnName()), Bytes.toBytes(ALT));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ELEVATION).getColumnName()), Bytes.toBytes(ELEV));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_BASIS_OF_RECORD).getColumnName()),
       Bytes.toBytes(BOR.name()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_KEY).getColumnName()),
@@ -163,7 +171,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS).getColumnName()), Bytes.toBytes(GENUS));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS_KEY).getColumnName()),
       Bytes.toBytes(GENUS_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_COUNTRY).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_COUNTRY_CODE).getColumnName()),
       Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
 
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
@@ -177,9 +185,9 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(KINGDOM));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM_KEY).getColumnName()),
       Bytes.toBytes(KINGDOM_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LATITUDE).getColumnName()), Bytes.toBytes(LAT));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LATITUDE).getColumnName()), Bytes.toBytes(LAT));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LONGITUDE).getColumnName()), Bytes.toBytes(LNG));
+      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LONGITUDE).getColumnName()), Bytes.toBytes(LNG));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_MODIFIED).getColumnName()),
       Bytes.toBytes(MOD.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_MONTH).getColumnName()), Bytes.toBytes(MONTH));
@@ -207,8 +215,8 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()), Bytes.toBytes(YEAR));
 
     // new for occurrence widening
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ALTITUDE_ACC).getColumnName()),
-      Bytes.toBytes(ALT_ACC));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ELEVATION_ACC).getColumnName()),
+      Bytes.toBytes(ELEV_ACC));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_COORD_ACCURACY).getColumnName()),
       Bytes.toBytes(COORD_ACC));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CONTINENT).getColumnName()),
@@ -244,6 +252,19 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(TYPE_STATUS.toString()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TYPIFIED_NAME).getColumnName()),
       Bytes.toBytes(TYPIFIED_NAME));
+
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENERIC_NAME).getColumnName()),
+      Bytes.toBytes(GENERIC_NAME));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIFIC_EPITHET).getColumnName()),
+      Bytes.toBytes(SPECIFIC_EPITHET));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_INFRASPECIFIC_EPITHET).getColumnName()),
+      Bytes.toBytes(INFRA_SPECIFIC_EPITHET));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXON_RANK).getColumnName()),
+      Bytes.toBytes(TAXON_RANK.name()));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DIST_ABOVE_SURFACE).getColumnName()),
+      Bytes.toBytes(DIST_ABOVE_SURFACE));
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DIST_ABOVE_SURFACE_ACC).getColumnName()),
+      Bytes.toBytes(DIST_ABOVE_SURFACE_ACC));
 
     put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
     put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
@@ -356,12 +377,16 @@ public class OccurrencePersistenceServiceImplTest {
     int classId = 88;
     String clazz = "Monocots";
     int depth = 120;
+    int distAbove = 500;
+    int distAboveAcc = 2;
     String family = "Melanthiaceae";
     int familyId = 96578787;
+    String genericName = "generic trillium";
     String genus = "Trillium";
     int genusId = 7878;
     Country publishingCountry = Country.ALBANIA;
-    Country iso = Country.CANADA;
+    String infraEpithet = "infragrand";
+    Country country = Country.CANADA;
     String kingdom = "Plantae";
     int kingdomId = 2;
     double lat = 46.344;
@@ -376,8 +401,10 @@ public class OccurrencePersistenceServiceImplTest {
     int phylumId = 422;
     EndpointType protocol = EndpointType.TAPIR;
     String sciName = "Trillium grandiflorum";
+    String specificEpithet = "grandiflorum";
     String species = "T. grandiflorum";
     int speciesId = 3444;
+    Rank taxonRank = Rank.CULTIVAR;
     int year = 1988;
     Date lastInterpreted = new Date();
 
@@ -390,7 +417,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setFamilyKey(familyId);
     update.setGenus(genus);
     update.setGenusKey(genusId);
-    update.setCountry(iso);
+    update.setCountry(country);
     update.setKingdom(kingdom);
     update.setKingdomKey(kingdomId);
     update.setLastInterpreted(lastInterpreted);
@@ -410,6 +437,13 @@ public class OccurrencePersistenceServiceImplTest {
     update.setSpecies(species);
     update.setSpeciesKey(speciesId);
     update.setYear(year);
+
+    update.setSpecificEpithet(specificEpithet);
+    update.setInfraspecificEpithet(infraEpithet);
+    update.setGenericName(genericName);
+    update.setTaxonRank(taxonRank);
+    update.setDistanceAboveSurface(distAbove);
+    update.setDistanceAboveSurfaceAccuracy(distAboveAcc);
 
     String id0 = "http://www.ala.org.au";
     IdentifierType idType0 = IdentifierType.GBIF_NODE;
@@ -450,7 +484,7 @@ public class OccurrencePersistenceServiceImplTest {
     Identifier updatedRecord = occ.getIdentifiers().iterator().next();
     assertTrue(id0.equals(updatedRecord.getIdentifier()));
     assertEquals(idType0, updatedRecord.getType());
-    assertEquals(iso, occ.getCountry());
+    assertEquals(country, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertTrue(kingdomId == occ.getKingdomKey());
     assertEquals(lastInterpreted, occ.getLastInterpreted());
@@ -471,6 +505,13 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(speciesId == occ.getSpeciesKey());
     assertEquals(origLastParsed, occ.getLastParsed());
     assertTrue(year == occ.getYear());
+
+    assertEquals(specificEpithet, occ.getSpecificEpithet());
+    assertEquals(infraEpithet, occ.getInfraspecificEpithet());
+    assertEquals(genericName, occ.getGenericName());
+    assertEquals(taxonRank, occ.getTaxonRank());
+    assertEquals((Integer) distAbove, occ.getDistanceAboveSurface());
+    assertEquals((Integer) distAboveAcc, occ.getDistanceAboveSurfaceAccuracy());
 
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size() + 3);
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_MIN_MAX_SWAPPED));
@@ -538,7 +579,6 @@ public class OccurrencePersistenceServiceImplTest {
     VerbatimOccurrence verb = occurrenceService.getVerbatim(KEY);
     assertNotNull(verb);
     assertNotNull(verb.getLastParsed());
-    System.out.println("verb last crawled [" + verb.getLastCrawled() + "] parsed [" + verb.getLastParsed() + ']');
     assertEquivalence(expected, verb);
     assertTrue(verb.hasVerbatimField(DwcTerm.basisOfRecord));
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
@@ -559,11 +599,9 @@ public class OccurrencePersistenceServiceImplTest {
     orig.setProtocol(EndpointType.DIGIR_MANIS);
     orig.setLastParsed(new Date());
     addTerms(orig, "I was ");
-    System.out.println("verb orig crawl [" + orig.getLastCrawled() + "] and parse [" + orig.getLastParsed() + ']');
     occurrenceService.update(orig);
 
     VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
-    System.out.println("verb updated crawl [" + got.getLastCrawled() + "] and parse [" + got.getLastParsed() + ']');
     assertNotNull(got);
     assertNotNull(got.getLastParsed());
     assertEquivalence(orig, got);
@@ -616,8 +654,8 @@ public class OccurrencePersistenceServiceImplTest {
   private void assertEquivalence(Occurrence occ) {
     assertNotNull(occ);
 
-    assertEquals((Integer) ALT, occ.getElevation());
-    assertEquals(ALT_ACC, occ.getElevationAccuracy());
+    assertEquals((Integer) ELEV, occ.getElevation());
+    assertEquals(ELEV_ACC, occ.getElevationAccuracy());
     assertEquals(BOR, occ.getBasisOfRecord());
     assertEquals(COORD_ACC, occ.getCoordinateAccuracy());
     assertEquals(CONTINENT, occ.getContinent());
@@ -627,6 +665,8 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(DAY, occ.getDay());
     assertEquals((Integer) DEPTH, occ.getDepth());
     assertEquals(DEPTH_ACC, occ.getDepthAccuracy());
+    assertEquals(DIST_ABOVE_SURFACE, occ.getDistanceAboveSurface());
+    assertEquals(DIST_ABOVE_SURFACE_ACC, occ.getDistanceAboveSurfaceAccuracy());
     assertEquals(ESTAB_MEANS, occ.getEstablishmentMeans());
     assertEquals(EVENT_DATE, occ.getEventDate());
     assertEquals(GEO_DATUM, occ.getGeodeticDatum());
@@ -654,6 +694,10 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(GENUS, occ.getGenus());
     assertEquals(SUBGENUS, occ.getSubgenus());
     assertEquals(SPECIES, occ.getSpecies());
+    assertEquals(GENERIC_NAME, occ.getGenericName());
+    assertEquals(SPECIFIC_EPITHET, occ.getSpecificEpithet());
+    assertEquals(INFRA_SPECIFIC_EPITHET, occ.getInfraspecificEpithet());
+    assertEquals(TAXON_RANK, occ.getTaxonRank());
 
     assertEquals(SCI_NAME, occ.getScientificName());
 
@@ -664,7 +708,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Integer) ORDER_KEY, occ.getOrderKey());
     assertEquals((Integer) FAMILY_KEY, occ.getFamilyKey());
     assertEquals((Integer) GENUS_KEY, occ.getGenusKey());
-    assertEquals((Integer) SUBGENUS_KEY, occ.getSubgenusKey());
+    assertEquals(SUBGENUS_KEY, occ.getSubgenusKey());
     assertEquals((Integer) SPECIES_KEY, occ.getSpeciesKey());
 
     // type

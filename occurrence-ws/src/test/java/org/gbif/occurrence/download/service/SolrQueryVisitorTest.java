@@ -66,14 +66,14 @@ public class SolrQueryVisitorTest {
 
   @Test
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
-    Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "222");
+    Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "222");
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("altitude:[222 TO *]"));
   }
 
   @Test
   public void testGreaterThanPredicate() throws QueryBuildingException {
-    Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("altitude:{1000 TO *]"));
   }
@@ -88,14 +88,14 @@ public class SolrQueryVisitorTest {
 
   @Test
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
-    Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("altitude:[* TO 1000]"));
   }
 
   @Test
   public void testLessThanPredicate() throws QueryBuildingException {
-    Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("altitude:[* TO 1000}"));
   }
@@ -127,7 +127,7 @@ public class SolrQueryVisitorTest {
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("catalog_number:\"my\\ 'pleasure'\""));
 
-    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "101");
+    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "101");
     query = visitor.getQuery(p);
     assertThat(query, equalTo("altitude:[* TO 101]"));
 

@@ -36,8 +36,8 @@ public class OccurrenceResultReaderTest {
     List<KeyValue> kvs = Lists.newArrayList();
 
     // mimic four fields of an occurrence row
-    kvs.add(buildKv(FieldName.I_ALTITUDE_ACC, Bytes.toBytes(INT_VAL_1)));
-    kvs.add(buildKv(FieldName.I_LONGITUDE, Bytes.toBytes(DOUBLE_VAL_1)));
+    kvs.add(buildKv(FieldName.I_ELEVATION_ACC, Bytes.toBytes(INT_VAL_1)));
+    kvs.add(buildKv(FieldName.I_DECIMAL_LONGITUDE, Bytes.toBytes(DOUBLE_VAL_1)));
     kvs.add(buildKv(FieldName.I_STATE_PROVINCE, Bytes.toBytes(STRING_VAL_1)));
     kvs.add(buildKv(FieldName.LAST_PARSED, Bytes.toBytes(LONG_VAL_1)));
 
@@ -72,7 +72,7 @@ public class OccurrenceResultReaderTest {
 
   @Test
   public void testInteger() {
-    Integer test = OccurrenceResultReader.getInteger(result, FieldName.I_ALTITUDE_ACC, null);
+    Integer test = OccurrenceResultReader.getInteger(result, FieldName.I_ELEVATION_ACC, null);
     assertEquals(INT_VAL_1, test.intValue());
   }
 
@@ -98,7 +98,7 @@ public class OccurrenceResultReaderTest {
 
   @Test
   public void testDouble() {
-    Double test = OccurrenceResultReader.getDouble(result, FieldName.I_LONGITUDE, null);
+    Double test = OccurrenceResultReader.getDouble(result, FieldName.I_DECIMAL_LONGITUDE, null);
     assertEquals(DOUBLE_VAL_1, test, 0.00001);
   }
 
@@ -111,7 +111,7 @@ public class OccurrenceResultReaderTest {
 
   @Test
   public void testObject() {
-    Object test = OccurrenceResultReader.get(result, FieldName.I_LONGITUDE);
+    Object test = OccurrenceResultReader.get(result, FieldName.I_DECIMAL_LONGITUDE);
     assertEquals(DOUBLE_VAL_1, (Double) test, 0.00001);
   }
 }

@@ -94,9 +94,9 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.DATASET_KEY, FieldName.DATASET_KEY)
     .put(OccurrenceSearchParameter.YEAR, FieldName.I_YEAR)
     .put(OccurrenceSearchParameter.MONTH, FieldName.I_MONTH)
-    .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, FieldName.I_LATITUDE)
-    .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, FieldName.I_LONGITUDE)
-    .put(OccurrenceSearchParameter.ELEVATION, FieldName.I_ALTITUDE)
+    .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, FieldName.I_DECIMAL_LATITUDE)
+    .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, FieldName.I_DECIMAL_LONGITUDE)
+    .put(OccurrenceSearchParameter.ELEVATION, FieldName.I_ELEVATION)
     .put(OccurrenceSearchParameter.DEPTH, FieldName.I_DEPTH)
     .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
     .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
@@ -108,7 +108,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_PARSED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
-    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY)
+    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY_CODE)
 //    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
     .build();
 
@@ -228,9 +228,9 @@ class HiveQueryVisitor {
     builder.append("contains(\"");
     builder.append(within.getGeometry());
     builder.append("\", ");
-    builder.append(HiveFieldUtil.getHiveField(FieldName.I_LATITUDE));
+    builder.append(HiveFieldUtil.getHiveField(FieldName.I_DECIMAL_LATITUDE));
     builder.append(", ");
-    builder.append(HiveFieldUtil.getHiveField(FieldName.I_LONGITUDE));
+    builder.append(HiveFieldUtil.getHiveField(FieldName.I_DECIMAL_LONGITUDE));
     builder.append(')');
   }
 

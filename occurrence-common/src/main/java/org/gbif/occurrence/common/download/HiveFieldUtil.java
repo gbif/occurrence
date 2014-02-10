@@ -48,13 +48,13 @@ public class HiveFieldUtil {
     FieldName.I_GENUS_KEY,
     FieldName.I_SPECIES_KEY,
     FieldName.I_COUNTRY,
-    FieldName.PUB_COUNTRY,
-    FieldName.I_LATITUDE,
-    FieldName.I_LONGITUDE,
+    FieldName.PUB_COUNTRY_CODE,
+    FieldName.I_DECIMAL_LATITUDE,
+    FieldName.I_DECIMAL_LONGITUDE,
     FieldName.I_YEAR,
     FieldName.I_MONTH,
     FieldName.I_EVENT_DATE,
-    FieldName.I_ALTITUDE,
+    FieldName.I_ELEVATION,
     FieldName.I_DEPTH,
 //    FieldName.SCIENTIFIC_NAME,
 //    FieldName.RANK,
@@ -109,13 +109,13 @@ public class HiveFieldUtil {
 //    .put(FieldName.RANK, DwcTerm.taxonRank)
     .put(FieldName.I_TAXON_KEY, DwcTerm.taxonID)
     .put(FieldName.I_COUNTRY, DwcTerm.countryCode)
-    .put(FieldName.I_LATITUDE, DwcTerm.decimalLatitude)
-    .put(FieldName.I_LONGITUDE, DwcTerm.decimalLongitude)
+    .put(FieldName.I_DECIMAL_LATITUDE, DwcTerm.decimalLatitude)
+    .put(FieldName.I_DECIMAL_LONGITUDE, DwcTerm.decimalLongitude)
     .put(FieldName.I_YEAR, DwcTerm.year)
     .put(FieldName.I_MONTH, DwcTerm.month)
 //    .put(FieldName.DAY, DwcTerm.day)
     .put(FieldName.I_EVENT_DATE, DwcTerm.eventDate)
-    .put(FieldName.I_ALTITUDE, GbifTerm.elevationInMeters)
+    .put(FieldName.I_ELEVATION, GbifTerm.elevationInMeters)
 //    .put(FieldName.MIN_ALTITUDE, DwcTerm.minimumElevationInMeters)
 //    .put(FieldName.MAX_ALTITUDE, DwcTerm.maximumElevationInMeters)
     .put(FieldName.I_DEPTH, GbifTerm.depthInMeters)
@@ -158,7 +158,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
     .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
 //    .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    .put(FieldName.PUB_COUNTRY, new UnknownTerm("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
+    .put(FieldName.PUB_COUNTRY_CODE, new UnknownTerm("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
     .build();
 
   /**
@@ -176,9 +176,9 @@ public class HiveFieldUtil {
               return "order_";
             case I_CLASS:
               return "class_";
-            case I_LATITUDE:
+            case I_DECIMAL_LATITUDE:
               return "latitude";
-            case I_LONGITUDE:
+            case I_DECIMAL_LONGITUDE:
               return "longitude";
 //            case AUTHOR:
 //              return "scientific_name_author";
@@ -186,7 +186,7 @@ public class HiveFieldUtil {
 //              return "continent_ocean"; // see dev.gbif.org/issues/browse/OCC-197
             case PUB_ORG_KEY:
               return "publishing_organization";
-            case PUB_COUNTRY:
+            case PUB_COUNTRY_CODE:
               return "publishing_country";
             default:
               return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, value.simpleName())

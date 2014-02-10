@@ -48,7 +48,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
 
   /**
    * Writes the occurrence record into the hbase table.
-   * 
+   *
    * @param occ occurrence object that will be written to hbase
    */
   private void write(Occurrence occ) throws IOException {
@@ -56,7 +56,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
 
 
     if (occ.getElevation() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ALTITUDE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ELEVATION).getColumnName()),
         Bytes.toBytes(occ.getElevation()));
     }
 
@@ -146,12 +146,12 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     }
 
     if (occ.getDecimalLatitude() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LATITUDE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LATITUDE).getColumnName()),
         Bytes.toBytes(occ.getDecimalLatitude()));
     }
 
     if (occ.getDecimalLongitude() != null) {
-      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LONGITUDE).getColumnName()),
+      put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LONGITUDE).getColumnName()),
         Bytes.toBytes(occ.getDecimalLongitude()));
     }
 
