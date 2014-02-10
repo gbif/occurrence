@@ -8,6 +8,7 @@ import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.common.parsers.date.YearMonthDay;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.util.Calendar;
@@ -33,10 +34,10 @@ public class TemporalInterpreter {
   // max is next year
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE =
-    Range.closed(1700, Calendar.getInstance().get(Calendar.YEAR) + 1);
+    Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR) + 1);
   @VisibleForTesting
   protected static final Range<Date> VALID_RECORDED_DATE_RANGE =
-    Range.closed(new GregorianCalendar(1700, 0, 1).getTime(), new Date());
+    Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
 
   // modified date for a record cant be before unix time
   @VisibleForTesting
@@ -68,6 +69,8 @@ public class TemporalInterpreter {
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
+
+    removeVerbatimTerms(occ);
   }
 
   /**
@@ -192,4 +195,15 @@ public class TemporalInterpreter {
     }
     return ParseResult.fail();
   }
+
+  private static void removeVerbatimTerms(Occurrence occ) {
+    Term[] terms = new Term[]{
+      DwcTerm.year,DwcTerm.month,DwcTerm.day,DwcTerm.eventDate,
+      DcTerm.modified,DwcTerm.dateIdentified,
+    };
+    for (Term t : terms) {
+      occ.getVerbatimFields().remove(t);
+    }
+  }
+
 }

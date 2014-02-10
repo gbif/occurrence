@@ -8,6 +8,7 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
@@ -73,6 +74,19 @@ public class TaxonomyInterpreter implements Runnable {
         org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
       }
       LOG.debug("Got nub sci name [{}]", occ.getScientificName());
+    }
+
+    removeVerbatimTerms();
+  }
+
+  private void removeVerbatimTerms() {
+    Term[] terms = new Term[]{
+      DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
+      DwcTerm.kingdom,DwcTerm.phylum,DwcTerm.class_,DwcTerm.order,DwcTerm.family,DwcTerm.genus,DwcTerm.subgenus,
+
+    };
+    for (Term t : terms) {
+      occ.getVerbatimFields().remove(t);
     }
   }
 }

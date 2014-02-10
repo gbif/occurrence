@@ -7,6 +7,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
 import org.gbif.common.parsers.geospatial.IntPrecision;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
@@ -36,6 +37,20 @@ public class LocationInterpreter implements Runnable {
     doCoordinateLookup(country);
     interpretAltitude();
     interpretDepth();
+    removeVerbatimTerms();
+  }
+
+  private void removeVerbatimTerms() {
+    Term[] terms = new Term[]{
+      DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.verbatimCoordinates, DwcTerm.geodeticDatum,
+      DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
+      DwcTerm.countryCode, DwcTerm.country,
+      DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
+      DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
+    };
+    for (Term t : terms) {
+      occ.getVerbatimFields().remove(t);
+    }
   }
 
   private Country interpretCountry() {
