@@ -33,7 +33,7 @@ public class HiveQueryVisitorTest {
     Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer%");
     Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB");
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
-    Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.GEOREFERENCED, "true");
+    Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true");
 
     ConjunctionPredicate p = new ConjunctionPredicate(
       Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
@@ -72,14 +72,14 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
-    Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "222");
+    Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "222");
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("elevation_in_meters >= 222"));
   }
 
   @Test
   public void testGreaterThanPredicate() throws QueryBuildingException {
-    Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("elevation_in_meters > 1000"));
   }
@@ -94,14 +94,14 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
-    Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("elevation_in_meters <= 1000"));
   }
 
   @Test
   public void testLessThanPredicate() throws QueryBuildingException {
-    Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ALTITUDE, "1000");
+    Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("elevation_in_meters < 1000"));
   }
@@ -133,7 +133,7 @@ public class HiveQueryVisitorTest {
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("catalog_number = \'my \\\'pleasure\\\'\'"));
 
-    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ALTITUDE, "101");
+    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "101");
     query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("elevation_in_meters <= 101"));
 
