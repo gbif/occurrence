@@ -760,10 +760,10 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://appdev.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://appdev.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
-        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
+        <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://appdev.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://appdev.gbif.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
+        <geocode.ws.url>http://boma.gbif.org:8080/geocode-ws/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
