@@ -188,7 +188,7 @@ public class OccurrenceDataLoader {
   // Column headers
   private final static String[] HEADER = new String[] {
     "key",
-    "altitude",
+    "elevation",
     "basisOfRecord",
     "catalogNumber",
     "classKey",
@@ -205,8 +205,8 @@ public class OccurrenceDataLoader {
     "country",
     "kingdom",
     "kingdomKey",
-    "latitude",
-    "longitude",
+    "decimalLatitude",
+    "decimalLongitude",
     "modified",
     "month",
     "taxonKey",
@@ -283,7 +283,7 @@ public class OccurrenceDataLoader {
     for (Entry<String, Object> field : occurrenceMap.entrySet()) {
       if (VERBATIM_FIELDS.contains(field.getKey())) {
         Entry<? extends Term, String> verbatimField = toTermEntry(field);
-        occurrence.setField(verbatimField.getKey(), verbatimField.getValue());
+        occurrence.setVerbatimField(verbatimField.getKey(), verbatimField.getValue());
       } else {
         setInterpretedField(field, occurrence);
       }

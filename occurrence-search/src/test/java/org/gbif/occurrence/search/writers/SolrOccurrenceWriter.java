@@ -5,7 +5,6 @@ package org.gbif.occurrence.search.writers;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -54,9 +53,6 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
   // Allowed longitude range
   private static final Range<Double> LNG_RANGE = Range.closed(-180.0, 180.0);
 
-  // Basis of record converter
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
-
   // SolrServer that stores the occurrence records
   private final SolrServer solrServer;
 
@@ -98,16 +94,16 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
    */
   private SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
-    final Double latitude = occurrence.getLatitude();
-    final Double longitude = occurrence.getLongitude();
+    final Double latitude = occurrence.getDecimalLatitude();
+    final Double longitude = occurrence.getDecimalLongitude();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
     doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord().name());
-    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
-    doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
-    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getField(DwcTerm.recordNumber));
+    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.catalogNumber));
+    doc.setField(RECORDED_BY.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordedBy));
+    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordNumber));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
       .name());
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
@@ -119,10 +115,10 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
     if (!taxonKey.isEmpty()) {
       doc.setField(TAXON_KEY.getFieldName(), taxonKey);
     }
-    doc.setField(ALTITUDE.getFieldName(), occurrence.getAltitude());
+    doc.setField(ALTITUDE.getFieldName(), occurrence.getElevation());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
-    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
-    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
+    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.institutionCode));
+    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.collectionCode));
     doc.setField(GEOSPATIAL_ISSUE.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
     doc.setField(DATE.getFieldName(),

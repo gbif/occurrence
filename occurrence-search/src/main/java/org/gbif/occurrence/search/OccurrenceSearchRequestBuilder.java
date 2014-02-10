@@ -4,7 +4,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.common.search.util.QueryUtils;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.util.ArrayList;
@@ -45,30 +44,28 @@ public class OccurrenceSearchRequestBuilder {
   // This is a placeholder to map from the JSON definition ID to the query field
   public static final ImmutableMap<OccurrenceSearchParameter, OccurrenceSolrField> QUERY_FIELD_MAPPING =
     ImmutableMap.<OccurrenceSearchParameter, OccurrenceSolrField>builder()
-      .put(OccurrenceSearchParameter.LATITUDE, OccurrenceSolrField.LATITUDE)
-      .put(OccurrenceSearchParameter.LONGITUDE, OccurrenceSolrField.LONGITUDE)
+      .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, OccurrenceSolrField.LATITUDE)
+      .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, OccurrenceSolrField.LONGITUDE)
       .put(OccurrenceSearchParameter.YEAR, OccurrenceSolrField.YEAR)
       .put(OccurrenceSearchParameter.MONTH, OccurrenceSolrField.MONTH)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, OccurrenceSolrField.CATALOG_NUMBER)
-      .put(OccurrenceSearchParameter.COLLECTOR_NAME, OccurrenceSolrField.RECORDED_BY)
+      .put(OccurrenceSearchParameter.RECORDED_BY, OccurrenceSolrField.RECORDED_BY)
       .put(OccurrenceSearchParameter.RECORD_NUMBER, OccurrenceSolrField.RECORD_NUMBER)
       .put(OccurrenceSearchParameter.COLLECTION_CODE, OccurrenceSolrField.COLLECTION_CODE)
       .put(OccurrenceSearchParameter.INSTITUTION_CODE, OccurrenceSolrField.INSTITUTION_CODE)
       .put(OccurrenceSearchParameter.DEPTH, OccurrenceSolrField.DEPTH)
-      .put(OccurrenceSearchParameter.ALTITUDE, OccurrenceSolrField.ALTITUDE)
+      .put(OccurrenceSearchParameter.ELEVATION, OccurrenceSolrField.ALTITUDE)
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceSolrField.BASIS_OF_RECORD)
       .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceSolrField.DATASET_KEY)
       .put(OccurrenceSearchParameter.SPATIAL_ISSUES, OccurrenceSolrField.GEOSPATIAL_ISSUE)
-      .put(OccurrenceSearchParameter.GEOREFERENCED, OccurrenceSolrField.GEOREFERENCED)
-      .put(OccurrenceSearchParameter.DATE, OccurrenceSolrField.DATE)
+      .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceSolrField.GEOREFERENCED)
+      .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.DATE)
       .put(OccurrenceSearchParameter.MODIFIED, OccurrenceSolrField.MODIFIED)
       .put(OccurrenceSearchParameter.COUNTRY, OccurrenceSolrField.COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceSolrField.PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
       .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
       .build();
-
-  private static final BasisOfRecordConverter BASIS_OF_RECORD_CONVERTER = new BasisOfRecordConverter();
 
 
   // Holds the value used for an optional sort order applied to a search via param "sort"
@@ -184,7 +181,7 @@ public class OccurrenceSearchRequestBuilder {
         }
       }
       addLocationQuery(params, filterQueries);
-      addDateQuery(params, OccurrenceSearchParameter.DATE, OccurrenceSolrField.DATE, filterQueries);
+      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.DATE, filterQueries);
       addDateQuery(params, OccurrenceSearchParameter.MODIFIED, OccurrenceSolrField.MODIFIED, filterQueries);
 
       if (!filterQueries.isEmpty()) {

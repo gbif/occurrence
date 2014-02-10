@@ -137,7 +137,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   @Override
   public List<String> suggestCollectorNames(String prefix, @Nullable Integer limit) {
-    return suggestTermByField(prefix, OccurrenceSearchParameter.COLLECTOR_NAME, limit);
+    return suggestTermByField(prefix, OccurrenceSearchParameter.RECORDED_BY, limit);
   }
 
   @Override
