@@ -99,19 +99,19 @@ public class SolrOccurrenceWriter {
    */
   private SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
-    final Double latitude = occurrence.getLatitude();
-    final Double longitude = occurrence.getLongitude();
+    final Double latitude = occurrence.getDecimalLatitude();
+    final Double longitude = occurrence.getDecimalLongitude();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
     doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord() == null ? null : occurrence
       .getBasisOfRecord().name());
-    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
-    doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
+    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.catalogNumber));
+    doc.setField(RECORDED_BY.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordedBy));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
       .name());
-    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getField(DwcTerm.recordNumber));
+    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordNumber));
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
@@ -123,10 +123,10 @@ public class SolrOccurrenceWriter {
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
-    doc.setField(ALTITUDE.getFieldName(), occurrence.getAltitude());
+    doc.setField(ALTITUDE.getFieldName(), occurrence.getElevation());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
-    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
-    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
+    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.institutionCode));
+    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.collectionCode));
     doc.setField(GEOSPATIAL_ISSUE.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(LATITUDE.getFieldName(), latitude);
     doc.setField(LONGITUDE.getFieldName(), longitude);

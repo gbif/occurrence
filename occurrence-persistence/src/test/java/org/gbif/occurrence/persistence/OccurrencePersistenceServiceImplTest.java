@@ -316,7 +316,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Integer) KEY, occ.getKey());
     assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
-    assertTrue(occ.hasField(DwcTerm.basisOfRecord));
+    assertTrue(occ.hasVerbatimField(DwcTerm.basisOfRecord));
   }
 
   @Test
@@ -381,7 +381,7 @@ public class OccurrencePersistenceServiceImplTest {
     int year = 1988;
     Date lastInterpreted = new Date();
 
-    update.setAltitude(alt);
+    update.setElevation(alt);
     update.setBasisOfRecord(bor);
     update.setClassKey(classId);
     update.setClazz(clazz);
@@ -394,8 +394,8 @@ public class OccurrencePersistenceServiceImplTest {
     update.setKingdom(kingdom);
     update.setKingdomKey(kingdomId);
     update.setLastInterpreted(lastInterpreted);
-    update.setLatitude(lat);
-    update.setLongitude(lng);
+    update.setDecimalLatitude(lat);
+    update.setDecimalLongitude(lng);
     update.setModified(mod);
     update.setMonth(month);
     update.setTaxonKey(nubId);
@@ -428,13 +428,13 @@ public class OccurrencePersistenceServiceImplTest {
 
     Map<Term, String> fields = Maps.newHashMap();
     fields.put(DwcTerm.basisOfRecord, "PRESERVED_SPECIMEN");
-    update.setFields(fields);
+    update.setVerbatimFields(fields);
 
     occurrenceService.update(update);
 
     Occurrence occ = occurrenceService.get(KEY);
     Assert.assertNotNull(occ);
-    assertTrue(alt == occ.getAltitude());
+    assertTrue(alt == occ.getElevation());
     assertEquals(bor, occ.getBasisOfRecord());
     assertTrue(classId == occ.getClassKey());
     assertEquals(clazz, occ.getClazz());
@@ -454,8 +454,8 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(kingdom, occ.getKingdom());
     assertTrue(kingdomId == occ.getKingdomKey());
     assertEquals(lastInterpreted, occ.getLastInterpreted());
-    assertEquals(lat, occ.getLatitude(), 0.0001);
-    assertEquals(lng, occ.getLongitude(), 0.0001);
+    assertEquals(lat, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(lng, occ.getDecimalLongitude(), 0.0001);
     assertEquals(mod, occ.getModified());
     assertTrue(month == occ.getMonth());
     assertTrue(nubId == occ.getTaxonKey());
@@ -478,9 +478,9 @@ public class OccurrencePersistenceServiceImplTest {
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ZERO_COORDINATE));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
 
-    assertTrue(occ.hasField(DwcTerm.basisOfRecord));
-    assertEquals("PRESERVED_SPECIMEN", occ.getField(DwcTerm.basisOfRecord));
-    assertFalse(occ.hasField(DwcTerm.occurrenceID));
+    assertTrue(occ.hasVerbatimField(DwcTerm.basisOfRecord));
+    assertEquals("PRESERVED_SPECIMEN", occ.getVerbatimField(DwcTerm.basisOfRecord));
+    assertFalse(occ.hasVerbatimField(DwcTerm.occurrenceID));
   }
 
   @Test
@@ -533,16 +533,16 @@ public class OccurrencePersistenceServiceImplTest {
     expected.setLastParsed(LAST_PARSED);
     expected.setProtocol(PROTOCOL);
     addTerms(expected, TERM_VALUE_PREFIX);
-    assertTrue(expected.hasField(DwcTerm.basisOfRecord));
+    assertTrue(expected.hasVerbatimField(DwcTerm.basisOfRecord));
 
     VerbatimOccurrence verb = occurrenceService.getVerbatim(KEY);
     assertNotNull(verb);
     assertNotNull(verb.getLastParsed());
     System.out.println("verb last crawled [" + verb.getLastCrawled() + "] parsed [" + verb.getLastParsed() + ']');
     assertEquivalence(expected, verb);
-    assertTrue(verb.hasField(DwcTerm.basisOfRecord));
+    assertTrue(verb.hasVerbatimField(DwcTerm.basisOfRecord));
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
-    assertTrue(verb.hasField(term));
+    assertTrue(verb.hasVerbatimField(term));
   }
 
   @Test
@@ -577,19 +577,19 @@ public class OccurrencePersistenceServiceImplTest {
     orig.setLastCrawled(new Date());
     orig.setProtocol(EndpointType.DIGIR_MANIS);
     addTerms(orig, "I was ");
-    Map<Term, String> fields = orig.getFields();
+    Map<Term, String> fields = orig.getVerbatimFields();
     fields.remove(DwcTerm.acceptedNameUsage);
     fields.remove(DcTerm.accessRights);
     fields.remove(IucnTerm.threatStatus);
-    orig.setFields(fields);
+    orig.setVerbatimFields(fields);
     occurrenceService.update(orig);
 
     VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
     assertNotNull(got);
     assertEquivalence(orig, got);
-    assertNull(got.getField(DwcTerm.acceptedNameUsage));
-    assertNull(got.getField(DcTerm.accessRights));
-    assertNull(got.getField(IucnTerm.threatStatus));
+    assertNull(got.getVerbatimField(DwcTerm.acceptedNameUsage));
+    assertNull(got.getVerbatimField(DcTerm.accessRights));
+    assertNull(got.getVerbatimField(IucnTerm.threatStatus));
   }
 
   private void addTerms(VerbatimOccurrence occ, String prefix) {
@@ -610,14 +610,14 @@ public class OccurrencePersistenceServiceImplTest {
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     fields.put(term, prefix + term.toString());
 
-    occ.setFields(fields);
+    occ.setVerbatimFields(fields);
   }
 
   private void assertEquivalence(Occurrence occ) {
     assertNotNull(occ);
 
-    assertEquals((Integer) ALT, occ.getAltitude());
-    assertEquals(ALT_ACC, occ.getAltitudeAccuracy());
+    assertEquals((Integer) ALT, occ.getElevation());
+    assertEquals(ALT_ACC, occ.getElevationAccuracy());
     assertEquals(BOR, occ.getBasisOfRecord());
     assertEquals(COORD_ACC, occ.getCoordinateAccuracy());
     assertEquals(CONTINENT, occ.getContinent());
@@ -633,9 +633,9 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(PUB_COUNTRY, occ.getPublishingCountry());
     assertEquals(INDIVIDUAL_COUNT, occ.getIndividualCount());
     assertEquals(LAST_INTERPRETED, occ.getLastInterpreted());
-    assertEquals(LAT, occ.getLatitude(), 0.0001);
+    assertEquals(LAT, occ.getDecimalLatitude(), 0.0001);
     assertEquals(LIFE_STAGE, occ.getLifeStage());
-    assertEquals(LNG, occ.getLongitude(), 0.0001);
+    assertEquals(LNG, occ.getDecimalLongitude(), 0.0001);
     assertEquals(MOD, occ.getModified());
     assertEquals((Integer) MONTH, occ.getMonth());
     assertEquals(PUBLISHING_ORG_KEY, occ.getPublishingOrgKey());
@@ -687,7 +687,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(a.getPublishingCountry(), b.getPublishingCountry());
     assertEquals(a.getPublishingOrgKey(), b.getPublishingOrgKey());
     for (DwcTerm term : DwcTerm.values()) {
-      assertEquals(a.getField(term), b.getField(term));
+      assertEquals(a.getVerbatimField(term), b.getVerbatimField(term));
     }
   }
 }

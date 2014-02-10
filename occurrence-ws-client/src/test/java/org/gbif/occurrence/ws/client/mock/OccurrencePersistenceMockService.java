@@ -40,10 +40,10 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
     int ord = key % BasisOfRecord.values().length;
     occ.setBasisOfRecord(BasisOfRecord.values()[ord]);
     occ.setYear(1800 + (key % 200));
-    occ.setAltitude(key % 2000);
-    Map<Term, String> fields = occ.getFields();
+    occ.setElevation(key % 2000);
+    Map<Term, String> fields = occ.getVerbatimFields();
     fields.put(DwcTerm.catalogNumber, "cat-" + key);
-    occ.setFields(fields);
+    occ.setVerbatimFields(fields);
     occ.setMonth(1 + (key % 12));
 
     ord = key % Kingdom.values().length;

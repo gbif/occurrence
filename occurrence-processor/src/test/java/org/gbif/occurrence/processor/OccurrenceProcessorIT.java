@@ -130,18 +130,18 @@ public class OccurrenceProcessorIT {
 
     Occurrence got = occurrenceService.get(1);
     assertNotNull(got);
-    assertEquals("BGBM", got.getField(DwcTerm.institutionCode));
-    assertEquals("AlgaTerra", got.getField(DwcTerm.collectionCode));
-    assertEquals("5834", got.getField(DwcTerm.catalogNumber));
+    assertEquals("BGBM", got.getVerbatimField(DwcTerm.institutionCode));
+    assertEquals("AlgaTerra", got.getVerbatimField(DwcTerm.collectionCode));
+    assertEquals("5834", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
 
     assertEquals("Tetraedron caudatum (Corda) Hansgirg", got.getScientificName());
-    assertEquals(52.423798, got.getLatitude().doubleValue(), 0.00001);
-    assertEquals(13.191434, got.getLongitude().doubleValue(), 0.00001);
-    assertEquals(450, got.getAltitude().intValue());
+    assertEquals(52.423798, got.getDecimalLatitude().doubleValue(), 0.00001);
+    assertEquals(13.191434, got.getDecimalLongitude().doubleValue(), 0.00001);
+    assertEquals(450, got.getElevation().intValue());
     assertEquals(Country.fromIsoCode("DE"), got.getCountry());
-    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.recordedBy));
-    assertEquals("Nikolassee, Berlin", got.getField(DwcTerm.locality));
+    assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.recordedBy));
+    assertEquals("Nikolassee, Berlin", got.getVerbatimField(DwcTerm.locality));
     Calendar c = Calendar.getInstance();
     c.set(1987, 3, 13);
     c.set(Calendar.HOUR_OF_DAY, 0);
@@ -150,7 +150,7 @@ public class OccurrenceProcessorIT {
     c.set(Calendar.MILLISECOND, 0);
     assertEquals(c.getTimeInMillis(), got.getEventDate().getTime());
     assertEquals(BasisOfRecord.valueOf("OBSERVATION"), got.getBasisOfRecord());
-    assertEquals("Kusber, W.-H.", got.getField(DwcTerm.identifiedBy));
+    assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
 
     assertEquals(BGBM_KEY, got.getPublishingOrgKey().toString());
     assertEquals(Country.GERMANY, got.getPublishingCountry());

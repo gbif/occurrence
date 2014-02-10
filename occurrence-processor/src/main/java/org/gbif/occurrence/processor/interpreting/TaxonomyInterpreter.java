@@ -30,25 +30,25 @@ public class TaxonomyInterpreter implements Runnable {
 
   @Override
   public void run() {
-    String sciname = ClassificationUtils.clean(verbatim.getField(DwcTerm.scientificName));
+    String sciname = ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.scientificName));
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
       ParsedName pn = new ParsedName();
-      pn.setGenusOrAbove(verbatim.getField(DwcTerm.genus));
-      pn.setSpecificEpithet(verbatim.getField(DwcTerm.specificEpithet));
-      pn.setInfraSpecificEpithet(verbatim.getField(DwcTerm.infraspecificEpithet));
+      pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genus));
+      pn.setSpecificEpithet(verbatim.getVerbatimField(DwcTerm.specificEpithet));
+      pn.setInfraSpecificEpithet(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
       sciname = pn.canonicalName();
     }
 
     ParseResult<NameUsageMatch> nubLookup = NubLookupInterpreter.nubLookup(
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.kingdom)),
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.phylum)),
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.class_)),
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.order)),
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.family)),
-      ClassificationUtils.clean(verbatim.getField(DwcTerm.genus)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.kingdom)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.phylum)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.class_)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.order)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.family)),
+      ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.genus)),
       sciname,
-      ClassificationUtils.cleanAuthor(verbatim.getField(DwcTerm.scientificNameAuthorship)));
+      ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.scientificNameAuthorship)));
 
     if (nubLookup == null || nubLookup.getPayload() == null) {
       LOG.debug("Got null nubLookup for sci name [{}]", occ.getScientificName());

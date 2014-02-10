@@ -55,15 +55,15 @@ public class TemporalInterpreter {
     }
     occ.getIssues().addAll(eventResult.getIssues());
 
-    if (verbatim.hasField(DcTerm.modified)) {
-      ParseResult<Date> parsed = interpretDate(verbatim.getField(DcTerm.modified),
+    if (verbatim.hasVerbatimField(DcTerm.modified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified),
                                                VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
       occ.setModified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
 
-    if (verbatim.hasField(DwcTerm.dateIdentified)) {
-      ParseResult<Date> parsed = interpretDate(verbatim.getField(DwcTerm.dateIdentified),
+    if (verbatim.hasVerbatimField(DwcTerm.dateIdentified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
                                                VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKLEY);
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
@@ -82,10 +82,10 @@ public class TemporalInterpreter {
    * @return interpretation result, never null
    */
   public static ParseResult<DateYearMonthDay> interpretRecordedDate(VerbatimOccurrence verbatim) {
-    final String year = verbatim.getField(DwcTerm.year);
-    final String month = verbatim.getField(DwcTerm.month);
-    final String day = verbatim.getField(DwcTerm.day);
-    final String dateString = verbatim.getField(DwcTerm.eventDate);
+    final String year = verbatim.getVerbatimField(DwcTerm.year);
+    final String month = verbatim.getVerbatimField(DwcTerm.month);
+    final String day = verbatim.getVerbatimField(DwcTerm.day);
+    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
 
     if (year == null && month == null && day == null && Strings.isNullOrEmpty(dateString)) {
       return ParseResult.fail();

@@ -76,10 +76,10 @@ public class FeaturedOccurrenceReader {
       LOG.debug("No featured occurrence record found for key: {}", occurrenceIds[randomIndex]);
     } else {
       // filter for only good ones
-//      if (occ.getScientificName() != null && occ.getLatitude() != null && occ.getLongitude() != null
+//      if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
 //        && occ.getGeospatialIssue() == 0 && occ.getPublishingOrgKey() != null) {
       // TODO geospatial issue has changed
-        if (occ.getScientificName() != null && occ.getLatitude() != null && occ.getLongitude() != null
+        if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
             && occ.getPublishingOrgKey() != null) {
         results.add(occ);
       }
@@ -107,7 +107,7 @@ public class FeaturedOccurrenceReader {
           }
         }
         if (org!=null) {
-          featured.add(new FeaturedOccurrence(o.getKey(), o.getLatitude(), o.getLongitude(), o.getScientificName(), org
+          featured.add(new FeaturedOccurrence(o.getKey(), o.getDecimalLatitude(), o.getDecimalLongitude(), o.getScientificName(), org
             .getTitle(), org.getKey(), o.getModified()));
         }
       } catch (Exception e) {

@@ -24,12 +24,12 @@ public class TemporalInterpreterTest {
   @Test
   public void testAllDates() {
     VerbatimOccurrence v = new VerbatimOccurrence();
-    v.setField(DwcTerm.year, "1879");
-    v.setField(DwcTerm.month, "11 ");
-    v.setField(DwcTerm.day, "1");
-    v.setField(DwcTerm.eventDate, "1.11.1879");
-    v.setField(DwcTerm.dateIdentified, "2012-01-11");
-    v.setField(DcTerm.modified, "2014-01-11");
+    v.setVerbatimField(DwcTerm.year, "1879");
+    v.setVerbatimField(DwcTerm.month, "11 ");
+    v.setVerbatimField(DwcTerm.day, "1");
+    v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
+    v.setVerbatimField(DwcTerm.dateIdentified, "2012-01-11");
+    v.setVerbatimField(DcTerm.modified, "2014-01-11");
 
     Occurrence o = new Occurrence();
     TemporalInterpreter.interpretTemporal(v,o);
@@ -227,10 +227,10 @@ public class TemporalInterpreterTest {
 
   private ParseResult<DateYearMonthDay> interpretRecordedDate(String y, String m, String d, String date){
     VerbatimOccurrence v = new VerbatimOccurrence();
-    v.setField(DwcTerm.year, y);
-    v.setField(DwcTerm.month, m);
-    v.setField(DwcTerm.day, d);
-    v.setField(DwcTerm.eventDate, date);
+    v.setVerbatimField(DwcTerm.year, y);
+    v.setVerbatimField(DwcTerm.month, m);
+    v.setVerbatimField(DwcTerm.day, d);
+    v.setVerbatimField(DwcTerm.eventDate, date);
 
     return TemporalInterpreter.interpretRecordedDate(v);
   }

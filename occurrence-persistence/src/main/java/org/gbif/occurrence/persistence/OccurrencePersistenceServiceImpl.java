@@ -259,14 +259,14 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         if (colName.startsWith(HBaseTableConstants.KNOWN_TERM_PREFIX)) {
           Term term =
             TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length()));
-          if (occ.getField(term) == null) {
+          if (occ.getVerbatimField(term) == null) {
             del.deleteColumns(cf, kv.getQualifier());
           }
         }
       }
     }
 
-    for (Map.Entry<Term, String> entry : occ.getFields().entrySet()) {
+    for (Map.Entry<Term, String> entry : occ.getVerbatimFields().entrySet()) {
       if (entry.getValue() != null) {
         put.add(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(entry.getKey()).getColumnName()),
           Bytes.toBytes(entry.getValue()));
@@ -291,7 +291,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     doVerbatimPutDelete(occTable, cf, put, del, occ, dn);
 
-    HBaseHelper.writeField(FieldName.I_ALTITUDE, HBaseHelper.nullSafeBytes(occ.getAltitude()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ALTITUDE, HBaseHelper.nullSafeBytes(occ.getElevation()), dn, cf, put, del);
     HBaseHelper
       .writeField(FieldName.I_BASIS_OF_RECORD, HBaseHelper.nullSafeBytes(occ.getBasisOfRecord()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_CLASS_KEY, HBaseHelper.nullSafeBytes(occ.getClassKey()), dn, cf, put, del);
@@ -303,8 +303,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     HBaseHelper.writeField(FieldName.I_GENUS_KEY, HBaseHelper.nullSafeBytes(occ.getGenusKey()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_KINGDOM, HBaseHelper.nullSafeBytes(occ.getKingdom()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_KINGDOM_KEY, HBaseHelper.nullSafeBytes(occ.getKingdomKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_LATITUDE, HBaseHelper.nullSafeBytes(occ.getLatitude()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_LONGITUDE, HBaseHelper.nullSafeBytes(occ.getLongitude()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.I_LATITUDE, HBaseHelper.nullSafeBytes(occ.getDecimalLatitude()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.I_LONGITUDE, HBaseHelper.nullSafeBytes(occ.getDecimalLongitude()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_COUNTRY, HBaseHelper.nullSafeBytes(occ.getCountry()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_MODIFIED, HBaseHelper.nullSafeBytes(occ.getModified()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_MONTH, HBaseHelper.nullSafeBytes(occ.getMonth()), dn, cf, put, del);
@@ -321,7 +321,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     HBaseHelper.writeField(FieldName.I_YEAR, HBaseHelper.nullSafeBytes(occ.getYear()), dn, cf, put, del);
 
     HBaseHelper
-      .writeField(FieldName.I_ALTITUDE_ACC, HBaseHelper.nullSafeBytes(occ.getAltitudeAccuracy()), dn, cf, put, del);
+      .writeField(FieldName.I_ALTITUDE_ACC, HBaseHelper.nullSafeBytes(occ.getElevationAccuracy()), dn, cf, put, del);
     HBaseHelper
       .writeField(FieldName.I_COORD_ACCURACY, HBaseHelper.nullSafeBytes(occ.getCoordinateAccuracy()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.I_CONTINENT, HBaseHelper.nullSafeBytes(occ.getContinent()), dn, cf, put, del);

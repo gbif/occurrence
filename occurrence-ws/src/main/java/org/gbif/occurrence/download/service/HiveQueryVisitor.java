@@ -94,9 +94,9 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.DATASET_KEY, FieldName.DATASET_KEY)
     .put(OccurrenceSearchParameter.YEAR, FieldName.I_YEAR)
     .put(OccurrenceSearchParameter.MONTH, FieldName.I_MONTH)
-    .put(OccurrenceSearchParameter.LATITUDE, FieldName.I_LATITUDE)
-    .put(OccurrenceSearchParameter.LONGITUDE, FieldName.I_LONGITUDE)
-    .put(OccurrenceSearchParameter.ALTITUDE, FieldName.I_ALTITUDE)
+    .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, FieldName.I_LATITUDE)
+    .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, FieldName.I_LONGITUDE)
+    .put(OccurrenceSearchParameter.ELEVATION, FieldName.I_ALTITUDE)
     .put(OccurrenceSearchParameter.DEPTH, FieldName.I_DEPTH)
     .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
     .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
@@ -104,7 +104,7 @@ class HiveQueryVisitor {
 //    .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
-    .put(OccurrenceSearchParameter.DATE, FieldName.I_EVENT_DATE)
+    .put(OccurrenceSearchParameter.EVENT_DATE, FieldName.I_EVENT_DATE)
     .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_PARSED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
@@ -114,12 +114,12 @@ class HiveQueryVisitor {
 
   // IS_GEOREFERENCED_CHECK, IS_NOT_GEOREFERENCED_CHECK, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
   // precalculated since they are the same for all the queries.
-  private static final String IS_GEOREFERENCED_CHECK = toHiveField(OccurrenceSearchParameter.LATITUDE)
-    + IS_NOT_NULL_OPERATOR + CONJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.LONGITUDE)
+  private static final String IS_GEOREFERENCED_CHECK = toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
+    + IS_NOT_NULL_OPERATOR + CONJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
     + IS_NOT_NULL_OPERATOR;
 
-  private static final String IS_NOT_GEOREFERENCED_CHECK = '(' + toHiveField(OccurrenceSearchParameter.LATITUDE)
-    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.LONGITUDE)
+  private static final String IS_NOT_GEOREFERENCED_CHECK = '(' + toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
+    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
     + IS_NULL_OPERATOR + ')';
 
 //  private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
@@ -261,7 +261,7 @@ class HiveQueryVisitor {
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
     if (predicate.getKey() == OccurrenceSearchParameter.SPATIAL_ISSUES) {
       appendSpatialIssuePredicate(predicate.getValue());
-    } else if (predicate.getKey() == OccurrenceSearchParameter.GEOREFERENCED) {
+    } else if (predicate.getKey() == OccurrenceSearchParameter.HAS_COORDINATE) {
       appendGeoreferencedPredicate(predicate.getValue());
     } else {
       builder.append(toHiveField(predicate.getKey()));

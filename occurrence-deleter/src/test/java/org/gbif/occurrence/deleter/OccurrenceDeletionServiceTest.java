@@ -161,9 +161,9 @@ public class OccurrenceDeletionServiceTest {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setKey(key);
     v.setDatasetKey(datasetKey);
-    v.setField(DwcTerm.catalogNumber, cn);
-    v.setField(DwcTerm.collectionCode, cc);
-    v.setField(DwcTerm.institutionCode, ic);
+    v.setVerbatimField(DwcTerm.catalogNumber, cn);
+    v.setVerbatimField(DwcTerm.collectionCode, cc);
+    v.setVerbatimField(DwcTerm.institutionCode, ic);
     return v;
   }
 

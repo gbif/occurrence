@@ -139,7 +139,7 @@ public class FragmentParser {
 
   private static void set(VerbatimOccurrence v, Term t, String val) {
     if (t != null && !Strings.isNullOrEmpty(val)) {
-      v.setField(t, val);
+      v.setVerbatimField(t, val);
     }
   }
 }

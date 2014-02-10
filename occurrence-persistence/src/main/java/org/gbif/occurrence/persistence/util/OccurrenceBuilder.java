@@ -18,7 +18,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceBuilder {
 
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
   // should never be instantiated
@@ -126,7 +124,7 @@ public class OccurrenceBuilder {
       Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
       Integer key = Bytes.toInt(row.getRow());
       occ.setKey(key);
-      occ.setAltitude(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE));
+      occ.setElevation(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE));
       occ.setBasisOfRecord(HBaseHelper
         .nullSafeEnum(BasisOfRecord.class, OccurrenceResultReader.getString(row, FieldName.I_BASIS_OF_RECORD)));
       occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
@@ -141,8 +139,8 @@ public class OccurrenceBuilder {
       occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));
       occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
-      occ.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
-      occ.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
+      occ.setDecimalLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
+      occ.setDecimalLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
       occ.setModified(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED));
       occ.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
       occ.setTaxonKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
@@ -164,13 +162,12 @@ public class OccurrenceBuilder {
       occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.I_DATE_IDENTIFIED));
 
       // new for occurrence widening
-      occ.setAltitudeAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE_ACC));
+      occ.setElevationAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE_ACC));
       occ.setCoordinateAccuracy(OccurrenceResultReader.getDouble(row, FieldName.I_COORD_ACCURACY));
       occ.setDay(OccurrenceResultReader.getInteger(row, FieldName.I_DAY));
       occ.setDepthAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH_ACC));
       occ.setEstablishmentMeans(HBaseHelper
         .nullSafeEnum(EstablishmentMeans.class, OccurrenceResultReader.getString(row, FieldName.I_ESTAB_MEANS)));
-      occ.setGeodeticDatum(OccurrenceResultReader.getString(row, FieldName.I_GEODETIC_DATUM));
       occ.setIndividualCount(OccurrenceResultReader.getInteger(row, FieldName.I_INDIVIDUAL_COUNT));
       occ.setLastInterpreted(OccurrenceResultReader.getDate(row, FieldName.LAST_INTERPRETED));
       occ.setLifeStage(
@@ -214,7 +211,7 @@ public class OccurrenceBuilder {
     for (KeyValue kv : row.raw()) {
       Term term = HBaseFieldUtil.getTermFromColumn(kv.getQualifier());
       if (term != null) {
-        verb.setField(term, Bytes.toString(kv.getValue()));
+        verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
 

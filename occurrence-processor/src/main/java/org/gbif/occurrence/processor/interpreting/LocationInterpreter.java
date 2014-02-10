@@ -39,7 +39,7 @@ public class LocationInterpreter implements Runnable {
   }
 
   private Country interpretCountry() {
-    ParseResult<Country> inter = CountryInterpreter.interpretCountry(verbatim.getField(DwcTerm.countryCode), verbatim.getField(DwcTerm.country));
+    ParseResult<Country> inter = CountryInterpreter.interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode), verbatim.getVerbatimField(DwcTerm.country));
     occ.setCountry(inter.getPayload());
     occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
@@ -47,26 +47,26 @@ public class LocationInterpreter implements Runnable {
 
   private void doCoordinateLookup(Country country) {
     ParseResult<CoordinateCountry> coordLookup = CoordinateInterpreter.interpretCoordinates(
-      verbatim.getField(DwcTerm.decimalLatitude), verbatim.getField(DwcTerm.decimalLongitude), country);
+      verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude), country);
 
     if (coordLookup.getPayload().getLatitude() == null
-        && verbatim.hasField(DwcTerm.verbatimLatitude) && verbatim.hasField(DwcTerm.verbatimLongitude)) {
+        && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude) && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
       LOG.debug("Try verbatim coordinates");
       // try again with verbatim lat/lon
       coordLookup = CoordinateInterpreter.interpretCoordinates(
-        verbatim.getField(DwcTerm.verbatimLatitude), verbatim.getField(DwcTerm.verbatimLongitude), country);
+        verbatim.getVerbatimField(DwcTerm.verbatimLatitude), verbatim.getVerbatimField(DwcTerm.verbatimLongitude), country);
     }
 
-    occ.setLatitude(coordLookup.getPayload().getLatitude());
-    occ.setLongitude(coordLookup.getPayload().getLongitude());
+    occ.setDecimalLatitude(coordLookup.getPayload().getLatitude());
+    occ.setDecimalLongitude(coordLookup.getPayload().getLongitude());
     occ.getIssues().addAll(coordLookup.getIssues());
 
     LOG.debug("Got lat [{}] lng [{}]", coordLookup.getPayload().getLatitude(), coordLookup.getPayload().getLongitude());
   }
 
   private void interpretDepth() {
-    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getField(DwcTerm.minimumDepthInMeters),
-                                                                                verbatim.getField(DwcTerm.maximumDepthInMeters),
+    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
+                                                                                verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters),
                                                                                 null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setDepth( result.getPayload().getValue() );
@@ -76,12 +76,12 @@ public class LocationInterpreter implements Runnable {
   }
 
   private void interpretAltitude() {
-    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getField(DwcTerm.minimumElevationInMeters),
-                                                                                verbatim.getField(DwcTerm.maximumElevationInMeters),
+    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
+                                                                                verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters),
                                                                                 null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
-      occ.setAltitude( result.getPayload().getValue() );
-      occ.setAltitudeAccuracy(result.getPayload().getPrecision());
+      occ.setElevation( result.getPayload().getValue() );
+      occ.setElevationAccuracy(result.getPayload().getPrecision());
       occ.getIssues().addAll(result.getIssues());
     }
   }
