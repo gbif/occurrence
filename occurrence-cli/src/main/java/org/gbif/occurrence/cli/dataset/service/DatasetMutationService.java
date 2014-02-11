@@ -3,12 +3,18 @@ package org.gbif.occurrence.cli.dataset.service;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.dataset.DeleteDatasetListener;
+import org.gbif.occurrence.cli.dataset.InterpretDatasetListener;
+import org.gbif.occurrence.cli.dataset.ParseDatasetListener;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
-import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
+import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
+import java.util.Set;
+
+import com.beust.jcommander.internal.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
+import com.netflix.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
 
@@ -19,7 +25,8 @@ import org.apache.hadoop.hbase.client.HTablePool;
 public class DatasetMutationService extends AbstractIdleService {
 
   private final DatasetMutationConfiguration config;
-  private MessageListener listener;
+  private Set<MessageListener> listeners = Sets.newHashSet();
+  private CuratorFramework curator;
   private HTablePool tablePool;
 
   public DatasetMutationService(DatasetMutationConfiguration config) {
@@ -30,31 +37,40 @@ public class DatasetMutationService extends AbstractIdleService {
   protected void startUp() throws Exception {
     config.ganglia.start();
 
+    curator = config.zooKeeper.getCuratorFramework();
+    ZookeeperConnector zkConnector = new ZookeeperConnector(curator);
+
     tablePool = new HTablePool(HBaseConfiguration.create(), config.hbasePoolSize);
 
-    KeyPersistenceService<Integer> keyService =
-      new HBaseLockingKeyService(config.lookupTable, config.counterTable, config.occTable, tablePool);
+    OccurrenceKeyPersistenceService keyService = new OccurrenceKeyPersistenceServiceImpl(
+      new HBaseLockingKeyService(config.lookupTable, config.counterTable, config.occTable, tablePool));
 
-    OccurrenceKeyPersistenceService occurrenceService =
-      new OccurrenceKeyPersistenceServiceImpl(keyService);
-
-    // TODO: add listeners for parsing and interpreting
-//    OccurrencePersistenceService occurrencePersistenceService =
-//      new OccurrencePersistenceServiceImpl(config.occTable, tablePool);
-//    FragmentPersistenceService fragmentService =
-//      new FragmentPersistenceServiceImpl(config.occTable, tablePool, occurrenceService);
-//    VerbatimOccurrencePersistenceService verbatimService =
-//      new VerbatimOccurrencePersistenceServiceImpl(config.occTable, tablePool);
+    MessageListener listener = new MessageListener(config.messaging.getConnectionParameters());
+    listener.listen(config.deleteDatasetQueueName, config.msgPoolSize,
+      new DeleteDatasetListener(keyService, new DefaultMessagePublisher(config.messaging.getConnectionParameters())));
+    listeners.add(listener);
 
     listener = new MessageListener(config.messaging.getConnectionParameters());
-    listener.listen(config.deleteDatasetQueueName, 1, new DeleteDatasetListener(occurrenceService,
+    listener.listen(config.interpretDatasetQueueName, config.msgPoolSize, new InterpretDatasetListener(keyService,
       new DefaultMessagePublisher(config.messaging.getConnectionParameters())));
+    listeners.add(listener);
+
+    listener = new MessageListener(config.messaging.getConnectionParameters());
+    listener.listen(config.parseDatasetQueueName, config.msgPoolSize,
+      new ParseDatasetListener(keyService, new DefaultMessagePublisher(config.messaging.getConnectionParameters())));
+    listeners.add(listener);
+
   }
 
   @Override
   protected void shutDown() throws Exception {
-    if (listener != null) {
-      listener.close();
+    for (MessageListener listener : listeners) {
+      if (listener != null) {
+        listener.close();
+      }
+    }
+    if (curator != null) {
+      curator.close();
     }
     if (tablePool != null) {
       tablePool.close();

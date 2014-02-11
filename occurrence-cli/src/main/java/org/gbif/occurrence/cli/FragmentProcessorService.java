@@ -57,8 +57,8 @@ public class FragmentProcessorService extends AbstractIdleService {
       new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()), zookeeperConnector);
 
     listener = new MessageListener(configuration.messaging.getConnectionParameters());
-    listener
-      .listen(configuration.queueName, configuration.msgPoolSize, new OccurrenceFragmentedListener(fragmentProcessor));
+    listener.listen(configuration.primaryQueueName, configuration.msgPoolSize,
+      new OccurrenceFragmentedListener(fragmentProcessor));
   }
 
   @Override

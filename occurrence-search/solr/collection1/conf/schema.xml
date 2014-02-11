@@ -51,30 +51,30 @@
 		
 	</types>
 	<fields>
-		<field name="key" type="int" indexed="true" stored="true" required="true" />    
-    <field name="dataset_key" type="string" indexed="true" stored="false" />
-    <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true"/>    
-    <field name="basis_of_record" type="int" indexed="true" stored="false"/>
-    <field name="year" type="int" indexed="true" stored="false" />
-    <field name="month" type="int" indexed="true" stored="false" />
-    <field name="altitude" type="int" indexed="true" stored="false" />
-    <field name="depth" type="int" indexed="true" stored="false" />    
-    <field name="catalog_number" type="string" indexed="true" stored="false" />
-    <field name="recorded_by" type="string" indexed="true" stored="false" />
-    <field name="record_number" type="string" indexed="true" stored="false" />
-    <field name="institution_code" type="string" indexed="true" stored="false" />
-    <field name="collection_code" type="string" indexed="true" stored="false" />
-    <field name="country" type="string" indexed="true" stored="false" />
-    <field name="publishing_country" type="string" indexed="true" stored="false" />
-    <field name="coordinate" type="coordinate" indexed="true" stored="false" />
-    <field name="geospatial_issue" type="boolean" indexed="true" stored="false" />
-    <field name="georeferenced" type="boolean" indexed="true" stored="false" />
-    <field name="latitude" type="double" indexed="true" stored="false" />
-    <field name="longitude" type="double" indexed="true" stored="false" />
-    <field name="date" type="date" indexed="true" stored="false" /> 
-    <field name="modified" type="date" indexed="true" stored="false" />
-    <field name="type_status" type="int" indexed="true" stored="false"/>
-    <field name="_version_" type="long" indexed="true" stored="true"/>
+      <field name="key" type="int" indexed="true" stored="true" required="true" />    
+      <field name="dataset_key" type="string" indexed="true" stored="false" />
+      <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true"/>    
+      <field name="basis_of_record" type="string" indexed="true" stored="false"/>
+      <field name="year" type="int" indexed="true" stored="false" />
+      <field name="month" type="int" indexed="true" stored="false" />
+      <field name="elevation" type="int" indexed="true" stored="false" />
+      <field name="depth" type="int" indexed="true" stored="false" />    
+      <field name="catalog_number" type="string" indexed="true" stored="false" />
+      <field name="recorded_by" type="string" indexed="true" stored="false" />
+      <field name="record_number" type="string" indexed="true" stored="false" />
+      <field name="institution_code" type="string" indexed="true" stored="false" />
+      <field name="collection_code" type="string" indexed="true" stored="false" />
+      <field name="country" type="string" indexed="true" stored="false" />
+      <field name="publishing_country" type="string" indexed="true" stored="false" />
+      <field name="coordinate" type="coordinate" indexed="true" stored="false" />
+      <field name="spatial_issues" type="boolean" indexed="true" stored="false" />
+      <field name="has_coordinate" type="boolean" indexed="true" stored="false" />
+      <field name="latitude" type="double" indexed="true" stored="false" />
+      <field name="longitude" type="double" indexed="true" stored="false" />
+      <field name="event_date" type="date" indexed="true" stored="false" /> 
+      <field name="last_interpreted" type="date" indexed="true" stored="false" />
+      <field name="type_status" type="string" indexed="true" stored="false"/>
+      <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
 	<!-- Field to use to determine and enforce document uniqueness. Unless this 
 		field is marked with required="false", it will be a required field -->

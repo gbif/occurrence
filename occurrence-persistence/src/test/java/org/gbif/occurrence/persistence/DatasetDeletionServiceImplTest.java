@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class DatasetDeletionServiceImplTest {
 
   private static final String TABLE_NAME = "occurrence_test";

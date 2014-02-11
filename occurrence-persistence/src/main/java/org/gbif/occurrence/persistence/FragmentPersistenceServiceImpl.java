@@ -1,8 +1,9 @@
 package org.gbif.occurrence.persistence;
 
 import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.occurrence.common.identifier.UniqueIdentifier;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
@@ -166,9 +167,9 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
       frag.getDatasetKey() == null ? null : Bytes.toBytes(frag.getDatasetKey().toString()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.CRAWL_ID,
       frag.getCrawlId() == null ? null : Bytes.toBytes(frag.getCrawlId()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.UNIT_QUALIFIER,
+    HBaseHelper.writeField(GbifTerm.unitQualifier,
       frag.getUnitQualifier() == null ? null : Bytes.toBytes(frag.getUnitQualifier()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.HARVESTED_DATE,
+    HBaseHelper.writeField(FieldName.LAST_CRAWLED,
       frag.getHarvestedDate() == null ? null : Bytes.toBytes(frag.getHarvestedDate().getTime()), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.FRAGMENT, frag.getData(), dn, cf, put, del);
     HBaseHelper.writeField(FieldName.FRAGMENT_HASH, frag.getDataHash(), dn, cf, put, del);

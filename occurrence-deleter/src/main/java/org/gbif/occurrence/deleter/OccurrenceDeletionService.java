@@ -53,9 +53,9 @@ public class OccurrenceDeletionService {
     UniqueIdentifier triplet = null;
     try {
       if (verbatim.getDatasetKey() != null) {
-        final String instCode = verbatim.getField(DwcTerm.institutionCode);
-        final String collCode = verbatim.getField(DwcTerm.collectionCode);
-        final String catNum= verbatim.getField(DwcTerm.catalogNumber);
+        final String instCode = verbatim.getVerbatimField(DwcTerm.institutionCode);
+        final String collCode = verbatim.getVerbatimField(DwcTerm.collectionCode);
+        final String catNum= verbatim.getVerbatimField(DwcTerm.catalogNumber);
         //TODO: retrieve it from somewhere via the persistence layer!
         final String unitQualifier = null;
         triplet = new HolyTriplet(verbatim.getDatasetKey(), instCode, collCode, catNum, unitQualifier);

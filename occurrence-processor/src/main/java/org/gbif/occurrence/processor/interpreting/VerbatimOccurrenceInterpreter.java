@@ -1,12 +1,14 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.OccurrencePersistenceStatus;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.parsers.BasisOfRecordParser;
 import org.gbif.common.parsers.TypeStatusParser;
+import org.gbif.common.parsers.TypifiedNameParser;
+import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -34,6 +36,7 @@ public class VerbatimOccurrenceInterpreter {
   private static final Logger LOG = LoggerFactory.getLogger(VerbatimOccurrenceInterpreter.class);
 
   private static final TypeStatusParser TYPE_PARSER = TypeStatusParser.getInstance();
+  private static final Parsable<String> TYPE_NAME_PARSER = TypifiedNameParser.getInstance();
   private static final BasisOfRecordParser BOR_PARSER = BasisOfRecordParser.getInstance();
 
   private final OccurrencePersistenceService occurrenceService;
@@ -113,21 +116,27 @@ public class VerbatimOccurrenceInterpreter {
   }
 
   private void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {
-    if (verbatim.hasField(DwcTerm.typeStatus)) {
-      ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getField(DwcTerm.typeStatus));
+    if (verbatim.hasVerbatimField(DwcTerm.typeStatus)) {
+      ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypeStatus(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
+
+      ParseResult<String> parsedName = TYPE_NAME_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
+      occ.setTypifiedName(parsedName.getPayload());
+      occ.getIssues().addAll(parsedName.getIssues());
+
+      occ.getVerbatimFields().remove(DwcTerm.typeStatus);
     }
   }
 
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {
-    ParseResult<BasisOfRecord> parsed = BOR_PARSER.parse(verbatim.getField(DwcTerm.basisOfRecord));
+    ParseResult<BasisOfRecord> parsed = BOR_PARSER.parse(verbatim.getVerbatimField(DwcTerm.basisOfRecord));
     if (parsed.isSuccessful()) {
       occ.setBasisOfRecord(parsed.getPayload());
+      occ.getVerbatimFields().remove(DwcTerm.basisOfRecord);
     } else {
-      LOG.debug("Unknown BOR [{}]", verbatim.getField(DwcTerm.basisOfRecord));
+      LOG.debug("Unknown BOR [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
     }
   }
-
 
 }

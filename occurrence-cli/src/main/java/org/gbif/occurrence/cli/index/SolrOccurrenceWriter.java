@@ -5,7 +5,6 @@ package org.gbif.occurrence.cli.index;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -18,24 +17,26 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ALTITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ELEVATION;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_DATE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.HAS_COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LAST_INTERPRETED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MODIFIED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORD_NUMBER;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SPATIAL_ISSUES;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
@@ -55,9 +56,6 @@ public class SolrOccurrenceWriter {
 
   // Allowed longitude range
   private static final Range<Double> LNG_RANGE = Range.closed(-180.0, 180.0);
-
-  // Basis of record converter
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
 
   // SolrServer that stores the occurrence records
   private final SolrServer solrServer;
@@ -101,19 +99,19 @@ public class SolrOccurrenceWriter {
    */
   private SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
-    final Double latitude = occurrence.getLatitude();
-    final Double longitude = occurrence.getLongitude();
-    // TODO: geospatial issue has changed
-// final Integer geospatialIssue = occurrence.getGeospatialIssue();
+    final Double latitude = occurrence.getDecimalLatitude();
+    final Double longitude = occurrence.getDecimalLongitude();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
-    doc.setField(BASIS_OF_RECORD.getFieldName(), BOR_CONVERTER.fromEnum(occurrence.getBasisOfRecord()));
-    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getField(DwcTerm.catalogNumber));
-    doc.setField(RECORDED_BY.getFieldName(), occurrence.getField(DwcTerm.recordedBy));
+    doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord() == null ? null : occurrence
+      .getBasisOfRecord().name());
+    doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.catalogNumber));
+    doc.setField(RECORDED_BY.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordedBy));
     doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
-      .ordinal());
+      .name());
+    doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordNumber));
     doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
@@ -125,18 +123,18 @@ public class SolrOccurrenceWriter {
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
-    doc.setField(ALTITUDE.getFieldName(), occurrence.getAltitude());
+    doc.setField(ELEVATION.getFieldName(), occurrence.getElevation());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
-    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getField(DwcTerm.institutionCode));
-    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getField(DwcTerm.collectionCode));
-// doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
+    doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.institutionCode));
+    doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.collectionCode));
+    doc.setField(SPATIAL_ISSUES.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(LATITUDE.getFieldName(), latitude);
     doc.setField(LONGITUDE.getFieldName(), longitude);
-    doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
-    doc.setField(DATE.getFieldName(),
+    doc.setField(HAS_COORDINATE.getFieldName(), latitude != null && longitude != null);
+    doc.setField(EVENT_DATE.getFieldName(),
       occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
-    doc.setField(MODIFIED.getFieldName(),
-      occurrence.getModified() != null ? toDateQueryFormat(occurrence.getModified()) : null);
+    doc.setField(LAST_INTERPRETED.getFieldName(),
+      occurrence.getModified() != null ? toDateQueryFormat(occurrence.getLastInterpreted()) : null);
     if (isValidCoordinate(latitude, longitude)) {
       doc.setField(COORDINATE.getFieldName(), COORD_JOINER.join(latitude, longitude));
     } else {

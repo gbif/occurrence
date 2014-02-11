@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class OccurrenceKeyIteratorTest {
 
   private static final String TABLE_NAME = "occurrence_test";

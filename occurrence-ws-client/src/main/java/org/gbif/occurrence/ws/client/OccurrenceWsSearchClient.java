@@ -24,8 +24,8 @@ import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.COLLECTOR_NAME_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 
 /**
  * Ws client for {@link OccurrenceSearchService}.
@@ -84,17 +84,17 @@ public class OccurrenceWsSearchClient extends
 
   @Override
   public List<String> suggestCollectorNames(String prefix, @Nullable Integer limit) {
-    return suggestTerms(COLLECTOR_NAME_PATH, prefix, limit);
+    return suggestTerms(RECORDED_BY_PATH, prefix, limit);
   }
 
   @Override
   public List<String> suggestRecordNumbers(String prefix, @Nullable Integer limit) {
-    return suggestTerms(COLLECTOR_NAME_PATH, prefix, limit);
+    return suggestTerms(RECORDED_BY_PATH, prefix, limit);
   }
 
   @Override
   public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
-    return suggestTerms(COLLECTOR_NAME_PATH, prefix, limit);
+    return suggestTerms(RECORDED_BY_PATH, prefix, limit);
   }
 
   /**

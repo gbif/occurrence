@@ -2,6 +2,8 @@ package org.gbif.occurrence.persistence;
 
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
@@ -48,7 +50,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class FragmentPersistenceServiceImplTest {
 
   private static final String TABLE_NAME = "occurrence_test";
@@ -162,11 +163,11 @@ public class FragmentPersistenceServiceImplTest {
       Bytes.toBytes(XML_DATASET_KEY.toString()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
       Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.UNIT_QUALIFIER).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(GbifTerm.unitQualifier).getColumnName()),
       Bytes.toBytes(UNIT_QUALIFIER));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DWC_OCCURRENCE_ID).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));
@@ -189,9 +190,9 @@ public class FragmentPersistenceServiceImplTest {
       .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CREATED).getColumnName()), Bytes.toBytes(CREATED));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
       Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DWC_OCCURRENCE_ID).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.HARVESTED_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));

@@ -33,7 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.gbif.api.model.occurrence.OccurrencePersistenceStatus.NEW;
+import static org.gbif.api.vocabulary.OccurrencePersistenceStatus.NEW;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -89,7 +89,7 @@ public class VerbatimOccurrenceProcessorTest {
     Thread.sleep(5000);
     VerbatimOccurrence verb = occurrenceService.getVerbatim(1);
     assertNotNull(verb);
-    assertEquals(24, verb.getFields().size());
-    assertEquals("Pontaurus", verb.getField(DwcTerm.collectionCode));
+    assertEquals(24, verb.getVerbatimFields().size());
+    assertEquals("Pontaurus", verb.getVerbatimField(DwcTerm.collectionCode));
   }
 }

@@ -3,21 +3,27 @@ package org.gbif.occurrence.persistence.util;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.EstablishmentMeans;
 import org.gbif.api.vocabulary.IdentifierType;
+import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
-import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.api.vocabulary.Sex;
+import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.persistence.hbase.HBaseHelper;
 
 import java.util.Date;
 import java.util.EnumSet;
@@ -39,7 +45,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceBuilder {
 
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
   // should never be instantiated
@@ -50,7 +55,9 @@ public class OccurrenceBuilder {
    * Builds a Fragment object from the given result, assigning the passed in key.
    *
    * @param result an HBase scan/get Result
+   *
    * @return the Fragment or null if the passed in Result is null
+   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -70,12 +77,12 @@ public class OccurrenceBuilder {
     if (crawlId == null) {
       throw new ValidationException("Fragment with key [" + key + "] has no crawlId.");
     }
-    Long harvested = OccurrenceResultReader.getLong(result, FieldName.HARVESTED_DATE);
+    Long harvested = OccurrenceResultReader.getLong(result, FieldName.LAST_CRAWLED);
     if (harvested == null) {
       throw new ValidationException("Fragment with key [" + key + "] has no harvestedDate.");
     }
     Date harvestedDate = new Date(harvested);
-    String unitQualifier = OccurrenceResultReader.getString(result, FieldName.UNIT_QUALIFIER);
+    String unitQualifier = OccurrenceResultReader.getTermString(result, GbifTerm.unitQualifier);
     byte[] data = OccurrenceResultReader.getBytes(result, FieldName.FRAGMENT);
     byte[] dataHash = OccurrenceResultReader.getBytes(result, FieldName.FRAGMENT_HASH);
     Long created = OccurrenceResultReader.getLong(result, FieldName.CREATED);
@@ -115,58 +122,73 @@ public class OccurrenceBuilder {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
-      Occurrence occ = new Occurrence();
+      Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
       Integer key = Bytes.toInt(row.getRow());
       occ.setKey(key);
-      occ.setAltitude(OccurrenceResultReader.getInteger(row, FieldName.I_ALTITUDE));
-      occ.setBasisOfRecord(BOR_CONVERTER.toEnum(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD)));
-      occ.setField(DwcTerm.catalogNumber, OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
-      occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_ID));
+      occ.setElevation(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION));
+      occ.setBasisOfRecord(HBaseHelper
+        .nullSafeEnum(BasisOfRecord.class, OccurrenceResultReader.getString(row, FieldName.I_BASIS_OF_RECORD)));
+      occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
       occ.setClazz(OccurrenceResultReader.getString(row, FieldName.I_CLASS));
-      occ.setField(DwcTerm.collectionCode, OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE));
       occ.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
       occ.setDepth(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH));
-      occ.setField(DwcTerm.occurrenceID, OccurrenceResultReader.getString(row, FieldName.DWC_OCCURRENCE_ID));
       occ.setFamily(OccurrenceResultReader.getString(row, FieldName.I_FAMILY));
-      occ.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_ID));
+      occ.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
       occ.setGenus(OccurrenceResultReader.getString(row, FieldName.I_GENUS));
-      occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_ID));
-      occ
-        .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
-      occ.setField(DwcTerm.institutionCode, OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
-      occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_ISO_COUNTRY_CODE)));
+      occ.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
+      occ.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY_CODE)));
+      occ.setCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY)));
       occ.setKingdom(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM));
-      occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_ID));
-      occ.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_LATITUDE));
-      occ.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_LONGITUDE));
+      occ.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
+      occ.setDecimalLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+      occ.setDecimalLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
       occ.setModified(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED));
       occ.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-      occ.setTaxonKey(OccurrenceResultReader.getInteger(row, FieldName.I_NUB_ID));
-      occ.setEventDate(OccurrenceResultReader.getDate(row, FieldName.I_OCCURRENCE_DATE));
+      occ.setTaxonKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
+      occ.setEventDate(OccurrenceResultReader.getDate(row, FieldName.I_EVENT_DATE));
       occ.setOrder(OccurrenceResultReader.getString(row, FieldName.I_ORDER));
-      occ.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_ID));
-      occ.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
+      occ.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY));
+      occ.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
       occ.setPhylum(OccurrenceResultReader.getString(row, FieldName.I_PHYLUM));
-      occ.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_ID));
-      String rawEndpointType = OccurrenceResultReader.getString(row, FieldName.PROTOCOL);
-      if (rawEndpointType == null) {
-        LOG.warn("EndpointType is null for occurrence [{}] - possibly corrupt record.", key);
-      } else {
-        EndpointType endpointType = EndpointType.valueOf(rawEndpointType);
-        occ.setProtocol(endpointType);
-      }
+      occ.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
+      occ.setProtocol(
+        HBaseHelper.nullSafeEnum(EndpointType.class, OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
       occ.setScientificName(OccurrenceResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME));
       occ.setSpecies(OccurrenceResultReader.getString(row, FieldName.I_SPECIES));
-      occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_ID));
+      occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
       occ.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
-      occ.setField(DwcTerm.locality, OccurrenceResultReader.getString(row, FieldName.LOCALITY));
-      occ.setField(DwcTerm.county, OccurrenceResultReader.getString(row, FieldName.COUNTY));
-      occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.STATE_PROVINCE));
-      // TODO: interpret continent into a new column
-      // occ.setContinent(OccurrenceResultReader.getString(row, FieldName.CONTINENT_OCEAN)); // no enums in hbase
-      occ.setField(DwcTerm.recordedBy, OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-      occ.setField(DwcTerm.identifiedBy, OccurrenceResultReader.getString(row, FieldName.IDENTIFIER_NAME));
-      occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.IDENTIFICATION_DATE));
+      occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.I_STATE_PROVINCE));
+      occ.setContinent(
+        HBaseHelper.nullSafeEnum(Continent.class, OccurrenceResultReader.getString(row, FieldName.I_CONTINENT)));
+      occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.I_DATE_IDENTIFIED));
+
+      // new for occurrence widening
+      occ.setElevationAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION_ACC));
+      occ.setCoordinateAccuracy(OccurrenceResultReader.getDouble(row, FieldName.I_COORD_ACCURACY));
+      occ.setDay(OccurrenceResultReader.getInteger(row, FieldName.I_DAY));
+      occ.setDepthAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH_ACC));
+      occ.setDistanceAboveSurface(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE));
+      occ.setDistanceAboveSurfaceAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE_ACC));
+      occ.setEstablishmentMeans(HBaseHelper
+        .nullSafeEnum(EstablishmentMeans.class, OccurrenceResultReader.getString(row, FieldName.I_ESTAB_MEANS)));
+      occ.setIndividualCount(OccurrenceResultReader.getInteger(row, FieldName.I_INDIVIDUAL_COUNT));
+      occ.setLastInterpreted(OccurrenceResultReader.getDate(row, FieldName.LAST_INTERPRETED));
+      occ.setLifeStage(
+        HBaseHelper.nullSafeEnum(LifeStage.class, OccurrenceResultReader.getString(row, FieldName.I_LIFE_STAGE)));
+      occ.setSex(HBaseHelper.nullSafeEnum(Sex.class, OccurrenceResultReader.getString(row, FieldName.I_SEX)));
+      occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.I_STATE_PROVINCE));
+      occ.setWaterBody(OccurrenceResultReader.getString(row, FieldName.I_WATERBODY));
+      occ.setSubgenus(OccurrenceResultReader.getString(row, FieldName.I_SUBGENUS));
+      occ.setSubgenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_SUBGENUS_KEY));
+      occ.setTypeStatus(
+        HBaseHelper.nullSafeEnum(TypeStatus.class, OccurrenceResultReader.getString(row, FieldName.I_TYPE_STATUS)));
+      occ.setTypifiedName(OccurrenceResultReader.getString(row, FieldName.I_TYPIFIED_NAME));
+
+      occ.setGenericName(OccurrenceResultReader.getString(row, FieldName.I_GENERIC_NAME));
+      occ.setSpecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_SPECIFIC_EPITHET));
+      occ.setInfraspecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_INFRASPECIFIC_EPITHET));
+      occ.setTaxonRank(HBaseHelper.nullSafeEnum(Rank.class, OccurrenceResultReader.getString(row, FieldName.I_TAXON_RANK)));
+
       occ.setIdentifiers(extractIdentifiers(key, row, HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY));
       occ.setIssues(extractIssues(row));
 
@@ -182,30 +204,26 @@ public class OccurrenceBuilder {
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
     if (row == null || row.isEmpty()) {
       return null;
-    } else {
-      VerbatimOccurrence verb = new VerbatimOccurrence();
-      verb.setKey(Bytes.toInt(row.getRow()));
-      verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
-      verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.OWNING_ORG_KEY));
-      verb
-        .setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUBLISHING_COUNTRY)));
-      verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.HARVESTED_DATE));
-      verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
-      buildFields(verb, row);
-
-      return verb;
     }
-  }
 
-  private static void buildFields(VerbatimOccurrence occ, Result row) {
+    VerbatimOccurrence verb = new VerbatimOccurrence();
+    verb.setKey(Bytes.toInt(row.getRow()));
+    verb.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
+    verb.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
+    verb.setPublishingCountry(Country.fromIsoCode(OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY_CODE)));
+    verb.setLastCrawled(OccurrenceResultReader.getDate(row, FieldName.LAST_CRAWLED));
+    verb.setLastParsed(OccurrenceResultReader.getDate(row, FieldName.LAST_PARSED));
+    verb.setProtocol(EndpointType.fromString(OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
+
     // all Term fields in row are prefixed
     for (KeyValue kv : row.raw()) {
-      String colName = Bytes.toString(kv.getQualifier());
-      if (colName.startsWith(HBaseTableConstants.TERM_PREFIX)) {
-        Term term = TermFactory.instance().findTerm(colName.substring(2));
-        occ.setField(term, Bytes.toString(kv.getValue()));
+      Term term = HBaseFieldUtil.getTermFromColumn(kv.getQualifier());
+      if (term != null) {
+        verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
+
+    return verb;
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result, String columnFamily) {
@@ -249,4 +267,6 @@ public class OccurrenceBuilder {
 
     return issues;
   }
+
+
 }

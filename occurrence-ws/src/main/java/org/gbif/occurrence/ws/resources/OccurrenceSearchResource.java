@@ -23,17 +23,17 @@ import org.slf4j.LoggerFactory;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.COLLECTOR_NAME_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 
 
 /**
  * Occurrence resource.
  */
 @Path(OCC_SEARCH_PATH)
-@Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT })
+@Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
 public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
@@ -68,7 +68,7 @@ public class OccurrenceSearchResource {
   }
 
   @GET
-  @Path(COLLECTOR_NAME_PATH)
+  @Path(RECORDED_BY_PATH)
   public List<String> suggestCollectorName(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing collector name suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestCollectorNames(prefix, limit);

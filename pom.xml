@@ -97,7 +97,7 @@
     <geocode.version>0.1</geocode.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.7-SNAPSHOT</gbif-parsers.version>
-    <gbif-postal-service.version>0.8</gbif-postal-service.version>
+    <gbif-postal-service.version>0.10-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>2.9</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.4</checklistbank-ws-client.version>
@@ -108,7 +108,7 @@
     <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
     <hamcrest.version>1.3</hamcrest.version>
     <hbase.version>0.94.2-cdh4.2.1</hbase.version>
-    <hbase-utils.version>0.4</hbase-utils.version>
+    <hbase-utils.version>0.6-SNAPSHOT</hbase-utils.version>
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <!-- Only update Jackson together with Jersey so that Jackson is the same version as the one used by Jersey -->
     <jackson.version>1.9.7</jackson.version>
@@ -738,17 +738,17 @@
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>uat</occurrence.environment>
         <!-- webservices -->
-        <occurrence.search.solr.server>http://uat.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://uat.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
-        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://uat.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
-        <registry.ws.url>http://uat.gbif.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
+        <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://apps.gbif-uat.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
+        <registry.ws.url>http://api.gbif-uat.org/v0.9/</registry.ws.url>
+        <geocode.ws.url>http://api.gbif-uat.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.username>occdownload.gbif-uat.org</occurrence.download.ws.username>
       </properties>
     </profile>
 
@@ -765,10 +765,10 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://appdev.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://appdev.gbif.org:8080/occurrence-ws</occurrence.download.ws.url>
-        <checklistbank.match.ws.url>http://apidev.gbif.org/species/match/</checklistbank.match.ws.url>
+        <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://appdev.gbif.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://appdev.gbif.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://apidev.gbif.org/lookup/reverse_geocode/</geocode.ws.url>
+        <geocode.ws.url>http://boma.gbif.org:8080/geocode-ws/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>

@@ -68,7 +68,7 @@ public class JsonFragmentParser {
             // this is not a term URI, sth else
             continue;
           }
-          verbatim.setField(term, value.toString());
+          verbatim.setVerbatimField(term, value.toString());
         }
       }
     } catch (IOException e) {

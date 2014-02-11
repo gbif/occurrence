@@ -8,6 +8,7 @@ import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
 import org.gbif.occurrence.persistence.api.Fragment;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -66,6 +67,7 @@ public class FragmentParser {
 
     if (verbatim != null) {
       verbatim.setProtocol(fragment.getProtocol());
+      verbatim.setLastParsed(new Date());
     }
 
     return verbatim;
@@ -137,7 +139,7 @@ public class FragmentParser {
 
   private static void set(VerbatimOccurrence v, Term t, String val) {
     if (t != null && !Strings.isNullOrEmpty(val)) {
-      v.setField(t, val);
+      v.setVerbatimField(t, val);
     }
   }
 }

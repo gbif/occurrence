@@ -8,10 +8,12 @@ import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.common.parsers.date.YearMonthDay;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
 
 import com.beust.jcommander.internal.Sets;
@@ -32,7 +34,10 @@ public class TemporalInterpreter {
   // max is next year
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE =
-    Range.closed(1700, Calendar.getInstance().get(Calendar.YEAR) + 1);
+    Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR) + 1);
+  @VisibleForTesting
+  protected static final Range<Date> VALID_RECORDED_DATE_RANGE =
+    Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
 
   // modified date for a record cant be before unix time
   @VisibleForTesting
@@ -42,12 +47,6 @@ public class TemporalInterpreter {
   }
 
   public static void interpretTemporal(VerbatimOccurrence verbatim, Occurrence occ) {
-    if (verbatim.hasField(DcTerm.modified)) {
-      ParseResult<Date> parsed = TemporalInterpreter.interpretModifiedDate(verbatim.getField(DcTerm.modified));
-      occ.setModified(parsed.getPayload());
-      occ.getIssues().addAll(parsed.getIssues());
-    }
-
     ParseResult<DateYearMonthDay> eventResult = interpretRecordedDate(verbatim);
     if (eventResult.isSuccessful()) {
       occ.setEventDate(eventResult.getPayload().getDate());
@@ -56,6 +55,22 @@ public class TemporalInterpreter {
       occ.setDay(eventResult.getPayload().getDay());
     }
     occ.getIssues().addAll(eventResult.getIssues());
+
+    if (verbatim.hasVerbatimField(DcTerm.modified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified),
+                                               VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
+      occ.setModified(parsed.getPayload());
+      occ.getIssues().addAll(parsed.getIssues());
+    }
+
+    if (verbatim.hasVerbatimField(DwcTerm.dateIdentified)) {
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
+                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKLEY);
+      occ.setDateIdentified(parsed.getPayload());
+      occ.getIssues().addAll(parsed.getIssues());
+    }
+
+    removeVerbatimTerms(occ);
   }
 
   /**
@@ -70,10 +85,10 @@ public class TemporalInterpreter {
    * @return interpretation result, never null
    */
   public static ParseResult<DateYearMonthDay> interpretRecordedDate(VerbatimOccurrence verbatim) {
-    final String year = verbatim.getField(DwcTerm.year);
-    final String month = verbatim.getField(DwcTerm.month);
-    final String day = verbatim.getField(DwcTerm.day);
-    final String dateString = verbatim.getField(DwcTerm.eventDate);
+    final String year = verbatim.getVerbatimField(DwcTerm.year);
+    final String month = verbatim.getVerbatimField(DwcTerm.month);
+    final String day = verbatim.getVerbatimField(DwcTerm.day);
+    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
 
     if (year == null && month == null && day == null && Strings.isNullOrEmpty(dateString)) {
       return ParseResult.fail();
@@ -92,6 +107,9 @@ public class TemporalInterpreter {
     ParseResult<Date> parseResult = DateParseUtils.parse(ymd.getYear(), ymd.getMonth(), ymd.getDay());
     final Date ymdDate = parseResult.getStatus() == ParseResult.STATUS.SUCCESS ? parseResult.getPayload() : null;
     final Integer ymdYear = ymd.getIntegerYear();
+    if (!Strings.isNullOrEmpty(year) && ymd.getIntegerYear() == null) {
+      issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+    }
 
     // string based date
     Date stringDate = DateParseUtils.parse(dateString).getPayload();
@@ -132,17 +150,23 @@ public class TemporalInterpreter {
     }
 
     if (result == null) {
-      // try to use partial dates from YMD as last resort:
-      if (ymd.getIntegerYear() != null && !VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear())) {
-        ymd.setYear(null);
-        issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+      if (!ymd.representsNull()) {
+        // try to use partial dates from YMD as last resort
+        if ( (ymd.getIntegerYear() != null && VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear()))
+          || (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))
+        ) {
+          result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
+                                       new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
+        }
       }
-
-      result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
-                 new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
     }
 
-    // return result with all issues
+    // if its still null then its a fail
+    if (result == null) {
+      result = ParseResult.fail();
+    }
+
+      // return result with all issues
     result.getIssues().addAll(issues);
     return result;
   }
@@ -156,21 +180,30 @@ public class TemporalInterpreter {
     return null;
   }
 
-  // TODO deal with partial ISO dates: http://dev.gbif.org/issues/browse/POR-1742
-  public static ParseResult<Date> interpretModifiedDate(String dateString) {
+
+  public static ParseResult<Date> interpretDate(String dateString, Range<Date> likelyRange, OccurrenceIssue unlikelyIssue) {
     if (!Strings.isNullOrEmpty(dateString)) {
       ParseResult<Date> result = DateParseUtils.parse(dateString);
       if (result.isSuccessful()) {
         // check year makes sense
-        if (VALID_MODIFIED_DATE_RANGE.contains(result.getPayload())) {
+        if (!likelyRange.contains(result.getPayload())) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
-          // Use correct new issue for dc modified
-          result.addIssue(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
+          result.addIssue(unlikelyIssue);
         }
       }
       return result;
     }
     return ParseResult.fail();
+  }
+
+  private static void removeVerbatimTerms(Occurrence occ) {
+    Term[] terms = new Term[]{
+      DwcTerm.year,DwcTerm.month,DwcTerm.day,DwcTerm.eventDate,
+      DcTerm.modified,DwcTerm.dateIdentified,
+    };
+    for (Term t : terms) {
+      occ.getVerbatimFields().remove(t);
+    }
   }
 
 }

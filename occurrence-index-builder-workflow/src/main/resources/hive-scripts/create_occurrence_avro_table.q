@@ -19,7 +19,7 @@ TBLPROPERTIES (
     {"name":"catalog_number","type":"string"}, 
     {"name":"recorded_by","type":"string"}, 
     {"name":"record_number","type":"string"},     
-    {"name":"modified","type":"long"}, 
+    {"name":"last_interpreted","type":"long"}, 
     {"name":"taxon_key","type":{"type":"array", "items":"int"}},
     {"name":"country","type":"string"},
     {"name":"publishing_country","type":"string"},
@@ -29,9 +29,10 @@ TBLPROPERTIES (
     {"name":"year","type":"int"},
     {"name":"month","type":"int"},
     {"name":"date","type":"long"},
-    {"name":"basis_of_record","type":"int"},
-    {"name":"geospatial_issue","type":"boolean"},
-    {"name":"georeferenced","type":"boolean"},
-    {"name":"altitude","type":"int"},
+    {"name":"basis_of_record","type":"string"},
+    {"name":"type_status","type":"string"},
+    {"name":"spatial_issues","type":"boolean"},
+    {"name":"has_coordinate","type":"boolean"},
+    {"name":"elevation","type":"int"},
     {"name":"depth","type":"int"}]
 }');

@@ -5,10 +5,10 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -59,10 +59,32 @@ public class OccurrenceDataLoader {
 
     @Override
     public BasisOfRecord execute(Object value, CsvContext context) {
-      return BOR_CONVERTER.toEnum(Integer.parseInt((String) value));
+      Enum<?> basisOfRecord = VocabularyUtils.lookupEnum((String) value, BasisOfRecord.class);
+      if (basisOfRecord != null) {
+        return (BasisOfRecord) basisOfRecord;
+      }
+      return null;
     }
 
   }
+
+
+  /**
+   * Produces a TypeStatus instance.
+   */
+  private static class TypeStatusProcessor implements CellProcessor {
+
+    @Override
+    public TypeStatus execute(Object value, CsvContext context) {
+      Enum<?> typeStatus = VocabularyUtils.lookupEnum((String) value, TypeStatus.class);
+      if (typeStatus != null) {
+        return (TypeStatus) typeStatus;
+      }
+      return null;
+    }
+
+  }
+
 
   /**
    * Produces a Continent instance.
@@ -110,10 +132,6 @@ public class OccurrenceDataLoader {
   private static final String DATE_FORMAT = "yyyy-MM-dd"; // Tue Nov 23 17:00:00 CST 1954
 
 
-  // Basis of record converter instance.
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
-
-
   // List of processors, a processor is defined for each column
   private final static CellProcessor[] CELL_PROCESSORS = new CellProcessor[] {
     new ParseInt(), // key
@@ -157,14 +175,15 @@ public class OccurrenceDataLoader {
     new Optional(),// collectorName
     new Optional(),// recordNumber
     new Optional(),// identifierName
-    new Optional(new ParseDate(DATE_FORMAT))// identificationDate
+    new Optional(new ParseDate(DATE_FORMAT)),// identificationDate
+    new Optional(new TypeStatusProcessor()),// typeStatus
   };
 
 
   // Column headers
   private final static String[] HEADER = new String[] {
     "key",
-    "altitude",
+    "elevation",
     "basisOfRecord",
     "catalogNumber",
     "classKey",
@@ -181,8 +200,8 @@ public class OccurrenceDataLoader {
     "country",
     "kingdom",
     "kingdomKey",
-    "latitude",
-    "longitude",
+    "decimalLatitude",
+    "decimalLongitude",
     "modified",
     "month",
     "taxonKey",
@@ -204,7 +223,8 @@ public class OccurrenceDataLoader {
     "recordedBy",
     "recordNumber",
     "identifiedBy",
-    "dateIdentified"
+    "dateIdentified",
+    "typeStatus"
   };
 
 
@@ -258,7 +278,7 @@ public class OccurrenceDataLoader {
     for (Entry<String, Object> field : occurrenceMap.entrySet()) {
       if (VERBATIM_FIELDS.contains(field.getKey())) {
         Entry<? extends Term, String> verbatimField = toTermEntry(field);
-        occurrence.setField(verbatimField.getKey(), verbatimField.getValue());
+        occurrence.setVerbatimField(verbatimField.getKey(), verbatimField.getValue());
       } else {
         setInterpretedField(field, occurrence);
       }

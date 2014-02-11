@@ -9,6 +9,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.search.writers.HBaseOccurrenceWriter;
@@ -232,12 +233,12 @@ public class OccurrenceSearchTestIT {
 
 
   /**
-   * Performs a search by CollectorName.
+   * Performs a search by RecordedBy.
    */
   @Test
-  public void testSearchByCollectorName() {
+  public void testSearchByRecordedBy() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addCollectorNameFilter("Kupke");
+    occurrenceSearchRequest.addRecordedByFilter("Kupke");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
@@ -273,7 +274,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByDataset() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addDatasetFilter(UUID.fromString("85685a84-f762-11e1-a439-00145eb45e9a"));
+    occurrenceSearchRequest.addDatasetKeyFilter(UUID.fromString("85685a84-f762-11e1-a439-00145eb45e9a"));
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
@@ -286,7 +287,7 @@ public class OccurrenceSearchTestIT {
   @Ignore("Commit/revision 1985 removed the capacity of interpreting 'DATE is not null' queries")
   public void testSearchByDateAll() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "*");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "*");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 19);
@@ -299,7 +300,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByDateRangeYear() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955,1956");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955,1956");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 19);
@@ -311,7 +312,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByDateRangeYearAndMonth() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955-07,1955-08");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955-07,1955-08");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 17);
@@ -324,7 +325,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByDateYear() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 17);
@@ -336,7 +337,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByDateYearAndMonth() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955-07");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955-07");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 16);
@@ -349,7 +350,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByFullDate() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955-7-31");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955-7-31");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 1);
@@ -362,7 +363,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByFullDateRange() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955-07-1,1955-7-14");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955-07-1,1955-7-14");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 14);
@@ -388,7 +389,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByMixDateRangesFullAndYear() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955-7-14,1956");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955-7-14,1956");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 6);
@@ -400,7 +401,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByMixDateRangesYearAndFull() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "1955,1956-10-10");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "1955,1956-10-10");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 19);
@@ -425,7 +426,7 @@ public class OccurrenceSearchTestIT {
   @Test
   public void testSearchByOpenDateRange() throws SolrServerException {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATE, "*,1958-8");
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_DATE, "*,1958-8");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 19);
@@ -439,6 +440,18 @@ public class OccurrenceSearchTestIT {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest
       .addGeometryFilter("POLYGON ((-127.265 28.304,-76.640 55.776,94.218 -38.822,-86.484 -50.289,-127.265 28.304))");
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+      occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() > 0);
+  }
+
+  /**
+   * Performs a search by TypeStatus.
+   */
+  @Test
+  public void testSearchByTypeStatus() {
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addTypeStatusFilter(TypeStatus.TYPE);
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
