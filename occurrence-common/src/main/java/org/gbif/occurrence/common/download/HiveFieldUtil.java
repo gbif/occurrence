@@ -86,7 +86,7 @@ public class HiveFieldUtil {
 //    FieldName.BASIS_OF_RECORD,
 //    FieldName.IDENTIFIER_NAME,
 //    FieldName.IDENTIFICATION_DATE,
-    FieldName.CREATED,
+//    FieldName.CREATED,
     FieldName.LAST_PARSED);
 
   private static final Map<FieldName, Term> NAME_MAP = ImmutableMap.<FieldName, Term>builder()
