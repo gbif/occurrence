@@ -81,8 +81,10 @@ public class FragmentParser {
     v.setDatasetKey(frag.getDatasetKey());
     v.setLastCrawled(frag.getHarvestedDate());
 
+    // these don't come from xml - hangover from mysql portal days
 //    ror.getCreated()
 //    ror.getModified()
+
 //    set(v, DwcTerm.acceptedNameUsage, ror.getDataProviderId());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getDataResourceId());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getResourceAccessPointId());
@@ -96,7 +98,7 @@ public class FragmentParser {
 //    set(v, DwcTerm.acceptedNameUsage, ror.getLinkRecords());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getTypificationRecords());
 
-    set(v, GbifTerm.elevationPrecision, ror.getAltitudePrecision());
+    set(v, GbifTerm.elevationAccuracy, ror.getAltitudePrecision());
     set(v, DwcTerm.scientificNameAuthorship, ror.getAuthor());
     set(v, DwcTerm.basisOfRecord, ror.getBasisOfRecord());
     set(v, DwcTerm.catalogNumber, ror.getCatalogueNumber());
@@ -107,7 +109,7 @@ public class FragmentParser {
     set(v, DwcTerm.county, ror.getCounty());
     set(v, DwcTerm.day, ror.getDay());
     set(v, DwcTerm.dateIdentified, ror.getDateIdentified());
-    set(v, GbifTerm.depthPrecision, ror.getDepthPrecision());
+    set(v, GbifTerm.depthAccuracy, ror.getDepthPrecision());
     set(v, DwcTerm.family, ror.getFamily());
     set(v, DwcTerm.genus, ror.getGenus());
     set(v, DwcTerm.occurrenceID, ror.getId());
@@ -116,7 +118,7 @@ public class FragmentParser {
     set(v, DwcTerm.kingdom, ror.getKingdom());
     set(v, DwcTerm.class_, ror.getKlass());
     set(v, DwcTerm.decimalLatitude, ror.getLatitude());
-    set(v, DwcTerm.coordinatePrecision, ror.getLatLongPrecision());
+    set(v, DwcTerm.coordinateUncertaintyInMeters, ror.getLatLongPrecision());
     set(v, DwcTerm.locality, ror.getLocality());
     set(v, DwcTerm.decimalLongitude, ror.getLongitude());
     set(v, DwcTerm.maximumElevationInMeters, ror.getMaxAltitude());
