@@ -68,14 +68,14 @@ public class SolrQueryVisitorTest {
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "222");
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("altitude:[222 TO *]"));
+    assertThat(query, equalTo("elevation:[222 TO *]"));
   }
 
   @Test
   public void testGreaterThanPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("altitude:{1000 TO *]"));
+    assertThat(query, equalTo("elevation:{1000 TO *]"));
   }
 
   @Test
@@ -90,14 +90,14 @@ public class SolrQueryVisitorTest {
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("altitude:[* TO 1000]"));
+    assertThat(query, equalTo("elevation:[* TO 1000]"));
   }
 
   @Test
   public void testLessThanPredicate() throws QueryBuildingException {
     Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("altitude:[* TO 1000}"));
+    assertThat(query, equalTo("elevation:[* TO 1000}"));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class SolrQueryVisitorTest {
 
     p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "101");
     query = visitor.getQuery(p);
-    assertThat(query, equalTo("altitude:[* TO 101]"));
+    assertThat(query, equalTo("elevation:[* TO 101]"));
 
     p = new GreaterThanPredicate(OccurrenceSearchParameter.YEAR, "1998");
     query = visitor.getQuery(p);
@@ -141,7 +141,7 @@ public class SolrQueryVisitorTest {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getQuery(p);
-    // assertThat(query, equalTo("contains(\"" + wkt + "\", latitude, longitude)"));
+    assertThat(query, equalTo("coordinate:\"Intersects(" + wkt + ") distErrPct=0\""));
 
   }
 
