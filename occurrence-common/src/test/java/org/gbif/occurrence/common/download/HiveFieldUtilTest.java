@@ -1,7 +1,6 @@
 package org.gbif.occurrence.common.download;
 
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.constants.FieldName;
 
@@ -25,7 +24,7 @@ public class HiveFieldUtilTest {
     assertEquals("taxon_id", HiveFieldUtil.getHiveField(FieldName.I_TAXON_KEY));
 //    assertEquals("mod360_cell_id", HiveFieldUtil.getHiveField(FieldName.I_MOD360_CELL_ID));
 //    assertEquals("unit_qualifier", HiveFieldUtil.getHiveField(FieldName.UNIT_QUALIFIER));
-    assertEquals("created", HiveFieldUtil.getHiveField(FieldName.CREATED));
+//    assertEquals("created", HiveFieldUtil.getHiveField(FieldName.CREATED));
 //    assertEquals("geospatial_issue", HiveFieldUtil.getHiveField(FieldName.I_GEOSPATIAL_ISSUE));
   }
 
@@ -51,7 +50,7 @@ public class HiveFieldUtilTest {
     assertEquals("order", HiveFieldUtil.getTerm(FieldName.I_ORDER).simpleName());
     assertEquals("taxonID", HiveFieldUtil.getTerm(FieldName.I_TAXON_KEY).simpleName());
 //    assertEquals("unitQualifier", HiveFieldUtil.getTerm(FieldName.UNIT_QUALIFIER).simpleName());
-    assertEquals("created", HiveFieldUtil.getTerm(FieldName.CREATED).simpleName());
+//    assertEquals("created", HiveFieldUtil.getTerm(FieldName.CREATED).simpleName());
   }
 
   @Test
@@ -65,6 +64,6 @@ public class HiveFieldUtilTest {
     assertEquals(DwcTerm.order, HiveFieldUtil.getTerm(FieldName.I_ORDER));
     assertEquals(DwcTerm.taxonID, HiveFieldUtil.getTerm(FieldName.I_TAXON_KEY));
 //    assertEquals(GbifTerm.unitQualifier, HiveFieldUtil.getTerm(FieldName.UNIT_QUALIFIER));
-    assertEquals(GbifTerm.created, HiveFieldUtil.getTerm(FieldName.CREATED));
+//    assertEquals(GbifTerm.created, HiveFieldUtil.getTerm(FieldName.CREATED));
   }
 }

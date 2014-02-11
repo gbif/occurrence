@@ -3,7 +3,6 @@ package org.gbif.occurrence.common.download;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 
 import java.util.List;
@@ -87,7 +86,7 @@ public class HiveFieldUtil {
 //    FieldName.BASIS_OF_RECORD,
 //    FieldName.IDENTIFIER_NAME,
 //    FieldName.IDENTIFICATION_DATE,
-    FieldName.CREATED,
+//    FieldName.CREATED,
     FieldName.LAST_PARSED);
 
   private static final Map<FieldName, Term> NAME_MAP = ImmutableMap.<FieldName, Term>builder()
@@ -148,8 +147,8 @@ public class HiveFieldUtil {
 //    .put(FieldName.MONTH, GbifTerm.verbatimMonth)
 //    .put(FieldName.BASIS_OF_RECORD, GbifTerm.verbatimBasisOfRecord)
     // internal things
-    .put(FieldName.CREATED, GbifTerm.created)
-    .put(FieldName.LAST_PARSED, GbifTerm.modified)
+//    .put(FieldName.CREATED, GbifTerm.created)
+    .put(FieldName.LAST_PARSED, GbifTerm.lastParsed)
     .put(FieldName.I_KINGDOM_KEY, GbifTerm.kingdomID)
     .put(FieldName.I_PHYLUM_KEY, GbifTerm.phylumID)
     .put(FieldName.I_CLASS_KEY, GbifTerm.classID)
@@ -158,7 +157,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
     .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
 //    .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    .put(FieldName.PUB_COUNTRY_CODE, new UnknownTerm("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
+    .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
     .build();
 
   /**
