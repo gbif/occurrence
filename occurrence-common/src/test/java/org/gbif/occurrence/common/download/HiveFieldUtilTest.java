@@ -1,7 +1,6 @@
 package org.gbif.occurrence.common.download;
 
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.constants.FieldName;
 
@@ -65,6 +64,6 @@ public class HiveFieldUtilTest {
     assertEquals(DwcTerm.order, HiveFieldUtil.getTerm(FieldName.I_ORDER));
     assertEquals(DwcTerm.taxonID, HiveFieldUtil.getTerm(FieldName.I_TAXON_KEY));
 //    assertEquals(GbifTerm.unitQualifier, HiveFieldUtil.getTerm(FieldName.UNIT_QUALIFIER));
-    assertEquals(GbifTerm.created, HiveFieldUtil.getTerm(FieldName.CREATED));
+//    assertEquals(GbifTerm.created, HiveFieldUtil.getTerm(FieldName.CREATED));
   }
 }

@@ -3,7 +3,6 @@ package org.gbif.occurrence.common.download;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.constants.FieldName;
 
 import java.util.List;
@@ -158,7 +157,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
     .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
 //    .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    .put(FieldName.PUB_COUNTRY_CODE, UnknownTerm.build("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
+    .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
     .build();
 
   /**
