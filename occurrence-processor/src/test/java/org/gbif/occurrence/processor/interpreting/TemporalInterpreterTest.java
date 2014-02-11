@@ -51,7 +51,7 @@ public class TemporalInterpreterTest {
     assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2010));
     assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2014));
 
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1680));
+    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1580));
     assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(900));
     assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(90));
     assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(0));
@@ -104,7 +104,7 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testOldYear() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1684", "3", "22", null);
+    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1599", "3", "22", null);
     assertNullResult(result);
   }
 
