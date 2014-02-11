@@ -71,7 +71,7 @@ public class OccurrenceSearchResource {
   @Path(RECORDED_BY_PATH)
   public List<String> suggestCollectorName(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing collector name suggest/search, query {}, limit {}", prefix, limit);
-    return searchService.suggestCollectorNames(prefix, limit);
+    return searchService.suggestRecordedBy(prefix, limit);
   }
 
 
