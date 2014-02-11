@@ -25,8 +25,8 @@ public class HiveFieldUtil {
 
   public static final List<FieldName> DOWNLOAD_COLUMNS = ImmutableList.of(
     FieldName.KEY,
-    FieldName.DATASET_KEY,
-    FieldName.INSTITUTION_CODE,
+      FieldName.DATASET_KEY,
+  FieldName.INSTITUTION_CODE,
     FieldName.COLLECTION_CODE,
     FieldName.CATALOG_NUMBER,
     FieldName.I_BASIS_OF_RECORD,
@@ -158,7 +158,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
     .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
     // .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    // .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
+    .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
     .build();
 
   /**
