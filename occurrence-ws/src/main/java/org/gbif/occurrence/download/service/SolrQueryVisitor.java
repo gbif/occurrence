@@ -31,9 +31,9 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.common.search.util.SolrConstants;
+import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 import org.gbif.occurrence.search.OccurrenceSearchDateUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,7 +79,7 @@ public class SolrQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   *
+   * 
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -110,7 +110,7 @@ public class SolrQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   *
+   * 
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -170,7 +170,7 @@ public class SolrQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   *
+   * 
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -205,10 +205,7 @@ public class SolrQueryVisitor {
   }
 
   private String toSolrField(OccurrenceSearchParameter param) {
-    // TODO: remove it once the mapping is added to QUERY_FIELD_MAPPING
-    if (OccurrenceSearchParameter.MODIFIED == param) {
-      return OccurrenceSolrField.MODIFIED.getFieldName();
-    } else if (QUERY_FIELD_MAPPING.containsKey(param)) {
+    if (QUERY_FIELD_MAPPING.containsKey(param)) {
       return getSolrField(param);
     }
     // QueryBuildingException requires an underlying exception
@@ -218,7 +215,7 @@ public class SolrQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   *
+   * 
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase

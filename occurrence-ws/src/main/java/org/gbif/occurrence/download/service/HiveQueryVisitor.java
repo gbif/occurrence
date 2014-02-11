@@ -101,15 +101,15 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
     .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
     .put(OccurrenceSearchParameter.CATALOG_NUMBER, FieldName.CATALOG_NUMBER)
-//    .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
+    // .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
     .put(OccurrenceSearchParameter.EVENT_DATE, FieldName.I_EVENT_DATE)
-    .put(OccurrenceSearchParameter.MODIFIED, FieldName.LAST_PARSED)
+    .put(OccurrenceSearchParameter.LAST_INTERPRETED, FieldName.LAST_INTERPRETED)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
     .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY_CODE)
-//    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
+    // .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
     .build();
 
   // IS_GEOREFERENCED_CHECK, IS_NOT_GEOREFERENCED_CHECK, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
@@ -118,15 +118,16 @@ class HiveQueryVisitor {
     + IS_NOT_NULL_OPERATOR + CONJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
     + IS_NOT_NULL_OPERATOR;
 
-  private static final String IS_NOT_GEOREFERENCED_CHECK = '(' + toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
+  private static final String IS_NOT_GEOREFERENCED_CHECK = '('
+    + toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
     + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
     + IS_NULL_OPERATOR + ')';
 
-//  private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-//    + GREATER_THAN_OPERATOR + '0';
-//  private static final String NO_SPATIAL_ISSUES_CHECK = '(' + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-//    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES) + EQUALS_OPERATOR
-//    + "0)";
+// private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
+// + GREATER_THAN_OPERATOR + '0';
+// private static final String NO_SPATIAL_ISSUES_CHECK = '(' + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
+// + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES) + EQUALS_OPERATOR
+// + "0)";
 
   private StringBuilder builder;
 
@@ -141,7 +142,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   *
+   * 
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -168,7 +169,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   *
+   * 
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -237,7 +238,7 @@ class HiveQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   *
+   * 
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -290,16 +291,16 @@ class HiveQueryVisitor {
    * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
    */
   private void appendSpatialIssuePredicate(String value) {
-//    if (Boolean.parseBoolean(value)) {
-//      builder.append(SPATIAL_ISSUES_CHECK);
-//    } else {
-//      builder.append(NO_SPATIAL_ISSUES_CHECK);
-//    }
+// if (Boolean.parseBoolean(value)) {
+// builder.append(SPATIAL_ISSUES_CHECK);
+// } else {
+// builder.append(NO_SPATIAL_ISSUES_CHECK);
+// }
   }
 
   /**
    * Searches any of the nub keys in hbase of any rank.
-   *
+   * 
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
@@ -320,7 +321,7 @@ class HiveQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   *
+   * 
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase

@@ -17,26 +17,26 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ALTITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOREFERENCED;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GEOSPATIAL_ISSUE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ELEVATION;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_DATE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.HAS_COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LAST_INTERPRETED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MODIFIED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORD_NUMBER;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SPATIAL_ISSUES;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
@@ -123,18 +123,18 @@ public class SolrOccurrenceWriter {
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
-    doc.setField(ALTITUDE.getFieldName(), occurrence.getElevation());
+    doc.setField(ELEVATION.getFieldName(), occurrence.getElevation());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
     doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.institutionCode));
     doc.setField(COLLECTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.collectionCode));
-    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), occurrence.hasSpatialIssue());
+    doc.setField(SPATIAL_ISSUES.getFieldName(), occurrence.hasSpatialIssue());
     doc.setField(LATITUDE.getFieldName(), latitude);
     doc.setField(LONGITUDE.getFieldName(), longitude);
-    doc.setField(GEOREFERENCED.getFieldName(), latitude != null && longitude != null);
-    doc.setField(DATE.getFieldName(),
+    doc.setField(HAS_COORDINATE.getFieldName(), latitude != null && longitude != null);
+    doc.setField(EVENT_DATE.getFieldName(),
       occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
-    doc.setField(MODIFIED.getFieldName(),
-      occurrence.getModified() != null ? toDateQueryFormat(occurrence.getModified()) : null);
+    doc.setField(LAST_INTERPRETED.getFieldName(),
+      occurrence.getModified() != null ? toDateQueryFormat(occurrence.getLastInterpreted()) : null);
     if (isValidCoordinate(latitude, longitude)) {
       doc.setField(COORDINATE.getFieldName(), COORD_JOINER.join(latitude, longitude));
     } else {

@@ -7,7 +7,7 @@ SELECT
   COALESCE(catalogue_number,""),
   COALESCE(collector_name,""),
   COALESCE(record_number,""),
-  COALESCE(last_crawled, CAST(-1 AS BIGINT)),
+  COALESCE(last_interpreted, CAST(-1 AS BIGINT)),
   array(COALESCE(i_kingdom_key,-1),COALESCE(i_phylum_key,-1),COALESCE(i_class_key,-1),COALESCE(i_order_key,-1),COALESCE(i_family_key,-1),COALESCE(i_genus_key,-1),COALESCE(i_species_key,-1),COALESCE(i_taxon_key,-1)), --taxon_key
   COALESCE(i_country,""),
   COALESCE(pub_country,""),

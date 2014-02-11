@@ -233,10 +233,10 @@ public class OccurrenceSearchTestIT {
 
 
   /**
-   * Performs a search by CollectorName.
+   * Performs a search by RecordedBy.
    */
   @Test
-  public void testSearchByCollectorName() {
+  public void testSearchByRecordedBy() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest.addRecordedByFilter("Kupke");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =

@@ -9,9 +9,9 @@ public enum OccurrenceSolrField {
   COUNTRY("country"), PUBLISHING_COUNTRY("publishing_country"), YEAR("year"), MONTH("month"),
   CATALOG_NUMBER("catalog_number"), RECORDED_BY("recorded_by"), RECORD_NUMBER("record_number"),
   BASIS_OF_RECORD("basis_of_record"), DATASET_KEY("dataset_key"), TAXON_KEY("taxon_key"),
-  COLLECTION_CODE("collection_code"), ALTITUDE("altitude"), DEPTH("depth"), INSTITUTION_CODE("institution_code"),
-  GEOSPATIAL_ISSUE("geospatial_issue"), GEOREFERENCED("georeferenced"), DATE("date"), MODIFIED("modified"),
-  TYPE_STATUS("type_status");
+  COLLECTION_CODE("collection_code"), ELEVATION("elevation"), DEPTH("depth"), INSTITUTION_CODE("institution_code"),
+  SPATIAL_ISSUES("spatial_issues"), HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"),
+  LAST_INTERPRETED("last_interpreted"), TYPE_STATUS("type_status");
 
   private final String fieldName;
 

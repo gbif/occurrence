@@ -54,13 +54,13 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.COLLECTION_CODE, OccurrenceSolrField.COLLECTION_CODE)
       .put(OccurrenceSearchParameter.INSTITUTION_CODE, OccurrenceSolrField.INSTITUTION_CODE)
       .put(OccurrenceSearchParameter.DEPTH, OccurrenceSolrField.DEPTH)
-      .put(OccurrenceSearchParameter.ELEVATION, OccurrenceSolrField.ALTITUDE)
+      .put(OccurrenceSearchParameter.ELEVATION, OccurrenceSolrField.ELEVATION)
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceSolrField.BASIS_OF_RECORD)
       .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceSolrField.DATASET_KEY)
-      .put(OccurrenceSearchParameter.SPATIAL_ISSUES, OccurrenceSolrField.GEOSPATIAL_ISSUE)
-      .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceSolrField.GEOREFERENCED)
-      .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.DATE)
-      .put(OccurrenceSearchParameter.MODIFIED, OccurrenceSolrField.MODIFIED)
+      .put(OccurrenceSearchParameter.SPATIAL_ISSUES, OccurrenceSolrField.SPATIAL_ISSUES)
+      .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceSolrField.HAS_COORDINATE)
+      .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE)
+      .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED)
       .put(OccurrenceSearchParameter.COUNTRY, OccurrenceSolrField.COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceSolrField.PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
@@ -181,8 +181,9 @@ public class OccurrenceSearchRequestBuilder {
         }
       }
       addLocationQuery(params, filterQueries);
-      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.DATE, filterQueries);
-      addDateQuery(params, OccurrenceSearchParameter.MODIFIED, OccurrenceSolrField.MODIFIED, filterQueries);
+      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, filterQueries);
+      addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
+        filterQueries);
 
       if (!filterQueries.isEmpty()) {
         solrQuery.addFilterQuery(PARAMS_AND_JOINER.join(filterQueries));

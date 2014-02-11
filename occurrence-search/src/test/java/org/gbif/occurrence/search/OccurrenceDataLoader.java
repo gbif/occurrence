@@ -9,7 +9,6 @@ import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.converter.BasisOfRecordConverter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -131,10 +130,6 @@ public class OccurrenceDataLoader {
 
   // Date format used in the CSV file.
   private static final String DATE_FORMAT = "yyyy-MM-dd"; // Tue Nov 23 17:00:00 CST 1954
-
-
-  // Basis of record converter instance.
-  private static final BasisOfRecordConverter BOR_CONVERTER = new BasisOfRecordConverter();
 
 
   // List of processors, a processor is defined for each column
