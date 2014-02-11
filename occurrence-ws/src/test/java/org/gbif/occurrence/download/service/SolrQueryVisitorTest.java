@@ -141,7 +141,7 @@ public class SolrQueryVisitorTest {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getQuery(p);
-    // assertThat(query, equalTo("contains(\"" + wkt + "\", latitude, longitude)"));
+    assertThat(query, equalTo("coordinate:\"Intersects(" + wkt + ") distErrPct=0\""));
 
   }
 

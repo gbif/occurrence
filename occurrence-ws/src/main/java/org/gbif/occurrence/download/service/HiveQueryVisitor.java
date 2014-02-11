@@ -101,7 +101,6 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
     .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
     .put(OccurrenceSearchParameter.CATALOG_NUMBER, FieldName.CATALOG_NUMBER)
-    // .put(OccurrenceSearchParameter.COLLECTOR_NAME, FieldName.COLLECTOR_NAME)
     .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
     // the following need some value transformation
     .put(OccurrenceSearchParameter.EVENT_DATE, FieldName.I_EVENT_DATE)

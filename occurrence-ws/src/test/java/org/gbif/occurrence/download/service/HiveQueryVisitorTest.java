@@ -13,8 +13,15 @@ import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Language;
+
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import com.google.common.collect.Lists;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -150,4 +157,34 @@ public class HiveQueryVisitorTest {
     assertThat(query, equalTo("contains(\"" + wkt + "\", latitude, longitude)"));
   }
 
+
+  @Test
+  @Ignore
+  public void testAllParamsExist() throws QueryBuildingException {
+    List<Predicate> predicates = Lists.newArrayList();
+    for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      String value = "7";
+
+      if (OccurrenceSearchParameter.GEOMETRY == param) {
+        value = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
+      } else if (UUID.class.isAssignableFrom(param.type())) {
+        value = UUID.randomUUID().toString();
+      } else if (Boolean.class.isAssignableFrom(param.type())) {
+        value = "true";
+      } else if (Country.class.isAssignableFrom(param.type())) {
+        value = Country.GERMANY.getIso2LetterCode();
+      } else if (Language.class.isAssignableFrom(param.type())) {
+        value = Language.GERMAN.getIso2LetterCode();
+      } else if (Enum.class.isAssignableFrom(param.type())) {
+        Enum<?>[] values = ((Class<Enum>) param.type()).getEnumConstants();
+        value = values[0].name();
+      } else if (Date.class.isAssignableFrom(param.type())) {
+        value = "2014-01-23";
+      }
+
+      predicates.add(new EqualsPredicate(param, value));
+    }
+    ConjunctionPredicate and = new ConjunctionPredicate(predicates);
+    String where = visitor.getHiveQuery(and);
+  }
 }
