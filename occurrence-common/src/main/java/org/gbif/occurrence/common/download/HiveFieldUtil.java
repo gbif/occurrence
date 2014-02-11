@@ -148,8 +148,8 @@ public class HiveFieldUtil {
 //    .put(FieldName.MONTH, GbifTerm.verbatimMonth)
 //    .put(FieldName.BASIS_OF_RECORD, GbifTerm.verbatimBasisOfRecord)
     // internal things
-    .put(FieldName.CREATED, GbifTerm.created)
-    .put(FieldName.LAST_PARSED, GbifTerm.modified)
+//    .put(FieldName.CREATED, GbifTerm.created)
+    .put(FieldName.LAST_PARSED, GbifTerm.lastParsed)
     .put(FieldName.I_KINGDOM_KEY, GbifTerm.kingdomID)
     .put(FieldName.I_PHYLUM_KEY, GbifTerm.phylumID)
     .put(FieldName.I_CLASS_KEY, GbifTerm.classID)
@@ -158,7 +158,7 @@ public class HiveFieldUtil {
     .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
     .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
 //    .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    .put(FieldName.PUB_COUNTRY_CODE, new UnknownTerm("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
+    .put(FieldName.PUB_COUNTRY_CODE, UnknownTerm.build("http://rs.gbif.org/terms/1.0/publishingCountry", "publishingCountry"))
     .build();
 
   /**
