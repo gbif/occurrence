@@ -16,6 +16,8 @@
   "dateIdentified":null,
   "catalogNumber":"988",
   "verbatimLatitude":"37.42",
+  "decimalLatitude":"37.42123",
+  "verbatimLatitude":"37.42",
   "year":"1999",
   "genus":"Verbascum",
   "coordinatePrecision":null,
@@ -25,12 +27,16 @@
   "identifiedBy":"Markus Döring",
   "order":"Scrophulariales",
   "day":"30",
-  "country":"Turkey",
+  "country":"Fake",
+  "countryCode":"TR",
   "datasetID":"1099",
   "maximumElevationInMeters":null,
   "verbatimLongitude":"34.568",
+  "decimalLongitude":"34.568123",
   "class":"Magnoliopsida",
   "institutionID":"21",
   "family":"Scrophulariaceae",
-  "waterBody":"Bosphorus"
+  "continent":"Asia",
+  "waterBody":"Bosphorus",
+  "extensions": "{http://rs.gbif.org/terms/1.0/Image=[]}"
 }

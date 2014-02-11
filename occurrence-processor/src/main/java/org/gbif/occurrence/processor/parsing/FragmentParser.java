@@ -74,6 +74,7 @@ public class FragmentParser {
   }
 
   // TODO: implement if really needed!!!
+  @Deprecated
   private static VerbatimOccurrence buildVerbatim(RawOccurrenceRecord ror, Fragment frag) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setKey(frag.getKey());

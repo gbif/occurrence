@@ -3,6 +3,8 @@ package org.gbif.occurrence.processor.parsing;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
@@ -22,7 +24,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
+import static org.junit.Assert.assertNull;
 
 public class JsonFragmentParserTest {
 
@@ -73,7 +75,7 @@ public class JsonFragmentParserTest {
   }
 
   @Test
-  public void testParseUnpreferred() throws IOException {
+  public void testParsePreferred() throws IOException {
     UUID datasetKey = UUID.randomUUID();
     String json = Resources.toString(Resources.getResource("fragment.json"), Charsets.UTF_8);
     Fragment fragment = new Fragment(datasetKey, json.getBytes("UTF-8"), DigestUtils.md5(json.getBytes("UTF-8")),
@@ -82,68 +84,30 @@ public class JsonFragmentParserTest {
     VerbatimOccurrence verb = JsonFragmentParser.parseRecord(fragment);
     assertNotNull(verb);
 
-    /*
-
-    assertEquals("Plantae", verb.getKingdom());
-    assertNull(verb.getAuthor());
-    assertEquals("2400", verb.getMinAltitude());
-    assertEquals("Magnoliophyta", verb.getPhylum());
-    assertEquals("BGBM", verb.getInstitutionCode());
-    assertEquals("specimen", verb.getBasisOfRecord());
-    assertEquals("Verbascum cheiranthifolium var. cheiranthifolium", verb.getScientificName());
-    assertEquals("Pontaurus", verb.getCollectionCode());
-    assertEquals("Markus Döring", verb.getCollectorName());
-    assertNull(verb.getLocality());
-    assertEquals("7", verb.getMonth());
-    assertEquals("988", verb.getCatalogNumber());
-    assertEquals("37.42", verb.getLatitude());
-    assertEquals("1999", verb.getYear());
-    assertEquals("Verbascum", verb.getGenus());
-    assertEquals("Markus Döring", verb.getIdentifierName());
-    assertEquals("Scrophulariales", verb.getOrder());
-    assertEquals("30", verb.getDay());
-    assertEquals("Turkey", verb.getCountry());
-    assertEquals("34.568", verb.getLongitude());
-    assertEquals("Magnoliopsida", verb.getKlass());
-    assertEquals("Scrophulariaceae", verb.getFamily());
-    assertEquals("Bosphorus", verb.getContinentOrOcean());
-     */
-  }
-
-  @Test
-  public void testParsePreferred() throws IOException {
-    UUID datasetKey = UUID.randomUUID();
-    String json = Resources.toString(Resources.getResource("fragment_preferred_fields.json"), Charsets.UTF_8);
-    Fragment fragment = new Fragment(datasetKey, json.getBytes("UTF-8"), DigestUtils.md5(json.getBytes("UTF-8")),
-      Fragment.FragmentType.JSON, EndpointType.DWC_ARCHIVE, new Date(), 1,
-      OccurrenceSchemaType.DWCA, null, null);
-    VerbatimOccurrence verb = JsonFragmentParser.parseRecord(fragment);
-    assertNotNull(verb);
-
-    /*
-    assertEquals("Plantae", verb.getKingdom());
-    assertNull(verb.getAuthor());
-    assertEquals("2400", verb.getMinAltitude());
-    assertEquals("Magnoliophyta", verb.getPhylum());
-    assertEquals("BGBM", verb.getInstitutionCode());
-    assertEquals("specimen", verb.getBasisOfRecord());
-    assertEquals("Verbascum cheiranthifolium var. cheiranthifolium", verb.getScientificName());
-    assertEquals("Pontaurus", verb.getCollectionCode());
-    assertEquals("Markus Döring", verb.getCollectorName());
-    assertNull(verb.getLocality());
-    assertEquals("7", verb.getMonth());
-    assertEquals("988", verb.getCatalogNumber());
-    assertEquals("37.42123", verb.getLatitude());
-    assertEquals("1999", verb.getYear());
-    assertEquals("Verbascum", verb.getGenus());
-    assertEquals("Markus Döring", verb.getIdentifierName());
-    assertEquals("Scrophulariales", verb.getOrder());
-    assertEquals("30", verb.getDay());
-    assertEquals("TR", verb.getCountry());
-    assertEquals("34.568123", verb.getLongitude());
-    assertEquals("Magnoliopsida", verb.getKlass());
-    assertEquals("Scrophulariaceae", verb.getFamily());
-    assertEquals("Asia", verb.getContinentOrOcean());
-     */
+    assertEquals("Plantae", verb.getVerbatimField(DwcTerm.kingdom));
+    assertNull(verb.getVerbatimField(DwcTerm.scientificNameAuthorship));
+    assertEquals("2400", verb.getVerbatimField(DwcTerm.minimumElevationInMeters));
+    assertEquals("Magnoliophyta", verb.getVerbatimField(DwcTerm.phylum));
+    assertEquals("BGBM", verb.getVerbatimField(DwcTerm.institutionCode));
+    assertEquals("specimen", verb.getVerbatimField(DwcTerm.basisOfRecord));
+    assertEquals("Verbascum cheiranthifolium var. cheiranthifolium", verb.getVerbatimField(DwcTerm.scientificName));
+    assertEquals("Pontaurus", verb.getVerbatimField(DwcTerm.collectionCode));
+    assertEquals("Markus Döring", verb.getVerbatimField(DwcTerm.recordedBy));
+    assertNull(verb.getVerbatimField(DwcTerm.locality));
+    assertEquals("7", verb.getVerbatimField(DwcTerm.month));
+    assertEquals("988", verb.getVerbatimField(DwcTerm.catalogNumber));
+    assertEquals("37.42123", verb.getVerbatimField(DwcTerm.decimalLatitude));
+    assertEquals("1999", verb.getVerbatimField(DwcTerm.year));
+    assertEquals("Verbascum", verb.getVerbatimField(DwcTerm.genus));
+    assertEquals("Markus Döring", verb.getVerbatimField(DwcTerm.identifiedBy));
+    assertEquals("Scrophulariales", verb.getVerbatimField(DwcTerm.order));
+    assertEquals("30", verb.getVerbatimField(DwcTerm.day));
+    assertEquals("Fake", verb.getVerbatimField(DwcTerm.country));
+    assertEquals("TR", verb.getVerbatimField(DwcTerm.countryCode));
+    assertEquals("34.568123", verb.getVerbatimField(DwcTerm.decimalLongitude));
+    assertEquals("Magnoliopsida", verb.getVerbatimField(DwcTerm.class_));
+    assertEquals("Scrophulariaceae", verb.getVerbatimField(DwcTerm.family));
+    assertEquals("Asia", verb.getVerbatimField(DwcTerm.continent));
+    assertNull(verb.getVerbatimField(TermFactory.instance().findTerm("extensions")));
   }
 }
