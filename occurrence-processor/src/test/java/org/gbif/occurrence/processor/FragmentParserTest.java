@@ -53,7 +53,7 @@ public class FragmentParserTest {
     assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.scientificName));
     assertEquals("52.423798", got.getVerbatimField(DwcTerm.decimalLatitude));
     assertEquals("13.191434", got.getVerbatimField(DwcTerm.decimalLongitude));
-    assertEquals("50", got.getVerbatimField(DwcTerm.coordinatePrecision));
+    assertEquals("50", got.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters));
     assertEquals("400", got.getVerbatimField(DwcTerm.minimumElevationInMeters));
     assertEquals("500", got.getVerbatimField(DwcTerm.maximumElevationInMeters));
     assertEquals("DE", got.getVerbatimField(DwcTerm.country));
@@ -91,7 +91,7 @@ public class FragmentParserTest {
     assertEquals("Atelidae", got.getVerbatimField(DwcTerm.family));
     assertEquals("Alouatta", got.getVerbatimField(DwcTerm.genus));
     assertEquals("villosa", got.getVerbatimField(DwcTerm.specificEpithet));
-    assertEquals("25", got.getVerbatimField(DwcTerm.coordinatePrecision));
+    assertEquals("25", got.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters));
     assertEquals("200", got.getVerbatimField(DwcTerm.minimumElevationInMeters));
     assertEquals("400", got.getVerbatimField(DwcTerm.maximumElevationInMeters));
     assertEquals("PreservedSpecimen", got.getVerbatimField(DwcTerm.basisOfRecord));

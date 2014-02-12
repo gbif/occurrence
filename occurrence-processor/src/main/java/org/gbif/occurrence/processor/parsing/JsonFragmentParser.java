@@ -61,14 +61,18 @@ public class JsonFragmentParser {
     try {
       Map<String, Object> jsonMap = mapper.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
       for (String simpleTermName : jsonMap.keySet()) {
-        Term term = termFactory.findTerm(simpleTermName);
-        Object value = jsonMap.get(simpleTermName);
-        if (term != null && value != null) {
-          if (!term.qualifiedName().toLowerCase().startsWith("http")) {
-            // this is not a term URI, sth else
-            continue;
+        // skip serialization artifact
+        if (simpleTermName.equalsIgnoreCase("extensions")) continue;
+
+        try {
+          Term term = termFactory.findTerm(simpleTermName);
+          Object value = jsonMap.get(simpleTermName);
+          if (value != null) {
+            verbatim.setVerbatimField(term, value.toString());
           }
-          verbatim.setVerbatimField(term, value.toString());
+
+        } catch (IllegalArgumentException e) {
+          LOG.warn("Unable to parse JSON term {} for fragment {}", simpleTermName, fragment.getKey());
         }
       }
     } catch (IOException e) {

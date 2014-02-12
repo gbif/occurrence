@@ -25,8 +25,8 @@ public class HiveFieldUtil {
 
   public static final List<FieldName> DOWNLOAD_COLUMNS = ImmutableList.of(
     FieldName.KEY,
-    FieldName.DATASET_KEY,
-    FieldName.INSTITUTION_CODE,
+      FieldName.DATASET_KEY,
+  FieldName.INSTITUTION_CODE,
     FieldName.COLLECTION_CODE,
     FieldName.CATALOG_NUMBER,
     FieldName.I_BASIS_OF_RECORD,
@@ -115,10 +115,10 @@ public class HiveFieldUtil {
     .put(FieldName.I_MONTH, DwcTerm.month)
     // .put(FieldName.DAY, DwcTerm.day)
     .put(FieldName.I_EVENT_DATE, DwcTerm.eventDate)
-    .put(FieldName.I_ELEVATION, GbifTerm.elevationInMeters)
+    .put(FieldName.I_ELEVATION, GbifTerm.elevation)
     // .put(FieldName.MIN_ALTITUDE, DwcTerm.minimumElevationInMeters)
 // .put(FieldName.MAX_ALTITUDE, DwcTerm.maximumElevationInMeters)
-    .put(FieldName.I_DEPTH, GbifTerm.depthInMeters)
+    .put(FieldName.I_DEPTH, GbifTerm.depth)
     // .put(FieldName.MIN_DEPTH, DwcTerm.minimumDepthInMeters)
 // .put(FieldName.MAX_DEPTH, DwcTerm.maximumDepthInMeters)
 // .put(FieldName.ALTITUDE_PRECISION, GbifTerm.elevationPrecision)
@@ -150,15 +150,15 @@ public class HiveFieldUtil {
     // internal things
 // .put(FieldName.CREATED, GbifTerm.created)
     .put(FieldName.LAST_PARSED, GbifTerm.lastParsed)
-    .put(FieldName.I_KINGDOM_KEY, GbifTerm.kingdomID)
-    .put(FieldName.I_PHYLUM_KEY, GbifTerm.phylumID)
-    .put(FieldName.I_CLASS_KEY, GbifTerm.classID)
-    .put(FieldName.I_ORDER_KEY, GbifTerm.orderID)
-    .put(FieldName.I_FAMILY_KEY, GbifTerm.familyID)
-    .put(FieldName.I_GENUS_KEY, GbifTerm.genusID)
-    .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesID)
+    .put(FieldName.I_KINGDOM_KEY, GbifTerm.kingdomKey)
+    .put(FieldName.I_PHYLUM_KEY, GbifTerm.phylumKey)
+    .put(FieldName.I_CLASS_KEY, GbifTerm.classKey)
+    .put(FieldName.I_ORDER_KEY, GbifTerm.orderKey)
+    .put(FieldName.I_FAMILY_KEY, GbifTerm.familyKey)
+    .put(FieldName.I_GENUS_KEY, GbifTerm.genusKey)
+    .put(FieldName.I_SPECIES_KEY, GbifTerm.speciesKey)
     // .put(FieldName.UNIT_QUALIFIER, GbifTerm.unitQualifier)
-    // .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
+    .put(FieldName.PUB_COUNTRY_CODE, GbifTerm.publishingCountry)
     .build();
 
   /**
