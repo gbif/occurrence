@@ -8,7 +8,6 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.Term;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
@@ -35,7 +34,11 @@ public class TaxonomyInterpreter implements Runnable {
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
       ParsedName pn = new ParsedName();
-      pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genus));
+      if (verbatim.hasVerbatimField(DwcTerm.genericName)) {
+        pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genericName));
+      } else {
+        pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genus));
+      }
       pn.setSpecificEpithet(verbatim.getVerbatimField(DwcTerm.specificEpithet));
       pn.setInfraSpecificEpithet(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
       sciname = pn.canonicalName();
@@ -74,19 +77,6 @@ public class TaxonomyInterpreter implements Runnable {
         org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
       }
       LOG.debug("Got nub sci name [{}]", occ.getScientificName());
-    }
-
-    removeVerbatimTerms();
-  }
-
-  private void removeVerbatimTerms() {
-    Term[] terms = new Term[]{
-      DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-      DwcTerm.kingdom,DwcTerm.phylum,DwcTerm.class_,DwcTerm.order,DwcTerm.family,DwcTerm.genus,DwcTerm.subgenus,
-
-    };
-    for (Term t : terms) {
-      occ.getVerbatimFields().remove(t);
     }
   }
 }

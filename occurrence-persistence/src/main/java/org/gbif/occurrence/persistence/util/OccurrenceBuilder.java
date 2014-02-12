@@ -15,6 +15,8 @@ import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
@@ -34,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -44,8 +47,21 @@ import org.slf4j.LoggerFactory;
  * A utility class to build object models from the HBase occurrence "row".
  */
 public class OccurrenceBuilder {
-
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
+  private static final Set<? extends Term> INTERPRETED_TERMS = Sets.newHashSet(
+    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
+    DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
+    DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
+    DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
+    DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.taxonRank,
+    DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
+    DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
+    DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
+    DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
+    DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
+    DwcTerm.minimumDistanceAboveSurfaceInMeters, DwcTerm.maximumDistanceAboveSurfaceInMeters
+  );
+
 
   // should never be instantiated
   private OccurrenceBuilder() {
@@ -123,11 +139,17 @@ public class OccurrenceBuilder {
       return null;
     } else {
       Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
+
+      // filter out verbatim terms that have been interpreted
+      for (Term t : INTERPRETED_TERMS) {
+        occ.getVerbatimFields().remove(t);
+      }
+
       Integer key = Bytes.toInt(row.getRow());
       occ.setKey(key);
       occ.setElevation(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION));
-      occ.setBasisOfRecord(HBaseHelper
-        .nullSafeEnum(BasisOfRecord.class, OccurrenceResultReader.getString(row, FieldName.I_BASIS_OF_RECORD)));
+      occ.setBasisOfRecord(HBaseHelper.nullSafeEnum(BasisOfRecord.class,
+                                                    OccurrenceResultReader.getString(row, FieldName.I_BASIS_OF_RECORD)));
       occ.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
       occ.setClazz(OccurrenceResultReader.getString(row, FieldName.I_CLASS));
       occ.setDatasetKey(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY));
@@ -151,15 +173,15 @@ public class OccurrenceBuilder {
       occ.setPublishingOrgKey(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY));
       occ.setPhylum(OccurrenceResultReader.getString(row, FieldName.I_PHYLUM));
       occ.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
-      occ.setProtocol(
-        HBaseHelper.nullSafeEnum(EndpointType.class, OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
+      occ.setProtocol(HBaseHelper.nullSafeEnum(EndpointType.class,
+                                               OccurrenceResultReader.getString(row, FieldName.PROTOCOL)));
       occ.setScientificName(OccurrenceResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME));
       occ.setSpecies(OccurrenceResultReader.getString(row, FieldName.I_SPECIES));
       occ.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
       occ.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
       occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.I_STATE_PROVINCE));
-      occ.setContinent(
-        HBaseHelper.nullSafeEnum(Continent.class, OccurrenceResultReader.getString(row, FieldName.I_CONTINENT)));
+      occ.setContinent(HBaseHelper.nullSafeEnum(Continent.class,
+                                                OccurrenceResultReader.getString(row, FieldName.I_CONTINENT)));
       occ.setDateIdentified(OccurrenceResultReader.getDate(row, FieldName.I_DATE_IDENTIFIED));
 
       // new for occurrence widening
@@ -169,21 +191,20 @@ public class OccurrenceBuilder {
       occ.setDepthAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH_ACC));
       occ.setDistanceAboveSurface(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE));
       occ.setDistanceAboveSurfaceAccuracy(OccurrenceResultReader.getInteger(row, FieldName.I_DIST_ABOVE_SURFACE_ACC));
-      occ.setEstablishmentMeans(HBaseHelper
-        .nullSafeEnum(EstablishmentMeans.class, OccurrenceResultReader.getString(row, FieldName.I_ESTAB_MEANS)));
+      occ.setEstablishmentMeans(HBaseHelper.nullSafeEnum(EstablishmentMeans.class,
+                                                         OccurrenceResultReader.getString(row, FieldName.I_ESTAB_MEANS)));
       occ.setIndividualCount(OccurrenceResultReader.getInteger(row, FieldName.I_INDIVIDUAL_COUNT));
       occ.setLastInterpreted(OccurrenceResultReader.getDate(row, FieldName.LAST_INTERPRETED));
-      occ.setLifeStage(
-        HBaseHelper.nullSafeEnum(LifeStage.class, OccurrenceResultReader.getString(row, FieldName.I_LIFE_STAGE)));
+      occ.setLifeStage(HBaseHelper.nullSafeEnum(LifeStage.class,
+                                                OccurrenceResultReader.getString(row, FieldName.I_LIFE_STAGE)));
       occ.setSex(HBaseHelper.nullSafeEnum(Sex.class, OccurrenceResultReader.getString(row, FieldName.I_SEX)));
       occ.setStateProvince(OccurrenceResultReader.getString(row, FieldName.I_STATE_PROVINCE));
       occ.setWaterBody(OccurrenceResultReader.getString(row, FieldName.I_WATERBODY));
       occ.setSubgenus(OccurrenceResultReader.getString(row, FieldName.I_SUBGENUS));
       occ.setSubgenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_SUBGENUS_KEY));
-      occ.setTypeStatus(
-        HBaseHelper.nullSafeEnum(TypeStatus.class, OccurrenceResultReader.getString(row, FieldName.I_TYPE_STATUS)));
+      occ.setTypeStatus(HBaseHelper.nullSafeEnum(TypeStatus.class,
+                                                 OccurrenceResultReader.getString(row, FieldName.I_TYPE_STATUS)));
       occ.setTypifiedName(OccurrenceResultReader.getString(row, FieldName.I_TYPIFIED_NAME));
-
       occ.setGenericName(OccurrenceResultReader.getString(row, FieldName.I_GENERIC_NAME));
       occ.setSpecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_SPECIFIC_EPITHET));
       occ.setInfraspecificEpithet(OccurrenceResultReader.getString(row, FieldName.I_INFRASPECIFIC_EPITHET));

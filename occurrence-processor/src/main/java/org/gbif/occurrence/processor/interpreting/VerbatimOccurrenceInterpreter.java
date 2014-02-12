@@ -108,8 +108,8 @@ public class VerbatimOccurrenceInterpreter {
 
     if (fromCrawl) {
       LOG.debug("Updating zookeeper for OccurrenceInterpretedPersistedSuccess");
-      zookeeperConnector
-        .addCounter(occ.getDatasetKey(), ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
+      zookeeperConnector.addCounter(occ.getDatasetKey(),
+                                    ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
     }
 
     return result;
@@ -124,8 +124,6 @@ public class VerbatimOccurrenceInterpreter {
       ParseResult<String> parsedName = TYPE_NAME_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypifiedName(parsedName.getPayload());
       occ.getIssues().addAll(parsedName.getIssues());
-
-      occ.getVerbatimFields().remove(DwcTerm.typeStatus);
     }
   }
 
@@ -133,7 +131,6 @@ public class VerbatimOccurrenceInterpreter {
     ParseResult<BasisOfRecord> parsed = BOR_PARSER.parse(verbatim.getVerbatimField(DwcTerm.basisOfRecord));
     if (parsed.isSuccessful()) {
       occ.setBasisOfRecord(parsed.getPayload());
-      occ.getVerbatimFields().remove(DwcTerm.basisOfRecord);
     } else {
       LOG.debug("Unknown BOR [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
     }

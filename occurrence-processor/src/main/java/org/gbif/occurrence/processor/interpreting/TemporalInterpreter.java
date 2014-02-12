@@ -8,7 +8,6 @@ import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.common.parsers.date.YearMonthDay;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.util.Calendar;
@@ -69,8 +68,6 @@ public class TemporalInterpreter {
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
-
-    removeVerbatimTerms(occ);
   }
 
   /**
@@ -194,16 +191,6 @@ public class TemporalInterpreter {
       return result;
     }
     return ParseResult.fail();
-  }
-
-  private static void removeVerbatimTerms(Occurrence occ) {
-    Term[] terms = new Term[]{
-      DwcTerm.year,DwcTerm.month,DwcTerm.day,DwcTerm.eventDate,
-      DcTerm.modified,DwcTerm.dateIdentified,
-    };
-    for (Term t : terms) {
-      occ.getVerbatimFields().remove(t);
-    }
   }
 
 }
