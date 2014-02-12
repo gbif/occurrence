@@ -27,6 +27,7 @@ import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
 
 
 /**
@@ -69,9 +70,17 @@ public class OccurrenceSearchResource {
 
   @GET
   @Path(RECORDED_BY_PATH)
-  public List<String> suggestCollectorName(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
-    LOG.debug("Executing collector name suggest/search, query {}, limit {}", prefix, limit);
+  public List<String> suggestRecordedBy(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing recorded_by suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestRecordedBy(prefix, limit);
+  }
+
+
+  @GET
+  @Path(RECORD_NUMBER_PATH)
+  public List<String> suggestRecordNumbers(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing record number suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestRecordNumbers(prefix, limit);
   }
 
 
