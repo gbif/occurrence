@@ -28,6 +28,7 @@ public class HBaseFieldUtil {
   static {
     // common fields
     String cf = HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY;
+    NAME_MAP.put(FieldName.KEY, new HBaseColumn(cf, "id"));
     NAME_MAP.put(FieldName.DATASET_KEY, new HBaseColumn(cf, "dk"));
     NAME_MAP.put(FieldName.PUB_ORG_KEY, new HBaseColumn(cf, "pok"));
     NAME_MAP.put(FieldName.PUB_COUNTRY_CODE, new HBaseColumn(cf, "pcc"));
@@ -82,7 +83,6 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.I_DECIMAL_LATITUDE, new HBaseColumn(cf, "ilat"));
     NAME_MAP.put(FieldName.I_DECIMAL_LONGITUDE, new HBaseColumn(cf, "ilng"));
     NAME_MAP.put(FieldName.I_COORD_ACCURACY, new HBaseColumn(cf, "icdacc"));
-    NAME_MAP.put(FieldName.I_GEODETIC_DATUM, new HBaseColumn(cf, "igd"));
     NAME_MAP.put(FieldName.I_ELEVATION, new HBaseColumn(cf, "ialt"));
     NAME_MAP.put(FieldName.I_ELEVATION_ACC, new HBaseColumn(cf, "ialtacc"));
     NAME_MAP.put(FieldName.I_DEPTH, new HBaseColumn(cf, "idep"));
@@ -97,8 +97,7 @@ public class HBaseFieldUtil {
     NAME_MAP.put(FieldName.I_DATE_IDENTIFIED, new HBaseColumn(cf, "idi"));
 
     NAME_MAP.put(FieldName.I_BASIS_OF_RECORD, new HBaseColumn(cf, "ibor"));
-    NAME_MAP.put(FieldName.I_MODIFIED, new HBaseColumn(cf, "imod"));
-    NAME_MAP.put(FieldName.SOURCE_MODIFIED, new HBaseColumn(cf, "sm"));
+    NAME_MAP.put(FieldName.I_MODIFIED, new HBaseColumn(cf, "sm"));
     NAME_MAP.put(FieldName.I_ESTAB_MEANS, new HBaseColumn(cf, "iem"));
     NAME_MAP.put(FieldName.I_INDIVIDUAL_COUNT, new HBaseColumn(cf, "iic"));
     NAME_MAP.put(FieldName.I_LIFE_STAGE, new HBaseColumn(cf, "ils"));
@@ -113,14 +112,13 @@ public class HBaseFieldUtil {
   private HBaseFieldUtil() {
   }
 
-  public static HBaseColumn getHBaseColumn(@NotNull FieldName field) {
+  public static HBaseColumn getHBaseColumn(FieldName field) {
     checkNotNull(field, "field can't be null");
 
     return NAME_MAP.get(field);
   }
 
-  @Nullable
-  public static HBaseColumn getHBaseColumn(@NotNull Term term) {
+  public static HBaseColumn getHBaseColumn(Term term) {
     checkNotNull(term, "term can't be null");
 
     // unknown terms will never be mapped in Hive, and we can't replace : with anything and guarantee that it will
@@ -159,22 +157,4 @@ public class HBaseFieldUtil {
       HBaseTableConstants.ISSUE_PREFIX + issue.name());
   }
 
-  public static class HBaseColumn {
-
-    private final String columnFamilyName;
-    private final String columnName;
-
-    public HBaseColumn(String columnFamilyName, String columnName) {
-      this.columnFamilyName = columnFamilyName;
-      this.columnName = columnName;
-    }
-
-    public String getColumnFamilyName() {
-      return columnFamilyName;
-    }
-
-    public String getColumnName() {
-      return columnName;
-    }
-  }
 }

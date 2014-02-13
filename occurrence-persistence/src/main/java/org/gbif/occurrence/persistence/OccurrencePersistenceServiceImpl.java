@@ -53,7 +53,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_BATCH_SIZE = 50;
   private static final int SCANNER_CACHE_SIZE = 50;
-
+  private static final TermFactory TERM_FACTORY = TermFactory.instance();
   private final String occurrenceTableName;
   private final HTablePool tablePool;
 
@@ -149,7 +149,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   @Override
   public Iterator<Integer> getKeysByColumn(byte[] columnValue, FieldName columnName) {
-    byte[] cf = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(columnName).getColumnFamilyName());
+    byte[] cf = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(columnName).getFamilyName());
     byte[] col = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(columnName).getColumnName());
     Scan scan = new Scan();
     scan.setBatch(SCANNER_BATCH_SIZE);
@@ -163,36 +163,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   @Override
   public void update(VerbatimOccurrence verb) {
-    checkNotNull(verb, "verb can't be null");
-    checkNotNull(verb.getKey(), "verb's key can't be null");
-
-    HTableInterface occTable = null;
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
-      byte[] cf = Bytes.toBytes(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY);
-      writeVerbatim(occTable, cf, verb, true);
-    } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      closeTable(occTable);
-    }
+    updateOcc(verb);
   }
 
   @Override
   public void update(Occurrence occ) {
-    checkNotNull(occ, "occurrence can't be null");
-    checkNotNull(occ.getKey(), "occurrence's key can't be null");
-
-    HTableInterface occTable = null;
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
-      byte[] cf = Bytes.toBytes(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY);
-      writeOccurrence(occTable, cf, occ, true);
-    } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      closeTable(occTable);
-    }
+    updateOcc(occ);
   }
 
   @Override
@@ -230,150 +206,157 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
-  private static void writeVerbatim(HTableInterface occTable, byte[] cf, VerbatimOccurrence occ, boolean dn)
-    throws IOException {
-    byte[] key = Bytes.toBytes(occ.getKey());
 
-    Put put = new Put(key);
-    Delete del = new Delete(key);
+  private <T extends VerbatimOccurrence> void updateOcc(T occ) {
+    checkNotNull(occ, "occurrence can't be null");
+    checkNotNull(occ.getKey(), "occurrence's key can't be null");
 
-    doVerbatimPutDelete(occTable, cf, put, del, occ, dn);
-    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(occ.getLastParsed()), dn, cf, put, del);
+    HTableInterface occTable = null;
+    try {
+      occTable = tablePool.getTable(occurrenceTableName);
+      byte[] cf = Bytes.toBytes(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY);
+      byte[] key = Bytes.toBytes(occ.getKey());
 
-    occTable.put(put);
-    if (dn && !del.isEmpty()) {
-      occTable.delete(del);
+      Put put = new Put(key);
+      Delete del = new Delete(key);
+
+      populateVerbatimPutDelete(occTable, cf, key, put, del, occ, occ instanceof Occurrence);
+
+      // add interpreted occurrence terms
+      if (occ instanceof Occurrence) {
+        populateInterpretedPutDelete(occTable, cf, key, put, del, (Occurrence) occ);
+      }
+
+      occTable.put(put);
+      if (!del.isEmpty()) {
+        occTable.delete(del);
+      }
+      occTable.flushCommits();
+
+    } catch (IOException e) {
+      throw new ServiceUnavailableException("Could not access HBase", e);
+    } finally {
+      closeTable(occTable);
     }
-    occTable.flushCommits();
   }
 
-  private static void doVerbatimPutDelete(HTableInterface occTable, byte[] cf, Put put, Delete del,
-    VerbatimOccurrence occ, boolean dn) throws IOException {
-    byte[] key = Bytes.toBytes(occ.getKey());
-    if (dn) {
-      // start by scheduling deletion of all terms not in the occ
-      Get get = new Get(key);
-      Result row = occTable.get(get);
-      for (KeyValue kv : row.raw()) {
-        String colName = Bytes.toString(kv.getQualifier());
-        if (colName.startsWith(HBaseTableConstants.KNOWN_TERM_PREFIX)) {
-          Term term =
-            TermFactory.instance().findTerm(colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length()));
-          if (occ.getVerbatimField(term) == null) {
-            del.deleteColumns(cf, kv.getQualifier());
-          }
+  /**
+   * Populates the put and delete for a verbatim record.
+   * @param keepInterpretedVerbatimColumns if true does not delete any of the verbatim columns removed
+   *                                       during interpretation
+   * @throws IOException
+   */
+  private void populateVerbatimPutDelete(HTableInterface occTable, byte[] cf, byte[] key, Put put, Delete del,
+                              VerbatimOccurrence occ, boolean keepInterpretedVerbatimColumns) throws IOException {
+
+    // start by scheduling deletion of all terms not in the occ
+    Get get = new Get(key);
+    Result row = occTable.get(get);
+    for (KeyValue kv : row.raw()) {
+      String colName = Bytes.toString(kv.getQualifier());
+      if (colName.startsWith(HBaseTableConstants.KNOWN_TERM_PREFIX)) {
+        Term term = TERM_FACTORY.findTerm(colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length()));
+        if (occ.getVerbatimField(term) == null &&
+            // only remove the interpreted verbatim terms if explicitly requested
+            (!keepInterpretedVerbatimColumns || !OccurrenceBuilder.INTERPRETED_TERMS.contains(term)) ) {
+          del.deleteColumns(cf, kv.getQualifier());
         }
       }
     }
 
+    // put all non null verbatim terms from the map
     for (Map.Entry<Term, String> entry : occ.getVerbatimFields().entrySet()) {
       if (entry.getValue() != null) {
         put.add(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(entry.getKey()).getColumnName()),
-          Bytes.toBytes(entry.getValue()));
+              Bytes.toBytes(entry.getValue()));
       }
     }
 
-    HBaseHelper.writeField(FieldName.DATASET_KEY, HBaseHelper.nullSafeBytes(occ.getDatasetKey()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.PUB_COUNTRY_CODE, HBaseHelper.nullSafeBytes(occ.getPublishingCountry()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.PUB_ORG_KEY, HBaseHelper.nullSafeBytes(occ.getPublishingOrgKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.PROTOCOL, HBaseHelper.nullSafeBytes(occ.getProtocol()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.LAST_CRAWLED, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), dn, cf, put, del);
+    HBaseHelper.writeField(FieldName.DATASET_KEY, HBaseHelper.nullSafeBytes(occ.getDatasetKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.PUB_COUNTRY_CODE,HBaseHelper.nullSafeBytes(occ.getPublishingCountry()),cf,put,del);
+    HBaseHelper.writeField(FieldName.PUB_ORG_KEY,HBaseHelper.nullSafeBytes(occ.getPublishingOrgKey()),cf, put, del);
+    HBaseHelper.writeField(FieldName.PROTOCOL, HBaseHelper.nullSafeBytes(occ.getProtocol()), cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_CRAWLED, HBaseHelper.nullSafeBytes(occ.getLastCrawled()), cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_PARSED, HBaseHelper.nullSafeBytes(occ.getLastParsed()), cf, put, del);
   }
 
-  private static void writeOccurrence(HTableInterface occTable, byte[] cf, Occurrence occ, boolean dn)
-    throws IOException {
+  /**
+   * Populates put and delete for the occurrence specific interpreted columns, leaving any verbatim columns untouched.
+   * @throws IOException
+   */
+  private void populateInterpretedPutDelete(HTableInterface occTable, byte[] cf, byte[] key, Put put, Delete del,
+                                            Occurrence occ) throws IOException {
 
-    byte[] key = Bytes.toBytes(occ.getKey());
-    Put put = new Put(key);
-    Delete del = new Delete(key);
+    HBaseHelper.writeField(FieldName.I_BASIS_OF_RECORD,
+                           HBaseHelper.nullSafeBytes(occ.getBasisOfRecord()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_CLASS_KEY, HBaseHelper.nullSafeBytes(occ.getClassKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_CLASS, HBaseHelper.nullSafeBytes(occ.getClazz()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DEPTH, HBaseHelper.nullSafeBytes(occ.getDepth()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ELEVATION, HBaseHelper.nullSafeBytes(occ.getElevation()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_FAMILY, HBaseHelper.nullSafeBytes(occ.getFamily()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_FAMILY_KEY, HBaseHelper.nullSafeBytes(occ.getFamilyKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_GENUS, HBaseHelper.nullSafeBytes(occ.getGenus()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_GENUS_KEY, HBaseHelper.nullSafeBytes(occ.getGenusKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_KINGDOM, HBaseHelper.nullSafeBytes(occ.getKingdom()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_KINGDOM_KEY, HBaseHelper.nullSafeBytes(occ.getKingdomKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DECIMAL_LATITUDE,
+                           HBaseHelper.nullSafeBytes(occ.getDecimalLatitude()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DECIMAL_LONGITUDE,
+                           HBaseHelper.nullSafeBytes(occ.getDecimalLongitude()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_COUNTRY, HBaseHelper.nullSafeBytes(occ.getCountry()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_MODIFIED, HBaseHelper.nullSafeBytes(occ.getModified()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_MONTH, HBaseHelper.nullSafeBytes(occ.getMonth()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_TAXON_KEY, HBaseHelper.nullSafeBytes(occ.getTaxonKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_EVENT_DATE, HBaseHelper.nullSafeBytes(occ.getEventDate()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ORDER, HBaseHelper.nullSafeBytes(occ.getOrder()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ORDER_KEY, HBaseHelper.nullSafeBytes(occ.getOrderKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_PHYLUM, HBaseHelper.nullSafeBytes(occ.getPhylum()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_PHYLUM_KEY, HBaseHelper.nullSafeBytes(occ.getPhylumKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SCIENTIFIC_NAME,
+                           HBaseHelper.nullSafeBytes(occ.getScientificName()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SPECIES, HBaseHelper.nullSafeBytes(occ.getSpecies()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SPECIES_KEY, HBaseHelper.nullSafeBytes(occ.getSpeciesKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_YEAR, HBaseHelper.nullSafeBytes(occ.getYear()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ELEVATION_ACC,
+                           HBaseHelper.nullSafeBytes(occ.getElevationAccuracy()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_COORD_ACCURACY,
+                           HBaseHelper.nullSafeBytes(occ.getCoordinateAccuracy()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_CONTINENT, HBaseHelper.nullSafeBytes(occ.getContinent()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DATE_IDENTIFIED,
+                           HBaseHelper.nullSafeBytes(occ.getDateIdentified()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DAY, HBaseHelper.nullSafeBytes(occ.getDay()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DEPTH_ACC, HBaseHelper.nullSafeBytes(occ.getDepthAccuracy()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_ESTAB_MEANS,
+                           HBaseHelper.nullSafeBytes(occ.getEstablishmentMeans()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_INDIVIDUAL_COUNT,
+                           HBaseHelper.nullSafeBytes(occ.getIndividualCount()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_LIFE_STAGE, HBaseHelper.nullSafeBytes(occ.getLifeStage()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SEX, HBaseHelper.nullSafeBytes(occ.getSex()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_STATE_PROVINCE, HBaseHelper.nullSafeBytes(occ.getStateProvince()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_WATERBODY, HBaseHelper.nullSafeBytes(occ.getWaterBody()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SUBGENUS, HBaseHelper.nullSafeBytes(occ.getSubgenus()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SUBGENUS_KEY, HBaseHelper.nullSafeBytes(occ.getSubgenusKey()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_TYPE_STATUS, HBaseHelper.nullSafeBytes(occ.getTypeStatus()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_TYPIFIED_NAME, HBaseHelper.nullSafeBytes(occ.getTypifiedName()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_SPECIFIC_EPITHET,
+                           HBaseHelper.nullSafeBytes(occ.getSpecificEpithet()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_INFRASPECIFIC_EPITHET,
+                           HBaseHelper.nullSafeBytes(occ.getInfraspecificEpithet()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_GENERIC_NAME, HBaseHelper.nullSafeBytes(occ.getGenericName()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_TAXON_RANK, HBaseHelper.nullSafeBytes(occ.getTaxonRank()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DIST_ABOVE_SURFACE,
+                           HBaseHelper.nullSafeBytes(occ.getDistanceAboveSurface()), cf, put, del);
+    HBaseHelper.writeField(FieldName.I_DIST_ABOVE_SURFACE_ACC,
+                           HBaseHelper.nullSafeBytes(occ.getDistanceAboveSurfaceAccuracy()), cf, put, del);
+    HBaseHelper.writeField(FieldName.LAST_INTERPRETED,
+                           HBaseHelper.nullSafeBytes(occ.getLastInterpreted()), cf, put, del);
 
-    doVerbatimPutDelete(occTable, cf, put, del, occ, dn);
-
-
-    HBaseHelper
-      .writeField(FieldName.I_BASIS_OF_RECORD, HBaseHelper.nullSafeBytes(occ.getBasisOfRecord()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_CLASS_KEY, HBaseHelper.nullSafeBytes(occ.getClassKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_CLASS, HBaseHelper.nullSafeBytes(occ.getClazz()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_DEPTH, HBaseHelper.nullSafeBytes(occ.getDepth()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_ELEVATION, HBaseHelper.nullSafeBytes(occ.getElevation()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_FAMILY, HBaseHelper.nullSafeBytes(occ.getFamily()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_FAMILY_KEY, HBaseHelper.nullSafeBytes(occ.getFamilyKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_GENUS, HBaseHelper.nullSafeBytes(occ.getGenus()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_GENUS_KEY, HBaseHelper.nullSafeBytes(occ.getGenusKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_KINGDOM, HBaseHelper.nullSafeBytes(occ.getKingdom()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_KINGDOM_KEY, HBaseHelper.nullSafeBytes(occ.getKingdomKey()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_DECIMAL_LATITUDE, HBaseHelper.nullSafeBytes(occ.getDecimalLatitude()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_DECIMAL_LONGITUDE, HBaseHelper.nullSafeBytes(occ.getDecimalLongitude()), dn, cf, put,
-        del);
-    HBaseHelper.writeField(FieldName.I_COUNTRY, HBaseHelper.nullSafeBytes(occ.getCountry()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_MODIFIED, HBaseHelper.nullSafeBytes(occ.getModified()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_MONTH, HBaseHelper.nullSafeBytes(occ.getMonth()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_TAXON_KEY, HBaseHelper.nullSafeBytes(occ.getTaxonKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_EVENT_DATE, HBaseHelper.nullSafeBytes(occ.getEventDate()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_ORDER, HBaseHelper.nullSafeBytes(occ.getOrder()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_ORDER_KEY, HBaseHelper.nullSafeBytes(occ.getOrderKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_PHYLUM, HBaseHelper.nullSafeBytes(occ.getPhylum()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_PHYLUM_KEY, HBaseHelper.nullSafeBytes(occ.getPhylumKey()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_SCIENTIFIC_NAME, HBaseHelper.nullSafeBytes(occ.getScientificName()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_SPECIES, HBaseHelper.nullSafeBytes(occ.getSpecies()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_SPECIES_KEY, HBaseHelper.nullSafeBytes(occ.getSpeciesKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_YEAR, HBaseHelper.nullSafeBytes(occ.getYear()), dn, cf, put, del);
-
-    HBaseHelper
-      .writeField(FieldName.I_ELEVATION_ACC, HBaseHelper.nullSafeBytes(occ.getElevationAccuracy()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_COORD_ACCURACY, HBaseHelper.nullSafeBytes(occ.getCoordinateAccuracy()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_CONTINENT, HBaseHelper.nullSafeBytes(occ.getContinent()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_DATE_IDENTIFIED, HBaseHelper.nullSafeBytes(occ.getDateIdentified()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_DAY, HBaseHelper.nullSafeBytes(occ.getDay()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_DEPTH_ACC, HBaseHelper.nullSafeBytes(occ.getDepthAccuracy()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_ESTAB_MEANS, HBaseHelper.nullSafeBytes(occ.getEstablishmentMeans()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_GEODETIC_DATUM, HBaseHelper.nullSafeBytes(occ.getGeodeticDatum()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_INDIVIDUAL_COUNT, HBaseHelper.nullSafeBytes(occ.getIndividualCount()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.LAST_INTERPRETED, HBaseHelper.nullSafeBytes(occ.getLastInterpreted()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_LIFE_STAGE, HBaseHelper.nullSafeBytes(occ.getLifeStage()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_SEX, HBaseHelper.nullSafeBytes(occ.getSex()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_STATE_PROVINCE, HBaseHelper.nullSafeBytes(occ.getStateProvince()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_WATERBODY, HBaseHelper.nullSafeBytes(occ.getWaterBody()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_SUBGENUS, HBaseHelper.nullSafeBytes(occ.getSubgenus()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_SUBGENUS_KEY, HBaseHelper.nullSafeBytes(occ.getSubgenusKey()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_TYPE_STATUS, HBaseHelper.nullSafeBytes(occ.getTypeStatus()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_TYPIFIED_NAME, HBaseHelper.nullSafeBytes(occ.getTypifiedName()), dn, cf, put, del);
-
-    HBaseHelper
-      .writeField(FieldName.I_SPECIFIC_EPITHET, HBaseHelper.nullSafeBytes(occ.getSpecificEpithet()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_INFRASPECIFIC_EPITHET, HBaseHelper.nullSafeBytes(occ.getInfraspecificEpithet()), dn, cf,
-        put, del);
-    HBaseHelper.writeField(FieldName.I_GENERIC_NAME, HBaseHelper.nullSafeBytes(occ.getGenericName()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.I_TAXON_RANK, HBaseHelper.nullSafeBytes(occ.getTaxonRank()), dn, cf, put, del);
-    HBaseHelper
-      .writeField(FieldName.I_DIST_ABOVE_SURFACE, HBaseHelper.nullSafeBytes(occ.getDistanceAboveSurface()), dn, cf, put,
-        del);
-    HBaseHelper
-      .writeField(FieldName.I_DIST_ABOVE_SURFACE_ACC, HBaseHelper.nullSafeBytes(occ.getDistanceAboveSurfaceAccuracy()),
-        dn, cf, put, del);
-
-    if (dn) {
-      // Identifiers
-      deleteOldIdentifiers(occTable, occ.getKey(), cf);
-      // OccurrenceIssues
-      for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-        if (!occ.getIssues().contains(issue)) {
-          del.deleteColumns(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(issue).getColumnName()));
-        }
+    // Identifiers
+    deleteOldIdentifiers(occTable, occ.getKey(), cf);
+    // OccurrenceIssues
+    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
+      if (!occ.getIssues().contains(issue)) {
+        del.deleteColumns(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(issue).getColumnName()));
       }
     }
 
@@ -384,15 +367,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     for (OccurrenceIssue issue : occ.getIssues()) {
       put.add(cf, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(issue).getColumnName()), Bytes.toBytes(1));
     }
-
-    occTable.put(put);
-    if (dn && !del.isEmpty()) {
-      occTable.delete(del);
-    }
-    occTable.flushCommits();
   }
 
-  private static void addIdentifiersToPut(Put put, byte[] columnFamily, Collection<Identifier> records) {
+  private void addIdentifiersToPut(Put put, byte[] columnFamily, Collection<Identifier> records) {
     put.add(columnFamily, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_COUNT).getColumnName()),
       Bytes.toBytes(records.size()));
     int count = -1;
@@ -405,7 +382,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
-  private static void deleteOldIdentifiers(HTableInterface occTable, int id, byte[] columnFamily) throws IOException {
+  private void deleteOldIdentifiers(HTableInterface occTable, int id, byte[] columnFamily) throws IOException {
     Get get = new Get(Bytes.toBytes(id));
     get.addColumn(columnFamily,
       Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_COUNT).getColumnName()));
@@ -428,7 +405,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
-  private static void closeTable(HTableInterface table) {
+  private void closeTable(HTableInterface table) {
     if (table != null) {
       try {
         table.close();

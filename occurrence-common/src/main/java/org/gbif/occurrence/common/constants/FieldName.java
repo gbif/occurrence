@@ -5,6 +5,10 @@ package org.gbif.occurrence.common.constants;
  */
 public enum FieldName {
   // common
+
+  /**
+   * The gbif id for the record, not mapped to hbase, just hive so watch out!
+   */
   KEY(FieldType.INT),
   DATASET_KEY(FieldType.STRING),
   PUB_ORG_KEY(FieldType.STRING),
@@ -66,11 +70,9 @@ public enum FieldName {
   I_STATE_PROVINCE(FieldType.STRING),
   I_WATERBODY(FieldType.STRING),
   I_COORD_ACCURACY(FieldType.DOUBLE),
-  I_GEODETIC_DATUM(FieldType.STRING),
   I_DECIMAL_LATITUDE(FieldType.DOUBLE),
   I_DECIMAL_LONGITUDE(FieldType.DOUBLE),
 
-  SOURCE_MODIFIED(FieldType.LONG),
   I_ELEVATION(FieldType.INT),
   I_ELEVATION_ACC(FieldType.INT),
   I_DEPTH(FieldType.INT),

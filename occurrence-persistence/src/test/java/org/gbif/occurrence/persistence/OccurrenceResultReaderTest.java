@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence;
 
 import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.HBaseColumn;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.util.List;
@@ -45,9 +46,9 @@ public class OccurrenceResultReaderTest {
   }
 
   private static KeyValue buildKv(FieldName fieldName, byte[] value) {
-    HBaseFieldUtil.HBaseColumn hbaseCol = HBaseFieldUtil.getHBaseColumn(fieldName);
+    HBaseColumn hbaseCol = HBaseFieldUtil.getHBaseColumn(fieldName);
     KeyValue kv =
-      new KeyValue(KEY, Bytes.toBytes(hbaseCol.getColumnFamilyName()), Bytes.toBytes(hbaseCol.getColumnName()), value);
+      new KeyValue(KEY, Bytes.toBytes(hbaseCol.getFamilyName()), Bytes.toBytes(hbaseCol.getColumnName()), value);
     return kv;
   }
 

@@ -230,8 +230,6 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(DEPTH_ACC));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ESTAB_MEANS).getColumnName()),
       Bytes.toBytes(ESTAB_MEANS.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GEODETIC_DATUM).getColumnName()),
-      Bytes.toBytes(GEO_DATUM));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_INDIVIDUAL_COUNT).getColumnName()),
       Bytes.toBytes(INDIVIDUAL_COUNT));
     put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_INTERPRETED).getColumnName()),

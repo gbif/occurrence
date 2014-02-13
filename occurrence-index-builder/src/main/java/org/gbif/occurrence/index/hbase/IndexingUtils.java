@@ -208,7 +208,7 @@ public class IndexingUtils {
   public static Scan buildScan(FieldName... fieldNames) {
     Scan scan = new Scan();
     for (FieldName fieldName : fieldNames) {
-      scan.addColumn(Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(fieldName).getColumnFamilyName()),
+      scan.addColumn(Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(fieldName).getFamilyName()),
         Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(fieldName).getColumnName()));
     }
     return scan;

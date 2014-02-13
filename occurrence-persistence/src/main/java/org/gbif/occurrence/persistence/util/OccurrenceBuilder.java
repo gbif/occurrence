@@ -24,6 +24,7 @@ import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
+import org.gbif.occurrence.persistence.hbase.HBaseColumn;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 import org.gbif.occurrence.persistence.hbase.HBaseHelper;
 
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
-  private static final Set<? extends Term> INTERPRETED_TERMS = Sets.newHashSet(
+  public static final Set<? extends Term> INTERPRETED_TERMS = Sets.newHashSet(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
     DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
     DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
@@ -279,8 +280,8 @@ public class OccurrenceBuilder {
   private static Set<OccurrenceIssue> extractIssues(Result result) {
     Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      HBaseFieldUtil.HBaseColumn column = HBaseFieldUtil.getHBaseColumn(issue);
-      byte[] val = result.getValue(Bytes.toBytes(column.getColumnFamilyName()), Bytes.toBytes(column.getColumnName()));
+      HBaseColumn column = HBaseFieldUtil.getHBaseColumn(issue);
+      byte[] val = result.getValue(Bytes.toBytes(column.getFamilyName()), Bytes.toBytes(column.getColumnName()));
       if (val != null) {
         issues.add(issue);
       }

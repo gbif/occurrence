@@ -130,7 +130,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
         keyCreated = keyLookupResult.isCreated();
         fragment.setKey(keyLookupResult.getKey());
       }
-      writeFields(occTable, cf, fragment, true);
+      writeFields(occTable, cf, fragment);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
     } finally {
@@ -147,41 +147,38 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
   }
 
   /**
-   * Writes all fields of Fragment to the HBase table. If dn (deleteNulls) is true, any field in the fragment that is
-   * empty will be deleted from the corresponding "column" in the HBase row.  If dn is false, any data already existing
-   * in the HBase table for empty fields in the Fragment will remain.
+   * Writes all fields of Fragment to the HBase table. Any field in the fragment that is
+   * empty will be deleted from the corresponding "column" in the HBase row.
    *
    * @param occTable the HBase table to write to
    * @param cf the column family of the table to write to
    * @param frag the fragment to persist
-   * @param dn deleteNulls?
    *
    * @throws IOException if communicating with HBase fails
    */
-  private static void writeFields(HTableInterface occTable, byte[] cf, Fragment frag, boolean dn) throws IOException {
+  private static void writeFields(HTableInterface occTable, byte[] cf, Fragment frag) throws IOException {
     Put put = new Put(Bytes.toBytes(frag.getKey()));
-    Delete del = null;
-    if (dn) del = new Delete(Bytes.toBytes(frag.getKey()));
+    Delete del = new Delete(Bytes.toBytes(frag.getKey()));
 
     HBaseHelper.writeField(FieldName.DATASET_KEY,
-      frag.getDatasetKey() == null ? null : Bytes.toBytes(frag.getDatasetKey().toString()), dn, cf, put, del);
+        frag.getDatasetKey() == null ? null : Bytes.toBytes(frag.getDatasetKey().toString()), cf, put, del);
     HBaseHelper.writeField(FieldName.CRAWL_ID,
-      frag.getCrawlId() == null ? null : Bytes.toBytes(frag.getCrawlId()), dn, cf, put, del);
+        frag.getCrawlId() == null ? null : Bytes.toBytes(frag.getCrawlId()), cf, put, del);
     HBaseHelper.writeField(GbifTerm.unitQualifier,
-      frag.getUnitQualifier() == null ? null : Bytes.toBytes(frag.getUnitQualifier()), dn, cf, put, del);
+        frag.getUnitQualifier() == null ? null : Bytes.toBytes(frag.getUnitQualifier()), true, cf, put, del);
     HBaseHelper.writeField(FieldName.LAST_CRAWLED,
-      frag.getHarvestedDate() == null ? null : Bytes.toBytes(frag.getHarvestedDate().getTime()), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.FRAGMENT, frag.getData(), dn, cf, put, del);
-    HBaseHelper.writeField(FieldName.FRAGMENT_HASH, frag.getDataHash(), dn, cf, put, del);
+        frag.getHarvestedDate() == null ? null : Bytes.toBytes(frag.getHarvestedDate().getTime()), cf, put, del);
+    HBaseHelper.writeField(FieldName.FRAGMENT, frag.getData(), cf, put, del);
+    HBaseHelper.writeField(FieldName.FRAGMENT_HASH, frag.getDataHash(), cf, put, del);
     HBaseHelper.writeField(FieldName.XML_SCHEMA,
-      frag.getXmlSchema() == null ? null : Bytes.toBytes(frag.getXmlSchema().toString()), dn, cf, put, del);
+        frag.getXmlSchema() == null ? null : Bytes.toBytes(frag.getXmlSchema().toString()), cf, put, del);
     HBaseHelper.writeField(FieldName.PROTOCOL,
-      frag.getProtocol() == null ? null : Bytes.toBytes(frag.getProtocol().toString()), dn, cf, put, del);
+        frag.getProtocol() == null ? null : Bytes.toBytes(frag.getProtocol().toString()), cf, put, del);
     HBaseHelper.writeField(FieldName.CREATED,
-      frag.getCreated() == null ? null : Bytes.toBytes(frag.getCreated()), dn, cf, put, del);
+        frag.getCreated() == null ? null : Bytes.toBytes(frag.getCreated()), cf, put, del);
 
     occTable.put(put);
-    if (dn && !del.isEmpty()) occTable.delete(del);
+    if (!del.isEmpty()) occTable.delete(del);
     occTable.flushCommits();
   }
 }

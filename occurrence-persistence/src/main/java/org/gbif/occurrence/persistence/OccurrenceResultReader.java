@@ -4,6 +4,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.common.constants.FieldType;
+import org.gbif.occurrence.persistence.hbase.HBaseColumn;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.util.Date;
@@ -48,11 +49,11 @@ public class OccurrenceResultReader {
     checkNotNull(row, "row can't be null");
     checkNotNull(term, "term can't be null");
 
-    HBaseFieldUtil.HBaseColumn hBaseColumn = HBaseFieldUtil.getHBaseColumn(term);
+    HBaseColumn hBaseColumn = HBaseFieldUtil.getHBaseColumn(term);
     if (hBaseColumn == null) {
       return null;
     }
-    return ResultReader.getString(row, hBaseColumn.getColumnFamilyName(), hBaseColumn.getColumnName(), null);
+    return ResultReader.getString(row, hBaseColumn.getFamilyName(), hBaseColumn.getColumnName(), null);
   }
 
   public static String getString(Result row, FieldName column, @Nullable String defaultValue) {
@@ -60,8 +61,8 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.STRING, "FieldName [" + column.toString() + "] is not of type String");
 
-    HBaseFieldUtil.HBaseColumn col = HBaseFieldUtil.getHBaseColumn(column);
-    String result = ResultReader.getString(row, col.getColumnFamilyName(), col.getColumnName(), defaultValue);
+    HBaseColumn col = HBaseFieldUtil.getHBaseColumn(column);
+    String result = ResultReader.getString(row, col.getFamilyName(), col.getColumnName(), defaultValue);
     return result;
   }
 
@@ -74,7 +75,7 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.DOUBLE, "FieldName [" + column.toString() + "] is not of type Double");
 
-    return ResultReader.getDouble(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+    return ResultReader.getDouble(row, HBaseFieldUtil.getHBaseColumn(column).getFamilyName(),
       HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
@@ -87,7 +88,7 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.INT, "FieldName [" + column.toString() + "] is not of type Integer");
 
-    return ResultReader.getInteger(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+    return ResultReader.getInteger(row, HBaseFieldUtil.getHBaseColumn(column).getFamilyName(),
       HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
@@ -105,7 +106,7 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.LONG, "FieldName [" + column.toString() + "] is not of type Long");
 
-    return ResultReader.getLong(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+    return ResultReader.getLong(row, HBaseFieldUtil.getHBaseColumn(column).getFamilyName(),
       HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
@@ -118,7 +119,7 @@ public class OccurrenceResultReader {
     checkNotNull(column, "column can't be null");
     checkArgument(column.getType() == FieldType.BYTES, "FieldName [" + column.toString() + "] is not of type byte[]");
 
-    return ResultReader.getBytes(row, HBaseFieldUtil.getHBaseColumn(column).getColumnFamilyName(),
+    return ResultReader.getBytes(row, HBaseFieldUtil.getHBaseColumn(column).getFamilyName(),
       HBaseFieldUtil.getHBaseColumn(column).getColumnName(), defaultValue);
   }
 
