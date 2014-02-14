@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor.interpreting.result;
 
 import org.gbif.api.vocabulary.Country;
+import org.gbif.common.parsers.geospatial.LatLng;
 
 import com.google.common.base.Objects;
 
@@ -13,9 +14,9 @@ public class CoordinateCountry {
   private final Double longitude;
   private final Country country;
 
-  public CoordinateCountry(Double latitude, Double longitude, Country country) {
-    this.latitude = latitude;
-    this.longitude = longitude;
+  public CoordinateCountry(LatLng coord, Country country) {
+    this.latitude = coord.getLat();
+    this.longitude = coord.getLng();
     this.country = country;
   }
 

@@ -3,7 +3,7 @@ package org.gbif.occurrence.processor.interpreting.util;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
+import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
@@ -167,100 +168,101 @@ public class CoordinateInterpreter {
   public static ParseResult<CoordinateCountry> interpretCoordinates(String latitude, String longitude, final Country country) {
     if (latitude == null || longitude == null) return ParseResult.fail();
 
-    //TODO: cleanup code to set issues directly into this set and use less of the parsing results
+    // use original as default
+    Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
-    ParseResult<LatLng> parseResult = GeospatialParseUtils.parseLatLng(latitude, longitude);
+    ParseResult<LatLng> parsed = CoordinateParseUtils.parseLatLng(latitude, longitude);
 
-    // round to 5 decimals (~1m precision) since no way we're getting anything legitimately more precise
-    Double lat = parseResult.getPayload() == null || parseResult.getPayload().getLat() == null ? null
-      : Math.round(parseResult.getPayload().getLat() * Math.pow(10, 5)) / Math.pow(10, 5);
-    Double lng = parseResult.getPayload() == null || parseResult.getPayload().getLng() == null ? null
-      : Math.round(parseResult.getPayload().getLng() * Math.pow(10, 5)) / Math.pow(10, 5);
-
-    Country finalCountry = country;
 
     // the utils do a basic sanity check - even if it suggests success, we have to check that the lat/long
     // actually falls in the country given in the record. If it doesn't, try common mistakes and note the issue
-    if (parseResult.getStatus() == ParseResult.STATUS.SUCCESS) {
-      List<Country> latLngCountries = getCountryForLatLng(lat, lng);
-      if (finalCountry == null) {
-        // we have nothing to say about coord accuracy, but can try to fetch the right country
-        if (!latLngCountries.isEmpty()) {
-          finalCountry = latLngCountries.get(0);
+    if (parsed.getStatus() == ParseResult.STATUS.SUCCESS) {
+      List<Country> latLngCountries = getCountryForLatLng(parsed.getPayload());
+      Country lookupCountry = null;
+      if (!latLngCountries.isEmpty()) {
+        lookupCountry = latLngCountries.get(0);
+      }
+
+      if (country == null) {
+        if (lookupCountry != null) {
+          // use the coordinate derived country instead of nothing
+          finalCountry = lookupCountry;
           issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
         }
 
       } else if (matchCountry(country, latLngCountries)) {
         // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
-        if (!finalCountry.equals(latLngCountries.get(0))) {
+        if (!country.equals(latLngCountries.get(0))) {
           issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
         }
         finalCountry = latLngCountries.get(0);
 
 
       } else {
-        boolean match = false;
-        for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
-          Integer[] transform = geospatialIssueEntry.getValue();
-          if (matchCountry(country, getCountryForLatLng(lat * transform[0], lng * transform[1]))) {
-            parseResult = ParseResult.fail(new LatLng(lat, lng), geospatialIssueEntry.getKey());
-            match = true;
-            break;
-          }
-        }
-
-        // if we made it here no transforms worked and the point is either in international waters or really weird
-        parseResult = match ? parseResult
-          : ParseResult.fail(new LatLng(lat, lng), OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+        // countries don't match, try to swap lat/lon to see if any falls into the given country
+        parsed = tryCoordTransformations(parsed.getPayload(), country);
       }
     }
 
-
-    ParseResult<CoordinateCountry> result = ParseResult.success(parseResult.getConfidence(),
-                                                                new CoordinateCountry(lat, lng, finalCountry));
-    result.getIssues().addAll(issues);
-    result.getIssues().addAll(parseResult.getIssues());
-
-    return result;
+    issues.addAll(parsed.getIssues());
+    return ParseResult.success(parsed.getConfidence(), new CoordinateCountry(parsed.getPayload(), finalCountry), issues);
   }
 
-  private static boolean matchCountry(Country country, Collection<Country> potentialCountries) {
-    Set<Country> fuzzyCountries = FUZZY_COUNTRIES.get(country);
-    if (fuzzyCountries == null) {
-      fuzzyCountries = Sets.newHashSet();
-      fuzzyCountries.add(country);
-      FUZZY_COUNTRIES.put(country, fuzzyCountries);
-    }
-
-    boolean match = false;
-    for (Country pCountry : potentialCountries) {
-      if (fuzzyCountries.contains(pCountry)) {
-        match = true;
-        break;
+  private static ParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
+    Preconditions.checkNotNull(country);
+    for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
+      Integer[] transform = geospatialIssueEntry.getValue();
+      LatLng tCoord = new LatLng(coord.getLat() * transform[0], coord.getLng() * transform[1]);
+      if (matchCountry(country, getCountryForLatLng(tCoord))) {
+        // transformation worked and matches given country!
+        return ParseResult.fail(tCoord, geospatialIssueEntry.getKey());
       }
     }
+    return ParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+  }
 
-    return match;
+  /**
+   * returns a set of countries that are close and could be validly be confused.
+   * @return the set of countries always including the original, never null
+   */
+  private static Set<Country> getFuzzyCountries(Country country){
+    if (!FUZZY_COUNTRIES.containsKey(country)) {
+      FUZZY_COUNTRIES.put(country, Sets.newHashSet(country));
+    }
+    return FUZZY_COUNTRIES.get(country);
+  }
+
+  /**
+   * @return true if the given country (or its close fuzzy neighbours) fall into one of the potential countries given
+   */
+  private static boolean matchCountry(Country country, Collection<Country> potentialCountries) {
+    Set<Country> fuzzyCountries = getFuzzyCountries(country);
+    for (Country pCountry : potentialCountries) {
+      if (fuzzyCountries.contains(pCountry)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * It's theoretically possible that the webservice could respond with more than one country, though it's not
    * known under what conditions that might happen.
    */
-  private static List<Country> getCountryForLatLng(Double lat, Double lng) {
+  private static List<Country> getCountryForLatLng(LatLng coord) {
     List<Country> countries = Lists.newArrayList();
 
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    queryParams.add("lat", lat.toString());
-    queryParams.add("lng", lng.toString());
+    queryParams.add("lat", coord.getLat().toString());
+    queryParams.add("lng", coord.getLng().toString());
 
     for (int i = 0; i < NUM_RETRIES; i++) {
-      LOG.debug("Attempt [{}] to lookup lat [{}] lng [{}]", i, lat, lng);
+      LOG.debug("Attempt [{}] to lookup coord {}", i, coord);
       try {
         Location[] lookups = CACHE.get(RESOURCE.queryParams(queryParams));
         if (lookups != null && lookups.length > 0) {
-          LOG.debug("Successfully retrieved [{}] locations for lat [{}] lng [{}]", lookups.length, lat, lng);
+          LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
           for (Location loc : lookups) {
             if (loc.getIsoCountryCode2Digit() != null) {
               countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));

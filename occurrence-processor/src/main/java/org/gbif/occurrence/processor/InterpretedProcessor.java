@@ -41,12 +41,12 @@ public class InterpretedProcessor {
   private final MessagePublisher messagePublisher;
   private final ZookeeperConnector zookeeperConnector;
 
-  private final Meter interpProcessed =
-    Metrics.newMeter(InterpretedProcessor.class, "interps", "interps", TimeUnit.SECONDS);
-  private final Timer interpTimer =
-    Metrics.newTimer(InterpretedProcessor.class, "interp time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-  private final Timer msgTimer =
-    Metrics.newTimer(InterpretedProcessor.class, "msg send time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+  private final Meter interpProcessed = Metrics.newMeter(
+      InterpretedProcessor.class, "interps", "interps", TimeUnit.SECONDS);
+  private final Timer interpTimer = Metrics.newTimer(
+      InterpretedProcessor.class, "interp time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+  private final Timer msgTimer = Metrics.newTimer(
+      InterpretedProcessor.class, "msg send time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
 
   private static final Logger LOG = LoggerFactory.getLogger(InterpretedProcessor.class);
 

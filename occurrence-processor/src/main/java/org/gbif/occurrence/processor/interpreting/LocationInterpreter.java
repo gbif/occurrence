@@ -2,12 +2,12 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.geospatial.GeospatialParseUtils;
-import org.gbif.common.parsers.geospatial.IntPrecision;
+import org.gbif.common.parsers.geospatial.MeterRangeParser;
+import org.gbif.common.parsers.geospatial.IntAccuracy;
+import org.gbif.common.parsers.ContinentParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
@@ -39,10 +39,12 @@ public class LocationInterpreter implements Runnable {
     Country country = interpretCountry();
     interpretContinent(country);
     interpretCoordinates(country);
-    interpretAltitude();
-    interpretDepth();
     interpretWaterBody();
     interpretState(country);
+
+    interpretElevation();
+    interpretDepth();
+    interpretDistanceAboveSurface();
   }
 
   //TODO: improve this method and put it into parsers!
@@ -64,12 +66,9 @@ public class LocationInterpreter implements Runnable {
 
   private void interpretContinent(Country country) {
     if (verbatim.hasVerbatimField(DwcTerm.continent)) {
-      String cont = cleanName(verbatim.getVerbatimField(DwcTerm.continent));
-      try {
-        occ.setContinent((Continent) VocabularyUtils.lookupEnum(cont, Continent.class));
-      } catch (IllegalArgumentException e) {
-        //TODO: set invalid continent issue
-      }
+      ParseResult<Continent> inter = ContinentParser.getInstance().parse(verbatim.getVerbatimField(DwcTerm.continent));
+      occ.setContinent(inter.getPayload());
+      occ.getIssues().addAll(inter.getIssues());
     }
 
     // TODO: if null, try to derive from country
@@ -122,37 +121,39 @@ public class LocationInterpreter implements Runnable {
   }
 
   private void interpretDepth() {
-    ParseResult<IntPrecision> result = GeospatialParseUtils.parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
-                                                                       verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters),
-                                                                       null);
+    ParseResult<IntAccuracy> result = MeterRangeParser.parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
+                                                                  verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters),
+                                                                  null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setDepth( result.getPayload().getValue() );
-      occ.setDepthAccuracy(result.getPayload().getPrecision());
+      occ.setDepthAccuracy(result.getPayload().getAccuracy());
       occ.getIssues().addAll(result.getIssues());
     }
   }
 
   private void interpretDistanceAboveSurface() {
-    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getVerbatimField(DwcTerm.minimumDistanceAboveSurfaceInMeters),
-                                                                          verbatim.getVerbatimField(DwcTerm.maximumDistanceAboveSurfaceInMeters),
-                                                                          null);
+    ParseResult<IntAccuracy> result = MeterRangeParser.parseSurfaceDistance(verbatim.getVerbatimField(DwcTerm.minimumDistanceAboveSurfaceInMeters),
+                                                                     verbatim.getVerbatimField(DwcTerm.maximumDistanceAboveSurfaceInMeters),
+                                                                     null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setDistanceAboveSurface(result.getPayload().getValue());
-      occ.setDistanceAboveSurfaceAccuracy(result.getPayload().getPrecision());
-      //TODO: http://dev.gbif.org/issues/browse/POR-1817
-      //occ.getIssues().addAll(result.getIssues());
+      occ.setDistanceAboveSurfaceAccuracy(result.getPayload().getAccuracy());
+      occ.getIssues().addAll(result.getIssues());
     }
   }
 
-  private void interpretAltitude() {
-    ParseResult<IntPrecision> result = GeospatialParseUtils.parseAltitude(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
+  private void interpretElevation() {
+    ParseResult<IntAccuracy> result = MeterRangeParser.parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
                                                                                 verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters),
                                                                                 null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
       occ.setElevation( result.getPayload().getValue() );
-      occ.setElevationAccuracy(result.getPayload().getPrecision());
+      occ.setElevationAccuracy(result.getPayload().getAccuracy());
       occ.getIssues().addAll(result.getIssues());
     }
+
+    //TODO: use continent information to get finer unlikely values:
+    // http://en.wikipedia.org/wiki/Extremes_on_Earth#Extreme_elevations_and_temperatures_per_continent
   }
 
 }

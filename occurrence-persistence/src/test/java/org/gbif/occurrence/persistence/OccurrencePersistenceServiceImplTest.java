@@ -453,8 +453,8 @@ public class OccurrencePersistenceServiceImplTest {
     update.setIdentifiers(records);
 
     Set<OccurrenceIssue> issues = update.getIssues();
-    issues.remove(OccurrenceIssue.ALTITUDE_MIN_MAX_SWAPPED);
-    issues.remove(OccurrenceIssue.ALTITUDE_NON_NUMERIC);
+    issues.remove(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED);
+    issues.remove(OccurrenceIssue.ELEVATION_NON_NUMERIC);
     issues.remove(OccurrenceIssue.ZERO_COORDINATE);
     update.setIssues(issues);
 
@@ -512,8 +512,8 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Integer) distAboveAcc, occ.getDistanceAboveSurfaceAccuracy());
 
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size() + 3);
-    assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_MIN_MAX_SWAPPED));
-    assertFalse(occ.getIssues().contains(OccurrenceIssue.ALTITUDE_NON_NUMERIC));
+    assertFalse(occ.getIssues().contains(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED));
+    assertFalse(occ.getIssues().contains(OccurrenceIssue.ELEVATION_NON_NUMERIC));
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ZERO_COORDINATE));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
 
