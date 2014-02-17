@@ -745,8 +745,8 @@
         <registry.ws.url>http://api.gbif-uat.org/v0.9/</registry.ws.url>
         <geocode.ws.url>http://api.gbif-uat.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
         <!-- security -->
-        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
-        <drupal.db.username>drupal_devel</drupal.db.username>
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_uat</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
         <occurrence.download.ws.username>occdownload.gbif-uat.org</occurrence.download.ws.username>
       </properties>
