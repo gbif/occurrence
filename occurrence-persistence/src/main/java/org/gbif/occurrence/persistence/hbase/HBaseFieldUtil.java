@@ -112,6 +112,10 @@ public class HBaseFieldUtil {
   private HBaseFieldUtil() {
   }
 
+  /**
+   * @deprecated please use getHBaseColumn by Term instead
+   */
+  @Deprecated
   public static HBaseColumn getHBaseColumn(FieldName field) {
     checkNotNull(field, "field can't be null");
 

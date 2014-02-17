@@ -17,9 +17,12 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,17 +30,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -89,59 +98,65 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     .or(CharMatcher.DIGIT)
     .or(CharMatcher.is('_'))
     .negate();
-  private static final String HIVE_SELECT;
+
+  private static final String HIVE_SELECT_INTERPRETED;
+  private static final String HIVE_SELECT_VERBATIM;
 
   static {
-    StringBuilder selectSB = new StringBuilder();
+    StringBuilder iSB = new StringBuilder();
+    StringBuilder vSB = new StringBuilder();
 
-    for (FieldName f : HiveFieldUtil.DOWNLOAD_COLUMNS) {
-      if (selectSB.length() > 0) {
-        selectSB.append(", \n");
-      }
-      String colName = HiveFieldUtil.getHiveField(f);
-      switch (f) {
-        case KEY:
-        case DATASET_KEY:
-        case I_TAXON_KEY:
-        case I_KINGDOM_KEY:
-        case I_PHYLUM_KEY:
-        case I_CLASS_KEY:
-        case I_ORDER_KEY:
-        case I_FAMILY_KEY:
-        case I_GENUS_KEY:
-        case I_SPECIES_KEY:
-        case I_ELEVATION:
-        case I_DEPTH:
-        case I_DECIMAL_LATITUDE:
-        case I_DECIMAL_LONGITUDE:
-        case I_YEAR:
-        case I_MONTH:
-        case I_COUNTRY:
-          selectSB.append("cleanNull(" + colName + ")");
-          break;
-        case CREATED:
-        case LAST_PARSED:
-        case I_MODIFIED:
-        case I_EVENT_DATE:
-          selectSB.append("toISO8601(" + colName + ")");
-          break;
-        case I_BASIS_OF_RECORD:
-          // use the enum converter UDF from the workflow
-          selectSB.append("getBorEnum(" + colName + ")");
-          break;
+    HashSet<? extends Term> dates = Sets.newHashSet(DwcTerm.eventDate, DwcTerm.dateIdentified);
+    HashSet<? extends Term> ints = Sets.newHashSet(DwcTerm.year, DwcTerm.month, DwcTerm.day);
 
-        default:
-          // escape tabs, new lines and line breaks
-          selectSB
-            .append("cleanDelimiters(" + colName + ")");
-          break;
+    for (Term term : propertyTerms()) {
+      boolean onlyVerbatim = OccurrenceBuilder.INTERPRETED_TERMS.contains(term);
+
+      // escape tabs, new lines and line breaks
+      String vCol = "v_" + term.simpleName();
+      vSB.append("cleanDelimiters(" + vCol + ") AS " + vCol);
+
+      if (!onlyVerbatim) {
+        String iCol = term.simpleName();
+        if (dates.contains(term)) {
+          iSB.append("toISO8601(" + iCol + ")");
+        } else if (ints.contains(term)) {
+          iSB.append("cleanNull(" + iCol + ")");
+        } else {
+          iSB.append("cleanDelimiters(" + iCol + ")");
+        }
+        iSB.append(" AS " + iCol);
       }
-      selectSB.append(" AS " + colName);
     }
 
-    HIVE_SELECT = selectSB.toString();
+    HIVE_SELECT_INTERPRETED = iSB.toString();
+    HIVE_SELECT_VERBATIM = vSB.toString();
   }
 
+  private static Iterable<? extends Term> propertyTerms(){
+    return Iterables.concat(
+      Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
+        @Override
+        public boolean apply(@Nullable DwcTerm input) {
+          //TODO: filter out pure checklist terms???
+          return !input.isClass();
+        }
+      }),
+      Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
+        @Override
+        public boolean apply(@Nullable DcTerm input) {
+          return !input.isClass();
+        }
+      }),
+      Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
+        @Override
+        public boolean apply(@Nullable GbifTerm input) {
+          //TODO: filter out pure checklist terms???
+          return !input.isClass();
+        }
+      })
+    );
+  }
 
   private static final EnumSet<Status> FAILURE_STATES = EnumSet.of(Status.FAILED, Status.KILLED);
 
@@ -206,31 +221,27 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
 
     HiveQueryVisitor hiveVisitor = new HiveQueryVisitor();
-    SolrQueryVisitor solrVisitor = new SolrQueryVisitor();
     String hiveQuery;
-    String solrQuery;
     try {
       hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
-      solrQuery = StringEscapeUtils.escapeXml(solrVisitor.getQuery(request.getPredicate()));
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
     }
     LOG.debug("Attempting to download with hive query [{}]", hiveQuery);
 
-    final String uniqueId = REPL_INVALID_HIVE_CHARS.removeFrom(
-      request.getCreator() + '_' + UUID.randomUUID().toString());
+    final String uniqueId = REPL_INVALID_HIVE_CHARS.removeFrom(request.getCreator() + '_' + UUID.randomUUID().toString());
     final String tmpTable = "download_tmp_" + uniqueId;
     final String citationTable = "download_tmp_citation_" + uniqueId;
 
     Properties jobProps = new Properties();
     jobProps.putAll(defaultProperties);
-    jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER)); // we dont have a
-    // downloadId yet, submit a placeholder
-    jobProps.setProperty("select", HIVE_SELECT);
+    jobProps.setProperty("select_interpreted", HIVE_SELECT_INTERPRETED);
+    jobProps.setProperty("select_verbatim", HIVE_SELECT_VERBATIM);
     jobProps.setProperty("query", hiveQuery);
-    jobProps.setProperty("solr_query", solrQuery);
     jobProps.setProperty("query_result_table", tmpTable);
     jobProps.setProperty("citation_table", citationTable);
+    // we dont have a downloadId yet, submit a placeholder
+    jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER));
     jobProps.setProperty(Constants.USER_PROPERTY, request.getCreator());
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       jobProps.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));

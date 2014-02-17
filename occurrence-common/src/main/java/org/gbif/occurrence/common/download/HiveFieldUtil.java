@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
  * Translation util between FieldName enums and the hive column name and header row of the download.
  * As per http://dev.gbif.org/wiki/display/POR/Occurrence+Download+Service.
  */
+@Deprecated
 public class HiveFieldUtil {
 
   // TODO: downloads missing all old style verbatim fields

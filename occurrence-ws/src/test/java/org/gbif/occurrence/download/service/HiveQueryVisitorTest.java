@@ -46,7 +46,7 @@ public class HiveQueryVisitorTest {
       Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
-      "(((taxon_id = 212 OR kingdom_key = 212 OR phylum_key = 212 OR class_key = 212 OR order_key = 212 OR family_key = 212 OR genus_key = 212 OR species_key = 212)) AND (country_code = \'GB\') AND (scientific_name LIKE \'Passer%\') AND (year <= 1989) AND (latitude IS NOT NULL AND longitude IS NOT NULL))",
+      "(((taxonKey = 212 OR kingdomKey = 212 OR phylumKey = 212 OR classKey = 212 OR orderKey = 212 OR familyKey = 212 OR genusKey = 212 OR subgenusKey = 212 OR speciesKey = 212)) AND (countryCode = \'GB\') AND (scientificName LIKE \'Passer%\') AND (year <= 1989) AND (decimalLatitude IS NOT NULL AND decimalLongitude IS NOT NULL))",
       where);
   }
 
@@ -57,7 +57,7 @@ public class HiveQueryVisitorTest {
 
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("((catalog_number = \'value_1\') AND (institution_code = \'value_2\'))"));
+    assertThat(query, equalTo("((catalogNumber = \'value_1\') AND (institutionCode = \'value_2\'))"));
   }
 
   @Test
@@ -67,14 +67,14 @@ public class HiveQueryVisitorTest {
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("((catalog_number = \'value_1\') OR (institution_code = \'value_2\'))"));
+    assertThat(query, equalTo("((catalogNumber = \'value_1\') OR (institutionCode = \'value_2\'))"));
   }
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(PARAM, "value");
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("catalog_number = \'value\'"));
+    assertThat(query, equalTo("catalogNumber = \'value\'"));
   }
 
   @Test
@@ -96,7 +96,7 @@ public class HiveQueryVisitorTest {
     Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("((catalog_number = \'value_1\') OR (catalog_number = \'value_2\') OR (catalog_number = \'value_3\'))"));
+      equalTo("((catalogNumber = \'value_1\') OR (catalogNumber = \'value_2\') OR (catalogNumber = \'value_3\'))"));
   }
 
   @Test
@@ -117,7 +117,7 @@ public class HiveQueryVisitorTest {
   public void testNotPredicate() throws QueryBuildingException {
     Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("NOT catalog_number = \'value\'"));
+    assertThat(query, equalTo("NOT catalogNumber = \'value\'"));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class HiveQueryVisitorTest {
 
     Predicate p = new NotPredicate(cp);
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("NOT ((catalog_number = \'value_1\') AND (institution_code = \'value_2\'))"));
+    assertThat(query, equalTo("NOT ((catalogNumber = \'value_1\') AND (institutionCode = \'value_2\'))"));
 
 
   }
@@ -138,7 +138,7 @@ public class HiveQueryVisitorTest {
   public void testQuotes() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(PARAM, "my \'pleasure\'");
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("catalog_number = \'my \\\'pleasure\\\'\'"));
+    assertThat(query, equalTo("catalogNumber = \'my \\\'pleasure\\\'\'"));
 
     p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "101");
     query = visitor.getHiveQuery(p);
@@ -154,7 +154,7 @@ public class HiveQueryVisitorTest {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("contains(\"" + wkt + "\", latitude, longitude)"));
+    assertThat(query, equalTo("contains(\"" + wkt + "\", decimalLatitude, decimalLongitude)"));
   }
 
 
