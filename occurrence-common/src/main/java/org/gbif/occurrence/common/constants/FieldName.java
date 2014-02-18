@@ -2,7 +2,9 @@ package org.gbif.occurrence.common.constants;
 
 /**
  * Each of the fields of an occurrence along with its FieldType.
+ * @deprecated please use Term instead
  */
+@Deprecated
 public enum FieldName {
   // common
 

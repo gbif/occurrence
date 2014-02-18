@@ -17,9 +17,10 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
-import org.gbif.occurrence.common.constants.FieldName;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -38,6 +40,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -89,59 +92,33 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     .or(CharMatcher.DIGIT)
     .or(CharMatcher.is('_'))
     .negate();
-  private static final String HIVE_SELECT;
+
+  private static final String HIVE_SELECT_INTERPRETED;
+  private static final String HIVE_SELECT_VERBATIM;
 
   static {
-    StringBuilder selectSB = new StringBuilder();
-
-    for (FieldName f : HiveFieldUtil.DOWNLOAD_COLUMNS) {
-      if (selectSB.length() > 0) {
-        selectSB.append(", \n");
+    List<String> columns = Lists.newArrayList();
+    for (Term term : TermUtils.interpretedTerms()) {
+      final String iCol = term.simpleName();
+      if (TermUtils.isInterpretedDate(term)) {
+        columns.add("toISO8601(" + iCol + ") AS " + iCol);
+      } else if (TermUtils.isInterpretedNumerical(term)) {
+        columns.add("cleanNull(" + iCol + ") AS " + iCol);
+      } else {
+        columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
-      String colName = HiveFieldUtil.getHiveField(f);
-      switch (f) {
-        case KEY:
-        case DATASET_KEY:
-        case I_TAXON_KEY:
-        case I_KINGDOM_KEY:
-        case I_PHYLUM_KEY:
-        case I_CLASS_KEY:
-        case I_ORDER_KEY:
-        case I_FAMILY_KEY:
-        case I_GENUS_KEY:
-        case I_SPECIES_KEY:
-        case I_ELEVATION:
-        case I_DEPTH:
-        case I_DECIMAL_LATITUDE:
-        case I_DECIMAL_LONGITUDE:
-        case I_YEAR:
-        case I_MONTH:
-        case I_COUNTRY:
-          selectSB.append("cleanNull(" + colName + ")");
-          break;
-        case CREATED:
-        case LAST_PARSED:
-        case I_MODIFIED:
-        case I_EVENT_DATE:
-          selectSB.append("toISO8601(" + colName + ")");
-          break;
-        case I_BASIS_OF_RECORD:
-          // use the enum converter UDF from the workflow
-          selectSB.append("getBorEnum(" + colName + ")");
-          break;
-
-        default:
-          // escape tabs, new lines and line breaks
-          selectSB
-            .append("cleanDelimiters(" + colName + ")");
-          break;
-      }
-      selectSB.append(" AS " + colName);
     }
+    HIVE_SELECT_INTERPRETED = Joiner.on(",").join(columns);
 
-    HIVE_SELECT = selectSB.toString();
+
+    columns = Lists.newArrayList();
+    // manually add the GBIF occ key as first column
+    columns.add(DwcTerm.occurrenceID.simpleName());
+    for (Term term : TermUtils.verbatimTerms()) {
+      columns.add("cleanDelimiters(v_" + term.simpleName() + ") AS " + term.simpleName());
+    }
+    HIVE_SELECT_VERBATIM = Joiner.on(",").join(columns);
   }
-
 
   private static final EnumSet<Status> FAILURE_STATES = EnumSet.of(Status.FAILED, Status.KILLED);
 
@@ -206,31 +183,27 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
 
     HiveQueryVisitor hiveVisitor = new HiveQueryVisitor();
-    SolrQueryVisitor solrVisitor = new SolrQueryVisitor();
     String hiveQuery;
-    String solrQuery;
     try {
       hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
-      solrQuery = StringEscapeUtils.escapeXml(solrVisitor.getQuery(request.getPredicate()));
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
     }
     LOG.debug("Attempting to download with hive query [{}]", hiveQuery);
 
-    final String uniqueId = REPL_INVALID_HIVE_CHARS.removeFrom(
-      request.getCreator() + '_' + UUID.randomUUID().toString());
+    final String uniqueId = REPL_INVALID_HIVE_CHARS.removeFrom(request.getCreator() + '_' + UUID.randomUUID().toString());
     final String tmpTable = "download_tmp_" + uniqueId;
     final String citationTable = "download_tmp_citation_" + uniqueId;
 
     Properties jobProps = new Properties();
     jobProps.putAll(defaultProperties);
-    jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER)); // we dont have a
-    // downloadId yet, submit a placeholder
-    jobProps.setProperty("select", HIVE_SELECT);
+    jobProps.setProperty("select_interpreted", HIVE_SELECT_INTERPRETED);
+    jobProps.setProperty("select_verbatim", HIVE_SELECT_VERBATIM);
     jobProps.setProperty("query", hiveQuery);
-    jobProps.setProperty("solr_query", solrQuery);
     jobProps.setProperty("query_result_table", tmpTable);
     jobProps.setProperty("citation_table", citationTable);
+    // we dont have a downloadId yet, submit a placeholder
+    jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER));
     jobProps.setProperty(Constants.USER_PROPERTY, request.getCreator());
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       jobProps.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));

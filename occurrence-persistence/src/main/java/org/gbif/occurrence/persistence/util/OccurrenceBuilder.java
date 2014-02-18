@@ -15,11 +15,10 @@ import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.OccurrenceResultReader;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -37,7 +36,6 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -49,20 +47,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
-  public static final Set<? extends Term> INTERPRETED_TERMS = Sets.newHashSet(
-    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
-    DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
-    DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
-    DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
-    DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.taxonRank,
-    DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
-    DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-    DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
-    DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
-    DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
-    DwcTerm.minimumDistanceAboveSurfaceInMeters, DwcTerm.maximumDistanceAboveSurfaceInMeters
-  );
-
 
   // should never be instantiated
   private OccurrenceBuilder() {
@@ -142,7 +126,7 @@ public class OccurrenceBuilder {
       Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
 
       // filter out verbatim terms that have been interpreted
-      for (Term t : INTERPRETED_TERMS) {
+      for (Term t : TermUtils.interpretedSourceTerms()) {
         occ.getVerbatimFields().remove(t);
       }
 

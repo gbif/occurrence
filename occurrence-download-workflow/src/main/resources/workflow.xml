@@ -9,7 +9,10 @@
   the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="occurrence.download" xmlns="uri:oozie:workflow:0.2">
 
-  <start to="occurrence_count" />
+  <start to="big_download" />
+
+  <!-- unused, right now we only do big scans
+
 
   <action name="occurrence_count">
     <java>
@@ -28,14 +31,13 @@
 
   <decision name="make_query_decision">
     <switch>
-      <!-- it's a small download -->
+      <!-- it's a small download -- >
       <case to="small_download">
         ${wf:actionData('occurrence_count')['is_small_download']}
       </case>
       <default to="big_download" />
     </switch>
   </decision>
-
 
   <action name="small_download">
     <java>
@@ -54,21 +56,44 @@
     <ok to="copy_and_zip" />
     <error to="failure_clean_hdfs_dirs" />
   </action>
+  -->
 
-  <action name="big_download">
+  <fork name="big_download">
+    <path start="query_interpreted" />
+    <path start="query_verbatim" />
+  </fork>
+
+  <action name="query_interpreted">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/query.q</script>
+      <script>hive-scripts/query-interpreted.q</script>
 
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
-      <param>select=${select}</param>
+      <param>select=${select_interpreted}</param>
       <param>query=${query}</param>
       <param>query_result=${query_result_table}</param>
     </hive>
 
     <ok to="citation" />
+    <error to="failure_drop_table" />
+  </action>
+
+  <action name="query_verbatim">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/query-verbatim.q</script>
+
+      <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
+      <param>select=${select_verbatim}</param>
+      <param>query=${query}</param>
+      <param>query_result=${query_result_table}</param>
+    </hive>
+
+    <ok to="bundling" />
     <error to="failure_drop_table" />
   </action>
 
@@ -83,9 +108,11 @@
       <param>citation=${citation_table}</param>
     </hive>
 
-    <ok to="copy_and_zip" />
+    <ok to="bundling" />
     <error to="failure_drop_table" />
   </action>
+
+  <join name="bundling" to="copy_and_zip"/>
 
   <action name="copy_and_zip">
     <java>

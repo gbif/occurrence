@@ -29,10 +29,10 @@ import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -78,61 +78,78 @@ class HiveQueryVisitor {
   private static final String ALL_QUERY = "true";
 
 
-  private static final List<FieldName> NUB_KEY_COLUMNS = ImmutableList.of(
-    FieldName.I_TAXON_KEY,
-    FieldName.I_KINGDOM_KEY,
-    FieldName.I_PHYLUM_KEY,
-    FieldName.I_CLASS_KEY,
-    FieldName.I_ORDER_KEY,
-    FieldName.I_FAMILY_KEY,
-    FieldName.I_GENUS_KEY,
-    FieldName.I_SPECIES_KEY);
+  private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(
+    GbifTerm.taxonKey,
+    GbifTerm.kingdomKey,
+    GbifTerm.phylumKey,
+    GbifTerm.classKey,
+    GbifTerm.orderKey,
+    GbifTerm.familyKey,
+    GbifTerm.genusKey,
+    GbifTerm.subgenusKey,
+    GbifTerm.speciesKey);
 
   // parameter that map directly to Hive, boundingBox, coordinate and taxonKey are treated special !
-  private static final Map<OccurrenceSearchParameter, FieldName> PARAM_TO_FIELD = ImmutableMap
-    .<OccurrenceSearchParameter, FieldName>builder()
-    .put(OccurrenceSearchParameter.DATASET_KEY, FieldName.DATASET_KEY)
-    .put(OccurrenceSearchParameter.YEAR, FieldName.I_YEAR)
-    .put(OccurrenceSearchParameter.MONTH, FieldName.I_MONTH)
-    .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, FieldName.I_DECIMAL_LATITUDE)
-    .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, FieldName.I_DECIMAL_LONGITUDE)
-    .put(OccurrenceSearchParameter.ELEVATION, FieldName.I_ELEVATION)
-    .put(OccurrenceSearchParameter.DEPTH, FieldName.I_DEPTH)
-    .put(OccurrenceSearchParameter.INSTITUTION_CODE, FieldName.INSTITUTION_CODE)
-    .put(OccurrenceSearchParameter.COLLECTION_CODE, FieldName.COLLECTION_CODE)
-    .put(OccurrenceSearchParameter.CATALOG_NUMBER, FieldName.CATALOG_NUMBER)
-    .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, FieldName.I_SCIENTIFIC_NAME)
+  private static final Map<OccurrenceSearchParameter, ? extends Term> PARAM_TO_TERM = ImmutableMap
+    .<OccurrenceSearchParameter, Term>builder()
+    .put(OccurrenceSearchParameter.DATASET_KEY, GbifTerm.datasetKey)
+    .put(OccurrenceSearchParameter.YEAR, DwcTerm.year)
+    .put(OccurrenceSearchParameter.MONTH, DwcTerm.month)
+    .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, DwcTerm.decimalLatitude)
+    .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, DwcTerm.decimalLongitude)
+    .put(OccurrenceSearchParameter.ELEVATION, GbifTerm.elevation)
+    .put(OccurrenceSearchParameter.DEPTH, GbifTerm.depth)
+    .put(OccurrenceSearchParameter.INSTITUTION_CODE, DwcTerm.institutionCode)
+    .put(OccurrenceSearchParameter.COLLECTION_CODE, DwcTerm.collectionCode)
+    .put(OccurrenceSearchParameter.CATALOG_NUMBER, DwcTerm.catalogNumber)
+    .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, DwcTerm.scientificName)
     // the following need some value transformation
-    .put(OccurrenceSearchParameter.EVENT_DATE, FieldName.I_EVENT_DATE)
-    .put(OccurrenceSearchParameter.LAST_INTERPRETED, FieldName.LAST_INTERPRETED)
-    .put(OccurrenceSearchParameter.BASIS_OF_RECORD, FieldName.I_BASIS_OF_RECORD)
-    .put(OccurrenceSearchParameter.COUNTRY, FieldName.I_COUNTRY)
-    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, FieldName.PUB_COUNTRY_CODE)
-    // .put(OccurrenceSearchParameter.SPATIAL_ISSUES, FieldName.I_GEOSPATIAL_ISSUE)
+    .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
+    .put(OccurrenceSearchParameter.LAST_INTERPRETED, GbifTerm.lastInterpreted)
+    .put(OccurrenceSearchParameter.BASIS_OF_RECORD, DwcTerm.basisOfRecord)
+    .put(OccurrenceSearchParameter.COUNTRY, DwcTerm.countryCode)
+    .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, GbifTerm.publishingCountry)
     .build();
 
-  // IS_GEOREFERENCED_CHECK, IS_NOT_GEOREFERENCED_CHECK, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
+  // HAS_COORDINATE_HQL, HAS_NO_COORDINATE_HQL, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
   // precalculated since they are the same for all the queries.
-  private static final String IS_GEOREFERENCED_CHECK = toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
-    + IS_NOT_NULL_OPERATOR + CONJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
-    + IS_NOT_NULL_OPERATOR;
+  private static final String HAS_COORDINATE_HQL = toHiveField(DwcTerm.decimalLatitude) + IS_NOT_NULL_OPERATOR
+    + CONJUNCTION_OPERATOR + toHiveField(DwcTerm.decimalLongitude) + IS_NOT_NULL_OPERATOR;
 
-  private static final String IS_NOT_GEOREFERENCED_CHECK = '('
-    + toHiveField(OccurrenceSearchParameter.DECIMAL_LATITUDE)
-    + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.DECIMAL_LONGITUDE)
-    + IS_NULL_OPERATOR + ')';
+  private static final String HAS_NO_COORDINATE_HQL = '('
+    + toHiveField(DwcTerm.decimalLatitude) + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR
+    + toHiveField(DwcTerm.decimalLongitude) + IS_NULL_OPERATOR + ')';
 
-// private static final String SPATIAL_ISSUES_CHECK = toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-// + GREATER_THAN_OPERATOR + '0';
-// private static final String NO_SPATIAL_ISSUES_CHECK = '(' + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES)
-// + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR + toHiveField(OccurrenceSearchParameter.SPATIAL_ISSUES) + EQUALS_OPERATOR
-// + "0)";
+  private static final String HAS_SPATIAL_ISSUE_HQL;
+  static {
+    StringBuilder sb = new StringBuilder();
+    sb.append("(");
+    boolean first = true;
+    for (OccurrenceIssue si : OccurrenceIssue.GEOSPATIAL_RULES) {
+      if (!first) {
+        sb.append(DISJUNCTION_OPERATOR);
+      }
+      sb.append(issueContains(si));
+      first = false;
+    }
+    sb.append(")");
+    HAS_SPATIAL_ISSUE_HQL = sb.toString();
+  }
+
+
+  private static String issueContains(OccurrenceIssue issue) {
+    return "array_contains(" + toHiveField(GbifTerm.issue) + "," + issue.name() + ")";
+  }
 
   private StringBuilder builder;
 
+  private static String toHiveField(Term term) {
+    return term.simpleName();
+  }
+
   private static String toHiveField(OccurrenceSearchParameter param) {
-    if (PARAM_TO_FIELD.containsKey(param)) {
-      return HiveFieldUtil.getHiveField(PARAM_TO_FIELD.get(param));
+    if (PARAM_TO_TERM.containsKey(param)) {
+      return toHiveField(PARAM_TO_TERM.get(param));
     }
     // QueryBuildingException requires an underlying exception
     throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive");
@@ -141,7 +158,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   * 
+   *
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -168,7 +185,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   * 
+   *
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -228,16 +245,16 @@ class HiveQueryVisitor {
     builder.append("contains(\"");
     builder.append(within.getGeometry());
     builder.append("\", ");
-    builder.append(HiveFieldUtil.getHiveField(FieldName.I_DECIMAL_LATITUDE));
+    builder.append(toHiveField(DwcTerm.decimalLatitude));
     builder.append(", ");
-    builder.append(HiveFieldUtil.getHiveField(FieldName.I_DECIMAL_LONGITUDE));
+    builder.append(toHiveField(DwcTerm.decimalLongitude));
     builder.append(')');
   }
 
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   * 
+   *
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -262,7 +279,7 @@ class HiveQueryVisitor {
     if (predicate.getKey() == OccurrenceSearchParameter.SPATIAL_ISSUES) {
       appendSpatialIssuePredicate(predicate.getValue());
     } else if (predicate.getKey() == OccurrenceSearchParameter.HAS_COORDINATE) {
-      appendGeoreferencedPredicate(predicate.getValue());
+      appendHasCoordinatePredicate(predicate.getValue());
     } else {
       builder.append(toHiveField(predicate.getKey()));
       builder.append(op);
@@ -271,16 +288,16 @@ class HiveQueryVisitor {
   }
 
   /**
-   * OccurrenceSearchParameter.GEOREFERENCED is managed specially.
+   * OccurrenceSearchParameter.HAS_COORDINATE is managed specially.
    * The search parameter is a boolean value but in hive must be converted into NULL comparison of the latitude and
    * longitude columns.
    * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
    */
-  private void appendGeoreferencedPredicate(String value) {
+  private void appendHasCoordinatePredicate(String value) {
     if (Boolean.parseBoolean(value)) {
-      builder.append(IS_GEOREFERENCED_CHECK);
+      builder.append(HAS_COORDINATE_HQL);
     } else {
-      builder.append(IS_NOT_GEOREFERENCED_CHECK);
+      builder.append(HAS_NO_COORDINATE_HQL);
     }
   }
 
@@ -290,26 +307,29 @@ class HiveQueryVisitor {
    * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
    */
   private void appendSpatialIssuePredicate(String value) {
-// if (Boolean.parseBoolean(value)) {
-// builder.append(SPATIAL_ISSUES_CHECK);
-// } else {
-// builder.append(NO_SPATIAL_ISSUES_CHECK);
-// }
+    if (Boolean.parseBoolean(value)) {
+      builder.append(HAS_SPATIAL_ISSUE_HQL);
+    } else {
+      builder.append(NOT_OPERATOR);
+      builder.append("(");
+      builder.append(HAS_SPATIAL_ISSUE_HQL);
+      builder.append(")");
+    }
   }
 
   /**
    * Searches any of the nub keys in hbase of any rank.
-   * 
+   *
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
     builder.append('(');
     boolean first = true;
-    for (FieldName col : NUB_KEY_COLUMNS) {
+    for (Term term : NUB_KEYS) {
       if (!first) {
         builder.append(DISJUNCTION_OPERATOR);
       }
-      builder.append(HiveFieldUtil.getHiveField(col));
+      builder.append(toHiveField(term));
       builder.append(EQUALS_OPERATOR);
       builder.append(taxonKey);
       first = false;
@@ -320,16 +340,13 @@ class HiveQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   * 
+   *
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase
    */
   private String toHiveValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
-    if (param == OccurrenceSearchParameter.BASIS_OF_RECORD) {
-      BasisOfRecord bor = (BasisOfRecord) VocabularyUtils.lookupEnum(value, BasisOfRecord.class);
-      return bor == null ? "" : bor.name();
-    } else if (param == OccurrenceSearchParameter.COUNTRY) {
+    if (param == OccurrenceSearchParameter.COUNTRY) {
       // upper case 2 letter iso code
       return '\'' + value.toUpperCase() + '\'';
     }
@@ -354,11 +371,8 @@ class HiveQueryVisitor {
     try {
       method = getClass().getMethod("visit", new Class[] {object.getClass()});
     } catch (NoSuchMethodException e) {
-      LOG
-        .warn(
-          "Visit method could not be found. That means a Predicate has been passed in that is unknown to this "
-            + "class",
-          e);
+      LOG.warn(
+         "Visit method could not be found. That means a Predicate has been passed in that is unknown to this class", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
