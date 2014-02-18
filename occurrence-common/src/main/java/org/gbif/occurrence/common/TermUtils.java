@@ -52,7 +52,6 @@ public class TermUtils {
   );
 
   private static final Set<? extends Term> INTERPRETED_NON_GBIF_TERMS = ImmutableSet.of(
-    DwcTerm.occurrenceID,
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
     DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
     DwcTerm.scientificName, DwcTerm.taxonRank,
