@@ -17,12 +17,10 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,23 +28,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import javax.annotation.Nullable;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -103,59 +97,27 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private static final String HIVE_SELECT_VERBATIM;
 
   static {
-    StringBuilder iSB = new StringBuilder();
-    StringBuilder vSB = new StringBuilder();
-
-    HashSet<? extends Term> dates = Sets.newHashSet(DwcTerm.eventDate, DwcTerm.dateIdentified);
-    HashSet<? extends Term> ints = Sets.newHashSet(DwcTerm.year, DwcTerm.month, DwcTerm.day);
-
-    for (Term term : propertyTerms()) {
-      boolean onlyVerbatim = OccurrenceBuilder.INTERPRETED_TERMS.contains(term);
-
-      // escape tabs, new lines and line breaks
-      String vCol = "v_" + term.simpleName();
-      vSB.append("cleanDelimiters(" + vCol + ") AS " + vCol);
-
-      if (!onlyVerbatim) {
-        String iCol = term.simpleName();
-        if (dates.contains(term)) {
-          iSB.append("toISO8601(" + iCol + ")");
-        } else if (ints.contains(term)) {
-          iSB.append("cleanNull(" + iCol + ")");
-        } else {
-          iSB.append("cleanDelimiters(" + iCol + ")");
-        }
-        iSB.append(" AS " + iCol);
+    List<String> columns = Lists.newArrayList();
+    for (Term term : TermUtils.interpretedTerms()) {
+      final String iCol = term.simpleName();
+      if (TermUtils.isInterpretedDate(term)) {
+        columns.add("toISO8601(" + iCol + ") AS " + iCol);
+      } else if (TermUtils.isInterpretedNumerical(term)) {
+        columns.add("cleanNull(" + iCol + ") AS " + iCol);
+      } else {
+        columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
     }
+    HIVE_SELECT_INTERPRETED = Joiner.on(",").join(columns);
 
-    HIVE_SELECT_INTERPRETED = iSB.toString();
-    HIVE_SELECT_VERBATIM = vSB.toString();
-  }
 
-  private static Iterable<? extends Term> propertyTerms(){
-    return Iterables.concat(
-      Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
-        @Override
-        public boolean apply(@Nullable DwcTerm input) {
-          //TODO: filter out pure checklist terms???
-          return !input.isClass();
-        }
-      }),
-      Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
-        @Override
-        public boolean apply(@Nullable DcTerm input) {
-          return !input.isClass();
-        }
-      }),
-      Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
-        @Override
-        public boolean apply(@Nullable GbifTerm input) {
-          //TODO: filter out pure checklist terms???
-          return !input.isClass();
-        }
-      })
-    );
+    columns = Lists.newArrayList();
+    // manually add the GBIF occ key as first column
+    columns.add(DwcTerm.occurrenceID.simpleName());
+    for (Term term : TermUtils.verbatimTerms()) {
+      columns.add("cleanDelimiters(v_" + term.simpleName() + ") AS " + term.simpleName());
+    }
+    HIVE_SELECT_VERBATIM = Joiner.on(",").join(columns);
   }
 
   private static final EnumSet<Status> FAILURE_STATES = EnumSet.of(Status.FAILED, Status.KILLED);

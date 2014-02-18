@@ -17,10 +17,9 @@ import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
 import org.gbif.dwc.text.ArchiveFile;
 import org.gbif.dwc.text.MetaDescriptorWriter;
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.common.download.HiveFieldUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
@@ -92,7 +91,8 @@ public class ArchiveBuilder {
   // file using the copyMerge function
   private static final String HEADERS_FILENAME = "0";
   private static final String METADATA_FILENAME = "metadata.xml";
-  private static final String DATA_FILENAME = "occurrence.txt";
+  private static final String INTERPRETED_FILENAME = "occurrence.txt";
+  private static final String VERBATIM_FILENAME = "verbatim.txt";
   // The CRC is created by the function FileSyste.copyMerge function
   private static final String DATA_CRC_FILENAME = ".occurrence.txt.crc";
   private static final String CITATIONS_FILENAME = "citations.txt";
@@ -307,10 +307,12 @@ public class ArchiveBuilder {
   protected void addArchiveDescriptor() {
     log("Add archive meta.xml descriptor");
     ArchiveFile occ = createCoreFile();
+    ArchiveFile verb = createVerbatimFile();
 
     Archive arch = new Archive();
     arch.setCore(occ);
     arch.setMetadataLocation(METADATA_FILENAME);
+    arch.addExtension(verb);
 
     try {
       File metaFile = new File(archiveDir, "meta.xml");
@@ -400,7 +402,7 @@ public class ArchiveBuilder {
     if (!isSmallDownload) { // small downloads already include the headers
       FileUtil.copy(new File(HEADERS_FILENAME), hdfs, dataSrc, false, conf);
     }
-    File rawDataResult = new File(archiveDir, DATA_FILENAME);
+    File rawDataResult = new File(archiveDir, INTERPRETED_FILENAME);
     Path dataDest = new Path(rawDataResult.toURI());
     FileUtil.copyMerge(hdfs, dataSrc, localfs, dataDest, false, conf, null);
     // remove the CRC file created by copyMerge method
@@ -473,29 +475,46 @@ public class ArchiveBuilder {
    * Create the date file, core of the DwC-A.
    */
   private ArchiveFile createCoreFile() {
-    ArchiveFile occ = new ArchiveFile();
-    occ.addLocation(DATA_FILENAME);
-    occ.setRowType(DwcTerm.Occurrence.qualifiedName());
-    occ.setEncoding(Charsets.UTF_8.displayName());
-    occ.setIgnoreHeaderLines(1);
-    occ.setFieldsEnclosedBy(null);
-    occ.setFieldsTerminatedBy("\t");
-    occ.setLinesTerminatedBy("\n");
+    ArchiveFile af = createArchiveFile(INTERPRETED_FILENAME, TermUtils.interpretedTerms(), 0);
+    af.setId(af.getField(DwcTerm.occurrenceID));
+    return af;
+  }
 
-    int index = 0;
-    for (FieldName fn : HiveFieldUtil.DOWNLOAD_COLUMNS) {
-      Term term = HiveFieldUtil.getTerm(fn);
+  /**
+   * Create the verbatim extension date file definition.
+   */
+  private ArchiveFile createVerbatimFile() {
+    ArchiveFile af = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms(), 1);
+    ArchiveField id = new ArchiveField();
+    id.setIndex(0);
+    af.setId(id);
+    return af;
+  }
+
+  /**
+   * Creates a new archive file description for a dwc archive, but does not set any id field yet.
+   * Used to generate the meta.xml with the help of the dwca-writer
+   * @param index column index to start with
+   */
+  private ArchiveFile createArchiveFile(String filename, Iterable<? extends Term> columns, int index) {
+    ArchiveFile af = new ArchiveFile();
+    af.addLocation(filename);
+    af.setRowType(DwcTerm.Occurrence.qualifiedName());
+    af.setEncoding(Charsets.UTF_8.displayName());
+    //TODO: set to 1 once headers are included
+    af.setIgnoreHeaderLines(0);
+    af.setFieldsEnclosedBy(null);
+    af.setFieldsTerminatedBy("\t");
+    af.setLinesTerminatedBy("\n");
+
+    for (Term term : columns) {
       ArchiveField field = new ArchiveField();
       field.setIndex(index);
       field.setTerm(term);
-
-      occ.addField(field);
-      if (index == 0) {
-        occ.setId(field);
-      }
+      af.addField(field);
       index++;
     }
-    return occ;
+    return af;
   }
 
   private DataDescription createDataDescription() {

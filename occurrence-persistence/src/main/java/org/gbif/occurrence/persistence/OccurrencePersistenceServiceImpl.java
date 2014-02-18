@@ -7,6 +7,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
@@ -258,7 +259,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         Term term = TERM_FACTORY.findTerm(colName.substring(HBaseTableConstants.KNOWN_TERM_PREFIX.length()));
         if (occ.getVerbatimField(term) == null &&
             // only remove the interpreted verbatim terms if explicitly requested
-            (!keepInterpretedVerbatimColumns || !OccurrenceBuilder.INTERPRETED_TERMS.contains(term)) ) {
+            (!keepInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term)) ) {
           del.deleteColumns(cf, kv.getQualifier());
         }
       }
