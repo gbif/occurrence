@@ -1,1 +1,0 @@
-hadoop jar target/occurrence-index-builder-0.1-SNAPSHOT-job.jar org.gbif.occurrence.index.hbase.HbaseToSolrOccIndexer /user/fede/occurrence-index/solr-index/ -solr target/conf/solr/ -htable mini_occurrence -shards 1 -compress_output
