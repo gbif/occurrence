@@ -20,6 +20,9 @@ import com.google.common.collect.Sets;
  */
 public class TermUtils {
 
+  private static final ImmutableSet<String> HIVE_RESERVED_WORDS = new ImmutableSet.Builder<String>().add("date",
+    "order", "format", "group").build();
+
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
     DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
     DcTerm.modified);
@@ -91,6 +94,32 @@ public class TermUtils {
     );
 
   private TermUtils() {
+  }
+
+  /**
+   * Gets the Hive column name of the term parameter.
+   */
+  public static String getHiveColumn(Term term) {
+    final String columnName = term.simpleName().toLowerCase();
+    if (HIVE_RESERVED_WORDS.contains(columnName)) {
+      return columnName + '_';
+    }
+    return columnName;
+  }
+
+  /**
+   * Returns the Hive data type of term parameter.
+   */
+  public static String getHiveType(Term term) {
+    if (TermUtils.isInterpretedNumerical(term)) {
+      return "INT";
+    } else if (TermUtils.isInterpretedDate(term)) {
+      return "BIGINT";
+    } else if (TermUtils.isInterpretedDouble(term)) {
+      return "DOUBLE";
+    } else {
+      return "STRING";
+    }
   }
 
   /**

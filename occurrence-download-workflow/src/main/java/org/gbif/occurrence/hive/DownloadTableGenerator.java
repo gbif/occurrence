@@ -14,7 +14,6 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
@@ -39,8 +38,6 @@ public class DownloadTableGenerator {
   private static final String OCC_ID_COL_DEF = DwcTerm.occurrenceID.simpleName().toLowerCase() + " INT";
 
   private static final String INSERT_INFO_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
-  private ImmutableSet<String> HIVE_RESERVED_WORDS = new ImmutableSet.Builder<String>().add("date", "order", "format",
-    "group").build();
 
   /**
    * Generates the COLUMN DATATYPE declaration.
@@ -48,7 +45,7 @@ public class DownloadTableGenerator {
   private Function<Term, String> termColumnDecl = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return getColumnName(term) + " " + getHiveDataType(term);
+      return TermUtils.getHiveColumn(term) + " " + TermUtils.getHiveType(term);
     }
   };
 
@@ -58,7 +55,7 @@ public class DownloadTableGenerator {
   private Function<Term, String> termColumnDef = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return getColumnName(term);
+      return TermUtils.getHiveColumn(term);
     }
   };
 
@@ -71,18 +68,6 @@ public class DownloadTableGenerator {
       return String.format(HBASE_MAP_FMT, HBaseFieldUtil.getHBaseColumn(term).getColumnName());
     }
   };
-
-
-  /**
-   * Gets the Hive column name of the term parameter.
-   */
-  private String getColumnName(Term term) {
-    final String columnName = term.simpleName().toLowerCase();
-    if (HIVE_RESERVED_WORDS.contains(columnName)) {
-      return columnName + '_';
-    }
-    return columnName;
-  }
 
   /**
    * Applies the transformer to the list of interpreted terms (excluding DwcTerm.occurrenceID).
@@ -105,7 +90,7 @@ public class DownloadTableGenerator {
   private <T extends Term> List<String> listVerbatimColumns(Class<? extends T> termClass) {
     List<String> columns = Lists.newArrayList();
     for (T term : Iterables.filter(TermUtils.verbatimTerms(), termClass)) {
-      columns.add(String.format(VERBATIM_COL_DEF_FMT, getColumnName(term)));
+      columns.add(String.format(VERBATIM_COL_DEF_FMT, TermUtils.getHiveColumn(term)));
     }
     return columns;
   }
@@ -116,7 +101,7 @@ public class DownloadTableGenerator {
   private List<String> listVerbatimColumns() {
     List<String> columns = Lists.newArrayList();
     for (Term term : TermUtils.verbatimTerms()) {
-      columns.add(String.format(VERBATIM_COL_DEF_FMT, getColumnName(term)));
+      columns.add(String.format(VERBATIM_COL_DEF_FMT, TermUtils.getHiveColumn(term)));
     }
     return columns;
   }
@@ -130,21 +115,6 @@ public class DownloadTableGenerator {
       columnsMappings.add(String.format(HBASE_MAP_FMT, HBaseFieldUtil.getHBaseColumn(term).getColumnName()));
     }
     return columnsMappings;
-  }
-
-  /**
-   * Returns the Hive data type of term parameter.
-   */
-  private String getHiveDataType(Term term) {
-    if (TermUtils.isInterpretedNumerical(term)) {
-      return "INT";
-    } else if (TermUtils.isInterpretedDate(term)) {
-      return "BIGINT";
-    } else if (TermUtils.isInterpretedDouble(term)) {
-      return "DOUBLE";
-    } else {
-      return "STRING";
-    }
   }
 
   /**
@@ -226,7 +196,7 @@ public class DownloadTableGenerator {
     List<String> columns = Lists.newArrayList();
     columns.add(String.format("interpreted1_%s." + DwcTerm.occurrenceID.simpleName().toLowerCase(), hiveTableName));
     for (Term term : TermUtils.verbatimTerms()) {
-      columns.add(String.format(VERBATIM_COL_FMT, getColumnName(term)));
+      columns.add(String.format(VERBATIM_COL_FMT, TermUtils.getHiveColumn(term)));
     }
 
     columns.addAll(processInterpretedTerms(termColumnDef));

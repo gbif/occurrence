@@ -1,35 +1,29 @@
 package org.gbif.occurrence.download.util;
 
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
-
-import static org.gbif.occurrence.common.download.HiveFieldUtil.DOWNLOAD_COLUMNS;
-import static org.gbif.occurrence.common.download.HiveFieldUtil.getHiveField;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
  */
 public class HeadersFileUtil {
 
-  public static final String DEFAULT_FILE_NAME = "headers.txt";
+  public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatium_headers.txt";
+  public static final String DEFAULT_INTERPRETED_FILE_NAME = "interpreted_headers.txt";
 
-  public static final String HEADERS_FILE_PATH = "inc/" + DEFAULT_FILE_NAME;
+  public static final String HEADERS_FILE_PATH = "inc/";
 
-  public static final String OCCURRENCE_HEADER = Joiner.on('\t').join(getDownloadHeaders()) + '\n';
+  private static final Joiner TAB_JOINER = Joiner.on('\t').skipNulls();
 
   /**
    * Empty private constructor.
@@ -39,59 +33,62 @@ public class HeadersFileUtil {
   }
 
   /**
-   * Appends the occurrence headers line to the output file.
+   * Creates the headers file.
+   * The output file name can be specified as argument.
+   * If the file names are not specified the files are generated in
+   * the current directory with the name "verbatium_headers.txt" and "verbatium_headers.txt".
    */
-  public static void appendHeaders(OutputStream fileWriter) throws IOException {
-    Closer resultCloser = Closer.create();
-    try {
-      InputStream headerInputStream =
-        resultCloser.register(new ByteArrayInputStream(OCCURRENCE_HEADER.getBytes(Charsets.UTF_8)));
-      ByteStreams.copy(headerInputStream, fileWriter);
-    } finally {
-      resultCloser.close();
-    }
+  public static void generateHeadersFiles(String verbatimFileName, String interpretedFileName) throws IOException {
+    generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
+    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getIntepretedTableHeader());
   }
 
   /**
-   * Creates the headers file.
-   * The output file name can be specified as argument. If the file name is not specified the file is generated in the
-   * current directory with the name "headers.txt".
+   * Utility method that generates a file that contains the header string.
    */
-  public static void generateHeadersFile(String outFileName) throws IOException {
+  private static void generateFileHeader(String fileName, String defaultName, String header) throws IOException {
     Closer closer = Closer.create();
-    String fileName = Strings.isNullOrEmpty(outFileName) ? DEFAULT_FILE_NAME : outFileName;
+    final String outFileName =
+      Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
     try {
-      FileWriter fileWriter = closer.register(new FileWriter(new File(fileName)));
-      fileWriter.write(OCCURRENCE_HEADER);
+      FileWriter fileWriter = closer.register(new FileWriter(new File(outFileName)));
+      fileWriter.write(header);
     } finally {
       closer.close();
     }
   }
 
   /**
-   * Returns the headers names of download columns.
+   * Utility method that generates a String that contains the column names of terms.
    */
-  public static String[] getColumnHeaders() {
+  private static String getTableHeader(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
-    for (FieldName field : DOWNLOAD_COLUMNS) {
-      headers.add(getHiveField(field));
+    for (Term term : terms) {
+      headers.add(TermUtils.getHiveColumn(term));
     }
-    return headers.toArray(new String[headers.size()]);
+    return TAB_JOINER.join(headers);
   }
 
   /**
    * Returns the headers names of download columns.
    */
-  public static String[] getDownloadHeaders() {
-    List<String> headers = Lists.newArrayList();
-    for (FieldName field : DOWNLOAD_COLUMNS) {
-      String col = getHiveField(field);
-      if (col.endsWith("_")) {
-        col = col.substring(0, col.length() - 1);
-      }
-      headers.add(col);
+  public static String getVerbatimTableHeader() {
+    return getTableHeader(TermUtils.verbatimTerms());
+  }
+
+  /**
+   * Returns the headers names of download columns.
+   */
+  public static String getIntepretedTableHeader() {
+    return getTableHeader(TermUtils.interpretedTerms());
+  }
+
+
+  public static void main(String[] args) throws IOException {
+    if (args.length < 2) {
+      System.err.println("2 Parameters are required: verbatim and interpreted header file names");
     }
-    return headers.toArray(new String[headers.size()]);
+    generateHeadersFiles(args[0], args[1]);
   }
 
 }
