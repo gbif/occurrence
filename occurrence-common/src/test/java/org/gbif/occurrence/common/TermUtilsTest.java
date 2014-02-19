@@ -18,8 +18,10 @@ public class TermUtilsTest {
 
   @Test
   public void testIsInterpretedSourceTerm() throws Exception {
+    assertTrue(TermUtils.isInterpretedSourceTerm(DwcTerm.country));
+    assertTrue(TermUtils.isInterpretedSourceTerm(DwcTerm.countryCode));
     assertTrue(TermUtils.isInterpretedSourceTerm(DwcTerm.eventDate));
-    assertTrue(TermUtils.isInterpretedSourceTerm(DwcTerm.occurrenceID));
+    assertFalse(TermUtils.isInterpretedSourceTerm(DwcTerm.occurrenceID));
     assertFalse(TermUtils.isInterpretedSourceTerm(DwcTerm.catalogNumber));
   }
 

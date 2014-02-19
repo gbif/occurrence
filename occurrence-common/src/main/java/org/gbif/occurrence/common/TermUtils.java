@@ -51,7 +51,18 @@ public class TermUtils {
       )
     );
 
-  private static final Set<? extends Term> INTERPRETED_GBIF_TERMS = ImmutableSet.of(
+  /**
+   * Interpreted terms that exist as java properties on Occurrence.
+   */
+  private static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet.of(
+    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
+    DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.countryCode,
+    DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
+    DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
+    GbifTerm.species, DwcTerm.scientificName, DwcTerm.taxonRank,
+    DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
+
+    GbifTerm.taxonKey,
     GbifTerm.kingdomKey, GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
     GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
     GbifTerm.datasetKey, GbifTerm.publishingCountry,
@@ -62,21 +73,11 @@ public class TermUtils {
     GbifTerm.distanceAboveSurface, GbifTerm.distanceAboveSurfaceAccuracy,
     GbifTerm.unitQualifier,
     GbifTerm.issue
-    );
-
-  private static final Set<? extends Term> INTERPRETED_NON_GBIF_TERMS = ImmutableSet.of(
-    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
-    DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
-    DwcTerm.scientificName, DwcTerm.taxonRank,
-    DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
-    DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-    DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day
-    );
+  );
 
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
-    Iterables.concat(INTERPRETED_NON_GBIF_TERMS,
+    Iterables.concat(JAVA_PROPERTY_TERMS,
       Lists.newArrayList(
-        DwcTerm.occurrenceID,
         DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
         DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
         DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
@@ -125,7 +126,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   * 
+   *
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
@@ -140,6 +141,13 @@ public class TermUtils {
   }
 
   /**
+   * @return true if the term is an interpreted value stored as a java property on Occurrence.
+   */
+  public static boolean isOccurrenceJavaProperty(Term term) {
+    return JAVA_PROPERTY_TERMS.contains(term);
+  }
+
+  /**
    * Lists all terms relevant for an interpreted occurrence record, starting with occurrenceID as the key.
    * UnknownTerms are not included as they are open ended.
    */
@@ -151,14 +159,14 @@ public class TermUtils {
         @Override
         public boolean apply(@Nullable DcTerm t) {
           return !t.isClass()
-            && (!INTERPRETED_SOURCE_TERMS.contains(t) || INTERPRETED_NON_GBIF_TERMS.contains(t));
+            && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
         }
       }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
 
         @Override
         public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)
-            && (!INTERPRETED_SOURCE_TERMS.contains(t) || INTERPRETED_NON_GBIF_TERMS.contains(t));
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && t != DwcTerm.occurrenceID
+            && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
         }
       }), Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
 

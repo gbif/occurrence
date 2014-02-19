@@ -1,15 +1,16 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
-import org.gbif.occurrence.common.constants.FieldName;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.persistence.hbase.ColumnUtil;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 
@@ -137,7 +138,7 @@ public class DatasetDeletionServiceImplTest {
   @Test
   public void testDatasetKeyExists() {
     Iterator<Integer> iterator =
-      occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATASET_KEY.toString()), FieldName.DATASET_KEY);
+      occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATASET_KEY.toString()), ColumnUtil.getColumn(GbifTerm.datasetKey));
     int count = 0;
     while (iterator.hasNext()) {
       iterator.next();
@@ -151,7 +152,7 @@ public class DatasetDeletionServiceImplTest {
     assertEquals(3, result.getKey());
     deletionService.deleteDataset(GOOD_DATASET_KEY);
 
-    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATASET_KEY.toString()), FieldName.DATASET_KEY);
+    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATASET_KEY.toString()), ColumnUtil.getColumn(GbifTerm.datasetKey));
     assertFalse(iterator.hasNext());
 
     result = occurrenceKeyService.findKey(uniqueIdentifiers);
@@ -162,11 +163,11 @@ public class DatasetDeletionServiceImplTest {
   public void testDatasetKeyDoesntExist() {
     UUID datasetKey = UUID.randomUUID();
     Iterator<Integer> iterator =
-      occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), FieldName.DATASET_KEY);
+      occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), ColumnUtil.getColumn(GbifTerm.datasetKey));
     assertFalse(iterator.hasNext());
     deletionService.deleteDataset(datasetKey);
 
-    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), FieldName.DATASET_KEY);
+    iterator = occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), ColumnUtil.getColumn(GbifTerm.datasetKey));
     assertFalse(iterator.hasNext());
   }
 }

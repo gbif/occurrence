@@ -4,7 +4,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.persistence.hbase.ColumnUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class DownloadTableGenerator {
   private Function<Term, String> termHBaseMappingDef = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return String.format(HBASE_MAP_FMT, HBaseFieldUtil.getHBaseColumn(term).getColumnName());
+      return String.format(HBASE_MAP_FMT, ColumnUtil.getColumn(term));
     }
   };
 
@@ -112,7 +112,7 @@ public class DownloadTableGenerator {
   private <T extends Term> List<String> listVerbatimColumnsMappings(Class<? extends T> termClass) {
     List<String> columnsMappings = Lists.newArrayList();
     for (T term : Iterables.filter(TermUtils.verbatimTerms(), termClass)) {
-      columnsMappings.add(String.format(HBASE_MAP_FMT, HBaseFieldUtil.getHBaseColumn(term).getColumnName()));
+      columnsMappings.add(String.format(HBASE_MAP_FMT, ColumnUtil.getVerbatimColumn(term)));
     }
     return columnsMappings;
   }

@@ -1,7 +1,7 @@
 package org.gbif.occurrence.persistence;
 
-import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.persistence.hbase.ColumnUtil;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -75,7 +75,7 @@ public class OccurrenceKeyIteratorTest {
 
   private void addId(int key, String value, HTableInterface table) throws IOException {
     Put put = new Put(Bytes.toBytes(key));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.datasetKey)),
       Bytes.toBytes(value));
     table.put(put);
   }
@@ -88,7 +88,7 @@ public class OccurrenceKeyIteratorTest {
     table.flushCommits();
     table.close();
 
-    byte[] col = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName());
+    byte[] col = Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
     scan.setBatch(500);
@@ -109,7 +109,7 @@ public class OccurrenceKeyIteratorTest {
 
   @Test
   public void testOnePage() {
-    byte[] col = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName());
+    byte[] col = Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
     scan.setBatch(500);
@@ -129,7 +129,7 @@ public class OccurrenceKeyIteratorTest {
 
   @Test
   public void testMultiPage() {
-    byte[] col = Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName());
+    byte[] col = Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
     scan.setBatch(500);

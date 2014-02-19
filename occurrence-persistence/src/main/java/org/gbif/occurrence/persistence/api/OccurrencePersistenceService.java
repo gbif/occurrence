@@ -1,7 +1,6 @@
 package org.gbif.occurrence.persistence.api;
 
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.common.constants.FieldName;
 
 import java.util.Iterator;
 
@@ -24,5 +23,5 @@ public interface OccurrencePersistenceService extends OccurrenceService, Occurre
    *
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
-  Iterator<Integer> getKeysByColumn(byte[] columnValue, FieldName columnName);
+  Iterator<Integer> getKeysByColumn(byte[] columnValue, String columnName);
 }

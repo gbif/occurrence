@@ -1,7 +1,7 @@
 package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
-import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
+import org.gbif.occurrence.persistence.hbase.TableConstants;
 
 import java.io.IOException;
 import java.util.List;
@@ -130,19 +130,15 @@ public class HBaseLockingKeyServiceTest {
     byte[] lock1 = Bytes.toBytes(UUID.randomUUID().toString());
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_LOCK_COLUMN), 0, lock1);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_LOCK_COLUMN), 0, lock1);
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
     lookupTable.put(put);
 
     byte[] lock2 = Bytes.toBytes(UUID.randomUUID().toString());
     byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
     put = new Put(lookupKey2);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_LOCK_COLUMN), 0, lock2);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(3));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_LOCK_COLUMN), 0, lock2);
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(3));
     lookupTable.put(put);
     lookupTable.flushCommits();
     lookupTable.close();
@@ -160,18 +156,14 @@ public class HBaseLockingKeyServiceTest {
 
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
 
     byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
     put = new Put(lookupKey2);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
     lookupTable.put(put);
     lookupTable.flushCommits();
     lookupTable.close();
@@ -192,8 +184,7 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey = Bytes.toBytes(datasetKey + "|ABCD");
     byte[] lock = Bytes.toBytes(UUID.randomUUID().toString());
     Put put = new Put(lookupKey);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_LOCK_COLUMN), 0, lock);
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_LOCK_COLUMN), 0, lock);
     HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
     lookupTable.put(put);
     lookupTable.flushCommits();
@@ -213,8 +204,7 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey = Bytes.toBytes(datasetKey + "|ABCD");
     byte[] lock = Bytes.toBytes(UUID.randomUUID().toString());
     Put put = new Put(lookupKey);
-    put.add(Bytes.toBytes(HBaseTableConstants.LOOKUP_COLUMN_FAMILY),
-      Bytes.toBytes(HBaseTableConstants.LOOKUP_LOCK_COLUMN), ts, lock);
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_LOCK_COLUMN), ts, lock);
     HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
     lookupTable.put(put);
     lookupTable.flushCommits();

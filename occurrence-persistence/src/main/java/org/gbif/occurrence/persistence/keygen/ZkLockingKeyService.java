@@ -1,7 +1,7 @@
 package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
-import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
+import org.gbif.occurrence.persistence.hbase.TableConstants;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 
 import java.util.Set;
@@ -72,7 +72,7 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
 
       // generate new key from counter table
       Long longKey =
-        counterTableStore.incrementColumnValue(HBaseTableConstants.COUNTER_ROW, HBaseTableConstants.COUNTER_COLUMN, 1);
+        counterTableStore.incrementColumnValue(TableConstants.COUNTER_ROW, TableConstants.COUNTER_COLUMN, 1);
       if (longKey > Integer.MAX_VALUE) {
         throw new IllegalStateException(
           "The next available occurrence id is greater than what Integer can handle. This is fatal!");
@@ -84,7 +84,7 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
 
       // write the new id to each of the lookup keys
       for (String key : lookupKeys) {
-        lookupTableStore.putInt(key, HBaseTableConstants.LOOKUP_KEY_COLUMN, newOccurrenceKey);
+        lookupTableStore.putInt(key, TableConstants.LOOKUP_KEY_COLUMN, newOccurrenceKey);
       }
 
       return new KeyLookupResult(newOccurrenceKey, true);
