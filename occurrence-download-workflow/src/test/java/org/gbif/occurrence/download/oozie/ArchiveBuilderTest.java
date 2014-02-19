@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
  *
  */
 public class ArchiveBuilderTest {
+
   @Mock
   private DatasetService datasetService;
   @Mock
@@ -35,8 +36,8 @@ public class ArchiveBuilderTest {
 
     System.out.println("Writing test meta.xml to " + archiveDir.toString());
     ArchiveBuilder ab = new ArchiveBuilder(downloadID, "testuser", "query", datasetService, datasetUsageService,
-                                           conf, localfs, localfs, archiveDir,
-                                           "dataTable", "citationTable", "hdfsPath", "http://down.io", true);
+      conf, localfs, localfs, archiveDir,
+      "interpretedDataTable", "verbatimDataTable", "citationTable", "hdfsPath", "http://down.io", true);
     ab.addArchiveDescriptor();
 
     // read archive again

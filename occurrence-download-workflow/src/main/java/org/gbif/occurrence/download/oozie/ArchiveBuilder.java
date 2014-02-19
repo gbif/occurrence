@@ -20,6 +20,7 @@ import org.gbif.dwc.text.MetaDescriptorWriter;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
@@ -94,7 +95,7 @@ public class ArchiveBuilder {
   private static final String INTERPRETED_FILENAME = "occurrence.txt";
   private static final String VERBATIM_FILENAME = "verbatim.txt";
   // The CRC is created by the function FileSyste.copyMerge function
-  private static final String DATA_CRC_FILENAME = ".occurrence.txt.crc";
+  private static final String CRC_FILE_FMT = ".%s.txt.crc";
   private static final String CITATIONS_FILENAME = "citations.txt";
   private static final String RIGHTS_FILENAME = "rights.txt";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
@@ -118,7 +119,8 @@ public class ArchiveBuilder {
   private final String downloadId;
   private final String user;
   private final String query;
-  private final String dataTable;
+  private final String interpretedDataTable;
+  private final String verbatimDataTable;
   private final String citationTable;
   // HDFS related
   private final Configuration conf;
@@ -155,7 +157,8 @@ public class ArchiveBuilder {
   protected ArchiveBuilder(String downloadId, String user, String query,
     DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
     Configuration conf, FileSystem hdfs,
-    FileSystem localfs, File archiveDir, String dataTable, String citationTable, String hdfsPath, String downloadLink,
+    FileSystem localfs, File archiveDir, String interpretedDataTable, String verbatimDataTable, String citationTable,
+    String hdfsPath, String downloadLink,
     boolean isSmallDownload)
     throws MalformedURLException {
     this.downloadId = downloadId;
@@ -167,7 +170,8 @@ public class ArchiveBuilder {
     this.hdfs = hdfs;
     this.localfs = localfs;
     this.archiveDir = archiveDir;
-    this.dataTable = dataTable;
+    this.interpretedDataTable = interpretedDataTable;
+    this.verbatimDataTable = verbatimDataTable;
     this.citationTable = citationTable;
     this.hdfsPath = hdfsPath;
     this.dataset = new Dataset();
@@ -178,22 +182,23 @@ public class ArchiveBuilder {
   /**
    * Entry point for assembling the dwc archive.
    * The thrown exception is the only way of telling Oozie that this job has failed.
-   *
+   * 
    * @throws IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
     final String nameNode = args[0];      // same as namenode, like hdfs://c1n2.gbif.org:8020
     final String hdfsHivePath = args[1];  // path on hdfs to hive results
-    final String dataTable = args[2];     // hive occurrence results table
-    final String citationTable = args[3]; // hive citation results table
-    final String downloadDir = args[4];   // locally mounted download dir
+    final String interpretedDataTable = args[2];     // hive occurrence results table
+    final String verbatimDataTable = args[3];     // hive occurrence results table
+    final String citationTable = args[4]; // hive citation results table
+    final String downloadDir = args[5];   // locally mounted download dir
     // for example 0000020-130108132303336
-    final String downloadId = DownloadUtils.workflowToDownloadId(args[5]);
-    final String user = args[6];          // download user
-    final String query = args[7];         // download query filter
-    final String downloadLink = args[8];  // download link to the final zip archive
-    final String registryWs = args[9];    // registry ws url
-    final String isSmallDownload = args[10];    // isSmallDownload
+    final String downloadId = DownloadUtils.workflowToDownloadId(args[6]);
+    final String user = args[7];          // download user
+    final String query = args[8];         // download query filter
+    final String downloadLink = args[9];  // download link to the final zip archive
+    final String registryWs = args[10];    // registry ws url
+    final String isSmallDownload = args[11];    // isSmallDownload
     // download link needs to be constructed
     final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadId);
 
@@ -215,7 +220,8 @@ public class ArchiveBuilder {
     // build archive
     ArchiveBuilder generator =
       new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, conf, hdfs, localfs, archiveDir,
-        dataTable, citationTable, hdfsHivePath, downloadLinkWithId, Boolean.parseBoolean(isSmallDownload));
+        interpretedDataTable, verbatimDataTable, citationTable, hdfsHivePath, downloadLinkWithId,
+        Boolean.parseBoolean(isSmallDownload));
     log("ArchiveBuilder created");
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
 
@@ -239,7 +245,7 @@ public class ArchiveBuilder {
 
   /**
    * Main method to assemble the dwc archive and do all the work until we have a final zip file.
-   *
+   * 
    * @param zipFile the final zip file holding the entire archive
    */
   public void buildArchive(File zipFile) throws DownloadException {
@@ -252,8 +258,9 @@ public class ArchiveBuilder {
       // create the temp archive dir
       archiveDir.mkdirs();
 
-      // occurrence file
-      addOccurrenceDataFile();
+      // occurrence files interpreted and verbatim
+      addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME, INTERPRETED_FILENAME);
+      addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
 
       // metadata, citation and rights
       addDatasetMetadata();
@@ -330,7 +337,7 @@ public class ArchiveBuilder {
    * Adds an eml file per dataset involved into a subfolder "dataset" which is supported by our dwc archive reader.
    * Create a rights.txt and citation.txt file targeted at humans to quickly yield an overview about rights and
    * datasets involved.
-   *
+   * 
    * @throws IOException
    */
   private void addDatasetMetadata() throws IOException {
@@ -396,23 +403,24 @@ public class ArchiveBuilder {
   /**
    * Copies and merges the hive query results files into a single, local occurrence data file.
    */
-  private void addOccurrenceDataFile() throws IOException {
+  private void addOccurrenceDataFile(String dataTable, String headerFileName, String destFileName) throws IOException {
     log("Copy-merge occurrence data hdfs file to local filesystem");
-    Path dataSrc = new Path(hdfsPath + Path.SEPARATOR + dataTable);
+    final Path dataSrc = new Path(hdfsPath + Path.SEPARATOR + dataTable);
+    final Path headerFileDest = new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME);
     if (!isSmallDownload) { // small downloads already include the headers
-      FileUtil.copy(new File(HEADERS_FILENAME), hdfs, dataSrc, false, conf);
+      FileUtil.copy(new File(headerFileName), hdfs, headerFileDest, false, conf);
     }
-    File rawDataResult = new File(archiveDir, INTERPRETED_FILENAME);
+    File rawDataResult = new File(archiveDir, destFileName);
     Path dataDest = new Path(rawDataResult.toURI());
     FileUtil.copyMerge(hdfs, dataSrc, localfs, dataDest, false, conf, null);
     // remove the CRC file created by copyMerge method
-    removeDataCRCFile();
+    removeDataCRCFile(destFileName);
   }
 
   /**
    * Creates a single EML metadata file for the entire archive.
    * Make sure we execute this method AFTER building the constituents metadata which adds to our dataset instance.
-   *
+   * 
    * @throws IOException
    */
   private void addQueryMetadata() {
@@ -494,6 +502,7 @@ public class ArchiveBuilder {
   /**
    * Creates a new archive file description for a dwc archive, but does not set any id field yet.
    * Used to generate the meta.xml with the help of the dwca-writer
+   * 
    * @param index column index to start with
    */
   private ArchiveFile createArchiveFile(String filename, Iterable<? extends Term> columns, int index) {
@@ -501,7 +510,7 @@ public class ArchiveBuilder {
     af.addLocation(filename);
     af.setRowType(DwcTerm.Occurrence.qualifiedName());
     af.setEncoding(Charsets.UTF_8.displayName());
-    //TODO: set to 1 once headers are included
+    // TODO: set to 1 once headers are included
     af.setIgnoreHeaderLines(0);
     af.setFieldsEnclosedBy(null);
     af.setFieldsTerminatedBy("\t");
@@ -533,7 +542,7 @@ public class ArchiveBuilder {
   /**
    * Checks the contacts of a dataset and finds the preferred contact that should be used as the main author
    * of a dataset.
-   *
+   * 
    * @return preferred author contact or null
    */
   private Contact getContentProviderContact(Dataset dataset) {
@@ -651,8 +660,8 @@ public class ArchiveBuilder {
    * Removes the file .occurrence.txt.crc that is created by the function FileUtil.copyMerge.
    * This method is temporary change to fix the issue http://dev.gbif.org/issues/browse/OCC-306.
    */
-  private void removeDataCRCFile() {
-    File occCRCDataFile = new File(archiveDir, DATA_CRC_FILENAME);
+  private void removeDataCRCFile(String destFileName) {
+    File occCRCDataFile = new File(archiveDir, String.format(CRC_FILE_FMT, destFileName));
     if (occCRCDataFile.exists()) {
       occCRCDataFile.delete();
     }
