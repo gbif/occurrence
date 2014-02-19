@@ -6,6 +6,9 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 import com.google.common.base.Function;
@@ -14,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.Closer;
 
 /**
  * Utility class that generates the Hive scripts required to create an HDFS table that is used by occurrence downloads.
@@ -26,15 +30,15 @@ public class DownloadTableGenerator {
   private static final String CREATE_TABLE_FMT =
     "CREATE EXTERNAL TABLE %s_%s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
   private static final String JOIN_FMT =
-    " LEFT OUTER JOIN Interpreted2_%1$s ON (Interpreted1_%1$s.occurrenceID = Interpreted2_%1$s.occurrenceID) LEFT OUTER JOIN DcTerm_%1$s ON (Interpreted1_%1$s.occurrenceID = DcTerm_%1$s.occurrenceID) LEFT OUTER JOIN DwcTerm1_%1$s ON (Interpreted1_%1$s.occurrenceID = DwcTerm1_%1$s.occurrenceID) LEFT OUTER JOIN DwcTerm2_%1$s ON (Interpreted1_%1$s.occurrenceID = DwcTerm2_%1$s.occurrenceID)";
+    "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.occurrenceid = interpreted2_%1$s.occurrenceid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.occurrenceid = dcterm_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm1_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm2_%1$s.occurrenceid)";
 
   private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s);";
   private static final String HIVE_DROP_TABLE_FMT = "DROP TABLE IF EXISTS %1$s_%2$s;";
   private static final String HBASE_MAP_FMT = "o:%s";
   private static final String HBASE_KEY_MAPPING = ":key";
-  private static final String OCC_ID_COL_DEF = DwcTerm.occurrenceID.simpleName() + " INT";
+  private static final String OCC_ID_COL_DEF = DwcTerm.occurrenceID.simpleName().toLowerCase() + " INT";
 
-  private static final String INSERT_INFO_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM Interpreted1_%1$s %3$s;";
+  private static final String INSERT_INFO_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
   private ImmutableSet<String> HIVE_RESERVED_WORDS = new ImmutableSet.Builder<String>().add("date", "order", "format",
     "group").build();
 
@@ -73,10 +77,11 @@ public class DownloadTableGenerator {
    * Gets the Hive column name of the term parameter.
    */
   private String getColumnName(Term term) {
-    if (HIVE_RESERVED_WORDS.contains(term.simpleName().toLowerCase())) {
-      return term.simpleName() + '_';
+    final String columnName = term.simpleName().toLowerCase();
+    if (HIVE_RESERVED_WORDS.contains(columnName)) {
+      return columnName + '_';
     }
-    return term.simpleName();
+    return columnName;
   }
 
   /**
@@ -106,6 +111,17 @@ public class DownloadTableGenerator {
   }
 
   /**
+   * Generates a list that contains the all the verbatim column names.
+   */
+  private List<String> listVerbatimColumns() {
+    List<String> columns = Lists.newArrayList();
+    for (Term term : TermUtils.verbatimTerms()) {
+      columns.add(String.format(VERBATIM_COL_DEF_FMT, getColumnName(term)));
+    }
+    return columns;
+  }
+
+  /**
    * Generates a list that contains the verbatim hbase column mappings of the termClass values.
    */
   private <T extends Term> List<String> listVerbatimColumnsMappings(Class<? extends T> termClass) {
@@ -124,6 +140,8 @@ public class DownloadTableGenerator {
       return "INT";
     } else if (TermUtils.isInterpretedDate(term)) {
       return "BIGINT";
+    } else if (TermUtils.isInterpretedDouble(term)) {
+      return "DOUBLE";
     } else {
       return "STRING";
     }
@@ -136,7 +154,7 @@ public class DownloadTableGenerator {
     List<String> columns =
       new ImmutableList.Builder<String>()
         .add(OCC_ID_COL_DEF)
-        .addAll(listVerbatimColumns(DcTerm.class)).addAll(listVerbatimColumns(DwcTerm.class))
+        .addAll(listVerbatimColumns())
         .addAll(processInterpretedTerms(termColumnDecl)).build();
     return COMMA_JOINER.join(columns);
   }
@@ -147,7 +165,7 @@ public class DownloadTableGenerator {
    */
   public String buildInterpretedOccurrenceTable(String hiveTableName, String hbaseTableName) {
     return buildSplitTermsTable(processInterpretedTerms(termHBaseMappingDef), processInterpretedTerms(termColumnDecl),
-      hiveTableName, hbaseTableName, "Interpreted");
+      hiveTableName, hbaseTableName, "interpreted");
   }
 
 
@@ -162,7 +180,8 @@ public class DownloadTableGenerator {
     List<String> columnsMappings = Lists.newArrayList();
     columnsMappings.add(HBASE_KEY_MAPPING);
     columnsMappings.addAll(listVerbatimColumnsMappings(termClass));
-    return String.format(CREATE_TABLE_FMT, termClass.getSimpleName(), hiveTableName, COMMA_JOINER.join(columns),
+    return String.format(CREATE_TABLE_FMT, termClass.getSimpleName().toLowerCase(),
+      hiveTableName, COMMA_JOINER.join(columns),
       COMMA_JOINER.join(columnsMappings), hbaseTableName);
   }
 
@@ -195,7 +214,7 @@ public class DownloadTableGenerator {
    */
   public String buildDwcTermsTable(String hiveTableName, String hbaseTableName) {
     return buildSplitTermsTable(listVerbatimColumnsMappings(DwcTerm.class), listVerbatimColumns(DwcTerm.class),
-      hiveTableName, hbaseTableName, "DwcTerm");
+      hiveTableName, hbaseTableName, "dwcterm");
   }
 
 
@@ -205,7 +224,7 @@ public class DownloadTableGenerator {
    */
   public String generateSelectInto(String hiveTableName) {
     List<String> columns = Lists.newArrayList();
-    columns.add(String.format("Interpreted1_%s." + DwcTerm.occurrenceID.simpleName(), hiveTableName));
+    columns.add(String.format("interpreted1_%s." + DwcTerm.occurrenceID.simpleName().toLowerCase(), hiveTableName));
     for (Term term : TermUtils.verbatimTerms()) {
       columns.add(String.format(VERBATIM_COL_FMT, getColumnName(term)));
     }
@@ -241,9 +260,18 @@ public class DownloadTableGenerator {
   }
 
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
+    Closer closer = Closer.create();
+    if (args.length < 2) {
+      System.err.println("At least 2 parameters are required: the hive output table and the hbase input table");
+    }
     final String hiveTableName = args[0];
     final String hbaseTableName = args[1];
+    if (args.length > 2) {
+      System.setOut(closer.register(new PrintStream(new File(args[3]))));
+    } else {
+      System.out.println("No output file parameter specified, using the console as output");
+    }
     DownloadTableGenerator downloadTableGenerator = new DownloadTableGenerator();
     System.out.println(downloadTableGenerator.buildHdfsTable(hiveTableName));
     System.out.println(downloadTableGenerator.buildVerbatimTermsTable(DcTerm.class, hiveTableName, hbaseTableName));
@@ -251,5 +279,6 @@ public class DownloadTableGenerator {
     System.out.println(downloadTableGenerator.buildInterpretedOccurrenceTable(hiveTableName, hbaseTableName));
     System.out.println(downloadTableGenerator.generateSelectInto(hiveTableName));
     System.out.println(downloadTableGenerator.buildDropStatements(hiveTableName));
+    closer.close();
   }
 }
