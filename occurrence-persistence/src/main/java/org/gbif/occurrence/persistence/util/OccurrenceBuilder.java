@@ -161,19 +161,17 @@ public class OccurrenceBuilder {
       occ.setKey(key);
 
       // taxonomy terms
-      occ.setTaxonKey(ExtResultReader.getInteger(row, DwcTerm.taxonID));
+      occ.setTaxonKey(ExtResultReader.getInteger(row, GbifTerm.taxonKey));
       occ.setScientificName(ExtResultReader.getString(row, DwcTerm.scientificName));
       occ.setGenericName(ExtResultReader.getString(row, DwcTerm.genericName));
       occ.setSpecificEpithet(ExtResultReader.getString(row, DwcTerm.specificEpithet));
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
       for (Rank r : Rank.DWC_RANKS) {
-        ClassificationUtils.setHigherRankKey(occ,
-                                             r,
-                                             ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
-        ClassificationUtils.setHigherRank(occ,
-                                          r,
-                                          ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
+        ClassificationUtils.setHigherRankKey(occ, r,
+                                  ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
+        ClassificationUtils.setHigherRank(occ, r,
+                                  ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
       }
 
       // other java properties

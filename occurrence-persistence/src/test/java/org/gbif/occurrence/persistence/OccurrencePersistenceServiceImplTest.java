@@ -190,7 +190,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DcTerm.modified)),
       Bytes.toBytes(MOD.getTime()));
     put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.month)), Bytes.toBytes(MONTH));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.taxonID)),
+    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.taxonKey)),
       Bytes.toBytes(TAXON_KEY));
     put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.eventDate)),
       Bytes.toBytes(EVENT_DATE.getTime()));
@@ -273,16 +273,13 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(InternalTerm.fragment)), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
-    }
-    for (Term term : GbifTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
@@ -329,7 +326,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Integer) KEY, occ.getKey());
     assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
-    assertTrue(occ.hasVerbatimField(DwcTerm.basisOfRecord));
+    assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
   }
 
   @Test
@@ -478,13 +475,13 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(idType0, updatedRecord.getType());
     assertEquals(country, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
-    assertTrue(kingdomId == occ.getKingdomKey());
+    assertEquals(kingdomId, (int) occ.getKingdomKey());
     assertEquals(lastInterpreted, occ.getLastInterpreted());
     assertEquals(lat, occ.getDecimalLatitude(), 0.0001);
     assertEquals(lng, occ.getDecimalLongitude(), 0.0001);
     assertEquals(mod, occ.getModified());
-    assertTrue(month == occ.getMonth());
-    assertTrue(nubId == occ.getTaxonKey());
+    assertEquals(month, (int) occ.getMonth() );
+    assertEquals(nubId, (int) occ.getTaxonKey());
     assertEquals(occDate, occ.getEventDate());
     assertEquals(order, occ.getOrder());
     assertTrue(orderId == occ.getOrderKey());
@@ -511,8 +508,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ZERO_COORDINATE));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
 
-    assertTrue(occ.hasVerbatimField(DwcTerm.basisOfRecord));
-    assertEquals("PRESERVED_SPECIMEN", occ.getVerbatimField(DwcTerm.basisOfRecord));
+    assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
     assertFalse(occ.hasVerbatimField(DwcTerm.occurrenceID));
   }
 

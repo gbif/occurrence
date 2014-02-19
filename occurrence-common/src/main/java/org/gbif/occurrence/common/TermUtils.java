@@ -6,7 +6,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -57,23 +56,24 @@ public class TermUtils {
   private static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
     DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.countryCode,
-    DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
+    DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
     DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
     GbifTerm.species, DwcTerm.scientificName, DwcTerm.taxonRank,
     DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-
-    GbifTerm.taxonKey,
+    DwcTerm.basisOfRecord, DwcTerm.individualCount, DwcTerm.sex, DwcTerm.lifeStage, DwcTerm.establishmentMeans,
+    GbifTerm.taxonKey, DwcTerm.typeStatus, DwcTerm.typifiedName,
     GbifTerm.kingdomKey, GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
     GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
     GbifTerm.datasetKey, GbifTerm.publishingCountry,
-    GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
+    GbifTerm.lastInterpreted, DcTerm.modified,
     GbifTerm.coordinateAccuracy,
     GbifTerm.elevation, GbifTerm.elevationAccuracy,
     GbifTerm.depth, GbifTerm.depthAccuracy,
     GbifTerm.distanceAboveSurface, GbifTerm.distanceAboveSurfaceAccuracy,
-    GbifTerm.unitQualifier,
-    GbifTerm.issue
+    GbifTerm.unitQualifier, GbifTerm.issue,
+    GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
   );
+
 
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
     Iterables.concat(JAVA_PROPERTY_TERMS,

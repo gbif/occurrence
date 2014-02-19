@@ -11,7 +11,6 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.api.InternalTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -59,7 +58,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_BATCH_SIZE = 50;
   private static final int SCANNER_CACHE_SIZE = 50;
-  private static final TermFactory TERM_FACTORY = TermFactory.instance();
   private static final byte[] CF = Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY);
   private final String occurrenceTableName;
   private final HTablePool tablePool;
@@ -241,12 +239,11 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Populates the put and delete for a verbatim record.
-   * @param keepInterpretedVerbatimColumns if true does not delete any of the verbatim columns removed
-   *                                       during interpretation
+   * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
    * @throws IOException
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
-                                         boolean keepInterpretedVerbatimColumns) throws IOException {
+                                         boolean deleteInterpretedVerbatimColumns) throws IOException {
 
     // start by scheduling deletion of all terms not in the occ
     Get get = new Get(upd.getKey());
@@ -256,7 +253,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       if (term != null) {
         if (occ.getVerbatimField(term) == null &&
             // only remove the interpreted verbatim terms if explicitly requested
-            (!keepInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term)) ) {
+            (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term)) ) {
           upd.deleteField(kv.getQualifier());
         }
       }
@@ -286,7 +283,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
     // use taxonID?
-    upd.setInterpretedField(DwcTerm.taxonID, occ.getTaxonKey());
+    upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
     for (Rank r : Rank.DWC_RANKS) {
       upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
       upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
