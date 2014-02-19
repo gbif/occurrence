@@ -43,7 +43,6 @@
     <module>occurrence-common</module>
     <module>occurrence-deleter</module>
     <module>occurrence-download-workflow</module>
-    <module>occurrence-index-builder</module>
     <module>occurrence-index-builder-workflow</module>
     <module>occurrence-persistence</module>
     <module>occurrence-parser</module>
