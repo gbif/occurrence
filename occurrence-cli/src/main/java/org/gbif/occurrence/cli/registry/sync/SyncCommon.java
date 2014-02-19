@@ -1,7 +1,5 @@
 package org.gbif.occurrence.cli.registry.sync;
 
-import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -17,7 +15,7 @@ public class SyncCommon {
 
   public static final String OCC_TABLE_PROPS_KEY = "occurrence.db.table_name";
   public static final String REG_WS_PROPS_KEY = "registry.ws.url";
-  public static final byte[] OCC_CF = Bytes.toBytes(HBaseTableConstants.OCCURRENCE_COLUMN_FAMILY);
+  public static final byte[] OCC_CF = Bytes.toBytes("o");
   public static final byte[] DK_COL = Bytes.toBytes("dk");
   public static final byte[] OOK_COL = Bytes.toBytes("ook");
   public static final byte[] HC_COL = Bytes.toBytes("hc");
