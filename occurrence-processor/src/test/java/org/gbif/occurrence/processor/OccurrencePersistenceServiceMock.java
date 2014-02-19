@@ -2,7 +2,7 @@ package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.FieldName;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;

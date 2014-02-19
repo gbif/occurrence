@@ -1,7 +1,5 @@
 package org.gbif.occurrence.download.util;
 
-import org.gbif.occurrence.common.constants.FieldName;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -16,9 +14,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
-
-import static org.gbif.occurrence.common.download.HiveFieldUtil.DOWNLOAD_COLUMNS;
-import static org.gbif.occurrence.common.download.HiveFieldUtil.getHiveField;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
@@ -73,9 +68,9 @@ public class HeadersFileUtil {
    */
   public static String[] getColumnHeaders() {
     List<String> headers = Lists.newArrayList();
-    for (FieldName field : DOWNLOAD_COLUMNS) {
-      headers.add(getHiveField(field));
-    }
+//    for (FieldName field : DOWNLOAD_COLUMNS) {
+//      headers.add(getHiveField(field));
+//    }
     return headers.toArray(new String[headers.size()]);
   }
 
@@ -84,13 +79,13 @@ public class HeadersFileUtil {
    */
   public static String[] getDownloadHeaders() {
     List<String> headers = Lists.newArrayList();
-    for (FieldName field : DOWNLOAD_COLUMNS) {
-      String col = getHiveField(field);
-      if (col.endsWith("_")) {
-        col = col.substring(0, col.length() - 1);
-      }
-      headers.add(col);
-    }
+//    for (FieldName field : DOWNLOAD_COLUMNS) {
+//      String col = getHiveField(field);
+//      if (col.endsWith("_")) {
+//        col = col.substring(0, col.length() - 1);
+//      }
+//      headers.add(col);
+//    }
     return headers.toArray(new String[headers.size()]);
   }
 

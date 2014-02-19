@@ -3,7 +3,7 @@ package org.gbif.occurrence.persistence;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.FieldName;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;

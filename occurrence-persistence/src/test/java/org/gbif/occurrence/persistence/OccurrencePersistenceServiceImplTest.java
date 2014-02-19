@@ -20,9 +20,9 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
-import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.persistence.hbase.FieldName;
+import org.gbif.occurrence.persistence.hbase.FieldNameUtil;
+import org.gbif.occurrence.persistence.hbase.TableConstants;
 
 import java.io.IOException;
 import java.util.Date;
@@ -155,142 +155,142 @@ public class OccurrencePersistenceServiceImplTest {
     occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ELEVATION).getColumnName()), Bytes.toBytes(ELEV));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_BASIS_OF_RECORD).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_ELEVATION).getColumnName()), Bytes.toBytes(ELEV));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_BASIS_OF_RECORD).getColumnName()),
       Bytes.toBytes(BOR.name()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_CLASS_KEY).getColumnName()),
       Bytes.toBytes(CLASS_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CLASS).getColumnName()), Bytes.toBytes(CLASS));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_CLASS).getColumnName()), Bytes.toBytes(CLASS));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.DATASET_KEY).getColumnName()),
       Bytes.toBytes(DATASET_KEY.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DEPTH).getColumnName()), Bytes.toBytes(DEPTH));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DEPTH).getColumnName()), Bytes.toBytes(DEPTH));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_FAMILY).getColumnName()), Bytes.toBytes(FAMILY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_FAMILY_KEY).getColumnName()),
+      .add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_FAMILY).getColumnName()), Bytes.toBytes(FAMILY));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_FAMILY_KEY).getColumnName()),
       Bytes.toBytes(FAMILY_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS).getColumnName()), Bytes.toBytes(GENUS));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENUS_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_GENUS).getColumnName()), Bytes.toBytes(GENUS));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_GENUS_KEY).getColumnName()),
       Bytes.toBytes(GENUS_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_COUNTRY_CODE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.PUB_COUNTRY_CODE).getColumnName()),
       Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
 
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(LAST_CRAWLED.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_PARSED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_PARSED).getColumnName()),
       Bytes.toBytes(LAST_PARSED.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_INTERPRETED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_INTERPRETED).getColumnName()),
       Bytes.toBytes(LAST_INTERPRETED.getTime()));
 
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_KINGDOM).getColumnName()),
       Bytes.toBytes(KINGDOM));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_KINGDOM_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_KINGDOM_KEY).getColumnName()),
       Bytes.toBytes(KINGDOM_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LATITUDE).getColumnName()), Bytes.toBytes(LAT));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DECIMAL_LATITUDE).getColumnName()), Bytes.toBytes(LAT));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DECIMAL_LONGITUDE).getColumnName()), Bytes.toBytes(LNG));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_MODIFIED).getColumnName()),
+      .add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DECIMAL_LONGITUDE).getColumnName()), Bytes.toBytes(LNG));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_MODIFIED).getColumnName()),
       Bytes.toBytes(MOD.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_MONTH).getColumnName()), Bytes.toBytes(MONTH));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXON_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_MONTH).getColumnName()), Bytes.toBytes(MONTH));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_TAXON_KEY).getColumnName()),
       Bytes.toBytes(TAXON_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_EVENT_DATE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_EVENT_DATE).getColumnName()),
       Bytes.toBytes(EVENT_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER).getColumnName()), Bytes.toBytes(ORDER));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ORDER_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_ORDER).getColumnName()), Bytes.toBytes(ORDER));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_ORDER_KEY).getColumnName()),
       Bytes.toBytes(ORDER_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PUB_ORG_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.PUB_ORG_KEY).getColumnName()),
       Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM).getColumnName()), Bytes.toBytes(PHYLUM));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_PHYLUM_KEY).getColumnName()),
+      .add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_PHYLUM).getColumnName()), Bytes.toBytes(PHYLUM));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_PHYLUM_KEY).getColumnName()),
       Bytes.toBytes(PHYLUM_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PROTOCOL).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.PROTOCOL).getColumnName()),
       Bytes.toBytes(PROTOCOL.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SCIENTIFIC_NAME).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SCIENTIFIC_NAME).getColumnName()),
       Bytes.toBytes(SCI_NAME));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SPECIES).getColumnName()),
       Bytes.toBytes(SPECIES));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIES_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SPECIES_KEY).getColumnName()),
       Bytes.toBytes(SPECIES_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_YEAR).getColumnName()), Bytes.toBytes(YEAR));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_YEAR).getColumnName()), Bytes.toBytes(YEAR));
 
     // new for occurrence widening
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ELEVATION_ACC).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_ELEVATION_ACC).getColumnName()),
       Bytes.toBytes(ELEV_ACC));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_COORD_ACCURACY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_COORD_ACCURACY).getColumnName()),
       Bytes.toBytes(COORD_ACC));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_CONTINENT).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_CONTINENT).getColumnName()),
       Bytes.toBytes(CONTINENT.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_COUNTRY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_COUNTRY).getColumnName()),
       Bytes.toBytes(COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DATE_IDENTIFIED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DATE_IDENTIFIED).getColumnName()),
       Bytes.toBytes(DATE_IDENTIFIED.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DAY).getColumnName()), Bytes.toBytes(DAY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DEPTH_ACC).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DAY).getColumnName()), Bytes.toBytes(DAY));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DEPTH_ACC).getColumnName()),
       Bytes.toBytes(DEPTH_ACC));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_ESTAB_MEANS).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_ESTAB_MEANS).getColumnName()),
       Bytes.toBytes(ESTAB_MEANS.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_INDIVIDUAL_COUNT).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_INDIVIDUAL_COUNT).getColumnName()),
       Bytes.toBytes(INDIVIDUAL_COUNT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_INTERPRETED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_INTERPRETED).getColumnName()),
       Bytes.toBytes(LAST_INTERPRETED.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_LIFE_STAGE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_LIFE_STAGE).getColumnName()),
       Bytes.toBytes(LIFE_STAGE.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SEX).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SEX).getColumnName()),
       Bytes.toBytes(SEX.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_STATE_PROVINCE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_STATE_PROVINCE).getColumnName()),
       Bytes.toBytes(STATE_PROV));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_WATERBODY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_WATERBODY).getColumnName()),
       Bytes.toBytes(WATERBODY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SUBGENUS).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SUBGENUS).getColumnName()),
       Bytes.toBytes(SUBGENUS));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SUBGENUS_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SUBGENUS_KEY).getColumnName()),
       Bytes.toBytes(SUBGENUS_KEY));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TYPE_STATUS).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_TYPE_STATUS).getColumnName()),
       Bytes.toBytes(TYPE_STATUS.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TYPIFIED_NAME).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_TYPIFIED_NAME).getColumnName()),
       Bytes.toBytes(TYPIFIED_NAME));
 
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_GENERIC_NAME).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_GENERIC_NAME).getColumnName()),
       Bytes.toBytes(GENERIC_NAME));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_SPECIFIC_EPITHET).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_SPECIFIC_EPITHET).getColumnName()),
       Bytes.toBytes(SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_INFRASPECIFIC_EPITHET).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_INFRASPECIFIC_EPITHET).getColumnName()),
       Bytes.toBytes(INFRA_SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_TAXON_RANK).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_TAXON_RANK).getColumnName()),
       Bytes.toBytes(TAXON_RANK.name()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DIST_ABOVE_SURFACE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DIST_ABOVE_SURFACE).getColumnName()),
       Bytes.toBytes(DIST_ABOVE_SURFACE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.I_DIST_ABOVE_SURFACE_ACC).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.I_DIST_ABOVE_SURFACE_ACC).getColumnName()),
       Bytes.toBytes(DIST_ABOVE_SURFACE_ACC));
 
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 1), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 1), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 2), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 2), Bytes.toBytes(ID_TYPE_2));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 1), Bytes.toBytes(ID_1));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 1), Bytes.toBytes(ID_TYPE_1));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 2), Bytes.toBytes(ID_2));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 2), Bytes.toBytes(ID_TYPE_2));
 
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), Bytes.toBytes(XML));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT).getColumnName()), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(TableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : GbifTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(TableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(TableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.KNOWN_TERM_PREFIX + term.toString()),
+      put.add(CF, Bytes.toBytes(TableConstants.KNOWN_TERM_PREFIX + term.toString()),
         Bytes.toBytes("I am " + term.toString()));
     }
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.UNKNOWN_TERM_PREFIX + term.toString()),
+    put.add(CF, Bytes.toBytes(TableConstants.UNKNOWN_TERM_PREFIX + term.toString()),
       Bytes.toBytes("I am " + term.toString()));
 
     setUpIssues();
@@ -304,13 +304,13 @@ public class OccurrencePersistenceServiceImplTest {
   private void setUpIdentifiers() throws IOException {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 1), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 1), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_COLUMN + 2), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.IDENTIFIER_TYPE_COLUMN + 2), Bytes.toBytes(ID_TYPE_2));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.IDENTIFIER_COUNT).getColumnName()),
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 0), Bytes.toBytes(ID_0));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 0), Bytes.toBytes(ID_TYPE_0));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 1), Bytes.toBytes(ID_1));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 1), Bytes.toBytes(ID_TYPE_1));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_COLUMN + 2), Bytes.toBytes(ID_2));
+    put.add(CF, Bytes.toBytes(TableConstants.IDENTIFIER_TYPE_COLUMN + 2), Bytes.toBytes(ID_TYPE_2));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.IDENTIFIER_COUNT).getColumnName()),
       Bytes.toBytes(3));
     table.put(put);
     table.close();
@@ -320,7 +320,7 @@ public class OccurrencePersistenceServiceImplTest {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      put.add(CF, Bytes.toBytes(HBaseTableConstants.ISSUE_PREFIX + issue.name()), Bytes.toBytes(1));
+      put.add(CF, Bytes.toBytes(TableConstants.ISSUE_PREFIX + issue.name()), Bytes.toBytes(1));
     }
     table.put(put);
     table.close();

@@ -1,9 +1,9 @@
 package org.gbif.occurrence.index.hbase;
 
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.ExtResultReader;
+import org.gbif.occurrence.persistence.hbase.FieldName;
 import org.gbif.occurrence.index.solr.OccurrenceIndexDocument;
-import org.gbif.occurrence.persistence.OccurrenceResultReader;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.persistence.hbase.FieldNameUtil;
 
 import java.io.IOException;
 import java.util.Date;
@@ -91,22 +91,22 @@ public class IndexingUtils {
    * Populates the Solr document using the result row parameter.
    */
   public static void buildOccSolrDocument(Result row, SolrInputDocument doc) {
-    final Double latitude = OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE);
-    final Double longitude = OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE);
+    final Double latitude = ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE);
+    final Double longitude = ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE);
 //    final Integer geospatialIssue = OccurrenceResultReader.getInteger(row, FieldName.I_GEOSPATIAL_ISSUE);
-    final Date occurrenceDate = OccurrenceResultReader.getDate(row, FieldName.I_EVENT_DATE);
-    final Date modified = OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED);
+    final Date occurrenceDate = ExtResultReader.getDate(row, FieldName.I_EVENT_DATE);
+    final Date modified = ExtResultReader.getDate(row, FieldName.I_MODIFIED);
 
-    doc.setField(KEY.getFieldName(), OccurrenceResultReader.getKey(row));
-    doc.setField(YEAR.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
-    doc.setField(MONTH.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-    doc.setField(BASIS_OF_RECORD.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
-    doc.setField(CATALOG_NUMBER.getFieldName(), OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
+    doc.setField(KEY.getFieldName(), ExtResultReader.getKey(row));
+    doc.setField(YEAR.getFieldName(), ExtResultReader.getInteger(row, FieldName.I_YEAR));
+    doc.setField(MONTH.getFieldName(), ExtResultReader.getInteger(row, FieldName.I_MONTH));
+    doc.setField(BASIS_OF_RECORD.getFieldName(), ExtResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
+    doc.setField(CATALOG_NUMBER.getFieldName(), ExtResultReader.getString(row, FieldName.CATALOG_NUMBER));
 //    doc.setField(RECORDED_BY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    doc.setField(COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
+    doc.setField(COUNTRY.getFieldName(), ExtResultReader.getString(row, FieldName.I_COUNTRY));
     doc
-      .setField(PUBLISHING_COUNTRY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.PUB_COUNTRY_CODE));
-    doc.setField(DATASET_KEY.getFieldName(), OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
+      .setField(PUBLISHING_COUNTRY.getFieldName(), ExtResultReader.getString(row, FieldName.PUB_COUNTRY_CODE));
+    doc.setField(DATASET_KEY.getFieldName(), ExtResultReader.getString(row, FieldName.DATASET_KEY));
 
     Set<Integer> taxonKey = buildTaxonKey(row);
     if (!taxonKey.isEmpty()) {
@@ -114,10 +114,10 @@ public class IndexingUtils {
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
-    doc.setField(ELEVATION.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION));
-    doc.setField(DEPTH.getFieldName(), OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH));
-    doc.setField(INSTITUTION_CODE.getFieldName(), OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE));
-    doc.setField(COLLECTION_CODE.getFieldName(), OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE));
+    doc.setField(ELEVATION.getFieldName(), ExtResultReader.getInteger(row, FieldName.I_ELEVATION));
+    doc.setField(DEPTH.getFieldName(), ExtResultReader.getInteger(row, FieldName.I_DEPTH));
+    doc.setField(INSTITUTION_CODE.getFieldName(), ExtResultReader.getString(row, FieldName.INSTITUTION_CODE));
+    doc.setField(COLLECTION_CODE.getFieldName(), ExtResultReader.getString(row, FieldName.COLLECTION_CODE));
 //    doc.setField(GEOSPATIAL_ISSUE.getFieldName(), geospatialIssue != null && geospatialIssue > 0);
     doc.setField(HAS_COORDINATE.getFieldName(), latitude != null && longitude != null);
     doc.setField(LATITUDE.getFieldName(), latitude);
@@ -136,27 +136,27 @@ public class IndexingUtils {
    */
   public static OccurrenceIndexDocument buildOccurrenceObject(Result row) {
     OccurrenceIndexDocument occurrenceIndexDocument = new OccurrenceIndexDocument();
-    occurrenceIndexDocument.setKey(OccurrenceResultReader.getKey(row));
-    occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
-    occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
-    occurrenceIndexDocument.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
-    occurrenceIndexDocument.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
-    occurrenceIndexDocument.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-    occurrenceIndexDocument.setDay(OccurrenceResultReader.getString(row, FieldName.I_DAY));
-    occurrenceIndexDocument.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
+    occurrenceIndexDocument.setKey(ExtResultReader.getKey(row));
+    occurrenceIndexDocument.setLatitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+    occurrenceIndexDocument.setLongitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
+    occurrenceIndexDocument.setIsoCountryCode(ExtResultReader.getString(row, FieldName.I_COUNTRY));
+    occurrenceIndexDocument.setYear(ExtResultReader.getInteger(row, FieldName.I_YEAR));
+    occurrenceIndexDocument.setMonth(ExtResultReader.getInteger(row, FieldName.I_MONTH));
+    occurrenceIndexDocument.setDay(ExtResultReader.getString(row, FieldName.I_DAY));
+    occurrenceIndexDocument.setCatalogNumber(ExtResultReader.getString(row, FieldName.CATALOG_NUMBER));
 //    occurrenceIndexDocument.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    occurrenceIndexDocument.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
-    occurrenceIndexDocument.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
-    occurrenceIndexDocument.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
-    occurrenceIndexDocument.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
-    occurrenceIndexDocument.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
-    occurrenceIndexDocument.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY));
-    occurrenceIndexDocument.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
-    occurrenceIndexDocument.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
-    occurrenceIndexDocument.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
-    occurrenceIndexDocument.setBasisOfRecord(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
-    occurrenceIndexDocument.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
-    occurrenceIndexDocument.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
+    occurrenceIndexDocument.setNubKey(ExtResultReader.getInteger(row, FieldName.I_TAXON_KEY));
+    occurrenceIndexDocument.setDatasetKey(ExtResultReader.getString(row, FieldName.DATASET_KEY));
+    occurrenceIndexDocument.setKingdomKey(ExtResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
+    occurrenceIndexDocument.setPhylumKey(ExtResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
+    occurrenceIndexDocument.setClassKey(ExtResultReader.getInteger(row, FieldName.I_CLASS_KEY));
+    occurrenceIndexDocument.setOrderKey(ExtResultReader.getInteger(row, FieldName.I_ORDER_KEY));
+    occurrenceIndexDocument.setFamilyKey(ExtResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
+    occurrenceIndexDocument.setGenusKey(ExtResultReader.getInteger(row, FieldName.I_GENUS_KEY));
+    occurrenceIndexDocument.setSpeciesKey(ExtResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
+    occurrenceIndexDocument.setBasisOfRecord(ExtResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
+    occurrenceIndexDocument.setLatitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+    occurrenceIndexDocument.setLongitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
     return occurrenceIndexDocument;
   }
 
@@ -177,25 +177,25 @@ public class IndexingUtils {
    */
   public static OccurrenceWritable buildOccurrenceWritableObject(Result row) {
     OccurrenceWritable occurrenceWritable = new OccurrenceWritable();
-    occurrenceWritable.setKey(OccurrenceResultReader.getKey(row));
-    occurrenceWritable.setLatitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
-    occurrenceWritable.setLongitude(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
-    occurrenceWritable.setIsoCountryCode(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
-    occurrenceWritable.setYear(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR));
-    occurrenceWritable.setMonth(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH));
-    occurrenceWritable.setDay(OccurrenceResultReader.getString(row, FieldName.I_DAY));
-    occurrenceWritable.setCatalogNumber(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER));
+    occurrenceWritable.setKey(ExtResultReader.getKey(row));
+    occurrenceWritable.setLatitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE));
+    occurrenceWritable.setLongitude(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE));
+    occurrenceWritable.setIsoCountryCode(ExtResultReader.getString(row, FieldName.I_COUNTRY));
+    occurrenceWritable.setYear(ExtResultReader.getInteger(row, FieldName.I_YEAR));
+    occurrenceWritable.setMonth(ExtResultReader.getInteger(row, FieldName.I_MONTH));
+    occurrenceWritable.setDay(ExtResultReader.getString(row, FieldName.I_DAY));
+    occurrenceWritable.setCatalogNumber(ExtResultReader.getString(row, FieldName.CATALOG_NUMBER));
 //    occurrenceWritable.setCollectorName(OccurrenceResultReader.getString(row, FieldName.COLLECTOR_NAME));
-    occurrenceWritable.setNubKey(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY));
-    occurrenceWritable.setDatasetKey(OccurrenceResultReader.getString(row, FieldName.DATASET_KEY));
-    occurrenceWritable.setKingdomKey(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
-    occurrenceWritable.setPhylumKey(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
-    occurrenceWritable.setClassKey(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY));
-    occurrenceWritable.setOrderKey(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY));
-    occurrenceWritable.setFamilyKey(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
-    occurrenceWritable.setGenusKey(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY));
-    occurrenceWritable.setSpeciesKey(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
-    occurrenceWritable.setBasisOfRecord(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
+    occurrenceWritable.setNubKey(ExtResultReader.getInteger(row, FieldName.I_TAXON_KEY));
+    occurrenceWritable.setDatasetKey(ExtResultReader.getString(row, FieldName.DATASET_KEY));
+    occurrenceWritable.setKingdomKey(ExtResultReader.getInteger(row, FieldName.I_KINGDOM_KEY));
+    occurrenceWritable.setPhylumKey(ExtResultReader.getInteger(row, FieldName.I_PHYLUM_KEY));
+    occurrenceWritable.setClassKey(ExtResultReader.getInteger(row, FieldName.I_CLASS_KEY));
+    occurrenceWritable.setOrderKey(ExtResultReader.getInteger(row, FieldName.I_ORDER_KEY));
+    occurrenceWritable.setFamilyKey(ExtResultReader.getInteger(row, FieldName.I_FAMILY_KEY));
+    occurrenceWritable.setGenusKey(ExtResultReader.getInteger(row, FieldName.I_GENUS_KEY));
+    occurrenceWritable.setSpeciesKey(ExtResultReader.getInteger(row, FieldName.I_SPECIES_KEY));
+    occurrenceWritable.setBasisOfRecord(ExtResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD));
     return occurrenceWritable;
   }
 
@@ -208,8 +208,8 @@ public class IndexingUtils {
   public static Scan buildScan(FieldName... fieldNames) {
     Scan scan = new Scan();
     for (FieldName fieldName : fieldNames) {
-      scan.addColumn(Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(fieldName).getFamilyName()),
-        Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(fieldName).getColumnName()));
+      scan.addColumn(Bytes.toBytes(FieldNameUtil.getColumn(fieldName).getFamilyName()),
+        Bytes.toBytes(FieldNameUtil.getColumn(fieldName).getColumnName()));
     }
     return scan;
   }
@@ -251,42 +251,42 @@ public class IndexingUtils {
   private static Set<Integer> buildTaxonKey(Result row) {
     Set<Integer> taxonKey = new HashSet<Integer>();
 
-    Integer taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY);
+    Integer taxaKey = ExtResultReader.getInteger(row, FieldName.I_TAXON_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_KINGDOM_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_PHYLUM_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_CLASS_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_ORDER_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_FAMILY_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_GENUS_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }
 
-    taxaKey = OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY);
+    taxaKey = ExtResultReader.getInteger(row, FieldName.I_SPECIES_KEY);
     if (taxaKey != null) {
       taxonKey.add(taxaKey);
     }

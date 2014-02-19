@@ -1,9 +1,10 @@
 package org.gbif.occurrence.persistence;
 
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.persistence.hbase.FieldNameUtil;
 
 import java.util.Iterator;
 import java.util.List;
@@ -44,7 +45,7 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
     // lookup all occurrence ids from lookup table using dataset prefix
 
     //
-    deleteByColumn(Bytes.toBytes(datasetKey.toString()), FieldName.DATASET_KEY);
+    deleteByColumn(Bytes.toBytes(datasetKey.toString()), GbifTerm.datasetKey);
     LOG.debug("Completed deletion of dataset for datasetKey [{}]", datasetKey);
   }
 
@@ -54,12 +55,12 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
    * deletions in an incomplete state.
    *
    * @param columnValue value to match
-   * @param columnName column on which to match values
+   * @param column interpreted column on which to match values
    */
-  private void deleteByColumn(byte[] columnValue, FieldName columnName) {
-    LOG.debug("Starting delete by column for [{}]", columnName);
+  private void deleteByColumn(byte[] columnValue, GbifTerm column) {
+    LOG.debug("Starting delete by column for [{}]", column);
     int deleteCount = 0;
-    Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, columnName);
+    Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, FieldNameUtil.getColumn(column));
     List<Integer> keys = Lists.newArrayList();
     while (keyIterator.hasNext()) {
       int key = keyIterator.next();
@@ -76,6 +77,6 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
     LOG.debug("Writing batch of [{}] deletes", keys.size());
     occurrenceService.delete(keys);
     deleteCount += keys.size();
-    LOG.debug("Finished delete by column for [{}] giving [{}] total rows deleted", columnName, deleteCount);
+    LOG.debug("Finished delete by column for [{}] giving [{}] total rows deleted", column, deleteCount);
   }
 }

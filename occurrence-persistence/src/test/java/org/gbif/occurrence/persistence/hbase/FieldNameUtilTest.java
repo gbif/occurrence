@@ -6,7 +6,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.occurrence.common.constants.FieldName;
 
 import java.util.List;
 import java.util.Set;
@@ -22,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  *
  */
-public class HBaseFieldUtilTest {
+public class FieldNameUtilTest {
 
   /**
    * Verify all fieldnames are mapped and produce a unique column name
@@ -32,14 +31,14 @@ public class HBaseFieldUtilTest {
   public void testUniqueColumns() throws Exception {
     Set<HBaseColumn> columns = Sets.newHashSet();
     for (Term t : allTerms()) {
-      HBaseColumn col = HBaseFieldUtil.getHBaseColumn(t);
+      HBaseColumn col = FieldNameUtil.getColumn(t);
       assertNotNull("No hbase mapping for term " + t, col);
       assertFalse("Duplicate HBase column " + col, columns.contains(col));
       columns.add(col);
     }
     for (FieldName fn : FieldName.values()) {
       if (fn == FieldName.KEY) continue;
-      HBaseColumn col = HBaseFieldUtil.getHBaseColumn(fn);
+      HBaseColumn col = FieldNameUtil.getColumn(fn);
       assertNotNull("No hbase mapping for FieldName " + fn, col);
       assertFalse("Duplicate HBase column " + col, columns.contains(col));
       columns.add(col);

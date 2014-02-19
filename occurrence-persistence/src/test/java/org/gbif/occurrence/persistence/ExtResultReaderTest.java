@@ -1,8 +1,9 @@
 package org.gbif.occurrence.persistence;
 
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.ExtResultReader;
+import org.gbif.occurrence.persistence.hbase.FieldName;
+import org.gbif.occurrence.persistence.hbase.FieldNameUtil;
 import org.gbif.occurrence.persistence.hbase.HBaseColumn;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 
-public class OccurrenceResultReaderTest {
+public class ExtResultReaderTest {
 
   private static final int KEY_NAME = 12345;
   private static final byte[] KEY = Bytes.toBytes(KEY_NAME);
@@ -46,7 +47,7 @@ public class OccurrenceResultReaderTest {
   }
 
   private static KeyValue buildKv(FieldName fieldName, byte[] value) {
-    HBaseColumn hbaseCol = HBaseFieldUtil.getHBaseColumn(fieldName);
+    HBaseColumn hbaseCol = FieldNameUtil.getColumn(fieldName);
     KeyValue kv =
       new KeyValue(KEY, Bytes.toBytes(hbaseCol.getFamilyName()), Bytes.toBytes(hbaseCol.getColumnName()), value);
     return kv;
@@ -54,13 +55,13 @@ public class OccurrenceResultReaderTest {
 
   @Test
   public void testKey() {
-    Integer test = OccurrenceResultReader.getKey(result);
+    Integer test = ExtResultReader.getKey(result);
     assertEquals(KEY_NAME, test.intValue());
   }
 
   @Test
   public void testString() {
-    String test = OccurrenceResultReader.getString(result, FieldName.I_STATE_PROVINCE, null);
+    String test = ExtResultReader.getString(result, FieldName.I_STATE_PROVINCE, null);
     assertEquals(STRING_VAL_1, test);
   }
 
@@ -68,12 +69,12 @@ public class OccurrenceResultReaderTest {
   public void testStringFail() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("FieldName [LAST_PARSED] is not of type String");
-    OccurrenceResultReader.getString(result, FieldName.LAST_PARSED, null);
+    ExtResultReader.getString(result, FieldName.LAST_PARSED, null);
   }
 
   @Test
   public void testInteger() {
-    Integer test = OccurrenceResultReader.getInteger(result, FieldName.I_ELEVATION_ACC, null);
+    Integer test = ExtResultReader.getInteger(result, FieldName.I_ELEVATION_ACC, null);
     assertEquals(INT_VAL_1, test.intValue());
   }
 
@@ -81,12 +82,12 @@ public class OccurrenceResultReaderTest {
   public void testIntegerFail() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("FieldName [LAST_PARSED] is not of type Integer");
-    OccurrenceResultReader.getInteger(result, FieldName.LAST_PARSED, null);
+    ExtResultReader.getInteger(result, FieldName.LAST_PARSED, null);
   }
 
   @Test
   public void testLong() {
-    Long test = OccurrenceResultReader.getLong(result, FieldName.LAST_PARSED, null);
+    Long test = ExtResultReader.getLong(result, FieldName.LAST_PARSED, null);
     assertEquals(LONG_VAL_1, test.longValue());
   }
 
@@ -94,12 +95,12 @@ public class OccurrenceResultReaderTest {
   public void testLongFail() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("FieldName [I_WATERBODY] is not of type Long");
-    OccurrenceResultReader.getLong(result, FieldName.I_WATERBODY, null);
+    ExtResultReader.getLong(result, FieldName.I_WATERBODY, null);
   }
 
   @Test
   public void testDouble() {
-    Double test = OccurrenceResultReader.getDouble(result, FieldName.I_DECIMAL_LONGITUDE, null);
+    Double test = ExtResultReader.getDouble(result, FieldName.I_DECIMAL_LONGITUDE, null);
     assertEquals(DOUBLE_VAL_1, test, 0.00001);
   }
 
@@ -107,12 +108,7 @@ public class OccurrenceResultReaderTest {
   public void testDoubleFail() {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("FieldName [I_WATERBODY] is not of type Double");
-    OccurrenceResultReader.getDouble(result, FieldName.I_WATERBODY, null);
+    ExtResultReader.getDouble(result, FieldName.I_WATERBODY, null);
   }
 
-  @Test
-  public void testObject() {
-    Object test = OccurrenceResultReader.get(result, FieldName.I_DECIMAL_LONGITUDE);
-    assertEquals(DOUBLE_VAL_1, (Double) test, 0.00001);
-  }
 }

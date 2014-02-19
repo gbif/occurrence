@@ -1,7 +1,7 @@
 package org.gbif.occurrence.index.hbase;
 
-import org.gbif.occurrence.common.constants.FieldName;
-import org.gbif.occurrence.persistence.OccurrenceResultReader;
+import org.gbif.occurrence.persistence.hbase.ExtResultReader;
+import org.gbif.occurrence.persistence.hbase.FieldName;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,37 +59,37 @@ public class CSVFileBuilder {
       return null;
     } else {
       result.add(objectToString(Integer.toString(Bytes.toInt(row.getRow()))));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_ELEVATION)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.CATALOG_NUMBER)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_CLASS_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_CLASS)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.COLLECTION_CODE)));
-      result.add(objectToString(OccurrenceResultReader.getUuid(row, FieldName.DATASET_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_DEPTH)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_FAMILY)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_FAMILY_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_GENUS)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_GENUS_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.INSTITUTION_CODE)));
-      result.add(OccurrenceResultReader.getString(row, FieldName.I_COUNTRY));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_KINGDOM)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_KINGDOM_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE)));
-      result.add(objectToString(OccurrenceResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE)));
-      result.add(objectToString(OccurrenceResultReader.getDate(row, FieldName.I_MODIFIED)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_MONTH)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_TAXON_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getDate(row, FieldName.I_EVENT_DATE)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_ORDER)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_ORDER_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getUuid(row, FieldName.PUB_ORG_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_PHYLUM)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_PHYLUM_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME)));
-      result.add(objectToString(OccurrenceResultReader.getString(row, FieldName.I_SPECIES)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_SPECIES_KEY)));
-      result.add(objectToString(OccurrenceResultReader.getInteger(row, FieldName.I_YEAR)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_ELEVATION)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_BASIS_OF_RECORD)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.CATALOG_NUMBER)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_CLASS_KEY)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_CLASS)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.COLLECTION_CODE)));
+      result.add(objectToString(ExtResultReader.getUuid(row, FieldName.DATASET_KEY)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_DEPTH)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_FAMILY)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_FAMILY_KEY)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_GENUS)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_GENUS_KEY)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.INSTITUTION_CODE)));
+      result.add(ExtResultReader.getString(row, FieldName.I_COUNTRY));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_KINGDOM)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_KINGDOM_KEY)));
+      result.add(objectToString(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LATITUDE)));
+      result.add(objectToString(ExtResultReader.getDouble(row, FieldName.I_DECIMAL_LONGITUDE)));
+      result.add(objectToString(ExtResultReader.getDate(row, FieldName.I_MODIFIED)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_MONTH)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_TAXON_KEY)));
+      result.add(objectToString(ExtResultReader.getDate(row, FieldName.I_EVENT_DATE)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_ORDER)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_ORDER_KEY)));
+      result.add(objectToString(ExtResultReader.getUuid(row, FieldName.PUB_ORG_KEY)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_PHYLUM)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_PHYLUM_KEY)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_SCIENTIFIC_NAME)));
+      result.add(objectToString(ExtResultReader.getString(row, FieldName.I_SPECIES)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_SPECIES_KEY)));
+      result.add(objectToString(ExtResultReader.getInteger(row, FieldName.I_YEAR)));
 
       return result;
     }

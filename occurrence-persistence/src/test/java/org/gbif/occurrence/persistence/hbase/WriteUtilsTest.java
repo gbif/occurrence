@@ -7,15 +7,15 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class HBaseHelperTest {
+public class WriteUtilsTest {
 
   @Test
   public void testEnums() {
-    BasisOfRecord bor = HBaseHelper.nullSafeEnum(BasisOfRecord.class, "LIVING_SPECIMEN");
+    BasisOfRecord bor = WriteUtils.nullSafeEnum(BasisOfRecord.class, "LIVING_SPECIMEN");
     assertNotNull(bor);
     assertEquals(BasisOfRecord.LIVING_SPECIMEN, bor);
 
-    bor = HBaseHelper.nullSafeEnum(BasisOfRecord.class, "LIVING_SPECIMEN ");
+    bor = WriteUtils.nullSafeEnum(BasisOfRecord.class, "LIVING_SPECIMEN ");
     assertNotNull(bor);
     assertEquals(BasisOfRecord.LIVING_SPECIMEN, bor);
   }

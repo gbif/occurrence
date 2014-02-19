@@ -5,7 +5,7 @@ import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
-import org.gbif.occurrence.persistence.constants.HBaseTableConstants;
+import org.gbif.occurrence.persistence.hbase.TableConstants;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.ZkLockingKeyService;
@@ -110,17 +110,17 @@ public class OccurrenceKeyPersistenceServiceImplTest {
       new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE_NAME);
     Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
     put = new Put(Bytes.toBytes(DWC_KEY));
-    put.add(CF, Bytes.toBytes(HBaseTableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
     lookupTable.flushCommits();
     lookupTable.close();
 
     HTableInterface counterTable = tablePool.getTable(COUNTER_TABLE_NAME);
-    put = new Put(Bytes.toBytes(HBaseTableConstants.COUNTER_ROW));
-    put.add(Bytes.toBytes(HBaseTableConstants.COUNTER_COLUMN_FAMILY), Bytes.toBytes(HBaseTableConstants.COUNTER_COLUMN),
+    put = new Put(Bytes.toBytes(TableConstants.COUNTER_ROW));
+    put.add(Bytes.toBytes(TableConstants.COUNTER_COLUMN_FAMILY), Bytes.toBytes(TableConstants.COUNTER_COLUMN),
       Bytes.toBytes(Long.valueOf(2)));
     counterTable.put(put);
     counterTable.flushCommits();

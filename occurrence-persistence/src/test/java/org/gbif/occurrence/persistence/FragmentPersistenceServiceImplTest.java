@@ -4,7 +4,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.common.constants.FieldName;
+import org.gbif.occurrence.persistence.hbase.FieldName;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
@@ -12,7 +12,7 @@ import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
-import org.gbif.occurrence.persistence.hbase.HBaseFieldUtil;
+import org.gbif.occurrence.persistence.hbase.FieldNameUtil;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.ZkLockingKeyService;
 
@@ -153,52 +153,52 @@ public class FragmentPersistenceServiceImplTest {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
 
     Put put = new Put(Bytes.toBytes(xmlKey));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CATALOG_NUMBER).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.CATALOG_NUMBER).getColumnName()),
       Bytes.toBytes(CAT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTION_CODE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.COLLECTION_CODE).getColumnName()),
       Bytes.toBytes(COL_CODE));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CREATED).getColumnName()), Bytes.toBytes(CREATED));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+      .add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT_CREATED).getColumnName()), Bytes.toBytes(CREATED));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.DATASET_KEY).getColumnName()),
       Bytes.toBytes(XML_DATASET_KEY.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.INSTITUTION_CODE).getColumnName()),
       Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(GbifTerm.unitQualifier).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(GbifTerm.unitQualifier).getColumnName()),
       Bytes.toBytes(UNIT_QUALIFIER));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), XML);
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT_HASH).getColumnName()), XML_HASH);
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.XML_SCHEMA).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT).getColumnName()), XML);
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT_HASH).getColumnName()), XML_HASH);
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.XML_SCHEMA).getColumnName()),
       Bytes.toBytes(XML_SCHEMA.toString()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PROTOCOL).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.PROTOCOL).getColumnName()),
       Bytes.toBytes(ENDPOINT_TYPE.toString()));
     table.put(put);
 
     put = new Put(Bytes.toBytes(jsonKey));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CATALOG_NUMBER).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.CATALOG_NUMBER).getColumnName()),
       Bytes.toBytes(CAT));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.COLLECTION_CODE).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.COLLECTION_CODE).getColumnName()),
       Bytes.toBytes(COL_CODE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.DATASET_KEY).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.DATASET_KEY).getColumnName()),
       Bytes.toBytes(JSON_DATASET_KEY.toString()));
     put
-      .add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CREATED).getColumnName()), Bytes.toBytes(CREATED));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.INSTITUTION_CODE).getColumnName()),
+      .add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT_CREATED).getColumnName()), Bytes.toBytes(CREATED));
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.INSTITUTION_CODE).getColumnName()),
       Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(DwcTerm.occurrenceID).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(DwcTerm.occurrenceID).getColumnName()),
       Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.LAST_CRAWLED).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.LAST_CRAWLED).getColumnName()),
       Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.CRAWL_ID).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.CRAWL_ID).getColumnName()),
       Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT).getColumnName()), JSON);
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.FRAGMENT_HASH).getColumnName()), JSON_HASH);
-    put.add(CF, Bytes.toBytes(HBaseFieldUtil.getHBaseColumn(FieldName.PROTOCOL).getColumnName()),
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT).getColumnName()), JSON);
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.FRAGMENT_HASH).getColumnName()), JSON_HASH);
+    put.add(CF, Bytes.toBytes(FieldNameUtil.getColumn(FieldName.PROTOCOL).getColumnName()),
       Bytes.toBytes(JSON_ENDPOINT_TYPE.toString()));
     table.put(put);
 
