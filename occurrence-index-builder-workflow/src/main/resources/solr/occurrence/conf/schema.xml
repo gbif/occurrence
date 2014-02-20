@@ -51,14 +51,14 @@
 		
 	</types>
 	<fields>
-	  <field name="key" type="int" indexed="true" stored="true" required="true" />    
+      <field name="key" type="int" indexed="true" stored="true" required="true" />    
       <field name="dataset_key" type="string" indexed="true" stored="false" />
       <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true"/>    
       <field name="basis_of_record" type="string" indexed="true" stored="false"/>
       <field name="year" type="int" indexed="true" stored="false" />
       <field name="month" type="int" indexed="true" stored="false" />
-      <field name="elevation" type="int" indexed="true" stored="false" />
-      <field name="depth" type="int" indexed="true" stored="false" />    
+      <field name="elevation" type="double" indexed="true" stored="false" />
+      <field name="depth" type="double" indexed="true" stored="false" />    
       <field name="catalog_number" type="string" indexed="true" stored="false" />
       <field name="recorded_by" type="string" indexed="true" stored="false" />
       <field name="record_number" type="string" indexed="true" stored="false" />

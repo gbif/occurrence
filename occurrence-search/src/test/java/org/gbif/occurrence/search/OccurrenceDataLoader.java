@@ -135,14 +135,14 @@ public class OccurrenceDataLoader {
   // List of processors, a processor is defined for each column
   private final static CellProcessor[] CELL_PROCESSORS = new CellProcessor[] {
     new ParseInt(), // key
-    new Optional(new ParseInt()), // altitude
+    new Optional(new ParseDouble()), // elevation
     new Optional(new BasisOfRecordProcessor()), // basisOfRecord
     new Optional(), // catalogNumber
     new Optional(new ParseInt()), // classKey
     new Optional(), // clazz
     new Optional(), // collectionCode
     new Optional(new UUIDProcessor()), // datasetKey
-    new Optional(new ParseInt()),// depth
+    new Optional(new ParseDouble()),// depth
     new Optional(),// occurrenceId
     new Optional(),// family
     new Optional(new ParseInt()),// familyKey
