@@ -637,7 +637,7 @@ public class ArchiveBuilder {
                 }
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
-                logError("Found invalid UUID as datasetId >>>" + line + "<<<");
+                log("Found invalid UUID as datasetId >>>" + line + "<<<");
                 invalidUuids++;
               }
             }
