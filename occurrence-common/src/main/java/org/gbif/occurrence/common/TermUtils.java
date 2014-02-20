@@ -31,8 +31,7 @@ public class TermUtils {
     GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
     GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
     GbifTerm.elevation, GbifTerm.elevationAccuracy,
-    GbifTerm.depth, GbifTerm.depthAccuracy,
-    GbifTerm.distanceAboveSurface, GbifTerm.distanceAboveSurfaceAccuracy);
+    GbifTerm.depth, GbifTerm.depthAccuracy);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy);
@@ -69,7 +68,6 @@ public class TermUtils {
     GbifTerm.coordinateAccuracy,
     GbifTerm.elevation, GbifTerm.elevationAccuracy,
     GbifTerm.depth, GbifTerm.depthAccuracy,
-    GbifTerm.distanceAboveSurface, GbifTerm.distanceAboveSurfaceAccuracy,
     GbifTerm.unitQualifier, GbifTerm.issue,
     GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
   );
@@ -88,8 +86,7 @@ public class TermUtils {
         DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
         DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
         DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
-        DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
-        DwcTerm.minimumDistanceAboveSurfaceInMeters, DwcTerm.maximumDistanceAboveSurfaceInMeters
+        DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters
         )
       )
     );
