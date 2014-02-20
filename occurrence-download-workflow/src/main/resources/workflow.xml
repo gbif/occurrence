@@ -11,53 +11,6 @@
 
   <start to="big_download" />
 
-  <!-- unused, right now we only do big scans
-
-
-  <action name="occurrence_count">
-    <java>
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
-      <arg>${solr_query}</arg>
-      <arg>${wf:id()}</arg>
-      <capture-output/>
-    </java>
-
-    <ok to="make_query_decision" />
-    <error to="kill" />
-  </action>
-
-  <decision name="make_query_decision">
-    <switch>
-      <!-- it's a small download -- >
-      <case to="small_download">
-        ${wf:actionData('occurrence_count')['is_small_download']}
-      </case>
-      <default to="big_download" />
-    </switch>
-  </decision>
-
-  <action name="small_download">
-    <java>
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
-      <arg>${query_result_table}</arg>
-      <arg>${citation_table}</arg>
-      <arg>${solr_query}</arg>
-      <arg>${hdfs.namenode}</arg>
-      <arg>${hive.hdfs.out}</arg>
-      <arg>${wf:id()}</arg>
-    </java>
-
-    <ok to="copy_and_zip" />
-    <error to="failure_clean_hdfs_dirs" />
-  </action>
-  -->
-
   <fork name="big_download">
     <path start="query_interpreted" />
     <path start="query_verbatim" />
@@ -73,7 +26,7 @@
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select_interpreted}</param>
       <param>query=${query}</param>
-      <param>query_result=${query_result_table}</param>
+      <param>query_result=${query_result_table}_interpreted</param>
     </hive>
 
     <ok to="citation" />
@@ -149,7 +102,7 @@
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="clean_hdfs_dirs">
-        ${wf:actionData('occurrence_count')['is_small_download']}
+       false
       </case>
       <default to="drop_table" />
     </switch>

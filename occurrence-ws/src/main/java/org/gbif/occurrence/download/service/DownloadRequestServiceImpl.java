@@ -17,7 +17,6 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -99,7 +98,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   static {
     List<String> columns = Lists.newArrayList();
     for (Term term : TermUtils.interpretedTerms()) {
-      final String iCol = term.simpleName();
+      final String iCol = TermUtils.getHiveColumn(term);
       if (TermUtils.isInterpretedDate(term)) {
         columns.add("toISO8601(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedNumerical(term)) {
@@ -113,9 +112,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     columns = Lists.newArrayList();
     // manually add the GBIF occ key as first column
-    columns.add(DwcTerm.occurrenceID.simpleName());
     for (Term term : TermUtils.verbatimTerms()) {
-      columns.add("cleanDelimiters(v_" + term.simpleName() + ") AS " + term.simpleName());
+      String colName = TermUtils.getHiveColumn(term);
+      columns.add("cleanDelimiters(v_" + colName + ") AS " + colName);
     }
     HIVE_SELECT_VERBATIM = Joiner.on(",").join(columns);
   }
@@ -191,7 +190,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
     LOG.debug("Attempting to download with hive query [{}]", hiveQuery);
 
-    final String uniqueId = REPL_INVALID_HIVE_CHARS.removeFrom(request.getCreator() + '_' + UUID.randomUUID().toString());
+    final String uniqueId =
+      REPL_INVALID_HIVE_CHARS.removeFrom(request.getCreator() + '_' + UUID.randomUUID().toString());
     final String tmpTable = "download_tmp_" + uniqueId;
     final String citationTable = "download_tmp_citation_" + uniqueId;
 

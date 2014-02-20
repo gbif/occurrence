@@ -18,7 +18,7 @@ import com.google.common.io.Closer;
  */
 public class HeadersFileUtil {
 
-  public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatium_headers.txt";
+  public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatim_headers.txt";
   public static final String DEFAULT_INTERPRETED_FILE_NAME = "interpreted_headers.txt";
 
   public static final String HEADERS_FILE_PATH = "inc/";
