@@ -138,7 +138,7 @@
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>
       <arg>${registry.ws.url}</arg>
-      <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
+      <arg>false</arg>
     </java>
 
     <ok to="cleaning_decision" />
@@ -159,7 +159,7 @@
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="failure_clean_hdfs_dirs">
-        ${wf:actionData('occurrence_count')['is_small_download']}
+       false
       </case>
       <default to="failure_drop_table" />
     </switch>

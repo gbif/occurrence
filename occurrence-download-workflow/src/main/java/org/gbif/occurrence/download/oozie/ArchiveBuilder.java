@@ -683,6 +683,14 @@ public class ArchiveBuilder {
     return citationLink;
   }
 
+  /**
+   * Write rights text.
+   * 
+   * @param rightsWriter
+   * @param dataset
+   * @param citationLink
+   * @throws IOException
+   */
   private void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
     throws IOException {
     // write rights
