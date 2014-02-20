@@ -14,10 +14,9 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.api.InternalTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.hbase.ColumnUtil;
+import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
-import org.gbif.occurrence.persistence.hbase.TableConstants;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
@@ -58,7 +57,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_BATCH_SIZE = 50;
   private static final int SCANNER_CACHE_SIZE = 50;
-  private static final byte[] CF = Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY);
   private final String occurrenceTableName;
   private final HTablePool tablePool;
 
@@ -89,7 +87,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         return null;
       }
       byte[] rawFragment = ExtResultReader.getBytes(result,
-                              ColumnUtil.getColumn(InternalTerm.fragment));
+                              Columns.column(InternalTerm.fragment));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
@@ -159,8 +157,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     Scan scan = new Scan();
     scan.setBatch(SCANNER_BATCH_SIZE);
     scan.setCaching(SCANNER_CACHE_SIZE);
-    scan.addColumn(CF, col);
-    SingleColumnValueFilter filter = new SingleColumnValueFilter(CF, col, CompareFilter.CompareOp.EQUAL, columnValue);
+    scan.addColumn(Columns.CF, col);
+    SingleColumnValueFilter filter = new SingleColumnValueFilter(Columns.CF, col, CompareFilter.CompareOp.EQUAL, columnValue);
     scan.setFilter(filter);
 
     return new OccurrenceKeyIterator(tablePool, occurrenceTableName, scan);
@@ -249,7 +247,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     Get get = new Get(upd.getKey());
     Result row = occTable.get(get);
     for (KeyValue kv : row.raw()) {
-      Term term = ColumnUtil.getTermFromVerbatimColumn(kv.getQualifier());
+      Term term = Columns.termFromVerbatimColumn(kv.getQualifier());
       if (term != null) {
         if (occ.getVerbatimField(term) == null &&
             // only remove the interpreted verbatim terms if explicitly requested
@@ -292,8 +290,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     upd.setInterpretedField(GbifTerm.depthAccuracy, occ.getDepthAccuracy());
     upd.setInterpretedField(GbifTerm.elevation, occ.getElevation());
     upd.setInterpretedField(GbifTerm.elevationAccuracy, occ.getElevationAccuracy());
-    upd.setInterpretedField(GbifTerm.distanceAboveSurface, occ.getDistanceAboveSurface());
-    upd.setInterpretedField(GbifTerm.distanceAboveSurfaceAccuracy, occ.getDistanceAboveSurfaceAccuracy());
     upd.setInterpretedField(DwcTerm.decimalLatitude, occ.getDecimalLatitude());
     upd.setInterpretedField(DwcTerm.decimalLongitude, occ.getDecimalLongitude());
     upd.setInterpretedField(DwcTerm.countryCode, occ.getCountry());
@@ -326,15 +322,15 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       upd.setInterpretedField(InternalTerm.identifierCount, occ.getIdentifiers().size());
       int count = 0;
       for (Identifier record : occ.getIdentifiers()) {
-        upd.setField(ColumnUtil.getIdColumn(count), Bytes.toBytes(record.getIdentifier()));
-        upd.setField(ColumnUtil.getIdTypeColumn(count), Bytes.toBytes(record.getType().toString()));
+        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
+        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
         count++;
       }
     }
 
     // OccurrenceIssues
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      upd.setField(ColumnUtil.getColumn(issue), occ.getIssues().contains(issue) ? Bytes.toBytes(1) : null);
+      upd.setField(Columns.column(issue), occ.getIssues().contains(issue) ? Bytes.toBytes(1) : null);
     }
   }
 
@@ -342,22 +338,22 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * removes id columns and sets id count to zero
    */
   private void deleteOldIdentifiers(HTableInterface occTable, int id) throws IOException {
-    final String idCountColumn = ColumnUtil.getColumn(InternalTerm.identifierCount);
+    final String idCountColumn = Columns.column(InternalTerm.identifierCount);
 
     Get get = new Get(Bytes.toBytes(id));
-    get.addColumn(CF, Bytes.toBytes(idCountColumn));
+    get.addColumn(Columns.CF, Bytes.toBytes(idCountColumn));
     Result result = occTable.get(get);
     Integer maxCount = ExtResultReader.getInteger(result, idCountColumn);
     if (maxCount != null && maxCount > 0) {
       Delete delete = new Delete(Bytes.toBytes(id));
       for (int count = 0; count < maxCount; count++) {
-        delete.deleteColumn(CF, Bytes.toBytes(ColumnUtil.getIdColumn(count)));
-        delete.deleteColumn(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(count)));
+        delete.deleteColumn(Columns.CF, Bytes.toBytes(Columns.idColumn(count)));
+        delete.deleteColumn(Columns.CF, Bytes.toBytes(Columns.idTypeColumn(count)));
       }
       occTable.delete(delete);
       // set count to 0
       Put put = new Put(Bytes.toBytes(id));
-      put.add(CF, Bytes.toBytes(idCountColumn), Bytes.toBytes(0));
+      put.add(Columns.CF, Bytes.toBytes(idCountColumn), Bytes.toBytes(0));
       occTable.put(put);
     }
   }

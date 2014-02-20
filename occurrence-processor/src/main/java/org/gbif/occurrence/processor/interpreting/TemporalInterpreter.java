@@ -57,14 +57,14 @@ public class TemporalInterpreter {
 
     if (verbatim.hasVerbatimField(DcTerm.modified)) {
       ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified),
-                                               VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKLEY);
+                                               VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
       occ.setModified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
 
     if (verbatim.hasVerbatimField(DwcTerm.dateIdentified)) {
       ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
-                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKLEY);
+                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }

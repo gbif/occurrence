@@ -40,7 +40,7 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
     int ord = key % BasisOfRecord.values().length;
     occ.setBasisOfRecord(BasisOfRecord.values()[ord]);
     occ.setYear(1800 + (key % 200));
-    occ.setElevation(key % 2000);
+    occ.setElevation(key % 2000d);
     Map<Term, String> fields = occ.getVerbatimFields();
     fields.put(DwcTerm.catalogNumber, "cat-" + key);
     occ.setVerbatimFields(fields);

@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ExtResultReader {
 
   private static final Logger LOG = LoggerFactory.getLogger(ExtResultReader.class);
-  private static String CF = TableConstants.OCCURRENCE_COLUMN_FAMILY;
+  private static String CF = Columns.OCCURRENCE_COLUMN_FAMILY;
   /**
    * Should never be instantiated.
    */
@@ -38,7 +38,7 @@ public class ExtResultReader {
   }
 
   public static String getString(Result row, Term column) {
-    return getString(row, ColumnUtil.getColumn(column), null);
+    return getString(row, Columns.column(column), null);
   }
 
   public static String getString(Result row, String column, @Nullable String defaultValue) {
@@ -53,7 +53,7 @@ public class ExtResultReader {
   }
 
   public static UUID getUuid(Result row, Term column) {
-    String uuid = getString(row, ColumnUtil.getColumn(column));
+    String uuid = getString(row, Columns.column(column));
     return uuid == null ? null : UUID.fromString(uuid);
   }
 
@@ -62,7 +62,7 @@ public class ExtResultReader {
   }
 
   public static Double getDouble(Result row, Term column) {
-    return getDouble(row, ColumnUtil.getColumn(column), null);
+    return getDouble(row, Columns.column(column), null);
   }
 
   public static Double getDouble(Result row, String column, @Nullable Double defaultValue) {
@@ -76,7 +76,7 @@ public class ExtResultReader {
   }
 
   public static Integer getInteger(Result row, Term column) {
-    return getInteger(row, ColumnUtil.getColumn(column), null);
+    return getInteger(row, Columns.column(column), null);
   }
 
   public static Integer getInteger(Result row, String column, @Nullable Integer defaultValue) {
@@ -91,7 +91,7 @@ public class ExtResultReader {
   }
 
   public static Date getDate(Result row, Term column) {
-    return getDate(row, ColumnUtil.getColumn(column));
+    return getDate(row, Columns.column(column));
   }
 
   public static Long getLong(Result row, String column) {
@@ -99,7 +99,7 @@ public class ExtResultReader {
   }
 
   public static Long getLong(Result row, Term column) {
-    return getLong(row, ColumnUtil.getColumn(column), null);
+    return getLong(row, Columns.column(column), null);
   }
 
   public static Long getLong(Result row, String column, @Nullable Long defaultValue) {
@@ -109,7 +109,7 @@ public class ExtResultReader {
   }
 
   public static byte[] getBytes(Result row, Term column) {
-    return getBytes(row, ColumnUtil.getColumn(column), null);
+    return getBytes(row, Columns.column(column), null);
   }
 
   public static byte[] getBytes(Result row, String column) {
@@ -123,7 +123,7 @@ public class ExtResultReader {
   }
 
   public static <T extends Enum<?>> T getEnum(Result row, Term column, Class<T> enumClass) {
-    String value = getString(row, ColumnUtil.getColumn(column), null);
+    String value = getString(row, Columns.column(column), null);
     if (!Strings.isNullOrEmpty(value)) {
       try {
         return (T) VocabularyUtils.lookupEnum(value, enumClass);

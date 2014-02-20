@@ -19,7 +19,34 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Primarily translate from Terms to their corresponding HBase column name (in the occurrence table), but
  * also deals with any other names used, e.g. identifiers, issue columns, etc.
  */
-public class ColumnUtil {
+public class Columns {
+
+
+  // the one column family for all columns of the occurrence table
+  public static final String OCCURRENCE_COLUMN_FAMILY = "o";
+  public static final byte[] CF = Bytes.toBytes(OCCURRENCE_COLUMN_FAMILY);
+
+  // a prefix required for all non term based columns
+  private static final String INTERNAL_PREFIX = "_";
+
+  // the counter table is a single cell that is the "autoincrement" number for new keys, with column family, column,
+  // and key ("row" in hbase speak)
+  public static final String COUNTER_COLUMN = INTERNAL_PREFIX + "id";
+
+  // the lookup table is a secondary index of unique ids (holy triplet or publisher-provided) to GBIF integer keys
+  public static final String LOOKUP_KEY_COLUMN = INTERNAL_PREFIX + "i";
+  public static final String LOOKUP_LOCK_COLUMN = INTERNAL_PREFIX + "l";
+  public static final String LOOKUP_STATUS_COLUMN = INTERNAL_PREFIX + "s";
+
+  // each UnknownTerm is prefixed differently
+  private static final String VERBATIM_TERM_PREFIX = "v_";
+
+  // a single occurrence will have 0 or more OccurrenceIssues. Once column per issue, each one prefixed
+  private static final String ISSUE_PREFIX = INTERNAL_PREFIX + "iss_";
+
+  // An occurrence can have 0-n identifiers, each of a certain type. Their column names look like _t1, _i1, _t2, _i2, etc.
+  private static final String IDENTIFIER_TYPE_COLUMN = INTERNAL_PREFIX + "t";
+  private static final String IDENTIFIER_COLUMN = INTERNAL_PREFIX + "i";
 
   // bootstrap term factory, adding the new InternalTerm enum
   static {
@@ -33,7 +60,7 @@ public class ColumnUtil {
   /**
    * Should never be instantiated.
    */
-  private ColumnUtil() {
+  private Columns() {
   }
 
   /**
@@ -43,17 +70,20 @@ public class ColumnUtil {
    *
    * Asking for a "secondary" interpreted term like country which is used during interpretation but not stored
    * will result in an IllegalArgumentException. dwc:countryCode is the right term in this case.
+   *
+   * Key terms like taxonID or occurrenceID are considered verbatim terms and do not map to the respective GBIF columns.
+   * Please use the GbifTerm enum for those!
    */
-  public static String getColumn(Term term) {
+  public static String column(Term term) {
     if (term instanceof InternalTerm || TermUtils.isOccurrenceJavaProperty(term)) {
-      return getColumn(term, "");
+      return column(term, "");
 
     } else if(TermUtils.isInterpretedSourceTerm(term)) {
       // "secondary" terms used in interpretation but not used to store the interpreted values should never be asked for
       throw new IllegalArgumentException("The term " + term + " is interpreted and only relevant for verbatim values");
 
     } else {
-      return getVerbatimColumn(term);
+      return verbatimColumn(term);
     }
   }
 
@@ -63,14 +93,14 @@ public class ColumnUtil {
    * @param term
    * @return
    */
-  public static String getVerbatimColumn(Term term) {
+  public static String verbatimColumn(Term term) {
     if (term instanceof InternalTerm) {
       throw new IllegalArgumentException("Internal terms do not exist as verbatim columns");
     }
-    return getColumn(term, TableConstants.VERBATIM_TERM_PREFIX);
+    return column(term, VERBATIM_TERM_PREFIX);
   }
 
-  private static String getColumn(Term term, String colPrefix) {
+  private static String column(Term term, String colPrefix) {
     checkNotNull(term, "term can't be null");
 
     // unknown terms will never be mapped in Hive, and we can't replace : with anything and guarantee that it will
@@ -83,12 +113,12 @@ public class ColumnUtil {
     return colPrefix + term.simpleName();
   }
 
-  public static String getIdColumn(int index) {
-    return TableConstants.IDENTIFIER_COLUMN + index;
+  public static String idColumn(int index) {
+    return IDENTIFIER_COLUMN + index;
   }
 
-  public static String getIdTypeColumn(int index) {
-    return TableConstants.IDENTIFIER_TYPE_COLUMN+ index;
+  public static String idTypeColumn(int index) {
+    return IDENTIFIER_TYPE_COLUMN+ index;
   }
 
   /**
@@ -96,22 +126,22 @@ public class ColumnUtil {
    * If the column given is not a verbatim column, null will be returned.
    */
   @Nullable
-  public static Term getTermFromVerbatimColumn(byte[] qualifier) {
+  public static Term termFromVerbatimColumn(byte[] qualifier) {
     checkNotNull(qualifier, "qualifier can't be null");
     String colName = Bytes.toString(qualifier);
 
-    if (!colName.startsWith(TableConstants.VERBATIM_TERM_PREFIX)) {
+    if (!colName.startsWith(VERBATIM_TERM_PREFIX)) {
       // we asked for a verbatim column but this one lacks the verbatim prefix!
       return null;
     }
 
     // this is a verbatim term column
-    return TermFactory.instance().findTerm(colName.substring(TableConstants.VERBATIM_TERM_PREFIX.length()));
+    return TermFactory.instance().findTerm(colName.substring(VERBATIM_TERM_PREFIX.length()));
   }
 
-  public static String getColumn(OccurrenceIssue issue) {
+  public static String column(OccurrenceIssue issue) {
     checkNotNull(issue, "issue can't be null");
-    return TableConstants.ISSUE_PREFIX + issue.name();
+    return ISSUE_PREFIX + issue.name();
   }
 
 }

@@ -21,7 +21,7 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.persistence.api.InternalTerm;
-import org.gbif.occurrence.persistence.hbase.ColumnUtil;
+import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
 import java.util.Date;
@@ -64,7 +64,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int CLASS_ID = 99;
   private static final String CLASS = "Mammalia";
   private static final UUID DATASET_KEY = UUID.randomUUID();
-  private static final int DEPTH = 90;
+  private static final double DEPTH = 90d;
   private static final String FAMILY = "Felidae";
   private static final int FAMILY_KEY = 90897087;
   private static final String GENUS = "Panthera";
@@ -97,7 +97,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final Country COUNTRY = Country.TANZANIA;
   private static final Date DATE_IDENTIFIED = new Date();
   private static final Integer DAY = 3;
-  private static final Integer DEPTH_ACC = 15;
+  private static final Double DEPTH_ACC = 15d;
   private static final EstablishmentMeans ESTAB_MEANS = EstablishmentMeans.NATIVE;
   private static final String GEO_DATUM = "WGS84";
   private static final Integer INDIVIDUAL_COUNT = 123;
@@ -113,8 +113,6 @@ public class OccurrencePersistenceServiceImplTest {
   private static final TypeStatus TYPE_STATUS = TypeStatus.EPITYPE;
   private static final String TYPIFIED_NAME = "Aloo gobi";
   // even newer fields
-  private static final Integer DIST_ABOVE_SURFACE = 50;
-  private static final Integer DIST_ABOVE_SURFACE_ACC = 10;
   private static final String GENERIC_NAME = "generic name";
   private static final String SPECIFIC_EPITHET = "onca";
   private static final String INFRA_SPECIFIC_EPITHET = "infraonca";
@@ -154,135 +152,130 @@ public class OccurrencePersistenceServiceImplTest {
     occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.elevation)), Bytes.toBytes(ELEV));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.basisOfRecord)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevation)), Bytes.toBytes(ELEV));
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.basisOfRecord)),
       Bytes.toBytes(BOR.name()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.classKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.classKey)),
       Bytes.toBytes(CLASS_ID));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.class_)), Bytes.toBytes(CLASS));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.datasetKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.class_)), Bytes.toBytes(CLASS));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
       Bytes.toBytes(DATASET_KEY.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.depth)), Bytes.toBytes(DEPTH));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.depth)), Bytes.toBytes(DEPTH));
     put
-      .add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.family)), Bytes.toBytes(FAMILY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.familyKey)),
+      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.family)), Bytes.toBytes(FAMILY));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.familyKey)),
       Bytes.toBytes(FAMILY_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.genus)), Bytes.toBytes(GENUS));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.genusKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.genus)), Bytes.toBytes(GENUS));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.genusKey)),
       Bytes.toBytes(GENUS_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.publishingCountry)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.publishingCountry)),
       Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
 
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.lastCrawled)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
       Bytes.toBytes(LAST_CRAWLED.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.lastParsed)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastParsed)),
       Bytes.toBytes(LAST_PARSED.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.lastInterpreted)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)),
       Bytes.toBytes(LAST_INTERPRETED.getTime()));
 
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.kingdom)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.kingdom)),
       Bytes.toBytes(KINGDOM));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.kingdomKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.kingdomKey)),
       Bytes.toBytes(KINGDOM_ID));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.decimalLatitude)), Bytes.toBytes(LAT));
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLatitude)), Bytes.toBytes(LAT));
     put
-      .add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.decimalLongitude)), Bytes.toBytes(LNG));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DcTerm.modified)),
+      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLongitude)), Bytes.toBytes(LNG));
+    put.add(CF, Bytes.toBytes(Columns.column(DcTerm.modified)),
       Bytes.toBytes(MOD.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.month)), Bytes.toBytes(MONTH));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.taxonKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.month)), Bytes.toBytes(MONTH));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.taxonKey)),
       Bytes.toBytes(TAXON_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.eventDate)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.eventDate)),
       Bytes.toBytes(EVENT_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.order)), Bytes.toBytes(ORDER));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.orderKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.order)), Bytes.toBytes(ORDER));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.orderKey)),
       Bytes.toBytes(ORDER_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(InternalTerm.publishingOrgKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.publishingOrgKey)),
       Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
     put
-      .add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.phylum)), Bytes.toBytes(PHYLUM));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.phylumKey)),
+      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.phylum)), Bytes.toBytes(PHYLUM));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.phylumKey)),
       Bytes.toBytes(PHYLUM_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.protocol)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
       Bytes.toBytes(PROTOCOL.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.scientificName)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.scientificName)),
       Bytes.toBytes(SCI_NAME));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.species)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.species)),
       Bytes.toBytes(SPECIES));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.speciesKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.speciesKey)),
       Bytes.toBytes(SPECIES_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.year)), Bytes.toBytes(YEAR));
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.year)), Bytes.toBytes(YEAR));
 
     // new for occurrence widening
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.elevationAccuracy)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevationAccuracy)),
       Bytes.toBytes(ELEV_ACC));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.coordinateAccuracy)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.coordinateAccuracy)),
       Bytes.toBytes(COORD_ACC));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.continent)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.continent)),
       Bytes.toBytes(CONTINENT.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.countryCode)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.countryCode)),
       Bytes.toBytes(COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.dateIdentified)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.dateIdentified)),
       Bytes.toBytes(DATE_IDENTIFIED.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.day)), Bytes.toBytes(DAY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.depthAccuracy)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.day)), Bytes.toBytes(DAY));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.depthAccuracy)),
       Bytes.toBytes(DEPTH_ACC));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.establishmentMeans)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.establishmentMeans)),
       Bytes.toBytes(ESTAB_MEANS.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.individualCount)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.individualCount)),
       Bytes.toBytes(INDIVIDUAL_COUNT));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.lastInterpreted)),
-      Bytes.toBytes(LAST_INTERPRETED.getTime()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.lifeStage)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)), Bytes.toBytes(LAST_INTERPRETED.getTime()));
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.lifeStage)),
       Bytes.toBytes(LIFE_STAGE.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.sex)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.sex)),
       Bytes.toBytes(SEX.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.stateProvince)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.stateProvince)),
       Bytes.toBytes(STATE_PROV));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.waterBody)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.waterBody)),
       Bytes.toBytes(WATERBODY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.subgenus)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.subgenus)),
       Bytes.toBytes(SUBGENUS));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.subgenusKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.subgenusKey)),
       Bytes.toBytes(SUBGENUS_KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.typeStatus)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typeStatus)),
       Bytes.toBytes(TYPE_STATUS.toString()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.typifiedName)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typifiedName)),
       Bytes.toBytes(TYPIFIED_NAME));
 
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.genericName)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.genericName)),
       Bytes.toBytes(GENERIC_NAME));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.specificEpithet)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.specificEpithet)),
       Bytes.toBytes(SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.infraspecificEpithet)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.infraspecificEpithet)),
       Bytes.toBytes(INFRA_SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(DwcTerm.taxonRank)),
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.taxonRank)),
       Bytes.toBytes(TAXON_RANK.name()));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.distanceAboveSurface)),
-      Bytes.toBytes(DIST_ABOVE_SURFACE));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(GbifTerm.distanceAboveSurfaceAccuracy)),
-      Bytes.toBytes(DIST_ABOVE_SURFACE_ACC));
 
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(0)), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(1)), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(2)), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
+    put.add(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
+    put.add(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
+    put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
 
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(InternalTerm.fragment)), Bytes.toBytes(XML));
+    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragment)), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getVerbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(term)), Bytes.toBytes("I am " + term.toString()));
+    put.add(CF, Bytes.toBytes(Columns.column(term)), Bytes.toBytes("I am " + term.toString()));
 
     setUpIssues();
 
@@ -295,13 +288,13 @@ public class OccurrencePersistenceServiceImplTest {
   private void setUpIdentifiers() throws IOException {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(0)), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(1)), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdColumn(2)), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getIdTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
-    put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(InternalTerm.identifierCount)),
+    put.add(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
+    put.add(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
+    put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
+    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
+    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.identifierCount)),
       Bytes.toBytes(3));
     table.put(put);
     table.close();
@@ -311,7 +304,7 @@ public class OccurrencePersistenceServiceImplTest {
     HTableInterface table = tablePool.getTable(TABLE_NAME);
     Put put = new Put(Bytes.toBytes(KEY));
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      put.add(CF, Bytes.toBytes(ColumnUtil.getColumn(issue)), Bytes.toBytes(1));
+      put.add(CF, Bytes.toBytes(Columns.column(issue)), Bytes.toBytes(1));
     }
     table.put(put);
     table.close();
@@ -361,13 +354,11 @@ public class OccurrencePersistenceServiceImplTest {
     Occurrence update = occurrenceService.get(KEY);
 
     Date origLastParsed = update.getLastParsed();
-    int alt = 1234;
+    double alt = 1234.2;
     BasisOfRecord bor = BasisOfRecord.OBSERVATION;
     int classId = 88;
     String clazz = "Monocots";
-    int depth = 120;
-    int distAbove = 500;
-    int distAboveAcc = 2;
+    double depth = 120.8;
     String family = "Melanthiaceae";
     int familyId = 96578787;
     String genericName = "generic trillium";
@@ -431,8 +422,6 @@ public class OccurrencePersistenceServiceImplTest {
     update.setInfraspecificEpithet(infraEpithet);
     update.setGenericName(genericName);
     update.setTaxonRank(taxonRank);
-    update.setDistanceAboveSurface(distAbove);
-    update.setDistanceAboveSurfaceAccuracy(distAboveAcc);
 
     String id0 = "http://www.ala.org.au";
     IdentifierType idType0 = IdentifierType.GBIF_NODE;
@@ -480,7 +469,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(lat, occ.getDecimalLatitude(), 0.0001);
     assertEquals(lng, occ.getDecimalLongitude(), 0.0001);
     assertEquals(mod, occ.getModified());
-    assertEquals(month, (int) occ.getMonth() );
+    assertEquals(month, (int) occ.getMonth());
     assertEquals(nubId, (int) occ.getTaxonKey());
     assertEquals(occDate, occ.getEventDate());
     assertEquals(order, occ.getOrder());
@@ -499,8 +488,6 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(infraEpithet, occ.getInfraspecificEpithet());
     assertEquals(genericName, occ.getGenericName());
     assertEquals(taxonRank, occ.getTaxonRank());
-    assertEquals((Integer) distAbove, occ.getDistanceAboveSurface());
-    assertEquals((Integer) distAboveAcc, occ.getDistanceAboveSurfaceAccuracy());
 
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size() + 3);
     assertFalse(occ.getIssues().contains(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED));
@@ -543,7 +530,7 @@ public class OccurrencePersistenceServiceImplTest {
   public void testKeyIterator() {
     int count = 0;
     Iterator<Integer> iterator =
-      occurrenceService.getKeysByColumn(Bytes.toBytes(DATASET_KEY.toString()), ColumnUtil.getColumn(GbifTerm.datasetKey));
+      occurrenceService.getKeysByColumn(Bytes.toBytes(DATASET_KEY.toString()), Columns.column(GbifTerm.datasetKey));
     while (iterator.hasNext()) {
       iterator.next();
       count++;
@@ -651,10 +638,8 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(DATASET_KEY, occ.getDatasetKey());
     assertEquals(DATE_IDENTIFIED, occ.getDateIdentified());
     assertEquals(DAY, occ.getDay());
-    assertEquals((Integer) DEPTH, occ.getDepth());
+    assertEquals((Double) DEPTH, occ.getDepth());
     assertEquals(DEPTH_ACC, occ.getDepthAccuracy());
-    assertEquals(DIST_ABOVE_SURFACE, occ.getDistanceAboveSurface());
-    assertEquals(DIST_ABOVE_SURFACE_ACC, occ.getDistanceAboveSurfaceAccuracy());
     assertEquals(ESTAB_MEANS, occ.getEstablishmentMeans());
     assertEquals(EVENT_DATE, occ.getEventDate());
     assertEquals(GEO_DATUM, occ.getGeodeticDatum());

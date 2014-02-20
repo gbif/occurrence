@@ -6,7 +6,8 @@ import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
-import org.gbif.occurrence.persistence.hbase.TableConstants;
+import org.gbif.occurrence.persistence.hbase.Columns;
+import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.ZkLockingKeyService;
 
@@ -48,7 +49,6 @@ public class OccurrenceKeyPersistenceServiceImplTest {
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
   private static final String OCCURRENCE_TABLE_NAME = "occurrence_test";
   private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(OCCURRENCE_TABLE_NAME);
-
   private static final UUID datasetKey = UUID.fromString("2bc753d7-125d-41a1-b3a8-8edbd6777ec3");
   private static final String IC = "BGBM";
   private static final String CC = "Vascular Plants";
@@ -110,17 +110,17 @@ public class OccurrenceKeyPersistenceServiceImplTest {
       new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE_NAME);
     Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
-    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
     put = new Put(Bytes.toBytes(DWC_KEY));
-    put.add(CF, Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
     lookupTable.flushCommits();
     lookupTable.close();
 
     HTableInterface counterTable = tablePool.getTable(COUNTER_TABLE_NAME);
-    put = new Put(Bytes.toBytes(TableConstants.COUNTER_ROW));
-    put.add(CF, Bytes.toBytes(TableConstants.COUNTER_COLUMN),
+    put = new Put(Bytes.toBytes(HBaseLockingKeyService.COUNTER_ROW));
+    put.add(CF, Bytes.toBytes(Columns.COUNTER_COLUMN),
       Bytes.toBytes(Long.valueOf(2)));
     counterTable.put(put);
     counterTable.flushCommits();

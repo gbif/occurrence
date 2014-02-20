@@ -22,8 +22,6 @@ import org.apache.hadoop.hbase.util.Bytes;
  * Use setInterpreted for all internal and gbif terms, there should be no verbatim version!
  */
 public class RowUpdate {
-  private static final byte[] CF = Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY);
-
   private final byte[] key;
   private final Put put;
   private final Delete del;
@@ -57,106 +55,106 @@ public class RowUpdate {
 
   public void setField(String column, @Nullable byte[] value) {
     if (value != null) {
-      put.add(CF, Bytes.toBytes(column), value);
+      put.add(Columns.CF, Bytes.toBytes(column), value);
     } else {
-      del.deleteColumn(CF, Bytes.toBytes(column));
+      del.deleteColumn(Columns.CF, Bytes.toBytes(column));
     }
   }
 
   public void deleteField(String column) {
-    del.deleteColumn(CF, Bytes.toBytes(column));
+    del.deleteColumn(Columns.CF, Bytes.toBytes(column));
   }
 
   public void deleteField(byte [] columnQualifier) {
-    del.deleteColumn(CF, columnQualifier);
+    del.deleteColumn(Columns.CF, columnQualifier);
   }
 
   public void deleteVerbatimField(Term term) {
-    setField(ColumnUtil.getVerbatimColumn(term), null);
+    setField(Columns.verbatimColumn(term), null);
   }
 
   public void deleteInterpretedField(Term term) {
-    setField(ColumnUtil.getColumn(term), null);
+    setField(Columns.column(term), null);
   }
 
   public void setVerbatimField(Term term, @Nullable byte[] value) {
-    setField(ColumnUtil.getVerbatimColumn(term), value);
+    setField(Columns.verbatimColumn(term), value);
   }
 
   public void setInterpretedField(Term term, @Nullable byte[] value) {
-    setField(ColumnUtil.getColumn(term), value);
+    setField(Columns.column(term), value);
   }
 
 
   public void setVerbatimField(Term term, @Nullable String value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable String value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Long value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Long value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Double value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Double value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Integer value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Integer value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Date value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Date value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Country value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Country value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable UUID value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable UUID value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 
   public void setVerbatimField(Term term, @Nullable Enum value) {
-    setField(ColumnUtil.getVerbatimColumn(term), nullSafeBytes(value));
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
   public void setInterpretedField(Term term, @Nullable Enum value) {
-    setField(ColumnUtil.getColumn(term), nullSafeBytes(value));
+    setField(Columns.column(term), nullSafeBytes(value));
   }
 
 

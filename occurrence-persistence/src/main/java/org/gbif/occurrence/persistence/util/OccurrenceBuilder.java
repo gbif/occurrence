@@ -24,9 +24,8 @@ import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.InternalTerm;
-import org.gbif.occurrence.persistence.hbase.ColumnUtil;
+import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
-import org.gbif.occurrence.persistence.hbase.TableConstants;
 
 import java.util.Date;
 import java.util.EnumSet;
@@ -50,7 +49,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
-  private static final byte[] CF = Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY);
 
   //TODO: move these maps to Classification, Term or RankUtils
   public static final Map<Rank, Term> rank2taxonTerm = ImmutableMap.<Rank, Term>builder()
@@ -176,12 +174,10 @@ public class OccurrenceBuilder {
 
       // other java properties
       occ.setBasisOfRecord(ExtResultReader.getEnum(row, DwcTerm.basisOfRecord, BasisOfRecord.class));
-      occ.setElevation(ExtResultReader.getInteger(row, GbifTerm.elevation));
-      occ.setElevationAccuracy(ExtResultReader.getInteger(row, GbifTerm.elevationAccuracy));
-      occ.setDepth(ExtResultReader.getInteger(row, GbifTerm.depth));
-      occ.setDepthAccuracy(ExtResultReader.getInteger(row, GbifTerm.depthAccuracy));
-      occ.setDistanceAboveSurface(ExtResultReader.getInteger(row, GbifTerm.distanceAboveSurface));
-      occ.setDistanceAboveSurfaceAccuracy(ExtResultReader.getInteger(row, GbifTerm.distanceAboveSurfaceAccuracy));
+      occ.setElevation(ExtResultReader.getDouble(row, GbifTerm.elevation));
+      occ.setElevationAccuracy(ExtResultReader.getDouble(row, GbifTerm.elevationAccuracy));
+      occ.setDepth(ExtResultReader.getDouble(row, GbifTerm.depth));
+      occ.setDepthAccuracy(ExtResultReader.getDouble(row, GbifTerm.depthAccuracy));
 
       occ.setDatasetKey(ExtResultReader.getUuid(row, GbifTerm.datasetKey));
       occ.setPublishingOrgKey(ExtResultReader.getUuid(row, InternalTerm.publishingOrgKey));
@@ -241,7 +237,7 @@ public class OccurrenceBuilder {
 
     for (KeyValue kv : row.raw()) {
       // all verbatim Term fields in row are prefixed. Columns without that prefix return null!
-      Term term = ColumnUtil.getTermFromVerbatimColumn(kv.getQualifier());
+      Term term = Columns.termFromVerbatimColumn(kv.getQualifier());
       if (term != null) {
         verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
@@ -255,10 +251,10 @@ public class OccurrenceBuilder {
     Integer maxCount = ExtResultReader.getInteger(result, InternalTerm.identifierCount);
     if (maxCount != null) {
       for (int count = 0; count < maxCount; count++) {
-        String idCol = ColumnUtil.getIdColumn(count);
-        String idTypeCol = ColumnUtil.getIdTypeColumn(count);
-        String id = ResultReader.getString(result, TableConstants.OCCURRENCE_COLUMN_FAMILY, idCol, null);
-        String rawType = ResultReader.getString(result, TableConstants.OCCURRENCE_COLUMN_FAMILY, idTypeCol, null);
+        String idCol = Columns.idColumn(count);
+        String idTypeCol = Columns.idTypeColumn(count);
+        String id = ResultReader.getString(result, Columns.OCCURRENCE_COLUMN_FAMILY, idCol, null);
+        String rawType = ResultReader.getString(result, Columns.OCCURRENCE_COLUMN_FAMILY, idTypeCol, null);
         if (id != null && rawType != null) {
           IdentifierType idType = null;
           try {
@@ -282,8 +278,8 @@ public class OccurrenceBuilder {
   private static Set<OccurrenceIssue> extractIssues(Result result) {
     Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      String column = ColumnUtil.getColumn(issue);
-      byte[] val = result.getValue(CF, Bytes.toBytes(column));
+      String column = Columns.column(issue);
+      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
       if (val != null) {
         issues.add(issue);
       }

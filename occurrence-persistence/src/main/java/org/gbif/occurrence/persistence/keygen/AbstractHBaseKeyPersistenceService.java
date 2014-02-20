@@ -4,9 +4,8 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.OccurrenceKeyHelper;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
-import org.gbif.occurrence.persistence.hbase.ColumnUtil;
+import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.HBaseStore;
-import org.gbif.occurrence.persistence.hbase.TableConstants;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,11 +54,11 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
     this.lookupTableStore =
-      new HBaseStore<String>(occurrenceIdTableName, TableConstants.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<String>(occurrenceIdTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
     this.counterTableStore =
-      new HBaseStore<Integer>(counterTableName, TableConstants.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<Integer>(counterTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
     this.occurrenceTableStore =
-      new HBaseStore<Integer>(occurrenceTableName, TableConstants.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<Integer>(occurrenceTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
   }
 
   @Override
@@ -79,7 +78,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     // get the occurrenceKey for each lookupKey, and set a flag if we find any null
     boolean gotNulls = false;
     for (String uniqueString : lookupKeys) {
-      Integer occurrenceKey = lookupTableStore.getInt(uniqueString, TableConstants.LOOKUP_KEY_COLUMN);
+      Integer occurrenceKey = lookupTableStore.getInt(uniqueString, Columns.LOOKUP_KEY_COLUMN);
       if (occurrenceKey == null) {
         gotNulls = true;
       } else {
@@ -127,8 +126,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       scan.setFilter(new PrefixFilter(Bytes.toBytes(scope)));
       ResultScanner results = table.getScanner(scan);
       for (Result result : results) {
-        byte[] rawKey = result.getValue(Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY),
-          Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN));
+        byte[] rawKey = result.getValue(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN));
         if (rawKey != null) {
           keys.add(Bytes.toInt(rawKey));
         }
@@ -166,14 +164,13 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     String rawDatasetKey = datasetKey;
     if (rawDatasetKey == null) {
       rawDatasetKey = occurrenceTableStore
-        .getString(occurrenceKey, ColumnUtil.getColumn(GbifTerm.datasetKey));
+        .getString(occurrenceKey, Columns.column(GbifTerm.datasetKey));
     }
 
     // scan the lookup table for all rows where the key matches our dataset prefix and the cell value is our
     // target occurrenceKey, then delete those rows
     Scan scan = new Scan();
-    scan.addColumn(Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY),
-      Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN));
+    scan.addColumn(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN));
     // TODO: this is still too slow even with prefix - lease timeouts in logs
     List<Filter> filters = Lists.newArrayList();
     if (rawDatasetKey == null) {
@@ -181,9 +178,8 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     } else {
       filters.add(new PrefixFilter(Bytes.toBytes(OccurrenceKeyHelper.buildKeyPrefix(rawDatasetKey))));
     }
-    Filter valueFilter = new SingleColumnValueFilter(Bytes.toBytes(TableConstants.OCCURRENCE_COLUMN_FAMILY),
-      Bytes.toBytes(TableConstants.LOOKUP_KEY_COLUMN), CompareFilter.CompareOp.EQUAL,
-      Bytes.toBytes(occurrenceKey));
+    Filter valueFilter = new SingleColumnValueFilter(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN),
+                                                     CompareFilter.CompareOp.EQUAL,Bytes.toBytes(occurrenceKey));
     filters.add(valueFilter);
     Filter filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
     scan.setFilter(filterList);
@@ -253,7 +249,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     Integer occurrenceKey) {
     for (String lookupKey : lookupKeys) {
       if (!foundOccurrenceKeys.containsKey(lookupKey)) {
-        lookupTableStore.putInt(lookupKey, TableConstants.LOOKUP_KEY_COLUMN, occurrenceKey);
+        lookupTableStore.putInt(lookupKey, Columns.LOOKUP_KEY_COLUMN, occurrenceKey);
       }
     }
   }

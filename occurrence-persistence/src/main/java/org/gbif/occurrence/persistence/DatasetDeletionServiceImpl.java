@@ -4,7 +4,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.persistence.hbase.ColumnUtil;
+import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.util.Iterator;
 import java.util.List;
@@ -60,7 +60,7 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
   private void deleteByColumn(byte[] columnValue, GbifTerm column) {
     LOG.debug("Starting delete by column for [{}]", column);
     int deleteCount = 0;
-    Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, ColumnUtil.getColumn(column));
+    Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, Columns.column(column));
     List<Integer> keys = Lists.newArrayList();
     while (keyIterator.hasNext()) {
       int key = keyIterator.next();

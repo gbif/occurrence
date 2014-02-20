@@ -6,7 +6,7 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.MeterRangeParser;
-import org.gbif.common.parsers.geospatial.IntAccuracy;
+import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.ContinentParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
@@ -44,7 +44,6 @@ public class LocationInterpreter implements Runnable {
 
     interpretElevation();
     interpretDepth();
-    interpretDistanceAboveSurface();
   }
 
   //TODO: improve this method and put it into parsers!
@@ -121,7 +120,7 @@ public class LocationInterpreter implements Runnable {
   }
 
   private void interpretDepth() {
-    ParseResult<IntAccuracy> result = MeterRangeParser.parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
+    ParseResult<DoubleAccuracy> result = MeterRangeParser.parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
                                                                   verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters),
                                                                   null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
@@ -131,19 +130,8 @@ public class LocationInterpreter implements Runnable {
     }
   }
 
-  private void interpretDistanceAboveSurface() {
-    ParseResult<IntAccuracy> result = MeterRangeParser.parseSurfaceDistance(verbatim.getVerbatimField(DwcTerm.minimumDistanceAboveSurfaceInMeters),
-                                                                     verbatim.getVerbatimField(DwcTerm.maximumDistanceAboveSurfaceInMeters),
-                                                                     null);
-    if (result.isSuccessful() && result.getPayload().getValue() != null) {
-      occ.setDistanceAboveSurface(result.getPayload().getValue());
-      occ.setDistanceAboveSurfaceAccuracy(result.getPayload().getAccuracy());
-      occ.getIssues().addAll(result.getIssues());
-    }
-  }
-
   private void interpretElevation() {
-    ParseResult<IntAccuracy> result = MeterRangeParser.parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
+    ParseResult<DoubleAccuracy> result = MeterRangeParser.parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
                                                                                 verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters),
                                                                                 null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
