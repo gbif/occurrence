@@ -59,7 +59,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final int KEY = 1000000;
   private static final int BAD_KEY = 2000000;
 
-  private static final int ELEV = 1000;
+  private static final double ELEV = 1000d;
   private static final BasisOfRecord BOR = BasisOfRecord.PRESERVED_SPECIMEN;
   private static final int CLASS_ID = 99;
   private static final String CLASS = "Mammalia";
@@ -91,7 +91,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final String XML = "<record>some fake xml</record>";
 
   // newer fields from occurrence widening
-  private static final Integer ELEV_ACC = 10;
+  private static final Double ELEV_ACC = 10d;
   private static final Double COORD_ACC = 10.0;
   private static final Continent CONTINENT = Continent.AFRICA;
   private static final Country COUNTRY = Country.TANZANIA;
@@ -629,7 +629,7 @@ public class OccurrencePersistenceServiceImplTest {
   private void assertEquivalence(Occurrence occ) {
     assertNotNull(occ);
 
-    assertEquals((Integer) ELEV, occ.getElevation());
+    assertEquals((Double) ELEV, occ.getElevation());
     assertEquals(ELEV_ACC, occ.getElevationAccuracy());
     assertEquals(BOR, occ.getBasisOfRecord());
     assertEquals(COORD_ACC, occ.getCoordinateAccuracy());
