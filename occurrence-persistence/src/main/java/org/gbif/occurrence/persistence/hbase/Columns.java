@@ -5,7 +5,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 
 import javax.annotation.Nullable;
 
@@ -48,15 +48,6 @@ public class Columns {
   private static final String IDENTIFIER_TYPE_COLUMN = INTERNAL_PREFIX + "t";
   private static final String IDENTIFIER_COLUMN = INTERNAL_PREFIX + "i";
 
-  // bootstrap term factory, adding the new InternalTerm enum
-  static {
-    TermFactory tf = TermFactory.instance();
-    for (InternalTerm t : InternalTerm.values()) {
-      tf.addTerm(t.qualifiedName(), t);
-      tf.addTerm(t.simpleName(), t);
-    }
-  }
-
   /**
    * Should never be instantiated.
    */
@@ -66,7 +57,7 @@ public class Columns {
   /**
    * Returns the column for the given term.
    * If an interpreted column exists for the given term it will be returned, otherwise the verbatim column will be used.
-   * Not that InternalTerm are always interpreted and do not exist as verbatim columns.
+   * Not that GbifInternalTerm are always interpreted and do not exist as verbatim columns.
    *
    * Asking for a "secondary" interpreted term like country which is used during interpretation but not stored
    * will result in an IllegalArgumentException. dwc:countryCode is the right term in this case.
@@ -75,7 +66,7 @@ public class Columns {
    * Please use the GbifTerm enum for those!
    */
   public static String column(Term term) {
-    if (term instanceof InternalTerm || TermUtils.isOccurrenceJavaProperty(term)) {
+    if (term instanceof GbifInternalTerm || TermUtils.isOccurrenceJavaProperty(term)) {
       return column(term, "");
 
     } else if(TermUtils.isInterpretedSourceTerm(term)) {
@@ -89,12 +80,12 @@ public class Columns {
 
   /**
    * Returns the verbatim column for a term.
-   * InternalTerm is not permitted and will result in an IllegalArgumentException!
+   * GbifInternalTerm is not permitted and will result in an IllegalArgumentException!
    * @param term
    * @return
    */
   public static String verbatimColumn(Term term) {
-    if (term instanceof InternalTerm) {
+    if (term instanceof GbifInternalTerm) {
       throw new IllegalArgumentException("Internal terms do not exist as verbatim columns");
     }
     return column(term, VERBATIM_TERM_PREFIX);

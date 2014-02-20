@@ -12,7 +12,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
@@ -87,7 +87,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         return null;
       }
       byte[] rawFragment = ExtResultReader.getBytes(result,
-                              Columns.column(InternalTerm.fragment));
+                              Columns.column(GbifInternalTerm.fragment));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
@@ -266,7 +266,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
     upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());
-    upd.setInterpretedField(InternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
+    upd.setInterpretedField(GbifInternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
     upd.setInterpretedField(GbifTerm.protocol, occ.getProtocol());
     upd.setInterpretedField(GbifTerm.lastCrawled, occ.getLastCrawled());
     upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
@@ -319,7 +319,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     // Identifiers
     deleteOldIdentifiers(occTable, occ.getKey());
     if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
-      upd.setInterpretedField(InternalTerm.identifierCount, occ.getIdentifiers().size());
+      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
       int count = 0;
       for (Identifier record : occ.getIdentifiers()) {
         upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
@@ -338,7 +338,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * removes id columns and sets id count to zero
    */
   private void deleteOldIdentifiers(HTableInterface occTable, int id) throws IOException {
-    final String idCountColumn = Columns.column(InternalTerm.identifierCount);
+    final String idCountColumn = Columns.column(GbifInternalTerm.identifierCount);
 
     Get get = new Get(Bytes.toBytes(id));
     get.addColumn(Columns.CF, Bytes.toBytes(idCountColumn));

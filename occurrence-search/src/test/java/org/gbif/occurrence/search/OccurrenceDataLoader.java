@@ -7,7 +7,7 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.io.File;
@@ -246,7 +246,7 @@ public class OccurrenceDataLoader {
   /**
    * Reads a CSV file and produces occurrence records for each line.
    * Each occurrence object is processed by the list of processors.
-   * 
+   *
    * @param fileName CSV file
    * @param processors list of processors(predicates) that consume occurrence objects
    */
@@ -293,8 +293,8 @@ public class OccurrenceDataLoader {
     if (field.getValue() != null) {
       strValue = (String) field.getValue();
     }
-    if (field.getKey().equals(GbifTerm.unitQualifier.name())) {
-      return Maps.immutableEntry(GbifTerm.unitQualifier, strValue);
+    if (field.getKey().equals(GbifInternalTerm.unitQualifier.name())) {
+      return Maps.immutableEntry(GbifInternalTerm.unitQualifier, strValue);
     } else {
       Enum<?> term = VocabularyUtils.lookupEnum(field.getKey(), DwcTerm.class);
       if (term != null) {

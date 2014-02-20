@@ -9,7 +9,7 @@ import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -158,22 +158,22 @@ public class FragmentPersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.collectionCode)),
       Bytes.toBytes(COL_CODE));
     put
-      .add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
+      .add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
       Bytes.toBytes(XML_DATASET_KEY.toString()));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)),
       Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.unitQualifier)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.unitQualifier)),
       Bytes.toBytes(UNIT_QUALIFIER));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)),
       Bytes.toBytes(DWC_ID));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
       Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.crawlId)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)),
       Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragment)), XML);
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragmentHash)), XML_HASH);
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.xmlSchema)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), XML);
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), XML_HASH);
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.xmlSchema)),
       Bytes.toBytes(XML_SCHEMA.toString()));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
       Bytes.toBytes(ENDPOINT_TYPE.toString()));
@@ -187,17 +187,17 @@ public class FragmentPersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
       Bytes.toBytes(JSON_DATASET_KEY.toString()));
     put
-      .add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
+      .add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)),
       Bytes.toBytes(INST_CODE));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)),
       Bytes.toBytes(DWC_ID));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
       Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.crawlId)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)),
       Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragment)), JSON);
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragmentHash)), JSON_HASH);
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), JSON);
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), JSON_HASH);
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
       Bytes.toBytes(JSON_ENDPOINT_TYPE.toString()));
     table.put(put);

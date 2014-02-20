@@ -2,6 +2,7 @@ package org.gbif.occurrence.common;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
@@ -68,7 +69,7 @@ public class TermUtils {
     GbifTerm.coordinateAccuracy,
     GbifTerm.elevation, GbifTerm.elevationAccuracy,
     GbifTerm.depth, GbifTerm.depthAccuracy,
-    GbifTerm.unitQualifier, GbifTerm.issue,
+    GbifInternalTerm.unitQualifier, GbifTerm.issue,
     GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
   );
 

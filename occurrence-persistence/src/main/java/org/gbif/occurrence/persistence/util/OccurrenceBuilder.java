@@ -23,7 +23,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
@@ -99,7 +99,7 @@ public class OccurrenceBuilder {
     }
     UUID datasetKey = UUID.fromString(rawDatasetKey);
 
-    Integer crawlId = ExtResultReader.getInteger(result, InternalTerm.crawlId);
+    Integer crawlId = ExtResultReader.getInteger(result, GbifInternalTerm.crawlId);
     if (crawlId == null) {
       throw new ValidationException("Fragment with key [" + key + "] has no crawlId.");
     }
@@ -108,11 +108,11 @@ public class OccurrenceBuilder {
       throw new ValidationException("Fragment with key [" + key + "] has no harvestedDate.");
     }
     Date harvestedDate = new Date(harvested);
-    String unitQualifier = ExtResultReader.getString(result, GbifTerm.unitQualifier);
-    byte[] data = ExtResultReader.getBytes(result, InternalTerm.fragment);
-    byte[] dataHash = ExtResultReader.getBytes(result, InternalTerm.fragmentHash);
-    Long created = ExtResultReader.getLong(result, InternalTerm.fragmentCreated);
-    String rawSchema = ExtResultReader.getString(result, InternalTerm.xmlSchema);
+    String unitQualifier = ExtResultReader.getString(result, GbifInternalTerm.unitQualifier);
+    byte[] data = ExtResultReader.getBytes(result, GbifInternalTerm.fragment);
+    byte[] dataHash = ExtResultReader.getBytes(result, GbifInternalTerm.fragmentHash);
+    Long created = ExtResultReader.getLong(result, GbifInternalTerm.fragmentCreated);
+    String rawSchema = ExtResultReader.getString(result, GbifInternalTerm.xmlSchema);
     OccurrenceSchemaType schema;
     if (rawSchema == null) {
       // this is typically called just before updating the fragment, meaning schemaType will then be correctly set
@@ -180,7 +180,7 @@ public class OccurrenceBuilder {
       occ.setDepthAccuracy(ExtResultReader.getDouble(row, GbifTerm.depthAccuracy));
 
       occ.setDatasetKey(ExtResultReader.getUuid(row, GbifTerm.datasetKey));
-      occ.setPublishingOrgKey(ExtResultReader.getUuid(row, InternalTerm.publishingOrgKey));
+      occ.setPublishingOrgKey(ExtResultReader.getUuid(row, GbifInternalTerm.publishingOrgKey));
       occ.setPublishingCountry(Country.fromIsoCode(ExtResultReader.getString(row, GbifTerm.publishingCountry)));
 
       occ.setLastInterpreted(ExtResultReader.getDate(row, GbifTerm.lastInterpreted));
@@ -229,7 +229,7 @@ public class OccurrenceBuilder {
     VerbatimOccurrence verb = new VerbatimOccurrence();
     verb.setKey(Bytes.toInt(row.getRow()));
     verb.setDatasetKey(ExtResultReader.getUuid(row, GbifTerm.datasetKey));
-    verb.setPublishingOrgKey(ExtResultReader.getUuid(row, InternalTerm.publishingOrgKey));
+    verb.setPublishingOrgKey(ExtResultReader.getUuid(row, GbifInternalTerm.publishingOrgKey));
     verb.setPublishingCountry(Country.fromIsoCode(ExtResultReader.getString(row, GbifTerm.publishingCountry)));
     verb.setLastCrawled(ExtResultReader.getDate(row, GbifTerm.lastCrawled));
     verb.setLastParsed(ExtResultReader.getDate(row, GbifTerm.lastParsed));
@@ -248,7 +248,7 @@ public class OccurrenceBuilder {
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result) {
     List<Identifier> records = Lists.newArrayList();
-    Integer maxCount = ExtResultReader.getInteger(result, InternalTerm.identifierCount);
+    Integer maxCount = ExtResultReader.getInteger(result, GbifInternalTerm.identifierCount);
     if (maxCount != null) {
       for (int count = 0; count < maxCount; count++) {
         String idCol = Columns.idColumn(count);

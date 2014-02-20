@@ -4,7 +4,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.processor.parsing.FragmentParser;
 
@@ -47,7 +47,7 @@ public class FragmentParserTest {
     assertEquals("AlgaTerra", got.getVerbatimField(DwcTerm.collectionCode));
     assertEquals("5834", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertNull(got.getVerbatimField(GbifTerm.unitQualifier));
+    assertNull(got.getVerbatimField(GbifInternalTerm.unitQualifier));
 
     assertEquals(1, got.getKey().intValue());
     assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.scientificName));
@@ -80,7 +80,7 @@ public class FragmentParserTest {
     assertEquals("vertebrata", got.getVerbatimField(DwcTerm.collectionCode));
     assertEquals("50058", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertNull(got.getVerbatimField(GbifTerm.unitQualifier));
+    assertNull(got.getVerbatimField(GbifInternalTerm.unitQualifier));
 
     assertEquals("Alouatta villosa Gray, 1845", got.getVerbatimField(DwcTerm.scientificName));
     assertEquals("Gray, 1845", got.getVerbatimField(DwcTerm.scientificNameAuthorship));

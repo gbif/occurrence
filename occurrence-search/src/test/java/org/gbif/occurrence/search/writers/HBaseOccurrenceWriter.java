@@ -4,7 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
@@ -233,7 +233,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
     // }
 
     if (occ.getPublishingOrgKey() != null) {
-      put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.publishingOrgKey)),
+      put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey)),
         Bytes.toBytes(occ.getPublishingOrgKey().toString()));
     }
 
