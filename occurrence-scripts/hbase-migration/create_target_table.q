@@ -1,3 +1,4 @@
+-- NOTE THESE ARE OUT OF DATE: the interpreted fields don't match hbase anymore
 DROP TABLE IF EXISTS target_migration_occurrence_tmp;
 CREATE EXTERNAL TABLE target_migration_occurrence_tmp(
 key INT,

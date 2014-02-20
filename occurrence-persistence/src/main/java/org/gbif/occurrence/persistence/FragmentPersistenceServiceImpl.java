@@ -6,7 +6,7 @@ import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
@@ -156,14 +156,14 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
     RowUpdate upd = new RowUpdate(frag.getKey());
 
     upd.setInterpretedField(GbifTerm.datasetKey, frag.getDatasetKey());
-    upd.setInterpretedField(GbifTerm.unitQualifier, frag.getUnitQualifier());
+    upd.setInterpretedField(GbifInternalTerm.unitQualifier, frag.getUnitQualifier());
     upd.setInterpretedField(GbifTerm.protocol, frag.getProtocol());
     upd.setInterpretedField(GbifTerm.lastCrawled, frag.getHarvestedDate());
-    upd.setInterpretedField(InternalTerm.crawlId, frag.getCrawlId());
-    upd.setInterpretedField(InternalTerm.fragment, frag.getData());
-    upd.setInterpretedField(InternalTerm.fragmentHash, frag.getDataHash());
-    upd.setInterpretedField(InternalTerm.xmlSchema, frag.getXmlSchema());
-    upd.setInterpretedField(InternalTerm.fragmentCreated, frag.getCreated());
+    upd.setInterpretedField(GbifInternalTerm.crawlId, frag.getCrawlId());
+    upd.setInterpretedField(GbifInternalTerm.fragment, frag.getData());
+    upd.setInterpretedField(GbifInternalTerm.fragmentHash, frag.getDataHash());
+    upd.setInterpretedField(GbifInternalTerm.xmlSchema, frag.getXmlSchema());
+    upd.setInterpretedField(GbifInternalTerm.fragmentCreated, frag.getCreated());
 
     upd.execute(occTable);
   }

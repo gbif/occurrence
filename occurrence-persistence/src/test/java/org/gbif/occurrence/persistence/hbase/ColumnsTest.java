@@ -2,7 +2,7 @@ package org.gbif.occurrence.persistence.hbase;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class ColumnsTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testGetVerbatimColumnIllegal() {
-    Columns.verbatimColumn(InternalTerm.crawlId);
+    Columns.verbatimColumn(GbifInternalTerm.crawlId);
   }
 
   @Test(expected = IllegalArgumentException.class)

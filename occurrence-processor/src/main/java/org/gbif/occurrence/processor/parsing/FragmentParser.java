@@ -134,7 +134,6 @@ public class FragmentParser {
     set(v, DwcTerm.specificEpithet, ror.getSpecies());
     set(v, DwcTerm.stateProvince, ror.getStateOrProvince());
     set(v, DwcTerm.infraspecificEpithet, ror.getSubspecies());
-    set(v, GbifTerm.unitQualifier, ror.getUnitQualifier());
     set(v, DwcTerm.year, ror.getYear());
 
     return v;

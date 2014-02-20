@@ -3,9 +3,15 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
+import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.parsers.BasisOfRecordParser;
+import org.gbif.common.parsers.EstablishmentMeansParser;
+import org.gbif.common.parsers.LifeStageParser;
+import org.gbif.common.parsers.SexParser;
 import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
 import org.gbif.common.parsers.core.Parsable;
@@ -38,6 +44,9 @@ public class VerbatimOccurrenceInterpreter {
   private static final TypeStatusParser TYPE_PARSER = TypeStatusParser.getInstance();
   private static final Parsable<String> TYPE_NAME_PARSER = TypifiedNameParser.getInstance();
   private static final BasisOfRecordParser BOR_PARSER = BasisOfRecordParser.getInstance();
+  private static final SexParser SEX_PARSER = SexParser.getInstance();
+  private static final EstablishmentMeansParser EST_PARSER = EstablishmentMeansParser.getInstance();
+  private static final LifeStageParser LST_PARSER = LifeStageParser.getInstance();
 
   private final OccurrencePersistenceService occurrenceService;
   private final ZookeeperConnector zookeeperConnector;
@@ -70,6 +79,9 @@ public class VerbatimOccurrenceInterpreter {
       threadPool.shutdown();
 
       interpretBor(verbatim, occ);
+      interpretSex(verbatim, occ);
+      interpretEstablishmentMeans(verbatim, occ);
+      interpretLifeStage(verbatim, occ);
       interpretTypification(verbatim, occ);
       TemporalInterpreter.interpretTemporal(verbatim, occ);
 
@@ -132,8 +144,34 @@ public class VerbatimOccurrenceInterpreter {
     if (parsed.isSuccessful()) {
       occ.setBasisOfRecord(parsed.getPayload());
     } else {
-      LOG.debug("Unknown BOR [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
+      LOG.debug("Unknown basisOfRecord [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
     }
   }
 
+  private static void interpretSex(VerbatimOccurrence verbatim, Occurrence occ) {
+    ParseResult<Sex> parsed = SEX_PARSER.parse(verbatim.getVerbatimField(DwcTerm.sex));
+    if (parsed.isSuccessful()) {
+      occ.setSex(parsed.getPayload());
+    } else {
+      LOG.debug("Unknown sex [{}]", verbatim.getVerbatimField(DwcTerm.sex));
+    }
+  }
+
+  private static void interpretEstablishmentMeans(VerbatimOccurrence verbatim, Occurrence occ) {
+    ParseResult<EstablishmentMeans> parsed = EST_PARSER.parse(verbatim.getVerbatimField(DwcTerm.establishmentMeans));
+    if (parsed.isSuccessful()) {
+      occ.setEstablishmentMeans(parsed.getPayload());
+    } else {
+      LOG.debug("Unknown establishmentMeans [{}]", verbatim.getVerbatimField(DwcTerm.establishmentMeans));
+    }
+  }
+
+  private static void interpretLifeStage(VerbatimOccurrence verbatim, Occurrence occ) {
+    ParseResult<LifeStage> parsed = LST_PARSER.parse(verbatim.getVerbatimField(DwcTerm.lifeStage));
+    if (parsed.isSuccessful()) {
+      occ.setLifeStage(parsed.getPayload());
+    } else {
+      LOG.debug("Unknown lifeStage [{}]", verbatim.getVerbatimField(DwcTerm.lifeStage));
+    }
+  }
 }

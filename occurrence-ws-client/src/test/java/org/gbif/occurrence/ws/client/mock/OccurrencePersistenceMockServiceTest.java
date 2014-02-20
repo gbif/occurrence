@@ -22,6 +22,6 @@ public class OccurrencePersistenceMockServiceTest {
     assertEquals(BasisOfRecord.PRESERVED_SPECIMEN, occ.getBasisOfRecord());
     assertEquals((Integer) 1912, occ.getYear());
     assertEquals((Integer) 5, occ.getMonth());
-    assertEquals((Integer) 112, occ.getElevation());
+    assertEquals( (Double) 112d, occ.getElevation());
   }
 }

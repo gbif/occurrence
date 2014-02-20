@@ -10,7 +10,7 @@ import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -182,7 +182,7 @@ public class VerbatimOccurrenceInterpreterTest {
     assertEquals(5219426, result.getSpeciesKey().intValue());
     assertNull(result.getSubgenus());
     assertNull(result.getSubgenusKey());
-    assertNull(result.getVerbatimField(GbifTerm.unitQualifier));
+    assertNull(result.getVerbatimField(GbifInternalTerm.unitQualifier));
     assertEquals(Country.GERMANY, result.getPublishingCountry());
     assertEquals(EndpointType.DWC_ARCHIVE, result.getProtocol());
   }

@@ -20,7 +20,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
-import org.gbif.occurrence.persistence.api.InternalTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
@@ -195,7 +195,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.order)), Bytes.toBytes(ORDER));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.orderKey)),
       Bytes.toBytes(ORDER_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.publishingOrgKey)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey)),
       Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
     put
       .add(CF, Bytes.toBytes(Columns.column(DwcTerm.phylum)), Bytes.toBytes(PHYLUM));
@@ -263,7 +263,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
 
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.fragment)), Bytes.toBytes(XML));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
       put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
@@ -294,7 +294,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
     put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
-    put.add(CF, Bytes.toBytes(Columns.column(InternalTerm.identifierCount)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.identifierCount)),
       Bytes.toBytes(3));
     table.put(put);
     table.close();
