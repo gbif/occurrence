@@ -178,13 +178,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Override
   public String create(DownloadRequest request) {
-    LOG.debug(">> create");
+    LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
 
     HiveQueryVisitor hiveVisitor = new HiveQueryVisitor();
     String hiveQuery;
     try {
       hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
+
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
     }
@@ -223,7 +224,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     try {
       final String jobId = client.run(jobProps);
       LOG.debug("oozie job id is: [{}], with tmpTable [{}]", jobId, tmpTable);
-      LOG.debug("<< create");
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
       return downloadId;
