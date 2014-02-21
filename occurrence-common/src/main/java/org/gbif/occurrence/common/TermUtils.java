@@ -7,6 +7,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -28,14 +29,13 @@ public class TermUtils {
     DcTerm.modified);
 
   private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(
-    DwcTerm.year, DwcTerm.month, DwcTerm.day, GbifTerm.kingdomKey, GbifTerm.phylumKey,
+    DwcTerm.year, DwcTerm.month, DwcTerm.day, GbifTerm.taxonKey, GbifTerm.kingdomKey, GbifTerm.phylumKey,
     GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
-    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
-    GbifTerm.elevation, GbifTerm.elevationAccuracy,
-    GbifTerm.depth, GbifTerm.depthAccuracy);
+    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
-    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy);
+    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,
+    GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy);
 
   private static final Set<? extends Term> NON_OCCURRENCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
     Iterables.concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
@@ -71,7 +71,7 @@ public class TermUtils {
     GbifTerm.depth, GbifTerm.depthAccuracy,
     GbifInternalTerm.unitQualifier, GbifTerm.issue,
     GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
-  );
+    );
 
 
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
@@ -124,7 +124,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   *
+   * 
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {

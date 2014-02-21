@@ -66,7 +66,7 @@ public class HeadersFileUtil {
     for (Term term : terms) {
       headers.add(TermUtils.getHiveColumn(term));
     }
-    return TAB_JOINER.join(headers);
+    return TAB_JOINER.join(headers) + '\n';
   }
 
   /**

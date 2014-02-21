@@ -101,7 +101,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       final String iCol = TermUtils.getHiveColumn(term);
       if (TermUtils.isInterpretedDate(term)) {
         columns.add("toISO8601(" + iCol + ") AS " + iCol);
-      } else if (TermUtils.isInterpretedNumerical(term)) {
+      } else if (TermUtils.isInterpretedNumerical(term) || TermUtils.isInterpretedDouble(term)) {
         columns.add("cleanNull(" + iCol + ") AS " + iCol);
       } else {
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
@@ -114,7 +114,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     // manually add the GBIF occ key as first column
     for (Term term : TermUtils.verbatimTerms()) {
       String colName = TermUtils.getHiveColumn(term);
-      columns.add("cleanDelimiters(v_" + colName + ") AS " + colName);
+      columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
     }
     HIVE_SELECT_VERBATIM = Joiner.on(",").join(columns);
   }

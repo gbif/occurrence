@@ -31,13 +31,15 @@ public class DownloadTableGenerator {
   private static final String JOIN_FMT =
     "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.occurrenceid = interpreted2_%1$s.occurrenceid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.occurrenceid = dcterm_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm1_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm2_%1$s.occurrenceid)";
 
-  private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s);";
+  private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
   private static final String HIVE_DROP_TABLE_FMT = "DROP TABLE IF EXISTS %1$s_%2$s;";
   private static final String HBASE_MAP_FMT = "o:%s";
   private static final String HBASE_KEY_MAPPING = ":key";
   private static final String OCC_ID_COL_DEF = DwcTerm.occurrenceID.simpleName().toLowerCase() + " INT";
-
-  private static final String INSERT_INFO_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
+  private static final String HIVE_OPTS =
+    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;SET hbase.zookeeper.quorum=c1n8.gbif.org,c1n9.gbif.org,c1n10.gbif.org;\n";
+  private static final String INSERT_INFO_HDFS = HIVE_OPTS
+    + "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
 
   /**
    * Generates the COLUMN DATATYPE declaration.
