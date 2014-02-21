@@ -42,8 +42,8 @@ public class HiveQueryVisitorTest {
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
     Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true");
 
-    ConjunctionPredicate p = new ConjunctionPredicate(
-      Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
+    ConjunctionPredicate p =
+      new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
       "(((taxonKey = 212 OR kingdomKey = 212 OR phylumKey = 212 OR classKey = 212 OR orderKey = 212 OR familyKey = 212 OR genusKey = 212 OR subgenusKey = 212 OR speciesKey = 212)) AND (countryCode = \'GB\') AND (scientificName LIKE \'Passer%\') AND (year <= 1989) AND (decimalLatitude IS NOT NULL AND decimalLongitude IS NOT NULL))",
@@ -167,6 +167,7 @@ public class HiveQueryVisitorTest {
 
       if (OccurrenceSearchParameter.GEOMETRY == param) {
         value = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
+        predicates.add(new WithinPredicate(value));
       } else if (UUID.class.isAssignableFrom(param.type())) {
         value = UUID.randomUUID().toString();
       } else if (Boolean.class.isAssignableFrom(param.type())) {
@@ -182,7 +183,9 @@ public class HiveQueryVisitorTest {
         value = "2014-01-23";
       }
 
-      predicates.add(new EqualsPredicate(param, value));
+      if (OccurrenceSearchParameter.GEOMETRY != param) {
+        predicates.add(new EqualsPredicate(param, value));
+      }
     }
     ConjunctionPredicate and = new ConjunctionPredicate(predicates);
     String where = visitor.getHiveQuery(and);

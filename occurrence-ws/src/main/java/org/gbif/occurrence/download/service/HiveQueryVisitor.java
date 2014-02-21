@@ -109,6 +109,10 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, DwcTerm.basisOfRecord)
     .put(OccurrenceSearchParameter.COUNTRY, DwcTerm.countryCode)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, GbifTerm.publishingCountry)
+
+    .put(OccurrenceSearchParameter.RECORDED_BY, DwcTerm.recordedBy)
+    .put(OccurrenceSearchParameter.RECORD_NUMBER, DwcTerm.recordNumber)
+    .put(OccurrenceSearchParameter.TYPE_STATUS, DwcTerm.typeStatus)
     .build();
 
   // HAS_COORDINATE_HQL, HAS_NO_COORDINATE_HQL, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
@@ -276,7 +280,9 @@ class HiveQueryVisitor {
 
 
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
-    if (predicate.getKey() == OccurrenceSearchParameter.SPATIAL_ISSUES) {
+    if (predicate.getKey() == OccurrenceSearchParameter.ISSUE) {
+      // ignore - there's no way to actually request this in the interface, nor is it indexed in solr
+    } else if (predicate.getKey() == OccurrenceSearchParameter.SPATIAL_ISSUES) {
       appendSpatialIssuePredicate(predicate.getValue());
     } else if (predicate.getKey() == OccurrenceSearchParameter.HAS_COORDINATE) {
       appendHasCoordinatePredicate(predicate.getValue());
