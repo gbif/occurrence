@@ -48,6 +48,7 @@ public class OccurrenceDownloadWsClient extends BaseWsGetClient<Download, String
     try {
       jobId = getResource().type(MediaType.APPLICATION_JSON).post(String.class, mapper.writeValueAsBytes(download));
     } catch (IOException e) {
+      LOG.info("Failed to create download for DownloadRequest [{}]", download, e);
       throw new IllegalStateException(e);
     }
     LOG.debug("Submitted download, got job id [{}]", jobId);
