@@ -182,10 +182,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
 
     HiveQueryVisitor hiveVisitor = new HiveQueryVisitor();
+    SolrQueryVisitor solrVisitor = new SolrQueryVisitor();
     String hiveQuery;
+    String solrQuery;
     try {
       hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
-
+      solrQuery = solrVisitor.getQuery(request.getPredicate());
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
     }
@@ -201,6 +203,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     jobProps.setProperty("select_interpreted", HIVE_SELECT_INTERPRETED);
     jobProps.setProperty("select_verbatim", HIVE_SELECT_VERBATIM);
     jobProps.setProperty("query", hiveQuery);
+    jobProps.setProperty("solr_query", solrQuery);
     jobProps.setProperty("query_result_table", tmpTable);
     jobProps.setProperty("citation_table", citationTable);
     // we dont have a downloadId yet, submit a placeholder

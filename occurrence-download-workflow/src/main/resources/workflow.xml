@@ -9,7 +9,22 @@
   the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="occurrence.download" xmlns="uri:oozie:workflow:0.2">
 
-  <start to="big_download" />
+  <start to="occurrence_count" />
+  
+  <action name="occurrence_count">
+    <java>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
+      <arg>${solr_query}</arg>
+      <arg>${wf:id()}</arg>
+      <capture-output/>
+    </java>
+
+    <ok to="big_download" />
+    <error to="kill" />
+  </action> 
 
   <fork name="big_download">
     <path start="query_interpreted" />
@@ -21,7 +36,7 @@
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/query-interpreted.q</script>
+      <script>hive-scripts/query.q</script>
 
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select_interpreted}</param>
@@ -38,7 +53,7 @@
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/query-verbatim.q</script>
+      <script>hive-scripts/query.q</script>
 
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select_verbatim}</param>
