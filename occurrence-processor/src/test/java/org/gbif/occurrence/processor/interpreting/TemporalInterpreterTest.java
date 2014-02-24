@@ -32,7 +32,7 @@ public class TemporalInterpreterTest {
     v.setVerbatimField(DcTerm.modified, "2014-01-11");
 
     Occurrence o = new Occurrence();
-    TemporalInterpreter.interpretTemporal(v,o);
+    TemporalInterpreter.interpretTemporal(v, o);
 
     assertDate("2014-01-11", o.getModified());
     assertDate("2012-01-11", o.getDateIdentified());
@@ -81,7 +81,9 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testIdentificationDates() {
-    assertDate("2013-05-10", TemporalInterpreter.interpretDate("2013-05-10", TemporalInterpreter.VALID_RECORDED_DATE_RANGE, null).getPayload());
+    assertDate("2013-05-10",
+      TemporalInterpreter.interpretDate("2013-05-10", TemporalInterpreter.VALID_RECORDED_DATE_RANGE, null)
+        .getPayload());
   }
 
   @Test
@@ -127,6 +129,12 @@ public class TemporalInterpreterTest {
   }
 
   @Test
+  public void testStringTimestamp() {
+    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "1984-03-22T00:00");
+    assertResult(1984, 3, 22, "1984-03-22", result);
+  }
+
+  @Test
   public void testStringBad() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "22-17-1984");
     assertNullResult(result);
@@ -165,6 +173,7 @@ public class TemporalInterpreterTest {
   @Test
   public void testDateStrings() {
     assertValidDate("1999-07-19", "1999-07-19");
+    assertValidDate("1999-07-19", "1999-07-19T00:00:00");
     assertValidDate("1999-07-19", "19-07-1999");
     assertValidDate("1999-07-19", "07-19-1999");
     assertValidDate("1999-09-07", "07-09-1999");
@@ -172,16 +181,17 @@ public class TemporalInterpreterTest {
     assertValidDate("1999-07-19", "19/7/1999");
     assertValidDate("1999-07-19", "1999.7.19");
     assertValidDate("1999-07-19", "19.7.1999");
+    assertValidDate("1999-07-19", "19.7.1999");
   }
 
-  private void assertValidDate(String expected, String input){
+  private void assertValidDate(String expected, String input) {
     assertDate(expected, interpretRecordedDate(null, null, null, input).getPayload());
   }
 
   /**
    * @param expected expected date in ISO yyyy-MM-dd format
    */
-  private void assertDate(String expected, DateYearMonthDay result){
+  private void assertDate(String expected, DateYearMonthDay result) {
     if (expected == null) {
       assertNull(result.getDate());
     } else {
@@ -194,7 +204,7 @@ public class TemporalInterpreterTest {
   /**
    * @param expected expected date in ISO yyyy-MM-dd format
    */
-  private void assertDate(String expected, Date result){
+  private void assertDate(String expected, Date result) {
     if (expected == null) {
       assertNull(result);
     } else {
@@ -212,7 +222,7 @@ public class TemporalInterpreterTest {
     }
   }
 
-  private void assertResult(Integer y, Integer m, Integer d, String date, ParseResult<DateYearMonthDay> result){
+  private void assertResult(Integer y, Integer m, Integer d, String date, ParseResult<DateYearMonthDay> result) {
     assertNotNull(result);
     assertInts(y, result.getPayload().getYear());
     assertInts(m, result.getPayload().getMonth());
@@ -220,12 +230,12 @@ public class TemporalInterpreterTest {
     assertDate(date, result.getPayload());
   }
 
-  private void assertNullResult(ParseResult<DateYearMonthDay> result){
+  private void assertNullResult(ParseResult<DateYearMonthDay> result) {
     assertNotNull(result);
     assertNull(result.getPayload());
   }
 
-  private ParseResult<DateYearMonthDay> interpretRecordedDate(String y, String m, String d, String date){
+  private ParseResult<DateYearMonthDay> interpretRecordedDate(String y, String m, String d, String date) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, y);
     v.setVerbatimField(DwcTerm.month, m);

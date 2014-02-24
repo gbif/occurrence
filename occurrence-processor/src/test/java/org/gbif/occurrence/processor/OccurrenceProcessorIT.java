@@ -11,6 +11,7 @@ import org.gbif.common.messaging.MessageListener;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.OccurrenceFragmentedMessage;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -149,12 +150,13 @@ public class OccurrenceProcessorIT {
     c.set(Calendar.SECOND, 0);
     c.set(Calendar.MILLISECOND, 0);
     assertEquals(c.getTimeInMillis(), got.getEventDate().getTime());
-    assertEquals(BasisOfRecord.valueOf("OBSERVATION"), got.getBasisOfRecord());
+    assertEquals(BasisOfRecord.HUMAN_OBSERVATION, got.getBasisOfRecord());
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
 
     assertEquals(BGBM_KEY, got.getPublishingOrgKey().toString());
     assertEquals(Country.GERMANY, got.getPublishingCountry());
     assertEquals(EndpointType.BIOCASE, got.getProtocol());
+    assertEquals("1", got.getVerbatimField(GbifTerm.gbifID));
   }
 
   @Test

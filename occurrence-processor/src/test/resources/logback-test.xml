@@ -29,7 +29,7 @@
   <!--<logger name="org.gbif.occurrence.parsing" level="WARN"/>-->
   <!--<logger name="org.gbif.occurrence.model" level="WARN"/>-->
 
-  <root level="INFO">
+  <root level="DEBUG">
     <appender-ref ref="CONSOLE"/>
   </root>
 

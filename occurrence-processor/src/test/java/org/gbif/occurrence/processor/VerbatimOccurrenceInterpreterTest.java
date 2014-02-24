@@ -11,6 +11,7 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -90,6 +91,7 @@ public class VerbatimOccurrenceInterpreterTest {
     v.setProtocol(EndpointType.DWC_ARCHIVE);
     v.setPublishingOrgKey(OWNING_ORG_KEY);
     v.setPublishingCountry(Country.GERMANY);
+    v.setVerbatimField(GbifTerm.gbifID, fragment.getKey().toString());
     v.setVerbatimField(DwcTerm.scientificNameAuthorship, "Linneaus");
     v.setVerbatimField(DwcTerm.basisOfRecord, "specimen");
     v.setVerbatimField(DwcTerm.recordedBy, "Hobern");
@@ -139,6 +141,7 @@ public class VerbatimOccurrenceInterpreterTest {
     assertNotNull(interpResult);
     Occurrence result = interpResult.getUpdated();
     assertEquals(verb.getKey(), result.getKey());
+    assertEquals(verb.getKey().toString(), result.getVerbatimField(GbifTerm.gbifID));
     assertEquals(650, result.getElevation().intValue());
     assertEquals(BasisOfRecord.PRESERVED_SPECIMEN, result.getBasisOfRecord());
     assertEquals("cn", result.getVerbatimField(DwcTerm.catalogNumber));

@@ -5,6 +5,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.processor.parsing.FragmentParser;
 
@@ -72,6 +73,7 @@ public class FragmentParserTest {
     Fragment frag =
       new Fragment(datasetKey, dwc14.getBytes(), DigestUtils.md5(dwc14.getBytes()), Fragment.FragmentType.XML,
         EndpointType.DIGIR, new Date(), 1, schema, null, null);
+    frag.setKey(123);
 
     VerbatimOccurrence got = FragmentParser.parse(frag);
     assertNotNull(got);
@@ -95,6 +97,7 @@ public class FragmentParserTest {
     assertEquals("200", got.getVerbatimField(DwcTerm.minimumElevationInMeters));
     assertEquals("400", got.getVerbatimField(DwcTerm.maximumElevationInMeters));
     assertEquals("PreservedSpecimen", got.getVerbatimField(DwcTerm.basisOfRecord));
+    assertEquals("123", got.getVerbatimField(GbifTerm.gbifID));
   }
 
 }

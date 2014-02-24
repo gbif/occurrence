@@ -66,6 +66,8 @@ public class FragmentParser {
     }
 
     if (verbatim != null) {
+      // gbifID is neither verbatim nor interpreted, but this seems least wrong
+      verbatim.setVerbatimField(GbifTerm.gbifID, fragment.getKey().toString());
       verbatim.setProtocol(fragment.getProtocol());
       verbatim.setLastParsed(new Date());
     }

@@ -8,6 +8,7 @@ import org.gbif.common.messaging.MessageListener;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.FragmentPersistedMessage;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -89,7 +90,8 @@ public class VerbatimOccurrenceProcessorTest {
     Thread.sleep(5000);
     VerbatimOccurrence verb = occurrenceService.getVerbatim(1);
     assertNotNull(verb);
-    assertEquals(24, verb.getVerbatimFields().size());
+    assertEquals(29, verb.getVerbatimFields().size());
+    assertEquals("1", verb.getVerbatimField(GbifTerm.gbifID));
     assertEquals("Pontaurus", verb.getVerbatimField(DwcTerm.collectionCode));
   }
 }
