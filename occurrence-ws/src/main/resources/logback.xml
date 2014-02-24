@@ -75,14 +75,13 @@
     </cyclicBufferTracker>
   </appender>
 
-  <!-- TODO: revert org.gbif, occ.download, and root to INFO -->
-  <logger name="org.gbif" level="DEBUG"/>
-  <logger name="org.gbif.occurrence.download" level="DEBUG">
+  <logger name="org.gbif" level="INFO"/>
+  <logger name="org.gbif.occurrence.download" level="INFO">
     <appender-ref ref="DOWNLOAD" />
   </logger>
   <logger name="org.apache.tomcat.util.digester.Digester" level="INFO"/>
 
-  <root level="DEBUG">
+  <root level="INFO">
     <appender-ref ref="FILE"/>
     <appender-ref ref="ERROR_FILE"/>
     <appender-ref ref="EMAIL"/>
