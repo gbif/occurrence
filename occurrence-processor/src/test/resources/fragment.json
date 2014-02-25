@@ -38,5 +38,6 @@
   "family":"Scrophulariaceae",
   "continent":"Asia",
   "waterBody":"Bosphorus",
-  "extensions": "{http://rs.gbif.org/terms/1.0/Image=[]}"
+  "extensions": "{http://rs.gbif.org/terms/1.0/Image=[]}",
+  "occurrenceID":"ABC123"
 }
