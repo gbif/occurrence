@@ -22,15 +22,54 @@
       <capture-output/>
     </java>
 
-    <ok to="big_download" />
+    <ok to="make_query_decision" />
     <error to="kill" />
   </action> 
+  
+   <decision name="make_query_decision">
+    <switch>
+      <!-- it's a small download -->
+      <case to="has_records_decision">
+        ${wf:actionData('occurrence_count')['is_small_download']}
+      </case>    
+      <default to="big_download" />
+    </switch>
+  </decision>
+  
+  <decision name="has_records_decision">
+    <switch>
+      <!-- it's a small download -->
+      <case to="small_download">
+        ${wf:actionData('occurrence_count')['has_records']}
+      </case>    
+      <default to="big_download" />
+    </switch>
+  </decision>
 
   <fork name="big_download">
     <path start="query_interpreted" />
     <path start="query_verbatim" />
   </fork>
 
+  <action name="small_download">
+    <java>
+      <job-tracker>${jobtracker}</job-tracker>
+      <name-node>${namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <main-class>org.gbif.occurrencestore.download.file.DownloadTableBuilder</main-class>
+      <arg>${query_result_table}_interpreted</arg>
+      <arg>${query_result_table}_verbatim</arg>
+      <arg>${citation_table}</arg>
+      <arg>${solr_query}</arg>
+      <arg>${namenode}</arg>
+      <arg>${hdfs_hive_path}</arg>
+      <arg>${wf:id()}</arg>
+    </java>
+
+    <ok to="copy_and_zip" />
+    <error to="failure_clean_hdfs_dirs" />
+  </action>
+  
   <action name="query_interpreted">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -106,7 +145,7 @@
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>
       <arg>${registry.ws.url}</arg>
-      <arg>false</arg>
+      <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
     </java>
 
     <ok to="cleaning_decision" />
@@ -117,7 +156,7 @@
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="clean_hdfs_dirs">
-       false
+       ${wf:actionData('occurrence_count')['is_small_download']}
       </case>
       <default to="drop_table" />
     </switch>
@@ -127,7 +166,7 @@
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="failure_clean_hdfs_dirs">
-       false
+      	${wf:actionData('occurrence_count')['is_small_download']}
       </case>
       <default to="failure_drop_table" />
     </switch>
@@ -166,7 +205,8 @@
 
   <action name="clean_hdfs_dirs">
     <fs>
-      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}_interpreted'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}_verbatim'/>
       <delete path='${hdfs.namenode}/${hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="end" />
@@ -175,7 +215,8 @@
 
   <action name="failure_clean_hdfs_dirs">
     <fs>
-      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}_interpreted'/>
+      <delete path='${hdfs.namenode}/${hive.hdfs.out}/${query_result_table}_verbatim'/>
       <delete path='${hdfs.namenode}/${hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="kill" />

@@ -2,6 +2,7 @@ package org.gbif.occurrence.hive;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -29,13 +30,13 @@ public class DownloadTableGenerator {
   private static final String CREATE_TABLE_FMT =
     "CREATE EXTERNAL TABLE %s_%s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
   private static final String JOIN_FMT =
-    "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.occurrenceid = interpreted2_%1$s.occurrenceid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.occurrenceid = dcterm_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm1_%1$s.occurrenceid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.occurrenceid = dwcterm2_%1$s.occurrenceid)";
+    "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.gbifid = interpreted2_%1$s.gbifid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.gbifid = dcterm_%1$s.gbifid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.gbifid = dwcterm1_%1$s.gbifid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.gbifid = dwcterm2_%1$s.gbifid)";
 
   private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
   private static final String HIVE_DROP_TABLE_FMT = "DROP TABLE IF EXISTS %1$s_%2$s;";
   private static final String HBASE_MAP_FMT = "o:%s";
   private static final String HBASE_KEY_MAPPING = ":key";
-  private static final String OCC_ID_COL_DEF = DwcTerm.occurrenceID.simpleName().toLowerCase() + " INT";
+  private static final String OCC_ID_COL_DEF = TermUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
   private static final String HIVE_OPTS =
     "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;SET hbase.zookeeper.quorum=c1n8.gbif.org,c1n9.gbif.org,c1n10.gbif.org;\n";
   private static final String INSERT_INFO_HDFS = HIVE_OPTS
@@ -78,7 +79,7 @@ public class DownloadTableGenerator {
   private List<String> processInterpretedTerms(Function<Term, String> transformer) {
     List<String> interpretedColumns = Lists.newArrayList();
     for (Term term : TermUtils.interpretedTerms()) {
-      if (DwcTerm.occurrenceID != term) {
+      if (GbifTerm.gbifID != term) {
         interpretedColumns.add(transformer.apply(term));
       }
     }
@@ -103,7 +104,9 @@ public class DownloadTableGenerator {
   private List<String> listVerbatimColumns() {
     List<String> columns = Lists.newArrayList();
     for (Term term : TermUtils.verbatimTerms()) {
-      columns.add(String.format(VERBATIM_COL_DEF_FMT, TermUtils.getHiveColumn(term)));
+      if (GbifTerm.gbifID != term) {
+        columns.add(String.format(VERBATIM_COL_DEF_FMT, TermUtils.getHiveColumn(term)));
+      }
     }
     return columns;
   }
@@ -196,9 +199,11 @@ public class DownloadTableGenerator {
    */
   public String generateSelectInto(String hiveTableName) {
     List<String> columns = Lists.newArrayList();
-    columns.add(String.format("interpreted1_%s." + DwcTerm.occurrenceID.simpleName().toLowerCase(), hiveTableName));
+    columns.add(String.format("interpreted1_%s." + TermUtils.getHiveColumn(GbifTerm.gbifID), hiveTableName));
     for (Term term : TermUtils.verbatimTerms()) {
-      columns.add(String.format(VERBATIM_COL_FMT, TermUtils.getHiveColumn(term)));
+      if (GbifTerm.gbifID != term) {
+        columns.add(String.format(VERBATIM_COL_FMT, TermUtils.getHiveColumn(term)));
+      }
     }
 
     columns.addAll(processInterpretedTerms(termColumnDef));

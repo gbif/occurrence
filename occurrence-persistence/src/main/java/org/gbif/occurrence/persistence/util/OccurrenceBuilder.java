@@ -18,12 +18,12 @@ import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -48,9 +49,10 @@ import org.slf4j.LoggerFactory;
  * A utility class to build object models from the HBase occurrence "row".
  */
 public class OccurrenceBuilder {
+
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
-  //TODO: move these maps to Classification, Term or RankUtils
+  // TODO: move these maps to Classification, Term or RankUtils
   public static final Map<Rank, Term> rank2taxonTerm = ImmutableMap.<Rank, Term>builder()
     .put(Rank.KINGDOM, DwcTerm.kingdom)
     .put(Rank.PHYLUM, DwcTerm.phylum)
@@ -79,11 +81,9 @@ public class OccurrenceBuilder {
 
   /**
    * Builds a Fragment object from the given result, assigning the passed in key.
-   *
+   * 
    * @param result an HBase scan/get Result
-   *
    * @return the Fragment or null if the passed in Result is null
-   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -141,7 +141,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   *
+   * 
    * @return A complete occurrence, or null
    */
   public static Occurrence buildOccurrence(@Nullable Result row) {
@@ -167,9 +167,9 @@ public class OccurrenceBuilder {
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
       for (Rank r : Rank.DWC_RANKS) {
         ClassificationUtils.setHigherRankKey(occ, r,
-                                  ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
+          ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
         ClassificationUtils.setHigherRank(occ, r,
-                                  ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
+          ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
       }
 
       // other java properties
@@ -216,9 +216,10 @@ public class OccurrenceBuilder {
     }
   }
 
+
   /**
    * Utility to build an API Occurrence from an HBase row.
-   *
+   * 
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {

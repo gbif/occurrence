@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -107,16 +108,19 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
     }
-    HIVE_SELECT_INTERPRETED = Joiner.on(",").join(columns);
+    HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);
 
 
     columns = Lists.newArrayList();
     // manually add the GBIF occ key as first column
+    columns.add(TermUtils.getHiveColumn(GbifTerm.gbifID));
     for (Term term : TermUtils.verbatimTerms()) {
-      String colName = TermUtils.getHiveColumn(term);
-      columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
+      if (GbifTerm.gbifID != term) {
+        String colName = TermUtils.getHiveColumn(term);
+        columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
+      }
     }
-    HIVE_SELECT_VERBATIM = Joiner.on(",").join(columns);
+    HIVE_SELECT_VERBATIM = Joiner.on(',').join(columns);
   }
 
   private static final EnumSet<Status> FAILURE_STATES = EnumSet.of(Status.FAILED, Status.KILLED);

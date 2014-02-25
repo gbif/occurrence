@@ -151,7 +151,7 @@ public class TermUtils {
    */
   public static Iterable<? extends Term> interpretedTerms() {
     return Iterables.concat(
-      Lists.newArrayList(DwcTerm.occurrenceID),
+      Lists.newArrayList(GbifTerm.gbifID),
       Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
 
         @Override
@@ -163,7 +163,7 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && t != DwcTerm.occurrenceID
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)
             && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
         }
       }), Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
@@ -183,7 +183,7 @@ public class TermUtils {
    */
   public static Iterable<? extends Term> verbatimTerms() {
     return Iterables.concat(
-      Lists.newArrayList(DwcTerm.occurrenceID),
+      Lists.newArrayList(GbifTerm.gbifID),
       Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
 
         @Override
@@ -194,7 +194,7 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && t != DwcTerm.occurrenceID;
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
         }
       })
       );

@@ -3,14 +3,18 @@ package org.gbif.occurrence.download.util;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 
 /**
@@ -70,6 +74,45 @@ public class HeadersFileUtil {
   }
 
   /**
+   * Utility method that generates an array of string that contains the column names of terms.
+   */
+  private static String[] getTableColumns(Iterable<? extends Term> terms) {
+    List<String> headers = Lists.newArrayList();
+    for (Term term : terms) {
+      headers.add(TermUtils.getHiveColumn(term));
+    }
+    return headers.toArray(new String[headers.size()]);
+  }
+
+  /**
+   * Appends the occurrence headers line to the output file.
+   */
+  public static void appendInterpretedHeaders(OutputStream fileWriter) throws IOException {
+    Closer resultCloser = Closer.create();
+    try {
+      InputStream headerInputStream =
+        resultCloser.register(new ByteArrayInputStream(getIntepretedTableHeader().getBytes()));
+      ByteStreams.copy(headerInputStream, fileWriter);
+    } finally {
+      resultCloser.close();
+    }
+  }
+
+  /**
+   * Appends the occurrence headers line to the output file.
+   */
+  public static void appendVerbatimHeaders(OutputStream fileWriter) throws IOException {
+    Closer resultCloser = Closer.create();
+    try {
+      InputStream headerInputStream =
+        resultCloser.register(new ByteArrayInputStream(getVerbatimTableHeader().getBytes()));
+      ByteStreams.copy(headerInputStream, fileWriter);
+    } finally {
+      resultCloser.close();
+    }
+  }
+
+  /**
    * Returns the headers names of download columns.
    */
   public static String getVerbatimTableHeader() {
@@ -81,6 +124,20 @@ public class HeadersFileUtil {
    */
   public static String getIntepretedTableHeader() {
     return getTableHeader(TermUtils.interpretedTerms());
+  }
+
+  /**
+   * Returns a list column names of interpreted fields.
+   */
+  public static String[] getIntepretedTableColumns() {
+    return getTableColumns(TermUtils.interpretedTerms());
+  }
+
+  /**
+   * Returns a list column names of verbatim fields.
+   */
+  public static String[] getVerbatimTableColumns() {
+    return getTableColumns(TermUtils.verbatimTerms());
   }
 
 
