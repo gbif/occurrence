@@ -1,5 +1,6 @@
 package org.gbif.occurrence.common;
 
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -7,7 +8,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -119,6 +119,17 @@ public class TermUtils {
     } else {
       return "STRING";
     }
+  }
+
+  /**
+   * Gets the Hive column name of the term parameter.
+   */
+  public static String getHiveColumn(OccurrenceIssue issue) {
+    final String columnName = issue.name().toLowerCase();
+    if (HIVE_RESERVED_WORDS.contains(columnName)) {
+      return columnName + '_';
+    }
+    return columnName;
   }
 
   /**

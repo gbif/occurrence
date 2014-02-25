@@ -1,6 +1,9 @@
 package org.gbif.occurrence.common;
 
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Set;
@@ -8,6 +11,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -42,7 +46,7 @@ public class TermUtilsTest {
     Set<Term> terms = Sets.newHashSet();
     for (Term t : TermUtils.verbatimTerms()) {
       System.out.println(t.toString());
-      assertFalse("Verbatim term exists twice: "+t, terms.contains(t));
+      assertFalse("Verbatim term exists twice: " + t, terms.contains(t));
       terms.add(t);
     }
   }
@@ -57,5 +61,15 @@ public class TermUtilsTest {
   public void testIsInterpretedNumerical() throws Exception {
     assertTrue(TermUtils.isInterpretedNumerical(DwcTerm.year));
     assertFalse(TermUtils.isInterpretedNumerical(DwcTerm.occurrenceID));
+  }
+
+  @Test
+  public void testHiveColumns() {
+    assertEquals(GbifTerm.gbifID.simpleName().toLowerCase(), TermUtils.getHiveColumn(GbifTerm.gbifID));
+    assertEquals(DwcTerm.catalogNumber.simpleName().toLowerCase(), TermUtils.getHiveColumn(DwcTerm.catalogNumber));
+    assertEquals(DcTerm.date.simpleName().toLowerCase() + '_', TermUtils.getHiveColumn(DcTerm.date));
+
+    assertEquals(OccurrenceIssue.BASIS_OF_RECORD_INVALID.name().toLowerCase(),
+      TermUtils.getHiveColumn(OccurrenceIssue.BASIS_OF_RECORD_INVALID));
   }
 }
