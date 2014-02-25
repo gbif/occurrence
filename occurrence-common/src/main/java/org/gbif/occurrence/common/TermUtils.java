@@ -124,7 +124,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   * 
+   *
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
@@ -170,7 +170,7 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable GbifTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && t != GbifTerm.gbifID;
         }
       })
       );
