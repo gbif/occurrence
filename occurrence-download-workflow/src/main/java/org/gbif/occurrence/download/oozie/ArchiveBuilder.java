@@ -95,7 +95,7 @@ public class ArchiveBuilder {
   private static final String INTERPRETED_FILENAME = "occurrence.txt";
   private static final String VERBATIM_FILENAME = "verbatim.txt";
   // The CRC is created by the function FileSyste.copyMerge function
-  private static final String CRC_FILE_FMT = ".%s.txt.crc";
+  private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String CITATIONS_FILENAME = "citations.txt";
   private static final String RIGHTS_FILENAME = "rights.txt";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";

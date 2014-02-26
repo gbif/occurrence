@@ -42,7 +42,7 @@ public class DownloadTableGenerator {
   private static final String HBASE_KEY_MAPPING = ":key";
   private static final String OCC_ID_COL_DEF = TermUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
   private static final String HIVE_OPTS =
-    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;SET hbase.zookeeper.quorum=c1n8.gbif.org,c1n9.gbif.org,c1n10.gbif.org;\n";
+    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;\n";
   private static final String INSERT_INFO_HDFS = HIVE_OPTS
     + "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
 
