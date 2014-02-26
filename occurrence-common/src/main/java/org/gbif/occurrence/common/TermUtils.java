@@ -8,6 +8,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -26,12 +27,16 @@ public class TermUtils {
 
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
     DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
-    DcTerm.modified);
+    DcTerm.modified, GbifInternalTerm.fragmentCreated);
 
   private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(
     DwcTerm.year, DwcTerm.month, DwcTerm.day, GbifTerm.taxonKey, GbifTerm.kingdomKey, GbifTerm.phylumKey,
     GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
-    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey);
+    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
+    GbifInternalTerm.crawlId, GbifInternalTerm.identifierCount);
+
+  private static final Set<? extends Term> INTERPRETED_BOOLEAN = ImmutableSet.of(GbifTerm.hasCoordinate,
+    GbifTerm.hasGeospatialIssues);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,
@@ -106,6 +111,7 @@ public class TermUtils {
     return columnName;
   }
 
+
   /**
    * Returns the Hive data type of term parameter.
    */
@@ -116,6 +122,8 @@ public class TermUtils {
       return "BIGINT";
     } else if (TermUtils.isInterpretedDouble(term)) {
       return "DOUBLE";
+    } else if (TermUtils.isInterpretedBoolean(term)) {
+      return "BOOLEAN";
     } else {
       return "STRING";
     }
@@ -135,7 +143,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   *
+   * 
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
@@ -230,6 +238,13 @@ public class TermUtils {
    */
   public static boolean isInterpretedDouble(Term term) {
     return INTERPRETED_DOUBLE.contains(term);
+  }
+
+  /**
+   * @return true if the term is an interpreted boolean and stored as a binary in HBase
+   */
+  public static boolean isInterpretedBoolean(Term term) {
+    return INTERPRETED_BOOLEAN.contains(term);
   }
 
 }

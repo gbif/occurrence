@@ -1,7 +1,9 @@
 package org.gbif.occurrence.hive;
 
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
@@ -10,6 +12,8 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import com.google.common.base.Function;
@@ -30,7 +34,7 @@ public class DownloadTableGenerator {
   private static final String CREATE_TABLE_FMT =
     "CREATE EXTERNAL TABLE %s_%s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
   private static final String JOIN_FMT =
-    "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.gbifid = interpreted2_%1$s.gbifid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.gbifid = dcterm_%1$s.gbifid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.gbifid = dwcterm1_%1$s.gbifid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.gbifid = dwcterm2_%1$s.gbifid)";
+    "LEFT OUTER JOIN interpreted2_%1$s ON (interpreted1_%1$s.gbifid = interpreted2_%1$s.gbifid) LEFT OUTER JOIN dcterm_%1$s ON (interpreted1_%1$s.gbifid = dcterm_%1$s.gbifid) LEFT OUTER JOIN dwcterm1_%1$s ON (interpreted1_%1$s.gbifid = dwcterm1_%1$s.gbifid) LEFT OUTER JOIN dwcterm2_%1$s ON (interpreted1_%1$s.gbifid = dwcterm2_%1$s.gbifid) LEFT OUTER JOIN gbifinternalterm_%1$s ON (interpreted1_%1$s.gbifid = gbifinternalterm_%1$s.gbifid)   LEFT OUTER JOIN occurrenceissues_%1$s ON (interpreted1_%1$s.gbifid = occurrenceissues_%1$s.gbifid)";
 
   private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
   private static final String HIVE_DROP_TABLE_FMT = "DROP TABLE IF EXISTS %1$s_%2$s;";
@@ -41,6 +45,11 @@ public class DownloadTableGenerator {
     "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;SET hbase.zookeeper.quorum=c1n8.gbif.org,c1n9.gbif.org,c1n10.gbif.org;\n";
   private static final String INSERT_INFO_HDFS = HIVE_OPTS
     + "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM interpreted1_%1$s %3$s;";
+
+  private static final String COALESCE0_FMT = "COALESCE(0,%S)";
+
+  private EnumSet<GbifInternalTerm> INTERNAL_TERMS = EnumSet.complementOf(EnumSet.of(GbifInternalTerm.fragmentHash,
+    GbifInternalTerm.fragment));
 
   /**
    * Generates the COLUMN DATATYPE declaration.
@@ -60,6 +69,34 @@ public class DownloadTableGenerator {
     public String apply(Term term) {
       return TermUtils.getHiveColumn(term);
     }
+  };
+
+
+  /**
+   * Generates the COLUMN name of a term.
+   */
+  private Function<OccurrenceIssue, String> issueCoalesce = new Function<OccurrenceIssue, String>() {
+
+    public String apply(OccurrenceIssue issue) {
+      return String.format(COALESCE0_FMT, TermUtils.getHiveColumn(issue));
+    }
+  };
+
+  /**
+   * Generates the COLUMN name of a term.
+   */
+  private Function<Term, String> termInteroColumnDef = new Function<Term, String>() {
+
+    public String apply(Term term) {
+      if (GbifTerm.hasGeospatialIssues == term) {
+        return hasSpatialIssueQuery();
+      }
+      if (GbifTerm.hasCoordinate == term) {
+        return hasCoordinateQuery();
+      }
+      return TermUtils.getHiveColumn(term);
+    }
+
   };
 
   /**
@@ -111,6 +148,7 @@ public class DownloadTableGenerator {
     return columns;
   }
 
+
   /**
    * Generates a list that contains the verbatim hbase column mappings of the termClass values.
    */
@@ -130,8 +168,18 @@ public class DownloadTableGenerator {
       new ImmutableList.Builder<String>()
         .add(OCC_ID_COL_DEF)
         .addAll(listVerbatimColumns())
+        .addAll(listInternalTermColumns())
         .addAll(processInterpretedTerms(termColumnDecl)).build();
     return COMMA_JOINER.join(columns);
+  }
+
+
+  public List<String> listInternalTermColumns() {
+    List<String> columns = new ArrayList<String>();
+    for (GbifInternalTerm term : INTERNAL_TERMS) {
+      columns.add(this.termColumnDecl.apply(term));
+    }
+    return columns;
   }
 
 
@@ -159,6 +207,41 @@ public class DownloadTableGenerator {
       hiveTableName, COMMA_JOINER.join(columns),
       COMMA_JOINER.join(columnsMappings), hbaseTableName);
   }
+
+
+  /**
+   * Generates the Hive CREATE statement to create a verbatim table of a Term.
+   */
+  private <T extends Term> String buildIssuesTable(String hiveTableName, String hbaseTableName) {
+    List<String> columns = Lists.newArrayList();
+    columns.add(OCC_ID_COL_DEF);
+    List<String> columnsMappings = Lists.newArrayList();
+    columnsMappings.add(HBASE_KEY_MAPPING);
+    for (OccurrenceIssue occurrenceIssue : OccurrenceIssue.values()) {
+      columns.add(TermUtils.getHiveColumn(occurrenceIssue) + " TINYINT");
+      columnsMappings.add(String.format(HBASE_MAP_FMT, Columns.column(occurrenceIssue)));
+    }
+    return String.format(CREATE_TABLE_FMT, "occurrenceissues",
+      hiveTableName, COMMA_JOINER.join(columns),
+      COMMA_JOINER.join(columnsMappings), hbaseTableName);
+  }
+
+  private <T extends Term> String buildInternalTermsTable(String hiveTableName,
+    String hbaseTableName) {
+    List<String> columns = Lists.newArrayList();
+    columns.add(OCC_ID_COL_DEF);
+    List<String> columnsMappings = Lists.newArrayList();
+    columnsMappings.add(HBASE_KEY_MAPPING);
+    for (GbifInternalTerm term : INTERNAL_TERMS) {
+      columns.add(this.termColumnDecl.apply(term));
+      columnsMappings.add(termHBaseMappingDef.apply(term));
+    }
+
+    return String.format(CREATE_TABLE_FMT, GbifInternalTerm.class.getSimpleName().toLowerCase(),
+      hiveTableName, COMMA_JOINER.join(columns),
+      COMMA_JOINER.join(columnsMappings), hbaseTableName);
+  }
+
 
   /**
    * Generates the Hive CREATE statement for 2 tables that will contain the columns split in 2 sets of the columns
@@ -205,8 +288,10 @@ public class DownloadTableGenerator {
         columns.add(String.format(VERBATIM_COL_FMT, TermUtils.getHiveColumn(term)));
       }
     }
-
-    columns.addAll(processInterpretedTerms(termColumnDef));
+    for (GbifInternalTerm term : INTERNAL_TERMS) {
+      columns.add(this.termColumnDef.apply(term));
+    }
+    columns.addAll(processInterpretedTerms(termInteroColumnDef));
 
     return String.format(INSERT_INFO_HDFS, hiveTableName, COMMA_JOINER.join(columns),
       String.format(JOIN_FMT, hiveTableName));
@@ -232,6 +317,10 @@ public class DownloadTableGenerator {
       .append(String.format(HIVE_DROP_TABLE_FMT, "interpreted1", hiveTableName))
       .append('\n')
       .append(String.format(HIVE_DROP_TABLE_FMT, "interpreted2", hiveTableName))
+      .append('\n')
+      .append(String.format(HIVE_DROP_TABLE_FMT, "gbifinternalterm", hiveTableName))
+      .append('\n')
+      .append(String.format(HIVE_DROP_TABLE_FMT, "occurrenceissues", hiveTableName))
       .toString();
 
   }
@@ -252,10 +341,22 @@ public class DownloadTableGenerator {
     DownloadTableGenerator downloadTableGenerator = new DownloadTableGenerator();
     System.out.println(downloadTableGenerator.buildHdfsTable(hiveTableName));
     System.out.println(downloadTableGenerator.buildVerbatimTermsTable(DcTerm.class, hiveTableName, hbaseTableName));
+    System.out.println(downloadTableGenerator.buildInternalTermsTable(hiveTableName, hbaseTableName));
     System.out.println(downloadTableGenerator.buildDwcTermsTable(hiveTableName, hbaseTableName));
     System.out.println(downloadTableGenerator.buildInterpretedOccurrenceTable(hiveTableName, hbaseTableName));
+    System.out.println(downloadTableGenerator.buildIssuesTable(hiveTableName, hbaseTableName));
     System.out.println(downloadTableGenerator.generateSelectInto(hiveTableName));
     System.out.println(downloadTableGenerator.buildDropStatements(hiveTableName));
     closer.close();
+  }
+
+
+  private String hasSpatialIssueQuery() {
+    return "(" + Joiner.on(" + ").skipNulls().join(Lists.transform(OccurrenceIssue.GEOSPATIAL_RULES, issueCoalesce))
+      + ") > 0";
+  }
+
+  private String hasCoordinateQuery() {
+    return "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
   }
 }

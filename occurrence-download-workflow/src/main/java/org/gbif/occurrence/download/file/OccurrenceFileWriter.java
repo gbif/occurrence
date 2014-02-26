@@ -146,8 +146,6 @@ public class OccurrenceFileWriter {
       stopwatch.start();
       ExecutionContextExecutorService executionContext =
         ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(conf.nrOfWorkers));
-      createFile(interpretedOutFile);
-      createFile(verbatimOutFile);
       collectResults(Futures.sequence(
         runJobs(executionContext, interpretedOutFile, verbatimOutFile, query),
         executionContext), interpretedOutFile, verbatimOutFile, citationFileName);
@@ -167,7 +165,7 @@ public class OccurrenceFileWriter {
     throws IOException {
     Closer closer = Closer.create();
     File interpretedDataFile = new File(result.getFileJob().getInterpretedDataFile());
-    File verbatimDataFile = new File(result.getFileJob().getInterpretedDataFile());
+    File verbatimDataFile = new File(result.getFileJob().getVerbatimDataFile());
     try {
       FileInputStream interpretedFileReader = closer.register(new FileInputStream(interpretedDataFile));
       FileInputStream verbatimFileReader = closer.register(new FileInputStream(verbatimDataFile));

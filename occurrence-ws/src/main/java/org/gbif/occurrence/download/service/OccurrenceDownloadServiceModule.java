@@ -52,12 +52,14 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Provides
   @Singleton
   @Named("oozie.default_properties")
-  Map<String, String> providesOozieDefaultProperties(@Named("ws.url") String wsUrl, @Named("oozie.workflow.path") String workflowPath) {
+  Map<String, String> providesOozieDefaultProperties(@Named("ws.url") String wsUrl,
+    @Named("oozie.workflow.path") String workflowPath, @Named("hive.hdfs.out") String hdfsOutput) {
 
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 
     builder.put(OozieClient.APP_PATH, workflowPath)
       .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
+      .put("hdfs_hive_path", hdfsOutput)
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
         DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
       .put("mapreduce.task.classpath.user.precedence", "true");

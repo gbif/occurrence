@@ -4,6 +4,7 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
 import java.io.IOException;
@@ -55,9 +56,11 @@ public class OccurrenceMapReader {
         if (TermUtils.isInterpretedDate(term)) {
           occurrence.put(hiveColumn, toISO8601Date(ExtResultReader.getDate(row, term)));
         } else if (TermUtils.isInterpretedDouble(term)) {
-          occurrence.put(hiveColumn, ExtResultReader.getDouble(row, term).toString());
+          Double value = ExtResultReader.getDouble(row, term);
+          occurrence.put(hiveColumn, value != null ? value.toString() : null);
         } else if (TermUtils.isInterpretedNumerical(term)) {
-          occurrence.put(hiveColumn, ExtResultReader.getInteger(row, term).toString());
+          Integer value = ExtResultReader.getInteger(row, term);
+          occurrence.put(hiveColumn, value != null ? value.toString() : null);
         } else {
           occurrence.put(hiveColumn, getCleanString(row, term));
         }
@@ -78,7 +81,7 @@ public class OccurrenceMapReader {
     }
     Map<String, String> occurrence = new HashMap<String, String>();
     for (Term term : TermUtils.verbatimTerms()) {
-      occurrence.put(TermUtils.getHiveColumn(term), getCleanString(row, term));
+      occurrence.put(TermUtils.getHiveColumn(term), getCleanVerbatimString(row, term));
     }
     return occurrence;
   }
@@ -89,6 +92,15 @@ public class OccurrenceMapReader {
    */
   public static String getCleanString(Result row, Term term) {
     String value = ExtResultReader.getString(row, term);
+    return value != null ? value.replaceAll(DownloadUtils.DELIMETERS_MATCH, " ") : value;
+  }
+
+  /**
+   * Cleans specials characters from a string value.
+   * Removes tabs, line breaks and new lines.
+   */
+  public static String getCleanVerbatimString(Result row, Term term) {
+    String value = ExtResultReader.getString(row, Columns.verbatimColumn(term));
     return value != null ? value.replaceAll(DownloadUtils.DELIMETERS_MATCH, " ") : value;
   }
 

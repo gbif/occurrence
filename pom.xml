@@ -55,7 +55,7 @@
   <properties>
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
-    <zookeeper.quorum>c1n8.gbif.org:2180,c1n9.gbif.org:2180,c1n10.gbif.org:2180</zookeeper.quorum>
+    <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
     <postalservice.threadcount>10</postalservice.threadcount>
     <postalservice.port>5672</postalservice.port>
     <postalservice.hostname>mq.gbif.org</postalservice.hostname>
@@ -739,6 +739,8 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://apps.gbif-uat.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/</occurrence.download.hive.hdfs.out>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://api.gbif-uat.org/v0.9/</registry.ws.url>
@@ -747,7 +749,6 @@
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_uat</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
-        <occurrence.download.ws.username>occdownload.gbif-uat.org</occurrence.download.ws.username>
       </properties>
     </profile>
 
@@ -764,6 +765,8 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://apps.gbif-dev.org:8080/occurrence-ws</occurrence.download.ws.url>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/</occurrence.download.hive.hdfs.out>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://apps.gbif-dev.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>
@@ -772,7 +775,6 @@
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
       </properties>
     </profile>
 

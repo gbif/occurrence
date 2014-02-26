@@ -29,23 +29,13 @@
    <decision name="make_query_decision">
     <switch>
       <!-- it's a small download -->
-      <case to="has_records_decision">
+      <case to="small_download">
         ${wf:actionData('occurrence_count')['is_small_download']}
       </case>    
       <default to="big_download" />
     </switch>
   </decision>
   
-  <decision name="has_records_decision">
-    <switch>
-      <!-- it's a small download -->
-      <case to="small_download">
-        ${wf:actionData('occurrence_count')['has_records']}
-      </case>    
-      <default to="big_download" />
-    </switch>
-  </decision>
-
   <fork name="big_download">
     <path start="query_interpreted" />
     <path start="query_verbatim" />
@@ -53,15 +43,15 @@
 
   <action name="small_download">
     <java>
-      <job-tracker>${jobtracker}</job-tracker>
-      <name-node>${namenode}</name-node>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <main-class>org.gbif.occurrencestore.download.file.DownloadTableBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
       <arg>${query_result_table}_interpreted</arg>
       <arg>${query_result_table}_verbatim</arg>
       <arg>${citation_table}</arg>
       <arg>${solr_query}</arg>
-      <arg>${namenode}</arg>
+      <arg>${hdfs.namenode}</arg>
       <arg>${hdfs_hive_path}</arg>
       <arg>${wf:id()}</arg>
     </java>

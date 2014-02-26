@@ -57,7 +57,9 @@ public class DownloadTableBuilder {
 
     private final String downloadId;
 
-    private static final String PROPERTIES_PREFIX = "occurrence-download.";
+    private final String registryWsUri;
+
+    private static final String PROPERTIES_PREFIX = "occurrence.download.";
 
     /**
      * Default constructor.
@@ -65,6 +67,7 @@ public class DownloadTableBuilder {
     public DownloadTableBuilderModule(Properties properties, String downloadId) {
       super(PROPERTIES_PREFIX, properties);
       this.downloadId = downloadId;
+      this.registryWsUri = properties.getProperty("registry.ws.url");
     }
 
     @Override
@@ -96,8 +99,7 @@ public class DownloadTableBuilder {
 
     @Provides
     @Singleton
-    DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-      @Named("registry.ws.url") String registryWsUri) {
+    DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService() {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil(this.getVerbatimProperties());
       return registryClientUtil.setupDatasetUsageService(registryWsUri);
     }
