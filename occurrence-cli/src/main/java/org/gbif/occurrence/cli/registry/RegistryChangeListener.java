@@ -74,6 +74,14 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         }
         break;
       case UPDATED:
+        // we need to crawl it no matter what
+        LOG.info("Sending crawl for updated dataset [{}]", newDataset.getKey());
+        try {
+          messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
+        } catch (IOException e) {
+          LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
+        }
+        // check if owning org has changed, and update old records if so
         if (oldDataset.getOwningOrganizationKey().equals(newDataset.getOwningOrganizationKey())) {
           LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
         } else {
