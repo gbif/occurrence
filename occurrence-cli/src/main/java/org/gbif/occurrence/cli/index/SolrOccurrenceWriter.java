@@ -20,6 +20,7 @@ import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CONTINENT;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
@@ -105,17 +106,18 @@ public class SolrOccurrenceWriter {
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
-    doc.setField(BASIS_OF_RECORD.getFieldName(), occurrence.getBasisOfRecord() == null ? null : occurrence
-      .getBasisOfRecord().name());
+    doc.setField(BASIS_OF_RECORD.getFieldName(),
+      occurrence.getBasisOfRecord() == null ? null : occurrence.getBasisOfRecord().name());
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.catalogNumber));
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordedBy));
-    doc.setField(TYPE_STATUS.getFieldName(), occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus()
-      .name());
+    doc.setField(TYPE_STATUS.getFieldName(),
+      occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus().name());
     doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordNumber));
-    doc.setField(COUNTRY.getFieldName(), occurrence.getCountry() == null ? null : occurrence.getCountry()
-      .getIso2LetterCode());
-    doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
-      .getPublishingCountry().getIso2LetterCode());
+    doc.setField(COUNTRY.getFieldName(),
+      occurrence.getCountry() == null ? null : occurrence.getCountry().getIso2LetterCode());
+    doc.setField(PUBLISHING_COUNTRY.getFieldName(),
+      occurrence.getPublishingCountry() == null ? null : occurrence.getPublishingCountry().getIso2LetterCode());
+    doc.setField(CONTINENT.getFieldName(), occurrence.getContinent() == null ? null : occurrence.getContinent().name());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     if (!taxonKey.isEmpty()) {
