@@ -29,10 +29,10 @@ import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -109,46 +109,17 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, DwcTerm.basisOfRecord)
     .put(OccurrenceSearchParameter.COUNTRY, DwcTerm.countryCode)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, GbifTerm.publishingCountry)
-
     .put(OccurrenceSearchParameter.RECORDED_BY, DwcTerm.recordedBy)
     .put(OccurrenceSearchParameter.RECORD_NUMBER, DwcTerm.recordNumber)
     .put(OccurrenceSearchParameter.TYPE_STATUS, DwcTerm.typeStatus)
+    .put(OccurrenceSearchParameter.HAS_COORDINATE, GbifTerm.hasCoordinate)
+    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, GbifTerm.hasGeospatialIssues)
     .build();
-
-  // HAS_COORDINATE_HQL, HAS_NO_COORDINATE_HQL, SPATIAL_ISSUES_CHECK and NO_SPATIAL_ISSUES_CHECK are
-  // precalculated since they are the same for all the queries.
-  private static final String HAS_COORDINATE_HQL = toHiveField(DwcTerm.decimalLatitude) + IS_NOT_NULL_OPERATOR
-    + CONJUNCTION_OPERATOR + toHiveField(DwcTerm.decimalLongitude) + IS_NOT_NULL_OPERATOR;
-
-  private static final String HAS_NO_COORDINATE_HQL = '('
-    + toHiveField(DwcTerm.decimalLatitude) + IS_NULL_OPERATOR + DISJUNCTION_OPERATOR
-    + toHiveField(DwcTerm.decimalLongitude) + IS_NULL_OPERATOR + ')';
-
-  private static final String HAS_SPATIAL_ISSUE_HQL;
-  static {
-    StringBuilder sb = new StringBuilder();
-    sb.append("(");
-    boolean first = true;
-    for (OccurrenceIssue si : OccurrenceIssue.GEOSPATIAL_RULES) {
-      if (!first) {
-        sb.append(DISJUNCTION_OPERATOR);
-      }
-      sb.append(issueContains(si));
-      first = false;
-    }
-    sb.append(")");
-    HAS_SPATIAL_ISSUE_HQL = sb.toString();
-  }
-
-
-  private static String issueContains(OccurrenceIssue issue) {
-    return "array_contains(" + toHiveField(GbifTerm.issue) + "," + issue.name() + ")";
-  }
 
   private StringBuilder builder;
 
   private static String toHiveField(Term term) {
-    return term.simpleName();
+    return TermUtils.getHiveColumn(term);
   }
 
   private static String toHiveField(OccurrenceSearchParameter param) {
@@ -162,7 +133,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   *
+   * 
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -189,7 +160,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   *
+   * 
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -258,7 +229,7 @@ class HiveQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   *
+   * 
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -282,10 +253,6 @@ class HiveQueryVisitor {
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
     if (predicate.getKey() == OccurrenceSearchParameter.ISSUE) {
       // ignore - there's no way to actually request this in the interface, nor is it indexed in solr
-    } else if (predicate.getKey() == OccurrenceSearchParameter.SPATIAL_ISSUES) {
-      appendSpatialIssuePredicate(predicate.getValue());
-    } else if (predicate.getKey() == OccurrenceSearchParameter.HAS_COORDINATE) {
-      appendHasCoordinatePredicate(predicate.getValue());
     } else {
       builder.append(toHiveField(predicate.getKey()));
       builder.append(op);
@@ -294,38 +261,8 @@ class HiveQueryVisitor {
   }
 
   /**
-   * OccurrenceSearchParameter.HAS_COORDINATE is managed specially.
-   * The search parameter is a boolean value but in hive must be converted into NULL comparison of the latitude and
-   * longitude columns.
-   * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
-   */
-  private void appendHasCoordinatePredicate(String value) {
-    if (Boolean.parseBoolean(value)) {
-      builder.append(HAS_COORDINATE_HQL);
-    } else {
-      builder.append(HAS_NO_COORDINATE_HQL);
-    }
-  }
-
-  /**
-   * OccurrenceSearchParameter.SPATIAL_ISSUES is managed specially. The search parameter is a boolean value but in hive
-   * is an integer.
-   * Be aware that the operator is ignored and it's handled as expression that checks if the record has a spatial issue.
-   */
-  private void appendSpatialIssuePredicate(String value) {
-    if (Boolean.parseBoolean(value)) {
-      builder.append(HAS_SPATIAL_ISSUE_HQL);
-    } else {
-      builder.append(NOT_OPERATOR);
-      builder.append("(");
-      builder.append(HAS_SPATIAL_ISSUE_HQL);
-      builder.append(")");
-    }
-  }
-
-  /**
    * Searches any of the nub keys in hbase of any rank.
-   *
+   * 
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
@@ -346,7 +283,7 @@ class HiveQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   *
+   * 
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase
@@ -362,7 +299,7 @@ class HiveQueryVisitor {
       Date d = IsoDateParsingUtils.parseDate(value);
       return String.valueOf(d.getTime());
 
-    } else if (Number.class.isAssignableFrom(param.type())) {
+    } else if (Number.class.isAssignableFrom(param.type()) || Boolean.class.isAssignableFrom(param.type())) {
       // dont quote numbers
       return value;
 
@@ -378,7 +315,7 @@ class HiveQueryVisitor {
       method = getClass().getMethod("visit", new Class[] {object.getClass()});
     } catch (NoSuchMethodException e) {
       LOG.warn(
-         "Visit method could not be found. That means a Predicate has been passed in that is unknown to this class", e);
+        "Visit method could not be found. That means a Predicate has been passed in that is unknown to this class", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
