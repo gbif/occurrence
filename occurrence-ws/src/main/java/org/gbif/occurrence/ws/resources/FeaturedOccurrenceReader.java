@@ -76,11 +76,8 @@ public class FeaturedOccurrenceReader {
       LOG.debug("No featured occurrence record found for key: {}", occurrenceIds[randomIndex]);
     } else {
       // filter for only good ones
-//      if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
-//        && occ.getGeospatialIssue() == 0 && occ.getPublishingOrgKey() != null) {
-      // TODO geospatial issue has changed
         if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
-            && occ.getPublishingOrgKey() != null) {
+            && !occ.hasSpatialIssue() && occ.getPublishingOrgKey() != null) {
         results.add(occ);
       }
     }

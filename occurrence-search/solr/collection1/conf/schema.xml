@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <schema name="occurrence" version="1.2">
-	<!-- attribute "name" is the name of this schema and is only used for display 
-		purposes. Applications should change this to reflect the nature of the search 
-		collection. version="1.2" is Solr's version number for the schema syntax 
-		and semantics. It should not normally be changed by applications. 1.0: multiValued 
-		attribute did not exist, all fields are multiValued by nature 1.1: multiValued 
-		attribute introduced, false by default 1.2: omitTermFreqAndPositions attribute 
+	<!-- attribute "name" is the name of this schema and is only used for display
+		purposes. Applications should change this to reflect the nature of the search
+		collection. version="1.2" is Solr's version number for the schema syntax
+		and semantics. It should not normally be changed by applications. 1.0: multiValued
+		attribute did not exist, all fields are multiValued by nature 1.1: multiValued
+		attribute introduced, false by default 1.2: omitTermFreqAndPositions attribute
 		introduced, true by default except for text fields. -->
 
 	<types>
-		<!-- field type definitions. The "name" attribute is just a label to be 
-			used by field definitions. The "class" attribute and any other attributes 
-			determine the real behavior of the fieldType. Class names starting with "solr" 
+		<!-- field type definitions. The "name" attribute is just a label to be
+			used by field definitions. The "class" attribute and any other attributes
+			determine the real behavior of the fieldType. Class names starting with "solr"
 			refer to java classes in the org.apache.solr.analysis package. -->
 
-		<!-- The StrField type is not analyzed, but indexed/stored verbatim. - 
-			StrField and TextField support an optional compressThreshold which limits 
-			compression (if enabled in the derived fields) to values which exceed a certain 
+		<!-- The StrField type is not analyzed, but indexed/stored verbatim. -
+			StrField and TextField support an optional compressThreshold which limits
+			compression (if enabled in the derived fields) to values which exceed a certain
 			size (in characters). -->
 		<fieldType name="string" class="solr.StrField"
 			sortMissingLast="true" omitNorms="true" />
@@ -24,19 +24,19 @@
 		<!-- boolean type: "true" or "false" -->
 		<fieldType name="boolean" class="solr.BoolField"
 			sortMissingLast="true" omitNorms="true" />
-		
-		<!-- The optional sortMissingLast and sortMissingFirst attributes are currently 
-			supported on types that are sorted internally as strings. This includes "string","boolean","sint","slong","sfloat","sdouble","pdate" 
-			- If sortMissingLast="true", then a sort on this field will cause documents 
-			without the field to come after documents with the field, regardless of the 
-			requested sort order (asc or desc). - If sortMissingFirst="true", then a 
-			sort on this field will cause documents without the field to come before 
-			documents with the field, regardless of the requested sort order. - If sortMissingLast="false" 
-			and sortMissingFirst="false" (the default), then default lucene sorting will 
-			be used which places docs without the field first in an ascending sort and 
+
+		<!-- The optional sortMissingLast and sortMissingFirst attributes are currently
+			supported on types that are sorted internally as strings. This includes "string","boolean","sint","slong","sfloat","sdouble","pdate"
+			- If sortMissingLast="true", then a sort on this field will cause documents
+			without the field to come after documents with the field, regardless of the
+			requested sort order (asc or desc). - If sortMissingFirst="true", then a
+			sort on this field will cause documents without the field to come before
+			documents with the field, regardless of the requested sort order. - If sortMissingLast="false"
+			and sortMissingFirst="false" (the default), then default lucene sorting will
+			be used which places docs without the field first in an ascending sort and
 			last in a descending sort. -->
 
-		<!-- Default numeric field types. For faster range queries, consider the 
+		<!-- Default numeric field types. For faster range queries, consider the
 			tint/tfloat/tlong/tdouble types. -->
 		<fieldType name="int" class="solr.TrieIntField"
 			precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
@@ -45,38 +45,39 @@
 		<fieldType name="long" class="solr.TrieLongField"
 			precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
 		<fieldType name="double" class="solr.TrieDoubleField"
-			precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>    
-    <fieldType name="coordinate" class="solr.SpatialRecursivePrefixTreeFieldType" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" units="degrees" sortMissingLast="true"/>    
+			precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
+    <fieldType name="coordinate" class="solr.SpatialRecursivePrefixTreeFieldType" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" units="degrees" sortMissingLast="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
-		
+
 	</types>
 	<fields>
-      <field name="key" type="int" indexed="true" stored="true" required="true" />    
+      <field name="key" type="int" indexed="true" stored="true" required="true" />
       <field name="dataset_key" type="string" indexed="true" stored="false" />
-      <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true"/>    
+      <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true"/>
       <field name="basis_of_record" type="string" indexed="true" stored="false"/>
       <field name="year" type="int" indexed="true" stored="false" />
       <field name="month" type="int" indexed="true" stored="false" />
       <field name="elevation" type="double" indexed="true" stored="false" />
-      <field name="depth" type="double" indexed="true" stored="false" />    
+      <field name="depth" type="double" indexed="true" stored="false" />
       <field name="catalog_number" type="string" indexed="true" stored="false" />
       <field name="recorded_by" type="string" indexed="true" stored="false" />
       <field name="record_number" type="string" indexed="true" stored="false" />
       <field name="institution_code" type="string" indexed="true" stored="false" />
       <field name="collection_code" type="string" indexed="true" stored="false" />
       <field name="country" type="string" indexed="true" stored="false" />
+      <field name="continent" type="string" indexed="true" stored="false"/>
       <field name="publishing_country" type="string" indexed="true" stored="false" />
       <field name="coordinate" type="coordinate" indexed="true" stored="false" />
       <field name="spatial_issues" type="boolean" indexed="true" stored="false" />
       <field name="has_coordinate" type="boolean" indexed="true" stored="false" />
       <field name="latitude" type="double" indexed="true" stored="false" />
       <field name="longitude" type="double" indexed="true" stored="false" />
-      <field name="event_date" type="date" indexed="true" stored="false" /> 
+      <field name="event_date" type="date" indexed="true" stored="false" />
       <field name="last_interpreted" type="date" indexed="true" stored="false" />
       <field name="type_status" type="string" indexed="true" stored="false"/>
       <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
-	<!-- Field to use to determine and enforce document uniqueness. Unless this 
+	<!-- Field to use to determine and enforce document uniqueness. Unless this
 		field is marked with required="false", it will be a required field -->
 	<uniqueKey>key</uniqueKey>
 

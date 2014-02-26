@@ -42,7 +42,7 @@ import org.supercsv.util.CsvContext;
  * The expected columns in that file are:
  * "key","altitude","basisOfRecord","catalogNumber","classKey","clazz","collectionCode","dataProviderId",
  * "dataResourceId","datasetKey","depth","occurrenceId","family","familyKey","genus",
- * "genusKey","institutionCode","country","kingdom","kingdomKey","latitude","longitude","modified",
+ * "genusKey","institutionCode","country","continent","kingdom","kingdomKey","latitude","longitude","modified",
  * "occurrenceMonth","taxonKey","occurrenceDate","order","orderKey","otherIssue",
  * "owningOrgKey","phylum","phylumKey","scientificName","species","speciesKey",
  * "unitQualifier","year","locality","county","stateProvince","continent",
