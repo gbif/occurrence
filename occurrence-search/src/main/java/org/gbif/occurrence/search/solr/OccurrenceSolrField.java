@@ -6,7 +6,7 @@ package org.gbif.occurrence.search.solr;
  */
 public enum OccurrenceSolrField {
   KEY("key"), LATITUDE("latitude"), LONGITUDE("longitude"), COORDINATE("coordinate"),
-  COUNTRY("country"), PUBLISHING_COUNTRY("publishing_country"), YEAR("year"), MONTH("month"),
+  COUNTRY("country"), PUBLISHING_COUNTRY("publishing_country"), CONTINENT("continent"), YEAR("year"), MONTH("month"),
   CATALOG_NUMBER("catalog_number"), RECORDED_BY("recorded_by"), RECORD_NUMBER("record_number"),
   BASIS_OF_RECORD("basis_of_record"), DATASET_KEY("dataset_key"), TAXON_KEY("taxon_key"),
   COLLECTION_CODE("collection_code"), ELEVATION("elevation"), DEPTH("depth"), INSTITUTION_CODE("institution_code"),

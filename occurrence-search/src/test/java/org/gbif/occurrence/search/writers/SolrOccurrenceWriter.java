@@ -19,6 +19,7 @@ import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CONTINENT;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
@@ -111,6 +112,7 @@ public class SolrOccurrenceWriter implements Predicate<Occurrence> {
       .getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(), occurrence.getPublishingCountry() == null ? null : occurrence
       .getPublishingCountry().getIso2LetterCode());
+    doc.setField(CONTINENT.getFieldName(), occurrence.getContinent() == null ? null : occurrence.getContinent().name());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     if (!taxonKey.isEmpty()) {

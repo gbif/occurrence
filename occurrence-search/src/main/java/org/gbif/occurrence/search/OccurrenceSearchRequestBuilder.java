@@ -63,6 +63,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED)
       .put(OccurrenceSearchParameter.COUNTRY, OccurrenceSolrField.COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceSolrField.PUBLISHING_COUNTRY)
+      .put(OccurrenceSearchParameter.CONTINENT, OccurrenceSolrField.CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
       .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
       .build();

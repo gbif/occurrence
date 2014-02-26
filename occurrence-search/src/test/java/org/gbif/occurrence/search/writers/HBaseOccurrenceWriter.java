@@ -84,17 +84,6 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
         Bytes.toBytes(occ.getVerbatimField(DwcTerm.collectionCode)));
     }
 
-    // deprecated - remove
-    // if (occ.getDataProviderId() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.DATA_PROVIDER_ID)),
-    // Bytes.toBytes(occ.getDataProviderId()));
-    // }
-    //
-    // if (occ.getDataResourceId() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.DATA_RESOURCE_ID)),
-    // Bytes.toBytes(occ.getDataResourceId()));
-    // }
-
     if (occ.getDatasetKey() != null) {
       put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
         Bytes.toBytes(occ.getDatasetKey().toString()));
@@ -226,12 +215,6 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
         Bytes.toBytes(occ.getOrderKey()));
     }
 
-    // TODO: other issue now deprecated
-    // if (occ.getOtherIssue() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.I_OTHER_ISSUE)),
-    // Bytes.toBytes(occ.getOtherIssue()));
-    // }
-
     if (occ.getPublishingOrgKey() != null) {
       put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey)),
         Bytes.toBytes(occ.getPublishingOrgKey().toString()));
@@ -246,12 +229,6 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
       put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.phylumKey)),
         Bytes.toBytes(occ.getPhylumKey()));
     }
-
-    // deprecated
-    // if (occ.getResourceAccessPointId() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.RESOURCE_ACCESS_POINT_ID)),
-    // Bytes.toBytes(occ.getResourceAccessPointId()));
-    // }
 
     if (occ.getScientificName() != null) {
       put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.scientificName)),

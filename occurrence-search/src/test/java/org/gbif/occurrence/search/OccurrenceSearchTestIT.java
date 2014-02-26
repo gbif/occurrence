@@ -8,6 +8,7 @@ import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
@@ -148,7 +149,7 @@ public class OccurrenceSearchTestIT {
 
   /**
    * Creates an instance of a guice injector using the OccurrenceSearchTestModule.
-   * 
+   *
    * @return
    */
   private static Injector getInjector() {
@@ -266,6 +267,18 @@ public class OccurrenceSearchTestIT {
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
+  }
+
+  /**
+   * Performs a search by country.
+   */
+  @Test
+  public void testSearchByContinent() {
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.CONTINENT, Continent.NORTH_AMERICA);
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+      occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertEquals(response.getCount().intValue(), 19);
   }
 
   /**
