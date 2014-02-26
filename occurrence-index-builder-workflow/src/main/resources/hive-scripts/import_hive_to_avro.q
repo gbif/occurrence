@@ -1,31 +1,27 @@
 INSERT OVERWRITE TABLE ${tempAvroTable} 
 SELECT 
-  key,
-  COALESCE(dataset_key,""),
-  COALESCE(institution_code,""),
-  COALESCE(collection_code,""),
-  COALESCE(catalogue_number,""),
-  COALESCE(collector_name,""),
-  COALESCE(record_number,""),
-  COALESCE(last_interpreted, CAST(-1 AS BIGINT)),
-  array(COALESCE(i_kingdom_key,-1),COALESCE(i_phylum_key,-1),COALESCE(i_class_key,-1),COALESCE(i_order_key,-1),COALESCE(i_family_key,-1),COALESCE(i_genus_key,-1),COALESCE(i_species_key,-1),COALESCE(i_taxon_key,-1)), --taxon_key
-  COALESCE(i_country,""),
-  COALESCE(pub_country,""),
-  COALESCE(i_latitude,-1000),
-  COALESCE(i_longitude,-1000),
-  if(COALESCE(i_latitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(i_longitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(i_latitude AS STRING),',',CAST(i_longitude AS STRING)),""), --coordinate  
-  COALESCE(i_year,-1),
-  COALESCE(i_month,-1),
-  COALESCE(i_event_date,CAST(-1 AS BIGINT)),
-  COALESCE(i_basis_of_record,"UNKNOWN"),
-  COALESCE(i_type_status,"-1"),
-  (COALESCE(iss_PRESUMED_NEGATED_LATITUDE,0) > 0 AND
-   COALESCE(iss_PRESUMED_NEGATED_LONGITUDE,0) > 0 AND
-   COALESCE(iss_PRESUMED_SWAPPED_COORDINATE,0) > 0 AND
-   COALESCE(iss_ZERO_COORDINATE,0) > 0 AND
-   COALESCE(iss_COORDINATES_OUT_OF_RANGE,0) > 0 AND
-   COALESCE(iss_COUNTRY_COORDINATE_MISMATCH,0) > 0), --geospatial_issue as boolean
-  COALESCE(i_latitude,-1000) != -1000 AND COALESCE(i_longitude,-1000) != -1000, --georeferenced
-  COALESCE(i_altitude,-1000000),
-  COALESCE(i_depth,-1000000)
+  gbifid,
+  COALESCE(datasetkey,""),
+  COALESCE(institutioncode,""),
+  COALESCE(collectioncode,""),
+  COALESCE(catalognumber,""),
+  COALESCE(recordedby,""),
+  COALESCE(recordnumber,""),
+  COALESCE(lastinterpreted, CAST(-1 AS BIGINT)),
+  array(COALESCE(kingdomkey,-1),COALESCE(phylumkey,-1),COALESCE(classkey,-1),COALESCE(orderkey,-1),COALESCE(familykey,-1),COALESCE(genuskey,-1),COALESCE(specieskey,-1),COALESCE(taxonkey,-1)), --taxon_key
+  COALESCE(countrycode,""),
+  COALESCE(continent,""),
+  COALESCE(publishingcountry,""),
+  COALESCE(decimallatitude,-1000),
+  COALESCE(decimallongitude,-1000),
+  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),""), --coordinate  
+  COALESCE(year,-1),
+  COALESCE(month,-1),
+  COALESCE(eventdate,CAST(-1 AS BIGINT)),
+  COALESCE(basisofrecord,"UNKNOWN"),
+  COALESCE(typestatus,"-1"),
+  hasgeospatialissues, --geospatial_issue
+  hascoordinate, --hascoordinate
+  COALESCE(elevation,-1000000),
+  COALESCE(depth,-1000000)
 FROM ${sourceOccurrenceTable}; 

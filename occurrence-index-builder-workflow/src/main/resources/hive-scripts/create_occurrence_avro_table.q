@@ -22,6 +22,7 @@ TBLPROPERTIES (
     {"name":"last_interpreted","type":"long"}, 
     {"name":"taxon_key","type":{"type":"array", "items":"int"}},
     {"name":"country","type":"string"},
+    {"name":"continent","type":"string"},
     {"name":"publishing_country","type":"string"},
     {"name":"latitude","type":"double"},
     {"name":"longitude","type":"double"},
