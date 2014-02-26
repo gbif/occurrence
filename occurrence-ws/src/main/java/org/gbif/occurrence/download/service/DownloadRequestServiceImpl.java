@@ -104,6 +104,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         columns.add("toISO8601(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedNumerical(term) || TermUtils.isInterpretedDouble(term)) {
         columns.add("cleanNull(" + iCol + ") AS " + iCol);
+      } else if (TermUtils.isInterpretedBoolean(term)) {
+        columns.add(iCol);
       } else {
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
