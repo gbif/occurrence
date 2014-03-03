@@ -37,6 +37,8 @@ public class DownloadTableGenerator {
 
   private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
 
+  private static final String DROP_TABLE_FMT = "DROP TABLE IF EXISTS %s;";
+
   private static final String HBASE_MAP_FMT = "o:%s";
   private static final String HBASE_KEY_MAPPING = ":key";
   private static final String OCC_ID_COL_DEF = TermUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
@@ -205,7 +207,7 @@ public class DownloadTableGenerator {
     ImmutableSet<Term> exclusions = new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).build();
     List<String> columns =
       new ImmutableList.Builder<String>()
-        .add(OCC_ID_COL_DEF)
+        .add(TermUtils.getHiveColumn(GbifTerm.gbifID))
         .addAll(processTerms(TermUtils.verbatimTerms(), VERBATIM_TERM_COL_DEF, exclusions))
         .addAll(processTerms(INTERNAL_TERMS, TERM_SELECT_EXP, exclusions))
         .addAll(processTerms(TermUtils.interpretedTerms(), TERM_SELECT_EXP, exclusions)).build();
@@ -257,15 +259,26 @@ public class DownloadTableGenerator {
   /**
    * Builds the INSERT OVERWRITE statement that populates the HDFS table from HBase.
    */
-  private static String buildInsertFromHBaseIntoHive(String hiveTableName, String hbaseTableName) {
+  private static String buildInsertFromHBaseIntoHive(String hiveTableName) {
     return String.format(INSERT_INFO_OCCURRENCE_HDFS, hiveTableName + HDFS_POST,
-      COMMA_JOINER.join(selectHdfsTableColumns()), hbaseTableName + HBASE_POST, hbaseTableName);
+      COMMA_JOINER.join(selectHdfsTableColumns()), hiveTableName + HBASE_POST);
   }
 
+  /**
+   * Generates the drop table statements for the hdfs and hbase backed tables.
+   */
+  private static String buildDropTableStatements(String hiveTableName) {
+    return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n' +
+      String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
+  }
+
+  /**
+   * Generates a Hive script that deletes the hive occurrence tables, creates them and populate the HDFS table.
+   */
   public static String generateHiveScript(String hiveTableName, String hbaseTableName) {
-    return HIVE_DEFAULT_OPTS + '\n' + buildCreateHdfsTable(hiveTableName) + '\n'
-      + buildCreateHBaseTable(hiveTableName, hbaseTableName) + '\n' +
-      buildInsertFromHBaseIntoHive(hiveTableName, hbaseTableName);
+    return HIVE_DEFAULT_OPTS + '\n' + buildDropTableStatements(hiveTableName) + '\n'
+      + buildCreateHdfsTable(hiveTableName) + '\n' + buildCreateHBaseTable(hiveTableName, hbaseTableName)
+      + '\n' + buildInsertFromHBaseIntoHive(hiveTableName);
   }
 
   /**
