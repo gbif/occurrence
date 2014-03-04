@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
+import org.gbif.occurrence.model.TypificationRecord;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
 import org.gbif.occurrence.persistence.api.Fragment;
 
@@ -87,18 +88,13 @@ public class FragmentParser {
 //    ror.getCreated()
 //    ror.getModified()
 
-//    set(v, DwcTerm.acceptedNameUsage, ror.getDataProviderId());
-//    set(v, DwcTerm.acceptedNameUsage, ror.getDataResourceId());
-//    set(v, DwcTerm.acceptedNameUsage, ror.getResourceAccessPointId());
-
+    // these we don't have verb terms for yet
 //    set(v, DwcTerm.acceptedNameUsage, ror.getDayIdentified());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getMonthIdentified());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getYearIdentified());
-
 //    set(v, DwcTerm.acceptedNameUsage, ror.getIdentifierRecords());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getImageRecords());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getLinkRecords());
-//    set(v, DwcTerm.acceptedNameUsage, ror.getTypificationRecords());
 
     set(v, GbifTerm.elevationAccuracy, ror.getAltitudePrecision());
     set(v, DwcTerm.scientificNameAuthorship, ror.getAuthor());
@@ -137,6 +133,12 @@ public class FragmentParser {
     set(v, DwcTerm.stateProvince, ror.getStateOrProvince());
     set(v, DwcTerm.infraspecificEpithet, ror.getSubspecies());
     set(v, DwcTerm.year, ror.getYear());
+    if (ror.getTypificationRecords() != null && !ror.getTypificationRecords().isEmpty()) {
+      // just use first one - any more makes no sense
+      TypificationRecord record = ror.getTypificationRecords().get(0);
+      set(v, DwcTerm.typeStatus, record.getTypeStatus());
+      set(v, DwcTerm.typifiedName, record.getScientificName());
+    }
 
     return v;
   }

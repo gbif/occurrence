@@ -54,6 +54,25 @@
     </Identification>
   </Identifications>
   <RecordBasis>HumanObservation</RecordBasis>
+  <SpecimenUnit>
+    <Preparations>
+      <Preparation>
+        <PreparationType>preserved material</PreparationType>
+      </Preparation>
+    </Preparations>
+    <NomenclaturalTypeDesignations>
+      <NomenclaturalTypeDesignation>
+        <TypeStatus>Holotype</TypeStatus>
+        <NomenclaturalReference>
+          <TitleCitation>Fake title citation.</TitleCitation>
+        </NomenclaturalReference>
+        <VerificationNotes>Some fake notes.</VerificationNotes>
+        <TypifiedName>
+          <FullScientificNameString>Tetraedron caudatum (Corda) Hansg.</FullScientificNameString>
+        </TypifiedName>
+      </NomenclaturalTypeDesignation>
+    </NomenclaturalTypeDesignations>
+  </SpecimenUnit>
   <Gathering>
     <DateTime>
       <ISODateTimeBegin>1987-04-13T00:00:00</ISODateTimeBegin>

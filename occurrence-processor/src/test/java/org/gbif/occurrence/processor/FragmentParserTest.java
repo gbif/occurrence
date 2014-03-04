@@ -63,7 +63,8 @@ public class FragmentParserTest {
     assertEquals("1987-04-13T00:00:00", got.getVerbatimField(DwcTerm.eventDate));
     assertEquals("HumanObservation", got.getVerbatimField(DwcTerm.basisOfRecord));
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
-
+    assertEquals("Holotype", got.getVerbatimField(DwcTerm.typeStatus));
+    assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.typifiedName));
   }
 
   @Test
@@ -98,6 +99,7 @@ public class FragmentParserTest {
     assertEquals("400", got.getVerbatimField(DwcTerm.maximumElevationInMeters));
     assertEquals("PreservedSpecimen", got.getVerbatimField(DwcTerm.basisOfRecord));
     assertEquals("123", got.getVerbatimField(GbifTerm.gbifID));
+    assertEquals("Holotype", got.getVerbatimField(DwcTerm.typeStatus));
   }
 
 }

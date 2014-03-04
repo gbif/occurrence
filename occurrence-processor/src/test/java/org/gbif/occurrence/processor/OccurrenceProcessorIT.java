@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
@@ -199,6 +200,7 @@ public class OccurrenceProcessorIT {
     assertEquals(Country.GERMANY, got.getPublishingCountry());
     assertEquals(EndpointType.BIOCASE, got.getProtocol());
     assertEquals("1", got.getVerbatimField(GbifTerm.gbifID));
+    assertEquals(TypeStatus.HOLOTYPE, got.getTypeStatus());
   }
 
   @Test
