@@ -51,8 +51,8 @@ public class DownloadTableGenerator {
   private static final String HDFS_POST = "_hdfs";
   private static final String HBASE_POST = "_hbase";
 
-  private static final String ISSUE_HIVE_TYPE = " TINYINT";
-  private static final String COALESCE0_FMT = "COALESCE(0,%s)";
+  private static final String ISSUE_HIVE_TYPE = " INT";
+  private static final String COALESCE0_FMT = "COALESCE(%s,0)";
 
   private static final EnumSet<GbifInternalTerm> INTERNAL_TERMS = EnumSet.complementOf(EnumSet.of(
     GbifInternalTerm.fragmentHash,
