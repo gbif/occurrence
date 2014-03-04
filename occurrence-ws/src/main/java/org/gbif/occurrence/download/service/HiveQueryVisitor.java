@@ -71,8 +71,6 @@ class HiveQueryVisitor {
   private static final String LESS_THAN_EQUALS_OPERATOR = " <= ";
   private static final String NOT_OPERATOR = "NOT ";
   private static final String LIKE_OPERATOR = " LIKE ";
-  private static final String IS_NULL_OPERATOR = " IS NULL";
-  private static final String IS_NOT_NULL_OPERATOR = " IS NOT NULL";
   private static final CharMatcher APOSTROPHE_MATCHER = CharMatcher.is('\'');
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
@@ -108,6 +106,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.LAST_INTERPRETED, GbifTerm.lastInterpreted)
     .put(OccurrenceSearchParameter.BASIS_OF_RECORD, DwcTerm.basisOfRecord)
     .put(OccurrenceSearchParameter.COUNTRY, DwcTerm.countryCode)
+    .put(OccurrenceSearchParameter.CONTINENT, DwcTerm.continent)
     .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, GbifTerm.publishingCountry)
     .put(OccurrenceSearchParameter.RECORDED_BY, DwcTerm.recordedBy)
     .put(OccurrenceSearchParameter.RECORD_NUMBER, DwcTerm.recordNumber)
@@ -289,8 +288,8 @@ class HiveQueryVisitor {
    * @return the converted value expected by HBase
    */
   private String toHiveValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
-    if (param == OccurrenceSearchParameter.COUNTRY) {
-      // upper case 2 letter iso code
+    if (Enum.class.isAssignableFrom(param.type())) {
+      // all enum parameters are uppercased
       return '\'' + value.toUpperCase() + '\'';
     }
 

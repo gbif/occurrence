@@ -157,7 +157,7 @@ public class DownloadTableGenerator {
   };
 
   /**
-   * Generates the columna declaration (NAME TYPE) of occurrence issue.
+   * Generates the column declaration (NAME TYPE) of occurrence issue.
    */
   private static final Function<OccurrenceIssue, String> ISSUE_COL_DECL = new Function<OccurrenceIssue, String>() {
 
