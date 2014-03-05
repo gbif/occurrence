@@ -31,12 +31,12 @@ public class Columns {
 
   // the counter table is a single cell that is the "autoincrement" number for new keys, with column family, column,
   // and key ("row" in hbase speak)
-  public static final String COUNTER_COLUMN = INTERNAL_PREFIX + "id";
+  public static final String COUNTER_COLUMN = "id";
 
   // the lookup table is a secondary index of unique ids (holy triplet or publisher-provided) to GBIF integer keys
-  public static final String LOOKUP_KEY_COLUMN = INTERNAL_PREFIX + "i";
-  public static final String LOOKUP_LOCK_COLUMN = INTERNAL_PREFIX + "l";
-  public static final String LOOKUP_STATUS_COLUMN = INTERNAL_PREFIX + "s";
+  public static final String LOOKUP_KEY_COLUMN = "i";
+  public static final String LOOKUP_LOCK_COLUMN = "l";
+  public static final String LOOKUP_STATUS_COLUMN = "s";
 
   // each UnknownTerm is prefixed differently
   private static final String VERBATIM_TERM_PREFIX = "v_";

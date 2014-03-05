@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class InterpretDatasetListener extends AbstractMessageCallback<InterpretDatasetMessage> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DeleteDatasetListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(InterpretDatasetListener.class);
 
   private final OccurrenceKeyPersistenceService occurrenceKeyService;
   private final MessagePublisher messagePublisher;
