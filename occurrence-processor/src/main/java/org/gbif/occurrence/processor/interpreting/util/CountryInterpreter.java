@@ -51,6 +51,11 @@ public class CountryInterpreter {
       }
     }
 
+    if (result == null) {
+      // we got an array of null or empty countries passed in
+      return ParseResult.fail();
+    }
+
     if (!result.isSuccessful()) {
       result.getIssues().add(OccurrenceIssue.COUNTRY_INVALID);
     }

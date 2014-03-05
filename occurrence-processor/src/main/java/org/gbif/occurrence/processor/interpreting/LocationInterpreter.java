@@ -4,10 +4,10 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.geospatial.MeterRangeParser;
-import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.ContinentParser;
+import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.geospatial.DoubleAccuracy;
+import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
@@ -58,7 +58,7 @@ public class LocationInterpreter implements Runnable {
 
   private void interpretState(Country country) {
     if (verbatim.hasVerbatimField(DwcTerm.stateProvince)) {
-      occ.setStateProvince( cleanName(verbatim.getVerbatimField(DwcTerm.stateProvince)) );
+      occ.setStateProvince(cleanName(verbatim.getVerbatimField(DwcTerm.stateProvince)));
     }
     // TODO: verify against country?
   }
@@ -80,62 +80,68 @@ public class LocationInterpreter implements Runnable {
   }
 
   private Country interpretCountry() {
-    ParseResult<Country> inter = CountryInterpreter.interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode), verbatim.getVerbatimField(DwcTerm.country));
+    ParseResult<Country> inter = CountryInterpreter
+      .interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode), verbatim.getVerbatimField(DwcTerm.country));
     occ.setCountry(inter.getPayload());
     occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
   }
 
   private void interpretCoordinates(Country country) {
-    ParseResult<CoordinateCountry> coordLookup = CoordinateInterpreter.interpretCoordinates(
-      verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude), country);
+    ParseResult<CoordinateCountry> coordLookup = CoordinateInterpreter
+      .interpretCoordinates(verbatim.getVerbatimField(DwcTerm.decimalLatitude),
+        verbatim.getVerbatimField(DwcTerm.decimalLongitude), country);
 
-    if (coordLookup.getPayload().getLatitude() == null
-        && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude) && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
-      LOG.debug("Try verbatim coordinates");
+    if (!coordLookup.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude)
+        && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
+      LOG.debug("Decimal coord lookup failed, trying verbatim coordinates");
       // try again with verbatim lat/lon
-      coordLookup = CoordinateInterpreter.interpretCoordinates(
-        verbatim.getVerbatimField(DwcTerm.verbatimLatitude), verbatim.getVerbatimField(DwcTerm.verbatimLongitude), country);
+      coordLookup = CoordinateInterpreter.interpretCoordinates(verbatim.getVerbatimField(DwcTerm.verbatimLatitude),
+        verbatim.getVerbatimField(DwcTerm.verbatimLongitude), country);
     }
 
-    occ.setDecimalLatitude(coordLookup.getPayload().getLatitude());
-    occ.setDecimalLongitude(coordLookup.getPayload().getLongitude());
-    occ.getIssues().addAll(coordLookup.getIssues());
-
-    //TODO: interpret also coordinateUncertaintyInMeters
-    if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
-      // accept negative precisions and mirror
-      double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
-      if (prec != 0) {
-        // accuracy equals the precision in the case of decimal lat / lon
-        if (prec > 10) {
-          // add issue for unlikely coordinatePrecision
-        } else {
-          occ.setCoordinateAccuracy(prec);
+    if (coordLookup.isSuccessful() && coordLookup.getPayload() != null) {
+      occ.setDecimalLatitude(coordLookup.getPayload().getLatitude());
+      occ.setDecimalLongitude(coordLookup.getPayload().getLongitude());
+      //TODO: interpret also coordinateUncertaintyInMeters
+      if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
+        // accept negative precisions and mirror
+        double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
+        if (prec != 0) {
+          // accuracy equals the precision in the case of decimal lat / lon
+          if (prec > 10) {
+            // add issue for unlikely coordinatePrecision
+            LOG.info("Ignoring coordinatePrecision > 10 as highly unlikely");
+          } else {
+            occ.setCoordinateAccuracy(prec);
+          }
         }
       }
+      LOG.debug("Got lat [{}] lng [{}]", coordLookup.getPayload().getLatitude(),
+        coordLookup.getPayload().getLongitude());
     }
 
-    LOG.debug("Got lat [{}] lng [{}]", coordLookup.getPayload().getLatitude(), coordLookup.getPayload().getLongitude());
+    LOG.debug("Adding coord issues to occ [{}]", coordLookup.getIssues());
+    occ.getIssues().addAll(coordLookup.getIssues());
   }
 
   private void interpretDepth() {
-    ParseResult<DoubleAccuracy> result = MeterRangeParser.parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
-                                                                  verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters),
-                                                                  null);
+    ParseResult<DoubleAccuracy> result = MeterRangeParser
+      .parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
+        verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters), null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
-      occ.setDepth( result.getPayload().getValue() );
+      occ.setDepth(result.getPayload().getValue());
       occ.setDepthAccuracy(result.getPayload().getAccuracy());
       occ.getIssues().addAll(result.getIssues());
     }
   }
 
   private void interpretElevation() {
-    ParseResult<DoubleAccuracy> result = MeterRangeParser.parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
-                                                                                verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters),
-                                                                                null);
+    ParseResult<DoubleAccuracy> result = MeterRangeParser
+      .parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
+        verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters), null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
-      occ.setElevation( result.getPayload().getValue() );
+      occ.setElevation(result.getPayload().getValue());
       occ.setElevationAccuracy(result.getPayload().getAccuracy());
       occ.getIssues().addAll(result.getIssues());
     }
