@@ -98,6 +98,5 @@ o:hd,
 o:ci,
 o:pr,
 o:hc,
-o:ook",
-"hbase.table.default.storage.type" = "binary")
+o:ook")
 TBLPROPERTIES ("hbase.table.name" = "${hbase_src_table}", "hbase.table.default.storage.type" = "binary");

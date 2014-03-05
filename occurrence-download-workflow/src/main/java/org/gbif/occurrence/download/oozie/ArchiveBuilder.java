@@ -234,13 +234,11 @@ public class ArchiveBuilder {
 
   private static void logError(String msg) {
     System.err.println(msg);
-    throw new DownloadException(msg);
   }
 
   private static void logError(String msg, Exception e) {
     System.err.println(msg);
     e.printStackTrace();
-    throw new DownloadException(e);
   }
 
   /**
