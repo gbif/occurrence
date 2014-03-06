@@ -12,6 +12,8 @@ import java.util.UUID;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
 import org.apache.commons.io.output.FileWriterWithEncoding;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.ParseLong;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -24,6 +26,8 @@ import org.supercsv.prefs.CsvPreference;
  * The output file contains a list of datasets keys/uuids and its counts of occurrence records.
  */
 public class CitationsFileWriter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CitationsFileWriter.class);
 
   // Java fields of class solr.FacetField.Count that are used to create the citations file.
   private static final String[] HEADER = new String[] {"name", "count"};
@@ -63,6 +67,7 @@ public class CitationsFileWriter {
           }
         }
       } catch (IOException e) {
+        LOG.error("Error creating citations file", e);
         closer.rethrow(e);
       } finally {
         if (beanWriter != null) {
@@ -85,8 +90,7 @@ public class CitationsFileWriter {
       datasetUsage.setDownloadKey(downloadKey);
       datasetOccUsageService.create(datasetUsage);
     } catch (Exception e) {
-      System.err.println("Error persisting dataset usage information");
-      e.printStackTrace();
+      LOG.error("Error persisting dataset usage information", e);
     }
   }
 

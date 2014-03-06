@@ -143,7 +143,7 @@ public class HeadersFileUtil {
 
   public static void main(String[] args) throws IOException {
     if (args.length < 2) {
-      System.err.println("2 Parameters are required: verbatim and interpreted header file names");
+      throw new IllegalArgumentException("2 Parameters are required: verbatim and interpreted header file names");
     }
     generateHeadersFiles(args[0], args[1]);
   }

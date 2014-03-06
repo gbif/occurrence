@@ -12,9 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,6 +39,8 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that creates a single CSV file using a OccurrenceSearchRequest.
@@ -49,6 +49,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
  * fileJob.startOffset reported by each job.
  */
 public class OccurrenceFileWriter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriter.class);
 
   /**
    * Utility class that holds the general settings of the OccurrenceFileWriter class.
@@ -82,7 +84,7 @@ public class OccurrenceFileWriter {
 
   }
 
-  private static final String FINISH_MSG_FMT = "Time elapsed %d  minutes and %d seconds";
+  private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
 
   private final SolrServer solrServer;
 
@@ -125,14 +127,10 @@ public class OccurrenceFileWriter {
       }
       file.createNewFile();
     } catch (IOException e) {
+      LOG.error("Error creating file", e);
       Throwables.propagate(e);
     }
 
-  }
-
-
-  private static void log(String msg) {
-    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S").format(new Date()) + " " + msg);
   }
 
 
@@ -152,8 +150,9 @@ public class OccurrenceFileWriter {
       stopwatch.stop();
       executionContext.shutdownNow();
       final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
-      System.out.println(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
+      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
     } catch (IOException e) {
+      LOG.info("Error creating occurrence file", e);
       Throwables.propagate(e);
     }
   }
@@ -172,6 +171,7 @@ public class OccurrenceFileWriter {
       ByteStreams.copy(interpretedFileReader, interpretedFileWriter);
       ByteStreams.copy(verbatimFileReader, verabtimFileWriter);
     } catch (FileNotFoundException e) {
+      LOG.info("Error creating occurrence files", e);
       Throwables.propagate(e);
     } finally {
       closer.close();
@@ -238,18 +238,9 @@ public class OccurrenceFileWriter {
       QueryResponse queryResponse = solrServer.query(solrQuery);
       return queryResponse.getResults().getNumFound();
     } catch (SolrServerException e) {
-      logError("Error executing Solr", e);
+      LOG.error("Error executing Solr", e);
       return 0L;
     }
-  }
-
-
-  /**
-   * Logs an error to the standard output.
-   */
-  private void logError(String message, Throwable e) {
-    System.err.println(message);
-    e.printStackTrace();
   }
 
   /**
@@ -294,15 +285,14 @@ public class OccurrenceFileWriter {
       } else if (additionalJobsCnt == remaining) {
         remainingPerJob = 0;
       }
+      FileJob file = new FileJob(from, to, interpretedOutFile + i, verbatimOutFile + i, query);
       // Awaits for an available thread
       Lock lock = getLock();
-      log("Requesting a lock");
+      LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());
       lock.lock();
-      log("Lock granted");
+      LOG.info("Lock granted for job {}, detail: {}", i, file.toString());
       // Adds the Job to the list. The file name is the output file name + the sequence i
-      futures.add(Futures.future(new OccurrenceFileWriterJob(new FileJob(from, to, interpretedOutFile + i,
-        verbatimOutFile + i, query), lock,
-        solrServer, occurrenceHBaseReader),
+      futures.add(Futures.future(new OccurrenceFileWriterJob(file, lock, solrServer, occurrenceHBaseReader),
         executionContext));
     }
     return futures;

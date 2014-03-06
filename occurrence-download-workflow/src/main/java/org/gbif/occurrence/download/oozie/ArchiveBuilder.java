@@ -49,6 +49,7 @@ import java.util.UUID;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -66,6 +67,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates a dwc archive for occurrence downloads based on the hive query result files generated
@@ -73,6 +76,8 @@ import org.apache.hadoop.fs.Path;
  * that contains an EML metadata file per dataset involved.
  */
 public class ArchiveBuilder {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ArchiveBuilder.class);
 
   /**
    * Simple, local representation for a constituent dataset.
@@ -222,23 +227,10 @@ public class ArchiveBuilder {
       new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, conf, hdfs, localfs, archiveDir,
         interpretedDataTable, verbatimDataTable, citationTable, hdfsHivePath, downloadLinkWithId,
         Boolean.parseBoolean(isSmallDownload));
-    log("ArchiveBuilder created");
+    LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
 
     // SUCCESS!
-  }
-
-  private static void log(String msg) {
-    System.out.println(msg);
-  }
-
-  private static void logError(String msg) {
-    System.err.println(msg);
-  }
-
-  private static void logError(String msg, Exception e) {
-    System.err.println(msg);
-    e.printStackTrace();
   }
 
   /**
@@ -247,7 +239,7 @@ public class ArchiveBuilder {
    * @param zipFile the final zip file holding the entire archive
    */
   public void buildArchive(File zipFile) throws DownloadException {
-    log("Start building the archive ...");
+    LOG.info("Start building the archive {} ", zipFile.getPath());
 
     try {
       // oozie might try several times to run this job, so make sure our filesystem is clean
@@ -270,7 +262,7 @@ public class ArchiveBuilder {
       addArchiveDescriptor();
 
       // zip up
-      log(String.format("Zipping archive %s", archiveDir.toString()));
+      LOG.info("Zipping archive {}", archiveDir.toString());
       CompressionUtil.zipDir(archiveDir, zipFile, true);
 
     } catch (IOException e) {
@@ -293,13 +285,13 @@ public class ArchiveBuilder {
         OutputStream out = closer.register(new FileOutputStream(new File(emlDir, constituentId + ".xml")));
         ByteStreams.copy(in, out);
       } else {
-        logError("Found no EML for datasetId: " + constituentId);
+        LOG.error("Found no EML for datasetId {}", constituentId);
       }
 
     } catch (FileNotFoundException ex) {
-      logError("Error creating eml file", ex);
+      LOG.error("Error creating eml file", ex);
     } catch (IOException ex) {
-      logError("Error creating eml file", ex);
+      LOG.error("Error creating eml file", ex);
     } finally {
       closer.close();
     }
@@ -310,7 +302,7 @@ public class ArchiveBuilder {
    */
   @VisibleForTesting
   protected void addArchiveDescriptor() {
-    log("Add archive meta.xml descriptor");
+    LOG.info("Adding archive meta.xml descriptor");
     ArchiveFile occ = createCoreFile();
     ArchiveFile verb = createVerbatimFile();
 
@@ -324,10 +316,9 @@ public class ArchiveBuilder {
       MetaDescriptorWriter.writeMetaFile(metaFile, arch);
 
     } catch (TemplateException e) {
-      logError("meta.xml template exception: " + e.getMessage(), e);
-
+      LOG.error("Error reading meta.xml template", e);
     } catch (IOException e) {
-      logError("meta.xml IOException: " + e.getMessage(), e);
+      LOG.error("Error creating meta.xml file", e);
     }
   }
 
@@ -339,12 +330,12 @@ public class ArchiveBuilder {
    * @throws IOException
    */
   private void addDatasetMetadata() throws IOException {
-    log("Add constituent dataset metadata to archive");
+    LOG.info("Adding constituent dataset metadata to archive");
     Path citationSrc = new Path(hdfsPath + Path.SEPARATOR + citationTable);
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
     if (!hdfs.exists(citationSrc)) {
-      logError("No citation file directory existing on HDFS, skip creating of dataset metadata: " + citationSrc);
+      LOG.error("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
       return;
     }
 
@@ -366,7 +357,7 @@ public class ArchiveBuilder {
 
     for (Entry<UUID, Integer> dsEntry : srcDatasets.entrySet()) {
       final UUID constituentId = dsEntry.getKey();
-      log("Processing constituent dataset: " + constituentId);
+      LOG.info("Processing constituent dataset: {}", constituentId);
       // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
       try {
         Dataset srcDataset = datasetService.get(constituentId);
@@ -389,10 +380,10 @@ public class ArchiveBuilder {
           dataset.getContacts().add(provider);
         }
       } catch (UniformInterfaceException e) {
-        logError("Registry client http exception: " + e.getResponse().getStatus() + '\n' + e.getResponse()
-          .getEntity(String.class));
+        LOG.error(String.format("Registry client http exception: %d \n %s", e.getResponse().getStatus(), e
+          .getResponse().getEntity(String.class)), e);
       } catch (Exception e) {
-        logError("Error creating download file", e);
+        LOG.error("Error creating download file", e);
       }
     }
     closer.close();
@@ -402,7 +393,7 @@ public class ArchiveBuilder {
    * Copies and merges the hive query results files into a single, local occurrence data file.
    */
   private void addOccurrenceDataFile(String dataTable, String headerFileName, String destFileName) throws IOException {
-    log("Copy-merge occurrence data hdfs file to local filesystem");
+    LOG.info("Copy-merge occurrence data hdfs file {} to local filesystem", dataTable);
     final Path dataSrc = new Path(hdfsPath + Path.SEPARATOR + dataTable);
     final Path headerFileDest = new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME);
     if (!isSmallDownload) { // small downloads already include the headers
@@ -422,7 +413,7 @@ public class ArchiveBuilder {
    * @throws IOException
    */
   private void addQueryMetadata() {
-    log("Add query dataset metadata to archive");
+    LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadId is not a string in UUID format
       dataset.setKey(UUID.randomUUID());
@@ -447,8 +438,7 @@ public class ArchiveBuilder {
       EMLWriter.write(dataset, writer);
 
     } catch (Exception e) {
-      System.err.println("Failed to write query result dataset EML file");
-      e.printStackTrace();
+      LOG.error("Failed to write query result dataset EML file", e);
     }
   }
 
@@ -457,8 +447,8 @@ public class ArchiveBuilder {
    * Removes all temporary file system artifacts but the final zip archive.
    */
   private void cleanupFS() throws DownloadException {
-    log("Cleaning up archive directory");
     try {
+      LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
       localfs.delete(new Path(archiveDir.toURI()), true);
       archiveDir.delete();
     } catch (IOException e) {
@@ -532,7 +522,7 @@ public class ArchiveBuilder {
     try {
       dataDescription.setUrl(downloadLink.toURI());
     } catch (URISyntaxException e) {
-      logError("Wrong url " + downloadLink);
+      LOG.error(String.format("Wrong url %s", downloadLink), e);
     }
     return dataDescription;
   }
@@ -564,11 +554,11 @@ public class ArchiveBuilder {
           provider.setPrimary(false);
           return provider;
         } catch (IllegalAccessException e) {
-          // TODO: Handle exception
+          LOG.error("Error setting provider contact", e);
         } catch (InvocationTargetException e) {
-          // TODO: Handle exception
+          LOG.error("Error setting provider contact", e);
         } catch (NoSuchMethodException e) {
-          // TODO: Handle exception
+          LOG.error("Error setting provider contact", e);
         }
       }
     }
@@ -600,7 +590,7 @@ public class ArchiveBuilder {
       datasetUsage.setDownloadKey(downloadKey);
       datasetUsageService.create(datasetUsage);
     } catch (Exception e) {
-      logError("Error persisting dataset usage information", e);
+      LOG.error("Error persisting dataset usage information", e);
     }
   }
 
@@ -635,7 +625,7 @@ public class ArchiveBuilder {
                 }
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
-                log("Found invalid UUID as datasetId >>>" + line + "<<<");
+                LOG.info("Found invalid UUID as datasetId {}", line);
                 invalidUuids++;
               }
             }
@@ -647,9 +637,9 @@ public class ArchiveBuilder {
       }
     }
     if (invalidUuids > 0) {
-      log("Found " + invalidUuids + " invalid dataset UUIDs.");
+      LOG.info("Found {} invalid dataset UUIDs", invalidUuids);
     } else {
-      log("All " + srcDatasets.size() + " dataset UUIDs are valid.");
+      LOG.info("All {} dataset UUIDs are valid", srcDatasets.size());
     }
     return srcDatasets;
   }
@@ -676,7 +666,7 @@ public class ArchiveBuilder {
         citationWriter.write(citationLink);
       }
     } else {
-      logError("Constituent dataset misses mandatory citation for id: " + constituentId);
+      LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
     }
     return citationLink;
   }

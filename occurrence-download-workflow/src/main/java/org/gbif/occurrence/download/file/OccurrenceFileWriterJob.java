@@ -8,8 +8,6 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +23,8 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -34,6 +34,7 @@ import org.supercsv.prefs.CsvPreference;
  */
 class OccurrenceFileWriterJob implements Callable<Result> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriterJob.class);
 
   public static final String[] INT_HEADER = HeadersFileUtil.getIntepretedTableColumns();
   public static final String[] VERB_HEADER = HeadersFileUtil.getVerbatimTableColumns();
@@ -58,10 +59,6 @@ class OccurrenceFileWriterJob implements Callable<Result> {
     this.lock = lock;
     this.solrServer = solrServer;
     this.occurrenceMapReader = occurrenceHBaseReader;
-  }
-
-  private static void log(String msg) {
-    System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S").format(new Date()) + " " + msg);
   }
 
   /**
@@ -105,7 +102,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
             intCsvWriter.write(occurrenceRecordMap, INT_HEADER);
             verbCsvWriter.write(verbOccurrenceRecordMap, VERB_HEADER);
           } else {
-            log(String.format("Occurrence id %s not found!", occKey));
+            LOG.error(String.format("Occurrence id %s not found!", occKey));
           }
         }
       }
@@ -115,7 +112,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
       closer.close();
       // Unlock the assigned lock.
       lock.unlock();
-      log("Lock released");
+      LOG.info("Lock released, job detail: {} ", fileJob.toString());
     }
     return new Result(fileJob, datasetUsages);
   }

@@ -13,6 +13,8 @@ import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDF;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple UDF for Hive to test if a coordinate is contained in a geometry given as well known text.
@@ -22,6 +24,7 @@ import org.apache.hadoop.io.Text;
 @Description(name = "contains", value = "_FUNC_(geom_wkt, latitude, longitude)")
 public class ContainsUDF extends UDF {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ContainsUDF.class);
   private final WKTReader wktReader = new WKTReader();
   private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
   private final Map<String, Geometry> geometryCache = Maps.newHashMap();
@@ -48,9 +51,9 @@ public class ContainsUDF extends UDF {
       isContained.set(geom.contains(point));
 
     } catch (ParseException e) {
-      System.err.println("Invalid geometry received: " + geometryAsWKT.toString());
+      LOG.error("Invalid geometry received: " + geometryAsWKT.toString(), e);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Error applying UDF", e);
     }
 
     return isContained;

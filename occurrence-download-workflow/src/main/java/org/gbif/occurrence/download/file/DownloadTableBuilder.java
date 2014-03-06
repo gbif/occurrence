@@ -33,6 +33,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that wraps the process of creating the occurrence and citation files.
@@ -44,6 +46,8 @@ import org.apache.hadoop.hbase.client.HTablePool;
  * - hadoop dfs output directory where the citation and data files will be copied
  */
 public class DownloadTableBuilder {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadTableBuilder.class);
 
   /**
    * Private guice module that provides bindings the required Modules and dependencies.
@@ -186,8 +190,10 @@ public class DownloadTableBuilder {
     try {
       return Guice.createInjector(new DownloadTableBuilderModule(PropertiesUtil.loadProperties(CONF_FILE), jobId));
     } catch (IllegalArgumentException e) {
+      LOG.error("Error initializing injection module", e);
       Throwables.propagate(e);
     } catch (IOException e) {
+      LOG.error("Error initializing injection module", e);
       Throwables.propagate(e);
     }
     throw new IllegalStateException("Guice couldn't be initialized");
@@ -199,6 +205,7 @@ public class DownloadTableBuilder {
       conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
       return FileSystem.get(conf);
     } catch (IOException e) {
+      LOG.error("Error accessing hadoop HDFS", e);
       throw new IllegalArgumentException(e);
     }
   }

@@ -103,4 +103,11 @@ public class FileJob implements Comparable<FileJob> {
     return Objects.hashCode(this.interpretedDataFile, this.query, this.from, this.to);
   }
 
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("from", from).add("to", to)
+      .add("interpretedDataFile", interpretedDataFile).add("verbatimDataFile", verbatimDataFile)
+      .add("query", query).toString();
+  }
+
 }

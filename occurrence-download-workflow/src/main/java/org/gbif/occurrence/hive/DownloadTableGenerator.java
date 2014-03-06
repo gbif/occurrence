@@ -268,8 +268,8 @@ public class DownloadTableGenerator {
    * Generates the drop table statements for the hdfs and hbase backed tables.
    */
   private static String buildDropTableStatements(String hiveTableName) {
-    return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n' +
-      String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
+    return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n'
+      + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
   }
 
   /**
@@ -290,7 +290,8 @@ public class DownloadTableGenerator {
   public static void main(String[] args) throws IOException {
     Closer closer = Closer.create();
     if (args.length < 2) {
-      System.err.println("At least 2 parameters are required: the hive output table and the hbase input table");
+      throw new IllegalArgumentException(
+        "At least 2 parameters are required: the hive output table and the hbase input table");
     }
     final String hiveTableName = args[0];
     final String hbaseTableName = args[1];

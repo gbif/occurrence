@@ -27,6 +27,8 @@ import com.google.inject.name.Named;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -38,6 +40,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class OccurrenceCount {
 
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchCountModule.class);
+
   /**
    * Inner Guice Module: installs a SolrModule and only exposes instances of the OccurrenceCount class.
    * The properties file accepted should contain the prefix 'occurrence.download.' for the expected Solr configuration
@@ -48,12 +52,13 @@ public class OccurrenceCount {
 
 
     private static final String PREFIX = "occurrence.download.";
+    private static final String REGISTRY_URL = "registry.ws.url";
     private final String regUrl;
 
 
     public OccurrenceSearchCountModule(Properties properties) {
       super(PREFIX, properties);
-      regUrl = properties.getProperty("registry.ws.url");
+      regUrl = properties.getProperty(REGISTRY_URL);
     }
 
     @Override
@@ -111,14 +116,13 @@ public class OccurrenceCount {
    */
   private static Injector getInjector() {
     try {
-      return Guice.createInjector(new OccurrenceSearchCountModule(PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES)));
+      return Guice.createInjector(new OccurrenceSearchCountModule(PropertiesUtil
+        .loadProperties(RegistryClientUtil.OCC_PROPERTIES)));
     } catch (IllegalArgumentException e) {
-      System.err.println("Error creating Guice module");
-      e.printStackTrace();
+      LOG.error("Error creating Guice module", e);
       Throwables.propagate(e);
     } catch (IOException e) {
-      System.err.println("Error creating Guice module");
-      e.printStackTrace();
+      LOG.error("Error creating Guice module", e);
       Throwables.propagate(e);
     }
     throw new IllegalStateException("Error initializing occurrence count guice module");
@@ -135,15 +139,14 @@ public class OccurrenceCount {
       updateTotalRecordsCount(workflowId, recordCount);
       return recordCount <= smallDownloadLimit;
     } catch (Exception e) {
-      System.err.println("Error getting the records count");
-      e.printStackTrace();
+      LOG.error("Error getting the records count", e);
       return false;
     }
   }
 
   /**
    * Sets the oozie action parameter 'is_small_download'.
-   *
+   * 
    * @param solrQuery to be executed
    * @throws IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
@@ -159,8 +162,7 @@ public class OccurrenceCount {
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(solrQuery, workflowId).toString());
         props.store(os, "");
       } catch (FileNotFoundException e) {
-        System.err.println("Error reading properties file");
-        e.printStackTrace();
+        LOG.error("Error reading properties file", e);
         closer.rethrow(e);
       } finally {
         closer.close();
@@ -176,18 +178,17 @@ public class OccurrenceCount {
   private void updateTotalRecordsCount(String workflowId, long recordCount) {
     try {
       String downloadId = DownloadUtils.workflowToDownloadId(workflowId);
-      System.out.println(String.format("Updating record count(%,d) of download %s", recordCount, downloadId));
+      LOG.info("Updating record count({}) of download {}", recordCount, downloadId);
       Download download = occurrenceDownloadService.get(downloadId);
       if (download == null) {
-        System.err.println(String.format("Download %s was not found!", downloadId));
+        LOG.error("Download {} was not found!", downloadId);
       } else {
         download.setTotalRecords(recordCount);
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      System.err.println(String.format("Error updating record count for download worflow %s, reported count is %,d",
-        workflowId, recordCount));
-      ex.printStackTrace();
+      LOG.error(String.format("Error updating record count for download worflow %s, reported count is %,d",
+        workflowId, recordCount), ex);
     }
   }
 
