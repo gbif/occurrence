@@ -174,7 +174,7 @@ public class OccurrenceSearchRequestBuilder {
             if (QueryUtils.isRangeQuery(parsedValue)) {
               parsedValue = parsedValue.replace(",", " TO ");
             }
-            if (Enum.class.isAssignableFrom(param.getClass())) { // enums are capitalized
+            if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
               parsedValue = parsedValue.toUpperCase();
             }
             aFieldParameters.add(PARAMS_JOINER.join(solrField.getFieldName(), parsedValue));
