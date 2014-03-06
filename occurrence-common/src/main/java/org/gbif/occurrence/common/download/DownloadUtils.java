@@ -13,6 +13,8 @@ public class DownloadUtils {
 
   public static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
 
+  public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s.zip";
+
   /**
    * Private default constructor.
    */
@@ -22,7 +24,7 @@ public class DownloadUtils {
 
   /**
    * Adds a path to a base url and makes sure the path / separator only exists once.
-   *
+   * 
    * @param base the base url to add to with or without trailing slash
    * @param path the path to be added without a prefix /
    * @return a string with the form base/path
@@ -41,7 +43,7 @@ public class DownloadUtils {
    * Creates a URL pointing to the download file.
    */
   public static String downloadLink(String baseUrl, String downloadId) {
-    return DownloadUtils.concatUrlPaths(baseUrl, "occurrence/download/request/" + downloadId + ".zip");
+    return DownloadUtils.concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, downloadId));
   }
 
   public static String downloadToWorkflowId(String downloadId) {
