@@ -1,5 +1,9 @@
 package org.gbif.occurrence.cli.registry.sync;
 
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.persistence.hbase.Columns;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -15,11 +19,11 @@ public class SyncCommon {
 
   public static final String OCC_TABLE_PROPS_KEY = "occurrence.db.table_name";
   public static final String REG_WS_PROPS_KEY = "registry.ws.url";
-  public static final byte[] OCC_CF = Bytes.toBytes("o");
-  public static final byte[] DK_COL = Bytes.toBytes("dk");
-  public static final byte[] OOK_COL = Bytes.toBytes("ook");
-  public static final byte[] HC_COL = Bytes.toBytes("hc");
-  public static final byte[] CI_COL = Bytes.toBytes("ci");
+  public static final byte[] OCC_CF = Columns.CF;
+  public static final byte[] DK_COL = Bytes.toBytes(Columns.column(GbifTerm.datasetKey));
+  public static final byte[] OOK_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey));
+  public static final byte[] HC_COL = Bytes.toBytes(Columns.column(GbifTerm.publishingCountry));
+  public static final byte[] CI_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId));
 
   public static Properties loadProperties() {
     Properties props = new Properties();
