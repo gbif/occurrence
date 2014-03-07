@@ -111,7 +111,8 @@ public class LocationInterpreter implements Runnable {
           // accuracy equals the precision in the case of decimal lat / lon
           if (prec > 10) {
             // add issue for unlikely coordinatePrecision
-            LOG.info("Ignoring coordinatePrecision > 10 as highly unlikely");
+            // TODO: this happens alot - maybe not so unlikely?
+            LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
           } else {
             occ.setCoordinateAccuracy(prec);
           }
