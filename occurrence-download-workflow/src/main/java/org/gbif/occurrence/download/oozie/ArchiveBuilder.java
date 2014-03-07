@@ -12,6 +12,7 @@ import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
@@ -472,7 +473,7 @@ public class ArchiveBuilder {
    */
   private ArchiveFile createCoreFile() {
     ArchiveFile af = createArchiveFile(INTERPRETED_FILENAME, TermUtils.interpretedTerms(), 0);
-    af.setId(af.getField(DwcTerm.occurrenceID));
+    af.setId(af.getField(GbifTerm.gbifID));
     return af;
   }
 
@@ -481,9 +482,7 @@ public class ArchiveBuilder {
    */
   private ArchiveFile createVerbatimFile() {
     ArchiveFile af = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms(), 1);
-    ArchiveField id = new ArchiveField();
-    id.setIndex(0);
-    af.setId(id);
+    af.setId(af.getField(GbifTerm.gbifID));
     return af;
   }
 
@@ -498,8 +497,7 @@ public class ArchiveBuilder {
     af.addLocation(filename);
     af.setRowType(DwcTerm.Occurrence.qualifiedName());
     af.setEncoding(Charsets.UTF_8.displayName());
-    // TODO: set to 1 once headers are included
-    af.setIgnoreHeaderLines(0);
+    af.setIgnoreHeaderLines(1);
     af.setFieldsEnclosedBy(null);
     af.setFieldsTerminatedBy("\t");
     af.setLinesTerminatedBy("\n");

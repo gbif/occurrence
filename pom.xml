@@ -739,7 +739,7 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-uat.org/v0.9/</occurrence.download.ws.url>
-        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/dev/</occurrence.download.hive.hdfs.out>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/uat/</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
         <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
@@ -772,7 +772,7 @@
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-dev.org/v0.9/</occurrence.download.ws.url>
-        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/uat/</occurrence.download.hive.hdfs.out>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/dev/</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
         <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
