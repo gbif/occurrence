@@ -9,10 +9,10 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
@@ -158,8 +158,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     scan.setBatch(SCANNER_BATCH_SIZE);
     scan.setCaching(SCANNER_CACHE_SIZE);
     scan.addColumn(Columns.CF, col);
-    SingleColumnValueFilter filter = new SingleColumnValueFilter(Columns.CF, col, CompareFilter.CompareOp.EQUAL, columnValue);
-    scan.setFilter(filter);
+    scan.setFilter(new SingleColumnValueFilter(Columns.CF, col, CompareFilter.CompareOp.EQUAL, columnValue));
 
     return new OccurrenceKeyIterator(tablePool, occurrenceTableName, scan);
   }
@@ -257,9 +256,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       }
     }
 
-    // put all non null verbatim terms from the map
+    // put all non null verbatim terms, and any internal terms, from the map
     for (Map.Entry<Term, String> entry : occ.getVerbatimFields().entrySet()) {
-      if (entry.getValue() != null) {
+      if (!(entry.getKey() instanceof GbifInternalTerm) && entry.getValue() != null) {
         upd.setVerbatimField(entry.getKey(), entry.getValue());
       }
     }
@@ -280,7 +279,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ) throws IOException {
 
     upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
-    // use taxonID?
     upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
     for (Rank r : Rank.DWC_RANKS) {
       upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
