@@ -741,6 +741,13 @@
         <occurrence.download.ws.url>http://api.gbif-uat.org/v0.9/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
+        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
         <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-uat.org:8080/a_registry-ws/</registry.ws.url>
@@ -767,6 +774,13 @@
         <occurrence.download.ws.url>http://api.gbif-dev.org/v0.9/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>10</occurrence.download.max_global_threads>
+        <occurrence.download.job.max_threads>3</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
         <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://apps.gbif-dev.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>

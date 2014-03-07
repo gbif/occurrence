@@ -23,15 +23,7 @@
   <name>Occurrence Download Oozie Workflow</name>
   <description>Oozie Workflow backing the Occurrence Download Service</description>
 
-  <properties>
-    <!-- DOWNLOAD DEFAULTS -->
-    <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
-    <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
-    <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
-    <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
-    <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
-    <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
-    <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+  <properties>    
     <!-- VERSIONS -->
     <akka-actor.version>2.0.5</akka-actor.version>
     <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
@@ -460,5 +452,4 @@
       <artifactId>mockito-core</artifactId>        
     </dependency>  
   </dependencies>
-
 </project>
