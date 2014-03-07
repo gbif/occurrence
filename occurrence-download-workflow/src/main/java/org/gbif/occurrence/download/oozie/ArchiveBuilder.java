@@ -481,7 +481,7 @@ public class ArchiveBuilder {
    * Create the verbatim extension date file definition.
    */
   private ArchiveFile createVerbatimFile() {
-    ArchiveFile af = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms(), 1);
+    ArchiveFile af = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms(), 0);
     af.setId(af.getField(GbifTerm.gbifID));
     return af;
   }
