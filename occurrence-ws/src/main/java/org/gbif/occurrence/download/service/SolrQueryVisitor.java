@@ -241,8 +241,7 @@ public class SolrQueryVisitor {
    * @return the converted value expected by HBase
    */
   private String toSolrValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
-    if (param == OccurrenceSearchParameter.COUNTRY) {
-      // upper case 2 letter iso code
+    if (Enum.class.isAssignableFrom(param.type())) { // All enums params are uppercased
       return value.toUpperCase();
     }
     if (Date.class.isAssignableFrom(param.type())) {
