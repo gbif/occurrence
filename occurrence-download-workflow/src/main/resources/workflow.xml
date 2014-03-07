@@ -65,12 +65,12 @@
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/query.q</script>
+      <script>hive-scripts/create_occurrence_table.q</script>
 
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select_interpreted}</param>
       <param>query=${query}</param>
-      <param>query_result=${query_result_table}_interpreted</param>
+      <param>query_result_table=${occurrence.environment}.${query_result_table}_interpreted</param>
     </hive>
 
     <ok to="citation" />
@@ -82,12 +82,12 @@
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/query.q</script>
+      <script>hive-scripts/create_occurrence_table.q</script>
 
       <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
       <param>select=${select_verbatim}</param>
       <param>query=${query}</param>
-      <param>query_result=${query_result_table}_verbatim</param>
+      <param>query_result_table=${occurrence.environment}.${query_result_table}_verbatim</param>
     </hive>
 
     <ok to="bundling" />
@@ -101,8 +101,8 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/citation.q</script>
 
-      <param>query_result=${query_result_table}_interpreted</param>
-      <param>citation=${citation_table}</param>
+      <param>query_result_table=${occurrence.environment}.${query_result_table}_interpreted</param>
+      <param>citation_table=${occurrence.environment}.${citation_table}</param>
     </hive>
 
     <ok to="bundling" />
@@ -126,9 +126,9 @@
       <main-class>org.gbif.occurrence.download.oozie.ArchiveBuilder</main-class>
       <arg>${hdfs.namenode}</arg>
       <arg>${hive.hdfs.out}</arg>
-      <arg>${query_result_table}_interpreted</arg>
-      <arg>${query_result_table}_verbatim</arg>
-      <arg>${citation_table}</arg>
+      <arg>${occurrence.environment}.${query_result_table}_interpreted</arg>
+      <arg>${occurrence.environment}.${query_result_table}_verbatim</arg>
+      <arg>${occurrence.environment}.${citation_table}</arg>
       <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
       <arg>${wf:id()}</arg>
       <arg>${gbif_user}</arg>
@@ -169,8 +169,8 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
-      <param>query_result=${query_result_table}</param>
-      <param>citation=${citation_table}</param>
+      <param>query_result_table=${occurrence.environment}.${query_result_table}</param>
+      <param>citation_table=${occurrence.environment}.${citation_table}</param>
     </hive>
 
     <ok to="end" />
@@ -185,8 +185,8 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
-      <param>query_result=${query_result_table}</param>
-      <param>citation=${citation_table}</param>
+      <param>query_result_table=${occurrence.environment}.${query_result_table}</param>
+      <param>citation_table=${occurrence.environment}.${citation_table}</param>
     </hive>
 
     <ok to="kill" />

@@ -1,3 +1,3 @@
-DROP TABLE IF EXISTS ${query_result}_interpreted;
-DROP TABLE IF EXISTS ${query_result}_verbatim;
-DROP TABLE IF EXISTS ${citation};
+DROP TABLE IF EXISTS ${query_result_table}_interpreted;
+DROP TABLE IF EXISTS ${query_result_table}_verbatim;
+DROP TABLE IF EXISTS ${citation_table};
