@@ -1,6 +1,5 @@
 package org.gbif.occurrence.persistence;
 
-import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -8,7 +7,6 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
-import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
@@ -16,18 +14,17 @@ import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -42,9 +39,9 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -294,8 +291,7 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
     put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.identifierCount)),
-      Bytes.toBytes(3));
+    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.identifierCount)), Bytes.toBytes(3));
     table.put(put);
     table.close();
   }
@@ -312,17 +308,18 @@ public class OccurrencePersistenceServiceImplTest {
 
   @Test
   public void testGetFull() throws IOException {
-    setUpIdentifiers();
+//    setUpIdentifiers();
 
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
     assertEquals((Integer) KEY, occ.getKey());
-    assertEquals(3, occ.getIdentifiers().size());
+//    assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
     assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
   }
 
   @Test
+  @Ignore("Identifiers removed from persistence until needed")
   public void testGetNoIdentifiers() throws IOException {
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
@@ -423,14 +420,14 @@ public class OccurrencePersistenceServiceImplTest {
     update.setGenericName(genericName);
     update.setTaxonRank(taxonRank);
 
-    String id0 = "http://www.ala.org.au";
-    IdentifierType idType0 = IdentifierType.GBIF_NODE;
-    Identifier record = new Identifier();
-    record.setIdentifier(id0);
-    record.setType(idType0);
-    List<Identifier> records = newArrayList();
-    records.add(record);
-    update.setIdentifiers(records);
+//    String id0 = "http://www.ala.org.au";
+//    IdentifierType idType0 = IdentifierType.GBIF_NODE;
+//    Identifier record = new Identifier();
+//    record.setIdentifier(id0);
+//    record.setType(idType0);
+//    List<Identifier> records = newArrayList();
+//    records.add(record);
+//    update.setIdentifiers(records);
 
     Set<OccurrenceIssue> issues = update.getIssues();
     issues.remove(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED);
@@ -458,10 +455,10 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(genusId == occ.getGenusKey());
     assertEquals(publishingCountry, occ.getPublishingCountry());
     assertTrue(update.getKey().intValue() == occ.getKey().intValue());
-    assertEquals(1, occ.getIdentifiers().size());
-    Identifier updatedRecord = occ.getIdentifiers().iterator().next();
-    assertTrue(id0.equals(updatedRecord.getIdentifier()));
-    assertEquals(idType0, updatedRecord.getType());
+//    assertEquals(1, occ.getIdentifiers().size());
+//    Identifier updatedRecord = occ.getIdentifiers().iterator().next();
+//    assertTrue(id0.equals(updatedRecord.getIdentifier()));
+//    assertEquals(idType0, updatedRecord.getType());
     assertEquals(country, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertEquals(kingdomId, (int) occ.getKingdomKey());

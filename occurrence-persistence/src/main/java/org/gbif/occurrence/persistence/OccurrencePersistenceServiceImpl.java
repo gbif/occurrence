@@ -1,7 +1,6 @@
 package org.gbif.occurrence.persistence;
 
 import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
@@ -315,16 +314,17 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
 
     // Identifiers
-    deleteOldIdentifiers(occTable, occ.getKey());
-    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
-      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
-      int count = 0;
-      for (Identifier record : occ.getIdentifiers()) {
-        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
-        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
-        count++;
-      }
-    }
+    // todo: as yet unused
+//    deleteOldIdentifiers(occTable, occ.getKey());
+//    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
+//      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
+//      int count = 0;
+//      for (Identifier record : occ.getIdentifiers()) {
+//        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
+//        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
+//        count++;
+//      }
+//    }
 
     // OccurrenceIssues
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
