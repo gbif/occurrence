@@ -35,7 +35,7 @@ public class OccurrenceMapReader {
   private final HTablePool tablePool;
 
   @Inject
-  public OccurrenceMapReader(@Named("occurrence_table_name") String occurrenceTableName, HTablePool tablePool) {
+  public OccurrenceMapReader(@Named("occurrence_hbase_table") String occurrenceTableName, HTablePool tablePool) {
     this.occurrenceTableName = occurrenceTableName;
     this.tablePool = tablePool;
   }

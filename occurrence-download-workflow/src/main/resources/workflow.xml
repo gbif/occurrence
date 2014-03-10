@@ -125,10 +125,10 @@
 
       <main-class>org.gbif.occurrence.download.oozie.ArchiveBuilder</main-class>
       <arg>${hdfs.namenode}</arg>
-      <arg>${hive.hdfs.out}</arg>
-      <arg>${occurrence.environment}${wf:actionData('occurrence_count')['is_small_download']?'.db/':'.'}${query_result_table}_interpreted</arg>
-      <arg>${occurrence.environment}${wf:actionData('occurrence_count')['is_small_download']?'.db/':'.'}${query_result_table}_verbatim</arg>
-      <arg>${occurrence.environment}${wf:actionData('occurrence_count')['is_small_download']?'.db/':'.'}${citation_table}</arg>
+      <arg>${hdfs_hive_path}</arg>
+      <arg>${query_result_table}_interpreted</arg>
+      <arg>${query_result_table}_verbatim</arg>
+      <arg>${citation_table}</arg>
       <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
       <arg>${wf:id()}</arg>
       <arg>${gbif_user}</arg>
