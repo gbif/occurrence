@@ -244,11 +244,7 @@
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
       <version>${jts.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
+    </dependency>   
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
