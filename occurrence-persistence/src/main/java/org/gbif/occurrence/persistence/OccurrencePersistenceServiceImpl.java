@@ -59,10 +59,33 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private final String occurrenceTableName;
   private final HTablePool tablePool;
 
+  private final boolean batchCommits;
+  private final HTableInterface batchUpdateTable;
+
   @Inject
   public OccurrencePersistenceServiceImpl(@Named("table_name") String tableName, HTablePool tablePool) {
     this.occurrenceTableName = checkNotNull(tableName, "tableName can't be null");
     this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
+    batchCommits = false;
+    batchUpdateTable = null;
+  }
+
+  /**
+   * Use this constructor to batch up the row mutations to only commit to HBase every 2MB, rather than after every
+   * put/delete. DO NOT use this if something downstream expects to read your changes immediately after you write
+   * them (e.g. the VerbatimProcessor writes, sends message and Interp immediately reads). Note that this batching
+   * has the potential to lose uncommitted changes on shutdown.
+   */
+  // TODO: add a shutdown method to flush pending commits
+  public OccurrencePersistenceServiceImpl(@Named("table_name") String tableName, HTablePool tablePool,
+    boolean batchCommits) {
+    this.occurrenceTableName = checkNotNull(tableName, "tableName can't be null");
+    this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
+    this.batchCommits = batchCommits;
+    batchUpdateTable = tablePool.getTable(occurrenceTableName);
+    batchUpdateTable.setAutoFlush(false, true);
+    // 2 MB (2097152) is default
+    //    batchUpdateTable.setWriteBufferSize(2097152);
   }
 
   /**
@@ -85,8 +108,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         LOG.info("Couldn't find occurrence for id [{}], returning null", key);
         return null;
       }
-      byte[] rawFragment = ExtResultReader.getBytes(result,
-                              Columns.column(GbifInternalTerm.fragment));
+      byte[] rawFragment = ExtResultReader.getBytes(result, Columns.column(GbifInternalTerm.fragment));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
@@ -207,39 +229,61 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
-
-  private <T extends VerbatimOccurrence> void updateOcc(T occ) {
+  private <T extends VerbatimOccurrence> RowUpdate buildRowUpdate(T occ) {
     checkNotNull(occ, "occurrence can't be null");
     checkNotNull(occ.getKey(), "occurrence's key can't be null");
 
     HTableInterface occTable = null;
+    RowUpdate upd = new RowUpdate(occ.getKey());
     try {
       occTable = tablePool.getTable(occurrenceTableName);
-      RowUpdate upd = new RowUpdate(occ.getKey());
-
       populateVerbatimPutDelete(occTable, upd, occ, occ instanceof Occurrence);
 
       // add interpreted occurrence terms
       if (occ instanceof Occurrence) {
         populateInterpretedPutDelete(occTable, upd, (Occurrence) occ);
       }
-
-      upd.execute(occTable);
-
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
     } finally {
       closeTable(occTable);
     }
+
+    return upd;
+  }
+
+  private <T extends VerbatimOccurrence> void updateOcc(T occ) {
+    checkNotNull(occ, "occurrence can't be null");
+    checkNotNull(occ.getKey(), "occurrence's key can't be null");
+
+    RowUpdate upd = buildRowUpdate(occ);
+
+    if (batchCommits) {
+      try {
+        batchUpdateTable.mutateRow(upd.getRowMutations());
+      } catch (IOException e) {
+        throw new ServiceUnavailableException("Could not access HBase", e);
+      }
+    } else {
+      HTableInterface occTable = null;
+      try {
+        occTable = tablePool.getTable(occurrenceTableName);
+        upd.execute(occTable);
+      } catch (IOException e) {
+        throw new ServiceUnavailableException("Could not access HBase", e);
+      } finally {
+        closeTable(occTable);
+      }
+    }
   }
 
   /**
    * Populates the put and delete for a verbatim record.
+   *
    * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
-   * @throws IOException
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
-                                         boolean deleteInterpretedVerbatimColumns) throws IOException {
+    boolean deleteInterpretedVerbatimColumns) throws IOException {
 
     // start by scheduling deletion of all terms not in the occ
     Get get = new Get(upd.getKey());
@@ -249,7 +293,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       if (term != null) {
         if (occ.getVerbatimField(term) == null &&
             // only remove the interpreted verbatim terms if explicitly requested
-            (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term)) ) {
+            (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
           upd.deleteField(kv.getQualifier());
         }
       }
@@ -273,9 +317,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   /**
    * Populates put and delete for the occurrence specific interpreted columns, leaving any verbatim columns untouched.
    * TODO: use reflection to get values from the java properties now that we have corresponding terms?
-   * @throws IOException
    */
-  private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ) throws IOException {
+  private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ)
+    throws IOException {
 
     upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
     upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
@@ -315,16 +359,16 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     // Identifiers
     // todo: as yet unused
-//    deleteOldIdentifiers(occTable, occ.getKey());
-//    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
-//      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
-//      int count = 0;
-//      for (Identifier record : occ.getIdentifiers()) {
-//        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
-//        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
-//        count++;
-//      }
-//    }
+    //    deleteOldIdentifiers(occTable, occ.getKey());
+    //    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
+    //      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
+    //      int count = 0;
+    //      for (Identifier record : occ.getIdentifiers()) {
+    //        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
+    //        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
+    //        count++;
+    //      }
+    //    }
 
     // OccurrenceIssues
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {

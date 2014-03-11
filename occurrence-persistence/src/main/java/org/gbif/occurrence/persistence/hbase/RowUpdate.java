@@ -43,12 +43,15 @@ public class RowUpdate {
     return key;
   }
 
+  public RowMutations getRowMutations() {
+    return rowMutations;
+  }
+
   /**
    * Executes the put and delete on a given hbase table, finally flushing the commit.
    */
   public void execute(HTableInterface table) throws IOException {
-    LOG.debug("Executing [{}] mutations against table [{}]", rowMutations.getMutations().size(),
-      table.getTableDescriptor().getNameAsString());
+    LOG.debug("Executing [{}] mutations", rowMutations.getMutations().size());
     table.mutateRow(rowMutations);
     table.flushCommits();
   }

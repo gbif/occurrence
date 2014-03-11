@@ -50,13 +50,15 @@ public class InterpretedProcessorService extends AbstractIdleService {
 
     tablePool = new HTablePool(HBaseConfiguration.create(), individualPoolSize);
     tablePools.add(tablePool);
-    OccurrencePersistenceService occurrenceService =
-      new OccurrencePersistenceServiceImpl(configuration.occTable, tablePool);
+
     OccurrenceKeyPersistenceService keyService = new OccurrenceKeyPersistenceServiceImpl(
       new HBaseLockingKeyService(configuration.lookupTable, configuration.counterTable, configuration.occTable,
         tablePool));
     FragmentPersistenceService fragmentPersister =
       new FragmentPersistenceServiceImpl(configuration.occTable, tablePool, keyService);
+
+    OccurrencePersistenceService occurrenceService =
+      new OccurrencePersistenceServiceImpl(configuration.occTable, tablePool, true);
     VerbatimOccurrenceInterpreter verbatimInterpreter =
       new VerbatimOccurrenceInterpreter(occurrenceService, zkConnector);
     InterpretedProcessor interpretedProcessor =
