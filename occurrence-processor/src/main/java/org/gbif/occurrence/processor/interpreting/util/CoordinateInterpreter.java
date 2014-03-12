@@ -83,8 +83,7 @@ public class CoordinateInterpreter {
     TRANSFORMS.put(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, new Integer[] {-1, -1});
 
     try {
-      InputStream is =
-        NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
+      InputStream is = NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
       if (is == null) {
         throw new RuntimeException("Can't load properties file [" + OCCURRENCE_PROPS_FILE + ']');
       }
@@ -156,16 +155,17 @@ public class CoordinateInterpreter {
   /**
    * Attempts to convert the given lat and long into Doubles, and the given country string into an ISO country code.
    *
-   * @param latitude    decimal latitude as string
-   * @param longitude   decimal longitude as string
-   * @param country     country as interpreted to sanity check coordinate
+   * @param latitude  decimal latitude as string
+   * @param longitude decimal longitude as string
+   * @param country   country as interpreted to sanity check coordinate
    *
    * @return the latitude and longitude as doubles, the country as an ISO code, and a "geospatial issue" flag if any
-   *         known errors were encountered in the interpretation (e.g. lat/lng reversed), or all fields set to null if
-   *         latitude
-   *         or longitude are null
+   * known errors were encountered in the interpretation (e.g. lat/lng reversed), or all fields set to null if
+   * latitude
+   * or longitude are null
    */
-  public static ParseResult<CoordinateCountry> interpretCoordinates(String latitude, String longitude, final Country country) {
+  public static ParseResult<CoordinateCountry> interpretCoordinates(String latitude, String longitude,
+    final Country country) {
     if (latitude == null || longitude == null) return ParseResult.fail();
 
     // use original as default
@@ -173,40 +173,46 @@ public class CoordinateInterpreter {
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
     ParseResult<LatLng> parsed = CoordinateParseUtils.parseLatLng(latitude, longitude);
-
+    if (parsed.getStatus() != ParseResult.STATUS.SUCCESS) {
+      return ParseResult.fail();
+    }
 
     // the utils do a basic sanity check - even if it suggests success, we have to check that the lat/long
     // actually falls in the country given in the record. If it doesn't, try common mistakes and note the issue
-    if (parsed.getStatus() == ParseResult.STATUS.SUCCESS) {
-      List<Country> latLngCountries = getCountryForLatLng(parsed.getPayload());
-      Country lookupCountry = null;
-      if (!latLngCountries.isEmpty()) {
-        lookupCountry = latLngCountries.get(0);
+    List<Country> latLngCountries = getCountryForLatLng(parsed.getPayload());
+    Country lookupCountry = null;
+    if (!latLngCountries.isEmpty()) {
+      lookupCountry = latLngCountries.get(0);
+    }
+
+    if (country == null) {
+      if (lookupCountry != null) {
+        // use the coordinate derived country instead of nothing
+        finalCountry = lookupCountry;
+        issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
 
-      if (country == null) {
-        if (lookupCountry != null) {
-          // use the coordinate derived country instead of nothing
-          finalCountry = lookupCountry;
-          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-        }
-
-      } else if (matchCountry(country, latLngCountries)) {
-        // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
-        if (!country.equals(latLngCountries.get(0))) {
-          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-        }
-        finalCountry = latLngCountries.get(0);
-
-
-      } else {
-        // countries don't match, try to swap lat/lon to see if any falls into the given country
-        parsed = tryCoordTransformations(parsed.getPayload(), country);
+    } else if (matchCountry(country, latLngCountries)) {
+      // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
+      if (country != latLngCountries.get(0)) {
+        issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
+      finalCountry = latLngCountries.get(0);
+    } else {
+      // countries don't match, try to swap lat/lon to see if any falls into the given country
+      parsed = tryCoordTransformations(parsed.getPayload(), country);
+    }
+
+    if (parsed.getPayload() == null) {
+      // something has gone very wrong
+      LOG.info("Supposed coord interp success produced no latlng", parsed);
+      return ParseResult.fail();
     }
 
     issues.addAll(parsed.getIssues());
-    return ParseResult.success(parsed.getConfidence(), new CoordinateCountry(parsed.getPayload(), finalCountry), issues);
+
+    return ParseResult
+      .success(parsed.getConfidence(), new CoordinateCountry(parsed.getPayload(), finalCountry), issues);
   }
 
   private static ParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
@@ -224,9 +230,10 @@ public class CoordinateInterpreter {
 
   /**
    * returns a set of countries that are close and could be validly be confused.
+   *
    * @return the set of countries always including the original, never null
    */
-  private static Set<Country> getFuzzyCountries(Country country){
+  private static Set<Country> getFuzzyCountries(Country country) {
     if (!FUZZY_COUNTRIES.containsKey(country)) {
       FUZZY_COUNTRIES.put(country, Sets.newHashSet(country));
     }
