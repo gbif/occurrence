@@ -58,7 +58,7 @@ public class InterpretedProcessorService extends AbstractIdleService {
       new FragmentPersistenceServiceImpl(configuration.occTable, tablePool, keyService);
 
     OccurrencePersistenceService occurrenceService =
-      new OccurrencePersistenceServiceImpl(configuration.occTable, tablePool, true);
+      new OccurrencePersistenceServiceImpl(configuration.occTable, tablePool);
     VerbatimOccurrenceInterpreter verbatimInterpreter =
       new VerbatimOccurrenceInterpreter(occurrenceService, zkConnector);
     InterpretedProcessor interpretedProcessor =
