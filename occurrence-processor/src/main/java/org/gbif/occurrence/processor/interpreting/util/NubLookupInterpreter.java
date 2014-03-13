@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sun.jersey.api.client.Client;
@@ -80,8 +81,7 @@ public class NubLookupInterpreter {
   public static ParseResult<NameUsageMatch> nubLookup(String kingdom, String phylum, String clazz, String order,
     String family, String genus, String scientificName, String author) {
 
-    if (kingdom == null && phylum == null && clazz == null && order == null && family == null && genus == null
-        && scientificName == null) {
+    if (Strings.isNullOrEmpty(scientificName)) {
       return ParseResult.fail();
     }
 

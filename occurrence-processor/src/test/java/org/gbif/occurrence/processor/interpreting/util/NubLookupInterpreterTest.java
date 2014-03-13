@@ -29,4 +29,11 @@ public class NubLookupInterpreterTest {
     assertNotNull(result);
     assertNull(result.getPayload());
   }
+
+  @Test
+  public void testNubLookupEmptyStrings() {
+    ParseResult<NameUsageMatch> result = NubLookupInterpreter.nubLookup("", "", "", "", "", "", "", "");
+    assertNotNull(result);
+    assertNull(result.getPayload());
+  }
 }
