@@ -1,12 +1,12 @@
 package org.gbif.occurrence.persistence;
 
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
@@ -26,6 +26,8 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.persistence.util.ComparisonUtil.nullSafeEquals;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -147,23 +149,43 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
    * empty will be deleted from the corresponding "column" in the HBase row.
    *
    * @param occTable the HBase table to write to
-   * @param frag the fragment to persist
+   * @param frag     the fragment to persist
    *
    * @throws IOException if communicating with HBase fails
    */
   private void writeFields(HTableInterface occTable, Fragment frag) throws IOException {
 
+    Fragment oldFrag = get(frag.getKey());
+    boolean isInsert = oldFrag == null;
     RowUpdate upd = new RowUpdate(frag.getKey());
 
-    upd.setInterpretedField(GbifTerm.datasetKey, frag.getDatasetKey());
-    upd.setInterpretedField(GbifInternalTerm.unitQualifier, frag.getUnitQualifier());
-    upd.setInterpretedField(GbifTerm.protocol, frag.getProtocol());
-    upd.setInterpretedField(GbifTerm.lastCrawled, frag.getHarvestedDate());
-    upd.setInterpretedField(GbifInternalTerm.crawlId, frag.getCrawlId());
-    upd.setInterpretedField(GbifInternalTerm.fragment, frag.getData());
-    upd.setInterpretedField(GbifInternalTerm.fragmentHash, frag.getDataHash());
-    upd.setInterpretedField(GbifInternalTerm.xmlSchema, frag.getXmlSchema());
-    upd.setInterpretedField(GbifInternalTerm.fragmentCreated, frag.getCreated());
+    if (isInsert || !nullSafeEquals(oldFrag.getDatasetKey(), frag.getDatasetKey())) {
+      upd.setInterpretedField(GbifTerm.datasetKey, frag.getDatasetKey());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getUnitQualifier(), frag.getUnitQualifier())) {
+      upd.setInterpretedField(GbifInternalTerm.unitQualifier, frag.getUnitQualifier());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getProtocol(), frag.getProtocol())) {
+      upd.setInterpretedField(GbifTerm.protocol, frag.getProtocol());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getHarvestedDate(), frag.getHarvestedDate())) {
+      upd.setInterpretedField(GbifTerm.lastCrawled, frag.getHarvestedDate());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getCrawlId(), frag.getCrawlId())) {
+      upd.setInterpretedField(GbifInternalTerm.crawlId, frag.getCrawlId());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getData(), frag.getData())) {
+      upd.setInterpretedField(GbifInternalTerm.fragment, frag.getData());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getDataHash(), frag.getDataHash())) {
+      upd.setInterpretedField(GbifInternalTerm.fragmentHash, frag.getDataHash());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getXmlSchema(), frag.getXmlSchema())) {
+      upd.setInterpretedField(GbifInternalTerm.xmlSchema, frag.getXmlSchema());
+    }
+    if (isInsert || !nullSafeEquals(oldFrag.getCreated(), frag.getCreated())) {
+      upd.setInterpretedField(GbifInternalTerm.fragmentCreated, frag.getCreated());
+    }
 
     upd.execute(occTable);
   }

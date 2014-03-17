@@ -19,11 +19,9 @@ import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -43,6 +41,8 @@ import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.persistence.util.ComparisonUtil.nullSafeEquals;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -269,9 +269,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     for (Term term : oldVerb.getVerbatimFields().keySet()) {
       if ((!occ.hasVerbatimField(term) || occ.getVerbatimField(term) == null)
           && (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
-        System.out.println("Dropping term [" + term + "] because not on new occ and deleteInterp is ["
-                           + deleteInterpretedVerbatimColumns +"] and !isInterpSourceterm is ["
-                           + !TermUtils.isInterpretedSourceTerm(term) + "]");
         upd.deleteVerbatimField(term);
       }
     }
@@ -281,7 +278,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       String oldValue = oldVerb.getVerbatimField(field.getKey());
       String newValue = field.getValue();
       if (newValue != null && !newValue.equals(oldValue)) {
-        System.out.println("Updating term [" + field.getKey() + "] because it existed on both and has changed");
         upd.setVerbatimField(field.getKey(), field.getValue());
       }
     }
@@ -457,33 +453,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         upd.setField(Columns.column(issue), Bytes.toBytes(1));
       }
     }
-  }
-
-  private static boolean nullSafeEquals(String first, String second) {
-    // both null or both the same not null string
-    return first == null && second == null || first != null && first.equals(second);
-  }
-
-  private static boolean nullSafeEquals(UUID first, UUID second) {
-    return first == null && second == null || first != null && first.equals(second);
-  }
-
-  private static boolean nullSafeEquals(Double first, Double second) {
-    // both null or both the same not null string
-    return first == null && second == null || first != null && first.equals(second);
-  }
-
-  private static boolean nullSafeEquals(Integer first, Integer second) {
-    // both null or both the same not null string
-    return first == null && second == null || first != null && first.equals(second);
-  }
-
-  private static boolean nullSafeEquals(Enum first, Enum second) {
-    return first == null && second == null || first != null && first == second;
-  }
-
-  private static boolean nullSafeEquals(Date first, Date second) {
-    return first == null && second == null || first != null && second != null && first.getTime() == second.getTime();
   }
 
   private void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
