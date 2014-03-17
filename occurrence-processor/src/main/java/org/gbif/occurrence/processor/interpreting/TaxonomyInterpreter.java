@@ -15,21 +15,19 @@ import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TaxonomyInterpreter implements Runnable {
+/**
+ * Takes a VerbatimOccurrence and does nub lookup on its provided taxonomy, then writes the result to the passed in
+ * Occurrence.
+ */
+public class TaxonomyInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
   private static final NameParser parser = new NameParser();
 
-  private VerbatimOccurrence verbatim;
-  private Occurrence occ;
-
-  public TaxonomyInterpreter(VerbatimOccurrence verbatim, Occurrence occ) {
-    this.verbatim = verbatim;
-    this.occ = occ;
+  private TaxonomyInterpreter() {
   }
 
-  @Override
-  public void run() {
+  public static void interpretTaxonomy(VerbatimOccurrence verbatim, Occurrence occ) {
     String sciname = ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.scientificName));
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton

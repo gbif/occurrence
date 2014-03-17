@@ -19,9 +19,11 @@ import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -29,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -85,8 +86,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         LOG.info("Couldn't find occurrence for id [{}], returning null", key);
         return null;
       }
-      byte[] rawFragment = ExtResultReader.getBytes(result,
-                              Columns.column(GbifInternalTerm.fragment));
+      byte[] rawFragment = ExtResultReader.getBytes(result, Columns.column(GbifInternalTerm.fragment));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
@@ -207,25 +207,39 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
+  <T extends VerbatimOccurrence> RowUpdate buildRowUpdate(T occ) {
+    checkNotNull(occ, "occurrence can't be null");
+    checkNotNull(occ.getKey(), "occurrence's key can't be null");
+
+    HTableInterface occTable = null;
+    RowUpdate upd = new RowUpdate(occ.getKey());
+    try {
+      occTable = tablePool.getTable(occurrenceTableName);
+      if (occ instanceof Occurrence) {
+        populateVerbatimPutDelete(occTable, upd, occ, false);
+        populateInterpretedPutDelete(occTable, upd, (Occurrence) occ);
+      } else {
+        populateVerbatimPutDelete(occTable, upd, occ, true);
+      }
+    } catch (IOException e) {
+      throw new ServiceUnavailableException("Could not access HBase", e);
+    } finally {
+      closeTable(occTable);
+    }
+
+    return upd;
+  }
 
   private <T extends VerbatimOccurrence> void updateOcc(T occ) {
     checkNotNull(occ, "occurrence can't be null");
     checkNotNull(occ.getKey(), "occurrence's key can't be null");
 
+    RowUpdate upd = buildRowUpdate(occ);
+
     HTableInterface occTable = null;
     try {
       occTable = tablePool.getTable(occurrenceTableName);
-      RowUpdate upd = new RowUpdate(occ.getKey());
-
-      populateVerbatimPutDelete(occTable, upd, occ, occ instanceof Occurrence);
-
-      // add interpreted occurrence terms
-      if (occ instanceof Occurrence) {
-        populateInterpretedPutDelete(occTable, upd, (Occurrence) occ);
-      }
-
       upd.execute(occTable);
-
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
     } finally {
@@ -235,101 +249,246 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Populates the put and delete for a verbatim record.
+   *
    * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
-   * @throws IOException
+   *                                         (typically true when updating an Occurrence and false for
+   *                                         VerbatimOccurrence)
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
-                                         boolean deleteInterpretedVerbatimColumns) throws IOException {
+    boolean deleteInterpretedVerbatimColumns) throws IOException {
 
-    // start by scheduling deletion of all terms not in the occ
-    Get get = new Get(upd.getKey());
-    Result row = occTable.get(get);
-    for (KeyValue kv : row.raw()) {
-      Term term = Columns.termFromVerbatimColumn(kv.getQualifier());
-      if (term != null) {
-        if (occ.getVerbatimField(term) == null &&
-            // only remove the interpreted verbatim terms if explicitly requested
-            (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term)) ) {
-          upd.deleteField(kv.getQualifier());
-        }
+    // adding the mutations to the HTable is quite expensive, hence worth all these comparisons
+    VerbatimOccurrence oldVerb = getVerbatim(occ.getKey());
+
+    // schedule delete of any fields that are on the oldVerb but not on the updated verb, but only if we've been
+    // explicitly asked to delete empty term columns (deleteInterpretedVerbatimColumns) or if the column is one that is
+    // used equally by the verbatim and interp occurrences (e.g. changes to catalogNumber on either of verb or interp
+    // should be reflected here (it is not an InterpretedSourceTerm), but not something like verbatimLatitude
+    // (which is an InterpretedSourceTerm)).
+    //
+    for (Term term : oldVerb.getVerbatimFields().keySet()) {
+      if ((!occ.hasVerbatimField(term) || occ.getVerbatimField(term) == null)
+          && (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
+        System.out.println("Dropping term [" + term + "] because not on new occ and deleteInterp is ["
+                           + deleteInterpretedVerbatimColumns +"] and !isInterpSourceterm is ["
+                           + !TermUtils.isInterpretedSourceTerm(term) + "]");
+        upd.deleteVerbatimField(term);
       }
     }
 
-    // put all non null verbatim terms, and any internal terms, from the map
-    for (Map.Entry<Term, String> entry : occ.getVerbatimFields().entrySet()) {
-      if (!(entry.getKey() instanceof GbifInternalTerm) && entry.getValue() != null) {
-        upd.setVerbatimField(entry.getKey(), entry.getValue());
+    // schedule the updates for any verbatim field that has changed
+    for (Map.Entry<Term, String> field : occ.getVerbatimFields().entrySet()) {
+      String oldValue = oldVerb.getVerbatimField(field.getKey());
+      String newValue = field.getValue();
+      if (newValue != null && !newValue.equals(oldValue)) {
+        System.out.println("Updating term [" + field.getKey() + "] because it existed on both and has changed");
+        upd.setVerbatimField(field.getKey(), field.getValue());
       }
     }
 
-    upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
-    upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());
-    upd.setInterpretedField(GbifInternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
-    upd.setInterpretedField(GbifTerm.protocol, occ.getProtocol());
-    upd.setInterpretedField(GbifTerm.lastCrawled, occ.getLastCrawled());
-    upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
+    if (!nullSafeEquals(oldVerb.getDatasetKey(), occ.getDatasetKey())) {
+      upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
+    }
+    if (!nullSafeEquals(oldVerb.getPublishingCountry(), occ.getPublishingCountry())) {
+      upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());
+    }
+    if (!nullSafeEquals(oldVerb.getPublishingOrgKey(), occ.getPublishingOrgKey())) {
+      upd.setInterpretedField(GbifInternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
+    }
+    if (!nullSafeEquals(oldVerb.getProtocol(), occ.getProtocol())) {
+      upd.setInterpretedField(GbifTerm.protocol, occ.getProtocol());
+    }
+    if (!nullSafeEquals(oldVerb.getLastCrawled(), occ.getLastCrawled())) {
+      upd.setInterpretedField(GbifTerm.lastCrawled, occ.getLastCrawled());
+    }
+    if (!nullSafeEquals(oldVerb.getLastParsed(), occ.getLastParsed())) {
+      upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
+    }
   }
 
   /**
    * Populates put and delete for the occurrence specific interpreted columns, leaving any verbatim columns untouched.
    * TODO: use reflection to get values from the java properties now that we have corresponding terms?
-   * @throws IOException
    */
-  private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ) throws IOException {
+  private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ)
+    throws IOException {
 
-    upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
-    upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
-    for (Rank r : Rank.DWC_RANKS) {
-      upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
-      upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
+    Occurrence oldOcc = get(occ.getKey());
+
+    if (!nullSafeEquals(oldOcc.getBasisOfRecord(), occ.getBasisOfRecord())) {
+      upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
     }
-    upd.setInterpretedField(GbifTerm.depth, occ.getDepth());
-    upd.setInterpretedField(GbifTerm.depthAccuracy, occ.getDepthAccuracy());
-    upd.setInterpretedField(GbifTerm.elevation, occ.getElevation());
-    upd.setInterpretedField(GbifTerm.elevationAccuracy, occ.getElevationAccuracy());
-    upd.setInterpretedField(DwcTerm.decimalLatitude, occ.getDecimalLatitude());
-    upd.setInterpretedField(DwcTerm.decimalLongitude, occ.getDecimalLongitude());
-    upd.setInterpretedField(DwcTerm.countryCode, occ.getCountry());
-    upd.setInterpretedField(DcTerm.modified, occ.getModified());
-    upd.setInterpretedField(DwcTerm.eventDate, occ.getEventDate());
-    upd.setInterpretedField(DwcTerm.year, occ.getYear());
-    upd.setInterpretedField(DwcTerm.month, occ.getMonth());
-    upd.setInterpretedField(DwcTerm.day, occ.getDay());
-    upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
-    upd.setInterpretedField(DwcTerm.genericName, occ.getGenericName());
-    upd.setInterpretedField(DwcTerm.specificEpithet, occ.getSpecificEpithet());
-    upd.setInterpretedField(DwcTerm.infraspecificEpithet, occ.getInfraspecificEpithet());
-    upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
-    upd.setInterpretedField(GbifTerm.coordinateAccuracy, occ.getCoordinateAccuracy());
-    upd.setInterpretedField(DwcTerm.continent, occ.getContinent());
-    upd.setInterpretedField(DwcTerm.dateIdentified, occ.getDateIdentified());
-    upd.setInterpretedField(DwcTerm.establishmentMeans, occ.getEstablishmentMeans());
-    upd.setInterpretedField(DwcTerm.individualCount, occ.getIndividualCount());
-    upd.setInterpretedField(DwcTerm.lifeStage, occ.getLifeStage());
-    upd.setInterpretedField(DwcTerm.sex, occ.getSex());
-    upd.setInterpretedField(DwcTerm.stateProvince, occ.getStateProvince());
-    upd.setInterpretedField(DwcTerm.waterBody, occ.getWaterBody());
-    upd.setInterpretedField(DwcTerm.typeStatus, occ.getTypeStatus());
-    upd.setInterpretedField(DwcTerm.typifiedName, occ.getTypifiedName());
-    upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
+    if (!nullSafeEquals(oldOcc.getTaxonKey(), occ.getTaxonKey())) {
+      upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
+    }
+    if (!nullSafeEquals(oldOcc.getKingdom(), occ.getKingdom())) {
+      updateRank(upd, occ, Rank.KINGDOM);
+    }
+    if (!nullSafeEquals(oldOcc.getPhylum(), occ.getPhylum())) {
+      updateRank(upd, occ, Rank.PHYLUM);
+    }
+    if (!nullSafeEquals(oldOcc.getClazz(), occ.getClazz())) {
+      updateRank(upd, occ, Rank.CLASS);
+    }
+    if (!nullSafeEquals(oldOcc.getOrder(), occ.getOrder())) {
+      updateRank(upd, occ, Rank.ORDER);
+    }
+    if (!nullSafeEquals(oldOcc.getFamily(), occ.getFamily())) {
+      updateRank(upd, occ, Rank.FAMILY);
+    }
+    if (!nullSafeEquals(oldOcc.getGenus(), occ.getGenus())) {
+      updateRank(upd, occ, Rank.GENUS);
+    }
+    if (!nullSafeEquals(oldOcc.getSubgenus(), occ.getSubgenus())) {
+      updateRank(upd, occ, Rank.SUBGENUS);
+    }
+    if (!nullSafeEquals(oldOcc.getSpecies(), occ.getSpecies())) {
+      updateRank(upd, occ, Rank.SPECIES);
+    }
+    if (!nullSafeEquals(oldOcc.getDepth(), occ.getDepth())) {
+      upd.setInterpretedField(GbifTerm.depth, occ.getDepth());
+    }
+    if (!nullSafeEquals(oldOcc.getDepthAccuracy(), occ.getDepthAccuracy())) {
+      upd.setInterpretedField(GbifTerm.depthAccuracy, occ.getDepthAccuracy());
+    }
+    if (!nullSafeEquals(oldOcc.getElevation(), occ.getElevation())) {
+      upd.setInterpretedField(GbifTerm.elevation, occ.getElevation());
+    }
+    if (!nullSafeEquals(oldOcc.getElevationAccuracy(), occ.getElevationAccuracy())) {
+      upd.setInterpretedField(GbifTerm.elevationAccuracy, occ.getElevationAccuracy());
+    }
+    if (!nullSafeEquals(oldOcc.getDecimalLatitude(), occ.getDecimalLatitude())) {
+      upd.setInterpretedField(DwcTerm.decimalLatitude, occ.getDecimalLatitude());
+    }
+    if (!nullSafeEquals(oldOcc.getDecimalLongitude(), occ.getDecimalLongitude())) {
+      upd.setInterpretedField(DwcTerm.decimalLongitude, occ.getDecimalLongitude());
+    }
+    if (!nullSafeEquals(oldOcc.getCountry(), occ.getCountry())) {
+      upd.setInterpretedField(DwcTerm.countryCode, occ.getCountry());
+    }
+    if (!nullSafeEquals(oldOcc.getModified(), occ.getModified())) {
+      upd.setInterpretedField(DcTerm.modified, occ.getModified());
+    }
+    if (!nullSafeEquals(oldOcc.getEventDate(), occ.getEventDate())) {
+      upd.setInterpretedField(DwcTerm.eventDate, occ.getEventDate());
+    }
+    if (!nullSafeEquals(oldOcc.getYear(), occ.getYear())) {
+      upd.setInterpretedField(DwcTerm.year, occ.getYear());
+    }
+    if (!nullSafeEquals(oldOcc.getMonth(), occ.getMonth())) {
+      upd.setInterpretedField(DwcTerm.month, occ.getMonth());
+    }
+    if (!nullSafeEquals(oldOcc.getDay(), occ.getDay())) {
+      upd.setInterpretedField(DwcTerm.day, occ.getDay());
+    }
+    if (!nullSafeEquals(oldOcc.getScientificName(), occ.getScientificName())) {
+      upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
+    }
+    if (!nullSafeEquals(oldOcc.getGenericName(), occ.getGenericName())) {
+      upd.setInterpretedField(DwcTerm.genericName, occ.getGenericName());
+    }
+    if (!nullSafeEquals(oldOcc.getSpecificEpithet(), occ.getSpecificEpithet())) {
+      upd.setInterpretedField(DwcTerm.specificEpithet, occ.getSpecificEpithet());
+    }
+    if (!nullSafeEquals(oldOcc.getInfraspecificEpithet(), occ.getInfraspecificEpithet())) {
+      upd.setInterpretedField(DwcTerm.infraspecificEpithet, occ.getInfraspecificEpithet());
+    }
+    if (!nullSafeEquals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
+      upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
+    }
+    if (!nullSafeEquals(oldOcc.getCoordinateAccuracy(), occ.getCoordinateAccuracy())) {
+      upd.setInterpretedField(GbifTerm.coordinateAccuracy, occ.getCoordinateAccuracy());
+    }
+    if (!nullSafeEquals(oldOcc.getContinent(), occ.getContinent())) {
+      upd.setInterpretedField(DwcTerm.continent, occ.getContinent());
+    }
+    if (!nullSafeEquals(oldOcc.getDateIdentified(), occ.getDateIdentified())) {
+      upd.setInterpretedField(DwcTerm.dateIdentified, occ.getDateIdentified());
+    }
+    if (!nullSafeEquals(oldOcc.getEstablishmentMeans(), occ.getEstablishmentMeans())) {
+      upd.setInterpretedField(DwcTerm.establishmentMeans, occ.getEstablishmentMeans());
+    }
+    if (!nullSafeEquals(oldOcc.getIndividualCount(), occ.getIndividualCount())) {
+      upd.setInterpretedField(DwcTerm.individualCount, occ.getIndividualCount());
+    }
+    if (!nullSafeEquals(oldOcc.getLifeStage(), occ.getLifeStage())) {
+      upd.setInterpretedField(DwcTerm.lifeStage, occ.getLifeStage());
+    }
+    if (!nullSafeEquals(oldOcc.getSex(), occ.getSex())) {
+      upd.setInterpretedField(DwcTerm.sex, occ.getSex());
+    }
+    if (!nullSafeEquals(oldOcc.getStateProvince(), occ.getStateProvince())) {
+      upd.setInterpretedField(DwcTerm.stateProvince, occ.getStateProvince());
+    }
+    if (!nullSafeEquals(oldOcc.getWaterBody(), occ.getWaterBody())) {
+      upd.setInterpretedField(DwcTerm.waterBody, occ.getWaterBody());
+    }
+    if (!nullSafeEquals(oldOcc.getTypeStatus(), occ.getTypeStatus())) {
+      upd.setInterpretedField(DwcTerm.typeStatus, occ.getTypeStatus());
+    }
+    if (!nullSafeEquals(oldOcc.getTypifiedName(), occ.getTypifiedName())) {
+      upd.setInterpretedField(DwcTerm.typifiedName, occ.getTypifiedName());
+    }
+    if (!nullSafeEquals(oldOcc.getLastInterpreted(), occ.getLastInterpreted())) {
+      upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
+    }
 
     // Identifiers
     // todo: as yet unused
-//    deleteOldIdentifiers(occTable, occ.getKey());
-//    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
-//      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
-//      int count = 0;
-//      for (Identifier record : occ.getIdentifiers()) {
-//        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
-//        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
-//        count++;
-//      }
-//    }
+    //    deleteOldIdentifiers(occTable, occ.getKey());
+    //    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
+    //      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
+    //      int count = 0;
+    //      for (Identifier record : occ.getIdentifiers()) {
+    //        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
+    //        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
+    //        count++;
+    //      }
+    //    }
 
     // OccurrenceIssues
-    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      upd.setField(Columns.column(issue), occ.getIssues().contains(issue) ? Bytes.toBytes(1) : null);
+    for (OccurrenceIssue issue : oldOcc.getIssues()) {
+      if (!occ.getIssues().contains(issue)) {
+        upd.setField(Columns.column(issue), null);
+      }
     }
+    for (OccurrenceIssue issue : occ.getIssues()) {
+      if (!oldOcc.getIssues().contains(issue)) {
+        upd.setField(Columns.column(issue), Bytes.toBytes(1));
+      }
+    }
+  }
+
+  private static boolean nullSafeEquals(String first, String second) {
+    // both null or both the same not null string
+    return first == null && second == null || first != null && first.equals(second);
+  }
+
+  private static boolean nullSafeEquals(UUID first, UUID second) {
+    return first == null && second == null || first != null && first.equals(second);
+  }
+
+  private static boolean nullSafeEquals(Double first, Double second) {
+    // both null or both the same not null string
+    return first == null && second == null || first != null && first.equals(second);
+  }
+
+  private static boolean nullSafeEquals(Integer first, Integer second) {
+    // both null or both the same not null string
+    return first == null && second == null || first != null && first.equals(second);
+  }
+
+  private static boolean nullSafeEquals(Enum first, Enum second) {
+    return first == null && second == null || first != null && first == second;
+  }
+
+  private static boolean nullSafeEquals(Date first, Date second) {
+    return first == null && second == null || first != null && second != null && first.getTime() == second.getTime();
+  }
+
+  private void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
+    upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
+    upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
   }
 
   /**

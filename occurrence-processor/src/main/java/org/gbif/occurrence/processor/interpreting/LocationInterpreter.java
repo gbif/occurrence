@@ -20,34 +20,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper for the interpreting steps required to parse and validate location incl coordinates given as latitude and
- * longitude. Intended to be run as its own thread because the underlying web service call takes some time.
+ * longitude.
  */
-public class LocationInterpreter implements Runnable {
+public class LocationInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocationInterpreter.class);
 
-  private final VerbatimOccurrence verbatim;
-  private final Occurrence occ;
+  public static void interpretLocation(VerbatimOccurrence verbatim, Occurrence occ) {
+    Country country = interpretCountry(verbatim, occ);
+    interpretContinent(verbatim, occ, country);
+    interpretCoordinates(verbatim, occ, country);
+    interpretWaterBody(verbatim, occ);
+    interpretState(verbatim, occ, country);
 
-  public LocationInterpreter(VerbatimOccurrence verbatim, Occurrence occ) {
-    this.verbatim = verbatim;
-    this.occ = occ;
-  }
-
-  @Override
-  public void run() {
-    Country country = interpretCountry();
-    interpretContinent(country);
-    interpretCoordinates(country);
-    interpretWaterBody();
-    interpretState(country);
-
-    interpretElevation();
-    interpretDepth();
+    interpretElevation(verbatim, occ);
+    interpretDepth(verbatim, occ);
   }
 
   //TODO: improve this method and put it into parsers!
-  private String cleanName(String x) {
+  private static String cleanName(String x) {
     x = StringUtils.normalizeSpace(x).trim();
     // if we get all upper names, Capitalize them
     if (StringUtils.isAllUpperCase(StringUtils.deleteWhitespace(x))) {
@@ -56,14 +47,14 @@ public class LocationInterpreter implements Runnable {
     return x;
   }
 
-  private void interpretState(Country country) {
+  private static void interpretState(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
     if (verbatim.hasVerbatimField(DwcTerm.stateProvince)) {
       occ.setStateProvince(cleanName(verbatim.getVerbatimField(DwcTerm.stateProvince)));
     }
     // TODO: verify against country?
   }
 
-  private void interpretContinent(Country country) {
+  private static void interpretContinent(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
     if (verbatim.hasVerbatimField(DwcTerm.continent)) {
       ParseResult<Continent> inter = ContinentParser.getInstance().parse(verbatim.getVerbatimField(DwcTerm.continent));
       occ.setContinent(inter.getPayload());
@@ -73,13 +64,13 @@ public class LocationInterpreter implements Runnable {
     // TODO: if null, try to derive from country
   }
 
-  private void interpretWaterBody() {
+  private static void interpretWaterBody(VerbatimOccurrence verbatim, Occurrence occ) {
     if (verbatim.hasVerbatimField(DwcTerm.waterBody)) {
       occ.setWaterBody(cleanName(verbatim.getVerbatimField(DwcTerm.waterBody)));
     }
   }
 
-  private Country interpretCountry() {
+  private static Country interpretCountry(VerbatimOccurrence verbatim, Occurrence occ) {
     ParseResult<Country> inter = CountryInterpreter
       .interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode), verbatim.getVerbatimField(DwcTerm.country));
     occ.setCountry(inter.getPayload());
@@ -87,7 +78,7 @@ public class LocationInterpreter implements Runnable {
     return occ.getCountry();
   }
 
-  private void interpretCoordinates(Country country) {
+  private static void interpretCoordinates(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
     ParseResult<CoordinateCountry> coordLookup = CoordinateInterpreter
       .interpretCoordinates(verbatim.getVerbatimField(DwcTerm.decimalLatitude),
         verbatim.getVerbatimField(DwcTerm.decimalLongitude), country);
@@ -126,7 +117,7 @@ public class LocationInterpreter implements Runnable {
     occ.getIssues().addAll(coordLookup.getIssues());
   }
 
-  private void interpretDepth() {
+  private static void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
     ParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters), null);
@@ -137,7 +128,7 @@ public class LocationInterpreter implements Runnable {
     }
   }
 
-  private void interpretElevation() {
+  private static void interpretElevation(VerbatimOccurrence verbatim, Occurrence occ) {
     ParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters), null);

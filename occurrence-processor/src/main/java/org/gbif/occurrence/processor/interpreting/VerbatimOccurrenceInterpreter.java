@@ -21,10 +21,6 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -72,11 +68,9 @@ public class VerbatimOccurrenceInterpreter {
     Occurrence occ = new Occurrence(verbatim);
 
     try {
-      ExecutorService threadPool = Executors.newFixedThreadPool(3);
-      Future<?> coordFuture = threadPool.submit(new LocationInterpreter(verbatim, occ));
-      Future<?> taxonomyFuture = threadPool.submit(new TaxonomyInterpreter(verbatim, occ));
-      Future<?> hostCountryFuture = threadPool.submit(new OwningOrgInterpreter(occ));
-      threadPool.shutdown();
+      LocationInterpreter.interpretLocation(verbatim, occ);
+      TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
+      OwningOrgInterpreter.interpretOwningOrg(occ);
 
       interpretBor(verbatim, occ);
       interpretSex(verbatim, occ);
@@ -86,19 +80,6 @@ public class VerbatimOccurrenceInterpreter {
       TemporalInterpreter.interpretTemporal(verbatim, occ);
 
       occ.setLastInterpreted(new Date());
-
-      // wait for the ws calls
-      if (!threadPool.awaitTermination(2, TimeUnit.MINUTES)) {
-        if (coordFuture.isCancelled()) {
-          LOG.warn("Coordinate lookup timed out - geospatial will be wrong for occurrence [{}]", occ.getKey());
-        }
-        if (taxonomyFuture.isCancelled()) {
-          LOG.warn("Nub lookup timed out - taxonomy will be wrong for occurrence [{}]", occ.getKey());
-        }
-        if (hostCountryFuture.isCancelled()) {
-          LOG.warn("Host country lookup timed out - host country will be null for occurrence [{}]", occ.getKey());
-        }
-      }
 
     } catch (Exception e) {
       // TODO: tidy up exception handling to not be Exception

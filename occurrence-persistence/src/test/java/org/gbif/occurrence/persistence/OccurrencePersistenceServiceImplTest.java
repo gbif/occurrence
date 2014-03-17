@@ -34,6 +34,7 @@ import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.RowMutations;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -270,6 +271,11 @@ public class OccurrencePersistenceServiceImplTest {
     }
     for (Term term : DcTerm.values()) {
       put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+    }
+    for (Term term : GbifTerm.values()) {
+      if (term != GbifTerm.lastParsed) {
+        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      }
     }
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     put.add(CF, Bytes.toBytes(Columns.column(term)), Bytes.toBytes("I am " + term.toString()));
@@ -602,6 +608,41 @@ public class OccurrencePersistenceServiceImplTest {
     assertNull(got.getVerbatimField(IucnTerm.threatStatus));
   }
 
+  @Test
+  public void testVerbRowMutations() {
+    // identical shouldn't do anything
+    VerbatimOccurrence occ = occurrenceService.getVerbatim(KEY);
+    RowMutations mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
+    assertEquals(0, mutations.getMutations().size());
+
+    // one put and three deletes
+    occ = occurrenceService.getVerbatim(KEY);
+    occ.setLastParsed(new Date());
+    occ.setVerbatimField(DwcTerm.acceptedNameUsage, null);
+    occ.setVerbatimField(DcTerm.accessRights, null);
+    occ.setVerbatimField(GbifTerm.distanceAboveSurface, null);
+
+    mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
+    assertEquals(4, mutations.getMutations().size());
+  }
+
+  @Test
+  public void testOccRowMutations() {
+    // identical shouldn't do anything
+    Occurrence occ = occurrenceService.get(KEY);
+    RowMutations mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
+    assertEquals(0, mutations.getMutations().size());
+
+    // one put and three deletes
+    occ = occurrenceService.get(KEY);
+    occ.setLastInterpreted(new Date());
+    occ.setVerbatimField(DwcTerm.acceptedNameUsage, null);
+    occ.setVerbatimField(DcTerm.accessRights, null);
+    occ.setVerbatimField(GbifTerm.ageInDays, null);
+    mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
+    assertEquals(4, mutations.getMutations().size());
+  }
+
   private void addTerms(VerbatimOccurrence occ, String prefix) {
     Map<Term, String> fields = Maps.newHashMap();
 
@@ -704,4 +745,5 @@ public class OccurrencePersistenceServiceImplTest {
       assertEquals(a.getVerbatimField(term), b.getVerbatimField(term));
     }
   }
+
 }
