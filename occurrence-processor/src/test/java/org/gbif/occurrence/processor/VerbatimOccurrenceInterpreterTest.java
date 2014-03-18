@@ -3,12 +3,10 @@ package org.gbif.occurrence.processor;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
-import org.gbif.common.messaging.ConnectionParameters;
-import org.gbif.common.messaging.DefaultMessagePublisher;
-import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -21,7 +19,6 @@ import org.gbif.occurrence.processor.interpreting.OccurrenceInterpretationResult
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
@@ -34,7 +31,6 @@ import com.netflix.curator.framework.CuratorFrameworkFactory;
 import com.netflix.curator.retry.RetryNTimes;
 import com.netflix.curator.test.TestingServer;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -43,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("requires real webservices and messaging")
+@Ignore("requires real webservices")
 public class VerbatimOccurrenceInterpreterTest {
 
   // BoGART from BGBM
@@ -55,16 +51,9 @@ public class VerbatimOccurrenceInterpreterTest {
   private VerbatimOccurrence verb;
   private VerbatimOccurrence verbMod;
   private VerbatimOccurrenceInterpreter interpreter;
-  private static MessagePublisher messagePublisher;
   private TestingServer zkServer;
   private CuratorFramework curator;
   private ZookeeperConnector zookeeperConnector;
-
-  @BeforeClass
-  public static void preClass() throws IOException {
-    ConnectionParameters connectionParameters = new ConnectionParameters("localhost", 5672, "guest", "guest", "/");
-    messagePublisher = new DefaultMessagePublisher(connectionParameters);
-  }
 
   @Before
   public void setUp() throws Exception {
@@ -84,14 +73,21 @@ public class VerbatimOccurrenceInterpreterTest {
     OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceMock(fragmentPersister);
     interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
 
+    verb = buildVerbatim(fragment.getKey());
+
+    verbMod = buildVerbatim(fragment.getKey());
+    verbMod.setVerbatimField(DwcTerm.scientificName, "Panthera onca goldmani");
+  }
+
+  private VerbatimOccurrence buildVerbatim(int key) {
     VerbatimOccurrence v = new VerbatimOccurrence();
-    v.setKey(fragment.getKey());
+    v.setKey(key);
     v.setDatasetKey(DATASET_KEY);
     v.setLastCrawled(new Date(MODIFIED));
     v.setProtocol(EndpointType.DWC_ARCHIVE);
     v.setPublishingOrgKey(OWNING_ORG_KEY);
     v.setPublishingCountry(Country.GERMANY);
-    v.setVerbatimField(GbifTerm.gbifID, fragment.getKey().toString());
+    v.setVerbatimField(GbifTerm.gbifID, String.valueOf(key));
     v.setVerbatimField(DwcTerm.scientificNameAuthorship, "Linneaus");
     v.setVerbatimField(DwcTerm.basisOfRecord, "specimen");
     v.setVerbatimField(DwcTerm.recordedBy, "Hobern");
@@ -128,15 +124,11 @@ public class VerbatimOccurrenceInterpreterTest {
     v.setVerbatimField(DwcTerm.year, "1990");
     v.setVerbatimField(DwcTerm.collectionCode, "cc");
 
-    verb = v;
-
-    //TODO: make copy of v and replace scientificName!!!
-    verbMod = v; //builder.scientificName("Panthera onca goldmani").build();
+    return v;
   }
 
   @Test
   public void testFullNew() {
-    // TODO: continent, geospatial issue, other issue
     OccurrenceInterpretationResult interpResult = interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
     assertNotNull(interpResult);
     Occurrence result = interpResult.getUpdated();
@@ -188,14 +180,14 @@ public class VerbatimOccurrenceInterpreterTest {
     assertNull(result.getVerbatimField(GbifInternalTerm.unitQualifier));
     assertEquals(Country.GERMANY, result.getPublishingCountry());
     assertEquals(EndpointType.DWC_ARCHIVE, result.getProtocol());
+    assertEquals(Continent.EUROPE, result.getContinent());
+    assertEquals(0, result.getIssues().size());
   }
 
   @Test
   public void testUpdate() {
     interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
     OccurrenceInterpretationResult interpResultMod = interpreter.interpret(verbMod, OccurrencePersistenceStatus.UPDATED, true);
-    System.out.println("original\n" + interpResultMod.getOriginal().toString());
-    System.out.println("updated\n" + interpResultMod.getUpdated().toString());
     assertNotNull(interpResultMod.getUpdated());
     assertNotNull(interpResultMod.getOriginal());
   }

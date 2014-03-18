@@ -90,7 +90,7 @@ public class VerbatimOccurrenceProcessorTest {
     Thread.sleep(5000);
     VerbatimOccurrence verb = occurrenceService.getVerbatim(1);
     assertNotNull(verb);
-    assertEquals(29, verb.getVerbatimFields().size());
+    assertEquals(30, verb.getVerbatimFields().size());
     assertEquals("1", verb.getVerbatimField(GbifTerm.gbifID));
     assertEquals("Pontaurus", verb.getVerbatimField(DwcTerm.collectionCode));
   }

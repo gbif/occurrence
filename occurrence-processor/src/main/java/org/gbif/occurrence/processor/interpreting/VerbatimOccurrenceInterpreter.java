@@ -60,31 +60,62 @@ public class VerbatimOccurrenceInterpreter {
    *
    * @param verbatim the verbatim occurrence to interpret
    *
-   * @return an OccurrenceInterpretationResult that contains an "updated" Occurrence with interpreted fields and an "original"
-   *         occurrence iff this was an update to an existing record (will be null otherwise)
+   * @return an OccurrenceInterpretationResult that contains an "updated" Occurrence with interpreted fields and an
+   * "original"
+   * occurrence iff this was an update to an existing record (will be null otherwise)
    */
   public OccurrenceInterpretationResult interpret(VerbatimOccurrence verbatim, OccurrencePersistenceStatus status,
     boolean fromCrawl) {
     Occurrence occ = new Occurrence(verbatim);
 
+    // TODO: these interpreters throw a variety of runtime exceptions but should throw checked exceptions
     try {
       LocationInterpreter.interpretLocation(verbatim, occ);
-      TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
-      OwningOrgInterpreter.interpretOwningOrg(occ);
-
-      interpretBor(verbatim, occ);
-      interpretSex(verbatim, occ);
-      interpretEstablishmentMeans(verbatim, occ);
-      interpretLifeStage(verbatim, occ);
-      interpretTypification(verbatim, occ);
-      TemporalInterpreter.interpretTemporal(verbatim, occ);
-
-      occ.setLastInterpreted(new Date());
-
     } catch (Exception e) {
-      // TODO: tidy up exception handling to not be Exception
       LOG.warn("Caught a runtime exception during interpretation", e);
     }
+    try {
+      TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      OwningOrgInterpreter.interpretOwningOrg(occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      interpretBor(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      interpretSex(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      interpretEstablishmentMeans(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      interpretLifeStage(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      interpretTypification(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+    try {
+      TemporalInterpreter.interpretTemporal(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during interpretation", e);
+    }
+
+    occ.setLastInterpreted(new Date());
 
     // populate the returned class
     Occurrence original = null;
@@ -101,14 +132,14 @@ public class VerbatimOccurrenceInterpreter {
 
     if (fromCrawl) {
       LOG.debug("Updating zookeeper for OccurrenceInterpretedPersistedSuccess");
-      zookeeperConnector.addCounter(occ.getDatasetKey(),
-                                    ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
+      zookeeperConnector
+        .addCounter(occ.getDatasetKey(), ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
     }
 
     return result;
   }
 
-  private void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {
+  private static void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {
     if (verbatim.hasVerbatimField(DwcTerm.typeStatus)) {
       ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypeStatus(parsed.getPayload());
@@ -126,6 +157,7 @@ public class VerbatimOccurrenceInterpreter {
       occ.setBasisOfRecord(parsed.getPayload());
     } else {
       LOG.debug("Unknown basisOfRecord [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
+      occ.setBasisOfRecord(BasisOfRecord.UNKNOWN);
     }
   }
 
