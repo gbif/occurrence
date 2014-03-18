@@ -18,17 +18,17 @@ public class FeaturedOccurrence {
   private final Double latitude;
   private final Double longitude;
   private final UUID publisherKey;
-  private final Date modified;
+  private final Date lastInterpreted;
 
   public FeaturedOccurrence(Integer key, Double latitude, Double longitude, String scientificName, String publisher,
-    UUID publisherKey, Date modified) {
+    UUID publisherKey, Date lastInterpreted) {
     this.key = key;
     this.scientificName = scientificName;
     this.publisher = publisher;
     this.latitude = latitude;
     this.longitude = longitude;
     this.publisherKey = publisherKey;
-    this.modified = modified;
+    this.lastInterpreted = lastInterpreted;
   }
 
   public Integer getKey() {
@@ -43,8 +43,8 @@ public class FeaturedOccurrence {
     return longitude;
   }
 
-  public Date getModified() {
-    return modified;
+  public Date getLastInterpreted() {
+    return lastInterpreted;
   }
 
   public String getPublisher() {

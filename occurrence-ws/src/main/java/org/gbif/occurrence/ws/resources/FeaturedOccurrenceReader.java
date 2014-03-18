@@ -76,8 +76,8 @@ public class FeaturedOccurrenceReader {
       LOG.debug("No featured occurrence record found for key: {}", occurrenceIds[randomIndex]);
     } else {
       // filter for only good ones
-        if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
-            && !occ.hasSpatialIssue() && occ.getPublishingOrgKey() != null) {
+      if (occ.getScientificName() != null && occ.getDecimalLatitude() != null && occ.getDecimalLongitude() != null
+        && !occ.hasSpatialIssue() && occ.getPublishingOrgKey() != null) {
         results.add(occ);
       }
     }
@@ -95,17 +95,19 @@ public class FeaturedOccurrenceReader {
         Organization org = orgCache.get(o.getPublishingOrgKey());
         if (org == null) {
           org = organizationService.get(o.getPublishingOrgKey());
-          if (org!=null) {
+          if (org != null) {
             orgCache.put(org.getKey(), org);
           } else {
-            LOG.warn("Suspicious that registry reports no org["+ o.getPublishingOrgKey() +"] for occurrence[" + o.getKey() + "]");
+            LOG.warn("Suspicious that registry reports no org[" + o.getPublishingOrgKey() + "] for occurrence["
+              + o.getKey() + "]");
             registryFailures.mark(); // not communication, but still erroneous
             continue;
           }
         }
-        if (org!=null) {
-          featured.add(new FeaturedOccurrence(o.getKey(), o.getDecimalLatitude(), o.getDecimalLongitude(), o.getScientificName(), org
-            .getTitle(), org.getKey(), o.getModified()));
+        if (org != null) {
+          featured.add(new FeaturedOccurrence(o.getKey(), o.getDecimalLatitude(), o.getDecimalLongitude(), o
+            .getScientificName(), org
+            .getTitle(), org.getKey(), o.getLastInterpreted()));
         }
       } catch (Exception e) {
         registryFailures.mark();
