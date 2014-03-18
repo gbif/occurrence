@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -46,44 +47,79 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testLikelyYearRanges() {
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1900));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1901));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2010));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2014));
+    assertTrue(TemporalInterpreter.recordedYearValid(1900));
+    assertTrue(TemporalInterpreter.recordedYearValid(1901));
+    assertTrue(TemporalInterpreter.recordedYearValid(2010));
+    assertTrue(TemporalInterpreter.recordedYearValid(2014));
 
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1580));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(900));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(90));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(0));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(-1900));
+    assertFalse(TemporalInterpreter.recordedYearValid(Calendar.getInstance().get(Calendar.YEAR) + 1));
+    assertFalse(TemporalInterpreter.recordedYearValid(1580));
+    assertFalse(TemporalInterpreter.recordedYearValid(900));
+    assertFalse(TemporalInterpreter.recordedYearValid(90));
+    assertFalse(TemporalInterpreter.recordedYearValid(0));
+    assertFalse(TemporalInterpreter.recordedYearValid(-1900));
 
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2100));
+    assertFalse(TemporalInterpreter.recordedYearValid(2100));
   }
 
   @Test
-  public void testLikelyIdentifiedRanges() {
+  public void testLikelyIdentified() {
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setVerbatimField(DwcTerm.year, "1879");
+    v.setVerbatimField(DwcTerm.month, "11 ");
+    v.setVerbatimField(DwcTerm.day, "1");
+    v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
+    v.setVerbatimField(DcTerm.modified, "2014-01-11");
+    Occurrence o = new Occurrence();
+
+    v.setVerbatimField(DwcTerm.dateIdentified, "1987-01-31");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+
+    v.setVerbatimField(DwcTerm.dateIdentified, "1787-03-27");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+
+    v.setVerbatimField(DwcTerm.dateIdentified, "2014-01-11");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+
     Calendar cal = Calendar.getInstance();
+    v.setVerbatimField(DwcTerm.dateIdentified, (cal.get(Calendar.YEAR)+1) + "-01-11");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(1, o.getIssues().size());
+    assertEquals(OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
 
-    cal.set(1987, 0, 31);
-    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
-
-    cal.set(1787, 2, 27);
-    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
-
-    cal.set(2014, 0, 11);
-    assertTrue(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
-
-    cal.set(2020, 0, 31);
-    assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
-
-    assertFalse(TemporalInterpreter.VALID_RECORDED_DATE_RANGE.contains(cal.getTime()));
+    v.setVerbatimField(DwcTerm.dateIdentified, "1599-01-11");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(1, o.getIssues().size());
+    assertEquals(OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
   }
 
   @Test
-  public void testIdentificationDates() {
-    assertDate("2013-05-10",
-      TemporalInterpreter.interpretDate("2013-05-10", TemporalInterpreter.VALID_RECORDED_DATE_RANGE, null)
-        .getPayload());
+  public void testLikelyModified() {
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    v.setVerbatimField(DwcTerm.year, "1879");
+    v.setVerbatimField(DwcTerm.month, "11 ");
+    v.setVerbatimField(DwcTerm.day, "1");
+    v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
+    v.setVerbatimField(DwcTerm.dateIdentified, "1987-01-31");
+    Occurrence o = new Occurrence();
+
+    v.setVerbatimField(DcTerm.modified, "2014-01-11");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+
+    Calendar cal = Calendar.getInstance();
+    v.setVerbatimField(DcTerm.modified, (cal.get(Calendar.YEAR) + 1) + "-01-11");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(1, o.getIssues().size());
+    assertEquals(OccurrenceIssue.MODIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
+
+    v.setVerbatimField(DcTerm.modified, "1969-12-31");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(1, o.getIssues().size());
+    assertEquals(OccurrenceIssue.MODIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
   }
 
   @Test

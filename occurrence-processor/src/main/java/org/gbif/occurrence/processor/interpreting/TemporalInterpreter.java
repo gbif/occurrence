@@ -16,7 +16,6 @@ import java.util.GregorianCalendar;
 import java.util.Set;
 
 import com.beust.jcommander.internal.Sets;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import org.slf4j.Logger;
@@ -29,23 +28,16 @@ public class TemporalInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TemporalInterpreter.class);
   // we accept 13h difference between dates due to timezone trouble
-  private static final long MAX_DIFFERENCE = 13 * 1000*60*60;
-  // max is next year
-  @VisibleForTesting
-  protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE =
-    Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR) + 1);
-  @VisibleForTesting
-  protected static final Range<Date> VALID_RECORDED_DATE_RANGE =
-    Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
-
-  // modified date for a record cant be before unix time
-  @VisibleForTesting
-  protected static final Range<Date> VALID_MODIFIED_DATE_RANGE = Range.closed(new Date(0), new Date());
+  private static final long MAX_DIFFERENCE = 13 * 1000 * 60 * 60;
 
   private TemporalInterpreter() {
   }
 
   public static void interpretTemporal(VerbatimOccurrence verbatim, Occurrence occ) {
+    final Range<Date> validRecordedDates = Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
+    // modified date for a record cant be before unix time
+    final Range<Date> validModifiedDates = Range.closed(new Date(0), new Date());
+
     ParseResult<DateYearMonthDay> eventResult = interpretRecordedDate(verbatim);
     if (eventResult.isSuccessful()) {
       occ.setEventDate(eventResult.getPayload().getDate());
@@ -56,15 +48,15 @@ public class TemporalInterpreter {
     occ.getIssues().addAll(eventResult.getIssues());
 
     if (verbatim.hasVerbatimField(DcTerm.modified)) {
-      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified),
-                                               VALID_MODIFIED_DATE_RANGE,OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified), validModifiedDates,
+        OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
       occ.setModified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
 
     if (verbatim.hasVerbatimField(DwcTerm.dateIdentified)) {
-      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
-                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
+      ParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified), validRecordedDates,
+        OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
@@ -74,10 +66,9 @@ public class TemporalInterpreter {
    * Given possibly both of year, month, day and a dateString, produces a single date.
    * When year, month and day are all populated and parseable they are given priority,
    * but if any field is missing or illegal and dateString is parseable dateString is preferred.
-   *
    * Partially valid dates are not supported and null will be returned instead. The only exception is the year alone
    * which will be used as the last resort if nothing else works.
-   * Years are verified to be before or next year and after 1700.
+   * Years are verified to be before or next year and after 1600.
    *
    * @return interpretation result, never null
    */
@@ -135,11 +126,12 @@ public class TemporalInterpreter {
     // stringDate will be null if not matching with YMD
     if (stringDate != null) {
       // verify we've got a sensible year
-      if (VALID_RECORDED_YEAR_RANGE.contains(stringYear)) {
+      if (recordedYearValid(stringYear)) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(stringDate);
         result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
-                 new DateYearMonthDay(stringYear, cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), null, stringDate));
+          new DateYearMonthDay(stringYear, cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), null,
+            stringDate));
       } else {
         issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
         LOG.debug("Bad recording year: [{}] / [{}].", dateString, ymd);
@@ -149,11 +141,10 @@ public class TemporalInterpreter {
     if (result == null) {
       if (!ymd.representsNull()) {
         // try to use partial dates from YMD as last resort
-        if ( (ymd.getIntegerYear() != null && VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear()))
-          || (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))
-        ) {
+        if ((ymd.getIntegerYear() != null && recordedYearValid(ymd.getIntegerYear())) ||
+            (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))) {
           result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
-                                       new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
+            new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
         }
       }
     }
@@ -163,9 +154,15 @@ public class TemporalInterpreter {
       result = ParseResult.fail();
     }
 
-      // return result with all issues
+    // return result with all issues
     result.getIssues().addAll(issues);
     return result;
+  }
+
+  // package visible for testing
+  static boolean recordedYearValid(int year) {
+    final Range<Integer> range = Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR));
+    return range.contains(year);
   }
 
   private static Integer year(Date d) {
@@ -178,7 +175,8 @@ public class TemporalInterpreter {
   }
 
 
-  public static ParseResult<Date> interpretDate(String dateString, Range<Date> likelyRange, OccurrenceIssue unlikelyIssue) {
+  public static ParseResult<Date> interpretDate(String dateString, Range<Date> likelyRange,
+    OccurrenceIssue unlikelyIssue) {
     if (!Strings.isNullOrEmpty(dateString)) {
       ParseResult<Date> result = DateParseUtils.parse(dateString);
       if (result.isSuccessful()) {
@@ -192,5 +190,4 @@ public class TemporalInterpreter {
     }
     return ParseResult.fail();
   }
-
 }
