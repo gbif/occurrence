@@ -1,6 +1,8 @@
 package org.gbif.occurrence.processor.parsing;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.model.occurrence.VerbatimRecord;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
@@ -13,11 +15,14 @@ import org.gbif.occurrence.persistence.api.Fragment;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
+import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -60,26 +65,61 @@ public class JsonFragmentParser {
     // jackson untyped bind of data to object
     try {
       Map<String, Object> jsonMap = mapper.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
-      for (String simpleTermName : jsonMap.keySet()) {
-        // skip serialization artifact
-        if (simpleTermName.equalsIgnoreCase("extensions")) continue;
 
-        try {
-          Term term = termFactory.findTerm(simpleTermName);
-          Object value = jsonMap.get(simpleTermName);
-          if (value != null) {
-            verbatim.setVerbatimField(term, value.toString());
+      // core terms
+      for (Map.Entry<Term, String> entry : parseTermMap(jsonMap).entrySet()) {
+        verbatim.setVerbatimField(entry.getKey(), entry.getValue());
+      }
+
+      // parse extensions
+      if (jsonMap.containsKey("extensions")) {
+        Map<Extension, List<VerbatimRecord>> extTerms = Maps.newHashMap();
+        verbatim.setExtensions(extTerms);
+
+        Map<String, Object> extensions = (Map<String, Object>) jsonMap.get("extensions");
+        for (String rowType : extensions.keySet()) {
+          Extension ext = Extension.fromRowType(rowType);
+          if (ext == null) {
+            LOG.debug("Unknown dwc extension {}", rowType);
+          } else {
+            List<VerbatimRecord> records = Lists.newArrayList();
+            // transform records to term based map
+            for (Map<String, Object> rawRecord : (List<Map<String, Object>>) extensions.get(rowType)) {
+              records.add(new VerbatimRecord(parseTermMap(rawRecord)));
+            }
+            extTerms.put(ext, records);
           }
-
-        } catch (IllegalArgumentException e) {
-          LOG.warn("Unable to parse JSON term {} for fragment {}", simpleTermName, fragment.getKey());
         }
       }
+
     } catch (IOException e) {
       LOG.warn("Unable to parse JSON data, returning null VerbatimOccurrence", e);
     }
 
     return verbatim;
+  }
+
+  /**
+   * Parses a simple string based map into a Term based map, ignoring any non term entries and not parsing nested
+   * e.g. extensions data.
+   */
+  private static Map<Term, String> parseTermMap(Map<String, Object> data) {
+    Map<Term, String> terms = Maps.newHashMap();
+
+    for (Map.Entry<String, Object> entry : data.entrySet()) {
+      String simpleTermName = entry.getKey();
+      // ignore extensions key
+      if (simpleTermName.equalsIgnoreCase("extensions")) {
+        continue;
+      }
+
+      Object value = entry.getValue();
+      if (value != null) {
+        Term term = termFactory.findTerm(simpleTermName);
+        terms.put(term, value.toString());
+      }
+    }
+    return terms;
   }
 
   /**

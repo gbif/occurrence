@@ -71,6 +71,7 @@ public class VerbatimOccurrenceInterpreter {
       LocationInterpreter.interpretLocation(verbatim, occ);
       TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
       OwningOrgInterpreter.interpretOwningOrg(occ);
+      MultiMediaInterpreter.interpretMedia(verbatim, occ);
 
       interpretBor(verbatim, occ);
       interpretSex(verbatim, occ);

@@ -19,7 +19,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
 
 /**
- * Handles messages to parse a dataset (from xml/json to verbatim) and to interpret a dataset (from verbatim to
+ * Handles messages to parse a dataset (from xml/json to verbatim) and to interpretMedia a dataset (from verbatim to
  * interpreted). Eventually should also handle deletions (which live in the delete package for now).
  */
 public class DatasetMutationService extends AbstractIdleService {

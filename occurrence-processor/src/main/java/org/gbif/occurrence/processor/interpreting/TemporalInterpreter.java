@@ -34,8 +34,8 @@ public class TemporalInterpreter {
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE =
     Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR) + 1);
-  @VisibleForTesting
-  protected static final Range<Date> VALID_RECORDED_DATE_RANGE =
+
+  public static final Range<Date> VALID_RECORDED_DATE_RANGE =
     Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
 
   // modified date for a record cant be before unix time

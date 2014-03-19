@@ -92,7 +92,8 @@ public class TermUtils {
         DwcTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
         DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
         DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
-        DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters
+        DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
+        DwcTerm.associatedMedia
         )
       )
     );
@@ -143,7 +144,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   * 
+   *
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
