@@ -3,22 +3,25 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.VerbatimRecord;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Maps;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -57,13 +60,13 @@ public class MultiMediaInterpreterTest {
     VerbatimOccurrence v = new VerbatimOccurrence();
     Occurrence o = new Occurrence();
 
-    v.setVerbatimField(DwcTerm.associatedMedia, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg, http://www.flickr.com/photos/70939559@N02/7039524065");
+    v.setVerbatimField(DwcTerm.associatedMedia, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg, http://www.flickr.com/photos/70939559@N02/7039524065.png");
     MultiMediaInterpreter.interpretMedia(v,o);
 
     assertEquals(2, o.getMedia().size());
     for (MediaObject m : o.getMedia()) {
       assertEquals(MediaType.StillImage, m.getType());
-      assertEquals("image/jpeg", m.getFormat());
+      assertTrue(m.getFormat().startsWith("image/"));
       assertNotNull(m.getUrl());
     }
   }
@@ -73,22 +76,22 @@ public class MultiMediaInterpreterTest {
     VerbatimOccurrence v = new VerbatimOccurrence();
     Occurrence o = new Occurrence();
 
-    List<VerbatimRecord> media = Lists.newArrayList();
+    List<Map<Term, String>> media = Lists.newArrayList();
     v.getExtensions().put(Extension.IMAGE, media);
 
-    VerbatimRecord rec = new VerbatimRecord();
-    rec.setField(DcTerm.identifier, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg");
-    rec.setField(DcTerm.references, "http://www.flickr.com/photos/70939559@N02/7039524065");
-    rec.setField(DcTerm.format, "jpg");
-    rec.setField(DcTerm.title, "Geranium Plume Moth 0032");
-    rec.setField(DcTerm.description, "Geranium Plume Moth 0032 description");
-    rec.setField(DcTerm.license, "BY-NC-SA 2.0");
-    rec.setField(DcTerm.creator, "Moayed Bahajjaj");
-    rec.setField(DcTerm.created, "2012-03-29");
+    Map<Term, String> rec = Maps.newHashMap();
+    rec.put(DcTerm.identifier, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg");
+    rec.put(DcTerm.references, "http://www.flickr.com/photos/70939559@N02/7039524065");
+    rec.put(DcTerm.format, "jpg");
+    rec.put(DcTerm.title, "Geranium Plume Moth 0032");
+    rec.put(DcTerm.description, "Geranium Plume Moth 0032 description");
+    rec.put(DcTerm.license, "BY-NC-SA 2.0");
+    rec.put(DcTerm.creator, "Moayed Bahajjaj");
+    rec.put(DcTerm.created, "2012-03-29");
     media.add(rec);
 
-    rec = new VerbatimRecord();
-    rec.setField(DcTerm.identifier, "http://www.flickr.com/photos/70939559@N02/7039524065.jpg");
+    rec = Maps.newHashMap();
+    rec.put(DcTerm.identifier, "http://www.flickr.com/photos/70939559@N02/7039524065.jpg");
     media.add(rec);
 
     MultiMediaInterpreter.interpretMedia(v,o);

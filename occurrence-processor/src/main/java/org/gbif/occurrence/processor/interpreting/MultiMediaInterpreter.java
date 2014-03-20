@@ -3,18 +3,19 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.VerbatimRecord;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.processor.interpreting.util.UrlParser;
 
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Lists;
@@ -60,22 +61,22 @@ public class MultiMediaInterpreter {
 
     // simple image extension
     if (verbatim.getExtensions().containsKey(Extension.IMAGE)) {
-      for (VerbatimRecord rec : verbatim.getExtensions().get(Extension.IMAGE)) {
-        URI uri = UrlParser.parse(rec.getField(DcTerm.identifier));
-        URI link = UrlParser.parse(rec.getField(DcTerm.references));
+      for (Map<Term, String> rec : verbatim.getExtensions().get(Extension.IMAGE)) {
+        URI uri = UrlParser.parse(rec.get(DcTerm.identifier));
+        URI link = UrlParser.parse(rec.get(DcTerm.references));
         // link or media uri must exist
         if (uri != null || link != null) {
           MediaObject m = new MediaObject();
           m.setUrl(uri);
           m.setReferences(link);
-          m.setTitle(rec.getField(DcTerm.title));
-          m.setDescription(rec.getField(DcTerm.description));
-          m.setLicense(rec.getField(DcTerm.license));
-          m.setPublisher(rec.getField(DcTerm.publisher));
-          m.setCreator(rec.getField(DcTerm.creator));
-          m.setFormat(parseMimeType(rec.getField(DcTerm.format)));
-          if (rec.hasField(DcTerm.created)) {
-            ParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.getField(DcTerm.created),
+          m.setTitle(rec.get(DcTerm.title));
+          m.setDescription(rec.get(DcTerm.description));
+          m.setLicense(rec.get(DcTerm.license));
+          m.setPublisher(rec.get(DcTerm.publisher));
+          m.setCreator(rec.get(DcTerm.creator));
+          m.setFormat(parseMimeType(rec.get(DcTerm.format)));
+          if (rec.containsKey(DcTerm.created)) {
+            ParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
                                           TemporalInterpreter.VALID_RECORDED_DATE_RANGE,
                                           OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
             m.setCreated(parsed.getPayload());

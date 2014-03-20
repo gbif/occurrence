@@ -1,7 +1,6 @@
 package org.gbif.occurrence.processor.parsing;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.VerbatimRecord;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
@@ -73,7 +72,7 @@ public class JsonFragmentParser {
 
       // parse extensions
       if (jsonMap.containsKey("extensions")) {
-        Map<Extension, List<VerbatimRecord>> extTerms = Maps.newHashMap();
+        Map<Extension, List<Map<Term, String>>> extTerms = Maps.newHashMap();
         verbatim.setExtensions(extTerms);
 
         Map<String, Object> extensions = (Map<String, Object>) jsonMap.get("extensions");
@@ -82,10 +81,10 @@ public class JsonFragmentParser {
           if (ext == null) {
             LOG.debug("Unknown dwc extension {}", rowType);
           } else {
-            List<VerbatimRecord> records = Lists.newArrayList();
+            List<Map<Term, String>> records = Lists.newArrayList();
             // transform records to term based map
             for (Map<String, Object> rawRecord : (List<Map<String, Object>>) extensions.get(rowType)) {
-              records.add(new VerbatimRecord(parseTermMap(rawRecord)));
+              records.add(parseTermMap(rawRecord));
             }
             extTerms.put(ext, records);
           }

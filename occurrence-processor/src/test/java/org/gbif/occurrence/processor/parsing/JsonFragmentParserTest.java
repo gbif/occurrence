@@ -121,6 +121,6 @@ public class JsonFragmentParserTest {
     }
     assertTrue(verb.getExtensions().containsKey(Extension.IMAGE));
     assertEquals(1, verb.getExtensions().get(Extension.IMAGE).size());
-    assertEquals("http://digit.snm.ku.dk/www/Aves/full/AVES-100348_Caprimulgus_pectoralis_fervidus_ad____f.jpg", verb.getExtensions().get(Extension.IMAGE).get(0).getFields().get(DcTerm.identifier));
+    assertEquals("http://digit.snm.ku.dk/www/Aves/full/AVES-100348_Caprimulgus_pectoralis_fervidus_ad____f.jpg", verb.getExtensions().get(Extension.IMAGE).get(0).get(DcTerm.identifier));
   }
 }
