@@ -36,11 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -76,11 +79,9 @@ public class OccurrenceBuilder {
 
   /**
    * Builds a Fragment object from the given result, assigning the passed in key.
-   *
+   * 
    * @param result an HBase scan/get Result
-   *
    * @return the Fragment or null if the passed in Result is null
-   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -138,7 +139,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   *
+   * 
    * @return A complete occurrence, or null
    */
   public static Occurrence buildOccurrence(@Nullable Result row) {
@@ -217,7 +218,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   *
+   * 
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
@@ -241,8 +242,22 @@ public class OccurrenceBuilder {
         verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
-
+    verb.setExtensions(readExtensions(row));
     return verb;
+  }
+
+  /**
+   * Reads the extensions from a result row.
+   */
+  private static Map<Extension, List<Map<Term, String>>> readExtensions(@Nullable Result row) {
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    for (Extension extension : Extension.values()) {
+      String jsonExtensions = ExtResultReader.getString(row, Columns.verbatimColumn(extension));
+      if (!Strings.isNullOrEmpty(jsonExtensions)) {
+        extensions.put(extension, ExtensionsUtil.fromJson(jsonExtensions));
+      }
+    }
+    return extensions;
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result) {

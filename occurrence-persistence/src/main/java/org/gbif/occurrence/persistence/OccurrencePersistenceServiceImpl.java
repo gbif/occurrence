@@ -17,12 +17,15 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
+import org.gbif.occurrence.persistence.util.ExtensionsUtil;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -73,9 +76,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   /**
    * Note that the returned fragment here is a String that holds the actual xml or json snippet for this occurrence,
    * and not the Fragment object that is used elsewhere.
-   *
+   * 
    * @param key that identifies an occurrence
-   *
    * @return a String holding the original xml or json snippet for this occurrence
    */
   @Override
@@ -253,10 +255,10 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Populates the put and delete for a verbatim record.
-   *
+   * 
    * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
-   *                                         (typically true when updating an Occurrence and false for
-   *                                         VerbatimOccurrence)
+   *        (typically true when updating an Occurrence and false for
+   *        VerbatimOccurrence)
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
     boolean deleteInterpretedVerbatimColumns) throws IOException {
@@ -271,9 +273,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     // (which is an InterpretedSourceTerm)).
     //
     for (Term term : oldVerb.getVerbatimFields().keySet()) {
-      if ((!occ.hasVerbatimField(term) || occ.getVerbatimField(term) == null) && (deleteInterpretedVerbatimColumns
-                                                                                  || !TermUtils
-        .isInterpretedSourceTerm(term))) {
+      if ((!occ.hasVerbatimField(term) || occ.getVerbatimField(term) == null)
+        && (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
         upd.deleteVerbatimField(term);
       }
     }
@@ -304,6 +305,27 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!nullSafeEquals(oldVerb.getLastParsed(), occ.getLastParsed())) {
       upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
+    }
+    updateExtensions(oldVerb, occ, upd);
+  }
+
+  /**
+   * Updates the extensions map of the newOcc object into the upd object.
+   */
+  private void updateExtensions(VerbatimOccurrence oldOcc, VerbatimOccurrence newOcc, RowUpdate upd)
+    throws IOException {
+    if (newOcc.getExtensions() != null) {
+      for (Entry<Extension, List<Map<Term, String>>> entryExtension : newOcc.getExtensions().entrySet()) {
+        String newExtensions = ExtensionsUtil.toJson(entryExtension.getValue());
+        String oldExtensions = null;
+        if (oldOcc.getExtensions().containsKey(entryExtension.getKey())) {
+          oldExtensions = ExtensionsUtil.toJson(oldOcc.getExtensions().get(entryExtension.getKey()));
+        }
+        if (newExtensions != null && !nullSafeEquals(newExtensions, oldExtensions)) {
+          upd.setVerbatimExtension(entryExtension.getKey(), newExtensions);
+        }
+
+      }
     }
   }
 
