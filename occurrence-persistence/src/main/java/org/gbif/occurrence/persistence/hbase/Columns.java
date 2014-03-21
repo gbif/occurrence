@@ -1,11 +1,12 @@
 package org.gbif.occurrence.persistence.hbase;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.dwc.terms.GbifInternalTerm;
 
 import javax.annotation.Nullable;
 
@@ -79,6 +80,18 @@ public class Columns {
   }
 
   /**
+   * Return the column for the given extension. There will always be both verbatim and interpreted versions of each
+   * extension. This is the interpreted extension's column.
+   *
+   * @param extension the column to build
+   * @return the extension's column name
+   */
+  public static String column(Extension extension) {
+    checkNotNull(extension, "extension can't be null");
+    return extension.getRowType();
+  }
+
+  /**
    * Returns the verbatim column for a term.
    * GbifInternalTerm is not permitted and will result in an IllegalArgumentException!
    * @param term
@@ -89,6 +102,19 @@ public class Columns {
       throw new IllegalArgumentException("Internal terms do not exist as verbatim columns");
     }
     return column(term, VERBATIM_TERM_PREFIX);
+  }
+
+  /**
+   * Return the verbatim column for the given extension. There will always be both verbatim and interpreted versions of
+   * each extension. This is the verbatim extension's column.
+   *
+   * @param extension the column to build
+   *
+   * @return the extension's column name
+   */
+  public static String verbatimColumn(Extension extension) {
+    checkNotNull(extension, "extension can't be null");
+    return VERBATIM_TERM_PREFIX + extension.getRowType();
   }
 
   private static String column(Term term, String colPrefix) {

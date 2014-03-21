@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.util;
 
 import org.gbif.api.model.common.Identifier;
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
@@ -9,6 +10,7 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -27,13 +29,13 @@ import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -42,6 +44,10 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,27 +59,16 @@ public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
   // TODO: move these maps to Classification, Term or RankUtils
-  public static final Map<Rank, Term> rank2taxonTerm = ImmutableMap.<Rank, Term>builder()
-    .put(Rank.KINGDOM, DwcTerm.kingdom)
-    .put(Rank.PHYLUM, DwcTerm.phylum)
-    .put(Rank.CLASS, DwcTerm.class_)
-    .put(Rank.ORDER, DwcTerm.order)
-    .put(Rank.FAMILY, DwcTerm.family)
-    .put(Rank.GENUS, DwcTerm.genus)
-    .put(Rank.SUBGENUS, DwcTerm.subgenus)
-    .put(Rank.SPECIES, GbifTerm.species)
-    .build();
+  public static final Map<Rank, Term> rank2taxonTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
+      .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
+      .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus).put(Rank.SPECIES, GbifTerm.species).build();
 
-  public static final Map<Rank, Term> rank2KeyTerm = ImmutableMap.<Rank, Term>builder()
-    .put(Rank.KINGDOM, GbifTerm.kingdomKey)
-    .put(Rank.PHYLUM, GbifTerm.phylumKey)
-    .put(Rank.CLASS, GbifTerm.classKey)
-    .put(Rank.ORDER, GbifTerm.orderKey)
-    .put(Rank.FAMILY, GbifTerm.familyKey)
-    .put(Rank.GENUS, GbifTerm.genusKey)
-    .put(Rank.SUBGENUS, GbifTerm.subgenusKey)
-    .put(Rank.SPECIES, GbifTerm.speciesKey)
-    .build();
+  public static final Map<Rank, Term> rank2KeyTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
+      .put(Rank.CLASS, GbifTerm.classKey).put(Rank.ORDER, GbifTerm.orderKey).put(Rank.FAMILY, GbifTerm.familyKey)
+      .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
+      .put(Rank.SPECIES, GbifTerm.speciesKey).build();
 
   // should never be instantiated
   private OccurrenceBuilder() {
@@ -81,9 +76,11 @@ public class OccurrenceBuilder {
 
   /**
    * Builds a Fragment object from the given result, assigning the passed in key.
-   * 
+   *
    * @param result an HBase scan/get Result
+   *
    * @return the Fragment or null if the passed in Result is null
+   *
    * @throws ValidationException if the fragment as stored in the table is invalid
    */
   public static Fragment buildFragment(@Nullable Result result) {
@@ -141,7 +138,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static Occurrence buildOccurrence(@Nullable Result row) {
@@ -166,10 +163,10 @@ public class OccurrenceBuilder {
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
       for (Rank r : Rank.DWC_RANKS) {
-        ClassificationUtils.setHigherRankKey(occ, r,
-          ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
-        ClassificationUtils.setHigherRank(occ, r,
-          ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
+        ClassificationUtils
+          .setHigherRankKey(occ, r, ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
+        ClassificationUtils
+          .setHigherRank(occ, r, ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
       }
 
       // other java properties
@@ -211,6 +208,7 @@ public class OccurrenceBuilder {
 
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
+      occ.setMedia(extractMedia(row));
 
       return occ;
     }
@@ -219,7 +217,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
@@ -287,6 +285,26 @@ public class OccurrenceBuilder {
     }
 
     return issues;
+  }
+
+  private static List<MediaObject> extractMedia(Result result) {
+    List<MediaObject> media = null;
+    String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.IMAGE));
+    if (mediaJson != null && !mediaJson.isEmpty()) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.enable(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+      mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
+      mapper.setSerializationConfig(
+        mapper.getSerializationConfig().withSerializationInclusion(JsonSerialize.Inclusion.ALWAYS));
+      try {
+        media =
+          mapper.readValue(mediaJson, mapper.getTypeFactory().constructCollectionType(List.class, MediaObject.class));
+      } catch (IOException e) {
+        LOG.warn("Unable to deserialize media objects from hbase", e);
+      }
+    }
+
+    return media;
   }
 
 }

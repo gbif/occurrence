@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.hbase;
 
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
@@ -168,6 +169,9 @@ public class RowUpdate {
     setField(Columns.column(term), nullSafeBytes(value));
   }
 
+  public void setInterpretedExtension(Extension extension, @Nullable String value) throws IOException {
+    setField(Columns.column(extension), nullSafeBytes(value));
+  }
 
   private byte[] nullSafeBytes(String value) {
     return value == null ? null : Bytes.toBytes(value);

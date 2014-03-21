@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -8,6 +9,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
 import org.gbif.api.vocabulary.LifeStage;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
@@ -22,13 +24,17 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -641,6 +647,68 @@ public class OccurrencePersistenceServiceImplTest {
     occ.setVerbatimField(GbifTerm.ageInDays, null);
     mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
     assertEquals(4, mutations.getMutations().size());
+  }
+
+  @Test
+  public void testMultimediaExtension() throws MalformedURLException {
+    Date now = new Date();
+    URI url = URI.create("http://www.comos.com/images/image1.jpeg");
+    URI refs = URI.create("http://www.cosmos.com");
+    URI url2 = URI.create("http://www.comos.com/images/image2.jpeg");
+    URI refs2 = URI.create("http://www.cosmos2.com");
+    Occurrence occ = occurrenceService.get(KEY);
+    List<MediaObject> media = Lists.newArrayList();
+    MediaObject image1 = new MediaObject();
+    image1.setCreated(now);
+    image1.setCreator("Carl Sagan");
+    image1.setDescription("The beauty of nature.");
+    image1.setFormat("jpeg");
+    image1.setLicense("CC-BY");
+    image1.setPublisher("Nature");
+    image1.setReferences(refs);
+    image1.setTitle("Beauty");
+    image1.setType(MediaType.StillImage);
+    image1.setUrl(url);
+    media.add(image1);
+    MediaObject image2 = new MediaObject();
+    image2.setCreated(now);
+    image2.setCreator("Carl Sagan");
+    image2.setDescription("The 2nd beauty of nature.");
+    image2.setFormat("jpeg");
+    image2.setLicense("CC-BY");
+    image2.setPublisher("Nature");
+    image2.setReferences(refs2);
+    image2.setTitle("Beauty");
+    image2.setType(MediaType.StillImage);
+    image2.setUrl(url2);
+    media.add(image2);
+    occ.setMedia(media);
+    occurrenceService.update(occ);
+    Occurrence got = occurrenceService.get(KEY);
+    assertNotNull(got);
+    assertEquals(got.getMedia().size(), got.getMedia().size());
+    assertEquals(got.getMedia().get(0).toString(), image1.toString());
+    assertEquals(got.getMedia().get(0).getReferences(), image1.getReferences());
+    assertEquals(got.getMedia().get(0).getUrl(), image1.getUrl());
+    assertEquals(got.getMedia().get(0).getType(), image1.getType());
+    assertEquals(got.getMedia().get(1).toString(), image2.toString());
+
+    // update
+    media = Lists.newArrayList();
+    image1.setTitle("Updated title");
+    media.add(image1);
+    image2.setTitle("Update 2nd title");
+    media.add(image2);
+    got.setMedia(media);
+    occurrenceService.update(got);
+    Occurrence another = occurrenceService.get(KEY);
+    assertNotNull(another);
+    assertEquals(another.getMedia().size(), another.getMedia().size());
+    assertEquals(another.getMedia().get(0).toString(), image1.toString());
+    assertEquals(another.getMedia().get(0).getReferences(), image1.getReferences());
+    assertEquals(another.getMedia().get(0).getUrl(), image1.getUrl());
+    assertEquals(another.getMedia().get(0).getType(), image1.getType());
+    assertEquals(another.getMedia().get(1).toString(), image2.toString());
   }
 
   private void addTerms(VerbatimOccurrence occ, String prefix) {
