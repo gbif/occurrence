@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -314,19 +313,24 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    */
   private void updateExtensions(VerbatimOccurrence oldOcc, VerbatimOccurrence newOcc, RowUpdate upd)
     throws IOException {
-    if (newOcc.getExtensions() != null) {
-      for (Entry<Extension, List<Map<Term, String>>> entryExtension : newOcc.getExtensions().entrySet()) {
-        String newExtensions = ExtensionsUtil.toJson(entryExtension.getValue());
-        String oldExtensions = null;
-        if (oldOcc.getExtensions().containsKey(entryExtension.getKey())) {
-          oldExtensions = ExtensionsUtil.toJson(oldOcc.getExtensions().get(entryExtension.getKey()));
-        }
-        if (newExtensions != null && !nullSafeEquals(newExtensions, oldExtensions)) {
-          upd.setVerbatimExtension(entryExtension.getKey(), newExtensions);
-        }
-
+    for (Extension extension : Extension.values()) {
+      String newExtensions = getExtensionAsJson(newOcc, extension);
+      if (!nullSafeEquals(newExtensions, getExtensionAsJson(oldOcc, extension))) {
+        upd.setVerbatimExtension(extension, newExtensions);
       }
     }
+  }
+
+  /**
+   * Returns the JSON object of verbatimOccurrence.getExtensions().get(extension).
+   * If verbatimOccurrence is null or the requested extension doesn't exist returns null.
+   */
+  private String getExtensionAsJson(VerbatimOccurrence verbatimOccurrence, Extension extension) {
+    String jsonExtensions = null;
+    if (verbatimOccurrence.getExtensions() != null && verbatimOccurrence.getExtensions().containsKey(extension)) {
+      jsonExtensions = ExtensionsUtil.toJson(verbatimOccurrence.getExtensions().get(extension));
+    }
+    return jsonExtensions;
   }
 
   /**
