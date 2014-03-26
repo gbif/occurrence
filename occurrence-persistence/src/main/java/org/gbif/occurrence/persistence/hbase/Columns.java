@@ -88,7 +88,7 @@ public class Columns {
    */
   public static String column(Extension extension) {
     checkNotNull(extension, "extension can't be null");
-    return extension.getRowType();
+    return column(extension, "");
   }
 
   /**
@@ -114,7 +114,11 @@ public class Columns {
    */
   public static String verbatimColumn(Extension extension) {
     checkNotNull(extension, "extension can't be null");
-    return VERBATIM_TERM_PREFIX + extension.getRowType();
+    return column(extension, VERBATIM_TERM_PREFIX);
+  }
+
+  private static String column(Extension extension, String colPrefix) {
+    return colPrefix + extension.getRowType().replaceAll(":", "_");
   }
 
   private static String column(Term term, String colPrefix) {
