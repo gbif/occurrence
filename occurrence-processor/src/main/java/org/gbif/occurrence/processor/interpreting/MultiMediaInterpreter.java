@@ -52,27 +52,32 @@ public class MultiMediaInterpreter {
 
         } else {
           MediaObject m = new MediaObject();
-          m.setUrl(uri);
+          m.setIdentifier(uri);
           detectType(m);
           occ.getMedia().add(m);
         }
       }
     }
 
-    // simple image extension
-    if (verbatim.getExtensions().containsKey(Extension.IMAGE)) {
-      for (Map<Term, String> rec : verbatim.getExtensions().get(Extension.IMAGE)) {
+    // simple image or multimedia extension which are nearly identical
+    if (verbatim.getExtensions().containsKey(Extension.IMAGE) || verbatim.getExtensions().containsKey(Extension.MULTIMEDIA)) {
+      final Extension mediaExt = verbatim.getExtensions().containsKey(Extension.IMAGE) ? Extension.IMAGE : Extension.MULTIMEDIA;
+      for (Map<Term, String> rec : verbatim.getExtensions().get(mediaExt)) {
         URI uri = UrlParser.parse(rec.get(DcTerm.identifier));
         URI link = UrlParser.parse(rec.get(DcTerm.references));
         // link or media uri must exist
         if (uri != null || link != null) {
           MediaObject m = new MediaObject();
-          m.setUrl(uri);
+          m.setIdentifier(uri);
           m.setReferences(link);
           m.setTitle(rec.get(DcTerm.title));
           m.setDescription(rec.get(DcTerm.description));
           m.setLicense(rec.get(DcTerm.license));
           m.setPublisher(rec.get(DcTerm.publisher));
+          m.setContributor(rec.get(DcTerm.contributor));
+          m.setSource(rec.get(DcTerm.source));
+          m.setAudience(rec.get(DcTerm.audience));
+          m.setRightsHolder(rec.get(DcTerm.rightsHolder));
           m.setCreator(rec.get(DcTerm.creator));
           m.setFormat(parseMimeType(rec.get(DcTerm.format)));
           if (rec.containsKey(DcTerm.created)) {
@@ -136,7 +141,7 @@ public class MultiMediaInterpreter {
   protected static MediaObject detectType(MediaObject mo) {
     if (Strings.isNullOrEmpty(mo.getFormat())) {
       // derive from URI
-      mo.setFormat(parseMimeType(mo.getUrl()));
+      mo.setFormat(parseMimeType(mo.getIdentifier()));
     }
 
     if (!Strings.isNullOrEmpty(mo.getFormat())) {
