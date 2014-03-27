@@ -56,6 +56,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class OccurrencePersistenceServiceImplTest {
+
   private static final String TABLE_NAME = "occurrence_test";
   private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
   private static final String CF_NAME = "o";
@@ -320,12 +321,12 @@ public class OccurrencePersistenceServiceImplTest {
 
   @Test
   public void testGetFull() throws IOException {
-//    setUpIdentifiers();
+// setUpIdentifiers();
 
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
     assertEquals((Integer) KEY, occ.getKey());
-//    assertEquals(3, occ.getIdentifiers().size());
+// assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
     assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
   }
@@ -432,14 +433,14 @@ public class OccurrencePersistenceServiceImplTest {
     update.setGenericName(genericName);
     update.setTaxonRank(taxonRank);
 
-//    String id0 = "http://www.ala.org.au";
-//    IdentifierType idType0 = IdentifierType.GBIF_NODE;
-//    Identifier record = new Identifier();
-//    record.setIdentifier(id0);
-//    record.setType(idType0);
-//    List<Identifier> records = newArrayList();
-//    records.add(record);
-//    update.setIdentifiers(records);
+// String id0 = "http://www.ala.org.au";
+// IdentifierType idType0 = IdentifierType.GBIF_NODE;
+// Identifier record = new Identifier();
+// record.setIdentifier(id0);
+// record.setType(idType0);
+// List<Identifier> records = newArrayList();
+// records.add(record);
+// update.setIdentifiers(records);
 
     Set<OccurrenceIssue> issues = update.getIssues();
     issues.remove(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED);
@@ -467,10 +468,10 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(genusId == occ.getGenusKey());
     assertEquals(publishingCountry, occ.getPublishingCountry());
     assertTrue(update.getKey().intValue() == occ.getKey().intValue());
-//    assertEquals(1, occ.getIdentifiers().size());
-//    Identifier updatedRecord = occ.getIdentifiers().iterator().next();
-//    assertTrue(id0.equals(updatedRecord.getIdentifier()));
-//    assertEquals(idType0, updatedRecord.getType());
+// assertEquals(1, occ.getIdentifiers().size());
+// Identifier updatedRecord = occ.getIdentifiers().iterator().next();
+// assertTrue(id0.equals(updatedRecord.getIdentifier()));
+// assertEquals(idType0, updatedRecord.getType());
     assertEquals(country, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertEquals(kingdomId, (int) occ.getKingdomKey());
@@ -668,7 +669,7 @@ public class OccurrencePersistenceServiceImplTest {
     image1.setReferences(refs);
     image1.setTitle("Beauty");
     image1.setType(MediaType.StillImage);
-    image1.setUrl(url);
+    image1.setIdentifier(url);
     media.add(image1);
     MediaObject image2 = new MediaObject();
     image2.setCreated(now);
@@ -680,7 +681,7 @@ public class OccurrencePersistenceServiceImplTest {
     image2.setReferences(refs2);
     image2.setTitle("Beauty");
     image2.setType(MediaType.StillImage);
-    image2.setUrl(url2);
+    image2.setIdentifier(url2);
     media.add(image2);
     occ.setMedia(media);
     occurrenceService.update(occ);
@@ -689,7 +690,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(got.getMedia().size(), got.getMedia().size());
     assertEquals(got.getMedia().get(0).toString(), image1.toString());
     assertEquals(got.getMedia().get(0).getReferences(), image1.getReferences());
-    assertEquals(got.getMedia().get(0).getUrl(), image1.getUrl());
+    assertEquals(got.getMedia().get(0).getIdentifier(), image1.getIdentifier());
     assertEquals(got.getMedia().get(0).getType(), image1.getType());
     assertEquals(got.getMedia().get(1).toString(), image2.toString());
 
@@ -706,7 +707,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(another.getMedia().size(), another.getMedia().size());
     assertEquals(another.getMedia().get(0).toString(), image1.toString());
     assertEquals(another.getMedia().get(0).getReferences(), image1.getReferences());
-    assertEquals(another.getMedia().get(0).getUrl(), image1.getUrl());
+    assertEquals(another.getMedia().get(0).getIdentifier(), image1.getIdentifier());
     assertEquals(another.getMedia().get(0).getType(), image1.getType());
     assertEquals(another.getMedia().get(1).toString(), image2.toString());
   }

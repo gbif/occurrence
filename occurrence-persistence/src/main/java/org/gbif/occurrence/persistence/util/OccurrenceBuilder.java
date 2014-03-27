@@ -51,6 +51,7 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.type.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,14 @@ import org.slf4j.LoggerFactory;
 public class OccurrenceBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+  static {
+    MAPPER.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+    MAPPER.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    MAPPER.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.ALWAYS);
+  }
+  private static final CollectionType LIST_MEDIA_TYPE = MAPPER.getTypeFactory().constructCollectionType(List.class,
+    MediaObject.class);
 
   // TODO: move these maps to Classification, Term or RankUtils
   public static final Map<Rank, Term> rank2taxonTerm =
@@ -209,7 +218,7 @@ public class OccurrenceBuilder {
 
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
-      occ.setMedia(extractMedia(row));
+      occ.setMedia(buildMedia(row));
 
       return occ;
     }
@@ -302,18 +311,15 @@ public class OccurrenceBuilder {
     return issues;
   }
 
-  private static List<MediaObject> extractMedia(Result result) {
+  /**
+   * Builds the list of media objects.
+   */
+  public static List<MediaObject> buildMedia(Result result) {
     List<MediaObject> media = null;
     String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.IMAGE));
     if (mediaJson != null && !mediaJson.isEmpty()) {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.enable(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-      mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
-      mapper.setSerializationConfig(
-        mapper.getSerializationConfig().withSerializationInclusion(JsonSerialize.Inclusion.ALWAYS));
       try {
-        media =
-          mapper.readValue(mediaJson, mapper.getTypeFactory().constructCollectionType(List.class, MediaObject.class));
+        media = MAPPER.readValue(mediaJson, LIST_MEDIA_TYPE);
       } catch (IOException e) {
         LOG.warn("Unable to deserialize media objects from hbase", e);
       }

@@ -11,16 +11,9 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.text.Archive;
-import org.gbif.dwc.text.ArchiveField;
-import org.gbif.dwc.text.ArchiveFile;
-import org.gbif.dwc.text.MetaDescriptorWriter;
-import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.DwcArchiveUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.registry.metadata.EMLWriter;
@@ -60,7 +53,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import com.sun.jersey.api.client.UniformInterfaceException;
-import freemarker.template.TemplateException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
@@ -70,6 +62,13 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.CITATIONS_FILENAME;
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.METADATA_FILENAME;
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.RIGHTS_FILENAME;
+import static org.gbif.occurrence.download.util.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
  * Creates a dwc archive for occurrence downloads based on the hive query result files generated
@@ -97,13 +96,9 @@ public class ArchiveBuilder {
   // 0 is used for the headers filename because it will be the first file to be merged when creating the occurrence data
   // file using the copyMerge function
   private static final String HEADERS_FILENAME = "0";
-  private static final String METADATA_FILENAME = "metadata.xml";
-  private static final String INTERPRETED_FILENAME = "occurrence.txt";
-  private static final String VERBATIM_FILENAME = "verbatim.txt";
+
   // The CRC is created by the function FileSyste.copyMerge function
   private static final String CRC_FILE_FMT = ".%s.crc";
-  private static final String CITATIONS_FILENAME = "citations.txt";
-  private static final String RIGHTS_FILENAME = "rights.txt";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String METADATA_DESC_HEADER_FMT =
     "A dataset containing all occurrences available in GBIF matching the query: %s"
@@ -127,6 +122,7 @@ public class ArchiveBuilder {
   private final String query;
   private final String interpretedDataTable;
   private final String verbatimDataTable;
+  private final String multimediaDataTable;
   private final String citationTable;
   // HDFS related
   private final Configuration conf;
@@ -162,10 +158,9 @@ public class ArchiveBuilder {
   @VisibleForTesting
   protected ArchiveBuilder(String downloadId, String user, String query,
     DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
-    Configuration conf, FileSystem hdfs,
-    FileSystem localfs, File archiveDir, String interpretedDataTable, String verbatimDataTable, String citationTable,
-    String hdfsPath, String downloadLink,
-    boolean isSmallDownload)
+    Configuration conf, FileSystem hdfs, FileSystem localfs, File archiveDir, String interpretedDataTable,
+    String verbatimDataTable, String multimediaDataTable, String citationTable, String hdfsPath,
+    String downloadLink, boolean isSmallDownload)
     throws MalformedURLException {
     this.downloadId = downloadId;
     this.user = user;
@@ -178,6 +173,7 @@ public class ArchiveBuilder {
     this.archiveDir = archiveDir;
     this.interpretedDataTable = interpretedDataTable;
     this.verbatimDataTable = verbatimDataTable;
+    this.multimediaDataTable = multimediaDataTable;
     this.citationTable = citationTable;
     this.hdfsPath = hdfsPath;
     this.dataset = new Dataset();
@@ -196,15 +192,16 @@ public class ArchiveBuilder {
     final String hdfsHivePath = args[1];  // path on hdfs to hive results
     final String interpretedDataTable = args[2];     // hive occurrence results table
     final String verbatimDataTable = args[3];     // hive occurrence results table
-    final String citationTable = args[4]; // hive citation results table
-    final String downloadDir = args[5];   // locally mounted download dir
+    final String multimediaDataTable = args[4];     // hive multimedia results table
+    final String citationTable = args[5]; // hive citation results table
+    final String downloadDir = args[6];   // locally mounted download dir
     // for example 0000020-130108132303336
-    final String downloadId = DownloadUtils.workflowToDownloadId(args[6]);
-    final String user = args[7];          // download user
-    final String query = args[8];         // download query filter
-    final String downloadLink = args[9];  // download link to the final zip archive
-    final String registryWs = args[10];    // registry ws url
-    final String isSmallDownload = args[11];    // isSmallDownload
+    final String downloadId = DownloadUtils.workflowToDownloadId(args[7]);
+    final String user = args[8];          // download user
+    final String query = args[9];         // download query filter
+    final String downloadLink = args[10];  // download link to the final zip archive
+    final String registryWs = args[11];    // registry ws url
+    final String isSmallDownload = args[12];    // isSmallDownload
     // download link needs to be constructed
     final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadId);
 
@@ -226,7 +223,7 @@ public class ArchiveBuilder {
     // build archive
     ArchiveBuilder generator =
       new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, conf, hdfs, localfs, archiveDir,
-        interpretedDataTable, verbatimDataTable, citationTable, hdfsHivePath, downloadLinkWithId,
+        interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable, hdfsHivePath, downloadLinkWithId,
         Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
@@ -252,6 +249,7 @@ public class ArchiveBuilder {
       // occurrence files interpreted and verbatim
       addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME, INTERPRETED_FILENAME);
       addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
+      addOccurrenceDataFile(multimediaDataTable, HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
 
       // metadata, citation and rights
       addDatasetMetadata();
@@ -260,7 +258,7 @@ public class ArchiveBuilder {
       addQueryMetadata();
 
       // meta.xml
-      addArchiveDescriptor();
+      DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
       // zip up
       LOG.info("Zipping archive {}", archiveDir.toString());
@@ -295,31 +293,6 @@ public class ArchiveBuilder {
       LOG.error("Error creating eml file", ex);
     } finally {
       closer.close();
-    }
-  }
-
-  /**
-   * Builds the meta.xml dwc archive descriptor so this archive is indeed a compliant and readable dwc archive.
-   */
-  @VisibleForTesting
-  protected void addArchiveDescriptor() {
-    LOG.info("Adding archive meta.xml descriptor");
-    ArchiveFile occ = createCoreFile();
-    ArchiveFile verb = createVerbatimFile();
-
-    Archive arch = new Archive();
-    arch.setCore(occ);
-    arch.setMetadataLocation(METADATA_FILENAME);
-    arch.addExtension(verb);
-
-    try {
-      File metaFile = new File(archiveDir, "meta.xml");
-      MetaDescriptorWriter.writeMetaFile(metaFile, arch);
-
-    } catch (TemplateException e) {
-      LOG.error("Error reading meta.xml template", e);
-    } catch (IOException e) {
-      LOG.error("Error creating meta.xml file", e);
     }
   }
 
@@ -466,50 +439,6 @@ public class ArchiveBuilder {
     contact.setLastName(name);
     contact.setType(new InterpretedEnum<String, ContactType>(type.toString(), type).getInterpreted());
     return contact;
-  }
-
-  /**
-   * Create the date file, core of the DwC-A.
-   */
-  private ArchiveFile createCoreFile() {
-    ArchiveFile af = createArchiveFile(INTERPRETED_FILENAME, TermUtils.interpretedTerms(), 0);
-    af.setId(af.getField(GbifTerm.gbifID));
-    return af;
-  }
-
-  /**
-   * Create the verbatim extension date file definition.
-   */
-  private ArchiveFile createVerbatimFile() {
-    ArchiveFile af = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms(), 0);
-    af.setId(af.getField(GbifTerm.gbifID));
-    return af;
-  }
-
-  /**
-   * Creates a new archive file description for a dwc archive, but does not set any id field yet.
-   * Used to generate the meta.xml with the help of the dwca-writer
-   * 
-   * @param index column index to start with
-   */
-  private ArchiveFile createArchiveFile(String filename, Iterable<? extends Term> columns, int index) {
-    ArchiveFile af = new ArchiveFile();
-    af.addLocation(filename);
-    af.setRowType(DwcTerm.Occurrence.qualifiedName());
-    af.setEncoding(Charsets.UTF_8.displayName());
-    af.setIgnoreHeaderLines(1);
-    af.setFieldsEnclosedBy(null);
-    af.setFieldsTerminatedBy("\t");
-    af.setLinesTerminatedBy("\n");
-
-    for (Term term : columns) {
-      ArchiveField field = new ArchiveField();
-      field.setIndex(index);
-      field.setTerm(term);
-      af.addField(field);
-      index++;
-    }
-    return af;
   }
 
   private DataDescription createDataDescription() {

@@ -37,6 +37,14 @@ public class DownloadTableGenerator {
 
   private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
 
+
+  private static final String MULTIMEDIA_TABLE_COLUMNS =
+    "gbifid INT,type STRING,format_ STRING,identifier STRING,references STRING,title STRING,description STRING,source STRING,audience STRING,created BIGINT,creator STRING,contributor STRING, publisher STRING,license STRING,rightsHolder STRING";
+  private static final String MULTIMEDIA_TABLE_NAME = "multimedia_hdfs";
+  private static final String HIVE_MULTIMEDIA_TABLE = String.format(HIVE_CREATE_HDFS_TABLE_FMT, MULTIMEDIA_TABLE_NAME,
+    MULTIMEDIA_TABLE_COLUMNS);
+
+
   private static final String DROP_TABLE_FMT = "DROP TABLE IF EXISTS %s;";
 
   private static final String HBASE_MAP_FMT = "o:%s";
@@ -45,6 +53,12 @@ public class DownloadTableGenerator {
   private static final String HIVE_DEFAULT_OPTS =
     "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;";
   private static final String INSERT_INFO_OCCURRENCE_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s;";
+
+
+  private static final String INSERT_MULTIMEDIA_FMT =
+    "INSERT OVERWRITE TABLE "
+      + MULTIMEDIA_TABLE_NAME
+      + " SELECT gbifid, mm_record['type'],mm_record['format'],mm_record['identifier'],mm_record['references'],mm_record['title'],mm_record['description'],mm_record['source'],mm_record['audience'],mm_record['created'],mm_record['creator'],mm_record['contributor'],mm_record['publisher'],mm_record['license'],mm_record['rightsHolder'] FROM %s lateral view explode(from_json(multimedia, 'array<map<string,string>>')) x AS mm_record;";
 
   private static final String HAS_COORDINATE_EXP = "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
 
@@ -278,7 +292,8 @@ public class DownloadTableGenerator {
   public static String generateHiveScript(String hiveTableName, String hbaseTableName) {
     return HIVE_DEFAULT_OPTS + '\n' + buildDropTableStatements(hiveTableName) + '\n'
       + buildCreateHdfsTable(hiveTableName) + '\n' + buildCreateHBaseTable(hiveTableName, hbaseTableName)
-      + '\n' + buildInsertFromHBaseIntoHive(hiveTableName);
+      + '\n' + HIVE_MULTIMEDIA_TABLE + '\n' + buildInsertFromHBaseIntoHive(hiveTableName)
+      + '\n' + String.format(INSERT_MULTIMEDIA_FMT, hiveTableName + HDFS_POST);
   }
 
   /**

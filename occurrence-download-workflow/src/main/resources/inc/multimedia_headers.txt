@@ -1,0 +1,1 @@
+coreid	type	format	identifier	references	title	description	source	audience	created	creator	contributor	publisher	license	rightsHolder

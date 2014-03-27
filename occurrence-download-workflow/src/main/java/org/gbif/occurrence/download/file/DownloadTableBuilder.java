@@ -141,8 +141,8 @@ public class DownloadTableBuilder {
    */
   public static void main(String[] args) throws IOException {
     DownloadTableBuilder downloadTableBuilder = new DownloadTableBuilder();
-    downloadTableBuilder.createFiles(args[0], args[1], args[2], args[3], args[4], args[5],
-      DownloadUtils.workflowToDownloadId(args[6]));
+    downloadTableBuilder.createFiles(args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+      DownloadUtils.workflowToDownloadId(args[7]));
   }
 
   /**
@@ -150,27 +150,30 @@ public class DownloadTableBuilder {
    * Citation and data files are created in the local file system and the moved to hadoop file system directory
    * 'hdfsPath'.
    */
-  public void createFiles(String interpretedOutputFile, String verbatimOutputFile, String citationFileName,
-    String query, String nameNode, String hdfsPath,
-    String downloadId)
+  public void createFiles(String interpretedOutputFile, String verbatimOutputFile,
+    String multimediaOutputFile, String citationFileName,
+    String query, String nameNode, String hdfsPath, String downloadId)
     throws IOException {
     final Injector injector = createInjector(downloadId);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
     OccurrenceFileWriter occurrenceFileWriter = injector.getInstance(OccurrenceFileWriter.class);
-    occurrenceFileWriter.run(interpretedOutputFile, verbatimOutputFile, citationFileName, query);
+    occurrenceFileWriter.run(interpretedOutputFile, verbatimOutputFile, multimediaOutputFile, citationFileName, query);
     FileSystem fileSystem = getHadoopFileSystem(nameNode);
-    if (new File(interpretedOutputFile).exists()) {
-      fileSystem.copyFromLocalFile(true, new Path(interpretedOutputFile),
-        buildDestinationPath(hdfsPath, interpretedOutputFile));
-    }
-    if (new File(verbatimOutputFile).exists()) {
-      fileSystem.copyFromLocalFile(true, new Path(verbatimOutputFile),
-        buildDestinationPath(hdfsPath, verbatimOutputFile));
-    }
-    if (new File(citationFileName).exists()) {
-      fileSystem.copyFromLocalFile(true, new Path(citationFileName), buildDestinationPath(hdfsPath, citationFileName));
-    }
+    copyDataFiles(hdfsPath, fileSystem, interpretedOutputFile, verbatimOutputFile, multimediaOutputFile,
+      citationFileName);
     curator.close();
+  }
+
+  /**
+   * Copies data files into the destination path.
+   */
+  private void copyDataFiles(String hdfsPath, FileSystem fileSystem, String... dataFiles) throws IOException {
+    for (String dataFile : dataFiles) {
+      if (new File(dataFile).exists()) {
+        fileSystem.copyFromLocalFile(true, new Path(dataFile),
+          buildDestinationPath(hdfsPath, dataFile));
+      }
+    }
   }
 
   /**

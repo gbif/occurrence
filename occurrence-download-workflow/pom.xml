@@ -36,7 +36,6 @@
     <httpclient.version>4.2.5</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
     <httpmime.version>4.2.5</httpmime.version>
-    <!--<jackson-hadoop.version>1.9.7</jackson-hadoop.version> -->
     <jts.version>1.13</jts.version>
     <solr.version>4.4.0</solr.version>
     <super-csv.version>2.0.1</super-csv.version>

@@ -138,15 +138,16 @@ public class OccurrenceFileWriter {
    * Entry point. This method: creates the output files, runs the jobs (OccurrenceFileWriterJob) and then collect the
    * results. Individual files created by each job are deleted.
    */
-  public void run(String interpretedOutFile, String verbatimOutFile, String citationFileName, String query) {
+  public void run(String interpretedOutFile, String verbatimOutFile, String multimediaOutputFile,
+    String citationFileName, String query) {
     try {
       StopWatch stopwatch = new StopWatch();
       stopwatch.start();
       ExecutionContextExecutorService executionContext =
         ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(conf.nrOfWorkers));
       collectResults(Futures.sequence(
-        runJobs(executionContext, interpretedOutFile, verbatimOutFile, query),
-        executionContext), interpretedOutFile, verbatimOutFile, citationFileName);
+        runJobs(executionContext, interpretedOutFile, verbatimOutFile, multimediaOutputFile, query),
+        executionContext), interpretedOutFile, verbatimOutFile, multimediaOutputFile, citationFileName);
       stopwatch.stop();
       executionContext.shutdownNow();
       final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
@@ -160,16 +161,20 @@ public class OccurrenceFileWriter {
   /**
    * Appends a result file to the output file.
    */
-  private void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verabtimFileWriter)
+  private void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
+    OutputStream multimediaFileWriter)
     throws IOException {
     Closer closer = Closer.create();
     File interpretedDataFile = new File(result.getFileJob().getInterpretedDataFile());
     File verbatimDataFile = new File(result.getFileJob().getVerbatimDataFile());
+    File multimediaDataFile = new File(result.getFileJob().getMultimediaDataFile());
     try {
       FileInputStream interpretedFileReader = closer.register(new FileInputStream(interpretedDataFile));
       FileInputStream verbatimFileReader = closer.register(new FileInputStream(verbatimDataFile));
+      FileInputStream multimediaFileReader = closer.register(new FileInputStream(multimediaDataFile));
       ByteStreams.copy(interpretedFileReader, interpretedFileWriter);
-      ByteStreams.copy(verbatimFileReader, verabtimFileWriter);
+      ByteStreams.copy(verbatimFileReader, verbatimFileWriter);
+      ByteStreams.copy(multimediaFileReader, multimediaFileWriter);
     } catch (FileNotFoundException e) {
       LOG.info("Error creating occurrence files", e);
       Throwables.propagate(e);
@@ -177,6 +182,7 @@ public class OccurrenceFileWriter {
       closer.close();
       interpretedDataFile.delete();
       verbatimDataFile.delete();
+      multimediaDataFile.delete();
     }
   }
 
@@ -185,7 +191,7 @@ public class OccurrenceFileWriter {
    * Iterates over the list of futures to collect individual results.
    */
   private void collectResults(Future<Iterable<Result>> futures, String interpretedOutFile, String verbatimOutFile,
-    String citationFileName)
+    String multimediaOutputFile, String citationFileName)
     throws IOException {
     Closer outFileCloser = Closer.create();
     try {
@@ -198,12 +204,15 @@ public class OccurrenceFileWriter {
           outFileCloser.register(new FileOutputStream(interpretedOutFile, true));
         FileOutputStream verbatimFileWriter =
           outFileCloser.register(new FileOutputStream(verbatimOutFile, true));
+        FileOutputStream multimediaFileWriter =
+          outFileCloser.register(new FileOutputStream(multimediaOutputFile, true));
         HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
         HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
+        HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
         Map<UUID, Long> datasetUsages = Maps.newHashMap();
         for (Result result : results) {
           datasetUsages = sumUsages(datasetUsages, result.getDatasetUsages());
-          appendResult(result, interpretedFileWriter, verbatimFileWriter);
+          appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter);
         }
         CitationsFileWriter.createCitationFile(datasetUsages, citationFileName, datasetOccUsageService, downloadId);
       }
@@ -249,7 +258,7 @@ public class OccurrenceFileWriter {
    * first jobs.
    */
   private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext, String interpretedOutFile,
-    String verbatimOutFile, String query) {
+    String verbatimOutFile, String multimediaOutputFile, String query) {
     final int recordCount = getSearchCount(query).intValue();
     if (recordCount <= 0) {
       return Lists.newArrayList();
@@ -271,6 +280,7 @@ public class OccurrenceFileWriter {
     List<Future<Result>> futures = Lists.newArrayList();
     createFile(interpretedOutFile);
     createFile(verbatimOutFile);
+    createFile(multimediaOutputFile);
     int from;
     int to = 0;
     int additionalJobsCnt = 0;
@@ -285,7 +295,8 @@ public class OccurrenceFileWriter {
       } else if (additionalJobsCnt == remaining) {
         remainingPerJob = 0;
       }
-      FileJob file = new FileJob(from, to, interpretedOutFile + i, verbatimOutFile + i, query);
+      FileJob file =
+        new FileJob(from, to, interpretedOutFile + i, verbatimOutFile + i, multimediaOutputFile + i, query);
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());
