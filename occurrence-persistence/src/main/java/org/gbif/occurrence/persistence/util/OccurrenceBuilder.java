@@ -320,7 +320,7 @@ public class OccurrenceBuilder {
    */
   public static List<MediaObject> buildMedia(Result result) {
     List<MediaObject> media = null;
-    String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.IMAGE));
+    String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.MULTIMEDIA));
     if (mediaJson != null && !mediaJson.isEmpty()) {
       try {
         media = MAPPER.readValue(mediaJson, LIST_MEDIA_TYPE);

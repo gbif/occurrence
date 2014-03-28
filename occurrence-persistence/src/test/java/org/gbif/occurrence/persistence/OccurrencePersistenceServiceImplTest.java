@@ -3,11 +3,13 @@ package org.gbif.occurrence.persistence;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -591,6 +594,87 @@ public class OccurrencePersistenceServiceImplTest {
     assertNotNull(got.getLastParsed());
     assertEquivalence(orig, got);
   }
+
+  @Test
+  public void testUpdateVerbatimMultimedia() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    orig.setLastParsed(new Date());
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions = Lists.newArrayList();
+    Map<Term, String> verbatimRecord = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "fede");
+    verbatimRecord.put(DcTerm.description, "testDescription");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest");
+    verbatimRecord.put(DcTerm.title, "titleTest");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo.jpg");
+    mediaExtensions.add(verbatimRecord);
+    extensions.put(Extension.MULTIMEDIA, mediaExtensions);
+    orig.setExtensions(extensions);
+    occurrenceService.update(orig);
+
+    VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
+    assertNotNull(got);
+    assertEquals(got.getExtensions(), orig.getExtensions());
+  }
+
+
+  /**
+   * Test the cycle: create a verbtim record, update it and add extension.
+   */
+  @Test
+  public void testUpdateVerbatimMultimediaUpdate() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    orig.setLastParsed(new Date());
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions = Lists.newArrayList();
+    Map<Term, String> verbatimRecord = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "gbifuser");
+    verbatimRecord.put(DcTerm.description, "testDescription");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest");
+    verbatimRecord.put(DcTerm.title, "titleTest");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo.jpg");
+    mediaExtensions.add(verbatimRecord);
+    extensions.put(Extension.MULTIMEDIA, mediaExtensions);
+    orig.setExtensions(extensions);
+    occurrenceService.update(orig);
+
+
+    Occurrence intOcc = occurrenceService.get(KEY);
+    intOcc.setCountry(Country.ANGOLA);
+    Map<Extension, List<Map<Term, String>>> extensions2 = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions2 = Lists.newArrayList();
+    Map<Term, String> verbatimRecord2 = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "gbifuser2");
+    verbatimRecord.put(DcTerm.description, "testDescription2");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest2");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest2");
+    verbatimRecord.put(DcTerm.title, "titleTest2");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo2.jpg");
+    mediaExtensions2.add(verbatimRecord);
+    mediaExtensions2.add(verbatimRecord2);
+    extensions2.put(Extension.MULTIMEDIA, mediaExtensions2);
+    orig.setExtensions(extensions2);
+    occurrenceService.update(intOcc);
+    occurrenceService.update(orig);
+    VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
+    assertNotNull(got);
+    assertEquals(got.getExtensions(), orig.getExtensions());
+  }
+
 
   @Test
   public void testUpdateVerbatimRemovingFields() {
