@@ -220,6 +220,7 @@
     <fs>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_multimedia'/>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="end" />
