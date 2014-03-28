@@ -41,13 +41,16 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -63,6 +66,7 @@ public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
   static {
+    // Don't change this section, methods used here guarantee backwards compatibility with Jackson 1.8.8
     MAPPER.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     MAPPER.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     MAPPER.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.ALWAYS);
@@ -326,6 +330,27 @@ public class OccurrenceBuilder {
     }
 
     return media;
+  }
+
+  /**
+   * Converts the list of media objects into a JSON string.
+   */
+  public static String mediaToJson(List<MediaObject> media) {
+    try {
+      if (media != null && !media.isEmpty()) {
+        return MAPPER.writeValueAsString(media);
+      }
+    } catch (JsonGenerationException e) {
+      LOG.warn("Unable to serialize media objects to JSON", e);
+      Throwables.propagate(e);
+    } catch (JsonMappingException e) {
+      LOG.warn("Unable to serialize media objects to JSON", e);
+      Throwables.propagate(e);
+    } catch (IOException e) {
+      LOG.warn("Unable to serialize media objects to JSON", e);
+      Throwables.propagate(e);
+    }
+    return null;
   }
 
 }

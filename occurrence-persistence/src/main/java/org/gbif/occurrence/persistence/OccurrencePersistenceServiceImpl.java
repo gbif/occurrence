@@ -41,10 +41,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -315,7 +311,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     throws IOException {
     for (Extension extension : Extension.values()) {
       String newExtensions = getExtensionAsJson(newOcc, extension);
-      if (!nullSafeEquals(newExtensions, getExtensionAsJson(oldOcc, extension))) {
+      if (!nullSafeEquals(getExtensionAsJson(oldOcc, extension), newExtensions)) {
         upd.setVerbatimExtension(extension, newExtensions);
       }
     }
@@ -461,17 +457,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
 
     // Multimedia extension
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.enable(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-    mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
-    mapper.setSerializationConfig(
-      mapper.getSerializationConfig().withSerializationInclusion(JsonSerialize.Inclusion.ALWAYS));
-    String newMediaJson =
-      occ.getMedia() == null || occ.getMedia().isEmpty() ? null : mapper.writeValueAsString(occ.getMedia());
-    String oldMediaJson =
-      oldOcc.getMedia() == null || oldOcc.getMedia().isEmpty() ? null : mapper.writeValueAsString(oldOcc.getMedia());
-    if (!nullSafeEquals(oldMediaJson, newMediaJson)) {
-      upd.setInterpretedExtension(Extension.IMAGE, newMediaJson);
+    String newMediaJson = OccurrenceBuilder.mediaToJson(occ.getMedia());
+    if (!nullSafeEquals(OccurrenceBuilder.mediaToJson(oldOcc.getMedia()), newMediaJson)) {
+      upd.setInterpretedExtension(Extension.MULTIMEDIA, newMediaJson);
     }
 
     // OccurrenceIssues
