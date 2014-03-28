@@ -60,7 +60,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
    * Inner class used to export data into multimedia.txt files.
    * The structure must match the headers defined in MULTIMEDIA_HEADERS.
    */
-  private static class InnerMediaObject extends MediaObject {
+  public static class InnerMediaObject extends MediaObject {
 
     @Override
     public String toString() {
@@ -72,11 +72,19 @@ class OccurrenceFileWriterJob implements Callable<Result> {
 
     /**
      * Default constructor.
+     * Required by CVS serialization.
+     */
+    public InnerMediaObject() {
+      // default constructor
+    }
+
+    /**
+     * Default constructor.
      * Copies the fields of the media object parameter and assigns the coreid.
      */
     public InnerMediaObject(MediaObject mediaObject, Integer coreid) {
       try {
-        BeanUtils.copyProperties(mediaObject, this);
+        BeanUtils.copyProperties(this, mediaObject);
         this.coreid = coreid;
       } catch (IllegalAccessException e) {
         Throwables.propagate(e);

@@ -64,6 +64,7 @@ public class DownloadTableGenerator {
 
   private static final String HDFS_POST = "_hdfs";
   private static final String HBASE_POST = "_hbase";
+  private static final String MULTIMEDIA_TABLE = "multimedia_hdfs";
 
   private static final String ISSUE_HIVE_TYPE = " INT";
   private static final String COALESCE0_FMT = "COALESCE(%s,0)";
@@ -283,7 +284,8 @@ public class DownloadTableGenerator {
    */
   private static String buildDropTableStatements(String hiveTableName) {
     return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n'
-      + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
+      + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST) + '\n'
+      + String.format(DROP_TABLE_FMT, MULTIMEDIA_TABLE);
   }
 
   /**
