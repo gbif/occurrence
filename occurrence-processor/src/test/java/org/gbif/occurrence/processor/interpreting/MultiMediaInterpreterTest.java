@@ -27,11 +27,13 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class MultiMediaInterpreterTest {
+
   private SimpleDateFormat ISO = new SimpleDateFormat("yyyy-MM-dd");
 
   @Test
   public void testDetectType() throws Exception {
-    assertEquals(MediaType.StillImage, MultiMediaInterpreter.detectType(buildMO("image/jp2", "abies_alba.jp2")).getType());
+    assertEquals(MediaType.StillImage, MultiMediaInterpreter.detectType(buildMO("image/jp2", "abies_alba.jp2"))
+      .getType());
     assertEquals(MediaType.StillImage, MultiMediaInterpreter.detectType(buildMO("image/jpeg", null)).getType());
     assertEquals(MediaType.StillImage, MultiMediaInterpreter.detectType(buildMO("image/jpg", null)).getType());
     assertEquals(MediaType.StillImage, MultiMediaInterpreter.detectType(buildMO(null, "abies_alba.jp2")).getType());
@@ -45,12 +47,12 @@ public class MultiMediaInterpreterTest {
     assertEquals(MediaType.Sound, MultiMediaInterpreter.detectType(buildMO(null, "abies_alba.ogg")).getType());
   }
 
-  private MediaObject buildMO(String format, String uri){
+  private MediaObject buildMO(String format, String uri) {
     MediaObject mo = new MediaObject();
 
     mo.setType(null);
     mo.setFormat(format);
-    mo.setUrl(uri == null ? null : URI.create(uri));
+    mo.setIdentifier(uri == null ? null : URI.create(uri));
 
     return mo;
   }
@@ -60,14 +62,16 @@ public class MultiMediaInterpreterTest {
     VerbatimOccurrence v = new VerbatimOccurrence();
     Occurrence o = new Occurrence();
 
-    v.setVerbatimField(DwcTerm.associatedMedia, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg, http://www.flickr.com/photos/70939559@N02/7039524065.png");
-    MultiMediaInterpreter.interpretMedia(v,o);
+    v.setVerbatimField(
+      DwcTerm.associatedMedia,
+      "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg, http://www.flickr.com/photos/70939559@N02/7039524065.png");
+    MultiMediaInterpreter.interpretMedia(v, o);
 
     assertEquals(2, o.getMedia().size());
     for (MediaObject m : o.getMedia()) {
       assertEquals(MediaType.StillImage, m.getType());
       assertTrue(m.getFormat().startsWith("image/"));
-      assertNotNull(m.getUrl());
+      assertNotNull(m.getIdentifier());
     }
   }
 
@@ -94,12 +98,12 @@ public class MultiMediaInterpreterTest {
     rec.put(DcTerm.identifier, "http://www.flickr.com/photos/70939559@N02/7039524065.jpg");
     media.add(rec);
 
-    MultiMediaInterpreter.interpretMedia(v,o);
+    MultiMediaInterpreter.interpretMedia(v, o);
 
     assertEquals(2, o.getMedia().size());
     for (MediaObject m : o.getMedia()) {
       assertEquals(MediaType.StillImage, m.getType());
-      assertNotNull(m.getUrl());
+      assertNotNull(m.getIdentifier());
     }
 
     assertEquals(MediaType.StillImage, o.getMedia().get(0).getType());
@@ -110,7 +114,8 @@ public class MultiMediaInterpreterTest {
     assertEquals("Moayed Bahajjaj", o.getMedia().get(0).getCreator());
     assertEquals("2012-03-29", ISO.format(o.getMedia().get(0).getCreated()));
     assertEquals("http://www.flickr.com/photos/70939559@N02/7039524065", o.getMedia().get(0).getReferences().toString());
-    assertEquals("http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg", o.getMedia().get(0).getUrl().toString());
+    assertEquals("http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg", o.getMedia().get(0).getIdentifier()
+      .toString());
   }
 
   @Test
@@ -127,12 +132,20 @@ public class MultiMediaInterpreterTest {
     assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("http://www.gbif.org/image?id=12").size());
     assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("http://www.gbif.org/image?id=12&format=gif,jpg").size());
 
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png, http://gbif.org/logo2.png").size());
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png; http://gbif.org/logo2.png").size());
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png | http://gbif.org/logo2.png").size());
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png |#DELIMITER#| http://gbif.org/logo2.png").size());
+    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png, http://gbif.org/logo2.png")
+      .size());
+    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png; http://gbif.org/logo2.png")
+      .size());
+    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png | http://gbif.org/logo2.png")
+      .size());
+    assertEquals(2,
+      MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png |#DELIMITER#| http://gbif.org/logo2.png")
+        .size());
 
-    assertEquals(3, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png, http://gbif.org/logo2.png, http://gbif.org/logo3.png").size());
+    assertEquals(
+      3,
+      MultiMediaInterpreter.parseAssociatedMedia(
+        "http://gbif.org/logo.png, http://gbif.org/logo2.png, http://gbif.org/logo3.png").size());
   }
 
 
