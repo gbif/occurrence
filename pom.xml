@@ -725,6 +725,43 @@
   </dependencyManagement>
 
   <profiles>
+
+    <profile>
+      <!--
+       Configured to use the prod lookup services (nub and geo from portalweb1_vh).
+       All settings exist but we need these passwords from somewhere else:
+       <occurrence.download.ws.password>
+       <drupal.db.password>
+      -->
+      <id>prod_a</id>
+      <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.environment>prod</occurrence.environment>
+        <occurrence.env_prefix>prod_a</occurrence.env_prefix>
+
+        <!-- webservices -->
+        <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://api.gbif.org/v0.9/</occurrence.download.ws.url>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/prod_a.db</occurrence.download.hive.hdfs.out>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
+        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+        <checklistbank.match.ws.url>http://api.gbif.org/v0.9/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif.org/v0.9/</checklistbank.ws.url>
+        <registry.ws.url>http://apps.gbif.org:8080/a_registry-ws/</registry.ws.url>
+        <geocode.ws.url>http://api.gbif.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
+        <!-- security -->
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_live</drupal.db.username>
+        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
+      </properties>
+    </profile>
+
     <profile>
       <!--
        Configured to use the same lookup services (nub and geo, now on boma) as the appdev portal.
@@ -735,6 +772,8 @@
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>uat</occurrence.environment>
+        <occurrence.env_prefix>uat</occurrence.env_prefix>
+
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-uat.org/v0.9/</occurrence.download.ws.url>
@@ -768,6 +807,8 @@
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>dev</occurrence.environment>
+        <occurrence.env_prefix>dev</occurrence.env_prefix>
+
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-dev.org/v0.9/</occurrence.download.ws.url>
