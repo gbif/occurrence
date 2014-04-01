@@ -173,7 +173,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>${hadoop.version}</version>
+      <version>${hadoop.version}</version>      
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -267,11 +267,7 @@
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
       <version>${solr.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-    </dependency>
+    </dependency>   
     <!-- all this for udfs -->
     <dependency>
       <groupId>org.gbif</groupId>

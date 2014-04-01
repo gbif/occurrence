@@ -99,6 +99,7 @@
     <gbif-registry.version>2.9</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.4</checklistbank-ws-client.version>
+    <name-parse.version>2.4-SNAPSHOT</name-parse.version>
     <grizzly-servlet-webserver.version>1.9.50</grizzly-servlet-webserver.version>
     <guava.version>14.0.1</guava.version>
     <guice.version>3.0</guice.version>
@@ -125,6 +126,7 @@
     <slf4j.version>1.7.5</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
     <solr-lucene.version>4.4.0</solr-lucene.version>
+    <jts.version>1.13</jts.version>
     <validation-api.version>1.0.0.GA</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
@@ -291,6 +293,11 @@
         <artifactId>hbase-utils</artifactId>
         <version>${hbase-utils.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>name-parser</artifactId>
+        <version>${name-parse.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.gbif.checklistbank</groupId>
@@ -411,6 +418,11 @@
             <groupId>org.slf4j</groupId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.vividsolutions</groupId>
+        <artifactId>jts</artifactId>
+        <version>${jts.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.mail</groupId>

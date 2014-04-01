@@ -12,7 +12,6 @@
   <packaging>jar</packaging>
 
   <properties>
-    <jts.version>1.13</jts.version>
     <super-csv.version>2.0.1</super-csv.version>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
   </properties>
@@ -69,12 +68,7 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-search</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    </dependency>   
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
@@ -108,7 +102,6 @@
     <dependency>
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
-      <version>${jts.version}</version>
     </dependency>
 
     <!-- Test scope -->

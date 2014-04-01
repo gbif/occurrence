@@ -71,6 +71,10 @@
       <artifactId>jersey-client</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
+    <dependency>
       <!-- needed on classpath upgrading from 1.9.1 -> 1.11 to avoid ContainerException: No WebApplication -->
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-server</artifactId>
@@ -83,6 +87,10 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>dwc-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
