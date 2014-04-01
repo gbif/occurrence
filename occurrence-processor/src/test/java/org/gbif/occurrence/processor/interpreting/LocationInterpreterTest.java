@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 
@@ -53,6 +54,41 @@ public class LocationInterpreterTest {
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
     assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
     assertEquals(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH, occ.getIssues().iterator().next());
+  }
+
+  @Test
+  public void testDeriveFromCoordNoCountry() {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.verbatimLatitude, "52.0112");
+    verb.setVerbatimField(DwcTerm.verbatimLongitude, "5.2124");
+    occ = new Occurrence(verb);
+
+    LocationInterpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertEquals(52.0112, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(5.2124, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, occ.getIssues().iterator().next());
+    assertEquals(Country.NETHERLANDS, occ.getCountry());
+  }
+
+  @Test
+  public void testDeriveFromCoordWithCountry() {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "Paraguay");
+    verb.setVerbatimField(DwcTerm.verbatimLatitude, "-20.1825");
+    verb.setVerbatimField(DwcTerm.verbatimLongitude, "-58.1575");
+    occ = new Occurrence(verb);
+
+    LocationInterpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertEquals(-20.1825, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(-58.1575, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(0, occ.getIssues().size());
+    assertEquals(Country.PARAGUAY, occ.getCountry());
   }
 
   @Test

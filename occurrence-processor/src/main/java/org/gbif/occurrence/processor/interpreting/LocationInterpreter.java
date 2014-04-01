@@ -28,8 +28,10 @@ public class LocationInterpreter {
 
   public static void interpretLocation(VerbatimOccurrence verbatim, Occurrence occ) {
     Country country = interpretCountry(verbatim, occ);
-    interpretContinent(verbatim, occ, country);
     interpretCoordinates(verbatim, occ, country);
+
+    interpretContinent(verbatim, occ, country);
+
     interpretWaterBody(verbatim, occ);
     interpretState(verbatim, occ, country);
 
@@ -94,6 +96,9 @@ public class LocationInterpreter {
     if (coordLookup.isSuccessful() && coordLookup.getPayload() != null) {
       occ.setDecimalLatitude(coordLookup.getPayload().getLatitude());
       occ.setDecimalLongitude(coordLookup.getPayload().getLongitude());
+      if (country == null) {
+        occ.setCountry(coordLookup.getPayload().getCountry());
+      }
       //TODO: interpret also coordinateUncertaintyInMeters
       if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
         // accept negative precisions and mirror
