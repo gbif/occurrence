@@ -2,6 +2,7 @@ package org.gbif.occurrence.download.file;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -52,7 +53,7 @@ public class OccurrenceMapReader {
     } else {
       Map<String, String> occurrence = new HashMap<String, String>();
       for (Term term : TermUtils.interpretedTerms()) {
-        final String hiveColumn = TermUtils.getHiveColumn(term);
+        final String hiveColumn = HiveColumnsUtils.getHiveColumn(term);
         if (TermUtils.isInterpretedDate(term)) {
           occurrence.put(hiveColumn, toISO8601Date(ExtResultReader.getDate(row, term)));
         } else if (TermUtils.isInterpretedDouble(term)) {
@@ -81,7 +82,7 @@ public class OccurrenceMapReader {
     }
     Map<String, String> occurrence = new HashMap<String, String>();
     for (Term term : TermUtils.verbatimTerms()) {
-      occurrence.put(TermUtils.getHiveColumn(term), getCleanVerbatimString(row, term));
+      occurrence.put(HiveColumnsUtils.getHiveColumn(term), getCleanVerbatimString(row, term));
     }
     return occurrence;
   }

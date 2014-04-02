@@ -32,7 +32,7 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -118,7 +118,7 @@ class HiveQueryVisitor {
   private StringBuilder builder;
 
   private static String toHiveField(Term term) {
-    return TermUtils.getHiveColumn(term);
+    return HiveColumnsUtils.getHiveColumn(term);
   }
 
   private static String toHiveField(OccurrenceSearchParameter param) {

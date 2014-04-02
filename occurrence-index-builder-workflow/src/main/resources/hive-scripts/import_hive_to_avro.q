@@ -1,6 +1,8 @@
+CREATE TEMPORARY FUNCTION collectMediaTypes AS 'org.gbif.occurrence.hive.udf.CollectMediaTypesUDF';
+
 INSERT OVERWRITE TABLE ${tempAvroTable} 
 SELECT 
-  gbifid,
+  occ.gbifid,
   COALESCE(datasetkey,""),
   COALESCE(institutioncode,""),
   COALESCE(collectioncode,""),
@@ -23,5 +25,7 @@ SELECT
   hasgeospatialissues, --geospatial_issue
   hascoordinate, --hascoordinate
   COALESCE(elevation,-1000000),
-  COALESCE(depth,-1000000)
-FROM ${sourceOccurrenceTable}; 
+  COALESCE(depth,-1000000),
+  collectMediaTypes(ext_multimedia)
+FROM ${sourceOccurrenceTable} occ
+LEFT OUTER JOIN ${sourceOccurrenceMultimediaTable} mm ON  occ.gbifid = mm.gbifid; 

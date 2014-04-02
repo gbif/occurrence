@@ -14,6 +14,8 @@
   <properties>
     <jts.version>1.13</jts.version>
     <hive.version>0.10.0-cdh4.2.1</hive.version>
+    <hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
+    <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
   </properties>
 
   <name>Occurrence Index Builder Oozie workflow</name>
@@ -123,7 +125,11 @@
   </repositories>
 
   <dependencies>
-
+	<dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-common</artifactId>
+    </dependency>
+    
     <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
     <dependency>
       <groupId>com.vividsolutions</groupId>
@@ -131,7 +137,44 @@
       <version>${jts.version}</version>
       <scope>runtime</scope>
     </dependency>
-
+	
+	<!-- needed for UDFs (false positive from dep:analyse) -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop-non-core.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>mockito-all</artifactId>
+          <groupId>org.mockito</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-exec</artifactId>
+      <version>${hive.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>mockito-all</artifactId>
+          <groupId>org.mockito</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+        
     <!-- Runtime dependencies -->
     <!-- Hadoop is excluded because maven complains if not, as there is metadata
       missing in the hadoop repo -->

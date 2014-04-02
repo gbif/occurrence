@@ -25,11 +25,12 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -41,20 +42,12 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.type.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,15 +57,6 @@ import org.slf4j.LoggerFactory;
 public class OccurrenceBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
-  static {
-    // Don't change this section, methods used here guarantee backwards compatibility with Jackson 1.8.8
-    MAPPER.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-    MAPPER.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-    MAPPER.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.ALWAYS);
-  }
-  private static final CollectionType LIST_MEDIA_TYPE = MAPPER.getTypeFactory().constructCollectionType(List.class,
-    MediaObject.class);
 
   // TODO: move these maps to Classification, Term or RankUtils
   public static final Map<Rank, Term> rank2taxonTerm =
@@ -267,7 +251,7 @@ public class OccurrenceBuilder {
     for (Extension extension : Extension.values()) {
       String jsonExtensions = ExtResultReader.getString(row, Columns.verbatimColumn(extension));
       if (!Strings.isNullOrEmpty(jsonExtensions)) {
-        extensions.put(extension, ExtensionsUtil.fromJson(jsonExtensions));
+        extensions.put(extension, ExtensionSerDeserUtils.fromJson(jsonExtensions));
       }
     }
     return extensions;
@@ -323,34 +307,13 @@ public class OccurrenceBuilder {
     String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.MULTIMEDIA));
     if (mediaJson != null && !mediaJson.isEmpty()) {
       try {
-        media = MAPPER.readValue(mediaJson, LIST_MEDIA_TYPE);
-      } catch (IOException e) {
+        media = MediaSerDeserUtils.fromJson(mediaJson);
+      } catch (Exception e) {
         LOG.warn("Unable to deserialize media objects from hbase", e);
       }
     }
 
     return media;
-  }
-
-  /**
-   * Converts the list of media objects into a JSON string.
-   */
-  public static String mediaToJson(List<MediaObject> media) {
-    try {
-      if (media != null && !media.isEmpty()) {
-        return MAPPER.writeValueAsString(media);
-      }
-    } catch (JsonGenerationException e) {
-      LOG.warn("Unable to serialize media objects to JSON", e);
-      Throwables.propagate(e);
-    } catch (JsonMappingException e) {
-      LOG.warn("Unable to serialize media objects to JSON", e);
-      Throwables.propagate(e);
-    } catch (IOException e) {
-      LOG.warn("Unable to serialize media objects to JSON", e);
-      Throwables.propagate(e);
-    }
-    return null;
   }
 
 }

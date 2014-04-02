@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.io.ByteArrayInputStream;
@@ -75,7 +76,7 @@ public class HeadersFileUtil {
   private static String getTableHeader(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
-      headers.add(TermUtils.getHiveColumn(term));
+      headers.add(HiveColumnsUtils.getHiveColumn(term));
     }
     return TAB_JOINER.join(headers) + '\n';
   }
@@ -86,7 +87,7 @@ public class HeadersFileUtil {
   private static String[] getTableColumns(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
-      headers.add(TermUtils.getHiveColumn(term));
+      headers.add(HiveColumnsUtils.getHiveColumn(term));
     }
     return headers.toArray(new String[headers.size()]);
   }

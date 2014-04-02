@@ -42,6 +42,7 @@
 
       <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_tmp_avro</param>
       <param>sourceOccurrenceTable=${hiveDB}.${sourceOccurrenceTable}</param>      
+      <param>sourceOccurrenceMultimediaTable=${hiveDB}.${sourceOccurrenceMultimediaTable}</param> 
     </hive>
     
     <ok to="prepare_cloud_index" />

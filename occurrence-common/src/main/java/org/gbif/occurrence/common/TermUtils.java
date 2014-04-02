@@ -1,6 +1,5 @@
 package org.gbif.occurrence.common;
 
-import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -21,9 +20,6 @@ import com.google.common.collect.Sets;
  * Static utils class to deal with Term enumeration for occurrences.
  */
 public class TermUtils {
-
-  private static final ImmutableSet<String> HIVE_RESERVED_WORDS = new ImmutableSet.Builder<String>().add("date",
-    "order", "format", "group").build();
 
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
     DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
@@ -99,52 +95,14 @@ public class TermUtils {
     );
 
   private TermUtils() {
+    // private constructor
   }
 
-  /**
-   * Gets the Hive column name of the term parameter.
-   */
-  public static String getHiveColumn(Term term) {
-    final String columnName = term.simpleName().toLowerCase();
-    if (HIVE_RESERVED_WORDS.contains(columnName)) {
-      return columnName + '_';
-    }
-    return columnName;
-  }
-
-
-  /**
-   * Returns the Hive data type of term parameter.
-   */
-  public static String getHiveType(Term term) {
-    if (TermUtils.isInterpretedNumerical(term)) {
-      return "INT";
-    } else if (TermUtils.isInterpretedDate(term)) {
-      return "BIGINT";
-    } else if (TermUtils.isInterpretedDouble(term)) {
-      return "DOUBLE";
-    } else if (TermUtils.isInterpretedBoolean(term)) {
-      return "BOOLEAN";
-    } else {
-      return "STRING";
-    }
-  }
-
-  /**
-   * Gets the Hive column name of the term parameter.
-   */
-  public static String getHiveColumn(OccurrenceIssue issue) {
-    final String columnName = issue.name().toLowerCase();
-    if (HIVE_RESERVED_WORDS.contains(columnName)) {
-      return columnName + '_';
-    }
-    return columnName;
-  }
 
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   *
+   * 
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {

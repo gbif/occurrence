@@ -108,7 +108,7 @@
       <script>hive-scripts/create_multimedia_table.q</script>
 
       <param>result_multimedia_table=${occurrence.environment}.${query_result_table}_multimedia</param>      
-      <param>multimedia_table=${occurrence.environment}.multimedia_hdfs</param>
+      <param>multimedia_table=${occurrence.environment}.occurrence_multimedia_hdfs</param>
       <param>occurrence_intepreted_table=${occurrence.environment}.${query_result_table}_interpreted</param>
     </hive>
 

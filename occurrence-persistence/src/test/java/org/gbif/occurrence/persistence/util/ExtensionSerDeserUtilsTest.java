@@ -3,6 +3,7 @@ package org.gbif.occurrence.persistence.util;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import org.junit.Test;
 /**
  * Test class for ExtensionsUtil class.
  */
-public class ExtensionsUtilTest {
+public class ExtensionSerDeserUtilsTest {
 
 
   /**
@@ -45,7 +46,7 @@ public class ExtensionsUtilTest {
    */
   @Test
   public void toJsonTest() {
-    Assert.assertNotNull(ExtensionsUtil.toJson(getExtensionTest()));
+    Assert.assertNotNull(ExtensionSerDeserUtils.toJson(getExtensionTest()));
   }
 
   /**
@@ -53,8 +54,8 @@ public class ExtensionsUtilTest {
    */
   @Test
   public void fromJsonTest() {
-    String jsonExtension = ExtensionsUtil.toJson(getExtensionTest());
-    List<Map<Term, String>> serExtensions = ExtensionsUtil.fromJson(jsonExtension);
+    String jsonExtension = ExtensionSerDeserUtils.toJson(getExtensionTest());
+    List<Map<Term, String>> serExtensions = ExtensionSerDeserUtils.fromJson(jsonExtension);
     Assert.assertNotNull(serExtensions);
     Assert.assertTrue(serExtensions.size() == 1);
   }

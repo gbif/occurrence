@@ -3,6 +3,7 @@
  */
 package org.gbif.occurrence.cli.index;
 
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
 
@@ -12,6 +13,7 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -33,6 +35,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LAST_INTERPRETED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MEDIA_TYPE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
@@ -142,10 +145,26 @@ public class SolrOccurrenceWriter {
     } else {
       doc.setField(COORDINATE.getFieldName(), null);
     }
-
+    doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
     return doc;
   }
 
+
+  /**
+   * Return a nullable set of String that contains the media types present in the occurrence object.
+   */
+  private Set<String> buildMediaType(Occurrence occurrence) {
+    Set<String> mediaTypes = null;
+    if (occurrence.getMedia() != null && !occurrence.getMedia().isEmpty()) {
+      mediaTypes = Sets.newHashSet();
+      for (MediaObject mediaObject : occurrence.getMedia()) {
+        if (mediaObject.getType() != null) {
+          mediaTypes.add(mediaObject.getType().name());
+        }
+      }
+    }
+    return mediaTypes;
+  }
 
   /**
    * Return a set of integer that contains the taxon key values.

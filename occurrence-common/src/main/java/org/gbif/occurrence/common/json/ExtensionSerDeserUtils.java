@@ -1,4 +1,4 @@
-package org.gbif.occurrence.persistence.util;
+package org.gbif.occurrence.common.json;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.jackson.TermKeyDeserializer;
@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility class for common operations while persisting and retrieving extension objects.
  */
-public class ExtensionsUtil {
+public class ExtensionSerDeserUtils {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ExtensionsUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ExtensionSerDeserUtils.class);
 
   private static final String DEFAULT_ERROR_MSG = "Error serializing extensions values";
 
@@ -86,7 +86,7 @@ public class ExtensionsUtil {
     }
   }
 
-  private ExtensionsUtil() {
+  private ExtensionSerDeserUtils() {
     // private constructor
   }
 

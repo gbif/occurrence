@@ -41,7 +41,8 @@
       <script>hive-scripts/import_hive_to_avro.q</script>
 
       <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_single_tmp_avro</param>
-      <param>sourceOccurrenceTable=${hiveDB}.${sourceOccurrenceTable}</param>      
+      <param>sourceOccurrenceTable=${hiveDB}.${sourceOccurrenceTable}</param>
+      <param>sourceOccurrenceMultimediaTable=${hiveDB}.${sourceOccurrenceMultimediaTable}</param>      
     </hive>
     
     <ok to="build_index" />

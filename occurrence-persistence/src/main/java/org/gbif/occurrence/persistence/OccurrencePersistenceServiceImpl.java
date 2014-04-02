@@ -13,11 +13,12 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
-import org.gbif.occurrence.persistence.util.ExtensionsUtil;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
@@ -324,7 +325,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private String getExtensionAsJson(VerbatimOccurrence verbatimOccurrence, Extension extension) {
     String jsonExtensions = null;
     if (verbatimOccurrence.getExtensions() != null && verbatimOccurrence.getExtensions().containsKey(extension)) {
-      jsonExtensions = ExtensionsUtil.toJson(verbatimOccurrence.getExtensions().get(extension));
+      jsonExtensions = ExtensionSerDeserUtils.toJson(verbatimOccurrence.getExtensions().get(extension));
     }
     return jsonExtensions;
   }
@@ -457,8 +458,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
 
     // Multimedia extension
-    String newMediaJson = OccurrenceBuilder.mediaToJson(occ.getMedia());
-    if (!nullSafeEquals(OccurrenceBuilder.mediaToJson(oldOcc.getMedia()), newMediaJson)) {
+    String newMediaJson = MediaSerDeserUtils.toJson(occ.getMedia());
+    if (!nullSafeEquals(MediaSerDeserUtils.toJson(oldOcc.getMedia()), newMediaJson)) {
       upd.setInterpretedExtension(Extension.MULTIMEDIA, newMediaJson);
     }
 
