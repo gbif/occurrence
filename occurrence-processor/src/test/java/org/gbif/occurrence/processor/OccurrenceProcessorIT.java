@@ -5,6 +5,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.messaging.ConnectionParameters;
@@ -24,6 +25,7 @@ import org.gbif.occurrence.processor.messaging.VerbatimPersistedListener;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +76,6 @@ public class OccurrenceProcessorIT {
   private static final String PONTAURUS_DATASET_KEY = "8575f23e-f762-11e1-a439-00145eb45e9a";
 
 
-
   @BeforeClass
   public static void preClass() throws IOException {
     abcd206Single = Resources.toString(Resources.getResource("abcd206_single.xml"), Charsets.UTF_8);
@@ -87,8 +88,7 @@ public class OccurrenceProcessorIT {
   @Before
   public void setUp() throws Exception {
     ConnectionParameters connectionParams = new ConnectionParameters("localhost", 5672, "guest", "guest", "/");
-    messagePublisher =
-      new DefaultMessagePublisher(connectionParams);
+    messagePublisher = new DefaultMessagePublisher(connectionParams);
     messageListener = new MessageListener(connectionParams);
 
     zkServer = new TestingServer();
@@ -107,7 +107,9 @@ public class OccurrenceProcessorIT {
     fragmentPersistedListener = new FragmentPersistedListener(verbatimProcessor);
     messageListener.listen("frag_persisted_test_" + now, 1, fragmentPersistedListener);
     verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
-    interpretedProcessor = new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher, zookeeperConnector);
+    interpretedProcessor =
+      new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher,
+        zookeeperConnector);
     verbatimPersistedListener = new VerbatimPersistedListener(interpretedProcessor);
     messageListener.listen("verb_persisted_test_" + now, 1, verbatimPersistedListener);
   }
@@ -120,7 +122,7 @@ public class OccurrenceProcessorIT {
   }
 
   @Test
-  public void testEndToEndDwca() throws IOException, InterruptedException {
+  public void testEndToEndDwca() throws IOException, InterruptedException, URISyntaxException {
     UUID datasetKey = UUID.fromString(PONTAURUS_DATASET_KEY);
     OccurrenceSchemaType xmlSchema = OccurrenceSchemaType.DWCA;
     Integer crawlId = 1;
@@ -159,6 +161,15 @@ public class OccurrenceProcessorIT {
     assertEquals(EndpointType.DWC_ARCHIVE, got.getProtocol());
     assertEquals("1", got.getVerbatimField(GbifTerm.gbifID));
     assertEquals("ABC123", got.getVerbatimField(DwcTerm.occurrenceID));
+
+    // multimedia
+    System.out.println("got media: " + got.getMedia());
+    assertNotNull(got.getMedia());
+    assertEquals(1, got.getMedia().size());
+    assertEquals(MediaType.StillImage, got.getMedia().get(0).getType());
+    assertEquals("http://digit.snm.ku.dk/www/Aves/full/AVES-100348_Caprimulgus_pectoralis_fervidus_ad____f.jpg",
+      got.getMedia().get(0).getIdentifier().toString());
+
   }
 
   @Test
