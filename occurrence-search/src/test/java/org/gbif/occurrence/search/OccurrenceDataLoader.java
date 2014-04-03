@@ -1,5 +1,6 @@
 package org.gbif.occurrence.search;
 
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -9,10 +10,12 @@ import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -79,6 +82,22 @@ public class OccurrenceDataLoader {
       Enum<?> typeStatus = VocabularyUtils.lookupEnum((String) value, TypeStatus.class);
       if (typeStatus != null) {
         return (TypeStatus) typeStatus;
+      }
+      return null;
+    }
+
+  }
+
+
+  /**
+   * Produces a MediaType instance.
+   */
+  private static class MediaListProcessor implements CellProcessor {
+
+    @Override
+    public List<MediaObject> execute(Object value, CsvContext context) {
+      if (value != null) {
+        return MediaSerDeserUtils.fromJson((String) value);
       }
       return null;
     }
@@ -177,6 +196,7 @@ public class OccurrenceDataLoader {
     new Optional(),// identifierName
     new Optional(new ParseDate(DATE_FORMAT)),// identificationDate
     new Optional(new TypeStatusProcessor()),// typeStatus
+    new Optional(new MediaListProcessor())// List<Media> in JSON
   };
 
 
@@ -224,7 +244,8 @@ public class OccurrenceDataLoader {
     "recordNumber",
     "identifiedBy",
     "dateIdentified",
-    "typeStatus"
+    "typeStatus",
+    "media"
   };
 
 
@@ -246,7 +267,7 @@ public class OccurrenceDataLoader {
   /**
    * Reads a CSV file and produces occurrence records for each line.
    * Each occurrence object is processed by the list of processors.
-   *
+   * 
    * @param fileName CSV file
    * @param processors list of processors(predicates) that consume occurrence objects
    */

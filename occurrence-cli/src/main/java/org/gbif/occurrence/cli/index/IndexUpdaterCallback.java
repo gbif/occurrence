@@ -2,6 +2,7 @@ package org.gbif.occurrence.cli.index;
 
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
+import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
 import java.util.concurrent.TimeUnit;
 

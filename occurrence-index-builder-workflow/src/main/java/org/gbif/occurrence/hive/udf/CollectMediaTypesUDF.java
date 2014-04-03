@@ -34,7 +34,7 @@ public class CollectMediaTypesUDF extends UDF {
     if (medias != null && !medias.isEmpty()) {
       for (MediaObject mediaObject : medias) {
         if (mediaObject.getType() != null) {
-          mediaTypes.add(mediaObject.getType().name());
+          mediaTypes.add(mediaObject.getType().name().toUpperCase());
         }
       }
     }

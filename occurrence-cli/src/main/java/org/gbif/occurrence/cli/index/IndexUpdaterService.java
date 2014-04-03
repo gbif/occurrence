@@ -3,6 +3,7 @@ package org.gbif.occurrence.cli.index;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.common.search.solr.SolrServerType;
 import org.gbif.common.search.solr.builders.CloudSolrServerBuilder;
+import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.AbstractIdleService;
