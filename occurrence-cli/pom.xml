@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.16-SNAPSHOT</version>
+    <version>0.16</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -196,7 +196,7 @@
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-cli</artifactId>
-      <version>${gbif-cli.version}</version>
+      <version>0.6</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.common</groupId>
