@@ -34,6 +34,8 @@ public class TermUtils {
   private static final Set<? extends Term> INTERPRETED_BOOLEAN = ImmutableSet.of(GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues);
 
+  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType);
+
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,
     GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy);
@@ -148,7 +150,7 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable GbifTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && t != GbifTerm.gbifID;
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t;
         }
       })
       );
@@ -204,6 +206,13 @@ public class TermUtils {
    */
   public static boolean isInterpretedBoolean(Term term) {
     return INTERPRETED_BOOLEAN.contains(term);
+  }
+
+  /**
+   * @return true if the term is an complex type in Hive or Hbase: array, struct, json, etc.
+   */
+  public static boolean isComplexType(Term term) {
+    return COMPLEX_TYPE.contains(term);
   }
 
 }

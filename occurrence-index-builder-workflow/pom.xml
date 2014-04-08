@@ -125,105 +125,13 @@
   </repositories>
 
   <dependencies>
-	<dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-common</artifactId>
-    </dependency>
-    
-    <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
+	  <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
     <dependency>
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
       <version>${jts.version}</version>
       <scope>runtime</scope>
-    </dependency>
-	
-	<!-- needed for UDFs (false positive from dep:analyse) -->
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>${hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${hadoop-non-core.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>mockito-all</artifactId>
-          <groupId>org.mockito</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-exec</artifactId>
-      <version>${hive.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>mockito-all</artifactId>
-          <groupId>org.mockito</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-        
-    <!-- Runtime dependencies -->
-    <!-- Hadoop is excluded because maven complains if not, as there is metadata
-      missing in the hadoop repo -->
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-cli</artifactId>
-      <version>${hive.version}</version>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-hbase-handler</artifactId>
-      <version>${hive.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-builtins</artifactId>
-      <version>${hive.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-common</artifactId>
-      <version>${hive.version}</version>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+    </dependency>	
   </dependencies>
 
 </project>

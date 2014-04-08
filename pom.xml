@@ -50,6 +50,7 @@
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
+    <module>occurrence-hive</module>
   </modules>
 
   <properties>
@@ -83,7 +84,7 @@
     <curator.version>1.3.3</curator.version>
     <dbunit.version>2.4.8</dbunit.version>
     <drupal-mybatis.version>0.6</drupal-mybatis.version>
-    <dwc-api.version>1.5-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>1.6-SNAPSHOT</dwc-api.version>
     <dwca-reader.version>1.16-SNAPSHOT</dwca-reader.version>
     <findbugs-jsr305.version>2.0.0</findbugs-jsr305.version>
     <gbif-api.version>0.12-SNAPSHOT</gbif-api.version>
@@ -125,6 +126,7 @@
     <slf4j.version>1.7.5</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
     <solr-lucene.version>4.4.0</solr-lucene.version>
+    <jts.version>1.13</jts.version>
     <validation-api.version>1.0.0.GA</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
@@ -229,6 +231,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-persistence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-hive</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -411,6 +418,11 @@
             <groupId>org.slf4j</groupId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.vividsolutions</groupId>
+        <artifactId>jts</artifactId>
+        <version>${jts.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.mail</groupId>

@@ -107,7 +107,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         columns.add("cleanNull(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedBoolean(term)) {
         columns.add(iCol);
-      } else {
+      } else if (!TermUtils.isComplexType(term)) {
+        // complex type fields are not added to the select statement
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
     }

@@ -36,9 +36,9 @@
     <httpclient.version>4.2.5</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
     <httpmime.version>4.2.5</httpmime.version>
-    <jts.version>1.13</jts.version>
     <solr.version>4.4.0</solr.version>
     <super-csv.version>2.0.1</super-csv.version>
+    <brickhouse.version>0.6.0</brickhouse.version>
   </properties>
 
   <build>
@@ -199,25 +199,16 @@
           <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-exec</artifactId>
-      <version>${hive.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>mockito-all</artifactId>
-          <groupId>org.mockito</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+    </dependency>    
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>com.klout</groupId>
+      <artifactId>brickhouse</artifactId>
+      <version>${brickhouse.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -226,6 +217,10 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-hive</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -241,8 +236,7 @@
     </dependency>
     <dependency>
       <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
-      <version>${jts.version}</version>
+      <artifactId>jts</artifactId>     
     </dependency>   
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -313,26 +307,6 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-apache-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-    </dependency>
-
-    <!-- these runtimes to avoid version mismatch dependency hell -->
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-xc</artifactId>
-      <scope>runtime</scope>
     </dependency>
 
     <!-- Runtime dependencies -->
