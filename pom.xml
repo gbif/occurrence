@@ -51,6 +51,7 @@
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
     <module>occurrence-hive</module>
+    <module>occurrence-tables-coord</module>
   </modules>
 
   <properties>

@@ -1,0 +1,10 @@
+<!--
+ Triggers the oozie workflow.
+-->
+<coordinator-app name="OccurrenceHDFSBuild-${occurrence.environment}" frequency="${occurrence.hdfs.build.frequency}" start="2012-12-31T00:00Z" end="2050-12-31T00:00Z" timezone="Europe/Copenhagen" xmlns="uri:oozie:coordinator:0.2">
+  <action>
+    <workflow>
+      <app-path>${hdfs.namenode}/${artifactId}/${occurrence.environment}</app-path>            
+    </workflow>
+  </action>
+</coordinator-app>

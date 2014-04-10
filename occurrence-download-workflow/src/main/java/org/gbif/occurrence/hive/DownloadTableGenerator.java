@@ -7,6 +7,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.hive.udf.CollectMediaTypesUDF;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.File;
@@ -36,6 +37,10 @@ public class DownloadTableGenerator {
   private static final String VERBATIM_COL_DECL_FMT = VERBATIM_COL_FMT + " STRING";
   private static final String STRING_COL_DECL_FMT = "%s STRING";
   private static final Joiner COMMA_JOINER = Joiner.on(',').skipNulls();
+  private static final String COLLECT_MEDIATYPES_UDF_DCL =
+    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "'";
+  private static final String COLLECT_MEDIATYPES = "collectMediaTypes("
+    + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")";
   private static final String HIVE_CREATE_HBASE_TABLE_FMT =
     "CREATE EXTERNAL TABLE %s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
 
@@ -245,7 +250,7 @@ public class DownloadTableGenerator {
         .addAll(processTerms(TermUtils.verbatimTerms(), VERBATIM_TERM_COL_DEF, exclusions))
         .addAll(processTerms(INTERNAL_TERMS, TERM_SELECT_EXP, exclusions))
         .addAll(processTerms(TermUtils.interpretedTerms(), TERM_SELECT_EXP, exclusions))
-        .add("collectMediaTypes(" + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")")
+        .add(COLLECT_MEDIATYPES)
         .build();
     return columns;
   }
@@ -327,6 +332,8 @@ public class DownloadTableGenerator {
    */
   public static String generateHiveScript(String hiveTableName, String hbaseTableName) {
     return HIVE_DEFAULT_OPTS
+      + '\n'
+      + COLLECT_MEDIATYPES_UDF_DCL
       + '\n'
       + buildDropTableStatements(hiveTableName)
       + '\n'
