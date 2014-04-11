@@ -2,8 +2,8 @@ package org.gbif.occurrence.persistence.hbase;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
@@ -67,7 +67,7 @@ public class Columns {
    * Please use the GbifTerm enum for those!
    */
   public static String column(Term term) {
-    if (term instanceof GbifInternalTerm || TermUtils.isOccurrenceJavaProperty(term) || DcTerm.type == term) {
+    if (term instanceof GbifInternalTerm || TermUtils.isOccurrenceJavaProperty(term) || GbifTerm.mediaType == term) {
       return column(term, "");
 
     } else if (TermUtils.isInterpretedSourceTerm(term)) {

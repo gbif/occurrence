@@ -34,7 +34,7 @@ public class TermUtils {
   private static final Set<? extends Term> INTERPRETED_BOOLEAN = ImmutableSet.of(GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues);
 
-  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(DcTerm.type);
+  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,

@@ -2,7 +2,7 @@ package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import com.google.common.collect.ImmutableSet;
@@ -54,7 +54,7 @@ public class HiveColumnsUtils {
       return "DOUBLE";
     } else if (TermUtils.isInterpretedBoolean(term)) {
       return "BOOLEAN";
-    } else if (DcTerm.type == term) {
+    } else if (GbifTerm.mediaType == term) {
       return "ARRAY<STRING>";
     } else {
       return "STRING";
