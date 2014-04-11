@@ -10,11 +10,13 @@ import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
-import org.gbif.occurrence.search.writers.HBaseOccurrenceWriter;
-import org.gbif.occurrence.search.writers.SolrOccurrenceWriter;
+import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
+import org.gbif.occurrence.search.writers.HBasePredicateWriter;
+import org.gbif.occurrence.search.writers.SolrPredicateWriter;
 import org.gbif.service.guice.PrivateServiceModule;
 
 import java.io.IOException;
@@ -149,7 +151,7 @@ public class OccurrenceSearchTestIT {
 
   /**
    * Creates an instance of a guice injector using the OccurrenceSearchTestModule.
-   *
+   * 
    * @return
    */
   private static Injector getInjector() {
@@ -171,9 +173,8 @@ public class OccurrenceSearchTestIT {
   private static void loadOccurrences() throws IOException {
     final HTableInterface hTable = hTablePool.getTable(OCCURRENCE_TABLE);
     try {
-      OccurrenceDataLoader.processOccurrences(CSV_TEST_FILE, new HBaseOccurrenceWriter(hTable),
-        new SolrOccurrenceWriter(
-          solrServer));
+      OccurrenceDataLoader.processOccurrences(CSV_TEST_FILE, new HBasePredicateWriter(hTable),
+        new SolrPredicateWriter(new SolrOccurrenceWriter(solrServer)));
     } catch (Exception e) {
       LOG.error("Error processing occurrence objects from file", e);
     } finally {
@@ -468,5 +469,24 @@ public class OccurrenceSearchTestIT {
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
+  }
+
+  /**
+   * Performs a search by MediaType.
+   */
+  @Test
+  public void testSearchByMediaType() {
+    // There are 3 occurrences with media objects: 1 still image, 1 video and 1 sound
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addMediaTypeFilter(MediaType.StillImage);
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+      occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() == 1);
+    occurrenceSearchRequest.addMediaTypeFilter(MediaType.MovingImage);
+    response = occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() == 2);
+    occurrenceSearchRequest.addMediaTypeFilter(MediaType.Sound);
+    response = occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() == 3);
   }
 }

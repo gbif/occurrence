@@ -1,13 +1,17 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.LifeStage;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
@@ -22,13 +26,18 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -50,6 +59,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class OccurrencePersistenceServiceImplTest {
+
   private static final String TABLE_NAME = "occurrence_test";
   private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
   private static final String CF_NAME = "o";
@@ -314,12 +324,12 @@ public class OccurrencePersistenceServiceImplTest {
 
   @Test
   public void testGetFull() throws IOException {
-//    setUpIdentifiers();
+// setUpIdentifiers();
 
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
     assertEquals((Integer) KEY, occ.getKey());
-//    assertEquals(3, occ.getIdentifiers().size());
+// assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
     assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
   }
@@ -426,14 +436,14 @@ public class OccurrencePersistenceServiceImplTest {
     update.setGenericName(genericName);
     update.setTaxonRank(taxonRank);
 
-//    String id0 = "http://www.ala.org.au";
-//    IdentifierType idType0 = IdentifierType.GBIF_NODE;
-//    Identifier record = new Identifier();
-//    record.setIdentifier(id0);
-//    record.setType(idType0);
-//    List<Identifier> records = newArrayList();
-//    records.add(record);
-//    update.setIdentifiers(records);
+// String id0 = "http://www.ala.org.au";
+// IdentifierType idType0 = IdentifierType.GBIF_NODE;
+// Identifier record = new Identifier();
+// record.setIdentifier(id0);
+// record.setType(idType0);
+// List<Identifier> records = newArrayList();
+// records.add(record);
+// update.setIdentifiers(records);
 
     Set<OccurrenceIssue> issues = update.getIssues();
     issues.remove(OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED);
@@ -461,10 +471,10 @@ public class OccurrencePersistenceServiceImplTest {
     assertTrue(genusId == occ.getGenusKey());
     assertEquals(publishingCountry, occ.getPublishingCountry());
     assertTrue(update.getKey().intValue() == occ.getKey().intValue());
-//    assertEquals(1, occ.getIdentifiers().size());
-//    Identifier updatedRecord = occ.getIdentifiers().iterator().next();
-//    assertTrue(id0.equals(updatedRecord.getIdentifier()));
-//    assertEquals(idType0, updatedRecord.getType());
+// assertEquals(1, occ.getIdentifiers().size());
+// Identifier updatedRecord = occ.getIdentifiers().iterator().next();
+// assertTrue(id0.equals(updatedRecord.getIdentifier()));
+// assertEquals(idType0, updatedRecord.getType());
     assertEquals(country, occ.getCountry());
     assertEquals(kingdom, occ.getKingdom());
     assertEquals(kingdomId, (int) occ.getKingdomKey());
@@ -586,6 +596,87 @@ public class OccurrencePersistenceServiceImplTest {
   }
 
   @Test
+  public void testUpdateVerbatimMultimedia() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    orig.setLastParsed(new Date());
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions = Lists.newArrayList();
+    Map<Term, String> verbatimRecord = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "fede");
+    verbatimRecord.put(DcTerm.description, "testDescription");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest");
+    verbatimRecord.put(DcTerm.title, "titleTest");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo.jpg");
+    mediaExtensions.add(verbatimRecord);
+    extensions.put(Extension.MULTIMEDIA, mediaExtensions);
+    orig.setExtensions(extensions);
+    occurrenceService.update(orig);
+
+    VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
+    assertNotNull(got);
+    assertEquals(got.getExtensions(), orig.getExtensions());
+  }
+
+
+  /**
+   * Test the cycle: create a verbtim record, update it and add extension.
+   */
+  @Test
+  public void testUpdateVerbatimMultimediaUpdate() {
+    VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
+    orig.setPublishingCountry(Country.VENEZUELA);
+    orig.setPublishingOrgKey(UUID.randomUUID());
+    orig.setProtocol(EndpointType.DIGIR_MANIS);
+    orig.setLastParsed(new Date());
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions = Lists.newArrayList();
+    Map<Term, String> verbatimRecord = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "gbifuser");
+    verbatimRecord.put(DcTerm.description, "testDescription");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest");
+    verbatimRecord.put(DcTerm.title, "titleTest");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo.jpg");
+    mediaExtensions.add(verbatimRecord);
+    extensions.put(Extension.MULTIMEDIA, mediaExtensions);
+    orig.setExtensions(extensions);
+    occurrenceService.update(orig);
+
+
+    Occurrence intOcc = occurrenceService.get(KEY);
+    intOcc.setCountry(Country.ANGOLA);
+    Map<Extension, List<Map<Term, String>>> extensions2 = Maps.newHashMap();
+    List<Map<Term, String>> mediaExtensions2 = Lists.newArrayList();
+    Map<Term, String> verbatimRecord2 = new HashMap<Term, String>();
+    verbatimRecord.put(DcTerm.created, IsoDateFormat.FULL.getDateFormat().format(new Date()));
+    verbatimRecord.put(DcTerm.creator, "gbifuser2");
+    verbatimRecord.put(DcTerm.description, "testDescription2");
+    verbatimRecord.put(DcTerm.format, "jpeg");
+    verbatimRecord.put(DcTerm.license, "licenseTest2");
+    verbatimRecord.put(DcTerm.publisher, "publisherTest2");
+    verbatimRecord.put(DcTerm.title, "titleTest2");
+    verbatimRecord.put(DcTerm.identifier, "http://www.gbif.org/logo2.jpg");
+    mediaExtensions2.add(verbatimRecord);
+    mediaExtensions2.add(verbatimRecord2);
+    extensions2.put(Extension.MULTIMEDIA, mediaExtensions2);
+    orig.setExtensions(extensions2);
+    occurrenceService.update(intOcc);
+    occurrenceService.update(orig);
+    VerbatimOccurrence got = occurrenceService.getVerbatim(KEY);
+    assertNotNull(got);
+    assertEquals(got.getExtensions(), orig.getExtensions());
+  }
+
+
+  @Test
   public void testUpdateVerbatimRemovingFields() {
     VerbatimOccurrence orig = occurrenceService.getVerbatim(KEY);
     orig.setPublishingCountry(Country.VENEZUELA);
@@ -641,6 +732,68 @@ public class OccurrencePersistenceServiceImplTest {
     occ.setVerbatimField(GbifTerm.ageInDays, null);
     mutations = occurrenceService.buildRowUpdate(occ).getRowMutations();
     assertEquals(4, mutations.getMutations().size());
+  }
+
+  @Test
+  public void testMultimediaExtension() throws MalformedURLException {
+    Date now = new Date();
+    URI url = URI.create("http://www.comos.com/images/image1.jpeg");
+    URI refs = URI.create("http://www.cosmos.com");
+    URI url2 = URI.create("http://www.comos.com/images/image2.jpeg");
+    URI refs2 = URI.create("http://www.cosmos2.com");
+    Occurrence occ = occurrenceService.get(KEY);
+    List<MediaObject> media = Lists.newArrayList();
+    MediaObject image1 = new MediaObject();
+    image1.setCreated(now);
+    image1.setCreator("Carl Sagan");
+    image1.setDescription("The beauty of nature.");
+    image1.setFormat("jpeg");
+    image1.setLicense("CC-BY");
+    image1.setPublisher("Nature");
+    image1.setReferences(refs);
+    image1.setTitle("Beauty");
+    image1.setType(MediaType.StillImage);
+    image1.setIdentifier(url);
+    media.add(image1);
+    MediaObject image2 = new MediaObject();
+    image2.setCreated(now);
+    image2.setCreator("Carl Sagan");
+    image2.setDescription("The 2nd beauty of nature.");
+    image2.setFormat("jpeg");
+    image2.setLicense("CC-BY");
+    image2.setPublisher("Nature");
+    image2.setReferences(refs2);
+    image2.setTitle("Beauty");
+    image2.setType(MediaType.StillImage);
+    image2.setIdentifier(url2);
+    media.add(image2);
+    occ.setMedia(media);
+    occurrenceService.update(occ);
+    Occurrence got = occurrenceService.get(KEY);
+    assertNotNull(got);
+    assertEquals(got.getMedia().size(), got.getMedia().size());
+    assertEquals(got.getMedia().get(0).toString(), image1.toString());
+    assertEquals(got.getMedia().get(0).getReferences(), image1.getReferences());
+    assertEquals(got.getMedia().get(0).getIdentifier(), image1.getIdentifier());
+    assertEquals(got.getMedia().get(0).getType(), image1.getType());
+    assertEquals(got.getMedia().get(1).toString(), image2.toString());
+
+    // update
+    media = Lists.newArrayList();
+    image1.setTitle("Updated title");
+    media.add(image1);
+    image2.setTitle("Update 2nd title");
+    media.add(image2);
+    got.setMedia(media);
+    occurrenceService.update(got);
+    Occurrence another = occurrenceService.get(KEY);
+    assertNotNull(another);
+    assertEquals(another.getMedia().size(), another.getMedia().size());
+    assertEquals(another.getMedia().get(0).toString(), image1.toString());
+    assertEquals(another.getMedia().get(0).getReferences(), image1.getReferences());
+    assertEquals(another.getMedia().get(0).getIdentifier(), image1.getIdentifier());
+    assertEquals(another.getMedia().get(0).getType(), image1.getType());
+    assertEquals(another.getMedia().get(1).toString(), image2.toString());
   }
 
   private void addTerms(VerbatimOccurrence occ, String prefix) {

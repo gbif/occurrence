@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.util;
 
 import org.gbif.api.model.common.Identifier;
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
@@ -9,6 +10,7 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.LifeStage;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -23,6 +25,8 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
@@ -37,8 +41,10 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -53,27 +59,16 @@ public class OccurrenceBuilder {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
   // TODO: move these maps to Classification, Term or RankUtils
-  public static final Map<Rank, Term> rank2taxonTerm = ImmutableMap.<Rank, Term>builder()
-    .put(Rank.KINGDOM, DwcTerm.kingdom)
-    .put(Rank.PHYLUM, DwcTerm.phylum)
-    .put(Rank.CLASS, DwcTerm.class_)
-    .put(Rank.ORDER, DwcTerm.order)
-    .put(Rank.FAMILY, DwcTerm.family)
-    .put(Rank.GENUS, DwcTerm.genus)
-    .put(Rank.SUBGENUS, DwcTerm.subgenus)
-    .put(Rank.SPECIES, GbifTerm.species)
-    .build();
+  public static final Map<Rank, Term> rank2taxonTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
+      .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
+      .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus).put(Rank.SPECIES, GbifTerm.species).build();
 
-  public static final Map<Rank, Term> rank2KeyTerm = ImmutableMap.<Rank, Term>builder()
-    .put(Rank.KINGDOM, GbifTerm.kingdomKey)
-    .put(Rank.PHYLUM, GbifTerm.phylumKey)
-    .put(Rank.CLASS, GbifTerm.classKey)
-    .put(Rank.ORDER, GbifTerm.orderKey)
-    .put(Rank.FAMILY, GbifTerm.familyKey)
-    .put(Rank.GENUS, GbifTerm.genusKey)
-    .put(Rank.SUBGENUS, GbifTerm.subgenusKey)
-    .put(Rank.SPECIES, GbifTerm.speciesKey)
-    .build();
+  public static final Map<Rank, Term> rank2KeyTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
+      .put(Rank.CLASS, GbifTerm.classKey).put(Rank.ORDER, GbifTerm.orderKey).put(Rank.FAMILY, GbifTerm.familyKey)
+      .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
+      .put(Rank.SPECIES, GbifTerm.speciesKey).build();
 
   // should never be instantiated
   private OccurrenceBuilder() {
@@ -166,10 +161,10 @@ public class OccurrenceBuilder {
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
       for (Rank r : Rank.DWC_RANKS) {
-        ClassificationUtils.setHigherRankKey(occ, r,
-          ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
-        ClassificationUtils.setHigherRank(occ, r,
-          ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
+        ClassificationUtils
+          .setHigherRankKey(occ, r, ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));
+        ClassificationUtils
+          .setHigherRank(occ, r, ExtResultReader.getString(row, OccurrenceBuilder.rank2taxonTerm.get(r)));
       }
 
       // other java properties
@@ -211,6 +206,7 @@ public class OccurrenceBuilder {
 
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
+      occ.setMedia(buildMedia(row));
 
       return occ;
     }
@@ -243,8 +239,22 @@ public class OccurrenceBuilder {
         verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
-
+    verb.setExtensions(readExtensions(row));
     return verb;
+  }
+
+  /**
+   * Reads the extensions from a result row.
+   */
+  private static Map<Extension, List<Map<Term, String>>> readExtensions(@Nullable Result row) {
+    Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
+    for (Extension extension : Extension.values()) {
+      String jsonExtensions = ExtResultReader.getString(row, Columns.verbatimColumn(extension));
+      if (!Strings.isNullOrEmpty(jsonExtensions)) {
+        extensions.put(extension, ExtensionSerDeserUtils.fromJson(jsonExtensions));
+      }
+    }
+    return extensions;
   }
 
   private static List<Identifier> extractIdentifiers(Integer key, Result result) {
@@ -287,6 +297,23 @@ public class OccurrenceBuilder {
     }
 
     return issues;
+  }
+
+  /**
+   * Builds the list of media objects.
+   */
+  public static List<MediaObject> buildMedia(Result result) {
+    List<MediaObject> media = null;
+    String mediaJson = ExtResultReader.getString(result, Columns.column(Extension.MULTIMEDIA));
+    if (mediaJson != null && !mediaJson.isEmpty()) {
+      try {
+        media = MediaSerDeserUtils.fromJson(mediaJson);
+      } catch (Exception e) {
+        LOG.warn("Unable to deserialize media objects from hbase", e);
+      }
+    }
+
+    return media;
   }
 
 }

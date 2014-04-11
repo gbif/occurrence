@@ -1,13 +1,15 @@
 package org.gbif.occurrence.persistence.hbase;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -41,12 +43,20 @@ public class ColumnsTest {
     Columns.column(DwcTerm.country);
   }
 
+  @Test
   public void testGetVerbatimColumn() throws Exception {
     assertEquals("v_basisOfRecord", Columns.verbatimColumn(DwcTerm.basisOfRecord));
   }
 
+  @Test
   public void testGetTermFromVerbatimColumn() throws Exception {
     assertEquals(DwcTerm.basisOfRecord, Columns.termFromVerbatimColumn(Bytes.toBytes("v_basisOfRecord")));
   }
 
+  @Test
+  public void testExtensionsColumns() {
+    assertEquals(-1, Columns.column(Extension.IMAGE).indexOf(':'));
+    assertTrue(Columns.column(Extension.IMAGE).startsWith("http"));
+    assertTrue(Columns.verbatimColumn(Extension.IMAGE).startsWith("v_"));
+  }
 }

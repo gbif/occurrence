@@ -66,6 +66,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.CONTINENT, OccurrenceSolrField.CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
       .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
+      .put(OccurrenceSearchParameter.MEDIA_TYPE, OccurrenceSolrField.MEDIA_TYPE)
       .build();
 
 

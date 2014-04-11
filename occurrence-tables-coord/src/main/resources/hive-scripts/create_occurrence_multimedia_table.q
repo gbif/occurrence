@@ -1,0 +1,4 @@
+USE ${hive_db};
+CREATE TABLE IF NOT EXISTS occurrence_multimedia_hdfs (gbifid INT,ext_multimedia STRING) STORED AS RCFILE;
+CREATE EXTERNAL TABLE IF NOT EXISTS occurrence_multimedia_hbase (gbifid INT,ext_multimedia STRING) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,o:http_//rs.gbif.org/terms/1.0/Multimedia") TBLPROPERTIES("hbase.table.name" = "${occurrence_hbase_table}","hbase.table.default.storage.type" = "binary");
+INSERT OVERWRITE TABLE occurrence_multimedia_hdfs SELECT gbifid,ext_multimedia  FROM occurrence_multimedia_hbase;

@@ -40,7 +40,7 @@ public class DatasetMutationConfiguration {
   @NotNull
   public String deleteDatasetQueueName;
 
-  @Parameter(names = "--interpret-dataset-queue-name")
+  @Parameter(names = "--interpretMedia-dataset-queue-name")
   @NotNull
   public String interpretDatasetQueueName;
 

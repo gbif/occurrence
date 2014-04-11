@@ -60,6 +60,11 @@
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
     </file>    
+    <file>
+      <source>${project.build.outputDirectory}/inc/multimedia_headers.txt</source>
+      <outputDirectory>lib</outputDirectory>
+      <fileMode>0644</fileMode>
+    </file>    
   </files>
 
   <dependencySets>

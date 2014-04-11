@@ -32,7 +32,7 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -75,6 +75,9 @@ class HiveQueryVisitor {
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
 
+  private static final String MEDIATYPE_CONTAINS_FMT = "array_contains("
+    + HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
+
 
   private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(
     GbifTerm.taxonKey,
@@ -113,17 +116,15 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.TYPE_STATUS, DwcTerm.typeStatus)
     .put(OccurrenceSearchParameter.HAS_COORDINATE, GbifTerm.hasCoordinate)
     .put(OccurrenceSearchParameter.SPATIAL_ISSUES, GbifTerm.hasGeospatialIssues)
+    .put(OccurrenceSearchParameter.MEDIA_TYPE, GbifTerm.mediaType)
     .build();
 
   private StringBuilder builder;
 
-  private static String toHiveField(Term term) {
-    return TermUtils.getHiveColumn(term);
-  }
 
   private static String toHiveField(OccurrenceSearchParameter param) {
     if (PARAM_TO_TERM.containsKey(param)) {
-      return toHiveField(PARAM_TO_TERM.get(param));
+      return HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
     }
     // QueryBuildingException requires an underlying exception
     throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive");
@@ -165,7 +166,8 @@ class HiveQueryVisitor {
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
     if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       appendTaxonKeyFilter(predicate.getValue());
-
+    } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
+      builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }
@@ -219,9 +221,9 @@ class HiveQueryVisitor {
     builder.append("contains(\"");
     builder.append(within.getGeometry());
     builder.append("\", ");
-    builder.append(toHiveField(DwcTerm.decimalLatitude));
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
     builder.append(", ");
-    builder.append(toHiveField(DwcTerm.decimalLongitude));
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
     builder.append(')');
   }
 
@@ -271,7 +273,7 @@ class HiveQueryVisitor {
       if (!first) {
         builder.append(DISJUNCTION_OPERATOR);
       }
-      builder.append(toHiveField(term));
+      builder.append(HiveColumnsUtils.getHiveColumn(term));
       builder.append(EQUALS_OPERATOR);
       builder.append(taxonKey);
       first = false;

@@ -23,5 +23,6 @@ SELECT
   hasgeospatialissues, --geospatial_issue
   hascoordinate, --hascoordinate
   COALESCE(elevation,-1000000),
-  COALESCE(depth,-1000000)
-FROM ${sourceOccurrenceTable}; 
+  COALESCE(depth,-1000000),
+  mediatype
+FROM ${sourceOccurrenceTable} occ; 

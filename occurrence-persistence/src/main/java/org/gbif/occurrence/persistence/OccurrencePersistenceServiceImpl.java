@@ -4,6 +4,7 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.DcTerm;
@@ -12,6 +13,8 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -33,7 +37,6 @@ import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
-import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -69,9 +72,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   /**
    * Note that the returned fragment here is a String that holds the actual xml or json snippet for this occurrence,
    * and not the Fragment object that is used elsewhere.
-   *
+   * 
    * @param key that identifies an occurrence
-   *
    * @return a String holding the original xml or json snippet for this occurrence
    */
   @Override
@@ -249,10 +251,10 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Populates the put and delete for a verbatim record.
-   *
+   * 
    * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
-   *                                         (typically true when updating an Occurrence and false for
-   *                                         VerbatimOccurrence)
+   *        (typically true when updating an Occurrence and false for
+   *        VerbatimOccurrence)
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
     boolean deleteInterpretedVerbatimColumns) throws IOException {
@@ -268,7 +270,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     //
     for (Term term : oldVerb.getVerbatimFields().keySet()) {
       if ((!occ.hasVerbatimField(term) || occ.getVerbatimField(term) == null)
-          && (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
+        && (deleteInterpretedVerbatimColumns || !TermUtils.isInterpretedSourceTerm(term))) {
         upd.deleteVerbatimField(term);
       }
     }
@@ -300,6 +302,32 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!nullSafeEquals(oldVerb.getLastParsed(), occ.getLastParsed())) {
       upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
     }
+    updateExtensions(oldVerb, occ, upd);
+  }
+
+  /**
+   * Updates the extensions map of the newOcc object into the upd object.
+   */
+  private void updateExtensions(VerbatimOccurrence oldOcc, VerbatimOccurrence newOcc, RowUpdate upd)
+    throws IOException {
+    for (Extension extension : Extension.values()) {
+      String newExtensions = getExtensionAsJson(newOcc, extension);
+      if (!nullSafeEquals(getExtensionAsJson(oldOcc, extension), newExtensions)) {
+        upd.setVerbatimExtension(extension, newExtensions);
+      }
+    }
+  }
+
+  /**
+   * Returns the JSON object of verbatimOccurrence.getExtensions().get(extension).
+   * If verbatimOccurrence is null or the requested extension doesn't exist returns null.
+   */
+  private String getExtensionAsJson(VerbatimOccurrence verbatimOccurrence, Extension extension) {
+    String jsonExtensions = null;
+    if (verbatimOccurrence.getExtensions() != null && verbatimOccurrence.getExtensions().containsKey(extension)) {
+      jsonExtensions = ExtensionSerDeserUtils.toJson(verbatimOccurrence.getExtensions().get(extension));
+    }
+    return jsonExtensions;
   }
 
   /**
@@ -429,18 +457,11 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
     }
 
-    // Identifiers
-    // todo: as yet unused
-    //    deleteOldIdentifiers(occTable, occ.getKey());
-    //    if (occ.getIdentifiers() != null && !occ.getIdentifiers().isEmpty()) {
-    //      upd.setInterpretedField(GbifInternalTerm.identifierCount, occ.getIdentifiers().size());
-    //      int count = 0;
-    //      for (Identifier record : occ.getIdentifiers()) {
-    //        upd.setField(Columns.idColumn(count), Bytes.toBytes(record.getIdentifier()));
-    //        upd.setField(Columns.idTypeColumn(count), Bytes.toBytes(record.getType().toString()));
-    //        count++;
-    //      }
-    //    }
+    // Multimedia extension
+    String newMediaJson = MediaSerDeserUtils.toJson(occ.getMedia());
+    if (!nullSafeEquals(MediaSerDeserUtils.toJson(oldOcc.getMedia()), newMediaJson)) {
+      upd.setInterpretedExtension(Extension.MULTIMEDIA, newMediaJson);
+    }
 
     // OccurrenceIssues
     for (OccurrenceIssue issue : oldOcc.getIssues()) {
@@ -458,30 +479,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
     upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
     upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
-  }
-
-  /**
-   * removes id columns and sets id count to zero
-   */
-  private void deleteOldIdentifiers(HTableInterface occTable, int id) throws IOException {
-    final String idCountColumn = Columns.column(GbifInternalTerm.identifierCount);
-
-    Get get = new Get(Bytes.toBytes(id));
-    get.addColumn(Columns.CF, Bytes.toBytes(idCountColumn));
-    Result result = occTable.get(get);
-    Integer maxCount = ExtResultReader.getInteger(result, idCountColumn);
-    if (maxCount != null && maxCount > 0) {
-      Delete delete = new Delete(Bytes.toBytes(id));
-      for (int count = 0; count < maxCount; count++) {
-        delete.deleteColumn(Columns.CF, Bytes.toBytes(Columns.idColumn(count)));
-        delete.deleteColumn(Columns.CF, Bytes.toBytes(Columns.idTypeColumn(count)));
-      }
-      occTable.delete(delete);
-      // set count to 0
-      Put put = new Put(Bytes.toBytes(id));
-      put.add(Columns.CF, Bytes.toBytes(idCountColumn), Bytes.toBytes(0));
-      occTable.put(put);
-    }
   }
 
   private void closeTable(HTableInterface table) {

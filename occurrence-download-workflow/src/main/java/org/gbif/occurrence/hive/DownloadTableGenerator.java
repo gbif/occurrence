@@ -1,10 +1,13 @@
 package org.gbif.occurrence.hive;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.hive.udf.CollectMediaTypesUDF;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.File;
@@ -18,6 +21,7 @@ import java.util.Set;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -31,7 +35,12 @@ public class DownloadTableGenerator {
 
   private static final String VERBATIM_COL_FMT = "v_%s";
   private static final String VERBATIM_COL_DECL_FMT = VERBATIM_COL_FMT + " STRING";
+  private static final String STRING_COL_DECL_FMT = "%s STRING";
   private static final Joiner COMMA_JOINER = Joiner.on(',').skipNulls();
+  private static final String COLLECT_MEDIATYPES_UDF_DCL =
+    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "'";
+  private static final String COLLECT_MEDIATYPES = "collectMediaTypes("
+    + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")";
   private static final String HIVE_CREATE_HBASE_TABLE_FMT =
     "CREATE EXTERNAL TABLE %s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
 
@@ -39,17 +48,26 @@ public class DownloadTableGenerator {
 
   private static final String DROP_TABLE_FMT = "DROP TABLE IF EXISTS %s;";
 
-  private static final String HBASE_MAP_FMT = "o:%s";
-  private static final String HBASE_KEY_MAPPING = ":key";
-  private static final String OCC_ID_COL_DEF = TermUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
-  private static final String HIVE_DEFAULT_OPTS =
-    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;";
-  private static final String INSERT_INFO_OCCURRENCE_HDFS = "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s;";
-
-  private static final String HAS_COORDINATE_EXP = "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
-
   private static final String HDFS_POST = "_hdfs";
   private static final String HBASE_POST = "_hbase";
+
+  private static final String HBASE_MAP_FMT = "o:%s";
+  private static final String HBASE_KEY_MAPPING = ":key";
+  private static final String OCC_ID_COL_DEF = HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
+  private static final String HIVE_DEFAULT_OPTS =
+    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;";
+  private static final String INSERT_INFO_OCCURRENCE_HDFS =
+    "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s occ LEFT OUTER JOIN %4$s mm ON occ.gbifid = mm.gbifid;";
+
+  private static final String MULTIMEDIA_TABLE_POST = "_multimedia";
+  private static final String MULTIMEDIA_HBASE_TABLE_POST = MULTIMEDIA_TABLE_POST + HBASE_POST;
+  private static final String MULTIMEDIA_HDFS_TABLE_POST = MULTIMEDIA_TABLE_POST + HDFS_POST;
+
+  private static final String INSERT_MULTIMEDIA_FMT =
+    "INSERT OVERWRITE TABLE %s"
+      + " SELECT gbifid," + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + "  FROM %s;";
+
+  private static final String HAS_COORDINATE_EXP = "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
 
   private static final String ISSUE_HIVE_TYPE = " INT";
   private static final String COALESCE0_FMT = "COALESCE(%s,0)";
@@ -64,7 +82,7 @@ public class DownloadTableGenerator {
   private static final Function<Term, String> TERM_COL_DECL = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return TermUtils.getHiveColumn(term) + " " + TermUtils.getHiveType(term);
+      return HiveColumnsUtils.getHiveColumn(term) + " " + HiveColumnsUtils.getHiveType(term);
     }
   };
 
@@ -74,9 +92,21 @@ public class DownloadTableGenerator {
   private static final Function<Term, String> VERBATIM_TERM_COL_DEF = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return String.format(VERBATIM_COL_FMT, TermUtils.getHiveColumn(term));
+      return String.format(VERBATIM_COL_FMT, HiveColumnsUtils.getHiveColumn(term));
     }
   };
+
+
+  /**
+   * Generates the COLUMN name of a extension.
+   */
+  private static final Function<Extension, String> EXTENSION_COL_DECL = new Function<Extension, String>() {
+
+    public String apply(Extension extension) {
+      return String.format(STRING_COL_DECL_FMT, HiveColumnsUtils.getHiveColumn(extension));
+    }
+  };
+
 
   /**
    * Generates the COLUMN declaration (NAME TYPE) of a verbatim term.
@@ -84,7 +114,7 @@ public class DownloadTableGenerator {
   private static final Function<Term, String> VERBATIM_TERM_COL_DECL = new Function<Term, String>() {
 
     public String apply(Term term) {
-      return String.format(VERBATIM_COL_DECL_FMT, TermUtils.getHiveColumn(term));
+      return String.format(VERBATIM_COL_DECL_FMT, HiveColumnsUtils.getHiveColumn(term));
     }
   };
 
@@ -95,7 +125,7 @@ public class DownloadTableGenerator {
   private static final Function<OccurrenceIssue, String> ISSUE_COALESCE_EXP = new Function<OccurrenceIssue, String>() {
 
     public String apply(OccurrenceIssue issue) {
-      return String.format(COALESCE0_FMT, TermUtils.getHiveColumn(issue));
+      return String.format(COALESCE0_FMT, HiveColumnsUtils.getHiveColumn(issue));
     }
   };
 
@@ -111,10 +141,17 @@ public class DownloadTableGenerator {
       if (GbifTerm.hasCoordinate == term) {
         return HAS_COORDINATE_EXP;
       }
-      return TermUtils.getHiveColumn(term);
+      return HiveColumnsUtils.getHiveColumn(term);
     }
 
   };
+
+  /**
+   * Multimedia columns for hdfs and hbase columns.
+   */
+  private static final String MULTIMEDIA_COLUMNS = COMMA_JOINER.join(new ImmutableList.Builder<String>()
+    .add(OCC_ID_COL_DEF)
+    .add(EXTENSION_COL_DECL.apply(Extension.MULTIMEDIA)).build());
 
   /**
    * Generates a Hive expression that validates if a record has spatial issues.
@@ -162,7 +199,7 @@ public class DownloadTableGenerator {
   private static final Function<OccurrenceIssue, String> ISSUE_COL_DECL = new Function<OccurrenceIssue, String>() {
 
     public String apply(OccurrenceIssue issue) {
-      return TermUtils.getHiveColumn(issue) + ISSUE_HIVE_TYPE;
+      return HiveColumnsUtils.getHiveColumn(issue) + ISSUE_HIVE_TYPE;
     }
   };
 
@@ -189,29 +226,40 @@ public class DownloadTableGenerator {
    * Returns a list of column names for the HDFS table.
    */
   private static List<String> hdfsTableColumns() {
-    ImmutableSet<Term> exclusions = new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).build();
+    ImmutableSet<Term> exclusions =
+      new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).add(GbifTerm.mediaType).build();
     List<String> columns =
       new ImmutableList.Builder<String>()
         .add(OCC_ID_COL_DEF)
         .addAll(processTerms(TermUtils.verbatimTerms(), VERBATIM_TERM_COL_DECL, exclusions))
         .addAll(processTerms(INTERNAL_TERMS, TERM_COL_DECL, exclusions))
-        .addAll(processTerms(TermUtils.interpretedTerms(), TERM_COL_DECL, exclusions)).build();
+        .addAll(processTerms(TermUtils.interpretedTerms(), TERM_COL_DECL, exclusions))
+        .build();
     return columns;
   }
-
 
   /**
    * Lists the Hive select expressions to populate the HDFS table from the Hbase table.
    */
-  private static List<String> selectHdfsTableColumns() {
-    ImmutableSet<Term> exclusions = new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).build();
+  private static List<String> selectHdfsTableColumns(String occurrenceTableAlias) {
+    ImmutableSet<Term> exclusions =
+      new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).add(GbifTerm.mediaType).build();
     List<String> columns =
       new ImmutableList.Builder<String>()
-        .add(TermUtils.getHiveColumn(GbifTerm.gbifID))
+        .add(appendAliasIfNotNull(occurrenceTableAlias, HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID)))
         .addAll(processTerms(TermUtils.verbatimTerms(), VERBATIM_TERM_COL_DEF, exclusions))
         .addAll(processTerms(INTERNAL_TERMS, TERM_SELECT_EXP, exclusions))
-        .addAll(processTerms(TermUtils.interpretedTerms(), TERM_SELECT_EXP, exclusions)).build();
+        .addAll(processTerms(TermUtils.interpretedTerms(), TERM_SELECT_EXP, exclusions))
+        .add(COLLECT_MEDIATYPES)
+        .build();
     return columns;
+  }
+
+  private static String appendAliasIfNotNull(String tableAlias, String column) {
+    if (!Strings.isNullOrEmpty(tableAlias)) {
+      return tableAlias + '.' + column;
+    }
+    return column;
   }
 
   /**
@@ -229,7 +277,8 @@ public class DownloadTableGenerator {
    * List the Hive-to-HBase-Hive column mappings.
    */
   private static List<String> hbaseTableColumnMappings() {
-    ImmutableSet<Term> exclusions = new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).build();
+    ImmutableSet<Term> exclusions =
+      new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).add(GbifTerm.mediaType).build();
     List<String> columns =
       new ImmutableList.Builder<String>()
         .add(HBASE_KEY_MAPPING)
@@ -244,7 +293,10 @@ public class DownloadTableGenerator {
    * Builds the CREATE TABLE statement for the HDFS table.
    */
   private static String buildCreateHdfsTable(String hiveTableName) {
-    return String.format(HIVE_CREATE_HDFS_TABLE_FMT, hiveTableName + HDFS_POST, COMMA_JOINER.join(hdfsTableColumns()));
+    ImmutableList<String> hdfsColumns =
+      new ImmutableList.Builder<String>().addAll(hdfsTableColumns()).add(TERM_COL_DECL.apply(GbifTerm.mediaType))
+        .build();
+    return String.format(HIVE_CREATE_HDFS_TABLE_FMT, hiveTableName + HDFS_POST, COMMA_JOINER.join(hdfsColumns));
   }
 
   /**
@@ -259,9 +311,10 @@ public class DownloadTableGenerator {
   /**
    * Builds the INSERT OVERWRITE statement that populates the HDFS table from HBase.
    */
-  private static String buildInsertFromHBaseIntoHive(String hiveTableName) {
+  private static String buildInsertFromHBaseIntoHive(String hiveTableName, String occurrencetableAlias) {
     return String.format(INSERT_INFO_OCCURRENCE_HDFS, hiveTableName + HDFS_POST,
-      COMMA_JOINER.join(selectHdfsTableColumns()), hiveTableName + HBASE_POST);
+      COMMA_JOINER.join(selectHdfsTableColumns(occurrencetableAlias)), hiveTableName + HBASE_POST, hiveTableName
+        + MULTIMEDIA_HBASE_TABLE_POST);
   }
 
   /**
@@ -269,16 +322,40 @@ public class DownloadTableGenerator {
    */
   private static String buildDropTableStatements(String hiveTableName) {
     return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n'
-      + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
+      + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST) + '\n'
+      + String.format(DROP_TABLE_FMT, hiveTableName + MULTIMEDIA_HBASE_TABLE_POST) + '\n'
+      + String.format(DROP_TABLE_FMT, hiveTableName + MULTIMEDIA_HDFS_TABLE_POST);
   }
 
   /**
    * Generates a Hive script that deletes the hive occurrence tables, creates them and populate the HDFS table.
    */
   public static String generateHiveScript(String hiveTableName, String hbaseTableName) {
-    return HIVE_DEFAULT_OPTS + '\n' + buildDropTableStatements(hiveTableName) + '\n'
-      + buildCreateHdfsTable(hiveTableName) + '\n' + buildCreateHBaseTable(hiveTableName, hbaseTableName)
-      + '\n' + buildInsertFromHBaseIntoHive(hiveTableName);
+    return HIVE_DEFAULT_OPTS
+      + '\n'
+      + COLLECT_MEDIATYPES_UDF_DCL
+      + '\n'
+      + buildDropTableStatements(hiveTableName)
+      + '\n'
+      + buildCreateHdfsTable(hiveTableName)
+      + '\n'
+      + buildCreateHBaseTable(hiveTableName, hbaseTableName)
+      + '\n'
+      + generateMultimediaTables(hiveTableName, hbaseTableName)
+      + '\n'
+      + String.format(INSERT_MULTIMEDIA_FMT, hiveTableName + MULTIMEDIA_HDFS_TABLE_POST, hiveTableName
+        + MULTIMEDIA_HBASE_TABLE_POST)
+      + '\n'
+      + buildInsertFromHBaseIntoHive(hiveTableName, "occ");
+  }
+
+  private static String generateMultimediaTables(String hiveTableName, String hbaseTableName) {
+    return String.format(HIVE_CREATE_HDFS_TABLE_FMT, hiveTableName + MULTIMEDIA_HDFS_TABLE_POST, MULTIMEDIA_COLUMNS)
+      + '\n'
+      + String.format(
+        HIVE_CREATE_HBASE_TABLE_FMT, hiveTableName + MULTIMEDIA_HBASE_TABLE_POST, MULTIMEDIA_COLUMNS,
+        COMMA_JOINER.join(new ImmutableList.Builder<String>().add(HBASE_KEY_MAPPING)
+          .add(String.format(HBASE_MAP_FMT, Columns.column(Extension.MULTIMEDIA))).build()), hbaseTableName);
   }
 
   /**

@@ -21,18 +21,21 @@ public class FileJob implements Comparable<FileJob> {
 
   private final String interpretedDataFile;
   private final String verbatimDataFile;
+  private final String multimediaDataFile;
 
 
   /**
    * Default constructor.
    */
-  public FileJob(int from, int to, String interpretedDataFile, String verbatimDataFile, String query) {
+  public FileJob(int from, int to, String interpretedDataFile, String verbatimDataFile, String multimediaDataFile,
+    String query) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
     this.to = to;
     this.interpretedDataFile = interpretedDataFile;
     this.verbatimDataFile = verbatimDataFile;
+    this.multimediaDataFile = multimediaDataFile;
   }
 
   @Override
@@ -50,7 +53,8 @@ public class FileJob implements Comparable<FileJob> {
     }
 
     FileJob that = (FileJob) obj;
-    return Objects.equal(this.interpretedDataFile, that.interpretedDataFile) && Objects.equal(this.query, that.query)
+    return Objects.equal(this.interpretedDataFile, that.interpretedDataFile)
+      && Objects.equal(this.multimediaDataFile, that.multimediaDataFile) && Objects.equal(this.query, that.query)
       && Objects.equal(this.from, that.from) && Objects.equal(this.to, that.to);
   }
 
@@ -69,6 +73,13 @@ public class FileJob implements Comparable<FileJob> {
     return verbatimDataFile;
   }
 
+
+  /**
+   * Gets the multimedia data file name.
+   */
+  public String getMultimediaDataFile() {
+    return multimediaDataFile;
+  }
 
   /**
    * Offset in the complete result set returned by the query.
@@ -100,14 +111,15 @@ public class FileJob implements Comparable<FileJob> {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(this.interpretedDataFile, this.query, this.from, this.to);
+    return Objects.hashCode(this.interpretedDataFile, this.verbatimDataFile, this.multimediaDataFile, this.query,
+      this.from, this.to);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("from", from).add("to", to)
       .add("interpretedDataFile", interpretedDataFile).add("verbatimDataFile", verbatimDataFile)
-      .add("query", query).toString();
+      .add("multimediaDataFile", multimediaDataFile).add("query", query).toString();
   }
 
 }

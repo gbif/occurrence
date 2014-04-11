@@ -72,47 +72,52 @@ public class VerbatimOccurrenceInterpreter {
     try {
       LocationInterpreter.interpretLocation(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during location interpretation", e);
     }
     try {
       TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during taxonomy interpretation", e);
     }
     try {
       OwningOrgInterpreter.interpretOwningOrg(occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during owning org interpretation", e);
+    }
+    try {
+      MultiMediaInterpreter.interpretMedia(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during media interpretation", e);
     }
     try {
       interpretBor(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during basis of record interpretation", e);
     }
     try {
       interpretSex(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during sex interpretation", e);
     }
     try {
       interpretEstablishmentMeans(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during establishment means interpretation", e);
     }
     try {
       interpretLifeStage(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during life stage interpretation", e);
     }
     try {
       interpretTypification(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during typification interpretation", e);
     }
     try {
       TemporalInterpreter.interpretTemporal(verbatim, occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during interpretation", e);
+      LOG.warn("Caught a runtime exception during temporal interpretation", e);
     }
 
     occ.setLastInterpreted(new Date());

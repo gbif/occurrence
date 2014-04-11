@@ -7,7 +7,7 @@
   under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
   OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
   the specific language governing permissions and ~ limitations under the License. -->
-<workflow-app name="occurrence.download" xmlns="uri:oozie:workflow:0.2">
+<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.2">
 
   <start to="occurrence_count" />
   
@@ -49,6 +49,7 @@
       <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
       <arg>${query_result_table}_interpreted</arg>
       <arg>${query_result_table}_verbatim</arg>
+      <arg>${query_result_table}_multimedia</arg>
       <arg>${citation_table}</arg>
       <arg>${solr_query}</arg>
       <arg>${hdfs.namenode}</arg>
@@ -73,7 +74,7 @@
       <param>query_result_table=${occurrence.environment}.${query_result_table}_interpreted</param>
     </hive>
 
-    <ok to="citation" />
+    <ok to="secondary_files" />
     <error to="failure_drop_table" />
   </action>
 
@@ -94,6 +95,27 @@
     <error to="failure_drop_table" />
   </action>
 
+  <fork name="secondary_files">
+    <path start="citation" />
+    <path start="multimedia" />
+  </fork>
+  
+  <action name="multimedia">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/create_multimedia_table.q</script>
+
+      <param>result_multimedia_table=${occurrence.environment}.${query_result_table}_multimedia</param>      
+      <param>multimedia_table=${occurrence.environment}.occurrence_multimedia_hdfs</param>
+      <param>occurrence_intepreted_table=${occurrence.environment}.${query_result_table}_interpreted</param>
+    </hive>
+
+    <ok to="bundling" />
+    <error to="failure_drop_table" />
+  </action>
+  
   <action name="citation">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -128,6 +150,7 @@
       <arg>${hdfs_hive_path}</arg>
       <arg>${query_result_table}_interpreted</arg>
       <arg>${query_result_table}_verbatim</arg>
+      <arg>${query_result_table}_multimedia</arg>
       <arg>${citation_table}</arg>
       <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
       <arg>${wf:id()}</arg>
@@ -197,6 +220,7 @@
     <fs>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_multimedia'/>
       <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
     </fs>
     <ok to="end" />

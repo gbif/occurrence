@@ -38,6 +38,11 @@
   "family":"Scrophulariaceae",
   "continent":"Asia",
   "waterBody":"Bosphorus",
-  "extensions": "{http://rs.gbif.org/terms/1.0/Image=[]}",
+  "extensions":{"http://rs.gbif.org/terms/1.0/Image":[
+    {
+      "description":"Habitus-Dorsal-Lateral-Ventral",
+      "identifier":"http://digit.snm.ku.dk/www/Aves/full/AVES-100348_Caprimulgus_pectoralis_fervidus_ad____f.jpg"
+    }
+  ]},
   "occurrenceID":"ABC123"
 }

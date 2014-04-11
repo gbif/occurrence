@@ -14,6 +14,8 @@
   <properties>
     <jts.version>1.13</jts.version>
     <hive.version>0.10.0-cdh4.2.1</hive.version>
+    <hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
+    <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
   </properties>
 
   <name>Occurrence Index Builder Oozie workflow</name>
@@ -123,8 +125,7 @@
   </repositories>
 
   <dependencies>
-
-    <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
+	  <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
     <dependency>
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
@@ -132,9 +133,10 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Runtime dependencies -->
-    <!-- Hadoop is excluded because maven complains if not, as there is metadata
-      missing in the hadoop repo -->
+    <!--
+    <!- - Runtime dependencies - ->
+    <!- - Hadoop is excluded because maven complains if not, as there is metadata
+      missing in the hadoop repo - ->
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-cli</artifactId>
@@ -182,6 +184,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    -->
   </dependencies>
 
 </project>

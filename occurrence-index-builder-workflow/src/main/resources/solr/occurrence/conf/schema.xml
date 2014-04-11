@@ -75,6 +75,7 @@
       <field name="event_date" type="date" indexed="true" stored="false" />
       <field name="last_interpreted" type="date" indexed="true" stored="false" />
       <field name="type_status" type="string" indexed="true" stored="false"/>
+      <field name="media_type" type="string" indexed="true" stored="false" multiValued="true"/>
       <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
 	<!-- Field to use to determine and enforce document uniqueness. Unless this

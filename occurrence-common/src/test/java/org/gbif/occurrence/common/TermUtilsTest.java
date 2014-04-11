@@ -65,11 +65,12 @@ public class TermUtilsTest {
 
   @Test
   public void testHiveColumns() {
-    assertEquals(GbifTerm.gbifID.simpleName().toLowerCase(), TermUtils.getHiveColumn(GbifTerm.gbifID));
-    assertEquals(DwcTerm.catalogNumber.simpleName().toLowerCase(), TermUtils.getHiveColumn(DwcTerm.catalogNumber));
-    assertEquals(DcTerm.date.simpleName().toLowerCase() + '_', TermUtils.getHiveColumn(DcTerm.date));
+    assertEquals(GbifTerm.gbifID.simpleName().toLowerCase(), HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID));
+    assertEquals(DwcTerm.catalogNumber.simpleName().toLowerCase(),
+      HiveColumnsUtils.getHiveColumn(DwcTerm.catalogNumber));
+    assertEquals(DcTerm.date.simpleName().toLowerCase() + '_', HiveColumnsUtils.getHiveColumn(DcTerm.date));
 
     assertEquals(OccurrenceIssue.BASIS_OF_RECORD_INVALID.name().toLowerCase(),
-      TermUtils.getHiveColumn(OccurrenceIssue.BASIS_OF_RECORD_INVALID));
+      HiveColumnsUtils.getHiveColumn(OccurrenceIssue.BASIS_OF_RECORD_INVALID));
   }
 }

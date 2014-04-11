@@ -5,7 +5,6 @@ CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.Clean
 
 set mapred.output.compress=false;
 set hive.exec.compress.output=false;
-set hbase.client.scanner.caching=200;
 
 CREATE TABLE ${query_result_table}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'

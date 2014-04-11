@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.io.ByteArrayInputStream;
@@ -24,10 +25,14 @@ public class HeadersFileUtil {
 
   public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatim_headers.txt";
   public static final String DEFAULT_INTERPRETED_FILE_NAME = "interpreted_headers.txt";
-
+  public static final String DEFAULT_MULTIMEDIA_FILE_NAME = "multimedia_headers.txt";
+  public static final String MULTIMEDIA_ID_COLUMN = "coreid";
   public static final String HEADERS_FILE_PATH = "inc/";
 
   private static final Joiner TAB_JOINER = Joiner.on('\t').skipNulls();
+  private static final String[] MULTIMEDIA_HEADERS = new String[] {MULTIMEDIA_ID_COLUMN, "type", "format",
+    "identifier", "references", "title", "description", "source", "audience", "created", "creator", "contributor",
+    "publisher", "license", "rightsHolder"};
 
   /**
    * Empty private constructor.
@@ -42,9 +47,12 @@ public class HeadersFileUtil {
    * If the file names are not specified the files are generated in
    * the current directory with the name "verbatium_headers.txt" and "verbatium_headers.txt".
    */
-  public static void generateHeadersFiles(String verbatimFileName, String interpretedFileName) throws IOException {
+  public static void
+    generateHeadersFiles(String verbatimFileName, String interpretedFileName, String multimediaFileName)
+      throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
     generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getIntepretedTableHeader());
+    generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, TAB_JOINER.join(MULTIMEDIA_HEADERS) + '\n');
   }
 
   /**
@@ -68,7 +76,7 @@ public class HeadersFileUtil {
   private static String getTableHeader(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
-      headers.add(TermUtils.getHiveColumn(term));
+      headers.add(HiveColumnsUtils.getHiveColumn(term));
     }
     return TAB_JOINER.join(headers) + '\n';
   }
@@ -79,7 +87,7 @@ public class HeadersFileUtil {
   private static String[] getTableColumns(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
-      headers.add(TermUtils.getHiveColumn(term));
+      headers.add(HiveColumnsUtils.getHiveColumn(term));
     }
     return headers.toArray(new String[headers.size()]);
   }
@@ -88,24 +96,32 @@ public class HeadersFileUtil {
    * Appends the occurrence headers line to the output file.
    */
   public static void appendInterpretedHeaders(OutputStream fileWriter) throws IOException {
-    Closer resultCloser = Closer.create();
-    try {
-      InputStream headerInputStream =
-        resultCloser.register(new ByteArrayInputStream(getIntepretedTableHeader().getBytes()));
-      ByteStreams.copy(headerInputStream, fileWriter);
-    } finally {
-      resultCloser.close();
-    }
+    appendHeaders(fileWriter, getIntepretedTableHeader());
   }
 
   /**
    * Appends the occurrence headers line to the output file.
    */
   public static void appendVerbatimHeaders(OutputStream fileWriter) throws IOException {
+    appendHeaders(fileWriter, getVerbatimTableHeader());
+  }
+
+  /**
+   * Appends the occurrence headers line to the output file.
+   */
+  public static void appendMultimediaHeaders(OutputStream fileWriter) throws IOException {
+    appendHeaders(fileWriter, getMultimediaTableHeader());
+  }
+
+
+  /**
+   * Appends the headers line to the output file.
+   */
+  private static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
     Closer resultCloser = Closer.create();
     try {
       InputStream headerInputStream =
-        resultCloser.register(new ByteArrayInputStream(getVerbatimTableHeader().getBytes()));
+        resultCloser.register(new ByteArrayInputStream(headers.getBytes()));
       ByteStreams.copy(headerInputStream, fileWriter);
     } finally {
       resultCloser.close();
@@ -127,6 +143,14 @@ public class HeadersFileUtil {
   }
 
   /**
+   * Returns the headers names of download columns.
+   */
+  public static String getMultimediaTableHeader() {
+    return TAB_JOINER.join(MULTIMEDIA_HEADERS) + '\n';
+  }
+
+
+  /**
    * Returns a list column names of interpreted fields.
    */
   public static String[] getIntepretedTableColumns() {
@@ -140,12 +164,20 @@ public class HeadersFileUtil {
     return getTableColumns(TermUtils.verbatimTerms());
   }
 
+  /**
+   * Returns a list column names of multimedia fields.
+   */
+  public static String[] getMultimediaTableColumns() {
+    return MULTIMEDIA_HEADERS;
+  }
+
 
   public static void main(String[] args) throws IOException {
-    if (args.length < 2) {
-      throw new IllegalArgumentException("2 Parameters are required: verbatim and interpreted header file names");
+    if (args.length < 3) {
+      throw new IllegalArgumentException(
+        "3 Parameters are required: verbatim, interpreted and multimedia header file names");
     }
-    generateHeadersFiles(args[0], args[1]);
+    generateHeadersFiles(args[0], args[1], args[2]);
   }
 
 }

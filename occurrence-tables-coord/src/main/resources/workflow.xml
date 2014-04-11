@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~
+  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may
+  not use this file except in compliance with the License. ~ You may obtain
+  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~
+  ~ Unless required by applicable law or agreed to in writing, software ~ distributed
+  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
+  the specific language governing permissions and ~ limitations under the License. -->
+<workflow-app name="OccurrenceHDFSBuild-${occurrence.environment}" xmlns="uri:oozie:workflow:0.2">
+
+  <start to="create_tables" />
+   
+  <fork name="create_tables">
+    <path start="create_occurrence_hdfs" />
+    <path start="create_multimedia_hdfs" />
+  </fork>
+  
+  <action name="create_occurrence_hdfs">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/create_occurrence_hdfs_table.q</script>
+      
+      <param>hive_db=${occurrence.environment}</param>
+      <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
+    </hive>
+
+    <ok to="before_end" />
+    <error to="kill" />
+  </action>
+
+  <action name="create_multimedia_hdfs">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/create_occurrence_multimedia_table.q</script>
+
+     <param>hive_db=${occurrence.environment}</param>
+     <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>    
+    </hive>
+
+    <ok to="before_end" />
+    <error to="kill" />
+  </action>
+
+  <join name="before_end" to="end"/>
+
+  <kill name="kill">
+    <message>Occurrence table generators failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  </kill>
+
+  <end name="end" />
+
+</workflow-app>

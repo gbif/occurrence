@@ -16,6 +16,7 @@ import java.util.GregorianCalendar;
 import java.util.Set;
 
 import com.beust.jcommander.internal.Sets;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import org.slf4j.Logger;
@@ -28,7 +29,18 @@ public class TemporalInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TemporalInterpreter.class);
   // we accept 13h difference between dates due to timezone trouble
-  private static final long MAX_DIFFERENCE = 13 * 1000 * 60 * 60;
+  private static final long MAX_DIFFERENCE = 13 * 1000*60*60;
+  // max is next year
+  @VisibleForTesting
+  protected static final Range<Integer> VALID_RECORDED_YEAR_RANGExxxx =
+    Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR) + 1);
+
+  public static final Range<Date> VALID_RECORDED_DATE_RANGE =
+    Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
+
+  // modified date for a record cant be before unix time
+  @VisibleForTesting
+  protected static final Range<Date> VALID_MODIFIED_DATE_RANGE = Range.closed(new Date(0), new Date());
 
   private TemporalInterpreter() {
   }

@@ -17,7 +17,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 /**
  * Utility class for writing occurrence records into an HBase table.
  */
-public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
+public class HBasePredicateWriter implements Predicate<Occurrence> {
 
 
   // HBase table
@@ -29,7 +29,7 @@ public class HBaseOccurrenceWriter implements Predicate<Occurrence> {
   /**
    * Default constructor.
    */
-  public HBaseOccurrenceWriter(HTableInterface hTable) {
+  public HBasePredicateWriter(HTableInterface hTable) {
     this.hTable = hTable;
   }
 

@@ -2,7 +2,9 @@ package org.gbif.occurrence.processor.parsing;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
@@ -23,8 +25,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class JsonFragmentParserTest {
 
@@ -109,5 +113,14 @@ public class JsonFragmentParserTest {
     assertEquals("Scrophulariaceae", verb.getVerbatimField(DwcTerm.family));
     assertEquals("Asia", verb.getVerbatimField(DwcTerm.continent));
     assertNull(verb.getVerbatimField(TermFactory.instance().findTerm("extensions")));
+
+    // test image extension
+    for (Extension ext : Extension.values()) {
+      if (ext == Extension.IMAGE) continue;
+      assertFalse(verb.getExtensions().containsKey(ext));
+    }
+    assertTrue(verb.getExtensions().containsKey(Extension.IMAGE));
+    assertEquals(1, verb.getExtensions().get(Extension.IMAGE).size());
+    assertEquals("http://digit.snm.ku.dk/www/Aves/full/AVES-100348_Caprimulgus_pectoralis_fervidus_ad____f.jpg", verb.getExtensions().get(Extension.IMAGE).get(0).get(DcTerm.identifier));
   }
 }

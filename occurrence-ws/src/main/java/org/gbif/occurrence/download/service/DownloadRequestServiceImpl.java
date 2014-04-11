@@ -19,6 +19,7 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 
@@ -99,14 +100,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   static {
     List<String> columns = Lists.newArrayList();
     for (Term term : TermUtils.interpretedTerms()) {
-      final String iCol = TermUtils.getHiveColumn(term);
+      final String iCol = HiveColumnsUtils.getHiveColumn(term);
       if (TermUtils.isInterpretedDate(term)) {
         columns.add("toISO8601(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedNumerical(term) || TermUtils.isInterpretedDouble(term)) {
         columns.add("cleanNull(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedBoolean(term)) {
         columns.add(iCol);
-      } else {
+      } else if (!TermUtils.isComplexType(term)) {
+        // complex type fields are not added to the select statement
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       }
     }
@@ -115,10 +117,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     columns = Lists.newArrayList();
     // manually add the GBIF occ key as first column
-    columns.add(TermUtils.getHiveColumn(GbifTerm.gbifID));
+    columns.add(HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID));
     for (Term term : TermUtils.verbatimTerms()) {
       if (GbifTerm.gbifID != term) {
-        String colName = TermUtils.getHiveColumn(term);
+        String colName = HiveColumnsUtils.getHiveColumn(term);
         columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
       }
     }

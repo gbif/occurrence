@@ -35,5 +35,6 @@ TBLPROPERTIES (
     {"name":"spatial_issues","type":"boolean"},
     {"name":"has_coordinate","type":"boolean"},
     {"name":"elevation","type":"int"},
-    {"name":"depth","type":"int"}]
+    {"name":"depth","type":"int"},
+    {"name":"media_type","type":{"type":"array", "items":"string"}}]
 }');
