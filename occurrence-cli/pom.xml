@@ -229,7 +229,7 @@
      <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-search</artifactId>
@@ -360,7 +360,7 @@
 
   <profiles>
     <profile>
-      <id>minicrawler</id>
+      <id>crawler-dev</id>
       <build>
         <plugins>
           <plugin>
@@ -369,7 +369,7 @@
             <version>1.0-beta-4</version>
             <configuration>
               <fromFile>${project.build.directory}/${project.artifactId}.jar</fromFile>
-              <url>scp://crap@minicrawler.gbif.org/home/crap/lib</url>
+              <url>scp://crap@crawler.gbif-dev.org/home/crap/lib</url>
             </configuration>
             <executions>
               <execution>
