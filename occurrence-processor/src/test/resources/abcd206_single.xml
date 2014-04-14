@@ -53,6 +53,34 @@
       </Identifiers>
     </Identification>
   </Identifications>
+  <MultiMediaObjects>
+    <MultiMediaObject>
+      <FileURI>http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2010_04_short.mp3</FileURI>
+      <ProductURI>http://www.tierstimmenarchiv.de/webinterface/contents/showdetails.php?edit=-1&amp;unique_id=TSA:Ailuroedus_buccoides_V_2010_4_1&amp;autologin=true</ProductURI>
+      <Format>audio/mp3</Format>
+      <IPR>
+        <Licenses>
+          <License language="EN">
+            <Text>CC BY-NC-ND (Attribution for non commercial use only and without derivative)</Text>
+            <URI>http://creativecommons.org/licenses/by-nc-nd/3.0/</URI>
+          </License>
+        </Licenses>
+      </IPR>
+    </MultiMediaObject>
+    <MultiMediaObject>
+      <FileURI>http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2095_21_short.mp3</FileURI>
+      <ProductURI>http://www.tierstimmenarchiv.de/webinterface/contents/showdetails.php?edit=-1&amp;unique_id=TSA:Ailuroedus_buccoides_V_2095_21_2&amp;autologin=true</ProductURI>
+      <Format>audio/mp3</Format>
+      <IPR>
+        <Licenses>
+          <License language="EN">
+            <Text>CC BY-NC-ND (Attribution for non commercial use only and without derivative)</Text>
+            <URI>http://creativecommons.org/licenses/by-nc-nd/3.0/</URI>
+          </License>
+        </Licenses>
+      </IPR>
+    </MultiMediaObject>
+  </MultiMediaObjects>
   <RecordBasis>HumanObservation</RecordBasis>
   <SpecimenUnit>
     <Preparations>

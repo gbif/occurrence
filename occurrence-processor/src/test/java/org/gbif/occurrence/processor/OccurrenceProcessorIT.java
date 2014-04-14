@@ -25,6 +25,7 @@ import org.gbif.occurrence.processor.messaging.VerbatimPersistedListener;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.UUID;
@@ -163,7 +164,6 @@ public class OccurrenceProcessorIT {
     assertEquals("ABC123", got.getVerbatimField(DwcTerm.occurrenceID));
 
     // multimedia
-    System.out.println("got media: " + got.getMedia());
     assertNotNull(got.getMedia());
     assertEquals(1, got.getMedia().size());
     assertEquals(MediaType.StillImage, got.getMedia().get(0).getType());
@@ -173,7 +173,7 @@ public class OccurrenceProcessorIT {
   }
 
   @Test
-  public void testEndToEndAbcd2() throws IOException, InterruptedException {
+  public void testEndToEndAbcd2() throws IOException, InterruptedException, URISyntaxException {
     UUID datasetKey = UUID.fromString(BOGART_DATASET_KEY);
     OccurrenceSchemaType xmlSchema = OccurrenceSchemaType.ABCD_2_0_6;
     Integer crawlId = 1;
@@ -212,6 +212,9 @@ public class OccurrenceProcessorIT {
     assertEquals(EndpointType.BIOCASE, got.getProtocol());
     assertEquals("1", got.getVerbatimField(GbifTerm.gbifID));
     assertEquals(TypeStatus.HOLOTYPE, got.getTypeStatus());
+    assertEquals(2, got.getMedia().size());
+    assertEquals(new URI("http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2010_04_short.mp3"),
+      got.getMedia().get(0).getIdentifier());
   }
 
   @Test
@@ -260,25 +263,32 @@ public class OccurrenceProcessorIT {
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.FRAGMENT_PROCESSED).longValue());
     assertEquals(0l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_ERROR)
-        .longValue());
+        .longValue()
+    );
     assertEquals(1l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_UNCHANGED)
-        .longValue());
+        .longValue()
+    );
     assertEquals(1l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_UPDATED)
-        .longValue());
+        .longValue()
+    );
     assertEquals(4l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_NEW)
-        .longValue());
+        .longValue()
+    );
     assertEquals(0l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.VERBATIM_OCCURRENCE_PERSISTED_ERROR)
-        .longValue());
+        .longValue()
+    );
     assertEquals(5l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.VERBATIM_OCCURRENCE_PERSISTED_SUCCESS)
-        .longValue());
+        .longValue()
+    );
     assertEquals(0l,
       zookeeperConnector.readCounter(datasetKey, ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_ERROR)
-        .longValue());
+        .longValue()
+    );
     assertEquals(5l, zookeeperConnector
       .readCounter(datasetKey, ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS).longValue());
   }

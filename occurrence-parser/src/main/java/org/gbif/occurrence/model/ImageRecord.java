@@ -33,6 +33,7 @@ public class ImageRecord extends PropertyPrioritizer implements Serializable {
   private String rawImageType;
   private Integer imageType;
   private String url;
+  private String pageUrl;
   private String description;
   private String rights;
   private String htmlForDisplay;
@@ -48,6 +49,9 @@ public class ImageRecord extends PropertyPrioritizer implements Serializable {
       switch (name) {
         case IMAGE_URL:
           this.url = result;
+          break;
+        case IMAGE_RIGHTS:
+          this.rights = result;
           break;
         default:
           LOG.warn("Fell through priority resolution for [" + name + "]");
@@ -103,13 +107,23 @@ public class ImageRecord extends PropertyPrioritizer implements Serializable {
     this.htmlForDisplay = htmlForDisplay;
   }
 
+  public String getPageUrl() {
+    return pageUrl;
+  }
+
+  public void setPageUrl(String pageUrl) {
+    this.pageUrl = pageUrl;
+  }
+
   public boolean isEmpty() {
-    return StringUtils.isEmpty(rawImageType) && imageType == null && StringUtils.isEmpty(url) &&
+    return StringUtils.isEmpty(rawImageType) && imageType == null && StringUtils.isEmpty(url) && StringUtils
+      .isEmpty(pageUrl) &&
            StringUtils.isEmpty(description) && StringUtils.isEmpty(rights) && StringUtils.isEmpty(htmlForDisplay);
   }
 
   public String debugDump() {
-    return "ImageRecord [\nrawImageType=" + rawImageType + ",\nimageType=" + imageType + ",\nurl=" + url +
-           ",\ndescription=" + description + ",\nrights=" + rights + ",\nhtmlForDisplay=" + htmlForDisplay + "]";
+    return "ImageRecord [\nrawImageType=" + rawImageType + ",\nimageType=" + imageType + ",\nurl=" + url + ",\npageUrl="
+           + pageUrl + ",\ndescription=" + description + ",\nrights=" + rights + ",\nhtmlForDisplay=" + htmlForDisplay
+           + "]";
   }
 }

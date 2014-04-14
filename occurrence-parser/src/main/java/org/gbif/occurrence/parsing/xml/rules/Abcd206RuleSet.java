@@ -90,10 +90,13 @@ public class Abcd206RuleSet extends AbstractRuleSet {
       addNonNullMethod(digester, "imageDescription", "setDescription", 1);
       addNonNullParam(digester, "imageDescription", 0);
 
-      addNonNullMethod(digester, "imageRights", "setRights", 1);
-      addNonNullParam(digester, "imageRights", 0);
+      addNonNullMethod(digester, "imageUrl", "setUrl", 1);
+      addNonNullParam(digester, "imageUrl", 0);
 
-      addNonNullPrioritizedProperty(digester, "imageUrl", PrioritizedPropertyNameEnum.IMAGE_URL, 2);
+      addNonNullMethod(digester, "imagePageUrl", "setPageUrl", 1);
+      addNonNullParam(digester, "imagePageUrl", 0);
+
+      addNonNullPrioritizedProperty(digester, "imageRights", PrioritizedPropertyNameEnum.IMAGE_RIGHTS, 2);
     }
 
     // possibly many links

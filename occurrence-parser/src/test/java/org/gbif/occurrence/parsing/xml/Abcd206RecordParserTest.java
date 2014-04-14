@@ -107,8 +107,15 @@ public class Abcd206RecordParserTest extends ParserTestCase {
   public void testParseImages() {
     String fileName = getClass().getResource("/responses/abcd206/abcd206_images.gz").getFile();
     RawOccurrenceRecord ror = setupRor(fileName).get(0);
-    assertEquals(6, ror.getImageRecords().size());
+    assertEquals(7, ror.getImageRecords().size());
     ImageRecord image = ror.getImageRecords().get(0);
+    assertEquals("http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2010_04_short.mp3", image.getUrl());
+    assertEquals(
+      "http://www.tierstimmenarchiv.de/webinterface/contents/showdetails.php?edit=-1&unique_id=TSA:Ailuroedus_buccoides_V_2010_4_1&autologin=true",
+      image.getPageUrl());
+    assertEquals("CC BY-NC-ND (Attribution for non commercial use only and without derivative)", image.getRights());
+
+    image = ror.getImageRecords().get(1);
     assertEquals("http://biology.africamuseum.be/STERNAImages/Ornithology/SternaRMCADetails.php?image=_PHM7832",
       image.getUrl());
     assertEquals("zoomable image", image.getDescription());

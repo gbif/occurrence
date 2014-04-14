@@ -1,16 +1,20 @@
-package org.gbif.occurrence.processor;
+package org.gbif.occurrence.processor.parsing;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.persistence.api.Fragment;
-import org.gbif.occurrence.processor.parsing.FragmentParser;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.google.common.io.Resources;
@@ -65,6 +69,19 @@ public class FragmentParserTest {
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
     assertEquals("Holotype", got.getVerbatimField(DwcTerm.typeStatus));
     assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.typifiedName));
+
+    assertNotNull(got.getExtensions().get(Extension.MULTIMEDIA));
+    List<Map<Term,String>> mediaObjects = got.getExtensions().get(Extension.MULTIMEDIA);
+    assertEquals(2, mediaObjects.size());
+    Map<Term,String> medium = mediaObjects.get(0);
+    assertEquals("http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2010_04_short.mp3",
+      medium.get(DcTerm.identifier));
+    assertEquals("http://www.tierstimmenarchiv.de/webinterface/contents/showdetails.php?edit=-1&unique_id=TSA:Ailuroedus_buccoides_V_2010_4_1&autologin=true",
+      medium.get(DcTerm.references));
+    assertEquals("audio/mp3", medium.get(DcTerm.format));
+    assertEquals("CC BY-NC-ND (Attribution for non commercial use only and without derivative)",
+      medium.get(DcTerm.license));
+
   }
 
   @Test

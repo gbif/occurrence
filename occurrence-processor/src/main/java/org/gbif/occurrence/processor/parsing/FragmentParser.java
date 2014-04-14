@@ -1,18 +1,25 @@
 package org.gbif.occurrence.processor.parsing;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.model.ImageRecord;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.model.TypificationRecord;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
 import org.gbif.occurrence.persistence.api.Fragment;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
+import com.beust.jcommander.internal.Lists;
+import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Strings;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Timer;
@@ -83,17 +90,11 @@ public class FragmentParser {
     v.setKey(frag.getKey());
     v.setDatasetKey(frag.getDatasetKey());
     v.setLastCrawled(frag.getHarvestedDate());
-
-    // these don't come from xml - hangover from mysql portal days
-//    ror.getCreated()
-//    ror.getModified()
-
     // these we don't have verb terms for yet
 //    set(v, DwcTerm.acceptedNameUsage, ror.getDayIdentified());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getMonthIdentified());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getYearIdentified());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getIdentifierRecords());
-//    set(v, DwcTerm.acceptedNameUsage, ror.getImageRecords());
 //    set(v, DwcTerm.acceptedNameUsage, ror.getLinkRecords());
 
     set(v, GbifTerm.elevationAccuracy, ror.getAltitudePrecision());
@@ -138,6 +139,21 @@ public class FragmentParser {
       TypificationRecord record = ror.getTypificationRecords().get(0);
       set(v, DwcTerm.typeStatus, record.getTypeStatus());
       set(v, DwcTerm.typifiedName, record.getScientificName());
+    }
+
+    if (ror.getImageRecords() != null && !ror.getImageRecords().isEmpty()) {
+      List<Map<Term, String>> verbMediaList = Lists.newArrayList();
+      for (ImageRecord image : ror.getImageRecords()) {
+        Map<Term, String> mediaTerms = Maps.newHashMap();
+        // the only fields we map from abcd 2 so far
+        mediaTerms.put(DcTerm.format, image.getRawImageType());
+        mediaTerms.put(DcTerm.identifier, image.getUrl());
+        mediaTerms.put(DcTerm.references, image.getPageUrl());
+        mediaTerms.put(DcTerm.description, image.getDescription());
+        mediaTerms.put(DcTerm.license, image.getRights());
+        verbMediaList.add(mediaTerms);
+      }
+      v.getExtensions().put(Extension.MULTIMEDIA, verbMediaList);
     }
 
     return v;
