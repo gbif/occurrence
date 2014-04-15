@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Charsets;
@@ -56,20 +57,21 @@ class OccurrenceFileWriterJob implements Callable<Result> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriterJob.class);
 
-  private static Function<Term, String> TERM2HIVE_FUNC = new Function<Term, String>() {
+  private static Function<Term, String> SIMPLENAME_FUNC = new Function<Term, String>() {
+
     @Nullable
     @Override
     public String apply(@Nullable Term input) {
-      return HiveColumnsUtils.getHiveColumn(input);
+      return input.simpleName();
     }
   };
 
   private static final String[] INT_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()),
-                                                                 TERM2HIVE_FUNC).toArray(new String[0]);
+    SIMPLENAME_FUNC).toArray(new String[0]);
   private static final String[] VERB_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()),
-                                                                  TERM2HIVE_FUNC).toArray(new String[0]);
+    SIMPLENAME_FUNC).toArray(new String[0]);
   private static final String[] MULTIMEDIA_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()),
-                                                                        TERM2HIVE_FUNC).toArray(new String[0]);
+    SIMPLENAME_FUNC).toArray(new String[0]);
 
   /**
    * Inner class used to export data into multimedia.txt files.
@@ -79,11 +81,11 @@ class OccurrenceFileWriterJob implements Callable<Result> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).addValue(super.toString()).add("coreid", coreid).toString();
+      return Objects.toStringHelper(this).addValue(super.toString()).add("gbifID", gbifID).toString();
     }
 
 
-    private Integer coreid;
+    private Integer gbifID;
 
     /**
      * Default constructor.
@@ -97,10 +99,10 @@ class OccurrenceFileWriterJob implements Callable<Result> {
      * Default constructor.
      * Copies the fields of the media object parameter and assigns the coreid.
      */
-    public InnerMediaObject(MediaObject mediaObject, Integer coreid) {
+    public InnerMediaObject(MediaObject mediaObject, Integer gbifID) {
       try {
         BeanUtils.copyProperties(this, mediaObject);
-        this.coreid = coreid;
+        this.gbifID = gbifID;
       } catch (IllegalAccessException e) {
         Throwables.propagate(e);
       } catch (InvocationTargetException e) {
@@ -111,13 +113,13 @@ class OccurrenceFileWriterJob implements Callable<Result> {
     /**
      * Id column for the multimedia.txt file.
      */
-    public Integer getCoreid() {
-      return coreid;
+    public Integer getGbifID() {
+      return gbifID;
     }
 
 
-    public void setCoreid(Integer coreid) {
-      this.coreid = coreid;
+    public void setGbifID(Integer gbifID) {
+      this.gbifID = gbifID;
     }
 
   }

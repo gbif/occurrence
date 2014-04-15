@@ -9,7 +9,7 @@
   the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="OccurrenceHDFSBuild-${occurrence.environment}" xmlns="uri:oozie:workflow:0.2">
 
-  <start to="create_tables" />
+  <start to="create_hbase_tables" />
 
   <action name="create_hbase_tables">
     <hive xmlns="uri:oozie:hive-action:0.2">

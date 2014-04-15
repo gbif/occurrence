@@ -2,7 +2,6 @@ package org.gbif.occurrence.download.file;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -53,17 +52,16 @@ public class OccurrenceMapReader {
     } else {
       Map<String, String> occurrence = new HashMap<String, String>();
       for (Term term : TermUtils.interpretedTerms()) {
-        final String hiveColumn = HiveColumnsUtils.getHiveColumn(term);
         if (TermUtils.isInterpretedDate(term)) {
-          occurrence.put(hiveColumn, toISO8601Date(ExtResultReader.getDate(row, term)));
+          occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));
         } else if (TermUtils.isInterpretedDouble(term)) {
           Double value = ExtResultReader.getDouble(row, term);
-          occurrence.put(hiveColumn, value != null ? value.toString() : null);
+          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
         } else if (TermUtils.isInterpretedNumerical(term)) {
           Integer value = ExtResultReader.getInteger(row, term);
-          occurrence.put(hiveColumn, value != null ? value.toString() : null);
+          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
         } else {
-          occurrence.put(hiveColumn, getCleanString(row, term));
+          occurrence.put(term.simpleName(), getCleanString(row, term));
         }
       }
       return occurrence;
@@ -82,7 +80,7 @@ public class OccurrenceMapReader {
     }
     Map<String, String> occurrence = new HashMap<String, String>();
     for (Term term : TermUtils.verbatimTerms()) {
-      occurrence.put(HiveColumnsUtils.getHiveColumn(term), getCleanVerbatimString(row, term));
+      occurrence.put(term.simpleName(), getCleanVerbatimString(row, term));
     }
     return occurrence;
   }

@@ -1,1 +1,1 @@
-coreid	type	format	identifier	references	title	description	source	audience	created	creator	contributor	publisher	license	rightsHolder
+gbifID	type	format	identifier	references	title	description	created	creator	contributor	publisher	audience	source	license	rightsHolder
