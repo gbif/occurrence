@@ -303,7 +303,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
    * Increments in 1 the number of records coming from the dataset (if any) in the occurrencRecordMap.
    */
   private void incrementDatasetUsage(Map<UUID, Long> datasetUsages, Map<String, String> occurrenceRecordMap) {
-    final String datasetStrKey = occurrenceRecordMap.get(GbifTerm.datasetKey);
+    final String datasetStrKey = occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName());
     if (datasetStrKey != null) {
       UUID datasetKey = UUID.fromString(datasetStrKey);
       if (datasetUsages.containsKey(datasetKey)) {
