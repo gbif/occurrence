@@ -29,7 +29,7 @@ public class TemporalInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TemporalInterpreter.class);
   // we accept 13h difference between dates due to timezone trouble
-  private static final long MAX_DIFFERENCE = 13 * 1000*60*60;
+  private static final long MAX_DIFFERENCE = 13 * 1000 * 60 * 60;
   // max is next year
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGExxxx =
@@ -75,6 +75,22 @@ public class TemporalInterpreter {
   }
 
   /**
+   * A convenience method that calls interpretRecordedDate with the verbatim recordedDate values from the
+   * VerbatimOccurrence.
+   *
+   * @param verbatim the VerbatimOccurrence containing a recordedDate
+   * @return the interpretation result which is never null
+   */
+  public static ParseResult<DateYearMonthDay> interpretRecordedDate(VerbatimOccurrence verbatim) {
+    final String year = verbatim.getVerbatimField(DwcTerm.year);
+    final String month = verbatim.getVerbatimField(DwcTerm.month);
+    final String day = verbatim.getVerbatimField(DwcTerm.day);
+    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
+
+    return interpretRecordedDate(year, month, day, dateString);
+  }
+
+  /**
    * Given possibly both of year, month, day and a dateString, produces a single date.
    * When year, month and day are all populated and parseable they are given priority,
    * but if any field is missing or illegal and dateString is parseable dateString is preferred.
@@ -84,12 +100,8 @@ public class TemporalInterpreter {
    *
    * @return interpretation result, never null
    */
-  public static ParseResult<DateYearMonthDay> interpretRecordedDate(VerbatimOccurrence verbatim) {
-    final String year = verbatim.getVerbatimField(DwcTerm.year);
-    final String month = verbatim.getVerbatimField(DwcTerm.month);
-    final String day = verbatim.getVerbatimField(DwcTerm.day);
-    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
-
+  public static ParseResult<DateYearMonthDay> interpretRecordedDate(String year, String month, String day,
+    String dateString) {
     if (year == null && month == null && day == null && Strings.isNullOrEmpty(dateString)) {
       return ParseResult.fail();
     }
@@ -143,7 +155,8 @@ public class TemporalInterpreter {
         cal.setTime(stringDate);
         result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
           new DateYearMonthDay(stringYear, cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), null,
-            stringDate));
+            stringDate)
+        );
       } else {
         issues.add(OccurrenceIssue.RECORDED_YEAR_UNLIKELY);
         LOG.debug("Bad recording year: [{}] / [{}].", dateString, ymd);
@@ -153,8 +166,9 @@ public class TemporalInterpreter {
     if (result == null) {
       if (!ymd.representsNull()) {
         // try to use partial dates from YMD as last resort
-        if ((ymd.getIntegerYear() != null && recordedYearValid(ymd.getIntegerYear())) ||
-            (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))) {
+        if ((ymd.getIntegerYear() != null && recordedYearValid(ymd.getIntegerYear())) || (ymd.getIntegerYear() == null
+                                                                                          && !issues
+          .contains(OccurrenceIssue.RECORDED_YEAR_UNLIKELY))) {
           result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
             new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
         }
