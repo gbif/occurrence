@@ -42,6 +42,9 @@ public class OccurrenceCount {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchCountModule.class);
 
+  // arbitrary record count that represents and error counting the records of the input query
+  private static int ERROR_COUNT = -1;
+
   /**
    * Inner Guice Module: installs a SolrModule and only exposes instances of the OccurrenceCount class.
    * The properties file accepted should contain the prefix 'occurrence.download.' for the expected Solr configuration
@@ -108,7 +111,7 @@ public class OccurrenceCount {
   public static void main(String[] args) throws IOException {
     checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The solr query argument hasn't been specified");
     OccurrenceCount occurrenceCount = getInjector().getInstance(OccurrenceCount.class);
-    occurrenceCount.setDownloadLimitWorkflowFlag(args[0], args[1]);
+    occurrenceCount.updateDownloadData(args[0], args[1]);
   }
 
   /**
@@ -132,17 +135,40 @@ public class OccurrenceCount {
   /**
    * Method that determines if the Solr Query produces a "small" download file.
    */
-  public Boolean isSmallDownloadCount(String solrQuery, String workflowId) {
+  public Boolean isSmallDownloadCount(long recordCount) {
+    return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
+  }
+
+
+  /**
+   * Executes the Solr query and returns the number of records found.
+   * If an error occurs 'ERROR_COUNT' is returned.
+   */
+  public long getRecordCount(String solrQuery) {
     try {
       QueryResponse response = solrServer.query(new SolrQuery(solrQuery));
-      long recordCount = response.getResults().getNumFound();
-      updateTotalRecordsCount(workflowId, recordCount);
-      return recordCount <= smallDownloadLimit;
+      return response.getResults().getNumFound();
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
-      return false;
+      return ERROR_COUNT;
     }
   }
+
+  /**
+   * Update the oozie workflow data/parameters and persists the record of the occurrence download.
+   * 
+   * @param solrQuery to be executed
+   * @param workflowId oozie workflow id
+   * @throws IOException in case of error reading or writing the 'oozie.action.output.properties' file
+   */
+  public void updateDownloadData(String solrQuery, String workflowId) throws IOException {
+    final long recordCount = getRecordCount(solrQuery);
+    updateWorkflowDownloadParameters(recordCount);
+    if (recordCount >= 0) {
+      updateTotalRecordsCount(workflowId, recordCount);
+    }
+  }
+
 
   /**
    * Sets the oozie action parameter 'is_small_download'.
@@ -150,7 +176,7 @@ public class OccurrenceCount {
    * @param solrQuery to be executed
    * @throws IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
-  public void setDownloadLimitWorkflowFlag(String solrQuery, String workflowId) throws IOException {
+  public void updateWorkflowDownloadParameters(long recordCount) throws IOException {
     String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
     Closer closer = Closer.create();
     if (oozieProp != null) {
@@ -159,7 +185,7 @@ public class OccurrenceCount {
       Properties props = new Properties();
       try {
         os = closer.register(new FileOutputStream(propFile));
-        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(solrQuery, workflowId).toString());
+        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
         props.store(os, "");
       } catch (FileNotFoundException e) {
         LOG.error("Error reading properties file", e);

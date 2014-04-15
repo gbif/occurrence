@@ -309,7 +309,7 @@ public class ArchiveBuilder {
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
     if (!hdfs.exists(citationSrc)) {
-      LOG.error("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
+      LOG.warn("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
       return;
     }
 
@@ -369,9 +369,12 @@ public class ArchiveBuilder {
   private void addOccurrenceDataFile(String dataTable, String headerFileName, String destFileName) throws IOException {
     LOG.info("Copy-merge occurrence data hdfs file {} to local filesystem", dataTable);
     final Path dataSrc = new Path(hdfsPath + Path.SEPARATOR + dataTable);
-    final Path headerFileDest = new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME);
-    if (!isSmallDownload) { // small downloads already include the headers
-      FileUtil.copy(new File(headerFileName), hdfs, headerFileDest, false, conf);
+    boolean hasRecords = hdfs.exists(dataSrc);
+    if (!hasRecords) {
+      hdfs.create(dataSrc);
+    }
+    if (!isSmallDownload && hasRecords) { // small downloads already include the headers
+      FileUtil.copy(new File(headerFileName), hdfs, new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME), false, conf);
     }
     File rawDataResult = new File(archiveDir, destFileName);
     Path dataDest = new Path(rawDataResult.toURI());
