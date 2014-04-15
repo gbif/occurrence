@@ -4,9 +4,10 @@ import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import org.gbif.wrangler.lock.Lock;
@@ -21,11 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 import org.apache.commons.beanutils.BeanUtils;
@@ -52,13 +56,24 @@ class OccurrenceFileWriterJob implements Callable<Result> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriterJob.class);
 
-  public static final String[] INT_HEADER = HeadersFileUtil.getIntepretedTableColumns();
-  public static final String[] VERB_HEADER = HeadersFileUtil.getVerbatimTableColumns();
-  public static final String[] MULTIMEDIA_HEADERS = HeadersFileUtil.getMultimediaTableColumns();
+  private static Function<Term, String> TERM2HIVE_FUNC = new Function<Term, String>() {
+    @Nullable
+    @Override
+    public String apply(@Nullable Term input) {
+      return HiveColumnsUtils.getHiveColumn(input);
+    }
+  };
+
+  private static final String[] INT_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()),
+                                                                 TERM2HIVE_FUNC).toArray(new String[0]);
+  private static final String[] VERB_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()),
+                                                                  TERM2HIVE_FUNC).toArray(new String[0]);
+  private static final String[] MULTIMEDIA_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()),
+                                                                        TERM2HIVE_FUNC).toArray(new String[0]);
 
   /**
    * Inner class used to export data into multimedia.txt files.
-   * The structure must match the headers defined in MULTIMEDIA_HEADERS.
+   * The structure must match the headers defined in MULTIMEDIA_COLUMNS.
    */
   public static class InnerMediaObject extends MediaObject {
 
@@ -237,8 +252,8 @@ class OccurrenceFileWriterJob implements Callable<Result> {
           Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
           if (occurrenceRecordMap != null) {
             incrementDatasetUsage(datasetUsages, occurrenceRecordMap);
-            intCsvWriter.write(occurrenceRecordMap, INT_HEADER);
-            verbCsvWriter.write(verbOccurrenceRecordMap, VERB_HEADER);
+            intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
+            verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
             writeMediaObjects(multimediaCsvWriter, result, occKey);
           } else {
             LOG.error(String.format("Occurrence id %s not found!", occKey));
@@ -265,7 +280,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
     List<MediaObject> multimedias = OccurrenceBuilder.buildMedia(result);
     if (multimedias != null) {
       for (MediaObject mediaObject : multimedias) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey), MULTIMEDIA_HEADERS,
+        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey), MULTIMEDIA_COLUMNS,
           MEDIA_CELL_PROCESSORS);
       }
     }

@@ -1,10 +1,8 @@
 package org.gbif.occurrence.download.util;
 
-import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
 import org.gbif.dwc.text.ArchiveFile;
@@ -38,13 +36,13 @@ public class DwcArchiveUtils {
 
 
   /**
-   * Creates a new archive file description for a dwc archive, but does not set any id field yet.
+   * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
-   * 
-   * @param index column index to start with
+   *
+   * @param columns iterable for column terms in the right order. Must include GbifTerm.gbifID
    */
-  public static ArchiveFile createArchiveFile(String filename, Iterable<? extends Term> columns) {
-    ArchiveFile af = buildBaseArchive(filename, DwcTerm.Occurrence.qualifiedName());
+  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
+    ArchiveFile af = buildBaseArchive(filename, rowType.qualifiedName());
     int index = 0;
     for (Term term : columns) {
       ArchiveField field = new ArchiveField();
@@ -53,30 +51,12 @@ public class DwcArchiveUtils {
       af.addField(field);
       index++;
     }
-    af.setId(af.getField(GbifTerm.gbifID));
-    return af;
-  }
-
-  /**
-   * Creates a new archive file description for a dwc archive, but does not set any id field yet.
-   * Used to generate the meta.xml with the help of the dwca-writer
-   * 
-   * @param index column index to start with
-   */
-  public static ArchiveFile createMultimediaArchiveFile(String filename) {
-    ArchiveFile archiveFile = buildBaseArchive(filename, Extension.MULTIMEDIA.getRowType());
-    ArchiveField gbifIDField = new ArchiveField();
-    gbifIDField.setIndex(0);
-    archiveFile.setId(gbifIDField);
-    final String[] multimediaFields = HeadersFileUtil.getMultimediaTableColumns();
-    for (int i = 1; i < multimediaFields.length; i++) {
-      ArchiveField field = new ArchiveField();
-      field.setIndex(i);
-      field.setTerm(TermFactory.instance().findTerm(multimediaFields[i]));
-      archiveFile.addField(field);
+    ArchiveField coreid = af.getField(GbifTerm.gbifID);
+    if (coreid == null) {
+      throw new IllegalArgumentException("Archive columns MUST include the gbif:gbifID term");
     }
-
-    return archiveFile;
+    af.setId(coreid);
+    return af;
   }
 
   /**
@@ -100,14 +80,17 @@ public class DwcArchiveUtils {
    */
   public static void createArchiveDescriptor(File directory) {
     LOG.info("Creating archive meta.xml descriptor");
-    ArchiveFile occurrence = createArchiveFile(INTERPRETED_FILENAME, TermUtils.interpretedTerms());
-    ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, TermUtils.verbatimTerms());
-    ArchiveFile multimedia = createMultimediaArchiveFile(MULTIMEDIA_FILENAME);
 
     Archive downloadArchive = new Archive();
-    downloadArchive.setCore(occurrence);
     downloadArchive.setMetadataLocation(METADATA_FILENAME);
+
+    ArchiveFile occurrence = createArchiveFile(INTERPRETED_FILENAME, DwcTerm.Occurrence, TermUtils.interpretedTerms());
+    downloadArchive.setCore(occurrence);
+
+    ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, DwcTerm.Occurrence, TermUtils.verbatimTerms());
     downloadArchive.addExtension(verbatim);
+
+    ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
 
     try {

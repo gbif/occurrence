@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class that creates a single CSV file using a OccurrenceSearchRequest.
+ * Class that creates a single CSV file using an OccurrenceSearchRequest.
  * The file is built with a set of worker threads that create a piece of the output file, once the jobs have finished
  * their jobs a single file is created. The order of the records is respected from the search request by using the
  * fileJob.startOffset reported by each job.
