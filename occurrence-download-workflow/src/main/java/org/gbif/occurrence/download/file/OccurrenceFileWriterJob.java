@@ -5,7 +5,6 @@ import org.gbif.api.vocabulary.MediaType;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
@@ -304,7 +303,7 @@ class OccurrenceFileWriterJob implements Callable<Result> {
    * Increments in 1 the number of records coming from the dataset (if any) in the occurrencRecordMap.
    */
   private void incrementDatasetUsage(Map<UUID, Long> datasetUsages, Map<String, String> occurrenceRecordMap) {
-    final String datasetStrKey = occurrenceRecordMap.get(HiveColumnsUtils.getHiveColumn(GbifTerm.datasetKey));
+    final String datasetStrKey = occurrenceRecordMap.get(GbifTerm.datasetKey);
     if (datasetStrKey != null) {
       UUID datasetKey = UUID.fromString(datasetStrKey);
       if (datasetUsages.containsKey(datasetKey)) {
