@@ -252,10 +252,10 @@ public class OccurrencePersistenceServiceImplTest {
       Bytes.toBytes(SUBGENUS_KEY));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typeStatus)),
       Bytes.toBytes(TYPE_STATUS.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typifiedName)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.typifiedName)),
       Bytes.toBytes(TYPIFIED_NAME));
 
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.genericName)),
+    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.genericName)),
       Bytes.toBytes(GENERIC_NAME));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.specificEpithet)),
       Bytes.toBytes(SPECIFIC_EPITHET));

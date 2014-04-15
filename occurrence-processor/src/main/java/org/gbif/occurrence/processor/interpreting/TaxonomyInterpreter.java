@@ -8,6 +8,7 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.occurrence.processor.interpreting.util.NubLookupInterpreter;
@@ -32,8 +33,8 @@ public class TaxonomyInterpreter {
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
       ParsedName pn = new ParsedName();
-      if (verbatim.hasVerbatimField(DwcTerm.genericName)) {
-        pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genericName));
+      if (verbatim.hasVerbatimField(GbifTerm.genericName)) {
+        pn.setGenusOrAbove(verbatim.getVerbatimField(GbifTerm.genericName));
       } else {
         pn.setGenusOrAbove(verbatim.getVerbatimField(DwcTerm.genus));
       }

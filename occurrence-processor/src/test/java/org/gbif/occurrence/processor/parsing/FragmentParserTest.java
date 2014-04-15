@@ -68,7 +68,7 @@ public class FragmentParserTest {
     assertEquals("HumanObservation", got.getVerbatimField(DwcTerm.basisOfRecord));
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
     assertEquals("Holotype", got.getVerbatimField(DwcTerm.typeStatus));
-    assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.typifiedName));
+    assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(GbifTerm.typifiedName));
 
     assertNotNull(got.getExtensions().get(Extension.MULTIMEDIA));
     List<Map<Term,String>> mediaObjects = got.getExtensions().get(Extension.MULTIMEDIA);

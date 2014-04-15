@@ -72,7 +72,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   /**
    * Note that the returned fragment here is a String that holds the actual xml or json snippet for this occurrence,
    * and not the Fragment object that is used elsewhere.
-   * 
+   *
    * @param key that identifies an occurrence
    * @return a String holding the original xml or json snippet for this occurrence
    */
@@ -251,7 +251,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Populates the put and delete for a verbatim record.
-   * 
+   *
    * @param deleteInterpretedVerbatimColumns if true deletes also the verbatim columns removed during interpretation
    *        (typically true when updating an Occurrence and false for
    *        VerbatimOccurrence)
@@ -409,7 +409,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
     }
     if (!nullSafeEquals(oldOcc.getGenericName(), occ.getGenericName())) {
-      upd.setInterpretedField(DwcTerm.genericName, occ.getGenericName());
+      upd.setInterpretedField(GbifTerm.genericName, occ.getGenericName());
     }
     if (!nullSafeEquals(oldOcc.getSpecificEpithet(), occ.getSpecificEpithet())) {
       upd.setInterpretedField(DwcTerm.specificEpithet, occ.getSpecificEpithet());
@@ -451,7 +451,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       upd.setInterpretedField(DwcTerm.typeStatus, occ.getTypeStatus());
     }
     if (!nullSafeEquals(oldOcc.getTypifiedName(), occ.getTypifiedName())) {
-      upd.setInterpretedField(DwcTerm.typifiedName, occ.getTypifiedName());
+      upd.setInterpretedField(GbifTerm.typifiedName, occ.getTypifiedName());
     }
     if (!nullSafeEquals(oldOcc.getLastInterpreted(), occ.getLastInterpreted())) {
       upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());

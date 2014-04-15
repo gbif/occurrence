@@ -76,7 +76,7 @@ public class OccurrenceBuilder {
 
   /**
    * Builds a Fragment object from the given result, assigning the passed in key.
-   * 
+   *
    * @param result an HBase scan/get Result
    * @return the Fragment or null if the passed in Result is null
    * @throws ValidationException if the fragment as stored in the table is invalid
@@ -136,7 +136,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static Occurrence buildOccurrence(@Nullable Result row) {
@@ -156,7 +156,7 @@ public class OccurrenceBuilder {
       // taxonomy terms
       occ.setTaxonKey(ExtResultReader.getInteger(row, GbifTerm.taxonKey));
       occ.setScientificName(ExtResultReader.getString(row, DwcTerm.scientificName));
-      occ.setGenericName(ExtResultReader.getString(row, DwcTerm.genericName));
+      occ.setGenericName(ExtResultReader.getString(row, GbifTerm.genericName));
       occ.setSpecificEpithet(ExtResultReader.getString(row, DwcTerm.specificEpithet));
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
@@ -202,7 +202,7 @@ public class OccurrenceBuilder {
       occ.setSex(ExtResultReader.getEnum(row, DwcTerm.sex, Sex.class));
 
       occ.setTypeStatus(ExtResultReader.getEnum(row, DwcTerm.typeStatus, TypeStatus.class));
-      occ.setTypifiedName(ExtResultReader.getString(row, DwcTerm.typifiedName));
+      occ.setTypifiedName(ExtResultReader.getString(row, GbifTerm.typifiedName));
 
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
@@ -215,7 +215,7 @@ public class OccurrenceBuilder {
 
   /**
    * Utility to build an API Occurrence from an HBase row.
-   * 
+   *
    * @return A complete occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {

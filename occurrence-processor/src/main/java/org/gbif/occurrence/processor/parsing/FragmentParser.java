@@ -138,7 +138,7 @@ public class FragmentParser {
       // just use first one - any more makes no sense
       TypificationRecord record = ror.getTypificationRecords().get(0);
       set(v, DwcTerm.typeStatus, record.getTypeStatus());
-      set(v, DwcTerm.typifiedName, record.getScientificName());
+      set(v, GbifTerm.typifiedName, record.getScientificName());
     }
 
     if (ror.getImageRecords() != null && !ror.getImageRecords().isEmpty()) {
