@@ -10,19 +10,34 @@
 <workflow-app name="OccurrenceHDFSBuild-${occurrence.environment}" xmlns="uri:oozie:workflow:0.2">
 
   <start to="create_tables" />
-   
-  <fork name="create_tables">
+
+  <action name="create_hbase_tables">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/create_occurrence_hbase_tables.q</script>
+
+      <param>hive_db=${occurrence.environment}</param>
+      <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
+    </hive>
+
+    <ok to="create_hdfs_tables"/>
+    <error to="kill"/>
+  </action>
+
+  <fork name="create_hdfs_tables">
     <path start="create_occurrence_hdfs" />
     <path start="create_multimedia_hdfs" />
   </fork>
-  
+
   <action name="create_occurrence_hdfs">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/create_occurrence_hdfs_table.q</script>
-      
+
       <param>hive_db=${occurrence.environment}</param>
       <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
     </hive>
@@ -39,7 +54,7 @@
       <script>hive-scripts/create_occurrence_multimedia_table.q</script>
 
      <param>hive_db=${occurrence.environment}</param>
-     <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>    
+     <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
     </hive>
 
     <ok to="before_end" />
