@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.io.ByteArrayInputStream;
@@ -20,19 +19,16 @@ import com.google.common.io.Closer;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
+ * Header columns in general use the simple name of a term.
  */
 public class HeadersFileUtil {
 
   public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatim_headers.txt";
   public static final String DEFAULT_INTERPRETED_FILE_NAME = "interpreted_headers.txt";
   public static final String DEFAULT_MULTIMEDIA_FILE_NAME = "multimedia_headers.txt";
-  public static final String MULTIMEDIA_ID_COLUMN = "coreid";
   public static final String HEADERS_FILE_PATH = "inc/";
 
   private static final Joiner TAB_JOINER = Joiner.on('\t').skipNulls();
-  private static final String[] MULTIMEDIA_HEADERS = new String[] {MULTIMEDIA_ID_COLUMN, "type", "format",
-    "identifier", "references", "title", "description", "source", "audience", "created", "creator", "contributor",
-    "publisher", "license", "rightsHolder"};
 
   /**
    * Empty private constructor.
@@ -45,14 +41,14 @@ public class HeadersFileUtil {
    * Creates the headers file.
    * The output file name can be specified as argument.
    * If the file names are not specified the files are generated in
-   * the current directory with the name "verbatium_headers.txt" and "verbatium_headers.txt".
+   * the current directory with the name "verbatim_headers.txt" and "verbatim_headers.txt".
    */
   public static void
     generateHeadersFiles(String verbatimFileName, String interpretedFileName, String multimediaFileName)
       throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
     generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getIntepretedTableHeader());
-    generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, TAB_JOINER.join(MULTIMEDIA_HEADERS) + '\n');
+    generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, getMultimediaTableHeader());
   }
 
   /**
@@ -76,20 +72,9 @@ public class HeadersFileUtil {
   private static String getTableHeader(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
-      headers.add(HiveColumnsUtils.getHiveColumn(term));
+      headers.add(term.simpleName());
     }
     return TAB_JOINER.join(headers) + '\n';
-  }
-
-  /**
-   * Utility method that generates an array of string that contains the column names of terms.
-   */
-  private static String[] getTableColumns(Iterable<? extends Term> terms) {
-    List<String> headers = Lists.newArrayList();
-    for (Term term : terms) {
-      headers.add(HiveColumnsUtils.getHiveColumn(term));
-    }
-    return headers.toArray(new String[headers.size()]);
   }
 
   /**
@@ -146,31 +131,8 @@ public class HeadersFileUtil {
    * Returns the headers names of download columns.
    */
   public static String getMultimediaTableHeader() {
-    return TAB_JOINER.join(MULTIMEDIA_HEADERS) + '\n';
+    return getTableHeader(TermUtils.multimediaTerms());
   }
-
-
-  /**
-   * Returns a list column names of interpreted fields.
-   */
-  public static String[] getIntepretedTableColumns() {
-    return getTableColumns(TermUtils.interpretedTerms());
-  }
-
-  /**
-   * Returns a list column names of verbatim fields.
-   */
-  public static String[] getVerbatimTableColumns() {
-    return getTableColumns(TermUtils.verbatimTerms());
-  }
-
-  /**
-   * Returns a list column names of multimedia fields.
-   */
-  public static String[] getMultimediaTableColumns() {
-    return MULTIMEDIA_HEADERS;
-  }
-
 
   public static void main(String[] args) throws IOException {
     if (args.length < 3) {

@@ -6,11 +6,12 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
+import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -96,6 +97,16 @@ public class TermUtils {
       )
     );
 
+  /**
+   * Term list of the extension exluding the coreid just as defined by:
+   * http://rs.gbif.org/extension/gbif/1.0/multimedia.xml
+   */
+  private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(
+    DcTerm.type, DcTerm.format, DcTerm.identifier, DcTerm.references, DcTerm.title, DcTerm.description,
+    DcTerm.created, DcTerm.creator, DcTerm.contributor, DcTerm.publisher, DcTerm.audience, DcTerm.source,
+    DcTerm.license, DcTerm.rightsHolder
+  );
+
   private TermUtils() {
     // private constructor
   }
@@ -158,7 +169,7 @@ public class TermUtils {
 
   /**
    * Lists all terms relevant for a verbatim occurrence record.
-   * occurrenceID is included and comes first, but its the verbatim term, not the GBIF key, so be careful.
+   * gbifID is included and comes first as its the foreign key to the core record.
    * UnknownTerms are not included as they are open ended.
    */
   public static Iterable<? extends Term> verbatimTerms() {
@@ -172,12 +183,20 @@ public class TermUtils {
         }
       }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
 
-        @Override
-        public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
-        }
-      })
-      );
+      @Override
+      public boolean apply(@Nullable DwcTerm t) {
+        return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
+      }
+    })
+    );
+  }
+
+  /**
+   * Lists all terms relevant for a multimedia extension record.
+   * gbifID is included and comes first as its the foreign key to the core record.
+   */
+  public static Iterable<? extends Term> multimediaTerms() {
+    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
   }
 
   /**
