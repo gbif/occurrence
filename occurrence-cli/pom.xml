@@ -13,7 +13,7 @@
   <name>Occurrence CLI</name>
 
   <properties>
-    <gbif-cli.version>0.6-SNAPSHOT</gbif-cli.version>
+    <gbif-cli.version>0.6</gbif-cli.version>
     <!-- override motherpom guava version to match gbif-cli -->
     <guava.version>15.0</guava.version>
     <!-- specific versions for solr -->
@@ -137,10 +137,30 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>
@@ -196,7 +216,7 @@
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-cli</artifactId>
-      <version>0.6</version>
+      <version>${gbif-cli.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.common</groupId>
@@ -211,6 +231,12 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-deleter</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
