@@ -34,13 +34,16 @@ public class DateParseUDF extends GenericUDF {
     String year = getArgument(0, arguments);
     String month = getArgument(1, arguments);
     String day = getArgument(2, arguments);
-
-    ParseResult<DateYearMonthDay> parsed = TemporalInterpreter.interpretRecordedDate(year, month, day, null);
     List<Object> result = new ArrayList<Object>(3);
-    if (parsed.isSuccessful() && parsed.getIssues().isEmpty()) {
-      result.add(parsed.getPayload().getYear());
-      result.add(parsed.getPayload().getMonth());
-      result.add(parsed.getPayload().getDay());
+    try {
+      ParseResult<DateYearMonthDay> parsed = TemporalInterpreter.interpretRecordedDate(year, month, day, null);
+      if (parsed.isSuccessful() && parsed.getIssues().isEmpty()) {
+        result.add(parsed.getPayload().getYear());
+        result.add(parsed.getPayload().getMonth());
+        result.add(parsed.getPayload().getDay());
+      }
+    } catch (Exception e) {
+      // not much to do - indicates bad data
     }
 
     return result;
