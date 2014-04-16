@@ -20,6 +20,9 @@
 		<hbase.version>0.94.2-cdh4.2.1</hbase.version>
 		<hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
 		<hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
+		<!-- This timestamp format is used to set the start time in the coordinator.xml file -->
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
+    <timestamp>${maven.build.timestamp}</timestamp>
 	</properties>
 
 	<build>
