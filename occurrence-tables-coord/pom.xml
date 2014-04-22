@@ -1,122 +1,122 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.gbif.occurrence</groupId>
-		<artifactId>occurrence-motherpom</artifactId>
-		<version>0.17-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>org.gbif.occurrence</groupId>
+    <artifactId>occurrence-motherpom</artifactId>
+    <version>0.17-SNAPSHOT</version>
+  </parent>
 
-	<artifactId>occurrence-tables-coord</artifactId>
-	<packaging>jar</packaging>
+  <artifactId>occurrence-tables-coord</artifactId>
+  <packaging>jar</packaging>
 
-	<name>Occurrence Table Generator Workflow/Coordinator</name>
-	<description>Oozie Workflow to generate the HDFS occurrence tables</description>
+  <name>Occurrence Table Generator Workflow/Coordinator</name>
+  <description>Oozie Workflow to generate the HDFS occurrence tables</description>
 
-	<properties>
-		<!-- VERSIONS -->
-		<hive.version>0.10.0-cdh4.2.1</hive.version>
-		<hbase.version>0.94.2-cdh4.2.1</hbase.version>
-		<hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
-		<hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
-		<!-- This timestamp format is used to set the start time in the coordinator.xml file -->
-		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
+  <properties>
+    <!-- VERSIONS -->
+    <hive.version>0.10.0-cdh4.2.1</hive.version>
+    <hbase.version>0.94.2-cdh4.2.1</hbase.version>
+    <hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
+    <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
+    <!-- This timestamp format is used to set the start time in the coordinator.xml file -->
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
     <timestamp>${maven.build.timestamp}</timestamp>
-	</properties>
+  </properties>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-				<includes>
-					<include>conf/hive-default.xml</include>
-					<include>workflow.xml</include>
-					<include>hbase-site.xml</include>
-					<include>coordinator.xml</include>
-					<include>job.properties</include>
-				</includes>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>false</filtering>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>process-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>resources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<appendAssemblyId>false</appendAssemblyId>
-					<finalName>oozie-workflow</finalName>
-					<descriptors>
-						<descriptor>src/main/assembly/assembly.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-	<repositories>
-		<repository>
-			<id>gbif-all</id>
-			<url>http://repository.gbif.org/content/groups/gbif</url>
-		</repository>
-	</repositories>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>conf/hive-default.xml</include>
+          <include>workflow.xml</include>
+          <include>hbase-site.xml</include>
+          <include>coordinator.xml</include>
+          <include>job.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>resources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <finalName>oozie-workflow</finalName>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <repositories>
+    <repository>
+      <id>gbif-all</id>
+      <url>http://repository.gbif.org/content/groups/gbif</url>
+    </repository>
+  </repositories>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.gbif.occurrence</groupId>
-			<artifactId>occurrence-hive</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.hive</groupId>
-			<artifactId>hive-hbase-handler</artifactId>
-			<version>${hive.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-	</dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-hive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-hbase-handler</artifactId>
+      <version>${hive.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<properties>
-				<occurrence.hdfs.build.frequency>${coord:minutes(60)}</occurrence.hdfs.build.frequency>
-			</properties>
-		</profile>
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <occurrence.hdfs.build.frequency>${coord:minutes(60)}</occurrence.hdfs.build.frequency>
+      </properties>
+    </profile>
 
-		<profile>
-			<id>uat</id>
-			<properties>
-				<occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
-			</properties>
-		</profile>
+    <profile>
+      <id>uat</id>
+      <properties>
+        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
+      </properties>
+    </profile>
 
-		<profile>
-			<id>prod</id>
-			<properties>
-				<occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
-			</properties>
-		</profile>
-	</profiles>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
+      </properties>
+    </profile>
+  </profiles>
 </project>
