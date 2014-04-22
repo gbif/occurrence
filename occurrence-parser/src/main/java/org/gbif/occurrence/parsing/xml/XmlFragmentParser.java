@@ -77,6 +77,7 @@ public class XmlFragmentParser {
   }
 
   public static List<RawOccurrenceRecord> parseRecord(String xml, OccurrenceSchemaType schemaType) {
+    LOG.debug("Parsing xml [" + xml + "]");
     List<RawOccurrenceRecord> records = null;
     try {
       InputSource inputSource = new InputSource(new StringReader(xml));
