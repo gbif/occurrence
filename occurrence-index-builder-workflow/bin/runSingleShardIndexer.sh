@@ -3,7 +3,6 @@ mvn -Poozie clean package assembly:single
 mvn -Psolr package assembly:single
 cd bin
 cat jobsingleshard.properties | sed 's/\./_/g' > .properties.file
-. job.properties
 . .properties.file
 rm .properties.file
 echo "Cleaning HDFS directory $oozieWfDestination"
