@@ -1,6 +1,7 @@
 package org.gbif.occurrence.hive.udf;
 
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
@@ -19,6 +20,8 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorConverters;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A UDF that uses the GBIF API to verify coordinates look sensible.
@@ -31,6 +34,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
 public class CoordinateCountryParseUDF extends GenericUDF {
 
   private ObjectInspectorConverters.Converter[] converters;
+  private static final Logger LOG = LoggerFactory.getLogger(CoordinateCountryParseUDF.class);
 
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
@@ -50,8 +54,7 @@ public class CoordinateCountryParseUDF extends GenericUDF {
     List<Object> result = Lists.newArrayList(3);
 
     if (arguments[0].get() == null || arguments[1].get() == null
-      || Strings.isNullOrEmpty(arguments[0].get().toString()) || Strings.isNullOrEmpty(arguments[1].get().toString())
-      || arguments[1].get().toString().length() == 0) {
+      || Strings.isNullOrEmpty(arguments[0].get().toString()) || Strings.isNullOrEmpty(arguments[1].get().toString())) {
       result.add(null);
       result.add(null);
       result.add(iso); // no coords to dispute the iso
@@ -60,12 +63,28 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
     String latitude = converters[0].convert(arguments[0].get()).toString();
     String longitude = converters[1].convert(arguments[1].get()).toString();
+
+    // while we have interpreted the country to try and pass something sensible to the CoordinateInterpreter,
+    // it will not infer countries if we pass in UNKNOWN, as it likes NULL.
+    interpretedCountry = Country.UNKNOWN == interpretedCountry ? null : interpretedCountry;
+
+    // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
     ParseResult<CoordinateCountry> response =
       CoordinateInterpreter.interpretCoordinates(latitude, longitude, interpretedCountry);
 
-    // it is either all good, or it's considered bad
+    // We don't mind a country that is derived coordinates
+    if (response.getIssues() != null) {
+      response.getIssues().remove(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    }
     if (response != null && response.isSuccessful() && response.getIssues().isEmpty()) {
       CoordinateCountry cc = response.getPayload();
+      // we use the result, which often includes interpreted countries
+      if (cc.getCountry() == null || Country.UNKNOWN == cc.getCountry()) {
+        iso = null;
+      } else {
+        iso = cc.getCountry().getIso2LetterCode();
+      }
+
       result.add(cc.getLatitude());
       result.add(cc.getLongitude());
       result.add(iso);

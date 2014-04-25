@@ -20,6 +20,7 @@ public class BasisOfRecordParseUDF extends UDF {
   private static final Text BOR = new Text();
 
   public Text evaluate(Text basisOfRecord) {
+    BOR.set(BasisOfRecord.UNKNOWN.toString());
     if (basisOfRecord != null) {
       ParseResult<BasisOfRecord> parsed = BOR_PARSER.parse(basisOfRecord.toString());
       if (parsed.isSuccessful()) {
