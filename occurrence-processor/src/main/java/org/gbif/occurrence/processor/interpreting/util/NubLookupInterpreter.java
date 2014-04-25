@@ -46,7 +46,7 @@ public class NubLookupInterpreter {
       .build(RetryingWebserviceClient.newInstance(NameUsageMatch.class, 10, 2000));
 
   private static final WebResource RESOURCE;
-
+  private static final int HTTP_TIMEOUT = 5000;
   static {
     try {
       InputStream is = NubLookupInterpreter.class.getClassLoader().getResourceAsStream(OCCURRENCE_PROPS_FILE);
@@ -65,6 +65,8 @@ public class NubLookupInterpreter {
     }
     ClientConfig cc = new DefaultClientConfig();
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
+    cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, HTTP_TIMEOUT);
+    cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, HTTP_TIMEOUT);
     cc.getClasses().add(JacksonJsonProvider.class);
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);

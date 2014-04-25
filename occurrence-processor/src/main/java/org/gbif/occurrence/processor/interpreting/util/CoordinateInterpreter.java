@@ -52,6 +52,7 @@ public class CoordinateInterpreter {
   // if the WS is not responding, we drop into a retry count
   private static final int NUM_RETRIES = 5;
   private static final int RETRY_PERIOD_MSEC = 2000;
+  private static final int HTTP_TIMEOUT = 5000;
 
   private static final String WEB_SERVICE_URL;
   private static final String WEB_SERVICE_URL_PROPERTY = "occurrence.geo.ws.url";
@@ -103,6 +104,8 @@ public class CoordinateInterpreter {
 
     // We need to manually register it here because we're building an assembly and Jackson can't find it automatically
     cc.getClasses().add(JacksonJsonProvider.class);
+    cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, HTTP_TIMEOUT);
+    cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, HTTP_TIMEOUT);    
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);
     LOG.info("Creating new geo lookup service at " + WEB_SERVICE_URL);
