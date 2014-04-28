@@ -146,7 +146,7 @@ $.Autocompleter = function(input, options) {
 				select.hide();
 				break;
 				
-			default:
+			default:				
 				clearTimeout(timeout);
 				timeout = setTimeout(onChange, options.delay);
 				break;
