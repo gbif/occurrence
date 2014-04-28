@@ -47,7 +47,7 @@ public class Columns {
   private static final String ISSUE_PREFIX = INTERNAL_PREFIX + "iss_";
 
   // An occurrence can have 0-n identifiers, each of a certain type. Their column names look like _t1, _i1, _t2, _i2,
-// etc.
+  // etc.
   private static final String IDENTIFIER_TYPE_COLUMN = INTERNAL_PREFIX + "t";
   private static final String IDENTIFIER_COLUMN = INTERNAL_PREFIX + "i";
 
@@ -59,11 +59,13 @@ public class Columns {
 
   /**
    * Returns the column for the given term.
-   * If an interpreted column exists for the given term it will be returned, otherwise the verbatim column will be used.
+   * If an interpreted column exists for the given term it will be returned, otherwise the verbatim column will be
+   * used.
    * Not that GbifInternalTerm are always interpreted and do not exist as verbatim columns.
    * Asking for a "secondary" interpreted term like country which is used during interpretation but not stored
    * will result in an IllegalArgumentException. dwc:countryCode is the right term in this case.
-   * Key terms like taxonID or occurrenceID are considered verbatim terms and do not map to the respective GBIF columns.
+   * Key terms like taxonID or occurrenceID are considered verbatim terms and do not map to the respective GBIF
+   * columns.
    * Please use the GbifTerm enum for those!
    */
   public static String column(Term term) {
@@ -84,6 +86,7 @@ public class Columns {
    * extension. This is the interpreted extension's column.
    *
    * @param extension the column to build
+   *
    * @return the extension's column name
    */
   public static String column(Extension extension) {
@@ -94,13 +97,11 @@ public class Columns {
   /**
    * Returns the verbatim column for a term.
    * GbifInternalTerm is not permitted and will result in an IllegalArgumentException!
-   *
-   * @param term
-   * @return
    */
   public static String verbatimColumn(Term term) {
     if (term instanceof GbifInternalTerm) {
-      throw new IllegalArgumentException("Internal terms do not exist as verbatim columns");
+      throw new IllegalArgumentException(
+        "Internal terms (like the tried [" + term.simpleName() + "]) do not exist as verbatim columns");
     }
     return column(term, VERBATIM_TERM_PREFIX);
   }
@@ -110,6 +111,7 @@ public class Columns {
    * each extension. This is the verbatim extension's column.
    *
    * @param extension the column to build
+   *
    * @return the extension's column name
    */
   public static String verbatimColumn(Extension extension) {
