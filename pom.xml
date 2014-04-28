@@ -86,10 +86,10 @@
     <curator.version>1.3.3</curator.version>
     <dbunit.version>2.4.8</dbunit.version>
     <drupal-mybatis.version>0.11</drupal-mybatis.version>
-    <dwc-api.version>1.6-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>1.6</dwc-api.version>
     <dwca-reader.version>1.16</dwca-reader.version>
     <findbugs-jsr305.version>2.0.3</findbugs-jsr305.version>
-    <gbif-api.version>0.13-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.13</gbif-api.version>
     <gbif-common.version>0.15</gbif-common.version>
     <gbif-common-test.version>0.6</gbif-common-test.version>
     <gbif-common-search.version>0.14</gbif-common-search.version>
@@ -99,7 +99,7 @@
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.7</gbif-parsers.version>
     <gbif-postal-service.version>0.10</gbif-postal-service.version>
-    <gbif-registry.version>2.14-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>2.14</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.6</checklistbank-ws-client.version>
     <name-parser.version>2.4</name-parser.version>
