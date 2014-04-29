@@ -20,6 +20,7 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -71,6 +72,7 @@ class HiveQueryVisitor {
   private static final String LESS_THAN_EQUALS_OPERATOR = " <= ";
   private static final String NOT_OPERATOR = "NOT ";
   private static final String LIKE_OPERATOR = " LIKE ";
+  private static final String IS_NOT_NULL_OPERATOR = " IS NOT NULL ";
   private static final CharMatcher APOSTROPHE_MATCHER = CharMatcher.is('\'');
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
@@ -216,6 +218,11 @@ class HiveQueryVisitor {
     visit(predicate.getPredicate());
   }
 
+  public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
+    builder.append(toHiveField(predicate.getParameter()));
+    builder.append(IS_NOT_NULL_OPERATOR);
+  }
+
   public void visit(WithinPredicate within) {
     // the geometry must be valid - it was validated in the predicates constructor
     builder.append("contains(\"");
@@ -252,7 +259,7 @@ class HiveQueryVisitor {
 
 
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
-    if (predicate.getKey() == OccurrenceSearchParameter.ISSUE) {
+    if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       // ignore - there's no way to actually request this in the interface, nor is it indexed in solr
     } else {
       builder.append(toHiveField(predicate.getKey()));

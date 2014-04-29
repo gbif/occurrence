@@ -20,6 +20,7 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -72,6 +73,7 @@ public class SolrQueryVisitor {
   private static final String LESS_THAN_OPERATOR = "[* TO %s}";
   private static final String LESS_THAN_EQUALS_OPERATOR = "[* TO %s]";
   private static final String NOT_OPERATOR = "-";
+  private static final String NOT_NULL_COMPARISON = ":*";
 
   private StringBuilder builder;
 
@@ -185,6 +187,11 @@ public class SolrQueryVisitor {
   public void visit(WithinPredicate within) {
     builder.append(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
       parseGeometryParam(within.getGeometry())));
+  }
+
+  public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
+    builder.append(toSolrField(predicate.getParameter()));
+    builder.append(NOT_NULL_COMPARISON);
   }
 
   /**

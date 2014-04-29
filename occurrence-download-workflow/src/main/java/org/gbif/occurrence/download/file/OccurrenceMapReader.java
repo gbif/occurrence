@@ -1,6 +1,9 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -10,8 +13,10 @@ import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -64,8 +69,30 @@ public class OccurrenceMapReader {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
       }
+      occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(!extractSpatialIssues(row).isEmpty()));
+      occurrence.put(
+        GbifTerm.hasCoordinate.simpleName(),
+        Boolean.toString(occurrence.get(DwcTerm.decimalLatitude) != null
+          && occurrence.get(DwcTerm.decimalLongitude) != null));
       return occurrence;
     }
+  }
+
+
+  /**
+   * Extracts the spatial issues from the hbase result.
+   */
+  private static Set<OccurrenceIssue> extractSpatialIssues(Result result) {
+    Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
+    for (OccurrenceIssue issue : OccurrenceIssue.GEOSPATIAL_RULES) {
+      String column = Columns.column(issue);
+      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
+      if (val != null) {
+        issues.add(issue);
+      }
+    }
+
+    return issues;
   }
 
 

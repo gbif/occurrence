@@ -6,6 +6,7 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.NotPredicate;
@@ -105,6 +106,13 @@ public class SolrQueryVisitorTest {
     Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
     String query = visitor.getQuery(p);
     assertThat(query, equalTo("-catalog_number:value"));
+  }
+
+  @Test
+  public void testIsNotNullPredicate() throws QueryBuildingException {
+    Predicate p = new IsNotNullPredicate(PARAM);
+    String query = visitor.getQuery(p);
+    assertThat(query, equalTo("catalog_number:*"));
   }
 
   @Test
