@@ -2,7 +2,6 @@ package org.gbif.occurrence.search;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
@@ -10,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
@@ -143,7 +141,6 @@ public class OccurrenceSearchRequestBuilder {
       for (OccurrenceSearchParameter param : params.keySet()) {
         List<String> aFieldParameters = Lists.newArrayList();
         for (String value : params.get(param)) {
-          SearchTypeValidator.validate(param, value);
           OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
           if (solrField != null && param.type() != Date.class) {
             String parsedValue = QueryUtils.parseQueryValue(value);
