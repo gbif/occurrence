@@ -40,8 +40,8 @@ public class OccurrenceWsClientModuleTest {
     final String USER = "nagios";
 
     Properties props = new Properties();
-    //props.setProperty("occurrencedownload.ws.url", "http://apidev.gbif.org/");
-    //props.setProperty("occurrencedownload.ws.url", "http://localhost:8080/");
+    // props.setProperty("occurrencedownload.ws.url", "http://apidev.gbif.org/");
+    // props.setProperty("occurrencedownload.ws.url", "http://localhost:8080/");
     // props.setProperty("occurrencedownload.ws.url", "http://jawa.gbif.org:8080/occurrence-download-ws/");
     props.setProperty("occurrencedownload.ws.url", "http://localhost:8080/occurrence-download-ws/");
     OccurrenceWsClientModule mod = new OccurrenceWsClientModule(props);
@@ -51,7 +51,7 @@ public class OccurrenceWsClientModuleTest {
     DownloadRequestService client = inj.getInstance(DownloadRequestService.class);
 
     DownloadRequest d =
-      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null);
+      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true);
 
     client.create(d);
 
