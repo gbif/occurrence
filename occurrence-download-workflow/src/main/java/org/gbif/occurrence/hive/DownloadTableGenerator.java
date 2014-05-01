@@ -39,9 +39,9 @@ public class DownloadTableGenerator {
   private static final String STRING_COL_DECL_FMT = "%s STRING";
   private static final Joiner COMMA_JOINER = Joiner.on(',').skipNulls();
   private static final String COLLECT_MEDIATYPES_UDF_DCL =
-    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "'";
+    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "';";
   private static final String REMOVE_NULLS_UDF_DCL =
-    "CREATE TEMPORARY FUNCTION removeNulls AS '" + ArrayNullsRemoverGenericUDF.class.getName() + "'";
+    "CREATE TEMPORARY FUNCTION removeNulls AS '" + ArrayNullsRemoverGenericUDF.class.getName() + "';";
 
   private static final String COLLECT_MEDIATYPES = "collectMediaTypes("
     + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")";
