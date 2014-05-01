@@ -79,6 +79,8 @@ class HiveQueryVisitor {
 
   private static final String MEDIATYPE_CONTAINS_FMT = "array_contains("
     + HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
+  private static final String ISSUE_CONTAINS_FMT = "array_contains("
+    + HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
 
 
   private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(
@@ -119,6 +121,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.HAS_COORDINATE, GbifTerm.hasCoordinate)
     .put(OccurrenceSearchParameter.SPATIAL_ISSUES, GbifTerm.hasGeospatialIssues)
     .put(OccurrenceSearchParameter.MEDIA_TYPE, GbifTerm.mediaType)
+    .put(OccurrenceSearchParameter.ISSUE, GbifTerm.issue)
     .build();
 
   private StringBuilder builder;
@@ -170,6 +173,8 @@ class HiveQueryVisitor {
       appendTaxonKeyFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+    } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
+      builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }

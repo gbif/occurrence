@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
@@ -60,6 +61,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
       .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, OccurrenceSolrField.MEDIA_TYPE)
+      .put(OccurrenceSearchParameter.ISSUE, OccurrenceSolrField.ISSUE)
       .build();
 
 
