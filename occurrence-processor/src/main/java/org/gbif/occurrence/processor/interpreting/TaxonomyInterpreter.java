@@ -61,6 +61,9 @@ public class TaxonomyInterpreter {
       occ.setTaxonKey(nubLookup.getPayload().getUsageKey());
       occ.setScientificName(nubLookup.getPayload().getScientificName());
       occ.setTaxonRank(nubLookup.getPayload().getRank());
+      // copy issues
+      occ.getIssues().addAll(nubLookup.getIssues());
+
       // parse name into pieces - we dont get them from the nub lookup
       try {
         ParsedName pn = parser.parse(occ.getScientificName());
