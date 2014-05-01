@@ -31,6 +31,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ELEVATION;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.HAS_COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ISSUE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LAST_INTERPRETED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
@@ -154,6 +155,7 @@ public class SolrOccurrenceWriter {
       doc.setField(COORDINATE.getFieldName(), null);
     }
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
+    doc.setField(ISSUE.getFieldName(), occurrence.getIssues());
     return doc;
   }
 

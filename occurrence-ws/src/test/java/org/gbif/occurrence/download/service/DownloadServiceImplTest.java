@@ -70,7 +70,7 @@ public class DownloadServiceImplTest {
   @Test
   public void testCreate() throws OozieClientException {
     when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
-    DownloadRequest dl = new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null);
+    DownloadRequest dl = new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true);
     String id = requestService.create(dl);
 
     assertThat(id, equalTo(DOWNLOAD_ID));
@@ -80,7 +80,7 @@ public class DownloadServiceImplTest {
   @Ignore("See OCC-55: At the moment failures are not propagated")
   public void testFailedCreate() throws OozieClientException {
     doThrow(new OozieClientException("foo", "bar")).when(oozieClient).run(any(Properties.class));
-    DownloadRequest dl = new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null);
+    DownloadRequest dl = new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true);
     requestService.create(dl);
 
     // TODO: Assert on exception
@@ -132,7 +132,7 @@ public class DownloadServiceImplTest {
   public void testNotification() throws OozieClientException {
     when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
     DownloadRequest dl =
-      new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", Lists.newArrayList(TEST_EMAIL));
+      new DownloadRequest(DEFAULT_TEST_PREDICATE, "markus", Lists.newArrayList(TEST_EMAIL), true);
 
     String downloadKey = requestService.create(dl);
     assertThat(downloadKey, equalTo(DOWNLOAD_ID));
@@ -143,7 +143,7 @@ public class DownloadServiceImplTest {
   }
 
   private Download mockDownload(String downloadKey, String creator) {
-    DownloadRequest downloadRequest = new DownloadRequest(DEFAULT_TEST_PREDICATE, creator, null);
+    DownloadRequest downloadRequest = new DownloadRequest(DEFAULT_TEST_PREDICATE, creator, null, true);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(downloadKey);

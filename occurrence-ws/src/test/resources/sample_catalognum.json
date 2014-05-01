@@ -1,6 +1,7 @@
 {
   "creator":"markus",
   "notificationAddresses": ["gbif@mailinator.com"],
+  "send_notification":"true",
   "created":"2013",
   "predicate":{
     "type":"equals",

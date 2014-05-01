@@ -7,6 +7,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF;
 import org.gbif.occurrence.hive.udf.CollectMediaTypesUDF;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
@@ -39,6 +40,9 @@ public class DownloadTableGenerator {
   private static final Joiner COMMA_JOINER = Joiner.on(',').skipNulls();
   private static final String COLLECT_MEDIATYPES_UDF_DCL =
     "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "'";
+  private static final String REMOVE_NULLS_UDF_DCL =
+    "CREATE TEMPORARY FUNCTION removeNulls AS '" + ArrayNullsRemoverGenericUDF.class.getName() + "'";
+
   private static final String COLLECT_MEDIATYPES = "collectMediaTypes("
     + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")";
   private static final String HIVE_CREATE_HBASE_TABLE_FMT =
@@ -60,7 +64,9 @@ public class DownloadTableGenerator {
     "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s occ LEFT OUTER JOIN %4$s mm ON occ.gbifid = mm.gbifid;";
 
   private static final String MULTIMEDIA_TABLE_POST = "_multimedia";
+  private static final String ISSUE_TABLE_POST = "_issue";
   private static final String MULTIMEDIA_HBASE_TABLE_POST = MULTIMEDIA_TABLE_POST + HBASE_POST;
+  private static final String ISSUE_HBASE_TABLE_POST = ISSUE_TABLE_POST + HBASE_POST;
   private static final String MULTIMEDIA_HDFS_TABLE_POST = MULTIMEDIA_TABLE_POST + HDFS_POST;
 
   private static final String INSERT_MULTIMEDIA_FMT =
@@ -68,6 +74,7 @@ public class DownloadTableGenerator {
       + " SELECT gbifid," + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + "  FROM %s;";
 
   private static final String HAS_COORDINATE_EXP = "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
+  private static final String ISSUE_ENTRY_EXP = "CASE COALESCE(%1$s,0) WHEN 0 THEN NULL ELSE %2$s END";
 
   private static final String ISSUE_HIVE_TYPE = " INT";
   private static final String COALESCE0_FMT = "COALESCE(%s,0)";
@@ -130,6 +137,26 @@ public class DownloadTableGenerator {
   };
 
   /**
+   * Generates "COALESCE" expression: COALESCE(0,issue column name).
+   */
+  private static final Function<OccurrenceIssue, String> ISSUES_ARRAY_EXP = new Function<OccurrenceIssue, String>() {
+
+    public String apply(OccurrenceIssue issue) {
+      return String.format(ISSUE_ENTRY_EXP, HiveColumnsUtils.getHiveColumn(issue), "'" + issue.name() + "'");
+    }
+  };
+
+  /**
+   * Generates the list of issue columns.
+   */
+  private static final Function<OccurrenceIssue, String> ISSUE_COLUMN_DECL = new Function<OccurrenceIssue, String>() {
+
+    public String apply(OccurrenceIssue issue) {
+      return String.format(STRING_COL_DECL_FMT, HiveColumnsUtils.getHiveColumn(issue));
+    }
+  };
+
+  /**
    * Generates the select expression of column.
    */
   private static final Function<Term, String> TERM_SELECT_EXP = new Function<Term, String>() {
@@ -137,9 +164,10 @@ public class DownloadTableGenerator {
     public String apply(Term term) {
       if (GbifTerm.hasGeospatialIssues == term) {
         return hasSpatialIssueQuery();
-      }
-      if (GbifTerm.hasCoordinate == term) {
+      } else if (GbifTerm.hasCoordinate == term) {
         return HAS_COORDINATE_EXP;
+      } else if (GbifTerm.issue == term) {
+        return issuesArrayQuery();
       }
       return HiveColumnsUtils.getHiveColumn(term);
     }
@@ -153,6 +181,14 @@ public class DownloadTableGenerator {
     .add(OCC_ID_COL_DEF)
     .add(EXTENSION_COL_DECL.apply(Extension.MULTIMEDIA)).build());
 
+
+  /**
+   * Issue columns for hdfs and hbase columns.
+   */
+  private static final String ISSUE_COLUMNS = COMMA_JOINER.join(new ImmutableList.Builder<String>()
+    .add(OCC_ID_COL_DEF)
+    .addAll(Lists.transform(Arrays.asList(OccurrenceIssue.values()), ISSUE_COLUMN_DECL)).build());
+
   /**
    * Generates a Hive expression that validates if a record has spatial issues.
    */
@@ -160,6 +196,16 @@ public class DownloadTableGenerator {
     return "("
       + Joiner.on(" + ").skipNulls().join(Lists.transform(OccurrenceIssue.GEOSPATIAL_RULES, ISSUE_COALESCE_EXP))
       + ") > 0";
+  }
+
+  /**
+   * Generates a Hive expression that validates if a record has spatial issues.
+   */
+  private static String issuesArrayQuery() {
+    final List<OccurrenceIssue> issuesList = Arrays.asList(OccurrenceIssue.values());
+    return "removeNulls(array("
+      + Joiner.on(',').skipNulls().join(Lists.transform(issuesList, ISSUES_ARRAY_EXP))
+      + "))";
   }
 
   /**
@@ -324,7 +370,8 @@ public class DownloadTableGenerator {
     return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n'
       + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST) + '\n'
       + String.format(DROP_TABLE_FMT, hiveTableName + MULTIMEDIA_HBASE_TABLE_POST) + '\n'
-      + String.format(DROP_TABLE_FMT, hiveTableName + MULTIMEDIA_HDFS_TABLE_POST);
+      + String.format(DROP_TABLE_FMT, hiveTableName + MULTIMEDIA_HDFS_TABLE_POST) + '\n'
+      + String.format(DROP_TABLE_FMT, hiveTableName + ISSUE_HBASE_TABLE_POST);
   }
 
   /**
@@ -334,6 +381,8 @@ public class DownloadTableGenerator {
     return HIVE_DEFAULT_OPTS
       + '\n'
       + COLLECT_MEDIATYPES_UDF_DCL
+      + '\n'
+      + REMOVE_NULLS_UDF_DCL
       + '\n'
       + buildDropTableStatements(hiveTableName)
       + '\n'

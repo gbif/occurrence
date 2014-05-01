@@ -18,7 +18,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX Handler that can parse a single oozie download job definition and extract a download instance from it.
  * Extracts download properties using the Hadoop configuration conventions.
- *
+ * 
  * <pre>
  * {@code
  * <configuration>
@@ -43,6 +43,7 @@ public class OozieJobSaxHandler extends DefaultHandler {
   private String creator;
   private Predicate predicate;
   private Set<String> notificationAddresses;
+  private boolean sendNotification;
 
   private boolean inConfiguration;
   private boolean inProperty;
@@ -51,7 +52,7 @@ public class OozieJobSaxHandler extends DefaultHandler {
   private String propValue;
 
   public DownloadRequest buildDownload() {
-    return new DownloadRequest(predicate, creator, notificationAddresses);
+    return new DownloadRequest(predicate, creator, notificationAddresses, sendNotification);
   }
 
   @Override
@@ -75,6 +76,9 @@ public class OozieJobSaxHandler extends DefaultHandler {
 
         } else if (propNameEquals(Constants.NOTIFICATION_PROPERTY)) {
           notificationAddresses = Sets.newHashSet(EMAIL_SPLITTER.split(Strings.nullToEmpty(propValue)));
+
+        } else if (propNameEquals(Constants.SEND_NOTIFICATION_PROPERTY)) {
+          sendNotification = Boolean.parseBoolean(propValue);
 
         } else if (propNameEquals(Constants.FILTER_PROPERTY) && !Strings.isNullOrEmpty(propValue)) {
           try {

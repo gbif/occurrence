@@ -54,7 +54,7 @@ public class HiveColumnsUtils {
       return "DOUBLE";
     } else if (TermUtils.isInterpretedBoolean(term)) {
       return "BOOLEAN";
-    } else if (GbifTerm.mediaType == term) {
+    } else if (GbifTerm.mediaType == term || GbifTerm.issue == term) {
       return "ARRAY<STRING>";
     } else {
       return "STRING";

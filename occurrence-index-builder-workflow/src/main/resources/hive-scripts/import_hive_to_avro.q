@@ -24,5 +24,6 @@ SELECT
   hascoordinate, --hascoordinate
   COALESCE(elevation,-1000000),
   COALESCE(depth,-1000000),
-  mediatype
+  mediatype,
+  issue
 FROM ${sourceOccurrenceTable} occ; 

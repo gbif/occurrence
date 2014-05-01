@@ -1,6 +1,7 @@
 {
   "creator":"admin",
   "notification_addresses": ["gbif@mailinator.com"],  
+  "send_notification":"true",
   "predicate":{
     "type":"and",
     "predicates":[

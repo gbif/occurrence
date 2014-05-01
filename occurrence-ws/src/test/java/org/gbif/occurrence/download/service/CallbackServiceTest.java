@@ -7,13 +7,10 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.download.service.Constants;
-import org.gbif.occurrence.download.service.DownloadEmailUtils;
-import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.mail.MessagingException;
 
 import com.google.common.collect.Lists;
@@ -65,7 +62,7 @@ public class CallbackServiceTest {
    * Creates a mock download object.
    */
   private static Download mockDownload() {
-    DownloadRequest downloadRequest = new DownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS);
+    DownloadRequest downloadRequest = new DownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(DOWNLOAD_ID);

@@ -12,6 +12,7 @@ public final class Constants {
   public static final String NOTIFICATION_PROPERTY = "gbif_notification_addresses";
   public static final String USER_PROPERTY = "gbif_user";
   public static final String FILTER_PROPERTY = "gbif_filter";
+  public static final String SEND_NOTIFICATION_PROPERTY = "gbif_send_notification";
   // guice occurrence-download.xyz properties
   public static final String OOZIE_USER = "occurrence-download";
 

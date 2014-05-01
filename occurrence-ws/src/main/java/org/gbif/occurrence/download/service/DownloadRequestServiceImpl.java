@@ -313,7 +313,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     SUCCESSFUL_DOWNLOADS.inc();
 
     // notify about download
-    downloadEmailUtils.sendSuccessNotificationMail(download);
+    if (download.getRequest().getSendNotification()) {
+      downloadEmailUtils.sendSuccessNotificationMail(download);
+    }
   }
 
   /**
