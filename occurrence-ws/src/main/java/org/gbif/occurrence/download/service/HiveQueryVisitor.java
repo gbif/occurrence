@@ -119,7 +119,7 @@ class HiveQueryVisitor {
     .put(OccurrenceSearchParameter.RECORD_NUMBER, DwcTerm.recordNumber)
     .put(OccurrenceSearchParameter.TYPE_STATUS, DwcTerm.typeStatus)
     .put(OccurrenceSearchParameter.HAS_COORDINATE, GbifTerm.hasCoordinate)
-    .put(OccurrenceSearchParameter.SPATIAL_ISSUES, GbifTerm.hasGeospatialIssues)
+    .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, GbifTerm.hasGeospatialIssues)
     .put(OccurrenceSearchParameter.MEDIA_TYPE, GbifTerm.mediaType)
     .put(OccurrenceSearchParameter.ISSUE, GbifTerm.issue)
     .build();
@@ -138,7 +138,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   * 
+   *
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -165,7 +165,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   * 
+   *
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -242,7 +242,7 @@ class HiveQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   * 
+   *
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -275,7 +275,7 @@ class HiveQueryVisitor {
 
   /**
    * Searches any of the nub keys in hbase of any rank.
-   * 
+   *
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
@@ -296,7 +296,7 @@ class HiveQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   * 
+   *
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase

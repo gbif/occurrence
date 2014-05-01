@@ -51,7 +51,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.ELEVATION, OccurrenceSolrField.ELEVATION)
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceSolrField.BASIS_OF_RECORD)
       .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceSolrField.DATASET_KEY)
-      .put(OccurrenceSearchParameter.SPATIAL_ISSUES, OccurrenceSolrField.SPATIAL_ISSUES)
+      .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceSolrField.SPATIAL_ISSUES)
       .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceSolrField.HAS_COORDINATE)
       .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED)

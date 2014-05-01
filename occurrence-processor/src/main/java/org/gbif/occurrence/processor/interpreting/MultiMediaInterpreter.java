@@ -38,7 +38,7 @@ public class MultiMediaInterpreter {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMediaInterpreter.class);
   private static final Tika TIKA = new Tika();
   private static final MimeTypes MIME_TYPES = MimeTypes.getDefaultMimeTypes();
-  private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|","|",",", ";"};
+  private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|", "|", ",", ";"};
 
   private MultiMediaInterpreter() {
   }
