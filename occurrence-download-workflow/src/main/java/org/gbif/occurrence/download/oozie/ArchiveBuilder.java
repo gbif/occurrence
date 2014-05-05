@@ -184,7 +184,7 @@ public class ArchiveBuilder {
   /**
    * Entry point for assembling the dwc archive.
    * The thrown exception is the only way of telling Oozie that this job has failed.
-   * 
+   *
    * @throws IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
@@ -233,7 +233,7 @@ public class ArchiveBuilder {
 
   /**
    * Main method to assemble the dwc archive and do all the work until we have a final zip file.
-   * 
+   *
    * @param zipFile the final zip file holding the entire archive
    */
   public void buildArchive(File zipFile) throws DownloadException {
@@ -300,7 +300,7 @@ public class ArchiveBuilder {
    * Adds an eml file per dataset involved into a subfolder "dataset" which is supported by our dwc archive reader.
    * Create a rights.txt and citation.txt file targeted at humans to quickly yield an overview about rights and
    * datasets involved.
-   * 
+   *
    * @throws IOException
    */
   private void addDatasetMetadata() throws IOException {
@@ -335,8 +335,6 @@ public class ArchiveBuilder {
       // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
       try {
         Dataset srcDataset = datasetService.get(constituentId);
-        // contacts are not eagerly loaded
-        srcDataset.setContacts(datasetService.listContacts(constituentId));
 
         // citation
         String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
@@ -386,7 +384,7 @@ public class ArchiveBuilder {
   /**
    * Creates a single EML metadata file for the entire archive.
    * Make sure we execute this method AFTER building the constituents metadata which adds to our dataset instance.
-   * 
+   *
    * @throws IOException
    */
   private void addQueryMetadata() {
@@ -460,7 +458,7 @@ public class ArchiveBuilder {
   /**
    * Checks the contacts of a dataset and finds the preferred contact that should be used as the main author
    * of a dataset.
-   * 
+   *
    * @return preferred author contact or null
    */
   private Contact getContentProviderContact(Dataset dataset) {
@@ -603,7 +601,7 @@ public class ArchiveBuilder {
 
   /**
    * Write rights text.
-   * 
+   *
    * @param rightsWriter
    * @param dataset
    * @param citationLink
