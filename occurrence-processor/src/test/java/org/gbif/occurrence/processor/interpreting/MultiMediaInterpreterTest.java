@@ -175,6 +175,19 @@ public class MultiMediaInterpreterTest {
     assertEquals("image/tiff", MultiMediaInterpreter.parseMimeType(URI.create("abies_alba.tiff")));
     assertEquals("audio/mpeg", MultiMediaInterpreter.parseMimeType(URI.create("abies_alba.mp3")));
     assertEquals("video/mpeg", MultiMediaInterpreter.parseMimeType(URI.create("abies_alba.mpg")));
+
+    // we default to an html link
+    assertEquals("text/html", MultiMediaInterpreter.parseMimeType(URI.create("http://www.gbif.org/image?id=12")));
   }
 
+
+  @Test
+  public void testParseHtmlMediaLink() throws Exception {
+    MediaObject mo = buildMO(null, "http://www.gbif.org/image?id=12");
+    MultiMediaInterpreter.detectType(mo);
+    assertNull(mo.getFormat());
+    assertNull(mo.getIdentifier());
+    assertEquals("http://www.gbif.org/image?id=12", mo.getReferences().toString());
+    assertNull(mo.getType());
+  }
 }

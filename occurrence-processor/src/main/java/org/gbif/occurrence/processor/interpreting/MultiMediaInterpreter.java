@@ -38,6 +38,7 @@ public class MultiMediaInterpreter {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMediaInterpreter.class);
   private static final Tika TIKA = new Tika();
   private static final MimeTypes MIME_TYPES = MimeTypes.getDefaultMimeTypes();
+  private static final String HTML_TYPE = "text/html";
   private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|", "|", ",", ";"};
 
   private MultiMediaInterpreter() {
@@ -144,6 +145,14 @@ public class MultiMediaInterpreter {
       mo.setFormat(parseMimeType(mo.getIdentifier()));
     }
 
+    // if MIME type is text/html make it a references link instead
+    if (HTML_TYPE.equalsIgnoreCase(mo.getFormat()) && mo.getIdentifier() != null) {
+      // make file URI the references link URL instead
+      mo.setReferences(mo.getIdentifier());
+      mo.setIdentifier(null);
+      mo.setFormat(null);
+    }
+
     if (!Strings.isNullOrEmpty(mo.getFormat())) {
       if (mo.getFormat().startsWith("image")) {
         mo.setType(MediaType.StillImage);
@@ -188,7 +197,13 @@ public class MultiMediaInterpreter {
   @VisibleForTesting
   protected static String parseMimeType(@Nullable URI uri) {
     if (uri != null) {
-      return TIKA.detect(uri.toString());
+      String mime = TIKA.detect(uri.toString());
+      if (mime != null && mime.equalsIgnoreCase(MimeTypes.OCTET_STREAM)) {
+        // links without any suffix default to OCTET STREAM, see:
+        // http://dev.gbif.org/issues/browse/POR-2066
+        return HTML_TYPE;
+      }
+      return mime;
     }
     return null;
   }
