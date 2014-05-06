@@ -1,10 +1,12 @@
 package org.gbif.occurrence.common;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 
 import java.util.Set;
 
@@ -37,6 +39,17 @@ public class TermUtilsTest {
       System.out.println(t.toString());
       assertFalse("Interpreted term exists twice: " + t, terms.contains(t));
       terms.add(t);
+    }
+  }
+
+
+  @Test
+  public void testExtensionTerms() throws Exception {
+    System.out.println("\n\nEXTENSION TERMS");
+    for (Extension e : Extension.values()) {
+      Term term = TermFactory.instance().findTerm(e.getRowType());
+      System.out.println(term.toString());
+      assertTrue(TermUtils.isExtensionTerm(term));
     }
   }
 

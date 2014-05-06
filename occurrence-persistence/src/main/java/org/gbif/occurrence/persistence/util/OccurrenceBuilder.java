@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -234,19 +233,20 @@ public class OccurrenceBuilder {
 
     for (KeyValue kv : row.raw()) {
       // all verbatim Term fields in row are prefixed. Columns without that prefix return null!
+      // extensions are also kept with a v_ prefix, so explicitly ignore them.
       Term term = Columns.termFromVerbatimColumn(kv.getQualifier());
-      if (term != null) {
+      if (term != null && !TermUtils.isExtensionTerm(term)) {
         verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
-    verb.setExtensions(readExtensions(row));
+    verb.setExtensions(readVerbatimExtensions(row));
     return verb;
   }
 
   /**
    * Reads the extensions from a result row.
    */
-  private static Map<Extension, List<Map<Term, String>>> readExtensions(@Nullable Result row) {
+  private static Map<Extension, List<Map<Term, String>>> readVerbatimExtensions(@Nullable Result row) {
     Map<Extension, List<Map<Term, String>>> extensions = Maps.newHashMap();
     for (Extension extension : Extension.values()) {
       String jsonExtensions = ExtResultReader.getString(row, Columns.verbatimColumn(extension));

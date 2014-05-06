@@ -1,15 +1,18 @@
 package org.gbif.occurrence.common;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -21,6 +24,16 @@ import com.google.common.collect.Sets;
  * Static utils class to deal with Term enumeration for occurrences.
  */
 public class TermUtils {
+
+  private static final Set<Term> EXTENSION_TERMS = ImmutableSet.copyOf(
+    Iterables.transform(ImmutableList.copyOf(Extension.values()), new Function<Extension, Term>() {
+      @Nullable
+      @Override
+      public Term apply(@Nullable Extension e) {
+        return TermFactory.instance().findTerm(e.getRowType());
+      }
+    })
+  );
 
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
     DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
@@ -232,6 +245,10 @@ public class TermUtils {
    */
   public static boolean isComplexType(Term term) {
     return COMPLEX_TYPE.contains(term);
+  }
+
+  public static boolean isExtensionTerm(Term term) {
+    return EXTENSION_TERMS.contains(term);
   }
 
 }
