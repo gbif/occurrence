@@ -16,12 +16,14 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
@@ -40,7 +42,10 @@ public class MultiMediaInterpreter {
   private static final MimeTypes MIME_TYPES = MimeTypes.getDefaultMimeTypes();
   private static final String HTML_TYPE = "text/html";
   private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|", "|", ",", ";"};
-
+  // mime types which we consider as html links instead of real media file uris
+  private static final Set<String> HTML_MIME_TYPES = ImmutableSet.of("text/x-coldfusion", "text/x-php", "text/asp",
+                                   "text/aspdotnet", "text/x-cgi", "text/x-jsp", "text/x-perl",
+                                   HTML_TYPE, MIME_TYPES.OCTET_STREAM);
   private MultiMediaInterpreter() {
   }
 
@@ -198,7 +203,7 @@ public class MultiMediaInterpreter {
   protected static String parseMimeType(@Nullable URI uri) {
     if (uri != null) {
       String mime = TIKA.detect(uri.toString());
-      if (mime != null && mime.equalsIgnoreCase(MimeTypes.OCTET_STREAM)) {
+      if (mime != null && HTML_MIME_TYPES.contains(mime.toLowerCase())) {
         // links without any suffix default to OCTET STREAM, see:
         // http://dev.gbif.org/issues/browse/POR-2066
         return HTML_TYPE;

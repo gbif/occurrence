@@ -178,6 +178,9 @@ public class MultiMediaInterpreterTest {
 
     // we default to an html link
     assertEquals("text/html", MultiMediaInterpreter.parseMimeType(URI.create("http://www.gbif.org/image?id=12")));
+    assertEquals("text/html", MultiMediaInterpreter.parseMimeType(URI.create("http://arctos.database.museum/MediaSearch.cfm?action=search")));
+    assertEquals("text/html", MultiMediaInterpreter.parseMimeType(URI.create("http://arctos.database.museum/MediaSearch.php?action=search")));
+    assertEquals("text/html", MultiMediaInterpreter.parseMimeType(URI.create("http://arctos.database.museum/MediaSearch.pl?action=search")));
   }
 
 
