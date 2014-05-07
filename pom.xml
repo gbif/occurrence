@@ -93,7 +93,7 @@
     <gbif-common-ws.version>0.14-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.3</geocode.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
-    <gbif-parsers.version>0.7</gbif-parsers.version>
+    <gbif-parsers.version>0.8-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.10</gbif-postal-service.version>
     <gbif-registry.version>2.14</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>

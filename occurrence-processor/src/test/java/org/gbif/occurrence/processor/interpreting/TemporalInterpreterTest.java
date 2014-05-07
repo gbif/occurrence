@@ -221,7 +221,6 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testDateStrings() {
-    assertValidDate("2014-07-28", "28.07.14");
     assertValidDate("1999-07-19", "1999-07-19");
     assertValidDate("1999-07-19", "1999-07-19T00:00:00");
     assertValidDate("1999-07-19", "19-07-1999");
@@ -235,6 +234,7 @@ public class TemporalInterpreterTest {
     assertValidDate("1999-07-19", "19990719");
     assertValidDate("2012-05-06", "20120506");
 
+    assertValidDate(null, "28.07.14");
   }
 
   private void assertValidDate(String expected, String input) {
@@ -246,7 +246,9 @@ public class TemporalInterpreterTest {
    */
   private void assertDate(String expected, DateYearMonthDay result) {
     if (expected == null) {
-      assertNull(result.getDate());
+      if (result != null) {
+        assertNull(result.getDate());
+      }
     } else {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
       assertNotNull("Missing date", result.getDate());
