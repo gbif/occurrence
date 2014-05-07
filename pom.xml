@@ -58,14 +58,10 @@
   <properties>
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
-    <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
     <postalservice.threadcount>10</postalservice.threadcount>
     <postalservice.port>5672</postalservice.port>
     <postalservice.hostname>mq.gbif.org</postalservice.hostname>
-    <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
-    <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
-    <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
-    <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+
     <mail.smtp>smtp.gbif.org</mail.smtp>
     <!-- download defaults -->
     <occurrence.download.ws.mount>/mnt/auto/occurrence-download</occurrence.download.ws.mount>
@@ -759,6 +755,13 @@
         <occurrence.environment>prod</occurrence.environment>
         <occurrence.env_prefix>prod_a</occurrence.env_prefix>
 
+        <!-- cluster -->
+        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif.org/v0.9/</occurrence.download.ws.url>
@@ -794,6 +797,13 @@
         <occurrence.environment>uat</occurrence.environment>
         <occurrence.env_prefix>uat</occurrence.env_prefix>
 
+        <!-- cluster -->
+        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-uat.org/v0.9/</occurrence.download.ws.url>
@@ -828,6 +838,13 @@
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
+
+        <!-- cluster -->
+        <zookeeper.quorum>c1n1.gbif.org:2181,c1n2.gbif.org:2181,c1n3.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>c1n3.gbif.org:8021</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://c1n1.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://c1n1.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://c1n1.gbif.org:9083</hive.metastore.uris>
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
