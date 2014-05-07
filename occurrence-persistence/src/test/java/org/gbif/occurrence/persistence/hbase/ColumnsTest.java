@@ -59,4 +59,10 @@ public class ColumnsTest {
     assertTrue(Columns.column(Extension.IMAGE).startsWith("http"));
     assertTrue(Columns.verbatimColumn(Extension.IMAGE).startsWith("v_"));
   }
+
+  @Test
+  public void showHbaseKey() {
+    System.out.println(Bytes.toStringBinary(Bytes.toBytes(466024667)));
+  }
+
 }
