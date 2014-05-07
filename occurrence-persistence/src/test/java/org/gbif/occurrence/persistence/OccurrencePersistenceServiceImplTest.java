@@ -274,16 +274,20 @@ public class OccurrencePersistenceServiceImplTest {
     put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), Bytes.toBytes(XML));
 
     for (DwcTerm term : DwcTerm.values()) {
-      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      if (!term.isClass()) {
+        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      }
     }
     for (Term term : IucnTerm.values()) {
       put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
     }
-    for (Term term : DcTerm.values()) {
-      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+    for (DcTerm term : DcTerm.values()) {
+      if (!term.isClass()) {
+        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      }
     }
-    for (Term term : GbifTerm.values()) {
-      if (term != GbifTerm.lastParsed) {
+    for (GbifTerm term : GbifTerm.values()) {
+      if (term != GbifTerm.lastParsed && !term.isClass()) {
         put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
       }
     }
@@ -800,16 +804,22 @@ public class OccurrencePersistenceServiceImplTest {
     Map<Term, String> fields = Maps.newHashMap();
 
     for (DwcTerm term : DwcTerm.values()) {
-      fields.put(term, prefix + term.toString());
+      if (!term.isClass()) {
+        fields.put(term, prefix + term.toString());
+      }
     }
-    for (Term term : GbifTerm.values()) {
-      fields.put(term, prefix + term.toString());
+    for (GbifTerm term : GbifTerm.values()) {
+      if (!term.isClass()) {
+        fields.put(term, prefix + term.toString());
+      }
     }
     for (Term term : IucnTerm.values()) {
       fields.put(term, prefix + term.toString());
     }
-    for (Term term : DcTerm.values()) {
-      fields.put(term, prefix + term.toString());
+    for (DcTerm term : DcTerm.values()) {
+      if (!term.isClass()) {
+        fields.put(term, prefix + term.toString());
+      }
     }
     Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
     fields.put(term, prefix + term.toString());
@@ -895,7 +905,9 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(a.getPublishingCountry(), b.getPublishingCountry());
     assertEquals(a.getPublishingOrgKey(), b.getPublishingOrgKey());
     for (DwcTerm term : DwcTerm.values()) {
-      assertEquals(a.getVerbatimField(term), b.getVerbatimField(term));
+      if (!term.isClass()) {
+        assertEquals(a.getVerbatimField(term), b.getVerbatimField(term));
+      }
     }
   }
 
