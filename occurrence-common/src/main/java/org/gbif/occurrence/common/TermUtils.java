@@ -10,6 +10,7 @@ import org.gbif.dwc.terms.TermFactory;
 
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -27,13 +28,14 @@ public class TermUtils {
 
   private static final Set<Term> EXTENSION_TERMS = ImmutableSet.copyOf(
     Iterables.transform(ImmutableList.copyOf(Extension.values()), new Function<Extension, Term>() {
+
       @Nullable
       @Override
       public Term apply(@Nullable Extension e) {
         return TermFactory.instance().findTerm(e.getRowType());
       }
     })
-  );
+    );
 
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
     DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
@@ -48,7 +50,7 @@ public class TermUtils {
   private static final Set<? extends Term> INTERPRETED_BOOLEAN = ImmutableSet.of(GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues);
 
-  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType);
+  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
     DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,
@@ -118,7 +120,7 @@ public class TermUtils {
     DcTerm.type, DcTerm.format, DcTerm.identifier, DcTerm.references, DcTerm.title, DcTerm.description,
     DcTerm.created, DcTerm.creator, DcTerm.contributor, DcTerm.publisher, DcTerm.audience, DcTerm.source,
     DcTerm.license, DcTerm.rightsHolder
-  );
+    );
 
   private TermUtils() {
     // private constructor
@@ -128,7 +130,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   *
+   * 
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
@@ -196,12 +198,12 @@ public class TermUtils {
         }
       }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
 
-      @Override
-      public boolean apply(@Nullable DwcTerm t) {
-        return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
-      }
-    })
-    );
+        @Override
+        public boolean apply(@Nullable DwcTerm t) {
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
+        }
+      })
+      );
   }
 
   /**
