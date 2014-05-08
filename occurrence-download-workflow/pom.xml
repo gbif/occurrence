@@ -22,16 +22,16 @@
   <name>Occurrence Download Oozie Workflow</name>
   <description>Oozie Workflow backing the Occurrence Download Service</description>
 
-  <properties>    
+  <properties>
     <!-- VERSIONS -->
     <akka-actor.version>2.0.5</akka-actor.version>
     <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
     <apache-curator.version>2.1.0-incubating</apache-curator.version>
     <freemarker.version>2.3.19</freemarker.version>
-    <hive.version>0.10.0-cdh4.2.1</hive.version>
-    <hbase.version>0.94.2-cdh4.2.1</hbase.version>
-    <hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>
-    <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
+    <!--<hive.version>0.10.0-cdh4.2.1</hive.version>-->
+    <!--<hbase.version>0.94.2-cdh4.2.1</hbase.version>-->
+    <!--<hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>-->
+    <!--<hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>-->
     <httpclient.version>4.2.5</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
     <httpmime.version>4.2.5</httpmime.version>
@@ -164,19 +164,17 @@
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>        
-    </dependency>	
-    
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
     <!-- needed for UDFs (false positive from dep:analyse) -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>${hadoop.version}</version>      
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>${hadoop-non-core.version}</version>
       <exclusions>
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
@@ -191,18 +189,17 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <version>${hadoop-non-core.version}</version>
       <exclusions>
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>com.klout</groupId>
       <artifactId>brickhouse</artifactId>
@@ -235,8 +232,8 @@
     </dependency>
     <dependency>
       <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>     
-    </dependency>   
+      <artifactId>jts</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
@@ -259,7 +256,7 @@
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
       <version>${solr.version}</version>
-    </dependency>   
+    </dependency>
     <!-- all this for udfs -->
     <dependency>
       <groupId>org.gbif</groupId>
@@ -310,7 +307,6 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-cli</artifactId>
-      <version>${hive.version}</version>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
@@ -322,19 +318,16 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-hbase-handler</artifactId>
-      <version>${hive.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-builtins</artifactId>
-      <version>${hive.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-common</artifactId>
-      <version>${hive.version}</version>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
@@ -346,7 +339,6 @@
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase</artifactId>
-      <version>${hbase.version}</version>
       <exclusions>
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
@@ -410,10 +402,10 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>  
+    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>        
-    </dependency>  
+      <artifactId>mockito-core</artifactId>
+    </dependency>
   </dependencies>
 </project>
