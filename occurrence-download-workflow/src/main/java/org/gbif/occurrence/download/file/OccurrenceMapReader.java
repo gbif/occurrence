@@ -65,7 +65,7 @@ public class OccurrenceMapReader {
         } else if (TermUtils.isInterpretedNumerical(term)) {
           Integer value = ExtResultReader.getInteger(row, term);
           occurrence.put(term.simpleName(), value != null ? value.toString() : null);
-        } else {
+        } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
       }
