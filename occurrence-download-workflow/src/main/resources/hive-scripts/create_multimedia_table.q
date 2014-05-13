@@ -12,6 +12,5 @@ AS
 
 SELECT cleanNull(gbifid),cleanDelimiters(mm_record['type']),cleanDelimiters(mm_record['format']),cleanDelimiters(mm_record['identifier']),cleanDelimiters(mm_record['references']),cleanDelimiters(mm_record['title']),cleanDelimiters(mm_record['description']),cleanDelimiters(mm_record['source']),cleanDelimiters(mm_record['audience']),toISO8601(mm_record['created']),cleanDelimiters(mm_record['creator']),cleanDelimiters(mm_record['contributor']),cleanDelimiters(mm_record['publisher']),cleanDelimiters(mm_record['license']),cleanDelimiters(mm_record['rightsHolder']) 
 FROM (
-  SELECT occ.gbifid, mm.ext_multimedia  FROM ${multimedia_table} mm 
-  JOIN ${occurrence_intepreted_table} occ ON occ.gbifid = mm.gbifid 
+  SELECT gbifid, ext_multimedia  FROM ${occurrence_intepreted_table}   
 ) occ_mm LATERAL VIEW explode(from_json(ext_multimedia, 'array<map<string,string>>')) x AS mm_record;

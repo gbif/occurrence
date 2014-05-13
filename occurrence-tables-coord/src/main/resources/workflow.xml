@@ -9,60 +9,23 @@
   the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="OccurrenceHDFSBuild-${occurrence.environment}" xmlns="uri:oozie:workflow:0.2">
 
-  <start to="create_hbase_tables" />
+  <start to="create_tables" />
 
-  <action name="create_hbase_tables">
+  <action name="create_tables">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create_occurrence_hbase_tables.q</script>
+      <script>hive-scripts/create_occurrence_tables.q</script>
 
       <param>hive_db=${occurrence.environment}</param>
       <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
     </hive>
 
-    <ok to="create_hdfs_tables"/>
+    <ok to="end"/>
     <error to="kill"/>
   </action>
-
-  <fork name="create_hdfs_tables">
-    <path start="create_occurrence_hdfs" />
-    <path start="create_multimedia_hdfs" />
-  </fork>
-
-  <action name="create_occurrence_hdfs">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create_occurrence_hdfs_table.q</script>
-
-      <param>hive_db=${occurrence.environment}</param>
-      <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
-    </hive>
-
-    <ok to="before_end" />
-    <error to="kill" />
-  </action>
-
-  <action name="create_multimedia_hdfs">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create_occurrence_multimedia_table.q</script>
-
-     <param>hive_db=${occurrence.environment}</param>
-     <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
-    </hive>
-
-    <ok to="before_end" />
-    <error to="kill" />
-  </action>
-
-  <join name="before_end" to="end"/>
-
+  
   <kill name="kill">
     <message>Occurrence table generators failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
   </kill>
