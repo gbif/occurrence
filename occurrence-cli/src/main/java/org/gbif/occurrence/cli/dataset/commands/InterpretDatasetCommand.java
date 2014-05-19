@@ -17,12 +17,12 @@ public class InterpretDatasetCommand extends DatasetMutationCommand {
   private static final Logger LOG = LoggerFactory.getLogger(InterpretDatasetCommand.class);
 
   public InterpretDatasetCommand() {
-    super("interpretMedia-dataset");
+    super("interpret-dataset");
   }
 
   @Override
   protected void sendMessage(MessagePublisher publisher, String datasetKey) throws IOException {
     publisher.send(new InterpretDatasetMessage(UUID.fromString(datasetKey)));
-    LOG.info("Sent message to interpretMedia occurrences for dataset [{}]", datasetKey);
+    LOG.info("Sent message to interpret occurrences for dataset [{}]", datasetKey);
   }
 }
