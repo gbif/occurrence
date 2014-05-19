@@ -203,6 +203,8 @@ public class OccurrenceBuilder {
       occ.setTypeStatus(ExtResultReader.getEnum(row, DwcTerm.typeStatus, TypeStatus.class));
       occ.setTypifiedName(ExtResultReader.getString(row, GbifTerm.typifiedName));
 
+      occ.setReferences(ExtResultReader.getUri(row, DcTerm.references));
+
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
       occ.setMedia(buildMedia(row));

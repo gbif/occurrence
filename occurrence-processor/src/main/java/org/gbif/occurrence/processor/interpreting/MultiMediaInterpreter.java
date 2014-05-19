@@ -20,6 +20,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Lists;
+import com.beust.jcommander.internal.Maps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -102,8 +103,31 @@ public class MultiMediaInterpreter {
         }
       }
     }
+
+    // merge information if the same image URL is given several times, e.g. via the core AND an extension
+    deduplicateMedia(occ);
   }
 
+  /**
+   * merges media records if the same image URL or link is given several times.
+   * Remove any media that has not either a file or webpage uri.
+   */
+  private static void deduplicateMedia(Occurrence occ) {
+    Map<String, MediaObject> media = Maps.newHashMap();
+    for (MediaObject m : occ.getMedia()) {
+      // we can get file uris or weblinks. Prefer file URIs as they clearly identify a single image
+      URI uri = m.getIdentifier() != null ? m.getIdentifier() : m.getReferences();
+      if (uri != null) {
+        String url = uri.toString();
+        if (media.containsKey(url)) {
+          // merge infos about the same image?
+        } else {
+          media.put(url, m);
+        }
+      }
+    }
+    occ.setMedia(Lists.newArrayList(media.values()));
+  }
 
   @VisibleForTesting
   protected static List<URI> parseAssociatedMedia(String associatedMedia) {

@@ -5,6 +5,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.EstablishmentMeans;
 import org.gbif.api.vocabulary.LifeStage;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TypeStatus;
@@ -16,12 +17,15 @@ import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
 import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.processor.interpreting.util.UrlParser;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
 
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -80,7 +84,7 @@ public class VerbatimOccurrenceInterpreter {
       LOG.warn("Caught a runtime exception during taxonomy interpretation", e);
     }
     try {
-      OwningOrgInterpreter.interpretOwningOrg(occ);
+      PublishingOrgInterpreter.interpretPublishingOrg(occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during owning org interpretation", e);
     }
@@ -119,6 +123,11 @@ public class VerbatimOccurrenceInterpreter {
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during temporal interpretation", e);
     }
+    try {
+      interpretReferences(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during basis of record interpretation", e);
+    }
 
     occ.setLastInterpreted(new Date());
 
@@ -142,6 +151,18 @@ public class VerbatimOccurrenceInterpreter {
     }
 
     return result;
+  }
+
+  private static void interpretReferences(VerbatimOccurrence verbatim, Occurrence occ) {
+    if (verbatim.hasVerbatimField(DcTerm.references)) {
+      String val = verbatim.getVerbatimField(DcTerm.references);
+      if (!Strings.isNullOrEmpty(val)) {
+        occ.setReferences(UrlParser.parse(val));
+        if (occ.getReferences() == null) {
+          occ.getIssues().add(OccurrenceIssue.REFERENCES_URI_INVALID);
+        }
+      }
+    }
   }
 
   private static void interpretTypification(VerbatimOccurrence verbatim, Occurrence occ) {

@@ -219,7 +219,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       occTable = tablePool.getTable(occurrenceTableName);
       if (occ instanceof Occurrence) {
         populateVerbatimPutDelete(occTable, upd, occ, false);
-        populateInterpretedPutDelete(occTable, upd, (Occurrence) occ);
+        populateInterpretedPutDelete(upd, (Occurrence) occ);
       } else {
         populateVerbatimPutDelete(occTable, upd, occ, true);
       }
@@ -334,7 +334,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * Populates put and delete for the occurrence specific interpreted columns, leaving any verbatim columns untouched.
    * TODO: use reflection to get values from the java properties now that we have corresponding terms?
    */
-  private void populateInterpretedPutDelete(HTableInterface occTable, RowUpdate upd, Occurrence occ)
+  private void populateInterpretedPutDelete(RowUpdate upd, Occurrence occ)
     throws IOException {
 
     Occurrence oldOcc = get(occ.getKey());
@@ -455,6 +455,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!nullSafeEquals(oldOcc.getLastInterpreted(), occ.getLastInterpreted())) {
       upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
+    }
+    if (!nullSafeEquals(oldOcc.getReferences(), occ.getReferences())) {
+      upd.setInterpretedField(DcTerm.references, occ.getReferences());
     }
 
     // Multimedia extension

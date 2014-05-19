@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.util;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
@@ -43,5 +44,9 @@ public class ComparisonUtil {
 
   public static boolean nullSafeEquals(Date first, Date second) {
     return first == null && second == null || first != null && second != null && first.getTime() == second.getTime();
+  }
+
+  public static boolean nullSafeEquals(URI first, URI second) {
+    return first == null && second == null || first != null && second != null && first.equals(second);
   }
 }

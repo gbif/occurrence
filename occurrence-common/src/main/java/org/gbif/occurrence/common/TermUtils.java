@@ -89,6 +89,7 @@ public class TermUtils {
     GbifTerm.elevation, GbifTerm.elevationAccuracy,
     GbifTerm.depth, GbifTerm.depthAccuracy,
     GbifInternalTerm.unitQualifier, GbifTerm.issue,
+    DcTerm.references,
     GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
     );
 
@@ -130,7 +131,7 @@ public class TermUtils {
   /**
    * Lists all terms that have been used during interpretation and are superseded by an interpreted,
    * typed java Occurrence property.
-   * 
+   *
    * @return iterable of terms that have been used during interpretation
    */
   public static Iterable<? extends Term> interpretedSourceTerms() {
