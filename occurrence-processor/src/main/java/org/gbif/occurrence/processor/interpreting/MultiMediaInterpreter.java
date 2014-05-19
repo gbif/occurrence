@@ -113,7 +113,7 @@ public class MultiMediaInterpreter {
    * Remove any media that has not either a file or webpage uri.
    */
   private static void deduplicateMedia(Occurrence occ) {
-    Map<String, MediaObject> media = Maps.newHashMap();
+    Map<String, MediaObject> media = Maps.newLinkedHashMap();
     for (MediaObject m : occ.getMedia()) {
       // we can get file uris or weblinks. Prefer file URIs as they clearly identify a single image
       URI uri = m.getIdentifier() != null ? m.getIdentifier() : m.getReferences();
