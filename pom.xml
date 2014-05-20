@@ -934,7 +934,7 @@
         <occurrence.download.job.max_threads>3</occurrence.download.job.max_threads>
         <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
-        <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
+        <checklistbank.match.ws.url>http://boma.gbif.org:8080/uat-nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://apps.gbif-dev.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>
         <geocode.ws.url>http://boma.gbif.org:8080/geocode-ws/reverse/</geocode.ws.url>
