@@ -6,6 +6,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -14,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("requires live geo lookup webservice")
+@Ignore("requires live geo lookup webservice")
 public class CoordinateInterpreterTest {
 
   private void assertCoordinate(ParseResult<CoordinateResult> result, double lat, double lng) {
