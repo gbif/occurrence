@@ -27,24 +27,27 @@ import org.slf4j.LoggerFactory;
  * Utils class that reprojects to WGS84 based on geotools transformations and SRS databases.
  * It allows to add custom reference systems via property files,
  * see also:
- *  - http://docs.geotools.org/latest/userguide/library/referencing/faq.html#q-how-to-i-add-my-own-epsg-codes
- *  - http://docs.geotools.org/latest/userguide/library/referencing/wkt.html
+ * - http://docs.geotools.org/latest/userguide/library/referencing/faq.html#q-how-to-i-add-my-own-epsg-codes
+ * - http://docs.geotools.org/latest/userguide/library/referencing/wkt.html
  */
 public class Wgs84Projection {
+
   private static final Logger LOG = LoggerFactory.getLogger(Wgs84Projection.class);
   private static final DatumParser PARSER = DatumParser.getInstance();
   private static final DatumAuthorityFactory DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
+  private static final double SUSPICOUS_SHIFT = 0.1d;
 
   /**
    * Reproject the given coordinates into WGS84 coordinates based on a known source datum or SRS.
    * Darwin Core allows not only geodetic datums but also full spatial reference systems as values for "datum".
-   *
+   * <p/>
    * The method will always return lat lons even if the processing failed. In that case only issues are set and the
    * parsing result set to fail - but with a valid payload.
    *
-   * @param lat the original latitude
-   * @param lon the original longitude
+   * @param lat   the original latitude
+   * @param lon   the original longitude
    * @param datum the original geodetic datum the coordinates are in
+   *
    * @return the reprojected coordinates or the original ones in case transformation failed
    */
   public static ParseResult<LatLng> reproject(double lat, double lon, String datum) {
@@ -63,21 +66,26 @@ public class Wgs84Projection {
         issues.add(OccurrenceIssue.GEODETIC_DATUM_INVALID);
 
       } else {
-          MathTransform transform = CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84, true);
-          // different CRS may swap the x/y axis for lat lon, so check first:
-          double[] srcPt;
-          double[] dstPt = new double[3];
-          if( CRS.getAxisOrder(crs) == CRS.AxisOrder.NORTH_EAST){
-            // lat lon
-            srcPt = new double[]{lat, lon, 0};
-          } else {
-            // lon lat
-            LOG.debug("Use lon/lat ordering for reprojection with datum={} and lat/lon={}/{}", datum, lat, lon);
-            srcPt = new double[]{lon, lat, 0};
-          }
+        MathTransform transform = CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84, true);
+        // different CRS may swap the x/y axis for lat lon, so check first:
+        double[] srcPt;
+        double[] dstPt = new double[3];
+        if (CRS.getAxisOrder(crs) == CRS.AxisOrder.NORTH_EAST) {
+          // lat lon
+          srcPt = new double[] {lat, lon, 0};
+        } else {
+          // lon lat
+          LOG.debug("Use lon/lat ordering for reprojection with datum={} and lat/lon={}/{}", datum, lat, lon);
+          srcPt = new double[] {lon, lat, 0};
+        }
 
-          transform.transform(srcPt, 0, dstPt, 0, 1);
-          return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(dstPt[1], dstPt[0]), issues);
+        transform.transform(srcPt, 0, dstPt, 0, 1);
+
+        // verify the datum shift is reasonable
+        if (Math.abs(lat-dstPt[1]) > SUSPICOUS_SHIFT || Math.abs(lon-dstPt[0]) > SUSPICOUS_SHIFT) {
+          issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICOUS);
+        }
+        return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(dstPt[1], dstPt[0]), issues);
 
       }
     } catch (Exception e) {
@@ -91,7 +99,6 @@ public class Wgs84Projection {
   /**
    * Parses the given datum or SRS code and constructs a full 2D geographic reference system.
    *
-   * @param datum
    * @return the parsed CRS or null if it can't be interpreted
    */
   @VisibleForTesting
