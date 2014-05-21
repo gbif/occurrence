@@ -11,7 +11,6 @@ import java.util.Set;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.vividsolutions.jts.geom.Coordinate;
 import org.geotools.factory.BasicFactories;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
@@ -34,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public class Wgs84Projection {
   private static final Logger LOG = LoggerFactory.getLogger(Wgs84Projection.class);
   private static final DatumParser PARSER = DatumParser.getInstance();
+  private static final DatumAuthorityFactory DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
 
   /**
    * Reproject the given coordinates into WGS84 coordinates based on a known source datum or SRS.
@@ -65,22 +65,18 @@ public class Wgs84Projection {
       } else {
           MathTransform transform = CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84, true);
           // different CRS may swap the x/y axis for lat lon, so check first:
-          Coordinate coord;
           double[] srcPt;
           double[] dstPt = new double[3];
           if( CRS.getAxisOrder(crs) == CRS.AxisOrder.NORTH_EAST){
             // lat lon
             srcPt = new double[]{lat, lon, 0};
-            coord = new Coordinate(lat, lon, 0);
           } else {
             // lon lat
             LOG.debug("Use lon/lat ordering for reprojection with datum={} and lat/lon={}/{}", datum, lat, lon);
             srcPt = new double[]{lon, lat, 0};
-            coord = new Coordinate(lon, lat, 0);
           }
 
           transform.transform(srcPt, 0, dstPt, 0, 1);
-          //Coordinate coordTrans = JTS.transform(coord, null, transform);
           return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(dstPt[1], dstPt[0]), issues);
 
       }
@@ -100,8 +96,6 @@ public class Wgs84Projection {
    */
   @VisibleForTesting
   protected static CoordinateReferenceSystem parseCRS(String datum) {
-    DatumAuthorityFactory df = BasicFactories.getDefault().getDatumAuthorityFactory();
-
     CoordinateReferenceSystem crs = null;
     ParseResult<Integer> epsgCode = PARSER.parse(datum);
     if (epsgCode.isSuccessful()) {
@@ -114,7 +108,7 @@ public class Wgs84Projection {
       } catch (FactoryException e) {
         // that didnt work, maybe it is *just* a datum
         try {
-          GeodeticDatum dat = df.createGeodeticDatum(code);
+          GeodeticDatum dat = DATUM_FACTORY.createGeodeticDatum(code);
           crs = new DefaultGeographicCRS(dat, DefaultEllipsoidalCS.GEODETIC_2D);
 
         } catch (FactoryException e1) {
