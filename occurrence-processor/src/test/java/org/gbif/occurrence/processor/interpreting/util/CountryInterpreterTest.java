@@ -1,7 +1,6 @@
-package org.gbif.occurrence.processor.interpreting;
+package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
 
 import org.junit.Test;
 

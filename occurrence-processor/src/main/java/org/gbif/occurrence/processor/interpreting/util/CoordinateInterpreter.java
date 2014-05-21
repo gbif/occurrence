@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
@@ -62,8 +61,7 @@ public class CoordinateInterpreter {
   private static final String OCCURRENCE_PROPS_FILE = "occurrence-processor.properties";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  @VisibleForTesting
-  protected static LoadingCache<WebResource, Location[]> CACHE =
+  private static LoadingCache<WebResource, Location[]> CACHE =
     CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
       .build(RetryingWebserviceClient.newInstance(Location[].class, 10, 2000));
 
@@ -164,8 +162,9 @@ public class CoordinateInterpreter {
    * @param longitude decimal longitude as string
    * @param country   country as interpreted to sanity check coordinate
    *
-   * @return the latitude and longitude as doubles, the country as an ISO code, and a "geospatial issue" flag if any
-   * known errors were encountered in the interpretation (e.g. lat/lng reversed), or all fields set to null if
+   * @return the latitude and longitude as doubles, the country as an ISO code, and issues if any
+   * known errors were encountered in the interpretation (e.g. lat/lng reversed).
+   * , or all fields set to null if
    * latitude
    * or longitude are null
    */
@@ -213,10 +212,12 @@ public class CoordinateInterpreter {
     } else {
       // countries don't match, try to swap lat/lon to see if any falls into the given country
       parsedLatLon = tryCoordTransformations(parsedLatLon.getPayload(), country);
+      issues.addAll(parsedLatLon.getIssues());
     }
 
-    issues.addAll(parsedLatLon.getIssues());
-    if (!parsedLatLon.isSuccessful()) {
+    if (parsedLatLon.getPayload() == null) {
+      // something has gone very wrong
+      LOG.info("Supposed coord interp success produced no latlng", parsedLatLon);
       return ParseResult.fail(issues);
     }
 
@@ -232,7 +233,8 @@ public class CoordinateInterpreter {
       LatLng tCoord = new LatLng(coord.getLat() * transform[0], coord.getLng() * transform[1]);
       if (matchCountry(country, getCountryForLatLng(tCoord))) {
         // transformation worked and matches given country!
-        return ParseResult.fail(tCoord, geospatialIssueEntry.getKey());
+        // still we return the "bad" original coordinate and only flag the record via an issue
+        return ParseResult.fail(coord, geospatialIssueEntry.getKey());
       }
     }
     return ParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
@@ -277,7 +279,8 @@ public class CoordinateInterpreter {
     for (int i = 0; i < NUM_RETRIES; i++) {
       LOG.debug("Attempt [{}] to lookup coord {}", i, coord);
       try {
-        Location[] lookups = CACHE.get(RESOURCE.queryParams(queryParams));
+        WebResource res = RESOURCE.queryParams(queryParams);
+        Location[] lookups = CACHE.get(res);
         if (lookups != null && lookups.length > 0) {
           LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
           for (Location loc : lookups) {
