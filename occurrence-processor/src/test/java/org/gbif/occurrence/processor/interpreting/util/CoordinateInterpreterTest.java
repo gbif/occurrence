@@ -3,27 +3,77 @@ package org.gbif.occurrence.processor.interpreting.util;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
+import org.gbif.geocode.api.model.Location;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.sun.jersey.api.client.WebResource;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("requires live webservice")
+//@Ignore("requires live geo lookup webservice")
 public class CoordinateInterpreterTest {
+
+  @BeforeClass
+  public static void mockGeolookup() {
+    CoordinateInterpreter.CACHE = CacheBuilder.newBuilder().maximumSize(10)
+        .build(new CacheLoader<WebResource, Location[]>() {
+          @Override
+          public Location[] load(WebResource key) throws Exception {
+            return new Location[0];
+          }
+        });
+  }
+
+  private void assertCoordinate(ParseResult<CoordinateResult> result, double lat, double lng) {
+    assertEquals(lat, result.getPayload().getLatitude().doubleValue(), 0.00001);
+    assertEquals(lng, result.getPayload().getLongitude().doubleValue(), 0.00001);
+  }
+
+  @Test
+  public void testCoordinate() {
+    Double lat = 43.0;
+    Double lng = 79.0;
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, null);
+
+    assertCoordinate(result, lat, lng);
+    assertTrue(result.getIssues().isEmpty());
+  }
+
+  @Test
+  public void testNull() {
+    ParseResult<CoordinateResult> result = CoordinateInterpreter.interpretCoordinates(null, null, null, null);
+    assertNotNull(result);
+    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+
+    result = CoordinateInterpreter.interpretCoordinates(null, null, null, Country.CANADA);
+    assertNotNull(result);
+    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+
+    result = CoordinateInterpreter.interpretCoordinates("10.123", "40.567", null, null);
+    assertNotNull(result);
+    assertEquals(ParseResult.STATUS.SUCCESS, result.getStatus());
+
+    assertCoordinate(result, 10.123, 40.567);
+  }
 
   @Test
   public void testLookupCountryMatch() {
     Double lat = 43.65;
     Double lng = -79.40;
     Country country = Country.CANADA;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals(lat, result.getPayload().getLatitude().doubleValue(), 0.0001);
-    assertEquals(lng, result.getPayload().getLongitude().doubleValue(), 0.0001);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
     Assert.assertTrue(result.getIssues().isEmpty());
   }
@@ -32,10 +82,9 @@ public class CoordinateInterpreterTest {
   public void testLookupCountryEmpty() {
     Double lat = -37.78;
     Double lng = 144.97;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null);
-    assertEquals(lat, result.getPayload().getLatitude().doubleValue(), 0.0001);
-    assertEquals(lng, result.getPayload().getLongitude().doubleValue(), 0.0001);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, null);
+    assertCoordinate(result, lat, lng);
     assertEquals(Country.AUSTRALIA, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
@@ -45,10 +94,9 @@ public class CoordinateInterpreterTest {
     Double lat = 55.68;
     Double lng = 12.57;
     Country country = Country.SWEDEN;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals(lat, result.getPayload().getLatitude().doubleValue(), 0.0001);
-    assertEquals(lng, result.getPayload().getLongitude().doubleValue(), 0.0001);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
+    assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
   }
@@ -58,10 +106,10 @@ public class CoordinateInterpreterTest {
     Double lat = 200d;
     Double lng = 200d;
     Country country = null; // "asdf"
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    Assert.assertNull(result.getPayload().getLatitude());
-    Assert.assertNull(result.getPayload().getLongitude());
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
+    assertNull(result.getPayload().getLatitude());
+    assertNull(result.getPayload().getLongitude());
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATES_OUT_OF_RANGE));
   }
@@ -71,10 +119,9 @@ public class CoordinateInterpreterTest {
     Double lat = 43.65;
     Double lng = 79.40;
     Country country = Country.CANADA;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals(lat, result.getPayload().getLatitude().doubleValue(), 0.0001);
-    assertEquals(lng, result.getPayload().getLongitude().doubleValue(), 0.0001);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
+    assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
   }
@@ -84,11 +131,11 @@ public class CoordinateInterpreterTest {
     String lat = null;
     String lng = null;
     Country country = null;
-    ParseResult<CoordinateCountry> result = CoordinateInterpreter.interpretCoordinates(lat, lng, country);
+    ParseResult<CoordinateResult> result = CoordinateInterpreter.interpretCoordinates(lat, lng, null, country);
     Assert.assertNotNull(result);
-    Assert.assertNull(result.getPayload().getCountry());
-    Assert.assertNull(result.getPayload().getLatitude());
-    Assert.assertNull(result.getPayload().getLongitude());
+    assertNull(result.getPayload().getCountry());
+    assertNull(result.getPayload().getLatitude());
+    assertNull(result.getPayload().getLongitude());
     assertTrue(result.getIssues().isEmpty());
   }
 
@@ -97,11 +144,11 @@ public class CoordinateInterpreterTest {
     String lat = "45";
     String lng = null;
     Country country = null;
-    ParseResult<CoordinateCountry> result = CoordinateInterpreter.interpretCoordinates(lat, lng, country);
+    ParseResult<CoordinateResult> result = CoordinateInterpreter.interpretCoordinates(lat, lng, null, country);
     Assert.assertNotNull(result);
-    Assert.assertNull(result.getPayload().getCountry());
-    Assert.assertNull(result.getPayload().getLatitude());
-    Assert.assertNull(result.getPayload().getLongitude());
+    assertNull(result.getPayload().getCountry());
+    assertNull(result.getPayload().getLatitude());
+    assertNull(result.getPayload().getLongitude());
     assertTrue(result.getIssues().isEmpty());
   }
 
@@ -113,17 +160,17 @@ public class CoordinateInterpreterTest {
     double roundedLat = Math.round(lat * Math.pow(10, 5)) / Math.pow(10, 5);
     double roundedLng = Math.round(lng * Math.pow(10, 5)) / Math.pow(10, 5);
     Country country = Country.CANADA;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
-    assertEquals(roundedLat, result.getPayload().getLatitude(), 0.000001);
-    assertEquals(roundedLng, result.getPayload().getLongitude(), 0.000001);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, roundedLat, roundedLng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().isEmpty());
   }
 
   @Test
   public void testNotNumbers() {
-    ParseResult<CoordinateCountry> result = CoordinateInterpreter.interpretCoordinates("asdf", "qwer", null);
+    ParseResult<CoordinateResult> result = CoordinateInterpreter.interpretCoordinates("asdf", "qwer", null, null);
     Assert.assertNotNull(result);
   }
 
@@ -133,8 +180,8 @@ public class CoordinateInterpreterTest {
     Double lat = 54.597;
     Double lng = -5.93;
     Country country = Country.IRELAND;
-    ParseResult<CoordinateCountry> result =
-      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
+    ParseResult<CoordinateResult> result =
+      CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
     assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
     assertEquals(1, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
@@ -143,7 +190,7 @@ public class CoordinateInterpreterTest {
     lat = 54.25;
     lng = -4.5;
     country = Country.UNITED_KINGDOM;
-    result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), country);
+    result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
     assertEquals(Country.ISLE_OF_MAN, result.getPayload().getCountry());
     assertEquals(1, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
@@ -154,7 +201,8 @@ public class CoordinateInterpreterTest {
     // Belfast is UK
     Double lat = 54.597;
     Double lng = -5.93;
-    ParseResult<CoordinateCountry> result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null);
+    ParseResult<CoordinateResult> result = CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(),
+                                                                                      null, null);
     assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }

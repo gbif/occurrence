@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2012 Global Biodiversity Information Facility (GBIF)
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -80,6 +65,11 @@
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <!-- geotools needs a newer version 2.x, hadoop comes with 1.8 -->
+          <groupId>hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -169,6 +159,27 @@
     </dependency>
 
     <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-transform</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-geometry</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-referencing</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-epsg-hsql</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.netflix.curator</groupId>
       <artifactId>curator-client</artifactId>
     </dependency>
@@ -204,7 +215,7 @@
       <artifactId>metrics-ganglia</artifactId>
       <scope>runtime</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
@@ -217,7 +228,7 @@
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
     </dependency>
-    
+
 
     <dependency>
       <groupId>junit</groupId>

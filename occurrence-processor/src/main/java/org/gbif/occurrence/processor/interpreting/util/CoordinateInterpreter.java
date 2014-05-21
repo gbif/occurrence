@@ -6,7 +6,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
@@ -61,7 +62,8 @@ public class CoordinateInterpreter {
   private static final String OCCURRENCE_PROPS_FILE = "occurrence-processor.properties";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private static final LoadingCache<WebResource, Location[]> CACHE =
+  @VisibleForTesting
+  protected static LoadingCache<WebResource, Location[]> CACHE =
     CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
       .build(RetryingWebserviceClient.newInstance(Location[].class, 10, 2000));
 
@@ -105,7 +107,7 @@ public class CoordinateInterpreter {
     // We need to manually register it here because we're building an assembly and Jackson can't find it automatically
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, HTTP_TIMEOUT);
-    cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, HTTP_TIMEOUT);    
+    cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, HTTP_TIMEOUT);
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);
     LOG.info("Creating new geo lookup service at " + WEB_SERVICE_URL);
@@ -167,7 +169,7 @@ public class CoordinateInterpreter {
    * latitude
    * or longitude are null
    */
-  public static ParseResult<CoordinateCountry> interpretCoordinates(String latitude, String longitude,
+  public static ParseResult<CoordinateResult> interpretCoordinates(String latitude, String longitude, String datum,
     final Country country) {
     if (latitude == null || longitude == null) return ParseResult.fail();
 
@@ -175,14 +177,20 @@ public class CoordinateInterpreter {
     Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
-    ParseResult<LatLng> parsed = CoordinateParseUtils.parseLatLng(latitude, longitude);
-    if (parsed.getStatus() != ParseResult.STATUS.SUCCESS) {
-      return ParseResult.fail();
+    ParseResult<LatLng> parsedLatLon = CoordinateParseUtils.parseLatLng(latitude, longitude);
+    issues.addAll(parsedLatLon.getIssues());
+    if (!parsedLatLon.isSuccessful()) {
+      return ParseResult.fail(issues);
     }
+
+    // interpret geodetic datum and reproject if needed
+    // the reprojection will keep the original values even if it failed with issues
+    parsedLatLon = Wgs84Projection.reproject(parsedLatLon.getPayload().getLat(), parsedLatLon.getPayload().getLng(), datum);
+    issues.addAll(parsedLatLon.getIssues());
 
     // the utils do a basic sanity check - even if it suggests success, we have to check that the lat/long
     // actually falls in the country given in the record. If it doesn't, try common mistakes and note the issue
-    List<Country> latLngCountries = getCountryForLatLng(parsed.getPayload());
+    List<Country> latLngCountries = getCountryForLatLng(parsedLatLon.getPayload());
     Country lookupCountry = null;
     if (!latLngCountries.isEmpty()) {
       lookupCountry = latLngCountries.get(0);
@@ -201,22 +209,21 @@ public class CoordinateInterpreter {
         issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
       finalCountry = latLngCountries.get(0);
+
     } else {
       // countries don't match, try to swap lat/lon to see if any falls into the given country
-      parsed = tryCoordTransformations(parsed.getPayload(), country);
+      parsedLatLon = tryCoordTransformations(parsedLatLon.getPayload(), country);
     }
 
-    if (parsed.getPayload() == null) {
-      // something has gone very wrong
-      LOG.info("Supposed coord interp success produced no latlng", parsed);
-      return ParseResult.fail();
+    issues.addAll(parsedLatLon.getIssues());
+    if (!parsedLatLon.isSuccessful()) {
+      return ParseResult.fail(issues);
     }
 
-    issues.addAll(parsed.getIssues());
-
-    return ParseResult
-      .success(parsed.getConfidence(), new CoordinateCountry(parsed.getPayload(), finalCountry), issues);
+    return ParseResult.success(parsedLatLon.getConfidence(),
+                               new CoordinateResult(parsedLatLon.getPayload(), finalCountry),  issues);
   }
+
 
   private static ParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
     Preconditions.checkNotNull(country);
