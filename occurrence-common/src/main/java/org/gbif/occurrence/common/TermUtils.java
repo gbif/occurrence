@@ -98,7 +98,7 @@ public class TermUtils {
     Iterables.concat(JAVA_PROPERTY_TERMS,
       Lists.newArrayList(
         DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
-        DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude,
+        DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude, DwcTerm.geodeticDatum,
         DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
         DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
         DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.taxonRank,
