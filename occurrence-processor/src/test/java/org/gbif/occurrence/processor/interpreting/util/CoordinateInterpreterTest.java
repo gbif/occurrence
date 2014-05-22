@@ -109,7 +109,7 @@ public class CoordinateInterpreterTest {
 
     System.out.println(result.getIssues());
 
-    assertCoordinate(result, lat, lng);
+    assertCoordinate(result, lat, -1*lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
   }
