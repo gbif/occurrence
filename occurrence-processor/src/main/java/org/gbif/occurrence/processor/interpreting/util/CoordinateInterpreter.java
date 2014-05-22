@@ -233,8 +233,8 @@ public class CoordinateInterpreter {
       LatLng tCoord = new LatLng(coord.getLat() * transform[0], coord.getLng() * transform[1]);
       if (matchCountry(country, getCountryForLatLng(tCoord))) {
         // transformation worked and matches given country!
-        // still we return the "bad" original coordinate and only flag the record via an issue
-        return ParseResult.fail(coord, geospatialIssueEntry.getKey());
+        // use the changed coords!
+        return ParseResult.fail(tCoord, geospatialIssueEntry.getKey());
       }
     }
     return ParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
