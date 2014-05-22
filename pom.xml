@@ -92,7 +92,7 @@
     <gbif-common-service.version>0.10</gbif-common-service.version>
     <gbif-common-ws.version>0.14-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.3</geocode.version>
-    <geotools.version>11.0</geotools.version>
+    <geotools.version>11.1</geotools.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.8-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.10</gbif-postal-service.version>

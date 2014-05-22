@@ -29,8 +29,8 @@ public class Wgs84ProjectionTest {
   @Test
   public void testReproject() {
     // EUROPE
-    double lat = 43.0;
-    double lng = 79.0;
+    double lat = 52.61267058;
+    double lng = -9.05848491;
     assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs84"), lat, lng);
     assertLatLon(Wgs84Projection.reproject(lat, lng, null), lat, lng);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS84"), lat, lng);
@@ -38,6 +38,7 @@ public class Wgs84ProjectionTest {
     assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs 84"), lat, lng);
     // this is another form of specifying wgs8ng
     assertLatLon(Wgs84Projection.reproject(lat, lng, "EPSG:4326"), lat, lng);
+
 
     // real projections used frequently in GBIF
     assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS1984"), lat, lng);

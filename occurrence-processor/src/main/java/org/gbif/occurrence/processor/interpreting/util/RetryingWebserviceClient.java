@@ -138,8 +138,9 @@ public class RetryingWebserviceClient<T> extends CacheLoader<WebResource, T> {
         }
 
       } catch (Exception e) {
-        LOGGER.error("Error looking up resource [{}] in attempt[{}] of max[{}]", resource, attempt, numberOfAttempts, e);
+        LOGGER.debug("Error looking up resource [{}] in attempt[{}] of max[{}]", resource, attempt, numberOfAttempts, e);
         if (attempt >= numberOfAttempts) {
+          LOGGER.error("Error looking up resource [{}] in last attempt of [{}]", resource, numberOfAttempts, e);
           throw e;
         }
         if (retryDelayMsec > 0) {
