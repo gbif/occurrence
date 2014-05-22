@@ -12,6 +12,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.geotools.factory.BasicFactories;
+import org.geotools.factory.FactoryRegistryException;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.cs.DefaultEllipsoidalCS;
@@ -34,9 +35,16 @@ public class Wgs84Projection {
 
   private static final Logger LOG = LoggerFactory.getLogger(Wgs84Projection.class);
   private static final DatumParser PARSER = DatumParser.getInstance();
-  private static final DatumAuthorityFactory DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
   private static final double SUSPICIOUS_SHIFT = 0.1d;
+  private static DatumAuthorityFactory DATUM_FACTORY;
 
+  static {
+    try {
+      DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
+    } catch (FactoryRegistryException e) {
+      LOG.error("Failed to create geotools datum factory", e);
+    }
+  }
   /**
    * Reproject the given coordinates into WGS84 coordinates based on a known source datum or SRS.
    * Darwin Core allows not only geodetic datums but also full spatial reference systems as values for "datum".
@@ -47,7 +55,6 @@ public class Wgs84Projection {
    * @param lat   the original latitude
    * @param lon   the original longitude
    * @param datum the original geodetic datum the coordinates are in
-   *
    * @return the reprojected coordinates or the original ones in case transformation failed
    */
   public static ParseResult<LatLng> reproject(double lat, double lon, String datum) {
