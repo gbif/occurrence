@@ -150,6 +150,11 @@
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
         </exclusion>
+        <exclusion>
+          <!-- geotools needs a newer version 2.x, hadoop comes with 1.8 -->
+          <groupId>hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -261,6 +266,11 @@
         <exclusion>
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+          <!-- geotools needs a newer version 2.x, hadoop comes with 1.8 -->
+          <groupId>hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
