@@ -35,7 +35,7 @@ public class Wgs84Projection {
   private static final Logger LOG = LoggerFactory.getLogger(Wgs84Projection.class);
   private static final DatumParser PARSER = DatumParser.getInstance();
   private static final DatumAuthorityFactory DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
-  private static final double SUSPICOUS_SHIFT = 0.1d;
+  private static final double SUSPICIOUS_SHIFT = 0.1d;
 
   /**
    * Reproject the given coordinates into WGS84 coordinates based on a known source datum or SRS.
@@ -82,8 +82,8 @@ public class Wgs84Projection {
         transform.transform(srcPt, 0, dstPt, 0, 1);
 
         // verify the datum shift is reasonable
-        if (Math.abs(lat-dstPt[1]) > SUSPICOUS_SHIFT || Math.abs(lon-dstPt[0]) > SUSPICOUS_SHIFT) {
-          issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICOUS);
+        if (Math.abs(lat-dstPt[1]) > SUSPICIOUS_SHIFT || Math.abs(lon-dstPt[0]) > SUSPICIOUS_SHIFT) {
+          issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS);
         }
         return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(dstPt[1], dstPt[0]), issues);
 
@@ -113,7 +113,7 @@ public class Wgs84Projection {
         crs = CRS.decode(code);
 
       } catch (FactoryException e) {
-        // that didnt work, maybe it is *just* a datum
+        // that didn't work, maybe it is *just* a datum
         try {
           GeodeticDatum dat = DATUM_FACTORY.createGeodeticDatum(code);
           crs = new DefaultGeographicCRS(dat, DefaultEllipsoidalCS.GEODETIC_2D);
