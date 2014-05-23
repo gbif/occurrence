@@ -12,14 +12,14 @@ import org.slf4j.LoggerFactory;
  * This is not really an Interpreter - just a wrapper around the webservice calls to look up the owning organization of
  * a dataset and its fields.
  */
-public class OwningOrgInterpreter {
+public class PublishingOrgInterpreter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OwningOrgInterpreter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PublishingOrgInterpreter.class);
 
-  private OwningOrgInterpreter() {
+  private PublishingOrgInterpreter() {
   }
 
-  public static void interpretOwningOrg(Occurrence occ) {
+  public static void interpretPublishingOrg(Occurrence occ) {
     Organization org = OrganizationLookup.getOrgByDataset(occ.getDatasetKey());
     // update the occurrence's owning org if it's empty or out of sync
 

@@ -131,7 +131,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final String ID_1 = "ftp://filezilla.org";
   private static final String ID_TYPE_1 = "FTP";
   private static final String ID_2 = "1234";
-  private static final String ID_TYPE_2 = "SOURCE_ID";
+  private static final String ID_TYPE_2 = "GBIF_PORTAL";
 
   private static final String TERM_VALUE_PREFIX = "I am ";
 

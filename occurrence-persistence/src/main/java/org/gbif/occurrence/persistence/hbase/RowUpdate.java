@@ -5,9 +5,9 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 
 import org.apache.hadoop.hbase.client.Delete;
@@ -33,7 +33,7 @@ public class RowUpdate {
 
   /**
    * Creates a new instance with an HBase RowMutations object.
-   * 
+   *
    * @param key the row key
    */
   public RowUpdate(int key) {
@@ -161,6 +161,9 @@ public class RowUpdate {
     setField(Columns.column(term), nullSafeBytes(value));
   }
 
+  public void setInterpretedField(Term term, @Nullable URI value) throws IOException {
+    setField(Columns.column(term), nullSafeBytes(value));
+  }
 
   public void setVerbatimField(Term term, @Nullable Enum value) throws IOException {
     setField(Columns.verbatimColumn(term), nullSafeBytes(value));
@@ -207,6 +210,10 @@ public class RowUpdate {
   }
 
   private static byte[] nullSafeBytes(UUID value) {
+    return value == null ? null : Bytes.toBytes(value.toString());
+  }
+
+  private static byte[] nullSafeBytes(URI value) {
     return value == null ? null : Bytes.toBytes(value.toString());
   }
 }

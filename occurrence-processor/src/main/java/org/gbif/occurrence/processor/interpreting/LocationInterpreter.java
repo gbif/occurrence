@@ -9,7 +9,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
 
@@ -31,7 +31,6 @@ public class LocationInterpreter {
     interpretCoordinates(verbatim, occ, country);
 
     interpretContinent(verbatim, occ, country);
-
     interpretWaterBody(verbatim, occ);
     interpretState(verbatim, occ, country);
 
@@ -81,16 +80,17 @@ public class LocationInterpreter {
   }
 
   private static void interpretCoordinates(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
-    ParseResult<CoordinateCountry> coordLookup = CoordinateInterpreter
-      .interpretCoordinates(verbatim.getVerbatimField(DwcTerm.decimalLatitude),
-        verbatim.getVerbatimField(DwcTerm.decimalLongitude), country);
+    ParseResult<CoordinateResult> coordLookup = CoordinateInterpreter.interpretCoordinates(
+        verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
+        verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
 
     if (!coordLookup.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude)
         && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
       LOG.debug("Decimal coord lookup failed, trying verbatim coordinates");
       // try again with verbatim lat/lon
-      coordLookup = CoordinateInterpreter.interpretCoordinates(verbatim.getVerbatimField(DwcTerm.verbatimLatitude),
-        verbatim.getVerbatimField(DwcTerm.verbatimLongitude), country);
+      coordLookup = CoordinateInterpreter.interpretCoordinates(
+        verbatim.getVerbatimField(DwcTerm.verbatimLatitude), verbatim.getVerbatimField(DwcTerm.verbatimLongitude),
+        verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
     }
 
     if (coordLookup.isSuccessful() && coordLookup.getPayload() != null) {

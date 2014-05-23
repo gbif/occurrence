@@ -4,6 +4,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -130,6 +131,15 @@ public class ExtResultReader {
       } catch (IllegalArgumentException e) {
         // value not matching enum!!! LOG???
       }
+    }
+    return null;
+  }
+
+  public static URI getUri(Result row, Term column) {
+    String uri = getString(row, Columns.column(column));
+    try {
+      return uri == null ? null : URI.create(uri);
+    } catch (Exception e) {
     }
     return null;
   }

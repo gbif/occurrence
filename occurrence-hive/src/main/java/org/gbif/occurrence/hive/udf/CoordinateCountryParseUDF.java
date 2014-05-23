@@ -3,7 +3,7 @@ package org.gbif.occurrence.hive.udf;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateCountry;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
 
@@ -69,15 +69,16 @@ public class CoordinateCountryParseUDF extends GenericUDF {
     interpretedCountry = Country.UNKNOWN == interpretedCountry ? null : interpretedCountry;
 
     // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
-    ParseResult<CoordinateCountry> response =
-      CoordinateInterpreter.interpretCoordinates(latitude, longitude, interpretedCountry);
+    //TODO: do we need to supply the datum???
+    ParseResult<CoordinateResult> response =
+      CoordinateInterpreter.interpretCoordinates(latitude, longitude, null, interpretedCountry);
 
     // We don't mind a country that is derived coordinates
     if (response.getIssues() != null) {
       response.getIssues().remove(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
     }
     if (response != null && response.isSuccessful() && response.getIssues().isEmpty()) {
-      CoordinateCountry cc = response.getPayload();
+      CoordinateResult cc = response.getPayload();
       // we use the result, which often includes interpreted countries
       if (cc.getCountry() == null || Country.UNKNOWN == cc.getCountry()) {
         iso = null;
