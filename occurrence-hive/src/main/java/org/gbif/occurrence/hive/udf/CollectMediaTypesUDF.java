@@ -1,6 +1,5 @@
 package org.gbif.occurrence.hive.udf;
 
-import org.gbif.api.model.common.MediaObject;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 
 import java.util.List;
@@ -29,16 +28,7 @@ public class CollectMediaTypesUDF extends UDF {
    * Deserialize and extract the media types.
    */
   private List<String> selectMediaTypes(String jsonMedias) {
-    List<MediaObject> medias = MediaSerDeserUtils.fromJson(jsonMedias);
-    List<String> mediaTypes = Lists.newArrayList();
-    if (medias != null && !medias.isEmpty()) {
-      for (MediaObject mediaObject : medias) {
-        if (mediaObject.getType() != null) {
-          mediaTypes.add(mediaObject.getType().name().toUpperCase());
-        }
-      }
-    }
-    return mediaTypes;
+    return Lists.newArrayList(MediaSerDeserUtils.extractMediaTypes(jsonMedias));
   }
 
 }

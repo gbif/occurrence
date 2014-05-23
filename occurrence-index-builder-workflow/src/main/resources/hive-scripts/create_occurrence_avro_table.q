@@ -29,7 +29,7 @@ TBLPROPERTIES (
     {"name":"coordinate","type":"string"},
     {"name":"year","type":"int"},
     {"name":"month","type":"int"},
-    {"name":"date","type":"long"},
+    {"name":"event_date","type":"long"},
     {"name":"basis_of_record","type":"string"},
     {"name":"type_status","type":"string"},
     {"name":"spatial_issues","type":"boolean"},

@@ -834,6 +834,7 @@
         <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
         <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+        <occurrence.download.datause.url>http://www.gbif.org/faq/datause</occurrence.download.datause.url>
         <checklistbank.match.ws.url>http://api.gbif.org/v0.9/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif.org:8080/a_registry-ws/</registry.ws.url>
@@ -884,6 +885,7 @@
         <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
         <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+        <occurrence.download.datause.url>http://www.gbif-uat.org/faq/datause</occurrence.download.datause.url>
         <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-uat.org:8080/a_registry-ws/</registry.ws.url>
@@ -934,6 +936,7 @@
         <occurrence.download.job.max_threads>3</occurrence.download.job.max_threads>
         <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
+        <occurrence.download.datause.url>http://www.gbif-dev.org/faq/datause</occurrence.download.datause.url>
         <checklistbank.match.ws.url>http://boma.gbif.org:8080/nub-ws/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://apps.gbif-dev.org:8080/checklistbank-ws</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>

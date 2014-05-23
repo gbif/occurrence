@@ -60,6 +60,8 @@ public class DownloadEmailUtils {
 
   private final String wsUrl;
 
+  private final String dataUseUrl;
+
   private final Session session;
 
   private final DatasetService datasetService;
@@ -72,6 +74,7 @@ public class DownloadEmailUtils {
 
   @Inject
   public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("ws.url") String wsUrl,
+    @Named("datause.url") String dataUseUrl,
     UserService userService, Session session, DatasetService datasetService, NameUsageService nameUsageService) {
     this.userService = userService;
     this.bccAddresses = Sets.newHashSet(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
@@ -79,6 +82,7 @@ public class DownloadEmailUtils {
     this.session = session;
     this.datasetService = datasetService;
     this.nameUsageService = nameUsageService;
+    this.dataUseUrl = dataUseUrl;
 
   }
 
@@ -119,8 +123,7 @@ public class DownloadEmailUtils {
     final MessageFormat formatter = new MessageFormat(RESOURCES.getString("success.text"));
     final Object[] bodyParams =
       new Object[] {d.getKey(), downloadLink(wsUrl, d.getKey()), humanReadableByteCount(d.getSize(), true),
-        d.getTotalRecords(),
-        d.getNumberDatasets()};
+        d.getTotalRecords(), d.getNumberDatasets(), dataUseUrl};
     sendNotificationMail(d, RESOURCES.getString("success.subject"), formatter.format(bodyParams));
   }
 

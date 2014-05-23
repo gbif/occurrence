@@ -107,7 +107,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    
     <!-- Runtime dependencies -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>

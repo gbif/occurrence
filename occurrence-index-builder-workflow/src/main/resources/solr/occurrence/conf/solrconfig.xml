@@ -156,11 +156,11 @@
         <lst>
           <str name="q">*:*</str>
           <str name="sort">year desc, month asc</str>
-          <str name="fq">georeferenced:true</str>          
+          <str name="fq">has_coordinate:true</str>          
         </lst>
         <lst>
           <str name="q">*:*</str>
-          <str name="fq">geospatial_issue:true</str>
+          <str name="fq">spatial_issues:true</str>
           <str name="sort">year desc, month asc</str>          
         </lst>
       </arr>

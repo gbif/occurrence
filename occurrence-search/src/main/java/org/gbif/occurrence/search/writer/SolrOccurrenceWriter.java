@@ -210,6 +210,9 @@ public class SolrOccurrenceWriter {
     if (occurrence.getGenusKey() != null) {
       taxonKey.add(occurrence.getGenusKey());
     }
+    if (occurrence.getSubgenusKey() != null) {
+      taxonKey.add(occurrence.getSubgenusKey());
+    }
 
     if (occurrence.getSpeciesKey() != null) {
       taxonKey.add(occurrence.getSpeciesKey());

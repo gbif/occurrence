@@ -3,9 +3,12 @@ package org.gbif.occurrence.common.json;
 import org.gbif.api.model.common.MediaObject;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -72,6 +75,29 @@ public class MediaSerDeserUtils {
       logAndRethrow(DESER_ERROR_MSG, e);
     }
     return null;
+  }
+
+  /**
+   * Converts a byte[] into String and extracts the media types from JSON representation of it.
+   */
+  public static Set<String> extractMediaTypes(byte[] input) {
+    return extractMediaTypes(new String(input, StandardCharsets.UTF_8));
+  }
+
+  /**
+   * Extracts the media types of JSON String.
+   */
+  public static Set<String> extractMediaTypes(String jsonMedias) {
+    List<MediaObject> medias = MediaSerDeserUtils.fromJson(jsonMedias);
+    Set<String> mediaTypes = Sets.newHashSet();
+    if (medias != null && !medias.isEmpty()) {
+      for (MediaObject mediaObject : medias) {
+        if (mediaObject.getType() != null) {
+          mediaTypes.add(mediaObject.getType().name().toUpperCase());
+        }
+      }
+    }
+    return mediaTypes;
   }
 
   /**
