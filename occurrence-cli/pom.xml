@@ -67,12 +67,11 @@
                 <!-- This bit merges the various GeoTools META-INF/services files         -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
-              <artifactSet>
-                <excludes>
-                  <exclude>junit:*</exclude>
-                  <exclude>org.jruby:*</exclude>
-                </excludes>
-              </artifactSet>
+              <!--<artifactSet>-->
+                <!--<excludes>-->
+                  <!--<exclude>org.jruby:*</exclude>-->
+                <!--</excludes>-->
+              <!--</artifactSet>-->
             </configuration>
           </execution>
         </executions>
@@ -205,6 +204,22 @@
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>jruby-complete</artifactId>
+          <groupId>org.jruby</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jsp-2.1</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jsp-api-2.1</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>servlet-api-2.5</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -224,6 +239,10 @@
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>netty</artifactId>
+          <groupId>org.jboss.netty</groupId>
         </exclusion>
       </exclusions>
     </dependency>
