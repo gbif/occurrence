@@ -41,6 +41,7 @@ public class Wgs84Projection {
   static {
     try {
       DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
+      LOG.info("Wgs84Projection utils created");
     } catch (FactoryRegistryException e) {
       LOG.error("Failed to create geotools datum factory", e);
     }

@@ -2,6 +2,8 @@ package org.gbif.occurrence.cli;
 
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.MessageListener;
+import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
@@ -11,6 +13,7 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.processor.InterpretedProcessor;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
+import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 import org.gbif.occurrence.processor.messaging.InterpretVerbatimListener;
 import org.gbif.occurrence.processor.messaging.VerbatimPersistedListener;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
@@ -24,9 +27,12 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import com.netflix.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InterpretedProcessorService extends AbstractIdleService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(InterpretedProcessorService.class);
   private final ProcessorConfiguration configuration;
   private final Set<MessageListener> listeners = Sets.newHashSet();
   private CuratorFramework curator;
@@ -36,8 +42,22 @@ public class InterpretedProcessorService extends AbstractIdleService {
     this.configuration = configuration;
   }
 
+  /**
+   * Simply tries the WGS84 reprojection one time to load all geotools plugins and check if its all fine.
+   * We have seen classpath issues and spend far too much time on this, so best to keep this little test in the code.
+   * Without it we rely on messages coming in with actual datums to kickoff the geotools init routines that caused
+   * trouble.
+   */
+  private void testReprojection() {
+    LOG.info("Testing geodetic datum reprojection on startup...");
+    ParseResult<LatLng> res = Wgs84Projection.reproject(2, 2, "NAD27");
+    LOG.info("2/2 reprojected from NDA27 to WGS84: " + res);
+  }
+
   @Override
   protected void startUp() throws Exception {
+    testReprojection();
+
     configuration.ganglia.start();
 
     curator = configuration.zooKeeper.getCuratorFramework();
