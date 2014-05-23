@@ -56,8 +56,6 @@ public class InterpretedProcessorService extends AbstractIdleService {
 
   @Override
   protected void startUp() throws Exception {
-    testReprojection();
-
     configuration.ganglia.start();
 
     curator = configuration.zooKeeper.getCuratorFramework();

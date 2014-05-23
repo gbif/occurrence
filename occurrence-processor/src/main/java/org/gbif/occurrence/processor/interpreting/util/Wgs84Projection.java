@@ -62,16 +62,18 @@ public class Wgs84Projection {
     Preconditions.checkArgument(lat >= -90d && lat <= 90d);
     Preconditions.checkArgument(lon >= -180d && lon <= 180d);
 
-    if (Strings.isNullOrEmpty(datum)) {
-      return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat, lon));
-    }
-
     Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
+
+    if (Strings.isNullOrEmpty(datum)) {
+      issues.add(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84);
+      return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat, lon), issues);
+    }
 
     try {
       CoordinateReferenceSystem crs = parseCRS(datum);
       if (crs == null) {
         issues.add(OccurrenceIssue.GEODETIC_DATUM_INVALID);
+        issues.add(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84);
 
       } else {
         MathTransform transform = CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84, true);
@@ -89,11 +91,17 @@ public class Wgs84Projection {
 
         transform.transform(srcPt, 0, dstPt, 0, 1);
 
+        double lat2 = dstPt[1];
+        double lon2 = dstPt[0];
         // verify the datum shift is reasonable
-        if (Math.abs(lat-dstPt[1]) > SUSPICIOUS_SHIFT || Math.abs(lon-dstPt[0]) > SUSPICIOUS_SHIFT) {
+        if (Math.abs(lat-lat2) > SUSPICIOUS_SHIFT || Math.abs(lon-lon2) > SUSPICIOUS_SHIFT) {
           issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS);
         }
-        return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(dstPt[1], dstPt[0]), issues);
+        // flag the record if coords actually changed
+        if (lat != lat2 || lon != lon2) {
+          issues.add(OccurrenceIssue.COORDINATE_REPROJECTED);
+        }
+        return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat2, lon2), issues);
 
       }
     } catch (Exception e) {

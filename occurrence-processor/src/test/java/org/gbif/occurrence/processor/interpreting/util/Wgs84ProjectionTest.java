@@ -31,44 +31,45 @@ public class Wgs84ProjectionTest {
     // EUROPE
     double lat = 52.61267058;
     double lng = -9.05848491;
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs84"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, null), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS84"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs84"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs 84"), lat, lng);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs84"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, null), lat, lng, true, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "unknown"), lat, lng, true, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS84"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs84"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs 84"), lat, lng, false, false);
     // this is another form of specifying wgs8ng
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "EPSG:4326"), lat, lng);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "EPSG:4326"), lat, lng, false, false);
 
 
     // real projections used frequently in GBIF
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS1984"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS 84"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "World Geodetic System 1984"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS_1984"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "D_WGS_1984"), lat, lng);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS1984"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS 84"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "World Geodetic System 1984"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS_1984"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "D_WGS_1984"), lat, lng, false, false);
 
     // AUSTRALIA
     lat = -34.0;
     lng = 138.0;
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "GDA94"), lat, lng);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "AGD66"), lat+0.001356, lng+0.001041);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "AGD84"), lat+0.001275, lng+0.001094);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "GDA94"), lat, lng, false, false);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "AGD66"), lat+0.001356, lng+0.001041, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "AGD84"), lat+0.001275, lng+0.001094, false, true);
 
     // NORTH AMERICA
     lat = 40.0;
     lng = -73.0;
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "NAD27"), lat-0.00002, lng+0.000534);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "North American Datum 1927"), lat-0.00002, lng+0.000534);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "NAD83"), lat, lng);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "NAD27"), lat-0.00002, lng+0.000534, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "North American Datum 1927"), lat-0.00002, lng+0.000534, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "NAD83"), lat, lng, false, false);
 
     // OTHER
     // based on http://www.colorado.edu/geography/gcraft/notes/datum/gif/shift.gif
     lat = 30.2;
     lng = -97.7;
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "TOKYO"), lat+0.008063, lng-0.002217);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "ARC 1950"), lat-0.005546, lng-0.001274);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "INDIAN"), lat+0.007992, lng+0.0008119);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "CAPE"), lat-0.005581, lng-0.0012493);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "TOKYO"), lat+0.008063, lng-0.002217, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "ARC 1950"), lat-0.005546, lng-0.001274, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "INDIAN"), lat+0.007992, lng+0.0008119, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "CAPE"), lat-0.005581, lng-0.0012493, false, true);
 
   }
 
@@ -106,13 +107,20 @@ public class Wgs84ProjectionTest {
     // datum only
     assertLatLon(Wgs84Projection.reproject(lat, lng, "EPSG:" + datumCode),
                  res.getPayload().getLat(),
-                 res.getPayload().getLng());
+                 res.getPayload().getLng(), false, true);
   }
 
-  private void assertLatLon(ParseResult<LatLng> result, double lat, double lng) {
+  private void assertLatLon(ParseResult<LatLng> result, double lat, double lng, boolean assumedWgs, boolean reprojected) {
+    if (!assumedWgs) {
+      assertTrue("parsing failed", result.isSuccessful());
+    }
     System.out.println(result.getIssues());
-    assertTrue("Issues found", result.getIssues().isEmpty());
-    assertTrue("parsing failed", result.isSuccessful());
+    if (reprojected) {
+      assertTrue("Expected reprojection issue", result.getIssues().contains(OccurrenceIssue.COORDINATE_REPROJECTED));
+    }
+    if (assumedWgs) {
+      assertTrue("Assumed WGS84 issue expected", result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    }
     System.out.println(result.getPayload().getLat() + " / " + result.getPayload().getLng());
     assertEquals("Latitude mismatch", lat, result.getPayload().getLat().doubleValue(), 0.000001);
     assertEquals("Longitude mismatch", lng, result.getPayload().getLng().doubleValue(), 0.000001);
