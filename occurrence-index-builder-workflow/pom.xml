@@ -13,14 +13,14 @@
 	<packaging>jar</packaging>
 
 	<name>Occurrence Index Builder Oozie workflow</name>
-
+	
 	<profiles>
 		<profile>
 			<id>oozie</id>
 			<build>
 				<filters>
-					<filter>${basedir}/bin/job.properties</filter>
-					<filter>${basedir}/bin/jobsingleshard.properties</filter>
+					<filter>${basedir}/bin/hdfs_indexing/job.properties</filter>
+					<filter>${basedir}/bin/hdfs_indexing/jobsingleshard.properties</filter>					
 				</filters>
 				<resources>
 					<resource>
@@ -33,12 +33,22 @@
 					<resource>
 						<directory>src/main/resources</directory>
 						<filtering>false</filtering>
-					</resource>
+					</resource>	
+					<resource>
+            <directory>${basedir}/bin</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>**/*</exclude>
+            </excludes>
+            <includes>
+              <include>hbase_indexing/runHBaseBatchIndexer.sh</include>
+            </includes>            
+          </resource>		                    
 				</resources>
 
 				<plugins>
 					<plugin>
-						<artifactId>maven-resources-plugin</artifactId>
+						<artifactId>maven-resources-plugin</artifactId>						
 						<executions>
 							<execution>
 								<id>process-resources</id>
@@ -68,7 +78,7 @@
 								</goals>
 							</execution>
 						</executions>
-					</plugin>
+					</plugin>					
 				</plugins>
 			</build>
 		</profile>
@@ -98,6 +108,45 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+      <id>hbase-indexer</id>
+      <build>        
+        <resources>           
+          <resource>
+            <directory>${basedir}/bin</directory>
+            <filtering>true</filtering>            
+            <includes>
+              <include>hbase_indexing/runHBaseBatchIndexer.sh</include>
+              <include>hbase_indexing/*.xml</include>
+            </includes>            
+          </resource>     
+          <resource>
+            <directory>${basedir}/bin</directory>
+            <filtering>false</filtering>            
+            <includes>
+              <include>hbase_indexing/*.sh</include>
+              <include>hbase_indexing/*.conf</include>
+              <include>hbase_indexing/*.properties</include>              
+            </includes>            
+          </resource>                       
+        </resources>
+
+        <plugins>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>           
+            <executions>
+              <execution>
+                <id>process-resources</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>resources</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
 	</profiles>
 
 	<repositories>
@@ -118,11 +167,7 @@
 		</repository>
 	</repositories>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.gbif</groupId>
-			<artifactId>gbif-api</artifactId>
-		</dependency>
+	<dependencies>		
 		<!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
 		<dependency>
 			<groupId>com.vividsolutions</groupId>
