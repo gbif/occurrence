@@ -64,6 +64,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
   private String latitude;
   private String longitude;
   private String latLongPrecision;
+  private String geodeticDatum;
   private String minAltitude;
   private String maxAltitude;
   private String altitudePrecision;
@@ -171,6 +172,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
     bareBones.setDepthPrecision(depthPrecision);
     bareBones.setFamily(family);
     bareBones.setGenus(genus);
+    bareBones.setGeodeticDatum(geodeticDatum);
     bareBones.setIdentifierName(identifierName);
     bareBones.setIdentifierRecords(identifierRecords);
     bareBones.setImageRecords(images);
@@ -594,6 +596,14 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
 
   public void setIdentifierName(String identifierName) {
     this.identifierName = identifierName;
+  }
+
+  public String getGeodeticDatum() {
+    return geodeticDatum;
+  }
+
+  public void setGeodeticDatum(String geodeticDatum) {
+    this.geodeticDatum = geodeticDatum;
   }
 
   public String getDateIdentified() {
