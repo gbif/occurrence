@@ -56,8 +56,8 @@ public class FragmentParserTest {
 
     assertEquals(1, got.getKey().intValue());
     assertEquals("Tetraedron caudatum (Corda) Hansg.", got.getVerbatimField(DwcTerm.scientificName));
-    assertEquals("52.423798", got.getVerbatimField(DwcTerm.decimalLatitude));
-    assertEquals("13.191434", got.getVerbatimField(DwcTerm.decimalLongitude));
+    assertEquals("52.123456", got.getVerbatimField(DwcTerm.decimalLatitude));
+    assertEquals("13.123456", got.getVerbatimField(DwcTerm.decimalLongitude));
     assertEquals("50", got.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters));
     assertEquals("400", got.getVerbatimField(DwcTerm.minimumElevationInMeters));
     assertEquals("500", got.getVerbatimField(DwcTerm.maximumElevationInMeters));
