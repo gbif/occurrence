@@ -83,8 +83,6 @@ public class FragmentParser {
     return verbatim;
   }
 
-  // TODO: implement if really needed!!!
-  @Deprecated
   private static VerbatimOccurrence buildVerbatim(RawOccurrenceRecord ror, Fragment frag) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setKey(frag.getKey());
@@ -111,6 +109,7 @@ public class FragmentParser {
     set(v, GbifTerm.depthAccuracy, ror.getDepthPrecision());
     set(v, DwcTerm.family, ror.getFamily());
     set(v, DwcTerm.genus, ror.getGenus());
+    set(v, DwcTerm.geodeticDatum, ror.getGeodeticDatum());
     set(v, DwcTerm.occurrenceID, ror.getId());
     set(v, DwcTerm.identifiedBy, ror.getIdentifierName());
     set(v, DwcTerm.institutionCode, ror.getInstitutionCode());

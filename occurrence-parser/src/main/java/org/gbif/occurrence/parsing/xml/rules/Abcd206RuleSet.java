@@ -44,6 +44,9 @@ public class Abcd206RuleSet extends AbstractRuleSet {
     addNonNullMethod(digester, "locality", "setLocality", 1);
     addNonNullParam(digester, "locality", 0);
 
+    addNonNullMethod(digester, "geodeticDatum", "setGeodeticDatum", 1);
+    addNonNullParam(digester, "geodeticDatum", 0);
+
     addNonNullPrioritizedProperty(digester, "country", PrioritizedPropertyNameEnum.COUNTRY, 3);
     addNonNullPrioritizedProperty(digester, "collectorName", PrioritizedPropertyNameEnum.COLLECTOR_NAME, 3);
     addNonNullPrioritizedProperty(digester, "latitude", PrioritizedPropertyNameEnum.LATITUDE, 2);

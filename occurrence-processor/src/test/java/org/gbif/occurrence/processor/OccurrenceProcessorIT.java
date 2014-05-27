@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.messaging.ConnectionParameters;
@@ -45,6 +46,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore("requires live webservices and messaging")
 public class OccurrenceProcessorIT {
@@ -182,7 +184,7 @@ public class OccurrenceProcessorIT {
         null);
     messagePublisher.send(msg);
 
-    TimeUnit.MILLISECONDS.sleep(5000);
+    TimeUnit.MILLISECONDS.sleep(10000);
 
     Occurrence got = occurrenceService.get(1);
     assertNotNull(got);
@@ -191,8 +193,10 @@ public class OccurrenceProcessorIT {
     assertEquals("5834", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
     assertEquals("Tetraedron caudatum (Corda) Hansgirg", got.getScientificName());
-    assertEquals(52.423798, got.getDecimalLatitude().doubleValue(), 0.00001);
-    assertEquals(13.191434, got.getDecimalLongitude().doubleValue(), 0.00001);
+    assertEquals(52.1234600, got.getDecimalLatitude().doubleValue(), 0.0000001);
+    assertEquals(13.1234599, got.getDecimalLongitude().doubleValue(), 0.0000001);
+    assertEquals("WGS84", got.getGeodeticDatum());
+    assertTrue(got.getIssues().contains(OccurrenceIssue.COORDINATE_REPROJECTED));
     assertEquals(450, got.getElevation().intValue());
     assertEquals(Country.fromIsoCode("DE"), got.getCountry());
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.recordedBy));

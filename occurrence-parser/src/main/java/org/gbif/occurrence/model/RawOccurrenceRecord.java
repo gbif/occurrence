@@ -28,10 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This is mostly cut and paste from synchronizer-gbif, intended as a place holder until this project is
  * integrated with the main synchronizer process. Differences from sync-gbif are that id and dateIdentified are String,
- * and
- * occurenceDate is retained as a verbatim string rather than parsed to year, month and day.
- *
- * @author oliver
+ * and occurenceDate is retained as a verbatim string rather than parsed to year, month and day.
  */
 public class RawOccurrenceRecord implements Serializable {
 
@@ -59,6 +56,7 @@ public class RawOccurrenceRecord implements Serializable {
   protected String latitude;
   protected String longitude;
   protected String latLongPrecision;
+  protected String geodeticDatum;
   protected String minAltitude;
   protected String maxAltitude;
   protected String altitudePrecision;
@@ -106,14 +104,15 @@ public class RawOccurrenceRecord implements Serializable {
     this.collectionCode = dwcr.getCollectionCode();
     this.continentOrOcean = dwcr.getContinent();
     this.country =
-      (dwcr.getCountry() == null || dwcr.getCountry().equals("")) ? dwcr.getCountryCode() : dwcr.getCountry();
+      dwcr.getCountry() == null || dwcr.getCountry().isEmpty() ? dwcr.getCountryCode() : dwcr.getCountry();
     this.county = dwcr.getCounty();
     this.dateIdentified = dwcr.getDateIdentified();
-    this.latitude = (dwcr.getVerbatimLatitude() == null) ? dwcr.getDecimalLatitude() : dwcr.getVerbatimLatitude();
-    this.longitude = (dwcr.getVerbatimLongitude() == null) ? dwcr.getDecimalLongitude() : dwcr.getVerbatimLongitude();
+    this.latitude = dwcr.getVerbatimLatitude() == null ? dwcr.getDecimalLatitude() : dwcr.getVerbatimLatitude();
+    this.longitude = dwcr.getVerbatimLongitude() == null ? dwcr.getDecimalLongitude() : dwcr.getVerbatimLongitude();
+    this.geodeticDatum = dwcr.getGeodeticDatum();
     this.family = dwcr.getFamily();
     this.scientificName =
-      (dwcr.getScientificName() == null || dwcr.getScientificName().equals("")) ? dwcr.getFullScientificName()
+      dwcr.getScientificName() == null || dwcr.getScientificName().isEmpty() ? dwcr.getFullScientificName()
         : dwcr.getScientificName();
     this.genus = dwcr.getGenus();
     this.identifierName = dwcr.getIdentifiedBy();
@@ -125,11 +124,7 @@ public class RawOccurrenceRecord implements Serializable {
     this.minAltitude = dwcr.getMinimumElevationInMeters();
     this.order = dwcr.getOrder();
     this.phylum = dwcr.getPhylum();
-    this.occurrenceDate = dwcr.getYear() + "-" + dwcr.getMonth() + "-" + dwcr.getDay();
-
-    /** TODO: this probably won't always work - check and fix */
-    //    this.id = (dwcr.getIdentifier() != null) ? dwcr.getIdentifier() : dwcr.getInstitutionCode() + "_"
-    //        + dwcr.getCollectionCode() + "_" + dwcr.getCatalogNumber();;
+    this.occurrenceDate = dwcr.getYear() + '-' + dwcr.getMonth() + '-' + dwcr.getDay();
   }
 
   public String getAltitudePrecision() {
@@ -194,6 +189,14 @@ public class RawOccurrenceRecord implements Serializable {
 
   public String getGenus() {
     return genus;
+  }
+
+  public String getGeodeticDatum() {
+    return geodeticDatum;
+  }
+
+  public void setGeodeticDatum(String geodeticDatum) {
+    this.geodeticDatum = geodeticDatum;
   }
 
   public String getId() {
@@ -539,7 +542,8 @@ public class RawOccurrenceRecord implements Serializable {
            ",\n scientificName=" + scientificName + ",\n author=" + author + ",\n rank=" + rank + ",\n kingdom=" +
            kingdom + ",\n phylum=" + phylum + ",\n klass=" + klass + ",\n order=" + order + ",\n family=" + family +
            ",\n genus=" + genus + ",\n species=" + species + ",\n subspecies=" + subspecies + ",\n latitude=" +
-           latitude + ",\n longitude=" + longitude + ",\n latLongPrecision=" + latLongPrecision + ",\n minAltitude=" +
+           latitude + ",\n longitude=" + longitude + ",\n latLongPrecision=" + latLongPrecision + ",\n geodeticDatum="
+           + geodeticDatum + ",\n minAltitude=" +
            minAltitude + ",\n maxAltitude=" + maxAltitude + ",\n altitudePrecision=" + altitudePrecision +
            ",\n minDepth=" + minDepth + ",\n maxDepth=" + maxDepth + ",\n depthPrecision=" + depthPrecision +
            ",\n continentOrOcean=" + continentOrOcean + ",\n country=" + country + ",\n stateOrProvince=" +

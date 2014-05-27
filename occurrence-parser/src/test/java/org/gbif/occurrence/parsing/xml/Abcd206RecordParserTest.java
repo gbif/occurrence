@@ -32,6 +32,7 @@ public class Abcd206RecordParserTest extends ParserTestCase {
     assertEquals("400", ror.getMinAltitude());
     assertEquals("500", ror.getMaxAltitude());
     assertEquals("50", ror.getLatLongPrecision());
+    assertEquals("GDA94", ror.getGeodeticDatum());
   }
 
   @Test

@@ -125,9 +125,10 @@
     <SiteCoordinateSets>
       <SiteCoordinates>
         <CoordinatesLatLong>
-          <LongitudeDecimal>13.191434</LongitudeDecimal>
-          <LatitudeDecimal>52.423798</LatitudeDecimal>
+          <LongitudeDecimal>13.123456</LongitudeDecimal>
+          <LatitudeDecimal>52.123456</LatitudeDecimal>
           <CoordinateErrorDistanceInMeters>50</CoordinateErrorDistanceInMeters>
+          <SpatialDatum>GDA94</SpatialDatum>
         </CoordinatesLatLong>
       </SiteCoordinates>
     </SiteCoordinateSets>
