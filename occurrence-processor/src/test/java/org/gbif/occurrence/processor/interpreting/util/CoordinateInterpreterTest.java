@@ -96,7 +96,7 @@ public class CoordinateInterpreterTest {
       CoordinateInterpreter.interpretCoordinates(lat.toString(), lng.toString(), null, country);
     assertNull(result.getPayload());
     assertFalse(result.isSuccessful());
-    assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATES_OUT_OF_RANGE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATE_OUT_OF_RANGE));
   }
 
   @Test
