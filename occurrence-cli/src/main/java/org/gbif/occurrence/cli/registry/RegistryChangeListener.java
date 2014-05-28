@@ -4,8 +4,10 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.Endpoint;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.service.registry.OrganizationService;
+import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
@@ -17,9 +19,11 @@ import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
@@ -41,6 +45,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
+
+  private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
+    .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
+      EndpointType.DWC_ARCHIVE).build();
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
@@ -74,34 +82,54 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         }
         break;
       case UPDATED:
-        // we need to crawl it no matter what
-        LOG.info("Sending crawl for updated dataset [{}]", newDataset.getKey());
-        try {
-          messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
-        } catch (IOException e) {
-          LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
-        }
-        // check if owning org has changed, and update old records if so
-        if (oldDataset.getOwningOrganizationKey().equals(newDataset.getOwningOrganizationKey())) {
-          LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
-        } else {
-          LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
+        // as long as it has a crawlable endpoint, we need to crawl it no matter what changed
+        if (isCrawlable(newDataset)) {
+          LOG.info("Sending crawl for updated dataset [{}]", newDataset.getKey());
           try {
-            runMrSync(newDataset.getKey());
-          } catch (Exception e) {
-            LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
+            messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
+          } catch (IOException e) {
+            LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
+          // check if owning org has changed, and update old records if so
+          if (oldDataset.getOwningOrganizationKey().equals(newDataset.getOwningOrganizationKey())) {
+            LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
+          } else {
+            LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
+            try {
+              runMrSync(newDataset.getKey());
+            } catch (Exception e) {
+              LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
+            }
+          }
+        } else {
+          LOG.info("Ignoring update of dataset [{}] because no crawlable endpoints", newDataset.getKey());
         }
         break;
       case CREATED:
-        LOG.info("Sending crawl for new dataset [{}]", newDataset.getKey());
-        try {
-          messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
-        } catch (IOException e) {
-          LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
+        if (isCrawlable(newDataset)) {
+          LOG.info("Sending crawl for new dataset [{}]", newDataset.getKey());
+          try {
+            messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
+          } catch (IOException e) {
+            LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
+          }
+        } else {
+          LOG.info("Ignoring creation of dataset [{}] because no crawlable endpoints", newDataset.getKey());
         }
         break;
     }
+  }
+
+  private static boolean isCrawlable(Dataset dataset) {
+    boolean crawlable = false;
+    for (Endpoint endpoint : dataset.getEndpoints()) {
+      if (CRAWLABLE_ENDPOINT_TYPES.contains(endpoint.getType())) {
+        crawlable = true;
+        break;
+      }
+    }
+
+    return crawlable;
   }
 
   private void handleOrganization(RegistryChangeMessage.ChangeType changeType, Organization oldOrg,
@@ -157,9 +185,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     String rawDatasetKey = null;
     if (datasetKey != null) {
       rawDatasetKey = datasetKey.toString();
-      scan.setFilter(
-        new SingleColumnValueFilter(SyncCommon.OCC_CF, SyncCommon.DK_COL, CompareFilter.CompareOp.EQUAL,
-          Bytes.toBytes(rawDatasetKey)));
+      scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF, SyncCommon.DK_COL, CompareFilter.CompareOp.EQUAL,
+          Bytes.toBytes(rawDatasetKey))
+      );
     }
 
     Properties props = SyncCommon.loadProperties();
