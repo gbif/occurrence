@@ -26,10 +26,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utils class that reprojects to WGS84 based on geotools transformations and SRS databases.
- * It allows to add custom reference systems via property files,
- * see also:
- * - http://docs.geotools.org/latest/userguide/library/referencing/faq.html#q-how-to-i-add-my-own-epsg-codes
- * - http://docs.geotools.org/latest/userguide/library/referencing/wkt.html
  */
 public class Wgs84Projection {
 
