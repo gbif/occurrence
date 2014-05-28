@@ -12,7 +12,6 @@ import org.gbif.occurrence.hive.udf.CollectMediaTypesUDF;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -37,29 +36,32 @@ public class DownloadTableGenerator {
   private static final String VERBATIM_COL_DECL_FMT = VERBATIM_COL_FMT + " STRING";
   private static final String STRING_COL_DECL_FMT = "%s STRING";
   private static final Joiner COMMA_JOINER = Joiner.on(',').skipNulls();
-  private static final String COLLECT_MEDIATYPES_UDF_DCL =
-    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "';";
-  private static final String REMOVE_NULLS_UDF_DCL =
-    "CREATE TEMPORARY FUNCTION removeNulls AS '" + ArrayNullsRemoverGenericUDF.class.getName() + "';";
+  protected static final String COLLECT_MEDIATYPES_UDF_DCL =
+    "CREATE TEMPORARY FUNCTION collectMediaTypes AS '" + CollectMediaTypesUDF.class.getName() + "'";
+  protected static final String REMOVE_NULLS_UDF_DCL =
+    "CREATE TEMPORARY FUNCTION removeNulls AS '" + ArrayNullsRemoverGenericUDF.class.getName() + "'";
   private static final String COLLECT_MEDIATYPES = "collectMediaTypes("
     + HiveColumnsUtils.getHiveColumn(Extension.MULTIMEDIA) + ")";
   private static final String HIVE_CREATE_HBASE_TABLE_FMT =
-    "CREATE EXTERNAL TABLE %s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\");";
+    "CREATE EXTERNAL TABLE IF NOT EXISTS %s (%s) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES (\"hbase.columns.mapping\" = \"%s\") TBLPROPERTIES(\"hbase.table.name\" = \"%s\",\"hbase.table.default.storage.type\" = \"binary\")";
 
-  private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE %s (%s) STORED AS RCFILE;";
+  private static final String HIVE_CREATE_HDFS_TABLE_FMT = "CREATE TABLE IF NOT EXISTS %s (%s) STORED AS RCFILE";
 
-  private static final String DROP_TABLE_FMT = "DROP TABLE IF EXISTS %s;";
+  private static final String DROP_TABLE_FMT = "DROP TABLE IF EXISTS %s";
 
-  private static final String HDFS_POST = "_hdfs";
-  private static final String HBASE_POST = "_hbase";
+  protected static final String HDFS_POST = "_hdfs";
+  protected static final String HBASE_POST = "_hbase";
 
   private static final String HBASE_MAP_FMT = "o:%s";
   private static final String HBASE_KEY_MAPPING = ":key";
   private static final String OCC_ID_COL_DEF = HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID) + " INT";
-  private static final String HIVE_DEFAULT_OPTS =
-    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false;";
+  protected static final String HIVE_DEFAULT_OPTS =
+    "SET hive.exec.compress.output=true;SET mapred.max.split.size=256000000;SET mapred.output.compression.type=BLOCK;SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;SET hive.hadoop.supports.splittable.combineinputformat=true;SET hbase.client.scanner.caching=200;SET hive.mapred.reduce.tasks.speculative.execution=false;SET hive.mapred.map.tasks.speculative.execution=false";
   private static final String INSERT_INFO_OCCURRENCE_HDFS =
-    "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s occ;";
+    "INSERT OVERWRITE TABLE %1$s SELECT %2$s FROM %3$s";
+
+  private static final String HIVE_CMDS_SEP = ";\n";
+  private static final Joiner HIVE_CMDS_JOINER = Joiner.on(HIVE_CMDS_SEP).skipNulls();
 
   private static final String HAS_COORDINATE_EXP = "(decimalLongitude IS NOT NULL AND decimalLatitude IS NOT NULL)";
   private static final String ISSUE_ENTRY_EXP = "CASE COALESCE(%1$s,0) WHEN 0 THEN NULL ELSE %2$s END";
@@ -244,7 +246,7 @@ public class DownloadTableGenerator {
   /**
    * Returns a list of column names for the HDFS table.
    */
-  private static List<String> hdfsTableColumns() {
+  protected static List<String> hdfsTableCommonColumns() {
     ImmutableSet<Term> exclusions =
       new ImmutableSet.Builder<Term>().add(GbifTerm.gbifID).add(GbifTerm.mediaType).build();
     List<String> columns =
@@ -281,7 +283,7 @@ public class DownloadTableGenerator {
   private static List<String> hbaseTableColumns() {
     List<String> columns =
       new ImmutableList.Builder<String>()
-        .addAll(hdfsTableColumns())
+        .addAll(hdfsTableCommonColumns())
         .addAll(processIssues(ISSUE_COL_DECL))
         .add(EXTENSION_COL_DECL.apply(Extension.MULTIMEDIA)).build();
     return columns;
@@ -307,17 +309,21 @@ public class DownloadTableGenerator {
   /**
    * Builds the CREATE TABLE statement for the HDFS table.
    */
-  private static String buildCreateHdfsTable(String hiveTableName) {
-    ImmutableList<String> hdfsColumns =
-      new ImmutableList.Builder<String>().addAll(hdfsTableColumns()).add(TERM_COL_DECL.apply(GbifTerm.mediaType))
-        .add(EXTENSION_COL_DECL.apply(Extension.MULTIMEDIA)).build();
-    return String.format(HIVE_CREATE_HDFS_TABLE_FMT, hiveTableName + HDFS_POST, COMMA_JOINER.join(hdfsColumns));
+  protected static String buildCreateHdfsTable(String hiveTableName) {
+    return String.format(HIVE_CREATE_HDFS_TABLE_FMT, hiveTableName + HDFS_POST, COMMA_JOINER.join(hdfsTableColumns()));
   }
+
+  protected static List<String> hdfsTableColumns() {
+    return new ImmutableList.Builder<String>().addAll(hdfsTableCommonColumns())
+      .add(TERM_COL_DECL.apply(GbifTerm.mediaType))
+      .add(EXTENSION_COL_DECL.apply(Extension.MULTIMEDIA)).build();
+  }
+
 
   /**
    * Builds the CREATE TABLE statement for the HBase table.
    */
-  private static String buildCreateHBaseTable(String hiveTableName, String hbaseTableName) {
+  protected static String buildCreateHBaseTable(String hiveTableName, String hbaseTableName) {
     return String.format(HIVE_CREATE_HBASE_TABLE_FMT, hiveTableName + HBASE_POST,
       COMMA_JOINER.join(hbaseTableColumns()),
       COMMA_JOINER.join(hbaseTableColumnMappings()), hbaseTableName);
@@ -326,7 +332,7 @@ public class DownloadTableGenerator {
   /**
    * Builds the INSERT OVERWRITE statement that populates the HDFS table from HBase.
    */
-  private static String buildInsertFromHBaseIntoHive(String hiveTableName) {
+  protected static String buildInsertFromHBaseIntoHive(String hiveTableName) {
     return String.format(INSERT_INFO_OCCURRENCE_HDFS, hiveTableName + HDFS_POST,
       COMMA_JOINER.join(selectHdfsTableColumns()), hiveTableName + HBASE_POST);
   }
@@ -334,29 +340,23 @@ public class DownloadTableGenerator {
   /**
    * Generates the drop table statements for the hdfs and hbase backed tables.
    */
-  private static String buildDropTableStatements(String hiveTableName) {
-    return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + '\n'
+  protected static String buildDropTableStatements(String hiveTableName) {
+    return String.format(DROP_TABLE_FMT, hiveTableName + HDFS_POST) + ';'
       + String.format(DROP_TABLE_FMT, hiveTableName + HBASE_POST);
   }
 
   /**
    * Generates a Hive script that deletes the hive occurrence tables, creates them and populate the HDFS table.
    */
-  public static String generateHiveScript(String hiveTableName, String hbaseTableName) {
-    return HIVE_DEFAULT_OPTS
-      + '\n'
-      + COLLECT_MEDIATYPES_UDF_DCL
-      + '\n'
-      + REMOVE_NULLS_UDF_DCL
-      + '\n'
-      + buildDropTableStatements(hiveTableName)
-      + '\n'
-      + buildCreateHdfsTable(hiveTableName)
-      + '\n'
-      + buildCreateHBaseTable(hiveTableName, hbaseTableName)
-      + '\n'
-      + buildInsertFromHBaseIntoHive(hiveTableName);
+  protected static String generateHiveScript(String hiveTableName, String hbaseTableName, boolean dropTablesFirst) {
+    return HIVE_CMDS_JOINER
+      .join(HIVE_DEFAULT_OPTS, COLLECT_MEDIATYPES_UDF_DCL, REMOVE_NULLS_UDF_DCL,
+        (dropTablesFirst ? buildDropTableStatements(hiveTableName) : null),
+        buildCreateHdfsTable(hiveTableName), buildCreateHBaseTable(hiveTableName, hbaseTableName),
+        buildInsertFromHBaseIntoHive(hiveTableName))
+      + HIVE_CMDS_SEP;
   }
+
 
   /**
    * Entry point.
@@ -364,7 +364,7 @@ public class DownloadTableGenerator {
    * The hive table name, preferably, shouldn't contain 'hdfs' at the end because the script by default add it.
    * Optional argument: output file, if the script is generated into a file.
    */
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws Exception {
     Closer closer = Closer.create();
     if (args.length < 2) {
       throw new IllegalArgumentException(
@@ -377,7 +377,7 @@ public class DownloadTableGenerator {
     } else {
       System.out.println("No output file parameter specified, using the console as output");
     }
-    System.out.println(DownloadTableGenerator.generateHiveScript(hiveTableName, hbaseTableName));
+    System.out.println(DownloadTableGenerator.generateHiveScript(hiveTableName, hbaseTableName, true));
     closer.close();
   }
 }

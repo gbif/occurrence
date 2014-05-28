@@ -12,20 +12,24 @@
   <start to="create_tables" />
 
   <action name="create_tables">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create_occurrence_tables.q</script>
+      <main-class>org.gbif.occurrence.hive.DownloadTableHiveAction</main-class>
+      <arg>${hive.server2}</arg>
+      <arg>${hive.db}</arg>
+      <arg>${hive.user}</arg>
+      <arg>occurrence</arg>
+      <arg>${hbase.table}</arg>
+      <arg>${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/occurrence-hive-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/occurrence-common-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/gbif-api-${gbif-api.version}.jar</arg>
+      <arg>${synctables}</arg>
+    </java>
 
-      <param>hive_db=${occurrence.environment}</param>
-      <param>occurrence_hbase_table=${occurrence.environment}_occurrence</param>
-    </hive>
-
-    <ok to="end"/>
-    <error to="kill"/>
+    <ok to="end" />
+    <error to="kill" />
   </action>
-  
+
   <kill name="kill">
     <message>Occurrence table generators failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
   </kill>
