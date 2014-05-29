@@ -164,19 +164,25 @@ public class CoordinateInterpreter {
    *
    * @return the latitude and longitude as doubles, the country as an ISO code, and issues if any
    * known errors were encountered in the interpretation (e.g. lat/lng reversed).
-   * , or all fields set to null if
-   * latitude
-   * or longitude are null
+   * Or all fields set to null if latitude or longitude are null
    */
-  public static ParseResult<CoordinateResult> interpretCoordinates(String latitude, String longitude, String datum,
-    final Country country) {
-    if (latitude == null || longitude == null) return ParseResult.fail();
+  public static ParseResult<CoordinateResult> interpretCoordinate(String latitude, String longitude, String datum, final Country country) {
+    return verifyLatLon(CoordinateParseUtils.parseLatLng(latitude, longitude), datum, country);
+  }
 
+  /**
+   * @param latLon a verbatim coordinate string containing both latitude and longitude
+   * @param country   country as interpreted to sanity check coordinate
+   */
+  public static ParseResult<CoordinateResult> interpretCoordinate(String latLon, String datum, final Country country) {
+    return verifyLatLon(CoordinateParseUtils.parseVerbatimCoordinates(latLon), datum, country);
+  }
+
+  private static ParseResult<CoordinateResult> verifyLatLon(ParseResult<LatLng> parsedLatLon, String datum, final Country country) {
     // use original as default
     Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
-    ParseResult<LatLng> parsedLatLon = CoordinateParseUtils.parseLatLng(latitude, longitude);
     issues.addAll(parsedLatLon.getIssues());
     if (!parsedLatLon.isSuccessful()) {
       return ParseResult.fail(issues);
@@ -224,7 +230,6 @@ public class CoordinateInterpreter {
     return ParseResult.success(parsedLatLon.getConfidence(),
                                new CoordinateResult(parsedLatLon.getPayload(), finalCountry),  issues);
   }
-
 
   private static ParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
     Preconditions.checkNotNull(country);
