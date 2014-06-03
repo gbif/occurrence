@@ -49,14 +49,17 @@ public class DownloadTableHiveAction {
     Statement stmt = null;
     try {
       cnct = DriverManager.getConnection(String.format(HIVE_URL_FMT, hiveServer, hiveDB), hiveUser, "");
+      LOG.info("Connection" + cnct.toString());
       stmt = cnct.createStatement();
+      stmt.execute("USE " + hiveDB);
+      LOG.info("Usiging DB: " + hiveDB);
       if (syncTables && hasTableDefChanged(stmt, hiveTableName)) {
         LOG.info("Table definitions have changed, deleting tables");
         for (String dropStmt : DownloadTableGenerator.buildDropTableStatements(hiveTableName).split(";")) {
           stmt.execute(dropStmt);
         }
       }
-
+      LOG.info("Creating Hive tables");
       stmt.execute(DownloadTableGenerator.buildCreateHdfsTable(hiveTableName));
       stmt.execute(DownloadTableGenerator.buildCreateHBaseTable(hiveTableName, hbaseTableName));
       for (String opt : DownloadTableGenerator.HIVE_DEFAULT_OPTS.split(";")) {
@@ -69,6 +72,7 @@ public class DownloadTableHiveAction {
       }
       stmt.execute(DownloadTableGenerator.COLLECT_MEDIATYPES_UDF_DCL);
       stmt.execute(DownloadTableGenerator.REMOVE_NULLS_UDF_DCL);
+      LOG.info("Initiating data import from Hbase into HDFS");
       stmt.execute(DownloadTableGenerator.buildInsertFromHBaseIntoHive(hiveTableName));
       LOG.info("The tables have been (re)built");
     } catch (SQLException e) {
@@ -94,7 +98,7 @@ public class DownloadTableHiveAction {
     if (res.next()) {
       res.close();
       res = stmt.executeQuery("DESCRIBE " + hiveTableName + DownloadTableGenerator.HDFS_POST);
-      while (res.next()) { // checks of the
+      while (res.next()) { // table exists
         currentColumns.add(res.getString(1) + " " + res.getString(2).toUpperCase());
       }
       res.close();

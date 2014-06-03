@@ -137,16 +137,6 @@ public class DownloadTableGenerator {
   };
 
   /**
-   * Generates the list of issue columns.
-   */
-  private static final Function<OccurrenceIssue, String> ISSUE_COLUMN_DECL = new Function<OccurrenceIssue, String>() {
-
-    public String apply(OccurrenceIssue issue) {
-      return String.format(STRING_COL_DECL_FMT, HiveColumnsUtils.getHiveColumn(issue));
-    }
-  };
-
-  /**
    * Generates the select expression of column.
    */
   private static final Function<Term, String> TERM_SELECT_EXP = new Function<Term, String>() {
