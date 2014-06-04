@@ -42,16 +42,17 @@ public class Wgs84Projection {
       LOG.error("Failed to create geotools datum factory", e);
     }
   }
+
   /**
    * Reproject the given coordinates into WGS84 coordinates based on a known source datum or SRS.
    * Darwin Core allows not only geodetic datums but also full spatial reference systems as values for "datum".
-   * <p/>
    * The method will always return lat lons even if the processing failed. In that case only issues are set and the
    * parsing result set to fail - but with a valid payload.
    *
    * @param lat   the original latitude
    * @param lon   the original longitude
    * @param datum the original geodetic datum the coordinates are in
+   *
    * @return the reprojected coordinates or the original ones in case transformation failed
    */
   public static ParseResult<LatLng> reproject(double lat, double lon, String datum) {
@@ -90,8 +91,11 @@ public class Wgs84Projection {
         double lat2 = dstPt[1];
         double lon2 = dstPt[0];
         // verify the datum shift is reasonable
-        if (Math.abs(lat-lat2) > SUSPICIOUS_SHIFT || Math.abs(lon-lon2) > SUSPICIOUS_SHIFT) {
+        if (Math.abs(lat - lat2) > SUSPICIOUS_SHIFT || Math.abs(lon - lon2) > SUSPICIOUS_SHIFT) {
           issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS);
+          LOG.debug("Found suspicious shift for datum={} and lat/lon={}/{} so returning failure and keeping orig coord",
+            datum, lat, lon);
+          return ParseResult.fail(new LatLng(lat, lon), issues);
         }
         // flag the record if coords actually changed
         if (lat != lat2 || lon != lon2) {
