@@ -175,6 +175,9 @@ public class VerbatimOccurrenceInterpreter {
       occ.setTypifiedName(parsedName.getPayload());
       occ.getIssues().addAll(parsedName.getIssues());
     }
+    if (verbatim.hasVerbatimField(GbifTerm.typifiedName)) {
+      occ.setTypifiedName(verbatim.getVerbatimField(GbifTerm.typifiedName));
+    }
   }
 
   private static void interpretBor(VerbatimOccurrence verbatim, Occurrence occ) {
