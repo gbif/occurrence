@@ -19,6 +19,7 @@ import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.interpreting.util.UrlParser;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
