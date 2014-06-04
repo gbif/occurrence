@@ -80,24 +80,31 @@ public class LocationInterpreter {
   }
 
   private static void interpretCoordinates(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
-    ParseResult<CoordinateResult> coordLookup = CoordinateInterpreter.interpretCoordinates(
-        verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
-        verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
+    ParseResult<CoordinateResult> parsedCoord = CoordinateInterpreter.interpretCoordinate(
+          verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
+          verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
 
-    if (!coordLookup.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude)
+    if (!parsedCoord.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude)
         && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
-      LOG.debug("Decimal coord lookup failed, trying verbatim coordinates");
+      LOG.debug("Decimal coord interpretation, trying verbatim lat/lon");
       // try again with verbatim lat/lon
-      coordLookup = CoordinateInterpreter.interpretCoordinates(
-        verbatim.getVerbatimField(DwcTerm.verbatimLatitude), verbatim.getVerbatimField(DwcTerm.verbatimLongitude),
-        verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
+      parsedCoord = CoordinateInterpreter.interpretCoordinate(verbatim.getVerbatimField(DwcTerm.verbatimLatitude),
+                                                              verbatim.getVerbatimField(DwcTerm.verbatimLongitude),
+                                                              verbatim.getVerbatimField(DwcTerm.geodeticDatum),country);
     }
 
-    if (coordLookup.isSuccessful() && coordLookup.getPayload() != null) {
-      occ.setDecimalLatitude(coordLookup.getPayload().getLatitude());
-      occ.setDecimalLongitude(coordLookup.getPayload().getLongitude());
+    if (!parsedCoord.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimCoordinates)) {
+      LOG.debug("Verbatim lat/lon interpretation, trying single verbatimCoordinates");
+      // try again with verbatim coordinates
+      parsedCoord = CoordinateInterpreter.interpretCoordinate(verbatim.getVerbatimField(DwcTerm.verbatimCoordinates),
+                                                              verbatim.getVerbatimField(DwcTerm.geodeticDatum),country);
+    }
+
+    if (parsedCoord.isSuccessful() && parsedCoord.getPayload() != null) {
+      occ.setDecimalLatitude(parsedCoord.getPayload().getLatitude());
+      occ.setDecimalLongitude(parsedCoord.getPayload().getLongitude());
       if (country == null) {
-        occ.setCountry(coordLookup.getPayload().getCountry());
+        occ.setCountry(parsedCoord.getPayload().getCountry());
       }
       //TODO: interpret also coordinateUncertaintyInMeters
       if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
@@ -114,12 +121,12 @@ public class LocationInterpreter {
           }
         }
       }
-      LOG.debug("Got lat [{}] lng [{}]", coordLookup.getPayload().getLatitude(),
-        coordLookup.getPayload().getLongitude());
+      LOG.debug("Got lat [{}] lng [{}]", parsedCoord.getPayload().getLatitude(),
+        parsedCoord.getPayload().getLongitude());
     }
 
-    LOG.debug("Adding coord issues to occ [{}]", coordLookup.getIssues());
-    occ.getIssues().addAll(coordLookup.getIssues());
+    LOG.debug("Adding coord issues to occ [{}]", parsedCoord.getIssues());
+    occ.getIssues().addAll(parsedCoord.getIssues());
   }
 
   private static void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {

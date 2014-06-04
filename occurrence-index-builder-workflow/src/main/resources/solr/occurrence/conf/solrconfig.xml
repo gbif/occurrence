@@ -73,11 +73,11 @@
       <str name="dir">${solr.ulog.dir:}</str>
     </updateLog>
  
-    <maxPendingDeletes>10000</maxPendingDeletes>
+    <maxPendingDeletes>1000</maxPendingDeletes>
     
     <autoCommit> 
        <maxDocs>10000</maxDocs>
-       <maxTime>${solr.autoCommit.maxTime:10800000}</maxTime> 
+       <maxTime>${solr.autoCommit.maxTime:250000}</maxTime> 
        <openSearcher>false</openSearcher> 
      </autoCommit>
      
@@ -176,7 +176,7 @@
   <requestParsers enableRemoteStreaming="true" 
                     multipartUploadLimitInKB="2048000"
                     formdataUploadLimitInKB="2048"
-                    addHttpRequestToContext="false"/>
+                    addHttpRequestToContext="false"/>                   
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
   </requestHandler>

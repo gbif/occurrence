@@ -71,7 +71,7 @@ public class CoordinateCountryParseUDF extends GenericUDF {
     // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
     //TODO: do we need to supply the datum???
     ParseResult<CoordinateResult> response =
-      CoordinateInterpreter.interpretCoordinates(latitude, longitude, null, interpretedCountry);
+      CoordinateInterpreter.interpretCoordinate(latitude, longitude, null, interpretedCountry);
 
     // We don't mind a country that is derived coordinates
     if (response.getIssues() != null) {
