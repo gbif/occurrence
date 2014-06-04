@@ -19,7 +19,7 @@ public class OccurrencePersistenceMockServiceTest {
     assertEquals("cat-112", occ.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals("Chromista", occ.getKingdom());
     assertEquals((Integer) 4, occ.getKingdomKey());
-    assertEquals(BasisOfRecord.PRESERVED_SPECIMEN, occ.getBasisOfRecord());
+    assertEquals(BasisOfRecord.HUMAN_OBSERVATION, occ.getBasisOfRecord());
     assertEquals((Integer) 1912, occ.getYear());
     assertEquals((Integer) 5, occ.getMonth());
     assertEquals( (Double) 112d, occ.getElevation());
