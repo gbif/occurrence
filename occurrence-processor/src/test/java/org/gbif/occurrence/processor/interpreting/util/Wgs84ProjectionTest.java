@@ -24,6 +24,8 @@ public class Wgs84ProjectionTest {
     assertNotNull(Wgs84Projection.parseCRS("AGD66"));
     assertNotNull(Wgs84Projection.parseCRS("EPSG:6202"));
     assertNotNull(Wgs84Projection.parseCRS("ED50"));
+    assertNotNull(Wgs84Projection.parseCRS("WGS66"));
+    assertNotNull(Wgs84Projection.parseCRS("EPSG:3857"));
   }
 
   @Test
@@ -39,7 +41,6 @@ public class Wgs84ProjectionTest {
     assertLatLon(Wgs84Projection.reproject(lat, lng, "wgs 84"), lat, lng, false, false);
     // this is another form of specifying wgs8ng
     assertLatLon(Wgs84Projection.reproject(lat, lng, "EPSG:4326"), lat, lng, false, false);
-
 
     // real projections used frequently in GBIF
     assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS1984"), lat, lng, false, false);
@@ -70,7 +71,15 @@ public class Wgs84ProjectionTest {
     assertLatLon(Wgs84Projection.reproject(lat, lng, "ARC 1950"), lat-0.005546, lng-0.001274, false, true);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "INDIAN"), lat+0.007992, lng+0.0008119, false, true);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "CAPE"), lat-0.005581, lng-0.0012493, false, true);
+    assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS66"), lat-0.00000427, lng, false, true);
+  }
 
+  @Test
+  public void testSuspiciousCausesFailure() {
+    double lat = 30.2;
+    double lng = -97.7;
+    // something is wrong with 3857 so we don't write the suspicious transform
+    assertFailed(Wgs84Projection.reproject(lat, lng, "EPSG:3857"), lat, lng, OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS);
   }
 
   @Test

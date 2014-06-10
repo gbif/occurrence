@@ -142,7 +142,7 @@ public class OccurrenceBuilder {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
-      Occurrence occ = new Occurrence(buildVerbatimOccurrence(row));
+      Occurrence occ = new Occurrence(buildVerbatimOccurrence(row, false));
 
       // filter out verbatim terms that have been interpreted
       for (Term t : TermUtils.interpretedSourceTerms()) {
@@ -217,9 +217,19 @@ public class OccurrenceBuilder {
   /**
    * Utility to build an API Occurrence from an HBase row.
    *
-   * @return A complete occurrence, or null
+   * @return A complete verbatim occurrence, or null
    */
   public static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row) {
+    return buildVerbatimOccurrence(row, true);
+  }
+
+  /**
+   * Utility to build an API Occurrence from an HBase row.
+   *
+   * @param readExtensions if true reads verbatim extension data into extensions map
+   * @return A complete verbatim occurrence, or null
+   */
+  private static VerbatimOccurrence buildVerbatimOccurrence(@Nullable Result row, boolean readExtensions) {
     if (row == null || row.isEmpty()) {
       return null;
     }
@@ -241,7 +251,10 @@ public class OccurrenceBuilder {
         verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
       }
     }
-    verb.setExtensions(readVerbatimExtensions(row));
+
+    if (readExtensions) {
+      verb.setExtensions(readVerbatimExtensions(row));
+    }
     return verb;
   }
 
