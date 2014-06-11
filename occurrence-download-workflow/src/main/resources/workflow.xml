@@ -109,6 +109,7 @@
 
       <param>result_multimedia_table=${occurrence.environment}.${query_result_table}_multimedia</param>            
       <param>occurrence_intepreted_table=${occurrence.environment}.${query_result_table}_interpreted</param>
+      <param>occurrence_record=${occurrence.environment}.occurrence_hdfs</param>
     </hive>
 
     <ok to="bundling" />
