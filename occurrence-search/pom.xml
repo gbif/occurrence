@@ -14,7 +14,7 @@
   <properties>
     <super-csv.version>2.0.1</super-csv.version>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
-    <hbase-indexer-engine.version>1.3-search-1.2.0</hbase-indexer-engine.version>
+    <!--<hbase-indexer-engine.version>1.3-search-1.2.0</hbase-indexer-engine.version>-->
   </properties>
 
   <name>Occurrence Search service</name>
@@ -180,11 +180,11 @@
       </exclusions>
     </dependency>
 
-    <dependency>
-      <groupId>com.ngdata</groupId>
-      <artifactId>hbase-indexer-engine</artifactId>
-      <version>${hbase-indexer-engine.version}</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>com.ngdata</groupId>-->
+      <!--<artifactId>hbase-indexer-engine</artifactId>-->
+      <!--<version>${hbase-indexer-engine.version}</version>-->
+    <!--</dependency>-->
 
     <dependency>
       <groupId>net.sf.supercsv</groupId>
