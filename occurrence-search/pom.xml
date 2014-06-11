@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-search</artifactId>
-    </dependency>   
+    </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-solrj</artifactId>
@@ -107,6 +107,10 @@
     <dependency>
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
     </dependency>
 
     <!-- Test scope -->
@@ -157,7 +161,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <scope>test</scope>     
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -168,7 +172,7 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
       <scope>test</scope>
-       <exclusions>        
+       <exclusions>
         <exclusion>
           <artifactId>mockito-all</artifactId>
           <groupId>org.mockito</groupId>
@@ -181,7 +185,7 @@
       <artifactId>hbase-indexer-engine</artifactId>
       <version>${hbase-indexer-engine.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>net.sf.supercsv</groupId>
       <artifactId>super-csv</artifactId>
@@ -198,8 +202,8 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>        
-    </dependency> 
+      <artifactId>mockito-core</artifactId>
+    </dependency>
 
   </dependencies>
 </project>

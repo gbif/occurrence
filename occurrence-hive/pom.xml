@@ -78,8 +78,20 @@
       <artifactId>jts</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-parsers</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -107,7 +119,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
+
     <!-- Runtime dependencies -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
