@@ -753,14 +753,17 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-metadata</artifactId>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-opengis</artifactId>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-main</artifactId>
+        <version>${geotools.version}</version>
       </dependency>
 
       <!-- yammer -->
