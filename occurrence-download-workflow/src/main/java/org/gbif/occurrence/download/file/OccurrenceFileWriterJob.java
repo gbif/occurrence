@@ -180,12 +180,12 @@ class OccurrenceFileWriterJob implements Callable<Result> {
     new URIProcessor(), // references
     new CleanStringProcessor(), // title
     new CleanStringProcessor(), // description
-    new CleanStringProcessor(), // source
-    new CleanStringProcessor(), // audience
     new DateProcessor(), // created
     new CleanStringProcessor(), // creator
     new CleanStringProcessor(), // contributor
     new CleanStringProcessor(), // publisher
+    new CleanStringProcessor(), // audience
+    new CleanStringProcessor(), // source
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
 
