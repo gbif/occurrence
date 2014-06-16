@@ -202,6 +202,52 @@ public class TemporalInterpreterTest {
   }
 
   @Test
+  public void testOnlyYear() {
+    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", null, null, null);
+    assertResult(1984, null, null, null, result);
+
+    result = interpretRecordedDate(null, null, null, "1984");
+    assertResult(1984, null, null, null, result);
+
+    result = interpretRecordedDate("1984", null, null, "1984");
+    assertResult(1984, null, null, null, result);
+  }
+
+  // these two tests demonstrate the problem from POR-2120
+//  @Test
+//  public void testYearWithZeros() {
+//    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "0", "0", "1984");
+//    System.out.println("Got result: " + result.getPayload().getDate());
+//    assertResult(1984, null, null, null, result);
+//
+//    result = interpretRecordedDate(null, null, null, "1984");
+//    System.out.println("Got result: " + result.getPayload().getDate());
+//    assertResult(1984, null, null, null, result);
+//
+//    result = interpretRecordedDate("1984", "0", "0", null);
+//    assertResult(1984, null, null, null, result);
+//
+//    result = interpretRecordedDate(null, null, null, "0-0-1984");
+//    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+//    assertNull(result.getPayload());
+//  }
+//
+//  @Test
+//  public void testYearMonthNoDay() {
+//    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", null, null);
+//    System.out.println("Got result: " + result.getPayload().getDate());
+//    assertResult(1984, 3, null, null, result);
+//
+//    result = interpretRecordedDate("1984", "3", null, "1984-03");
+//    System.out.println("Got result: " + result.getPayload().getDate());
+//    assertResult(1984, 3, null, null, result);
+//
+//    result = interpretRecordedDate(null, null, null, "1984-03");
+//    System.out.println("Got result: " + result.getPayload().getDate());
+//    assertResult(1984, 3, null, null, result);
+//  }
+
+  @Test
   public void testOnlyMonth() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, "3", null, null);
     assertResult(null, 3, null, null, result);
