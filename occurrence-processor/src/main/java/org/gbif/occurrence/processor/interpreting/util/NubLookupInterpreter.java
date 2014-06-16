@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.sun.jersey.api.client.Client;
@@ -83,10 +82,6 @@ public class NubLookupInterpreter {
   public static ParseResult<NameUsageMatch> nubLookup(String kingdom, String phylum, String clazz, String order,
     String family, String genus, String scientificName, String author) {
 
-    if (Strings.isNullOrEmpty(scientificName)) {
-      return ParseResult.fail();
-    }
-
     ParseResult<NameUsageMatch> result = null;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("kingdom", kingdom);
@@ -98,59 +93,57 @@ public class NubLookupInterpreter {
     queryParams.add("name", scientificName);
     // TODO: include author in query
 
-    if (scientificName != null) {
-      for (int i = 0; i < NUM_RETRIES; i++) {
-        LOG.debug("Attempt [{}] to lookup sci name [{}]", i, scientificName);
-        try {
-          NameUsageMatch lookup = CACHE.get(RESOURCE.queryParams(queryParams));
-          if (lookup != null) {
-            result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
-            switch (lookup.getMatchType()) {
-              case NONE:
-                result.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
-                LOG.info("Nub lookup for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
-                break;
-              case FUZZY:
-                result.addIssue(OccurrenceIssue.TAXON_MATCH_FUZZY);
-                LOG.debug("Nub lookup for [{}] was fuzzy. Match note: [{}]", scientificName, lookup.getNote());
-                break;
-              case HIGHERRANK:
-                result.addIssue(OccurrenceIssue.TAXON_MATCH_HIGHERRANK);
-                LOG.debug("Nub lookup for [{}] was to higher rank only. Match note: [{}]",
-                          scientificName,
-                          lookup.getNote());
-                break;
-            }
-          }
-
-          break; // from retry loop
-        } catch (ExecutionException e) {
-          // Log the error
-          LOG.error("Failed WS call with: {}", recreateQueryString(queryParams));
-
-          // have we exhausted our attempts?
-          if (i >= NUM_RETRIES) {
-            throw new RuntimeException(e);
-          }
-
-          try {
-            Thread.sleep(RETRY_PERIOD_MSEC);
-          } catch (InterruptedException e1) {
-          }
-        } catch (UniformInterfaceException e) {
-          LOG.info("Got unexpected result for scientific name '{}', Response: {}", scientificName, e.getResponse());
-          // have we exhausted our attempts?
-          if (i >= NUM_RETRIES) {
-            throw e;
-          }
-
-          try {
-            Thread.sleep(RETRY_PERIOD_MSEC);
-          } catch (InterruptedException e1) {
+    for (int i = 0; i < NUM_RETRIES; i++) {
+      LOG.debug("Attempt [{}] to lookup sci name [{}]", i, scientificName);
+      try {
+        NameUsageMatch lookup = CACHE.get(RESOURCE.queryParams(queryParams));
+        if (lookup != null) {
+          result = ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
+          switch (lookup.getMatchType()) {
+            case NONE:
+              result.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
+              LOG.info("Nub lookup for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
+              break;
+            case FUZZY:
+              result.addIssue(OccurrenceIssue.TAXON_MATCH_FUZZY);
+              LOG.debug("Nub lookup for [{}] was fuzzy. Match note: [{}]", scientificName, lookup.getNote());
+              break;
+            case HIGHERRANK:
+              result.addIssue(OccurrenceIssue.TAXON_MATCH_HIGHERRANK);
+              LOG.debug("Nub lookup for [{}] was to higher rank only. Match note: [{}]",
+                        scientificName,
+                        lookup.getNote());
+              break;
           }
         }
-      } // retry loop
-    } // scientific name exists
+
+        break; // from retry loop
+      } catch (ExecutionException e) {
+        // Log the error
+        LOG.error("Failed WS call with: {}", recreateQueryString(queryParams));
+
+        // have we exhausted our attempts?
+        if (i >= NUM_RETRIES) {
+          throw new RuntimeException(e);
+        }
+
+        try {
+          Thread.sleep(RETRY_PERIOD_MSEC);
+        } catch (InterruptedException e1) {
+        }
+      } catch (UniformInterfaceException e) {
+        LOG.info("Got unexpected result for scientific name '{}', Response: {}", scientificName, e.getResponse());
+        // have we exhausted our attempts?
+        if (i >= NUM_RETRIES) {
+          throw e;
+        }
+
+        try {
+          Thread.sleep(RETRY_PERIOD_MSEC);
+        } catch (InterruptedException e1) {
+        }
+      }
+    } // retry loop
 
     return result;
   }
