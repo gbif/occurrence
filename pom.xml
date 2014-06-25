@@ -844,58 +844,6 @@
 
     <profile>
       <!--
-       Configured to use the prod lookup services (nub and geo from portalweb1_vh).
-       All settings exist but we need these passwords from somewhere else:
-       <occurrence.download.ws.password>
-       <drupal.db.password>
-      -->
-      <id>prod_a</id>
-      <properties>
-        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
-        <occurrence.environment>prod</occurrence.environment>
-        <occurrence.env_prefix>prod_a</occurrence.env_prefix>
-
-        <!-- cluster config -->
-        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
-        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
-        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
-        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
-
-        <!-- cluster version -->
-        <hadoop-core.version>2.0.0-mr1-cdh4.2.1</hadoop-core.version>
-        <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
-        <hbase.version>0.94.2-cdh4.2.1</hbase.version>
-        <hive.version>0.10.0-cdh4.2.1</hive.version>
-        <oozie.version>3.3.0-cdh4.2.0</oozie.version>
-        <zookeeper.version>3.4.5-cdh4.2.1</zookeeper.version>
-
-        <!-- webservices -->
-        <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://api.gbif.org/v0.9/</occurrence.download.ws.url>
-        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/prod_a.db</occurrence.download.hive.hdfs.out>
-        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
-        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
-        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
-        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
-        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
-        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
-        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
-        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
-        <occurrence.download.datause.url>http://www.gbif.org/faq/datause</occurrence.download.datause.url>
-        <checklistbank.match.ws.url>http://api.gbif.org/v0.9/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://api.gbif.org/v0.9/</checklistbank.ws.url>
-        <registry.ws.url>http://apps.gbif.org:8080/a_registry-ws/</registry.ws.url>
-        <geocode.ws.url>http://api.gbif.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
-        <!-- security -->
-        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
-        <drupal.db.username>drupal_live</drupal.db.username>
-        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
-      </properties>
-    </profile>
-
-    <profile>
-      <!--
        Configured to use the same lookup services (nub and geo, now on boma) as the appdev portal.
        All settings exist but we need this password from somewhere else:
        <occurrence.download.ws.password>
@@ -937,7 +885,7 @@
         <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-uat.org:8080/a_registry-ws/</registry.ws.url>
-        <geocode.ws.url>http://api.gbif-uat.org/v0.9/lookup/reverse_geocode/</geocode.ws.url>
+        <geocode.ws.url>http://api.gbif-uat.org/v0.9/geocode/reverse</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_uat</drupal.db.username>
@@ -985,10 +933,10 @@
         <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
         <occurrence.download.datause.url>http://www.gbif-dev.org/faq/datause</occurrence.download.datause.url>
-        <checklistbank.match.ws.url>http://boma.gbif.org:8080/uat-nub-ws/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://apps.gbif-dev.org:8080/checklistbank-ws</checklistbank.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif-dev.org/v0.9/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-dev.org/v0.9/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://boma.gbif.org:8080/geocode-ws/reverse/</geocode.ws.url>
+        <geocode.ws.url>http://api.gbif-dev.org/v0.9/geocode/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
@@ -998,8 +946,71 @@
 
 
     <profile>
+      <!--
+       Production profile independent of the current a/b_ prefix.
+       Use this profile together with one of prod_a or prod_b to get a complete production setting !!!
+         All settings exist but we need these passwords from somewhere else:
+         <occurrence.download.ws.password>
+         <drupal.db.password>
+      -->
       <id>prod</id>
       <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.environment>prod</occurrence.environment>
+
+        <!-- cluster config -->
+        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+
+        <!-- cluster version -->
+        <hadoop-core.version>2.0.0-mr1-cdh4.2.1</hadoop-core.version>
+        <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
+        <hbase.version>0.94.2-cdh4.2.1</hbase.version>
+        <hive.version>0.10.0-cdh4.2.1</hive.version>
+        <oozie.version>3.3.0-cdh4.2.0</oozie.version>
+        <zookeeper.version>3.4.5-cdh4.2.1</zookeeper.version>
+
+        <!-- webservices -->
+        <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.download.ws.url>http://api.gbif.org/v0.9/</occurrence.download.ws.url>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/prod_a.db</occurrence.download.hive.hdfs.out>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>40</occurrence.download.max_global_threads>
+        <occurrence.download.job.max_threads>5</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
+        <occurrence.download.datause.url>http://www.gbif.org/faq/datause</occurrence.download.datause.url>
+        <checklistbank.match.ws.url>http://api.gbif.org/v0.9/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif.org/v0.9/</checklistbank.ws.url>
+        <geocode.ws.url>http://api.gbif.org/v0.9/geocode/reverse/</geocode.ws.url>
+        <!-- security -->
+        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.username>drupal_live</drupal.db.username>
+        <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>prod_a</id>
+      <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.env_prefix>prod_a</occurrence.env_prefix>
+        <registry.ws.url>http://apps.gbif.org:8080/a_registry-ws/</registry.ws.url>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>prod_b</id>
+      <properties>
+        <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
+        <occurrence.env_prefix>prod_b</occurrence.env_prefix>
+        <registry.ws.url>http://apps.gbif.org:8080/b_registry-ws/</registry.ws.url>
       </properties>
     </profile>
   </profiles>
