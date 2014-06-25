@@ -160,13 +160,13 @@
 		</profile>
 
 		<profile>
-			<id>prod</id>
+			<id>prod_b</id>
 			<properties>
 				<occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
 				<hive.server2>c1n8.gbif.org</hive.server2>
-				<hive.db>prod_a</hive.db>
+				<hive.db>prod_b</hive.db>
 				<hive.user>prod</hive.user>
-				<hbase.table>prod_a_occurrence</hbase.table>
+				<hbase.table>prod_b_occurrence</hbase.table>
 				<synctables>false</synctables>
 				<create_tables_dynamically>false</create_tables_dynamically>
 			</properties>

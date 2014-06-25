@@ -29,9 +29,8 @@
 			<job-xml>conf/hive-default.xml</job-xml>
 			<script>hive-scripts/create_occurrence_tables.q</script>
 
-			<param>hive_db=${occurrence.environment}</param>
-			<param>occurrence_hbase_table=${occurrence.environment}_occurrence
-			</param>
+			<param>hive_db=${occurrence.env_prefix}</param>
+			<param>occurrence_hbase_table=${occurrence.env_prefix}_occurrence</param>
 		</hive>
 		<ok to="end" />
 		<error to="kill" />
@@ -48,7 +47,7 @@
 			<arg>${hive.user}</arg>
 			<arg>occurrence</arg>
 			<arg>${hbase.table}</arg>
-			<arg>${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/occurrence-hive-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/occurrence-common-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.environment}/lib/gbif-api-${gbif-api.version}.jar</arg>
+			<arg>${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-hive-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-common-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/gbif-api-${gbif-api.version}.jar</arg>
 			<arg>${synctables}</arg>
 		</java>
 
