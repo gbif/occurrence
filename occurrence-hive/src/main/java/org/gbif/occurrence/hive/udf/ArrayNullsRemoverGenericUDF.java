@@ -27,7 +27,7 @@ public class ArrayNullsRemoverGenericUDF extends GenericUDF {
       result = Lists.newArrayList(list);
       result.removeAll(Collections.singleton(null));
     }
-    return result;
+    return result.isEmpty() ? null : result;
   }
 
   @Override

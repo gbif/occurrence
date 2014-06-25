@@ -16,7 +16,18 @@
 
   <!-- The default high-performance update handler -->
   <updateHandler class="solr.DirectUpdateHandler2">
-    <!-- <updateLog> <str name="dir">${solr.data.dir:}</str> </updateLog> -->
+    <updateLog> <str name="dir">${solr.data.dir:}</str> </updateLog>
+    <maxPendingDeletes>1000</maxPendingDeletes>
+                        
+    <autoCommit> 
+     <maxDocs>5000</maxDocs>
+     <maxTime>${solr.autoCommit.maxTime:1200000}</maxTime> 
+       <openSearcher>false</openSearcher> 
+     </autoCommit>
+                                                             
+     <autoSoftCommit> 
+       <maxTime>${solr.autoSoftCommit.maxTime:600000}</maxTime> 
+     </autoSoftCommit>
   </updateHandler>
 
   <query>
@@ -70,6 +81,7 @@
         </lst>
         <lst>
           <str name="q">taxon_key:1</str>
+
           <str name="sort">year desc, month asc</str>
         </lst>
         <lst>
@@ -86,11 +98,11 @@
         <lst>
           <str name="q">*:*</str>
           <str name="sort">year desc, month asc</str>
-          <str name="fq">georeferenced:true</str>          
+          <str name="fq">has_coordinate:true</str>          
         </lst>
         <lst>
           <str name="q">*:*</str>
-          <str name="fq">geospatial_issue:true</str>
+          <str name="fq">spatial_issues:true</str>
           <str name="sort">year desc, month asc</str>          
         </lst>
       </arr>
@@ -197,9 +209,16 @@
     </arr>
   </requestHandler>
 
-  <queryResponseWriter name="json" class="solr.JSONResponseWriter">
-    <bool name="useJsonContentType">true</bool>
+
+  <queryResponseWriter name="json"
+    class="solr.JSONResponseWriter">
+    <!-- For the purposes of the tutorial, JSON responses are written as 
+      plain text so that they are easy to read in *any* browser. If you expect 
+      a MIME type of "application/json" just remove this override. -->
+    <str name="content-type">text/plain; charset=UTF-8</str>
   </queryResponseWriter>
+
+
 
   <!-- Legacy config for the admin interface -->
   <admin>

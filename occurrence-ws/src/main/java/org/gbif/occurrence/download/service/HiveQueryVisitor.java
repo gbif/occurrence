@@ -73,6 +73,7 @@ class HiveQueryVisitor {
   private static final String NOT_OPERATOR = "NOT ";
   private static final String LIKE_OPERATOR = " LIKE ";
   private static final String IS_NOT_NULL_OPERATOR = " IS NOT NULL ";
+  private static final String IS_NOT_NULL_ARRAY_OPERATOR = "(%1$s IS NOT NULL AND size(%1$s) > 0)";
   private static final CharMatcher APOSTROPHE_MATCHER = CharMatcher.is('\'');
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
@@ -81,6 +82,7 @@ class HiveQueryVisitor {
     + HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
   private static final String ISSUE_CONTAINS_FMT = "array_contains("
     + HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
+  private static final String HIVE_ARRAY_PRE = "ARRAY";
 
 
   private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(
@@ -138,7 +140,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   *
+   * 
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -165,7 +167,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   *
+   * 
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -224,8 +226,19 @@ class HiveQueryVisitor {
   }
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
-    builder.append(toHiveField(predicate.getParameter()));
-    builder.append(IS_NOT_NULL_OPERATOR);
+    if (isHiveArray(predicate.getParameter())) {
+      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter())));
+    } else {
+      builder.append(toHiveField(predicate.getParameter()));
+      builder.append(IS_NOT_NULL_OPERATOR);
+    }
+  }
+
+  /**
+   * Determines if the type of a parameter it'a a Hive array.
+   */
+  private boolean isHiveArray(OccurrenceSearchParameter parameter) {
+    return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
   }
 
   public void visit(WithinPredicate within) {
@@ -242,7 +255,7 @@ class HiveQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   *
+   * 
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -275,7 +288,7 @@ class HiveQueryVisitor {
 
   /**
    * Searches any of the nub keys in hbase of any rank.
-   *
+   * 
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
@@ -296,7 +309,7 @@ class HiveQueryVisitor {
   /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   *
+   * 
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase

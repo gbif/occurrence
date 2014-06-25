@@ -166,6 +166,13 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testIsNotNullArrayPredicate() throws QueryBuildingException {
+    Predicate p = new IsNotNullPredicate(OccurrenceSearchParameter.MEDIA_TYPE);
+    String query = visitor.getHiveQuery(p);
+    assertThat(query, equalTo("(mediatype IS NOT NULL AND size(mediatype) > 0)"));
+  }
+
+  @Test
   @Ignore
   public void testAllParamsExist() throws QueryBuildingException {
     List<Predicate> predicates = Lists.newArrayList();

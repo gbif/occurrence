@@ -14,4 +14,4 @@ SELECT cleanNull(gbifid),cleanDelimiters(mm_record['type']),cleanDelimiters(mm_r
 FROM (
   SELECT occ.gbifid, occ.ext_multimedia  FROM ${occurrence_record} occ 
   JOIN ${occurrence_intepreted_table} intocc ON intocc.gbifid = occ.gbifid
-) occ_mm LATERAL VIEW explode(from_json(occ.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
+) occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
