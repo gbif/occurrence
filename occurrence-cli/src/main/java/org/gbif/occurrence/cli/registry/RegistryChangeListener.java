@@ -91,7 +91,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
           // check if owning org has changed, and update old records if so
-          if (oldDataset.getOwningOrganizationKey().equals(newDataset.getOwningOrganizationKey())) {
+          if (oldDataset.getPublishingOrganizationKey().equals(newDataset.getPublishingOrganizationKey())) {
             LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
           } else {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
@@ -152,7 +152,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           };
           visitOwnedDatasets(newOrg.getKey(), visitor);
         } else if (oldOrg.getCountry() != newOrg.getCountry() && newOrg.isEndorsementApproved()) {
-          if (newOrg.getNumOwnedDatasets() > 0) {
+          if (newOrg.getNumPublishedDatasets() > 0) {
             LOG.info("Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
               newOrg.getKey(), oldOrg.getCountry(), newOrg.getCountry());
             DatasetVisitor visitor = new DatasetVisitor() {
@@ -228,7 +228,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     int offset = 0;
     do {
       Pageable page = new PagingRequest(offset, PAGING_LIMIT);
-      PagingResponse<Dataset> datasets = orgService.ownedDatasets(orgKey, page);
+      PagingResponse<Dataset> datasets = orgService.publishedDatasets(orgKey, page);
 
       for (Dataset dataset : datasets.getResults()) {
         visitor.visit(dataset.getKey());

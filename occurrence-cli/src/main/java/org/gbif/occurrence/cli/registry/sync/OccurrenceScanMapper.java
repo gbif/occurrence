@@ -43,8 +43,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A mapreduce Mapper that synchronizes occurrences with the registry. It checks for changed owning organizations,
- * changed owning organization country, and dataset deletions. For organization changes the new values are written
+ * A mapreduce Mapper that synchronizes occurrences with the registry. It checks for changed publishing organizations,
+ * changed publishing organization country, and dataset deletions. For organization changes the new values are written
  * to the occurrence HBase table via occurrence persistence, and then an OccurrenceMutatedMessage is sent. For dataset
  * deletions a DeleteDatasetMessage is sent.
  */
@@ -101,27 +101,27 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     }
 
     // dataset exists, now compare with values we have on the occurrence
-    Organization owningOrg;
+    Organization publishingOrg;
 
     boolean needsUpdate;
     if (DATASET_TO_OWNING_ORG.containsKey(datasetKey)) {
       // seen it before, no need to do comparisons - record needs updating
-      owningOrg = DATASET_TO_OWNING_ORG.get(datasetKey);
+      publishingOrg = DATASET_TO_OWNING_ORG.get(datasetKey);
       needsUpdate = true;
     } else {
-      UUID newOwningOrgKey = dataset.getOwningOrganizationKey();
-      owningOrg = ORG_SERVICE.get(newOwningOrgKey);
-      String rawOwningOrgKey = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.OOK_COL));
-      UUID owningOrgKey = rawOwningOrgKey == null ? null : UUID.fromString(rawOwningOrgKey);
+      UUID newPublishingOrgKey = dataset.getPublishingOrganizationKey();
+      publishingOrg = ORG_SERVICE.get(newPublishingOrgKey);
+      String rawPublishingOrgKey = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.OOK_COL));
+      UUID publishingOrgKey = rawPublishingOrgKey == null ? null : UUID.fromString(rawPublishingOrgKey);
       String rawHostCountry = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.HC_COL));
       Country hostCountry = rawHostCountry == null ? null : Country.fromIsoCode(rawHostCountry);
-      Country newHostCountry = owningOrg.getCountry();
-      if (newOwningOrgKey.equals(owningOrgKey) && newHostCountry == hostCountry) {
+      Country newHostCountry = publishingOrg.getCountry();
+      if (newPublishingOrgKey.equals(publishingOrgKey) && newHostCountry == hostCountry) {
         needsUpdate = false;
         UNCHANGED_DATASETS.add(datasetKey);
       } else {
         needsUpdate = true;
-        DATASET_TO_OWNING_ORG.put(datasetKey, owningOrg);
+        DATASET_TO_OWNING_ORG.put(datasetKey, publishingOrg);
       }
     }
 
@@ -129,8 +129,8 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       Occurrence origOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
       // we have no clone or other easy copy method
       Occurrence updatedOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
-      updatedOcc.setPublishingOrgKey(owningOrg.getKey());
-      updatedOcc.setPublishingCountry(owningOrg.getCountry());
+      updatedOcc.setPublishingOrgKey(publishingOrg.getKey());
+      updatedOcc.setPublishingCountry(publishingOrg.getCountry());
       OCCURRENCE_PERSISTENCE_SERVICE.update(updatedOcc);
 
       int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));
@@ -138,7 +138,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
         OccurrenceMutatedMessage.buildUpdateMessage(datasetKey, origOcc, updatedOcc, crawlId);
 
       try {
-        LOG.info("Sending update for key [{}], owning org changed from [{}] to [{}] and host country from [{}] to [{}]",
+        LOG.info("Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
           datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
           updatedOcc.getPublishingCountry());
         MESSAGE_PUBLISHER.send(msg);

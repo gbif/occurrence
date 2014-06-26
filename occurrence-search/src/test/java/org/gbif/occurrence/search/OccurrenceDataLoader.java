@@ -47,7 +47,7 @@ import org.supercsv.util.CsvContext;
  * "dataResourceId","datasetKey","depth","occurrenceId","family","familyKey","genus",
  * "genusKey","institutionCode","country","continent","kingdom","kingdomKey","latitude","longitude","modified",
  * "occurrenceMonth","taxonKey","occurrenceDate","order","orderKey","otherIssue",
- * "owningOrgKey","phylum","phylumKey","scientificName","species","speciesKey",
+ * "publishingOrgKey","phylum","phylumKey","scientificName","species","speciesKey",
  * "unitQualifier","year","locality","county","stateProvince","continent",
  * "collectorName","collectorNumber","identifierName", "identificationDate".
  * Each cvs line is interpreted into an Occurrence object; to process each object a predicate or list of predicates are
@@ -267,7 +267,7 @@ public class OccurrenceDataLoader {
   /**
    * Reads a CSV file and produces occurrence records for each line.
    * Each occurrence object is processed by the list of processors.
-   * 
+   *
    * @param fileName CSV file
    * @param processors list of processors(predicates) that consume occurrence objects
    */

@@ -98,10 +98,10 @@ public class OrganizationLookup {
   }
 
   /**
-   * Find and return the organization which owns the dataset for the given datasetKey.
+   * Find and return the organization which publishes the dataset for the given datasetKey.
    *
-   * @param datasetKey the dataset owner to find
-   * @return the organization that owns the dataset
+   * @param datasetKey the dataset publisher to find
+   * @return the organization that publishes the dataset
    */
   @Nullable
   public static Organization getOrgByDataset(UUID datasetKey) {
@@ -110,8 +110,8 @@ public class OrganizationLookup {
     Organization org = null;
     try {
       Dataset dataset = DATASET_CACHE.get(datasetKey);
-      if (dataset != null && dataset.getOwningOrganizationKey() != null) {
-        org = ORG_CACHE.get(dataset.getOwningOrganizationKey());
+      if (dataset != null && dataset.getPublishingOrganizationKey() != null) {
+        org = ORG_CACHE.get(dataset.getPublishingOrganizationKey());
       }
     } catch (UncheckedExecutionException e) {
       LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);

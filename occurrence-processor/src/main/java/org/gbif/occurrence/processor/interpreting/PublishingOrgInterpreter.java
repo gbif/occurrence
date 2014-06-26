@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is not really an Interpreter - just a wrapper around the webservice calls to look up the owning organization of
+ * This is not really an Interpreter - just a wrapper around the webservice calls to look up the publishing organization of
  * a dataset and its fields.
  */
 public class PublishingOrgInterpreter {
@@ -21,18 +21,18 @@ public class PublishingOrgInterpreter {
 
   public static void interpretPublishingOrg(Occurrence occ) {
     Organization org = OrganizationLookup.getOrgByDataset(occ.getDatasetKey());
-    // update the occurrence's owning org if it's empty or out of sync
+    // update the occurrence's publishing org if it's empty or out of sync
 
     if (org != null && org.getKey() != null && !org.getKey().equals(occ.getPublishingOrgKey())) {
       occ.setPublishingOrgKey(org.getKey());
     }
 
     if (occ.getPublishingOrgKey() == null) {
-      LOG.info("Couldn't find owning org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
+      LOG.info("Couldn't find publishing org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
     } else {
       Country country = OrganizationLookup.getOrgCountry(occ.getPublishingOrgKey());
       if (country == null) {
-        LOG.info("Couldn't find country for owning org [{}]", occ.getPublishingOrgKey());
+        LOG.info("Couldn't find country for publishing org [{}]", occ.getPublishingOrgKey());
       } else {
         occ.setPublishingCountry(country);
       }
