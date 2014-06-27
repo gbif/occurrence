@@ -290,7 +290,6 @@ public class OccurrenceBuilder {
           }
           if (idType != null) {
             Identifier record = new Identifier();
-            record.setEntityKey(key);
             record.setIdentifier(id);
             record.setType(idType);
             records.add(record);
