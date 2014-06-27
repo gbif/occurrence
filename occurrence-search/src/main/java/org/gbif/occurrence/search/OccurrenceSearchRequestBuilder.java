@@ -16,6 +16,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
 
 import static org.gbif.common.search.util.QueryUtils.PARAMS_AND_JOINER;
@@ -26,7 +30,7 @@ import static org.gbif.common.search.util.QueryUtils.setRequestHandler;
 import static org.gbif.common.search.util.QueryUtils.setSortOrder;
 import static org.gbif.common.search.util.QueryUtils.toParenthesesQuery;
 import static org.gbif.common.search.util.SolrConstants.DEFAULT_QUERY;
-import static org.gbif.common.search.util.SolrConstants.GEO_INTERSECTS_QUERY_FMT;
+import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
 import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
 
 
@@ -64,6 +68,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.ISSUE, OccurrenceSolrField.ISSUE)
       .build();
 
+  public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
 
   // Holds the value used for an optional sort order applied to a search via param "sort"
   private final Map<String, SolrQuery.ORDER> sortOrder;
@@ -80,6 +85,26 @@ public class OccurrenceSearchRequestBuilder {
   public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder) {
     this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
+  }
+
+  /**
+   * Parses a geometry parameter in WKT format.
+   * If the parsed geometry is a polygon the produced query will be in INTERSECTS(wkt parameter) format.
+   * If the parsed geometry is a rectangle, the query is transformed into a range query using the southmost and
+   * northmost points.
+   */
+  protected static String parseGeometryParam(String wkt) {
+    try {
+      Geometry geometry = new WKTReader().read(wkt);
+      if (geometry.isRectangle()) {
+        Envelope bbox = geometry.getEnvelopeInternal();
+        return String
+          .format(RANGE_FORMAT, bbox.getMinY() + "," + bbox.getMinX(), bbox.getMaxY() + "," + bbox.getMaxX());
+      }
+      return String.format(GEO_INTERSECTS_QUERY_FMT, wkt);
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   public SolrQuery build(@Nullable OccurrenceSearchRequest request) {
@@ -124,8 +149,7 @@ public class OccurrenceSearchRequestBuilder {
       List<String> locationParams = new ArrayList<String>();
       for (String value : params.get(OccurrenceSearchParameter.GEOMETRY)) {
         locationParams
-          .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
-            String.format(GEO_INTERSECTS_QUERY_FMT, value)));
+          .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
       }
       filterQueries.add(toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
     }
