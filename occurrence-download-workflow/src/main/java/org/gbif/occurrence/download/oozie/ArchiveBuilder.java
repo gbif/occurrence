@@ -436,7 +436,7 @@ public class ArchiveBuilder {
    */
   private Contact createContact(String name, String email, ContactType type, boolean preferred) {
     Contact contact = new Contact();
-    contact.setEmail(email);
+    contact.setEmail(Lists.newArrayList(email));
     contact.setLastName(name);
     contact.setType(new InterpretedEnum<String, ContactType>(type.toString(), type).getInterpreted());
     return contact;
