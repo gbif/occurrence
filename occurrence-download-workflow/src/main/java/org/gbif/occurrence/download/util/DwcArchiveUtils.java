@@ -7,6 +7,7 @@ import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
 import org.gbif.dwc.text.ArchiveFile;
 import org.gbif.dwc.text.MetaDescriptorWriter;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.io.File;
@@ -29,6 +30,7 @@ import static org.gbif.occurrence.download.util.DwcDownloadsConstants.VERBATIM_F
 public class DwcArchiveUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcArchiveUtils.class);
+  private static final String DEFAULT_DELIMITER = ";";
 
   private DwcArchiveUtils() {
     // private empty constructor
@@ -38,7 +40,7 @@ public class DwcArchiveUtils {
   /**
    * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
-   *
+   * 
    * @param columns iterable for column terms in the right order. Must include GbifTerm.gbifID
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
@@ -48,6 +50,9 @@ public class DwcArchiveUtils {
       ArchiveField field = new ArchiveField();
       field.setIndex(index);
       field.setTerm(term);
+      if (HiveColumnsUtils.isHiveArray(term)) {
+        field.setDelimitedBy(DEFAULT_DELIMITER);
+      }
       af.addField(field);
       index++;
     }

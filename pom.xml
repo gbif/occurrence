@@ -83,7 +83,7 @@
     <dbunit.version>2.4.8</dbunit.version>
     <drupal-mybatis.version>0.11</drupal-mybatis.version>
     <dwc-api.version>1.7</dwc-api.version>
-    <dwca-reader.version>1.17</dwca-reader.version>
+    <dwca-reader.version>1.18-SNAPSHOT</dwca-reader.version>
     <findbugs-jsr305.version>2.0.3</findbugs-jsr305.version>
     <gbif-api.version>0.15-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.15</gbif-common.version>

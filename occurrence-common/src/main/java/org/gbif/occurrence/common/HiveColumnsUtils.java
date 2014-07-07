@@ -54,11 +54,18 @@ public class HiveColumnsUtils {
       return "DOUBLE";
     } else if (TermUtils.isInterpretedBoolean(term)) {
       return "BOOLEAN";
-    } else if (GbifTerm.mediaType == term || GbifTerm.issue == term) {
+    } else if (isHiveArray(term)) {
       return "ARRAY<STRING>";
     } else {
       return "STRING";
     }
+  }
+
+  /**
+   * Checks if the term is stored as an Hive array.
+   */
+  public static boolean isHiveArray(Term term) {
+    return GbifTerm.mediaType == term || GbifTerm.issue == term;
   }
 
   /**
