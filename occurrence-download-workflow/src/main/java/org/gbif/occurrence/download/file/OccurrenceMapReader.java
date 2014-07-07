@@ -13,7 +13,6 @@ import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +20,8 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.beust.jcommander.internal.Sets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import com.google.inject.Inject;
@@ -38,6 +39,7 @@ public class OccurrenceMapReader {
 
   private final String occurrenceTableName;
   private final HTablePool tablePool;
+  private static final Joiner SEMICOLON_JOINER = Joiner.on(';').skipNulls();
 
   @Inject
   public OccurrenceMapReader(@Named("occurrence_hbase_table") String occurrenceTableName, HTablePool tablePool) {
@@ -67,9 +69,11 @@ public class OccurrenceMapReader {
           occurrence.put(term.simpleName(), value != null ? value.toString() : null);
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
+        } else if (term == GbifTerm.issue) {
+          occurrence.put(term.simpleName(), extractOccurrenceIssues(row));
         }
       }
-      occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(!extractSpatialIssues(row).isEmpty()));
+      occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
       occurrence.put(
         GbifTerm.hasCoordinate.simpleName(),
         Boolean.toString(occurrence.get(DwcTerm.decimalLatitude) != null
@@ -78,21 +82,35 @@ public class OccurrenceMapReader {
     }
   }
 
+  /**
+   * Extracts the spatial issues from the hbase result.
+   */
+  private static String extractOccurrenceIssues(Result result) {
+    Set<String> issues = Sets.newHashSet();
+    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
+      String column = Columns.column(issue);
+      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
+      if (val != null) {
+        issues.add(issue.name());
+      }
+    }
+
+    return SEMICOLON_JOINER.join(issues);
+  }
 
   /**
    * Extracts the spatial issues from the hbase result.
    */
-  private static Set<OccurrenceIssue> extractSpatialIssues(Result result) {
-    Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
+  private static Boolean hasGeospatialIssues(Result result) {
     for (OccurrenceIssue issue : OccurrenceIssue.GEOSPATIAL_RULES) {
       String column = Columns.column(issue);
       byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
       if (val != null) {
-        issues.add(issue);
+        return true;
       }
     }
 
-    return issues;
+    return false;
   }
 
 

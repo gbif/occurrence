@@ -110,6 +110,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       } else if (!TermUtils.isComplexType(term)) {
         // complex type fields are not added to the select statement
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
+      } else if (term == GbifTerm.issue) {
+        // OccurrnceIssues are exposed as an String separate by ;
+        columns.add("join_array(" + iCol + ",';') AS " + iCol);
       }
     }
     HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);
