@@ -75,7 +75,7 @@
     </hive>
 
     <ok to="secondary_files" />
-    <error to="failure_drop_table" />
+    <error to="failure_queries" />
   </action>
 
   <action name="query_verbatim">
@@ -92,7 +92,7 @@
     </hive>
 
     <ok to="bundling" />
-    <error to="failure_drop_table" />
+    <error to="failure_queries" />
   </action>
 
   <fork name="secondary_files">
@@ -113,7 +113,7 @@
     </hive>
 
     <ok to="bundling" />
-    <error to="failure_drop_table" />
+    <error to="failure_queries" />
   </action>
   
   <action name="citation">
@@ -128,10 +128,12 @@
     </hive>
 
     <ok to="bundling" />
-    <error to="failure_drop_table" />
+    <error to="failure_queries" />
   </action>
 
   <join name="bundling" to="copy_and_zip"/>
+  
+  <join name="failure_queries" to="failure_drop_table"/>
 
   <action name="copy_and_zip">
     <java>

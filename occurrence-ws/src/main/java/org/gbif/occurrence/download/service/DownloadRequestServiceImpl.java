@@ -112,7 +112,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
       } else if (term == GbifTerm.issue) {
         // OccurrnceIssues are exposed as an String separate by ;
-        columns.add("join_array(" + iCol + ",';') AS " + iCol);
+        columns.add("if(issue IS NULL,'',join_array(" + iCol + ",';')) AS " + iCol);
       }
     }
     HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);
