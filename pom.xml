@@ -871,7 +871,7 @@
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://api.gbif-uat.org/v0.9/</occurrence.download.ws.url>
+        <occurrence.download.ws.url>http://api.gbif-uat.org/v1/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/uat.db</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
@@ -882,10 +882,10 @@
         <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
         <occurrence.download.datause.url>http://www.gbif-uat.org/faq/datause</occurrence.download.datause.url>
-        <checklistbank.match.ws.url>http://api.gbif-uat.org/v0.9/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://api.gbif-uat.org/v0.9/</checklistbank.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif-uat.org/v1/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-uat.org/v1/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-uat.org:8080/a_registry-ws/</registry.ws.url>
-        <geocode.ws.url>http://api.gbif-uat.org/v0.9/geocode/reverse</geocode.ws.url>
+        <geocode.ws.url>http://api.gbif-uat.org/v1/geocode/reverse</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_uat</drupal.db.username>
@@ -922,7 +922,7 @@
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://api.gbif-dev.org/v0.9/</occurrence.download.ws.url>
+        <occurrence.download.ws.url>http://api.gbif-dev.org/v1/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/dev.db</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
@@ -933,10 +933,10 @@
         <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
         <occurrence.download.datause.url>http://www.gbif-dev.org/faq/datause</occurrence.download.datause.url>
-        <checklistbank.match.ws.url>http://api.gbif-dev.org/v0.9/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://api.gbif-dev.org/v0.9/</checklistbank.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif-dev.org/v1/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-dev.org/v1/</checklistbank.ws.url>
         <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>
-        <geocode.ws.url>http://api.gbif-dev.org/v0.9/geocode/reverse/</geocode.ws.url>
+        <geocode.ws.url>http://api.gbif-dev.org/v1/geocode/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
@@ -975,7 +975,7 @@
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>
-        <occurrence.download.ws.url>http://api.gbif.org/v0.9/</occurrence.download.ws.url>
+        <occurrence.download.ws.url>http://api.gbif.org/v1/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/prod_b.db</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
         <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
@@ -986,9 +986,9 @@
         <occurrence.download.job.min_records>300</occurrence.download.job.min_records>
         <occurrence.download.file.max_records>500000</occurrence.download.file.max_records>
         <occurrence.download.datause.url>http://www.gbif.org/faq/datause</occurrence.download.datause.url>
-        <checklistbank.match.ws.url>http://api.gbif.org/v0.9/species/match/</checklistbank.match.ws.url>
-        <checklistbank.ws.url>http://api.gbif.org/v0.9/</checklistbank.ws.url>
-        <geocode.ws.url>http://api.gbif.org/v0.9/geocode/reverse/</geocode.ws.url>
+        <checklistbank.match.ws.url>http://api.gbif.org/v1/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif.org/v1/</checklistbank.ws.url>
+        <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_live</drupal.db.username>
