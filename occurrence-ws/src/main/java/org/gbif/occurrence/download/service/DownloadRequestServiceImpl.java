@@ -96,6 +96,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   private static final String HIVE_SELECT_INTERPRETED;
   private static final String HIVE_SELECT_VERBATIM;
+  private static final String JOIN_ARRAY_FMT = "if(%1$s IS NULL,'',join_array(%1$s,';')) AS %1$s";
 
   static {
     List<String> columns = Lists.newArrayList();
@@ -107,12 +108,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         columns.add("cleanNull(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedBoolean(term)) {
         columns.add(iCol);
+      } else if (term == GbifTerm.issue) {
+        // OccurrnceIssues are exposed as an String separate by ;
+        columns.add(String.format(JOIN_ARRAY_FMT, iCol));
+      } else if (term == GbifTerm.mediaType) {
+        // OccurrnceIssues are exposed as an String separate by ;
+        columns.add(String.format(JOIN_ARRAY_FMT, iCol));
       } else if (!TermUtils.isComplexType(term)) {
         // complex type fields are not added to the select statement
         columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
-      } else if (term == GbifTerm.issue) {
-        // OccurrnceIssues are exposed as an String separate by ;
-        columns.add("if(issue IS NULL,'',join_array(" + iCol + ",';')) AS " + iCol);
       }
     }
     HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);

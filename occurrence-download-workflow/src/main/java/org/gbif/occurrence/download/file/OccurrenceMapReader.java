@@ -1,12 +1,14 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
@@ -67,10 +69,12 @@ public class OccurrenceMapReader {
         } else if (TermUtils.isInterpretedNumerical(term)) {
           Integer value = ExtResultReader.getInteger(row, term);
           occurrence.put(term.simpleName(), value != null ? value.toString() : null);
-        } else if (!TermUtils.isComplexType(term)) {
-          occurrence.put(term.simpleName(), getCleanString(row, term));
         } else if (term == GbifTerm.issue) {
           occurrence.put(term.simpleName(), extractOccurrenceIssues(row));
+        } else if (term == GbifTerm.mediaType) {
+          occurrence.put(term.simpleName(), extractMediaTypes(row));
+        } else if (!TermUtils.isComplexType(term)) {
+          occurrence.put(term.simpleName(), getCleanString(row, term));
         }
       }
       occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
@@ -83,13 +87,20 @@ public class OccurrenceMapReader {
   }
 
   /**
+   * Extracts the media types from the hbase result.
+   */
+  private static String extractMediaTypes(Result result) {
+    final byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA)));
+    return (val != null) ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val)) : "";
+  }
+
+  /**
    * Extracts the spatial issues from the hbase result.
    */
   private static String extractOccurrenceIssues(Result result) {
     Set<String> issues = Sets.newHashSet();
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      String column = Columns.column(issue);
-      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
+      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(issue)));
       if (val != null) {
         issues.add(issue.name());
       }
