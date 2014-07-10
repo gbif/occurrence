@@ -1,14 +1,16 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
-import java.net.URI;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Strings;
+
+import java.net.URI;
 
 /**
  * Greedy URL parser assuming http URIs in case no schema was given.
  * Modified version of the registry-metadata GreedyUriConverter.
+ * @deprecated please use the version from common parsers
  */
+@Deprecated
 public class UrlParser {
   private static final String HTTP_SCHEME = "http://";
 
