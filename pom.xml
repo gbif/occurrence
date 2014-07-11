@@ -126,6 +126,24 @@
     <validation-api.version>1.0.0.GA</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
+
+    <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
+    <occurrence.environment>prod</occurrence.environment>
+    <occurrence.env_prefix>prod_b</occurrence.env_prefix>
+    <!-- cluster -->
+    <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
+    <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
+    <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+    <!-- cluster version -->
+    <hadoop-core.version>2.0.0-mr1-cdh4.2.1</hadoop-core.version>
+    <hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>
+    <hbase.version>0.94.2-cdh4.2.1</hbase.version>
+    <hive.version>0.10.0-cdh4.2.1</hive.version>
+    <oozie.version>3.3.0-cdh4.2.0</oozie.version>
+    <zookeeper.version>3.4.5-cdh4.2.1</zookeeper.version>
+
   </properties>
 
   <repositories>
