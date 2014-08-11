@@ -21,8 +21,11 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -49,6 +52,17 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
     .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
       EndpointType.DWC_ARCHIVE).build();
+
+  /*
+  When an IPT publishes a new dataset we will get multiple messages from the registry informing us of the update
+  (depending on the number of endpoints, contacts etc). We only want to send a single crawl message for one of those
+  updates so we cache the dataset uuid for 5 seconds, which should be long enough to handle all of the registry
+  updates.
+  */
+  private static final Cache<UUID, Object> RECENTLY_UPDATED_DATASETS =
+    CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).initialCapacity(10).maximumSize(1000).build();
+  // used as a value for the cache - we only care about the keys
+  private static final Object EMPTY_VALUE = new Object();
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
@@ -82,8 +96,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         }
         break;
       case UPDATED:
-        // as long as it has a crawlable endpoint, we need to crawl it no matter what changed
-        if (isCrawlable(newDataset)) {
+        // if it has a crawlable endpoint and we haven't just sent a crawl msg, we need to crawl it no matter what changed
+        if (shouldCrawl(newDataset)) {
           LOG.info("Sending crawl for updated dataset [{}]", newDataset.getKey());
           try {
             messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
@@ -102,11 +116,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             }
           }
         } else {
-          LOG.info("Ignoring update of dataset [{}] because no crawlable endpoints", newDataset.getKey());
+          LOG.info("Ignoring update of dataset [{}] because either no crawlable endpoints or we just sent a crawl",
+            newDataset.getKey());
         }
         break;
       case CREATED:
-        if (isCrawlable(newDataset)) {
+        if (shouldCrawl(newDataset)) {
           LOG.info("Sending crawl for new dataset [{}]", newDataset.getKey());
           try {
             messagePublisher.send(new StartCrawlMessage(newDataset.getKey()));
@@ -114,22 +129,30 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
         } else {
-          LOG.info("Ignoring creation of dataset [{}] because no crawlable endpoints", newDataset.getKey());
+          LOG.info("Ignoring creation of dataset [{}] because no crawlable endpoints or we just sent a crawl",
+            newDataset.getKey());
         }
         break;
     }
   }
 
+  private static boolean shouldCrawl(Dataset dataset) {
+    if (RECENTLY_UPDATED_DATASETS.getIfPresent(dataset.getKey()) == null && isCrawlable(dataset)) {
+      RECENTLY_UPDATED_DATASETS.put(dataset.getKey(), EMPTY_VALUE);
+      return true;
+    }
+
+    return false;
+  }
+
   private static boolean isCrawlable(Dataset dataset) {
-    boolean crawlable = false;
     for (Endpoint endpoint : dataset.getEndpoints()) {
       if (CRAWLABLE_ENDPOINT_TYPES.contains(endpoint.getType())) {
-        crawlable = true;
-        break;
+        return true;
       }
     }
 
-    return crawlable;
+    return false;
   }
 
   private void handleOrganization(RegistryChangeMessage.ChangeType changeType, Organization oldOrg,
@@ -186,8 +209,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     if (datasetKey != null) {
       rawDatasetKey = datasetKey.toString();
       scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF, SyncCommon.DK_COL, CompareFilter.CompareOp.EQUAL,
-          Bytes.toBytes(rawDatasetKey))
-      );
+          Bytes.toBytes(rawDatasetKey)));
     }
 
     Properties props = SyncCommon.loadProperties();
