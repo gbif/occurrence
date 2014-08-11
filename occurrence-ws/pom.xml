@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.21-SNAPSHOT</version>
+    <version>0.22-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -127,11 +127,11 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-common</artifactId>    
+      <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>    
+      <artifactId>gbif-common-search</artifactId>
     </dependency>
 
     <!-- google -->
@@ -143,13 +143,13 @@
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
     </dependency>
-    
+
     <!-- Serialization -->
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
-    
+
     <!-- Utils -->
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -159,7 +159,7 @@
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
     </dependency>
-    
+
     <dependency>
       <!-- dependency:analyze reports a false positive here -->
       <groupId>com.google.inject.extensions</groupId>

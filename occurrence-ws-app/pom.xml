@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.gbif.occurrence</groupId>
 		<artifactId>occurrence-motherpom</artifactId>
-		<version>0.21-SNAPSHOT</version>
+		<version>0.22-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>occurrence-ws-app</artifactId>
 	<packaging>jar</packaging>
 
 	<name>Occurrence Web Service Standalone App</name>
-	
+
 	<properties>
 	 <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
 	 <dropwizard-core.version>0.7.1</dropwizard-core.version>
@@ -38,7 +38,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<createDependencyReducedPom>true</createDependencyReducedPom>							
+							<createDependencyReducedPom>true</createDependencyReducedPom>
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>org.gbif.occurrence</groupId>
 			<artifactId>occurrence-ws</artifactId>
-			<classifier>classes</classifier>		
+			<classifier>classes</classifier>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
