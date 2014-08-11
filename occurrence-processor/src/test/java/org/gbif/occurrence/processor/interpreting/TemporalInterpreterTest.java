@@ -279,8 +279,6 @@ public class TemporalInterpreterTest {
     assertValidDate("1999-07-19", "19.7.1999");
     assertValidDate("1999-07-19", "19990719");
     assertValidDate("2012-05-06", "20120506");
-
-    assertValidDate(null, "28.07.14");
   }
 
   private void assertValidDate(String expected, String input) {
