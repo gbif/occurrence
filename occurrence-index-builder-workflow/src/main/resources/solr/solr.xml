@@ -28,6 +28,6 @@
     If 'null' (or absent), cores will not be manageable via request handler
   -->
   <cores adminPath="/admin/cores" defaultCoreName="occurrenceCore">
-    <core name="occurrenceCore" instanceDir="occurrence"/>
+    <core name="occurrenceCore" instanceDir="collection1"/>
   </cores>
 </solr>
