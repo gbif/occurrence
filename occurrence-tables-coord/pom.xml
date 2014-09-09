@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.gbif.occurrence</groupId>
 		<artifactId>occurrence-motherpom</artifactId>
-		<version>0.19-SNAPSHOT</version>
+		<version>0.22-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>occurrence-tables-coord</artifactId>
@@ -14,7 +14,7 @@
 	<description>Oozie Workflow to generate the HDFS occurrence tables</description>
 
 	<properties>
-		<!-- This timestamp format is used to set the start time in the coordinator.xml 
+		<!-- This timestamp format is used to set the start time in the coordinator.xml
 			file -->
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
 		<timestamp>${maven.build.timestamp}</timestamp>
@@ -86,7 +86,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.gbif</groupId>
-			<artifactId>gbif-api</artifactId>			
+			<artifactId>gbif-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.gbif</groupId>
@@ -123,13 +123,13 @@
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-exec</artifactId>
 			<scope>runtime</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-jdbc</artifactId>
 			<version>${hive.version}</version>
 			<scope>runtime</scope>
-		</dependency>			
+		</dependency>
 	</dependencies>
 
 	<profiles>

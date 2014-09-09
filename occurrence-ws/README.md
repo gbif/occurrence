@@ -1,10 +1,11 @@
 occurrence-ws
 ======================
 
-# Brief information about the featured occurrences:
+# Brief information about the featured occurrences (dot's on homepage):
 
 Create an hbase table which is named by the propery in the pom and should be populated with something like this:
 
+```
 SELECT cell, collect_set(occId)
 FROM
 (
@@ -25,7 +26,7 @@ FROM
     pmod(cast(longitude AS int),5)
 ) t1
 GROUP BY cell;
-
+```
 
 
 ## Downloads
@@ -40,5 +41,6 @@ Testing it
 An example json file as input to the service is included in src/test/resources and it can be posted to this
 webservice using curl as below:
 
+```
 curl -X POST --header "Content-Type:application/json" --user username:password -d @sample_taxon_key.json http://localhost:8080/occurrence/download/request
-
+```

@@ -5,21 +5,21 @@
 	<parent>
 		<groupId>org.gbif.occurrence</groupId>
 		<artifactId>occurrence-motherpom</artifactId>
-		<version>0.19-SNAPSHOT</version>
+		<version>0.22-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>occurrence-index-builder-workflow</artifactId>
 	<packaging>jar</packaging>
 
 	<name>Occurrence Index Builder Oozie workflow</name>
-	
+
 	<profiles>
 		<profile>
 			<id>oozie</id>
 			<build>
 				<filters>
 					<filter>${basedir}/bin/hdfs_indexing/job.properties</filter>
-					<filter>${basedir}/bin/hdfs_indexing/jobsingleshard.properties</filter>					
+					<filter>${basedir}/bin/hdfs_indexing/jobsingleshard.properties</filter>
 				</filters>
 				<resources>
 					<resource>
@@ -32,7 +32,7 @@
 					<resource>
 						<directory>src/main/resources</directory>
 						<filtering>false</filtering>
-					</resource>	
+					</resource>
 					<resource>
             <directory>${basedir}/bin</directory>
             <filtering>true</filtering>
@@ -41,13 +41,13 @@
             </excludes>
             <includes>
               <include>hbase_indexing/runHBaseBatchIndexer.sh</include>
-            </includes>            
-          </resource>		                    
+            </includes>
+          </resource>
 				</resources>
 
 				<plugins>
 					<plugin>
-						<artifactId>maven-resources-plugin</artifactId>						
+						<artifactId>maven-resources-plugin</artifactId>
 						<executions>
 							<execution>
 								<id>process-resources</id>
@@ -77,7 +77,7 @@
 								</goals>
 							</execution>
 						</executions>
-					</plugin>					
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -109,30 +109,30 @@
 		</profile>
 		<profile>
       <id>hbase-indexer</id>
-      <build>        
-        <resources>           
+      <build>
+        <resources>
           <resource>
             <directory>${basedir}/bin</directory>
-            <filtering>true</filtering>            
+            <filtering>true</filtering>
             <includes>
               <include>hbase_indexing/runHBaseBatchIndexer.sh</include>
               <include>hbase_indexing/*.xml</include>
-            </includes>            
-          </resource>     
+            </includes>
+          </resource>
           <resource>
             <directory>${basedir}/bin</directory>
-            <filtering>false</filtering>            
+            <filtering>false</filtering>
             <includes>
               <include>hbase_indexing/*.sh</include>
               <include>hbase_indexing/*.conf</include>
-              <include>hbase_indexing/*.properties</include>              
-            </includes>            
-          </resource>                       
+              <include>hbase_indexing/*.properties</include>
+            </includes>
+          </resource>
         </resources>
 
         <plugins>
           <plugin>
-            <artifactId>maven-resources-plugin</artifactId>           
+            <artifactId>maven-resources-plugin</artifactId>
             <executions>
               <execution>
                 <id>process-resources</id>
@@ -166,7 +166,7 @@
 		</repository>
 	</repositories>
 
-	<dependencies>		
+	<dependencies>
 		<!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
 		<dependency>
 			<groupId>com.vividsolutions</groupId>
@@ -175,7 +175,7 @@
 		</dependency>
 
 		<!-- Runtime dependencies -->
-		<!-- Hadoop is excluded because maven complains if not, as there is metadata 
+		<!-- Hadoop is excluded because maven complains if not, as there is metadata
 			missing in the hadoop repo -->
 		<dependency>
 			<groupId>org.apache.hive</groupId>
@@ -238,24 +238,24 @@
       <exclusions>
         <exclusion>
           <groupId>org.gbif.occurrence</groupId>
-          <artifactId>occurrence-processor</artifactId>          
+          <artifactId>occurrence-processor</artifactId>
         </exclusion>
       </exclusions>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-search</artifactId>      
+      <artifactId>occurrence-search</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-common</artifactId>      
+      <artifactId>occurrence-common</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
-      <artifactId>gbif-api</artifactId>      
+      <artifactId>gbif-api</artifactId>
       <scope>runtime</scope>
     </dependency>
 	</dependencies>
