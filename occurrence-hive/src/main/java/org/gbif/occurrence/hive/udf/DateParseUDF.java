@@ -1,6 +1,6 @@
 package org.gbif.occurrence.hive.udf;
 
-import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.occurrence.processor.interpreting.TemporalInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
@@ -36,7 +36,7 @@ public class DateParseUDF extends GenericUDF {
     String day = getArgument(2, arguments);
     List<Object> result = new ArrayList<Object>(3);
     try {
-      ParseResult<DateYearMonthDay> parsed = TemporalInterpreter.interpretRecordedDate(year, month, day, null);
+      OccurrenceParseResult<DateYearMonthDay> parsed = TemporalInterpreter.interpretRecordedDate(year, month, day, null);
       if (parsed.isSuccessful() && parsed.getIssues().isEmpty()) {
         result.add(parsed.getPayload().getYear());
         result.add(parsed.getPayload().getMonth());

@@ -17,11 +17,11 @@ import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
 import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.core.UrlParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.processor.interpreting.util.UrlParser;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
@@ -170,11 +170,9 @@ public class VerbatimOccurrenceInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.typeStatus)) {
       ParseResult<TypeStatus> parsed = TYPE_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypeStatus(parsed.getPayload());
-      occ.getIssues().addAll(parsed.getIssues());
 
       ParseResult<String> parsedName = TYPE_NAME_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypifiedName(parsedName.getPayload());
-      occ.getIssues().addAll(parsedName.getIssues());
     }
     if (verbatim.hasVerbatimField(GbifTerm.typifiedName)) {
       occ.setTypifiedName(verbatim.getVerbatimField(GbifTerm.typifiedName));

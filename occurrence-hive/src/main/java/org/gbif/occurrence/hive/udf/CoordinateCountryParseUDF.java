@@ -2,6 +2,7 @@ package org.gbif.occurrence.hive.udf;
 
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
@@ -70,7 +71,7 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
     // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
     //TODO: do we need to supply the datum???
-    ParseResult<CoordinateResult> response =
+    OccurrenceParseResult<CoordinateResult> response =
       CoordinateInterpreter.interpretCoordinate(latitude, longitude, null, interpretedCountry);
 
     // We don't mind a country that is derived coordinates

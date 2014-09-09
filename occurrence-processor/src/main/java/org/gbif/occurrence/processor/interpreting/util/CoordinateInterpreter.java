@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
@@ -166,7 +167,7 @@ public class CoordinateInterpreter {
    * known errors were encountered in the interpretation (e.g. lat/lng reversed).
    * Or all fields set to null if latitude or longitude are null
    */
-  public static ParseResult<CoordinateResult> interpretCoordinate(String latitude, String longitude, String datum, final Country country) {
+  public static OccurrenceParseResult<CoordinateResult> interpretCoordinate(String latitude, String longitude, String datum, final Country country) {
     return verifyLatLon(CoordinateParseUtils.parseLatLng(latitude, longitude), datum, country);
   }
 
@@ -174,18 +175,18 @@ public class CoordinateInterpreter {
    * @param latLon a verbatim coordinate string containing both latitude and longitude
    * @param country   country as interpreted to sanity check coordinate
    */
-  public static ParseResult<CoordinateResult> interpretCoordinate(String latLon, String datum, final Country country) {
+  public static OccurrenceParseResult<CoordinateResult> interpretCoordinate(String latLon, String datum, final Country country) {
     return verifyLatLon(CoordinateParseUtils.parseVerbatimCoordinates(latLon), datum, country);
   }
 
-  private static ParseResult<CoordinateResult> verifyLatLon(ParseResult<LatLng> parsedLatLon, String datum, final Country country) {
+  private static OccurrenceParseResult<CoordinateResult> verifyLatLon(OccurrenceParseResult<LatLng> parsedLatLon, String datum, final Country country) {
     // use original as default
     Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
 
     issues.addAll(parsedLatLon.getIssues());
     if (!parsedLatLon.isSuccessful()) {
-      return ParseResult.fail(issues);
+      return OccurrenceParseResult.fail(issues);
     }
 
     // interpret geodetic datum and reproject if needed
@@ -224,14 +225,14 @@ public class CoordinateInterpreter {
     if (parsedLatLon.getPayload() == null) {
       // something has gone very wrong
       LOG.info("Supposed coord interp success produced no latlng", parsedLatLon);
-      return ParseResult.fail(issues);
+      return OccurrenceParseResult.fail(issues);
     }
 
-    return ParseResult.success(parsedLatLon.getConfidence(),
+    return OccurrenceParseResult.success(parsedLatLon.getConfidence(),
                                new CoordinateResult(parsedLatLon.getPayload(), finalCountry),  issues);
   }
 
-  private static ParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
+  private static OccurrenceParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
     Preconditions.checkNotNull(country);
     for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
       Integer[] transform = geospatialIssueEntry.getValue();
@@ -239,10 +240,10 @@ public class CoordinateInterpreter {
       if (matchCountry(country, getCountryForLatLng(tCoord))) {
         // transformation worked and matches given country!
         // use the changed coords!
-        return ParseResult.fail(tCoord, geospatialIssueEntry.getKey());
+        return OccurrenceParseResult.fail(tCoord, geospatialIssueEntry.getKey());
       }
     }
-    return ParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+    return OccurrenceParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
   }
 
   /**

@@ -5,6 +5,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.common.parsers.ContinentParser;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.geospatial.MeterRangeParser;
@@ -59,7 +60,6 @@ public class LocationInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.continent)) {
       ParseResult<Continent> inter = ContinentParser.getInstance().parse(verbatim.getVerbatimField(DwcTerm.continent));
       occ.setContinent(inter.getPayload());
-      occ.getIssues().addAll(inter.getIssues());
     }
 
     // TODO: if null, try to derive from country
@@ -72,15 +72,16 @@ public class LocationInterpreter {
   }
 
   private static Country interpretCountry(VerbatimOccurrence verbatim, Occurrence occ) {
-    ParseResult<Country> inter = CountryInterpreter
-      .interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode), verbatim.getVerbatimField(DwcTerm.country));
+    OccurrenceParseResult<Country>
+      inter = CountryInterpreter.interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode),
+      verbatim.getVerbatimField(DwcTerm.country));
     occ.setCountry(inter.getPayload());
     occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
   }
 
   private static void interpretCoordinates(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
-    ParseResult<CoordinateResult> parsedCoord = CoordinateInterpreter.interpretCoordinate(
+    OccurrenceParseResult<CoordinateResult> parsedCoord = CoordinateInterpreter.interpretCoordinate(
           verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
           verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
 
@@ -130,7 +131,7 @@ public class LocationInterpreter {
   }
 
   private static void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
-    ParseResult<DoubleAccuracy> result = MeterRangeParser
+    OccurrenceParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters), null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {
@@ -141,7 +142,7 @@ public class LocationInterpreter {
   }
 
   private static void interpretElevation(VerbatimOccurrence verbatim, Occurrence occ) {
-    ParseResult<DoubleAccuracy> result = MeterRangeParser
+    OccurrenceParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters), null);
     if (result.isSuccessful() && result.getPayload().getValue() != null) {

@@ -3,6 +3,7 @@ package org.gbif.occurrence.processor.interpreting.util;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.CountryParser;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 
 import com.google.common.base.Strings;
@@ -23,16 +24,16 @@ public class CountryInterpreter {
    *
    * @param country verbatim country strings, e.g. dwc:country or dwc:countryCode
    */
-  public static ParseResult<Country> interpretCountry(String ... country) {
+  public static OccurrenceParseResult<Country> interpretCountry(String ... country) {
     if (country == null) {
-      return ParseResult.fail();
+      return OccurrenceParseResult.fail();
     }
 
-    ParseResult<Country> result = null;
+    OccurrenceParseResult<Country> result = null;
     for (String verbatim : country) {
       if (!Strings.isNullOrEmpty(verbatim)) {
         if (result == null) {
-          result = PARSER.parse(verbatim);
+          result = new OccurrenceParseResult(PARSER.parse(verbatim));
 
         } else if (result.isSuccessful()) {
           ParseResult<Country> result2 = PARSER.parse(verbatim);
@@ -45,7 +46,7 @@ public class CountryInterpreter {
 
         } else {
           // failed before. Use new parsing and add issue
-          result = PARSER.parse(verbatim);
+          result = new OccurrenceParseResult(PARSER.parse(verbatim));
           result.getIssues().add(OccurrenceIssue.COUNTRY_INVALID);
         }
       }
@@ -53,7 +54,7 @@ public class CountryInterpreter {
 
     if (result == null) {
       // we got an array of null or empty countries passed in
-      return ParseResult.fail();
+      return OccurrenceParseResult.fail();
     }
 
     if (!result.isSuccessful()) {

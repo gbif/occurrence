@@ -79,7 +79,7 @@ public class JsonFragmentParser {
         for (String rowType : extensions.keySet()) {
           Extension ext = Extension.fromRowType(rowType);
           if (ext == null) {
-            LOG.debug("Unknown dwc extension {}", rowType);
+            LOG.debug("Ignore unknown extension {}", rowType);
           } else {
             List<Map<Term, String>> records = Lists.newArrayList();
             // transform records to term based map

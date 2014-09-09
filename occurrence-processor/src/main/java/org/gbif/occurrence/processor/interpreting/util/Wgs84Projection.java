@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.DatumParser;
 import org.gbif.common.parsers.geospatial.LatLng;
@@ -55,7 +56,7 @@ public class Wgs84Projection {
    *
    * @return the reprojected coordinates or the original ones in case transformation failed
    */
-  public static ParseResult<LatLng> reproject(double lat, double lon, String datum) {
+  public static OccurrenceParseResult<LatLng> reproject(double lat, double lon, String datum) {
     Preconditions.checkArgument(lat >= -90d && lat <= 90d);
     Preconditions.checkArgument(lon >= -180d && lon <= 180d);
 
@@ -63,7 +64,7 @@ public class Wgs84Projection {
 
     if (Strings.isNullOrEmpty(datum)) {
       issues.add(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84);
-      return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat, lon), issues);
+      return OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat, lon), issues);
     }
 
     try {
@@ -95,13 +96,13 @@ public class Wgs84Projection {
           issues.add(OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS);
           LOG.debug("Found suspicious shift for datum={} and lat/lon={}/{} so returning failure and keeping orig coord",
             datum, lat, lon);
-          return ParseResult.fail(new LatLng(lat, lon), issues);
+          return OccurrenceParseResult.fail(new LatLng(lat, lon), issues);
         }
         // flag the record if coords actually changed
         if (lat != lat2 || lon != lon2) {
           issues.add(OccurrenceIssue.COORDINATE_REPROJECTED);
         }
-        return ParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat2, lon2), issues);
+        return OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, new LatLng(lat2, lon2), issues);
 
       }
     } catch (Exception e) {
@@ -109,7 +110,7 @@ public class Wgs84Projection {
       LOG.debug("Coordinate reprojection failed with datum={} and lat/lon={}/{}: {}", datum, lat, lon, e.getMessage());
     }
 
-    return ParseResult.fail(new LatLng(lat, lon), issues);
+    return OccurrenceParseResult.fail(new LatLng(lat, lon), issues);
   }
 
   /**

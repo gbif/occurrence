@@ -4,32 +4,25 @@ import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.MediaParser;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.core.UrlParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.processor.interpreting.util.UrlParser;
 
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.apache.tika.Tika;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,14 +32,9 @@ import org.slf4j.LoggerFactory;
 public class MultiMediaInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiMediaInterpreter.class);
-  private static final Tika TIKA = new Tika();
-  private static final MimeTypes MIME_TYPES = MimeTypes.getDefaultMimeTypes();
-  private static final String HTML_TYPE = "text/html";
+  private static final MediaParser mediaParser = MediaParser.getInstance();
   private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|", "|", ",", ";"};
-  // mime types which we consider as html links instead of real media file uris
-  private static final Set<String> HTML_MIME_TYPES = ImmutableSet.of("text/x-coldfusion", "text/x-php", "text/asp",
-                                   "text/aspdotnet", "text/x-cgi", "text/x-jsp", "text/x-perl",
-                                   HTML_TYPE, MIME_TYPES.OCTET_STREAM);
+
   private MultiMediaInterpreter() {
   }
 
@@ -60,7 +48,7 @@ public class MultiMediaInterpreter {
         } else {
           MediaObject m = new MediaObject();
           m.setIdentifier(uri);
-          detectType(m);
+          mediaParser.detectType(m);
           occ.getMedia().add(m);
         }
       }
@@ -86,16 +74,16 @@ public class MultiMediaInterpreter {
           m.setAudience(rec.get(DcTerm.audience));
           m.setRightsHolder(rec.get(DcTerm.rightsHolder));
           m.setCreator(rec.get(DcTerm.creator));
-          m.setFormat(parseMimeType(rec.get(DcTerm.format)));
+          m.setFormat(mediaParser.parseMimeType(rec.get(DcTerm.format)));
           if (rec.containsKey(DcTerm.created)) {
-            ParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
+            OccurrenceParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
                                           TemporalInterpreter.VALID_RECORDED_DATE_RANGE,
                                           OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
             m.setCreated(parsed.getPayload());
             occ.getIssues().addAll(parsed.getIssues());
           }
 
-          detectType(m);
+          mediaParser.detectType(m);
           occ.getMedia().add(m);
 
         } else {
@@ -167,73 +155,4 @@ public class MultiMediaInterpreter {
     return result;
   }
 
-  @VisibleForTesting
-  protected static MediaObject detectType(MediaObject mo) {
-    if (Strings.isNullOrEmpty(mo.getFormat())) {
-      // derive from URI
-      mo.setFormat(parseMimeType(mo.getIdentifier()));
-    }
-
-    // if MIME type is text/html make it a references link instead
-    if (HTML_TYPE.equalsIgnoreCase(mo.getFormat()) && mo.getIdentifier() != null) {
-      // make file URI the references link URL instead
-      mo.setReferences(mo.getIdentifier());
-      mo.setIdentifier(null);
-      mo.setFormat(null);
-    }
-
-    if (!Strings.isNullOrEmpty(mo.getFormat())) {
-      if (mo.getFormat().startsWith("image")) {
-        mo.setType(MediaType.StillImage);
-      } else if (mo.getFormat().startsWith("audio")) {
-        mo.setType(MediaType.Sound);
-      } else if (mo.getFormat().startsWith("video")) {
-        mo.setType(MediaType.MovingImage);
-      } else {
-        LOG.debug("Unsupported media format {}", mo.getFormat());
-      }
-    }
-    return mo;
-  }
-
-  /**
-   * Parses a mime type using apache tika which can handle the following:
-   * http://svn.apache.org/repos/asf/tika/trunk/tika-core/src/main/resources/org/apache/tika/mime/tika-mimetypes.xml
-   */
-  @VisibleForTesting
-  protected static String parseMimeType(@Nullable String format) {
-    if (format != null) {
-      format = Strings.emptyToNull(format.trim().toLowerCase());
-    }
-
-    try {
-      MimeType mime = MIME_TYPES.getRegisteredMimeType(format);
-      if (mime != null) {
-        return mime.getName();
-      }
-
-    } catch (MimeTypeException e) {
-    }
-
-    // verify this is a reasonable mime type
-    return format == null || MimeType.isValid(format) ? format : null;
-  }
-
-  /**
-   * Parses a mime type using apache tika which can handle the following:
-   * http://svn.apache.org/repos/asf/tika/trunk/tika-core/src/main/resources/org/apache/tika/mime/tika-mimetypes.xml
-   */
-  @VisibleForTesting
-  protected static String parseMimeType(@Nullable URI uri) {
-    if (uri != null) {
-      String mime = TIKA.detect(uri.toString());
-      if (mime != null && HTML_MIME_TYPES.contains(mime.toLowerCase())) {
-        // links without any suffix default to OCTET STREAM, see:
-        // http://dev.gbif.org/issues/browse/POR-2066
-        return HTML_TYPE;
-      }
-      return mime;
-    }
-    return null;
-  }
 }

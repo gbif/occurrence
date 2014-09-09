@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.LatLng;
 
@@ -119,7 +120,7 @@ public class Wgs84ProjectionTest {
                  res.getPayload().getLng(), false, true);
   }
 
-  private void assertLatLon(ParseResult<LatLng> result, double lat, double lng, boolean assumedWgs, boolean reprojected) {
+  private void assertLatLon(OccurrenceParseResult<LatLng> result, double lat, double lng, boolean assumedWgs, boolean reprojected) {
     if (!assumedWgs) {
       assertTrue("parsing failed", result.isSuccessful());
     }
@@ -135,7 +136,7 @@ public class Wgs84ProjectionTest {
     assertEquals("Longitude mismatch", lng, result.getPayload().getLng().doubleValue(), 0.000001);
   }
 
-  private void assertFailed(ParseResult<LatLng> result, double lat, double lng, OccurrenceIssue issue) {
+  private void assertFailed(OccurrenceParseResult<LatLng> result, double lat, double lng, OccurrenceIssue issue) {
     System.out.println(result.getIssues());
     assertFalse("parsing expected to fail", result.isSuccessful());
     if (issue == null) {

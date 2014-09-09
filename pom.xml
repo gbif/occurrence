@@ -94,7 +94,7 @@
     <geocode.version>0.3</geocode.version>
     <geotools.version>11.1</geotools.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
-    <gbif-parsers.version>0.8</gbif-parsers.version>
+    <gbif-parsers.version>0.10-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.11-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>2.16-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
