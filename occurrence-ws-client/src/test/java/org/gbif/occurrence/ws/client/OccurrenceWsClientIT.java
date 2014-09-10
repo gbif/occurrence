@@ -3,9 +3,9 @@ package org.gbif.occurrence.ws.client;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.ws.client.mock.OccurrenceWsTestModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.BaseResourceTest;
 import org.gbif.ws.client.guice.UrlBindingModule;
-import org.gbif.ws.util.PropertiesUtil;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -30,7 +30,7 @@ public class OccurrenceWsClientIT extends BaseResourceTest {
   public void init() throws Exception {
     Injector clientInjector =
       Guice.createInjector(new UrlBindingModule(getBaseURI().toString() + contextPath, "occurrence.ws.url"), new OccurrenceWsClientModule(
-        PropertiesUtil.readFromClasspath(PROPERTIES_FILE)));
+        PropertiesUtil.loadProperties(PROPERTIES_FILE)));
     client = clientInjector.getInstance(OccurrenceService.class);
   }
 

@@ -7,15 +7,15 @@ import javax.validation.constraints.NotNull;
 import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 
 /**
  * A configuration class which can be used to get all the details needed to create a connection to ZooKeeper needed by
  * the Curator Framework.
  * It provides a convenience method ({@link #getCuratorFramework()} ()} to actually get a {@link
- * com.netflix.curator.framework.CuratorFramework}
+ * org.apache.curator.framework.CuratorFramework}
  * object when populated fully.
  */
 @SuppressWarnings("PublicField")
@@ -47,7 +47,7 @@ public class ZooKeeperConfiguration {
 
   /**
    * This method returns a connection object to ZooKeeper with the provided settings and creates and starts a {@link
-   * com.netflix.curator.framework.CuratorFramework}. These settings are not validated in this method so only call it
+   * org.apache.curator.framework.CuratorFramework}. These settings are not validated in this method so only call it
    * when the object has been
    * validated.
    *

@@ -16,7 +16,7 @@ import java.util.Collection;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.util.concurrent.AbstractIdleService;
-import com.netflix.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
 

@@ -115,7 +115,7 @@ public class FragmentProcessor {
     boolean isXml = schema != OccurrenceSchemaType.DWCA;
     IdentifierStrategy idStrategy = new IdentifierStrategy(schema, validationReport);
     LOG.debug("For dataset [{}] of type [{}] useTriplet is [{}] and useOccurrenceId is [{}]",
-      new Object[] {datasetKey, schema, idStrategy.isTripletsValid(), idStrategy.isOccurrenceIdsValid()});
+      datasetKey, schema, idStrategy.isTripletsValid(), idStrategy.isOccurrenceIdsValid());
 
     // update zookeeper - fragment received but not yet processed
     zookeeperConnector.addCounter(datasetKey, ZookeeperConnector.CounterName.FRAGMENT_RECEIVED);

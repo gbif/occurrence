@@ -4,7 +4,7 @@ import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.netflix.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFramework;
 
 /**
  * A provider that will issue a new instance per thread.
