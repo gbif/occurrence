@@ -7,7 +7,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.MediaParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
-import org.gbif.common.parsers.core.UrlParser;
+import org.gbif.common.parsers.UrlParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;

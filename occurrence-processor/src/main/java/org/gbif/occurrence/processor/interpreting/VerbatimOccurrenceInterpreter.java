@@ -17,7 +17,7 @@ import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
 import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.core.UrlParser;
+import org.gbif.common.parsers.UrlParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
