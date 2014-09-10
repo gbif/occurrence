@@ -9,6 +9,7 @@ import org.gbif.occurrence.processor.interpreting.util.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.util.CountryInterpreter;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import com.beust.jcommander.internal.Lists;
@@ -70,15 +71,10 @@ public class CoordinateCountryParseUDF extends GenericUDF {
     interpretedCountry = Country.UNKNOWN == interpretedCountry ? null : interpretedCountry;
 
     // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
-    //TODO: do we need to supply the datum???
     OccurrenceParseResult<CoordinateResult> response =
       CoordinateInterpreter.interpretCoordinate(latitude, longitude, null, interpretedCountry);
 
-    // We don't mind a country that is derived coordinates
-    if (response.getIssues() != null) {
-      response.getIssues().remove(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-    }
-    if (response != null && response.isSuccessful() && response.getIssues().isEmpty()) {
+    if (response != null && response.isSuccessful() && !hasSpatialIssue(response.getIssues())) {
       CoordinateResult cc = response.getPayload();
       // we use the result, which often includes interpreted countries
       if (cc.getCountry() == null || Country.UNKNOWN == cc.getCountry()) {
@@ -97,6 +93,15 @@ public class CoordinateCountryParseUDF extends GenericUDF {
       result.add(null);
     }
     return result;
+  }
+
+  private static boolean hasSpatialIssue(Collection<OccurrenceIssue> issues) {
+    for (OccurrenceIssue rule : OccurrenceIssue.GEOSPATIAL_RULES) {
+      if (issues.contains(rule)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
