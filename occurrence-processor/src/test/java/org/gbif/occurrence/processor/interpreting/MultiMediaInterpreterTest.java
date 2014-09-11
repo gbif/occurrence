@@ -9,7 +9,6 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -89,36 +87,6 @@ public class MultiMediaInterpreterTest {
     assertEquals("http://www.flickr.com/photos/70939559@N02/7039524065", o.getMedia().get(0).getReferences().toString());
     assertEquals("http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg", o.getMedia().get(0).getIdentifier()
       .toString());
-  }
-
-  @Test
-  public void testParseAssociatedMedia() throws Exception {
-    assertEquals(0, MultiMediaInterpreter.parseAssociatedMedia(null).size());
-    assertEquals(0, MultiMediaInterpreter.parseAssociatedMedia("").size());
-    assertEquals(0, MultiMediaInterpreter.parseAssociatedMedia(" ").size());
-    assertEquals(0, MultiMediaInterpreter.parseAssociatedMedia("-").size());
-
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png").size());
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia(" http://gbif.org/logo.png").size());
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("www.gbif.org/logo.png").size());
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("www.gbif.org/image?id=12").size());
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("http://www.gbif.org/image?id=12").size());
-    assertEquals(1, MultiMediaInterpreter.parseAssociatedMedia("http://www.gbif.org/image?id=12&format=gif,jpg").size());
-
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png, http://gbif.org/logo2.png")
-      .size());
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png; http://gbif.org/logo2.png")
-      .size());
-    assertEquals(2, MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png | http://gbif.org/logo2.png")
-      .size());
-    assertEquals(2,
-      MultiMediaInterpreter.parseAssociatedMedia("http://gbif.org/logo.png |#DELIMITER#| http://gbif.org/logo2.png")
-        .size());
-
-    assertEquals(
-      3,
-      MultiMediaInterpreter.parseAssociatedMedia(
-        "http://gbif.org/logo.png, http://gbif.org/logo2.png, http://gbif.org/logo3.png").size());
   }
 
 }

@@ -6,23 +6,18 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.MediaParser;
-import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.UrlParser;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.net.URI;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +28,6 @@ public class MultiMediaInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiMediaInterpreter.class);
   private static final MediaParser mediaParser = MediaParser.getInstance();
-  private static final String[] MULTI_VALUE_DELIMITERS = {"|#DELIMITER#|", "|", ",", ";"};
 
   private MultiMediaInterpreter() {
   }
@@ -41,7 +35,7 @@ public class MultiMediaInterpreter {
   public static void interpretMedia(VerbatimOccurrence verbatim, Occurrence occ) {
     // media via core term
     if (verbatim.hasVerbatimField(DwcTerm.associatedMedia)) {
-      for (URI uri : parseAssociatedMedia(verbatim.getVerbatimField(DwcTerm.associatedMedia))) {
+      for (URI uri : UrlParser.parseUriList(verbatim.getVerbatimField(DwcTerm.associatedMedia))) {
         if (uri == null) {
           occ.getIssues().add(OccurrenceIssue.MULTIMEDIA_URI_INVALID);
 
@@ -115,44 +109,6 @@ public class MultiMediaInterpreter {
       }
     }
     occ.setMedia(Lists.newArrayList(media.values()));
-  }
-
-  @VisibleForTesting
-  protected static List<URI> parseAssociatedMedia(String associatedMedia) {
-    List<URI> result = Lists.newArrayList();
-
-    if (!Strings.isNullOrEmpty(associatedMedia)) {
-      // first try to use the entire string
-      URI uri = UrlParser.parse(associatedMedia);
-      if (uri != null) {
-        result.add(uri);
-
-      } else {
-        // try common delimiters
-        int maxValidUrls = 0;
-        for (String delimiter : MULTI_VALUE_DELIMITERS) {
-          Splitter splitter = Splitter.on(delimiter).omitEmptyStrings().trimResults();
-          String[] urls = Iterables.toArray(splitter.split(associatedMedia), String.class);
-          // avoid parsing if we haven' actually split anything
-          if (urls.length > 1) {
-            List<URI> tmp = Lists.newArrayList();
-            for (String url : urls) {
-              uri = UrlParser.parse(url);
-              if (uri != null) {
-                tmp.add(uri);
-              }
-            }
-            if (tmp.size() > maxValidUrls) {
-              result = tmp;
-              maxValidUrls = tmp.size();
-            } else if (maxValidUrls > 0 && tmp.size() == maxValidUrls) {
-              LOG.warn("Unclear what delimiter is being used for associatedMedia = {}", associatedMedia);
-            }
-          }
-        }
-      }
-    }
-    return result;
   }
 
 }
