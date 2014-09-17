@@ -7,10 +7,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.recipes.atomic.AtomicValue;
-import com.netflix.curator.framework.recipes.atomic.DistributedAtomicLong;
-import com.netflix.curator.retry.RetryUntilElapsed;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.atomic.AtomicValue;
+import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
+import org.apache.curator.retry.RetryUntilElapsed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -47,8 +47,6 @@ public class DatasetDeletionServiceImplTest {
   private static final byte[] LOOKUP_CF = Bytes.toBytes(LOOKUP_CF_NAME);
 
   private static final UUID GOOD_DATASET_KEY = UUID.randomUUID();
-  private static final int GOOD_DATA_RESOURCE_ID = 123;
-  private static final UUID GOOD_DATA_RESOURCE_UUID = UUID.randomUUID();
 
   private HTablePool tablePool;
   private OccurrenceKeyPersistenceService occurrenceKeyService;
@@ -105,34 +103,6 @@ public class DatasetDeletionServiceImplTest {
     uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATASET_KEY, "abc3"));
     fragment = new Fragment(GOOD_DATASET_KEY, null, null, null, null, null, null, null, null, null);
     fragmentService.insert(fragment, uniqueIds);
-
-    // for dataResource
-//    uniqueIds = Sets.newHashSet();
-//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn1", null));
-//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def1"));
-//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-//    fragmentService.insert(fragment, uniqueIds);
-//    Occurrence occ = occurrenceService.get(fragment.getKey());
-//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-//    occurrenceService.update(occ);
-//
-//    uniqueIds = Sets.newHashSet();
-//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn2", null));
-//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def2"));
-//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-//    fragmentService.insert(fragment, uniqueIds);
-//    occ = occurrenceService.get(fragment.getKey());
-//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-//    occurrenceService.update(occ);
-//
-//    uniqueIds = Sets.newHashSet();
-//    uniqueIds.add(new HolyTriplet(GOOD_DATA_RESOURCE_UUID, "ic2", "cc", "cn3", null));
-//    uniqueIds.add(new PublisherProvidedUniqueIdentifier(GOOD_DATA_RESOURCE_UUID, "def3"));
-//    fragment = new Fragment(GOOD_DATA_RESOURCE_UUID, null, null, null, null, null, null, null, null, null);
-//    fragmentService.insert(fragment, uniqueIds);
-//    occ = occurrenceService.get(fragment.getKey());
-//    occ.setDataResourceId(GOOD_DATA_RESOURCE_ID);
-//    occurrenceService.update(occ);
   }
 
   @Test

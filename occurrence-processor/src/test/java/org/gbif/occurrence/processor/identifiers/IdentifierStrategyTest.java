@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor.identifiers;
 
 import org.gbif.api.model.crawler.DwcaValidationReport;
+import org.gbif.api.model.crawler.OccurrenceValidationReport;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 
 import java.util.UUID;
@@ -15,7 +16,7 @@ public class IdentifierStrategyTest {
   @Test
   public void testGoodTripletBadOcc() {
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA,
-      new DwcaValidationReport(UUID.randomUUID(), 100, 100, 0, 0, 100, true));
+      new DwcaValidationReport(UUID.randomUUID(), new OccurrenceValidationReport(100, 100, 0, 0, 100, true)));
     assertTrue(strategy.isTripletsValid());
     assertFalse(strategy.isOccurrenceIdsValid());
   }
@@ -23,7 +24,7 @@ public class IdentifierStrategyTest {
   @Test
   public void testGoodTripletGoodOcc() {
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA,
-      new DwcaValidationReport(UUID.randomUUID(), 100, 100, 0, 100, 0, true));
+      new DwcaValidationReport(UUID.randomUUID(), new OccurrenceValidationReport(100, 100, 0, 100, 0, true)));
     assertTrue(strategy.isTripletsValid());
     assertTrue(strategy.isOccurrenceIdsValid());
   }
@@ -31,7 +32,7 @@ public class IdentifierStrategyTest {
   @Test
   public void testDupeTripletGoodOcc() {
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA,
-      new DwcaValidationReport(UUID.randomUUID(), 100, 80, 0, 100, 0, true));
+      new DwcaValidationReport(UUID.randomUUID(), new OccurrenceValidationReport(100, 80, 0, 100, 0, true)));
     assertFalse(strategy.isTripletsValid());
     assertTrue(strategy.isOccurrenceIdsValid());
   }
@@ -39,7 +40,7 @@ public class IdentifierStrategyTest {
   @Test
   public void testInvalidTripletGoodOcc() {
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA,
-      new DwcaValidationReport(UUID.randomUUID(), 100, 70, 30, 100, 0, true));
+      new DwcaValidationReport(UUID.randomUUID(), new OccurrenceValidationReport(100, 70, 30, 100, 0, true)));
     // as long as triplets are unique we leave the threshold of when there are too many invalid triplets to the DwcaValidationReport
     assertTrue(strategy.isTripletsValid());
     assertTrue(strategy.isOccurrenceIdsValid());
@@ -60,9 +61,8 @@ public class IdentifierStrategyTest {
     int invalidTriplets = 0;
     int uniqueOccIds = 0;
     int missingOccIds = 100;
-    DwcaValidationReport report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    DwcaValidationReport report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertTrue(strategy.isTripletsValid());
     assertFalse(strategy.isOccurrenceIdsValid());
@@ -73,9 +73,8 @@ public class IdentifierStrategyTest {
     invalidTriplets = 0;
     uniqueOccIds = 100;
     missingOccIds = 0;
-    report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertTrue(strategy.isTripletsValid());
     assertTrue(strategy.isOccurrenceIdsValid());
@@ -86,9 +85,8 @@ public class IdentifierStrategyTest {
     invalidTriplets = 0;
     uniqueOccIds = 60;
     missingOccIds = 0;
-    report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertFalse(strategy.isTripletsValid());
     assertFalse(strategy.isOccurrenceIdsValid());
@@ -99,9 +97,8 @@ public class IdentifierStrategyTest {
     invalidTriplets = 20;
     uniqueOccIds = 20;
     missingOccIds = 80;
-    report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertTrue(strategy.isTripletsValid());
     assertFalse(strategy.isOccurrenceIdsValid());
@@ -112,9 +109,8 @@ public class IdentifierStrategyTest {
     invalidTriplets = 20;
     uniqueOccIds = 100;
     missingOccIds = 0;
-    report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertFalse(strategy.isTripletsValid());
     assertTrue(strategy.isOccurrenceIdsValid());
@@ -125,9 +121,8 @@ public class IdentifierStrategyTest {
     invalidTriplets = 0;
     uniqueOccIds = 80;
     missingOccIds = 5;
-    report =
-      new DwcaValidationReport(UUID.randomUUID(), checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds,
-        true);
+    report = new DwcaValidationReport(UUID.randomUUID(),
+      new OccurrenceValidationReport(checked, uniqueTriplets, invalidTriplets, uniqueOccIds, missingOccIds, true));
     strategy = new IdentifierStrategy(OccurrenceSchemaType.DWCA, report);
     assertTrue(strategy.isTripletsValid());
     assertFalse(strategy.isOccurrenceIdsValid());

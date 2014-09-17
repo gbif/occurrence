@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import com.google.inject.Singleton;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.imps.CuratorFrameworkState;
-import com.netflix.curator.framework.recipes.atomic.DistributedAtomicLong;
-import com.netflix.curator.retry.RetryNTimes;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
+import org.apache.curator.retry.RetryNTimes;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.TimerContext;

@@ -49,12 +49,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.tika</groupId>
-      <artifactId>tika-core</artifactId>
-      <version>1.5</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
     </dependency>
@@ -193,19 +187,19 @@
     </dependency>
 
     <dependency>
-      <groupId>com.netflix.curator</groupId>
+      <groupId>org.apache.curator</groupId>
       <artifactId>curator-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.netflix.curator</groupId>
+      <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.netflix.curator</groupId>
+      <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.netflix.curator</groupId>
+      <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
     </dependency>
 

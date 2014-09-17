@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor;
 
 import org.gbif.api.model.crawler.DwcaValidationReport;
+import org.gbif.api.model.crawler.OccurrenceValidationReport;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
@@ -33,10 +34,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.io.Resources;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.RetryNTimes;
-import com.netflix.curator.test.TestingServer;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.test.TestingServer;
 import org.apache.commons.io.Charsets;
 import org.junit.After;
 import org.junit.Before;
@@ -129,7 +130,9 @@ public class OccurrenceProcessorIT {
     UUID datasetKey = UUID.fromString(PONTAURUS_DATASET_KEY);
     OccurrenceSchemaType xmlSchema = OccurrenceSchemaType.DWCA;
     Integer crawlId = 1;
-    DwcaValidationReport report = new DwcaValidationReport(datasetKey, 1, 1, 0, 1, 0, true);
+
+    DwcaValidationReport report = new DwcaValidationReport(datasetKey,
+      new OccurrenceValidationReport(1, 1, 0, 1, 0, true));
     OccurrenceFragmentedMessage msg =
       new OccurrenceFragmentedMessage(datasetKey, crawlId, dwcaSingle.getBytes(), xmlSchema, EndpointType.DWC_ARCHIVE,
         report);

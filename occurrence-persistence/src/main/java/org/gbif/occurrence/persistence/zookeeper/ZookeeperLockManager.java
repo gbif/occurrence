@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

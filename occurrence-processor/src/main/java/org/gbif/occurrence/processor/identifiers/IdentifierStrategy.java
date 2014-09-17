@@ -1,6 +1,7 @@
 package org.gbif.occurrence.processor.identifiers;
 
 import org.gbif.api.model.crawler.DwcaValidationReport;
+import org.gbif.api.model.crawler.OccurrenceValidationReport;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 
 import javax.annotation.Nullable;
@@ -21,6 +22,7 @@ public class IdentifierStrategy {
     checkNotNull(schemaType, "schemaType can't be null");
     if (schemaType == OccurrenceSchemaType.DWCA) {
       checkNotNull(validationReport, "validationReport can't be null if schema is DWCA");
+      checkNotNull(validationReport.getOccurrenceReport(), "validation.occurrenceReport can't be null if schema is DWCA");
     }
     tripletsValid = tripletsValid(schemaType, validationReport);
     occurrenceIdsValid = occurrenceIdsValid(schemaType, validationReport);
@@ -33,9 +35,9 @@ public class IdentifierStrategy {
   private static boolean tripletsValid(OccurrenceSchemaType schemaType, DwcaValidationReport validationReport) {
     boolean valid = true;
     if (schemaType == OccurrenceSchemaType.DWCA) {
-      valid = validationReport.getUniqueTriplets() > 0
-              && validationReport.getCheckedRecords() - validationReport.getRecordsWithInvalidTriplets()
-                 == validationReport.getUniqueTriplets();
+      OccurrenceValidationReport report = validationReport.getOccurrenceReport();
+      valid = report.getUniqueTriplets() > 0
+              && report.getCheckedRecords() - report.getRecordsWithInvalidTriplets() == report.getUniqueTriplets();
     }
 
     return valid;
@@ -48,8 +50,8 @@ public class IdentifierStrategy {
   private static boolean occurrenceIdsValid(OccurrenceSchemaType schemaType, DwcaValidationReport validationReport) {
     boolean valid = false;
     if (schemaType == OccurrenceSchemaType.DWCA) {
-      valid = validationReport.getCheckedRecords() > 0 &&
-              validationReport.getUniqueOccurrenceIds() == validationReport.getCheckedRecords();
+      OccurrenceValidationReport report = validationReport.getOccurrenceReport();
+      valid = report.getCheckedRecords() > 0 && report.getUniqueOccurrenceIds() == report.getCheckedRecords();
     }
 
     return valid;
