@@ -22,21 +22,23 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
  */
 @Description(
   name = "parseDate",
-  value = "_FUNC_(year, month, day)")
+  value = "_FUNC_(year, month, day, event_date)")
 public class DateParseUDF extends GenericUDF {
 
   private ObjectInspectorConverters.Converter[] converters;
 
   @Override
   public Object evaluate(GenericUDF.DeferredObject[] arguments) throws HiveException {
-    assert arguments.length == 3;
+    assert arguments.length == 4;
 
     String year = getArgument(0, arguments);
     String month = getArgument(1, arguments);
     String day = getArgument(2, arguments);
+    String event_date = getArgument(3, arguments);
     List<Object> result = new ArrayList<Object>(3);
     try {
-      OccurrenceParseResult<DateYearMonthDay> parsed = TemporalInterpreter.interpretRecordedDate(year, month, day, null);
+      OccurrenceParseResult<DateYearMonthDay> parsed =
+        TemporalInterpreter.interpretRecordedDate(year, month, day, event_date);
       if (parsed.isSuccessful() && parsed.getIssues().isEmpty()) {
         result.add(parsed.getPayload().getYear());
         result.add(parsed.getPayload().getMonth());
@@ -61,14 +63,14 @@ public class DateParseUDF extends GenericUDF {
 
   @Override
   public String getDisplayString(String[] strings) {
-    assert strings.length == 3;
-    return "parseDate(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ')';
+    assert strings.length == 4;
+    return "parseDate(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ')';
   }
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-    if (arguments.length != 3) {
-      throw new UDFArgumentException("parseDate takes three arguments");
+    if (arguments.length != 4) {
+      throw new UDFArgumentException("parseDate takes four arguments");
     }
 
     converters = new ObjectInspectorConverters.Converter[arguments.length];
@@ -77,11 +79,11 @@ public class DateParseUDF extends GenericUDF {
         .getConverter(arguments[i], PrimitiveObjectInspectorFactory.writableStringObjectInspector);
     }
 
-    return ObjectInspectorFactory
-      .getStandardStructObjectInspector(Arrays.asList("year", "month", "day"),
-        Arrays.<ObjectInspector>asList(PrimitiveObjectInspectorFactory.javaIntObjectInspector,
+    return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays.asList("year", "month", "day", "event_date"), Arrays
+        .<ObjectInspector>asList(PrimitiveObjectInspectorFactory.javaIntObjectInspector,
           PrimitiveObjectInspectorFactory.javaIntObjectInspector,
-          PrimitiveObjectInspectorFactory.javaIntObjectInspector));
+          PrimitiveObjectInspectorFactory.javaIntObjectInspector,
+          PrimitiveObjectInspectorFactory.javaStringObjectInspector));
   }
 
 }
