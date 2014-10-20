@@ -25,7 +25,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.21.1-SNAPSHOT</version>
+  <version>0.22-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -36,7 +36,7 @@
     <connection>scm:git:git@github.com:gbif/occurrence.git</connection>
     <url>https://github.com/gbif/occurrence</url>
     <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
-    <tag>occurrence-0.21</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <modules>
@@ -51,11 +51,13 @@
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
+    <module>occurrence-ws-app</module>
     <module>occurrence-hive</module>
     <module>occurrence-tables-coord</module>
   </modules>
 
   <properties>
+    <jdkLevel>1.7</jdkLevel>
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
     <postalservice.threadcount>10</postalservice.threadcount>
@@ -79,7 +81,7 @@
     <commons-digester.version>2.1</commons-digester.version>
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.3.2</commmons-lang.version>
-    <curator.version>1.3.3</curator.version>
+    <curator.version>2.6.0</curator.version>
     <dbunit.version>2.4.8</dbunit.version>
     <drupal-mybatis.version>0.11</drupal-mybatis.version>
     <dwc-api.version>1.8</dwc-api.version>
@@ -94,8 +96,8 @@
     <geocode.version>0.3</geocode.version>
     <geotools.version>11.1</geotools.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
-    <gbif-parsers.version>0.8</gbif-parsers.version>
-    <gbif-postal-service.version>0.11</gbif-postal-service.version>
+    <gbif-parsers.version>0.10-SNAPSHOT</gbif-parsers.version>
+    <gbif-postal-service.version>0.12-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>2.16</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.8</checklistbank-ws-client.version>
@@ -108,7 +110,7 @@
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <!-- Only update Jackson together with Jersey so that Jackson is the same version as the one used by Jersey -->
     <jackson.version>1.9.7</jackson.version>
-    <jcommander.version>1.30-gbif-20121018</jcommander.version>
+    <jcommander.version>1.35</jcommander.version>
     <!-- Only update Jackson together with Jersey so that Jackson is the same version as the one used by Jersey -->
     <jersey.version>1.12</jersey.version>
     <jersey-test-framework-grizzly.version>1.12</jersey-test-framework-grizzly.version>
@@ -666,22 +668,22 @@
 
       <!-- curator for talking to zookeeper -->
       <dependency>
-        <groupId>com.netflix.curator</groupId>
+        <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
         <version>${curator.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.netflix.curator</groupId>
+        <groupId>org.apache.curator</groupId>
         <artifactId>curator-framework</artifactId>
         <version>${curator.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.netflix.curator</groupId>
+        <groupId>org.apache.curator</groupId>
         <artifactId>curator-recipes</artifactId>
         <version>${curator.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.netflix.curator</groupId>
+        <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
         <version>${curator.version}</version>
         <scope>test</scope>
