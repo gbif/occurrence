@@ -38,6 +38,7 @@
   <solr.version>4.4.0</solr.version>
   <super-csv.version>2.0.1</super-csv.version>
   <brickhouse.version>0.6.0</brickhouse.version>
+  <hadoop-compress.version>1.0</hadoop-compress.version>
  </properties>
 
  <build>
@@ -59,6 +60,14 @@
   </resources>
 
   <plugins>
+    <plugin>
+      <artifactId>maven-compiler-plugin</artifactId>
+      <version>3.0</version>
+      <configuration>
+        <source>1.7</source>
+        <target>1.7</target>
+      </configuration>
+   </plugin>
    <plugin>
     <artifactId>maven-resources-plugin</artifactId>
     <executions>
@@ -126,6 +135,11 @@
 
  <dependencies>
   <!-- Direct dependencies -->
+  <dependency>
+    <groupId>org.gbif.hadoop</groupId>
+    <artifactId>hadoop-compress</artifactId>
+    <version>${hadoop-compress.version}</version>
+  </dependency>
   <dependency>
    <groupId>com.google.guava</groupId>
    <artifactId>guava</artifactId>

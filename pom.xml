@@ -57,7 +57,6 @@
 
   <properties>
     <jdkLevel>1.7</jdkLevel>
-
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
     <postalservice.threadcount>10</postalservice.threadcount>
@@ -86,7 +85,7 @@
     <drupal-mybatis.version>0.11</drupal-mybatis.version>
     <dwc-api.version>1.8</dwc-api.version>
     <dwca-reader.version>1.18</dwca-reader.version>
-    <findbugs-jsr305.version>3.0.0</findbugs-jsr305.version>
+    <findbugs-jsr305.version>2.0.3</findbugs-jsr305.version>
     <gbif-api.version>0.16-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.17-SNAPSHOT</gbif-common.version>
     <gbif-common-test.version>0.7-SNAPSHOT</gbif-common-test.version>

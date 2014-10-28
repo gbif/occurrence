@@ -11,6 +11,9 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.hadoop.compress.d2.D2CombineInputStream;
+import org.gbif.hadoop.compress.d2.D2Utils;
+import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.util.DwcArchiveUtils;
@@ -20,8 +23,11 @@ import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,6 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
@@ -59,7 +68,9 @@ import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,7 +161,9 @@ public class ArchiveBuilder {
    * @param hdfs
    * @param localfs
    * @param archiveDir local archvie directory to copy into, e.g. /mnt/ftp/download/0000020-130108132303336
-   * @param dataTable like download_tmp_1234
+   * @param interpretedDataTable
+   * @param verbatimDataTable
+   * @param multimediaDataTable
    * @param citationTable like download_tmp_citation_1234
    * @param hdfsPath like /user/hive/warehouse
    * @throws IOException on any read or write problems
@@ -176,7 +189,7 @@ public class ArchiveBuilder {
     this.multimediaDataTable = multimediaDataTable;
     this.citationTable = citationTable;
     this.hdfsPath = hdfsPath;
-    this.dataset = new Dataset();
+    dataset = new Dataset();
     this.downloadLink = new URL(downloadLink);
     this.isSmallDownload = isSmallDownload;
   }
@@ -246,11 +259,6 @@ public class ArchiveBuilder {
       // create the temp archive dir
       archiveDir.mkdirs();
 
-      // occurrence files interpreted and verbatim
-      addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME, INTERPRETED_FILENAME);
-      addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
-      addOccurrenceDataFile(multimediaDataTable, HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
-
       // metadata, citation and rights
       addDatasetMetadata();
 
@@ -260,9 +268,24 @@ public class ArchiveBuilder {
       // meta.xml
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
+      // large downloads are compressed by hive and added later
+      if (isSmallDownload) {
+        LOG.info("Copying the uncompressed occurrence files from HDFS");
+        addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME, INTERPRETED_FILENAME);
+        addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
+        addOccurrenceDataFile(multimediaDataTable, HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
+      } else {
+        LOG.info("Skipping the copy of occurrence files from HDFS as they are already compressed");
+      }
+
       // zip up
       LOG.info("Zipping archive {}", archiveDir.toString());
       CompressionUtil.zipDir(archiveDir, zipFile, true);
+
+      // add the large download data files to the zip stream
+      if (!isSmallDownload) {
+        appendPreCompressedFiles(zipFile);
+      }
 
     } catch (IOException e) {
       throw new DownloadException(e);
@@ -272,6 +295,75 @@ public class ArchiveBuilder {
       cleanupFS();
     }
 
+  }
+
+  /**
+   * Rewrites the zip file by opening the original and appending the pre-compressed content on the fly.
+   */
+  private void appendPreCompressedFiles(File zipFile) throws IOException {
+
+    LOG.info("Appending pre-compressed occurrence content to the Zip: " + zipFile.getAbsolutePath());
+
+    File tempZip = new File(archiveDir, zipFile.getName() + ".part");
+    boolean renameOk=zipFile.renameTo(tempZip);
+    if (renameOk) {
+      try (
+        ZipInputStream zin = new ZipInputStream(new FileInputStream(tempZip));
+        ModalZipOutputStream out = new ModalZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+      ) {
+
+        // copy existing entries
+        ZipEntry entry = zin.getNextEntry();
+        while (entry != null) {
+          out.putNextEntry(new org.gbif.hadoop.compress.d2.zip.ZipEntry(entry.getName()),
+                           ModalZipOutputStream.MODE.DEFAULT);
+          ByteStreams.copy(zin, out);
+          entry = zin.getNextEntry();
+        }
+
+        // TODO: Add headers(!)
+        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + interpretedDataTable), INTERPRETED_FILENAME);
+        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + verbatimDataTable), VERBATIM_FILENAME);
+        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + multimediaDataTable), MULTIMEDIA_FILENAME);
+
+      } finally {
+        // we've rewritten so remove the original
+        if (tempZip != null) {
+          tempZip.delete();
+        }
+      }
+
+
+    } else {
+      throw new IllegalStateException("Unable to rename existing zip, to allow appending occurrence data");
+    }  }
+
+  /**
+   * Appends the compressed files found within the directory to the zip stream as the named file
+   */
+  private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename) throws IOException {
+    RemoteIterator<LocatedFileStatus> files = hdfs.listFiles(dir, false);
+    List<InputStream> parts = Lists.newArrayList();
+    while (files.hasNext()) {
+      LocatedFileStatus fs = files.next();
+      Path path = fs.getPath();
+      if (path.toString().endsWith(D2Utils.FILE_EXTENSION)) {
+        LOG.info("Deflated content to merge: " + path);
+        parts.add(hdfs.open(path));
+      }
+    }
+
+    org.gbif.hadoop.compress.d2.zip.ZipEntry ze = new org.gbif.hadoop.compress.d2.zip.ZipEntry(filename);
+    out.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
+    try (D2CombineInputStream in = new D2CombineInputStream(parts)) {
+      ByteStreams.copy(in, out);
+      in.close(); // important so counts are accurate
+      ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
+      ze.setCompressedSize(in.getCompressedLength());
+      ze.setCrc(in.getCrc32());
+    } finally {
+      out.closeEntry();
+    }
   }
 
   public void createEmlFile(final UUID constituentId, final File emlDir) throws IOException {
@@ -304,8 +396,11 @@ public class ArchiveBuilder {
    * @throws IOException
    */
   private void addDatasetMetadata() throws IOException {
-    LOG.info("Adding constituent dataset metadata to archive");
+
     Path citationSrc = new Path(hdfsPath + Path.SEPARATOR + citationTable);
+
+    LOG.info("Adding constituent dataset metadata to archive, based on: " + citationSrc);
+
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
     if (!hdfs.exists(citationSrc)) {

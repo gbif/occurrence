@@ -10,7 +10,7 @@
 <workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.2">
 
   <start to="occurrence_count" />
-  
+
   <action name="occurrence_count">
     <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -24,18 +24,18 @@
 
     <ok to="make_query_decision" />
     <error to="kill" />
-  </action> 
-  
+  </action>
+
    <decision name="make_query_decision">
     <switch>
       <!-- it's a small download -->
       <case to="small_download">
         ${wf:actionData('occurrence_count')['is_small_download']}
-      </case>    
+      </case>
       <default to="big_download" />
     </switch>
   </decision>
-  
+
   <fork name="big_download">
     <path start="query_interpreted" />
     <path start="query_verbatim" />
@@ -60,7 +60,7 @@
     <ok to="copy_and_zip" />
     <error to="failure_clean_hdfs_dirs" />
   </action>
-  
+
   <action name="query_interpreted">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -99,7 +99,7 @@
     <path start="citation" />
     <path start="multimedia" />
   </fork>
-  
+
   <action name="multimedia">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -107,7 +107,7 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/create_multimedia_table.q</script>
 
-      <param>result_multimedia_table=${occurrence.env_prefix}.${query_result_table}_multimedia</param>            
+      <param>result_multimedia_table=${occurrence.env_prefix}.${query_result_table}_multimedia</param>
       <param>occurrence_intepreted_table=${occurrence.env_prefix}.${query_result_table}_interpreted</param>
       <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
     </hive>
@@ -115,7 +115,7 @@
     <ok to="bundling" />
     <error to="failure_queries" />
   </action>
-  
+
   <action name="citation">
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -132,7 +132,7 @@
   </action>
 
   <join name="bundling" to="copy_and_zip"/>
-  
+
   <join name="failure_queries" to="failure_drop_table"/>
 
   <action name="copy_and_zip">
