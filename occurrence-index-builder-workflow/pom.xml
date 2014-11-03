@@ -205,11 +205,12 @@
       <artifactId>hive-hbase-handler</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-builtins</artifactId>
-      <scope>runtime</scope>
-    </dependency>
+    <!-- TODO: needed? doesn't exist in cdh5 anymore -->
+    <!--<dependency>-->
+      <!--<groupId>org.apache.hive</groupId>-->
+      <!--<artifactId>hive-builtins</artifactId>-->
+      <!--<scope>runtime</scope>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-common</artifactId>
@@ -223,7 +224,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
+      <artifactId>hbase-client</artifactId>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>

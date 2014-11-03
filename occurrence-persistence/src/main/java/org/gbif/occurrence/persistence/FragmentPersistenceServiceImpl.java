@@ -187,6 +187,8 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
       upd.setInterpretedField(GbifInternalTerm.fragmentCreated, frag.getCreated());
     }
 
-    upd.execute(occTable);
+    if (!upd.getRowMutations().getMutations().isEmpty()) {
+      upd.execute(occTable);
+    }
   }
 }

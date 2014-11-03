@@ -64,13 +64,6 @@ public class OccurrenceKeyIterator implements Iterator<Integer> {
       return true;
     } else {
       scanner.close();
-      if (table != null) {
-        try {
-          table.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-        }
-      }
       scannerClosed = true;
       return false;
     }

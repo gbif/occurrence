@@ -92,9 +92,9 @@ public class FragmentPersistenceServiceImplTest {
   private OccurrenceKeyPersistenceService occurrenceKeyService;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
-  private static TestingServer ZOOKEEPER_SERVER;
-  private static CuratorFramework CURATOR;
-  private static ThreadLocalLockProvider ZOO_LOCK_PROVIDER;
+  private static TestingServer zookeeperServer;
+  private static CuratorFramework curator;
+  private static ThreadLocalLockProvider zooLockProvider;
 
   @Rule
   public ExpectedException exception = ExpectedException.none();
@@ -107,19 +107,19 @@ public class FragmentPersistenceServiceImplTest {
     TEST_UTIL.createTable(LOOKUP_TABLE, LOOKUP_CF);
 
     // setup zookeeper
-    ZOOKEEPER_SERVER = new TestingServer();
-    CURATOR =
-      CuratorFrameworkFactory.builder().namespace("hbasePersistence").connectString(ZOOKEEPER_SERVER.getConnectString())
+    zookeeperServer = new TestingServer();
+    curator =
+      CuratorFrameworkFactory.builder().namespace("hbasePersistence").connectString(zookeeperServer.getConnectString())
         .retryPolicy(new RetryNTimes(1, 1000)).build();
-    CURATOR.start();
-    ZOO_LOCK_PROVIDER = new ThreadLocalLockProvider(CURATOR);
+    curator.start();
+    zooLockProvider = new ThreadLocalLockProvider(curator);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
-    CURATOR.close();
-    ZOOKEEPER_SERVER.stop();
+    curator.close();
+    zookeeperServer.stop();
   }
 
   @Before
@@ -132,7 +132,7 @@ public class FragmentPersistenceServiceImplTest {
 
     // reset lookup table
     KeyPersistenceService keyPersistenceService =
-      new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, TABLE_NAME, tablePool, ZOO_LOCK_PROVIDER);
+      new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, TABLE_NAME, tablePool, zooLockProvider);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     HolyTriplet holyTriplet = new HolyTriplet(XML_DATASET_KEY, INST_CODE, COL_CODE, CAT, UNIT_QUALIFIER);

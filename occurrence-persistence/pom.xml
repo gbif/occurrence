@@ -65,10 +65,6 @@
       <artifactId>guice</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
     </dependency>
@@ -149,10 +145,14 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-core</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-      <classifier>tests</classifier>
+      <artifactId>hbase-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-testing-util</artifactId>
       <scope>test</scope>
       <exclusions>
         <exclusion>

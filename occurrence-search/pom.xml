@@ -131,16 +131,14 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- dep:analyze reports false positive on Used undeclared hadoop -->
     <dependency>
       <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
+      <artifactId>hbase-client</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-      <classifier>tests</classifier>
+      <artifactId>hbase-testing-util</artifactId>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -204,6 +202,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
     </dependency>
-
   </dependencies>
+
 </project>

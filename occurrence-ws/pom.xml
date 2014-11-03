@@ -182,12 +182,8 @@
 
     <!-- hadoop -->
     <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-client</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
+      <artifactId>hbase-client</artifactId>
       <exclusions>
         <exclusion>
           <artifactId>commons-logging</artifactId>
@@ -202,6 +198,10 @@
           <groupId>org.slf4j</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.oozie</groupId>
+      <artifactId>oozie-client</artifactId>
     </dependency>
 
     <!-- validation -->

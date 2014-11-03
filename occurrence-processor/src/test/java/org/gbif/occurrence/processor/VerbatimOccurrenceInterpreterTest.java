@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -31,7 +32,6 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("requires real webservices")
+//@Ignore("requires real webservices")
 public class VerbatimOccurrenceInterpreterTest {
 
   // BoGART from BGBM
@@ -181,7 +181,8 @@ public class VerbatimOccurrenceInterpreterTest {
     assertEquals(Country.GERMANY, result.getPublishingCountry());
     assertEquals(EndpointType.DWC_ARCHIVE, result.getProtocol());
     assertEquals(Continent.EUROPE, result.getContinent());
-    assertEquals(0, result.getIssues().size());
+    assertEquals(1, result.getIssues().size());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
   }
 
   @Test
