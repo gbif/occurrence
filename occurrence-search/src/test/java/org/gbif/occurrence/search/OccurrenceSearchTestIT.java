@@ -151,7 +151,7 @@ public class OccurrenceSearchTestIT {
 
   /**
    * Creates an instance of a guice injector using the OccurrenceSearchTestModule.
-   * 
+   *
    * @return
    */
   private static Injector getInjector() {

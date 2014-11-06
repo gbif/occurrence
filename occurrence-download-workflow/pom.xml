@@ -28,10 +28,6 @@
   <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
   <apache-curator.version>2.1.0-incubating</apache-curator.version>
   <freemarker.version>2.3.19</freemarker.version>
-  <!--<hive.version>0.10.0-cdh4.2.1</hive.version> -->
-  <!--<hbase.version>0.94.2-cdh4.2.1</hbase.version> -->
-  <!--<hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version> -->
-  <!--<hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version> -->
   <httpclient.version>4.2.5</httpclient.version>
   <httpcore.version>4.2.2</httpcore.version>
   <httpmime.version>4.2.5</httpmime.version>
@@ -180,18 +176,14 @@
    <groupId>org.slf4j</groupId>
    <artifactId>slf4j-api</artifactId>
   </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
+  <dependency>
+    <groupId>org.codehaus.jackson</groupId>
+    <artifactId>jackson-jaxrs</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.codehaus.jackson</groupId>
+    <artifactId>jackson-mapper-asl</artifactId>
+  </dependency>
 
   <!-- needed for UDFs (false positive from dep:analyse) -->
   <dependency>
@@ -336,6 +328,16 @@
   <!-- Runtime dependencies -->
   <!-- Hadoop is excluded because maven complains if not, as there is metadata
    missing in the hadoop repo -->
+   <dependency>
+     <groupId>org.apache.hbase</groupId>
+     <artifactId>hbase-client</artifactId>
+     <exclusions>
+       <exclusion>
+         <artifactId>slf4j-log4j12</artifactId>
+         <groupId>org.slf4j</groupId>
+       </exclusion>
+     </exclusions>
+   </dependency>
   <dependency>
    <groupId>org.apache.hive</groupId>
    <artifactId>hive-cli</artifactId>
@@ -352,11 +354,12 @@
    <artifactId>hive-hbase-handler</artifactId>
    <scope>runtime</scope>
   </dependency>
-  <dependency>
-   <groupId>org.apache.hive</groupId>
-   <artifactId>hive-builtins</artifactId>
-   <scope>runtime</scope>
-  </dependency>
+   <!-- TODO: needed? doesn't exist in cdh5 anymore -->
+  <!--<dependency>-->
+   <!--<groupId>org.apache.hive</groupId>-->
+   <!--<artifactId>hive-builtins</artifactId>-->
+   <!--<scope>runtime</scope>-->
+  <!--</dependency>-->
   <dependency>
    <groupId>org.apache.hive</groupId>
    <artifactId>hive-exec</artifactId>
@@ -370,17 +373,6 @@
     <exclusion>
      <groupId>org.apache.hadoop</groupId>
      <artifactId>hadoop-core</artifactId>
-    </exclusion>
-   </exclusions>
-  </dependency>
-
-  <dependency>
-   <groupId>org.apache.hbase</groupId>
-   <artifactId>hbase</artifactId>
-   <exclusions>
-    <exclusion>
-     <artifactId>slf4j-log4j12</artifactId>
-     <groupId>org.slf4j</groupId>
     </exclusion>
    </exclusions>
   </dependency>

@@ -27,13 +27,15 @@ public class NubLookupInterpreterTest {
     ParseResult<NameUsageMatch> result =
       NubLookupInterpreter.nubLookup(null, null, null, null, null, null, null, null);
     assertNotNull(result);
-    assertNull(result.getPayload());
+    assertNotNull(result.getPayload());
+    assertNull(result.getPayload().getScientificName());
   }
 
   @Test
   public void testNubLookupEmptyStrings() {
     ParseResult<NameUsageMatch> result = NubLookupInterpreter.nubLookup("", "", "", "", "", "", "", "");
     assertNotNull(result);
-    assertNull(result.getPayload());
+    assertNotNull(result.getPayload());
+    assertNull(result.getPayload().getScientificName());
   }
 }

@@ -62,7 +62,8 @@ public class CoordinateInterpreterTest {
 
     assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
-    Assert.assertTrue(result.getIssues().isEmpty());
+    assertEquals(1, result.getIssues().size());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
   }
 
   @Test
@@ -152,7 +153,10 @@ public class CoordinateInterpreterTest {
 
     assertCoordinate(result, roundedLat, roundedLng);
     assertEquals(country, result.getPayload().getCountry());
-    assertTrue(result.getIssues().isEmpty());
+
+    assertEquals(2, result.getIssues().size());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATE_ROUNDED));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
   }
 
   @Test
@@ -170,8 +174,9 @@ public class CoordinateInterpreterTest {
     OccurrenceParseResult<CoordinateResult> result =
       CoordinateInterpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
     assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
-    assertEquals(1, result.getIssues().size());
+    assertEquals(2, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
 
     // Isle of Man is IM not UK
     lat = 54.25;
@@ -179,8 +184,9 @@ public class CoordinateInterpreterTest {
     country = Country.UNITED_KINGDOM;
     result = CoordinateInterpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
     assertEquals(Country.ISLE_OF_MAN, result.getPayload().getCountry());
-    assertEquals(1, result.getIssues().size());
+    assertEquals(2, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
   }
 
   @Test

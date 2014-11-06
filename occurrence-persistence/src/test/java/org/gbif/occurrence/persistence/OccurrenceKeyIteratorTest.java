@@ -91,7 +91,6 @@ public class OccurrenceKeyIteratorTest {
     byte[] col = Bytes.toBytes(Columns.column(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
-    scan.setBatch(500);
     scan.setCaching(500);
     SingleColumnValueFilter filter =
       new SingleColumnValueFilter(CF, col, CompareFilter.CompareOp.EQUAL, Bytes.toBytes(DATASET_1.toString()));
@@ -112,7 +111,6 @@ public class OccurrenceKeyIteratorTest {
     byte[] col = Bytes.toBytes(Columns.column(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
-    scan.setBatch(500);
     scan.setCaching(500);
     SingleColumnValueFilter filter =
       new SingleColumnValueFilter(CF, col, CompareFilter.CompareOp.EQUAL, Bytes.toBytes(DATASET_1.toString()));
@@ -132,7 +130,6 @@ public class OccurrenceKeyIteratorTest {
     byte[] col = Bytes.toBytes(Columns.column(GbifTerm.datasetKey));
     Scan scan = new Scan();
     scan.addColumn(CF, col);
-    scan.setBatch(500);
     scan.setCaching(500);
     SingleColumnValueFilter filter =
       new SingleColumnValueFilter(CF, col, CompareFilter.CompareOp.EQUAL, Bytes.toBytes(DATASET_3.toString()));

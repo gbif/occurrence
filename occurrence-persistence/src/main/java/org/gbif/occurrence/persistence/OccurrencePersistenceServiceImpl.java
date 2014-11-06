@@ -156,7 +156,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   public Iterator<Integer> getKeysByColumn(byte[] columnValue, String columnName) {
     byte[] col = Bytes.toBytes(columnName);
     Scan scan = new Scan();
-    scan.setBatch(SCANNER_BATCH_SIZE);
     scan.setCaching(SCANNER_CACHE_SIZE);
     scan.addColumn(Columns.CF, col);
     scan.setFilter(new SingleColumnValueFilter(Columns.CF, col, CompareFilter.CompareOp.EQUAL, columnValue));

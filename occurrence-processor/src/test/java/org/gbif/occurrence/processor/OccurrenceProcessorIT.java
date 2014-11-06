@@ -34,22 +34,21 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.io.Resources;
+import org.apache.commons.io.Charsets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
-import org.apache.commons.io.Charsets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("requires live webservices and messaging")
+//@Ignore("requires live webservices and messaging")
 public class OccurrenceProcessorIT {
 
   private final OccurrenceKeyPersistenceService occurrenceKeyService = new OccurrenceKeyPersistenceServiceMock();

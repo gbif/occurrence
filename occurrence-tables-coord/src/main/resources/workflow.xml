@@ -1,65 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~ 
-	Licensed under the Apache License, Version 2.0 (the "License"); ~ you may 
-	not use this file except in compliance with the License. ~ You may obtain 
-	a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ 
-	~ Unless required by applicable law or agreed to in writing, software ~ distributed 
-	under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for 
-	the specific language governing permissions and ~ limitations under the License. -->
+<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~
+  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may
+  not use this file except in compliance with the License. ~ You may obtain
+  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~
+  ~ Unless required by applicable law or agreed to in writing, software ~ distributed
+  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
+  the specific language governing permissions and ~ limitations under the License. -->
 <workflow-app name="OccurrenceHDFSBuild-${occurrence.environment}"
-	xmlns="uri:oozie:workflow:0.2">
+  xmlns="uri:oozie:workflow:0.2">
 
-	<start to="make_creation_decision" />
+  <start to="make_creation_decision" />
 
-	<decision name="make_creation_decision">
-		<switch>
-			<!-- it's a small download -->
-			<case to="create_tables_dynamically">
-				${create_tables_dynamically}
-			</case>
-			<default to="create_tables_script" />
-		</switch>
-	</decision>
+  <decision name="make_creation_decision">
+    <switch>
+      <!-- it's a small download -->
+      <case to="create_tables_dynamically">
+        ${create_tables_dynamically}
+      </case>
+      <default to="create_tables_script" />
+    </switch>
+  </decision>
 
-	<action name="create_tables_script">
-		<hive xmlns="uri:oozie:hive-action:0.2">
-			<job-tracker>${hadoop.jobtracker}</job-tracker>
-			<name-node>${hdfs.namenode}</name-node>
-			<job-xml>conf/hive-default.xml</job-xml>
-			<script>hive-scripts/create_occurrence_tables.q</script>
+  <action name="create_tables_script">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/create_occurrence_tables.q</script>
 
-			<param>hive_db=${occurrence.env_prefix}</param>
-			<param>occurrence_hbase_table=${occurrence.env_prefix}_occurrence</param>
-		</hive>
-		<ok to="end" />
-		<error to="kill" />
-	</action>
+      <param>hive_db=${occurrence.env_prefix}</param>
+      <param>occurrence_hbase_table=${occurrence.env_prefix}_occurrence</param>
+    </hive>
+    <ok to="end" />
+    <error to="kill" />
+  </action>
 
-	<action name="create_tables_dynamically">
-		<java>
-			<job-tracker>${hadoop.jobtracker}</job-tracker>
-			<name-node>${hdfs.namenode}</name-node>
-			<job-xml>conf/hive-default.xml</job-xml>
-			<main-class>org.gbif.occurrence.hive.DownloadTableHiveAction</main-class>
-			<arg>${hive.server2}</arg>
-			<arg>${hive.db}</arg>
-			<arg>${hive.user}</arg>
-			<arg>occurrence</arg>
-			<arg>${hbase.table}</arg>
-			<arg>${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-hive-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-common-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/gbif-api-${gbif-api.version}.jar</arg>
-			<arg>${synctables}</arg>
-		</java>
+  <action name="create_tables_dynamically">
+    <java>
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <job-xml>conf/hive-default.xml</job-xml>
+      <main-class>org.gbif.occurrence.hive.DownloadTableHiveAction</main-class>
+      <arg>${hive.server2}</arg>
+      <arg>${hive.db}</arg>
+      <arg>${hive.user}</arg>
+      <arg>occurrence</arg>
+      <arg>${hbase.table}</arg>
+      <arg>${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-hive-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/occurrence-common-${project.version}.jar,${hdfs.namenode}/${artifactId}/${occurrence.env_prefix}/lib/gbif-api-${gbif-api.version}.jar</arg>
+      <arg>${synctables}</arg>
+    </java>
 
-		<ok to="end" />
-		<error to="kill" />
-	</action>
+    <ok to="end" />
+    <error to="kill" />
+  </action>
 
-	<kill name="kill">
-		<message>Occurrence table generators
-			failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
-	</kill>
+  <kill name="kill">
+    <message>Occurrence table generators
+      failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  </kill>
 
-	<end name="end" />
+  <end name="end" />
 
 </workflow-app>

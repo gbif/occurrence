@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore("Requires live webservices")
 public class LocationInterpreterTest {
@@ -53,7 +54,9 @@ public class LocationInterpreterTest {
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
     assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
-    assertEquals(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH, occ.getIssues().iterator().next());
+    assertEquals(2, occ.getIssues().size());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
   }
 
   @Test
@@ -69,7 +72,9 @@ public class LocationInterpreterTest {
     assertNotNull(occ);
     assertEquals(52.0112, occ.getDecimalLatitude(), 0.0001);
     assertEquals(5.2124, occ.getDecimalLongitude(), 0.0001);
-    assertEquals(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, occ.getIssues().iterator().next());
+    assertEquals(2, occ.getIssues().size());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
     assertEquals(Country.NETHERLANDS, occ.getCountry());
   }
 
@@ -87,7 +92,8 @@ public class LocationInterpreterTest {
     assertNotNull(occ);
     assertEquals(-20.1825, occ.getDecimalLatitude(), 0.0001);
     assertEquals(-58.1575, occ.getDecimalLongitude(), 0.0001);
-    assertEquals(0, occ.getIssues().size());
+    assertEquals(1, occ.getIssues().size());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
     assertEquals(Country.PARAGUAY, occ.getCountry());
   }
 

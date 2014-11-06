@@ -236,15 +236,14 @@
       <artifactId>amqp-client</artifactId>
     </dependency>
 
-
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-testing-util</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -269,4 +268,5 @@
     </dependency>
 
   </dependencies>
+
 </project>
