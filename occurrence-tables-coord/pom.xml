@@ -142,7 +142,7 @@
         <hive.user>jenkins</hive.user>
         <hbase.table>dev_occurrence</hbase.table>
         <synctables>false</synctables>
-        <create_tables_dynamically>true</create_tables_dynamically>
+        <create_tables_dynamically>false</create_tables_dynamically>
       </properties>
     </profile>
 
