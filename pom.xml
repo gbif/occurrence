@@ -138,8 +138,7 @@
     <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
     <!-- cluster version -->
-    <hadoop-core.version>2.5.0-mr1-cdh5.2.0</hadoop-core.version>
-    <hadoop-non-core.version>2.5.0-cdh5.2.0</hadoop-non-core.version>
+    <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
     <hbase.version>0.98.6-cdh5.2.0</hbase.version>
     <hive.version>0.13.1-cdh5.2.0</hive.version>
     <oozie.version>4.0.0-cdh5.2.0</oozie.version>
@@ -320,6 +319,10 @@
           <exclusion>
             <artifactId>org.apache.hbase</artifactId>
             <groupId>hbase</groupId>
+          </exclusion>
+          <exclusion>
+            <artifactId>org.apache.hadoop</artifactId>
+            <groupId>hadoop-core</groupId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -532,81 +535,217 @@
         <version>${findbugs-jsr305.version}</version>
       </dependency>
 
-      <!-- Hadoop/Hbase -->
+
+      <!-- new hbase -->
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-client</artifactId>
         <version>${hbase.version}</version>
+        <exclusions>
+          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <!-- remove logging which we'll ship to logback -->
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
+      <!-- e.g. TableMapper is in the server jar (!) -->
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-server</artifactId>
         <version>${hbase.version}</version>
+        <exclusions>
+          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <!-- ignore logging implementations -->
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <!-- this brings in test classifier stuff -->
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-common</artifactId>
+        <version>${hbase.version}</version>
+        <exclusions>
+          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-testing-util</artifactId>
         <version>${hbase.version}</version>
         <scope>test</scope>
+        <!-- The following are to exclude MR1 artifacts -->
+        <exclusions>
+          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-minicluster</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
+      <!-- bring in Yarn (MR2) -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- new hadoop -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
-        <version>${hadoop-non-core.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-        </exclusions>
+        <version>${hadoop.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs</artifactId>
-        <version>${hadoop-non-core.version}</version>
+        <version>${hadoop.version}</version>
         <exclusions>
           <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
-            <groupId>org.slf4j</groupId>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-minicluster</artifactId>
-        <version>${hadoop-non-core.version}</version>
-        <scope>test</scope>
+        <artifactId>hadoop-client</artifactId>
+        <version>${hadoop.version}</version>
         <exclusions>
           <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
             <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-core</artifactId>
-        <version>${hadoop-core.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-        </exclusions>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-hadoop-compat</artifactId>
+        <version>${hbase.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-core-test</artifactId>
-        <version>${hadoop-core.version}</version>
-        <scope>test</scope>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-hadoop2-compat</artifactId>
+        <version>${hbase.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-test</artifactId>
-        <version>${hadoop-core.version}</version>
-        <scope>test</scope>
-      </dependency>
+      <!-- end new hadoop -->
 
+
+      <!-- old hadoop -->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-common</artifactId>-->
+        <!--<version>${hadoop.version}</version>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <!--<groupId>org.slf4j</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-hdfs</artifactId>-->
+        <!--<version>${hadoop.version}</version>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <!--<groupId>org.slf4j</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-minicluster</artifactId>-->
+        <!--<version>${hadoop.version}</version>-->
+        <!--<scope>test</scope>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <!--<groupId>org.slf4j</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-core</artifactId>-->
+        <!--<version>${hadoop-core.version}</version>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <!--<groupId>org.slf4j</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-core-test</artifactId>-->
+        <!--<version>${hadoop-core.version}</version>-->
+        <!--<scope>test</scope>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.hadoop</groupId>-->
+        <!--<artifactId>hadoop-test</artifactId>-->
+        <!--<version>${hadoop-core.version}</version>-->
+        <!--<scope>test</scope>-->
+      <!--</dependency>-->
+      <!-- end old hadoop -->
+
+      <!-- old hive -->
       <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-exec</artifactId>
@@ -656,6 +795,7 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- end old hive -->
 
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
@@ -741,6 +881,7 @@
         <scope>test</scope>
       </dependency>
 
+
       <!-- geotools -->
       <dependency>
         <groupId>org.geotools</groupId>
@@ -811,7 +952,7 @@
         <scope>runtime</scope>
       </dependency>
 
-      <!-- TEST SCOPE -->
+      <!-- TEST PIECES -->
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
@@ -879,8 +1020,7 @@
         <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
-        <hadoop-core.version>2.5.0-mr1-cdh5.2.0</hadoop-core.version>
-        <hadoop-non-core.version>2.5.0-cdh5.2.0</hadoop-non-core.version>
+        <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
         <hbase.version>0.98.6-cdh5.2.0</hbase.version>
         <hive.version>0.13.1-cdh5.2.0</hive.version>
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>
@@ -924,14 +1064,13 @@
 
         <!-- cluster -->
         <zookeeper.quorum>c1n1.gbif.org:2181,c1n2.gbif.org:2181,c1n3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>c1n3.gbif.org:8032</hadoop.jobtracker>
+        <hadoop.jobtracker>c1n2.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://c1n1.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://c1n1.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://c1n1.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
-        <hadoop-core.version>2.5.0-mr1-cdh5.2.0</hadoop-core.version>
-        <hadoop-non-core.version>2.5.0-cdh5.2.0</hadoop-non-core.version>
+        <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
         <hbase.version>0.98.6-cdh5.2.0</hbase.version>
         <hive.version>0.13.1-cdh5.2.0</hive.version>
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>
@@ -983,8 +1122,7 @@
         <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
-        <hadoop-core.version>2.5.0-mr1-cdh5.2.0</hadoop-core.version>
-        <hadoop-non-core.version>2.5.0-cdh5.2.0</hadoop-non-core.version>
+        <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
         <hbase.version>0.98.6-cdh5.2.0</hbase.version>
         <hive.version>0.13.1-cdh5.2.0</hive.version>
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>

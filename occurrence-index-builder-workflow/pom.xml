@@ -175,8 +175,7 @@
     </dependency>
 
     <!-- Runtime dependencies -->
-    <!-- Hadoop is excluded because maven complains if not, as there is metadata
-      missing in the hadoop repo -->
+    <!-- Hive -->
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-cli</artifactId>
@@ -205,12 +204,6 @@
       <artifactId>hive-hbase-handler</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <!-- TODO: needed? doesn't exist in cdh5 anymore -->
-    <!--<dependency>-->
-      <!--<groupId>org.apache.hive</groupId>-->
-      <!--<artifactId>hive-builtins</artifactId>-->
-      <!--<scope>runtime</scope>-->
-    <!--</dependency>-->
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-common</artifactId>
@@ -223,6 +216,13 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.oozie</groupId>
+      <artifactId>oozie-sharelib-hive</artifactId>
+      <version>${oozie.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>
       <scope>runtime</scope>
@@ -233,6 +233,8 @@
         </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- GBIF -->
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hive</artifactId>

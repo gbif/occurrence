@@ -13,13 +13,6 @@
   <name>Occurrence Hive</name>
   <description>Occurrence utilities for Hive</description>
 
-  <properties>
-    <!-- VERSIONS -->
-    <!--<hive.version>0.10.0-cdh4.2.1</hive.version>-->
-    <!--<hbase.version>0.94.2-cdh4.2.1</hbase.version>-->
-    <!--<hadoop.version>2.0.0-mr1-cdh4.2.1</hadoop.version>-->
-    <!--<hadoop-non-core.version>2.0.0-cdh4.2.1</hadoop-non-core.version>-->
-  </properties>
   <build>
     <plugins>
       <plugin>
@@ -121,11 +114,11 @@
     </dependency>
 
     <!-- Runtime dependencies -->
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <scope>provided</scope>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.apache.hadoop</groupId>-->
+      <!--<artifactId>hadoop-core</artifactId>-->
+      <!--<scope>provided</scope>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
