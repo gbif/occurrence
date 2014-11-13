@@ -16,6 +16,12 @@
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>oozie.launcher.mapreduce.job.user.classpath.first</name>
+          <value>true</value>
+        </property>
+      </configuration>
       <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
       <arg>${solr_query}</arg>
       <arg>${wf:id()}</arg>

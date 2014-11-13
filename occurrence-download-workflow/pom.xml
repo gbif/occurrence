@@ -139,6 +139,7 @@
   <dependency>
    <groupId>com.google.guava</groupId>
    <artifactId>guava</artifactId>
+    <version>17.0</version>
   </dependency>
   <dependency>
    <groupId>com.google.inject</groupId>
@@ -223,6 +224,10 @@
       <exclusion>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-core</artifactId>
       </exclusion>
     </exclusions>
   </dependency>

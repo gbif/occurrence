@@ -69,4 +69,16 @@
     <name>mapreduce.task.classpath.user.precedence</name>
     <value>true</value>
   </property>
+  <property>
+    <name>mapreduce.task.classpath.first</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>mapreduce.job.user.classpath.first</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>oozie.launcher.mapreduce.job.user.classpath.first</name>
+    <value>true</value>
+  </property>
 </configuration>
