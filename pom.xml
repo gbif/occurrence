@@ -69,7 +69,6 @@
     <occurrence.download.mail.from>downloads@gbif.org</occurrence.download.mail.from>
     <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
 
-
     <!-- VERSIONS -->
     <amqp-client.version>3.0.2</amqp-client.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
@@ -97,7 +96,7 @@
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.10-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.12-SNAPSHOT</gbif-postal-service.version>
-    <gbif-registry.version>2.16</gbif-registry.version>
+    <gbif-registry.version>2.18-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.8</checklistbank-ws-client.version>
     <name-parser.version>2.4</name-parser.version>
@@ -535,8 +534,7 @@
         <version>${findbugs-jsr305.version}</version>
       </dependency>
 
-
-      <!-- new hbase -->
+      <!-- hbase -->
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-client</artifactId>
@@ -577,6 +575,10 @@
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
           </exclusion>
           <!-- this brings in test classifier stuff -->
           <exclusion>
@@ -631,18 +633,37 @@
         <version>${hadoop.version}</version>
         <scope>test</scope>
       </dependency>
+      <!-- end hbase -->
 
-      <!-- new hadoop -->
+      <!-- hadoop -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-hdfs</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -682,70 +703,9 @@
         <artifactId>hbase-hadoop2-compat</artifactId>
         <version>${hbase.version}</version>
       </dependency>
-      <!-- end new hadoop -->
+      <!-- end hadoop -->
 
-
-      <!-- old hadoop -->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-common</artifactId>-->
-        <!--<version>${hadoop.version}</version>-->
-        <!--<exclusions>-->
-          <!--<exclusion>-->
-            <!--<artifactId>slf4j-log4j12</artifactId>-->
-            <!--<groupId>org.slf4j</groupId>-->
-          <!--</exclusion>-->
-        <!--</exclusions>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-hdfs</artifactId>-->
-        <!--<version>${hadoop.version}</version>-->
-        <!--<exclusions>-->
-          <!--<exclusion>-->
-            <!--<artifactId>slf4j-log4j12</artifactId>-->
-            <!--<groupId>org.slf4j</groupId>-->
-          <!--</exclusion>-->
-        <!--</exclusions>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-minicluster</artifactId>-->
-        <!--<version>${hadoop.version}</version>-->
-        <!--<scope>test</scope>-->
-        <!--<exclusions>-->
-          <!--<exclusion>-->
-            <!--<artifactId>slf4j-log4j12</artifactId>-->
-            <!--<groupId>org.slf4j</groupId>-->
-          <!--</exclusion>-->
-        <!--</exclusions>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-core</artifactId>-->
-        <!--<version>${hadoop-core.version}</version>-->
-        <!--<exclusions>-->
-          <!--<exclusion>-->
-            <!--<artifactId>slf4j-log4j12</artifactId>-->
-            <!--<groupId>org.slf4j</groupId>-->
-          <!--</exclusion>-->
-        <!--</exclusions>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-core-test</artifactId>-->
-        <!--<version>${hadoop-core.version}</version>-->
-        <!--<scope>test</scope>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-        <!--<groupId>org.apache.hadoop</groupId>-->
-        <!--<artifactId>hadoop-test</artifactId>-->
-        <!--<version>${hadoop-core.version}</version>-->
-        <!--<scope>test</scope>-->
-      <!--</dependency>-->
-      <!-- end old hadoop -->
-
-      <!-- old hive -->
+      <!-- hive -->
       <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-exec</artifactId>
@@ -795,7 +755,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- end old hive -->
+      <!-- end hive -->
 
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
