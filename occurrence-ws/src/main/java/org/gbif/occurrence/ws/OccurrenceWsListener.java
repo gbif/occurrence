@@ -8,10 +8,13 @@ import org.gbif.occurrence.search.guice.OccurrenceSearchModule;
 import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.service.guice.PrivateServiceModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
+import org.gbif.ws.app.ConfUtils;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
 import org.gbif.ws.server.guice.GbifServletListener;
 import org.gbif.ws.server.guice.WsAuthModule;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,6 +32,7 @@ public class OccurrenceWsListener extends GbifServletListener {
 
   private static final String DOWNLOAD_USER_KEY = "occurrence.download.ws.username";
   private static final String DOWNLOAD_PASSWORD_KEY = "occurrence.download.ws.password";
+  private static final String APP_CONF_FILE = "occurrence.properties";
 
   /**
    * Wires up the featured module to be able to access the HBase table.
@@ -55,8 +59,8 @@ public class OccurrenceWsListener extends GbifServletListener {
     }
   }
 
-  public OccurrenceWsListener() {
-    super("occurrence.properties", "org.gbif.occurrence.ws", true);
+  public OccurrenceWsListener() throws IOException {
+    super(PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE)), "org.gbif.occurrence.ws", true);
   }
 
   @Override

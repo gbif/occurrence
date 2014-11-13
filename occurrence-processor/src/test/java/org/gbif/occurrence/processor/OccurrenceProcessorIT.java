@@ -42,13 +42,14 @@ import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("requires live webservices and messaging")
+@Ignore("requires live webservices and messaging")
 public class OccurrenceProcessorIT {
 
   private final OccurrenceKeyPersistenceService occurrenceKeyService = new OccurrenceKeyPersistenceServiceMock();

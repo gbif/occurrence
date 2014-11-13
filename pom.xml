@@ -1041,7 +1041,7 @@
         <occurrence.download.datause.url>http://www.gbif-uat.org/faq/datause</occurrence.download.datause.url>
         <checklistbank.match.ws.url>http://api.gbif-uat.org/v1/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-uat.org/v1/</checklistbank.ws.url>
-        <registry.ws.url>http://apps.gbif-uat.org:8080/b_registry-ws/</registry.ws.url>
+        <registry.ws.url>http://api.gbif-uat.org/v1/</registry.ws.url>
         <geocode.ws.url>http://api.gbif-uat.org/v1/geocode/reverse</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
@@ -1091,7 +1091,7 @@
         <occurrence.download.datause.url>http://www.gbif-dev.org/faq/datause</occurrence.download.datause.url>
         <checklistbank.match.ws.url>http://api.gbif-dev.org/v1/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-dev.org/v1/</checklistbank.ws.url>
-        <registry.ws.url>http://apps.gbif-dev.org:8080/registry-ws</registry.ws.url>
+        <registry.ws.url>http://api.gbif-dev.org/v1/</registry.ws.url>
         <geocode.ws.url>http://api.gbif-dev.org/v1/geocode/reverse/</geocode.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
@@ -1144,6 +1144,7 @@
         <checklistbank.match.ws.url>http://api.gbif.org/v1/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif.org/v1/</checklistbank.ws.url>
         <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
+        <registry.ws.url>http://api.gbif.org/v1/</registry.ws.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_live</drupal.db.username>
@@ -1156,7 +1157,6 @@
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.env_prefix>prod_a</occurrence.env_prefix>
-        <registry.ws.url>http://apps.gbif.org:8080/a_registry-ws/</registry.ws.url>
       </properties>
     </profile>
 
@@ -1165,7 +1165,6 @@
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.env_prefix>prod_b</occurrence.env_prefix>
-        <registry.ws.url>http://apps.gbif.org:8080/b_registry-ws/</registry.ws.url>
       </properties>
     </profile>
   </profiles>
