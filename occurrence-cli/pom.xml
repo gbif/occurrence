@@ -15,14 +15,15 @@
   <properties>
     <gbif-cli.version>0.7-SNAPSHOT</gbif-cli.version>
 
-    <!--<guava.version>15.0</guava.version>-->
+    <guava.version>15.0</guava.version>
     <!-- specific versions for solr -->
     <httpclient.version>4.2.3</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
     <httpmime.version>4.2.3</httpmime.version>
     <!-- cli specific jackson versions in order to use yaml configs -->
     <jackson.version>1.9.11</jackson.version>
-    <jackson-annotations.version>2.1.2</jackson-annotations.version>
+    <!--<jackson-annotations.version>2.1.2</jackson-annotations.version>-->
+    <jackson-annotations.version>2.4.2</jackson-annotations.version>
     <jackson-datatype-guava.version>1.9.1</jackson-datatype-guava.version>
     <metainf-services.version>1.4</metainf-services.version>
     <!-- Fixed to the version Curator uses, problems otherwise -->
@@ -127,7 +128,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <!--<version>${guava.version}</version>-->
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
