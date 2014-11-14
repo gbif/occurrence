@@ -1037,7 +1037,7 @@
         <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
 
         <!-- webservices -->
-        <occurrence.search.solr.server>http://apps.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
+        <occurrence.search.solr.server>http://apps2.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-dev.org/v1/</occurrence.download.ws.url>
         <occurrence.download.hive.hdfs.out>/user/hive/warehouse/dev.db</occurrence.download.hive.hdfs.out>
         <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
