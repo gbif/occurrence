@@ -32,6 +32,7 @@
         <exclude>**/*.sh</exclude>
         <exclude>org/**</exclude>
         <exclude>inc/**</exclude>
+        <exclude>*.properties</exclude>
       </excludes>
     </fileSet>
     <fileSet>
@@ -49,7 +50,7 @@
       <source>${project.build.outputDirectory}/conf/hive-default.xml</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
-    </file>  
+    </file>
     <file>
       <source>${project.build.outputDirectory}/inc/interpreted_headers.txt</source>
       <outputDirectory>lib</outputDirectory>
@@ -59,12 +60,17 @@
       <source>${project.build.outputDirectory}/inc/verbatim_headers.txt</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
-    </file>    
+    </file>
     <file>
       <source>${project.build.outputDirectory}/inc/multimedia_headers.txt</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
-    </file>    
+    </file>
+    <file>
+      <source>${project.build.outputDirectory}/occurrence-download.properties</source>
+      <outputDirectory>lib</outputDirectory>
+      <fileMode>0644</fileMode>
+    </file>
   </files>
 
   <dependencySets>
