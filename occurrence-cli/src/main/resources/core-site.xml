@@ -16,10 +16,10 @@
 
   <!-- avoids the java.io.IOException: No FileSystem for scheme: hdfs  as per
   http://grokbase.com/t/cloudera/scm-users/1288xszz7r/no-filesystem-for-scheme-hdfs -->
-  <property>
-    <name>fs.hdfs.impl</name>
-    <value>org.apache.hadoop.hdfs.DistributedFileSystem</value>
-    <description>The FileSystem for hdfs: uris.</description>
-  </property>
+  <!--<property>-->
+    <!--<name>fs.hdfs.impl</name>-->
+    <!--<value>org.apache.hadoop.hdfs.DistributedFileSystem</value>-->
+    <!--<description>The FileSystem for hdfs: uris.</description>-->
+  <!--</property>-->
 
 </configuration>
