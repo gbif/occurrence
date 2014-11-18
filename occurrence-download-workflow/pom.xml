@@ -26,7 +26,6 @@
     <!-- VERSIONS -->
     <akka-actor.version>2.0.5</akka-actor.version>
     <common-beanutils-core.version>1.8.3</common-beanutils-core.version>
-    <apache-curator.version>2.1.0-incubating</apache-curator.version>
     <freemarker.version>2.3.19</freemarker.version>
     <httpclient.version>4.2.5</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
@@ -35,6 +34,7 @@
     <super-csv.version>2.0.1</super-csv.version>
     <brickhouse.version>0.6.0</brickhouse.version>
     <hadoop-compress.version>1.1-SNAPSHOT</hadoop-compress.version>
+    <guava.version>17.0</guava.version>
   </properties>
 
   <build>
@@ -45,6 +45,7 @@
         <includes>
           <include>conf/hive-site.xml</include>
           <include>workflow.xml</include>
+          <include>hbase-site.xml</include>
           <include>occurrence-download.properties</include>
         </includes>
       </resource>
@@ -148,7 +149,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>17.0</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -167,7 +168,6 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-client</artifactId>
-      <version>${apache-curator.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.zookeeper</groupId>
@@ -178,7 +178,6 @@
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
-      <version>${apache-curator.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.zookeeper</groupId>

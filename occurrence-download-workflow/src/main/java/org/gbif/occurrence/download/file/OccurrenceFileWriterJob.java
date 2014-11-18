@@ -33,6 +33,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -55,6 +57,11 @@ import org.supercsv.util.CsvContext;
 class OccurrenceFileWriterJob implements Callable<Result> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriterJob.class);
+
+  static {
+    //https://issues.apache.org/jira/browse/BEANUTILS-387
+    ConvertUtils.register(new DateConverter(null), Date.class);
+  }
 
   private static Function<Term, String> SIMPLENAME_FUNC = new Function<Term, String>() {
 

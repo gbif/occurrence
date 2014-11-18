@@ -10,6 +10,9 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
 SET hive.auto.convert.join=false;
 
+CREATE TABLE ${result_multimedia_table}
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS
 SELECT cleanNull(gbifid),cleanDelimiters(mm_record['type']),cleanDelimiters(mm_record['format']),cleanDelimiters(mm_record['identifier']),cleanDelimiters(mm_record['references']),cleanDelimiters(mm_record['title']),cleanDelimiters(mm_record['description']),cleanDelimiters(mm_record['source']),cleanDelimiters(mm_record['audience']),toISO8601(mm_record['created']),cleanDelimiters(mm_record['creator']),cleanDelimiters(mm_record['contributor']),cleanDelimiters(mm_record['publisher']),cleanDelimiters(mm_record['license']),cleanDelimiters(mm_record['rightsHolder'])
 FROM (
   SELECT occ.gbifid, occ.ext_multimedia  FROM ${occurrence_record} occ
