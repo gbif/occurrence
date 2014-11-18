@@ -15,6 +15,12 @@
     <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
+      <configuration>
+        <property>
+          <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+          <value>true</value>
+        </property>
+      </configuration>
       <main-class>org.gbif.occurrence.download.oozie.OccurrenceCount</main-class>
       <arg>${solr_query}</arg>
       <arg>${wf:id()}</arg>
@@ -44,6 +50,12 @@
     <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
+      <configuration>
+        <property>
+          <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+          <value>true</value>
+        </property>
+      </configuration>
       <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
       <arg>${query_result_table}_interpreted</arg>
       <arg>${query_result_table}_verbatim</arg>
@@ -63,7 +75,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_occurrence_table.q</script>
 
       <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
@@ -80,7 +92,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_occurrence_table.q</script>
 
       <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
@@ -102,7 +114,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_multimedia_table.q</script>
 
       <param>result_multimedia_table=${occurrence.env_prefix}.${query_result_table}_multimedia</param>
@@ -118,7 +130,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/citation.q</script>
 
       <param>query_result_table=${occurrence.env_prefix}.${query_result_table}_interpreted</param>
@@ -137,6 +149,12 @@
     <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
+      <configuration>
+        <property>
+          <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+          <value>true</value>
+        </property>
+      </configuration>
       <main-class>org.gbif.occurrence.download.oozie.ArchiveBuilder</main-class>
       <arg>${hdfs.namenode}</arg>
       <arg>${hdfs_hive_path}</arg>
@@ -181,7 +199,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
       <param>query_result_table=${occurrence.env_prefix}.${query_result_table}</param>
@@ -197,7 +215,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
       <param>query_result_table=${occurrence.env_prefix}.${query_result_table}</param>
