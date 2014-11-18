@@ -27,11 +27,6 @@
     <name>hbase.zookeeper.quorum</name>
     <value>${zookeeper.quorum}</value>
   </property>
-
-  <property>
-    <name>hive.metastore.local</name>
-    <value>false</value>
-  </property>
   <property>
     <name>hive.metastore.uris</name>
     <value>${hive.metastore.uris}</value>
@@ -80,5 +75,9 @@
   <property>
     <name>oozie.launcher.mapreduce.job.user.classpath.first</name>
     <value>true</value>
+  </property>
+  <property>
+    <name>oozie.log.hive.level</name>
+    <value>DEBUG</value>
   </property>
 </configuration>

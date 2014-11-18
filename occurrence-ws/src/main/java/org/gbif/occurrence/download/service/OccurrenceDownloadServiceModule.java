@@ -62,8 +62,8 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
       .put("hdfs_hive_path", hdfsOutput)
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
         DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
-      .put("mapreduce.task.classpath.user.precedence", "true")
-      .put("oozie.use.system.libpath","true");
+      .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
+      .put("oozie.action.sharelib.for.hive","hive");
     // we dont have a specific downloadId yet, submit a placeholder
     String downloadLinkTemplate = DownloadUtils.concatUrlPaths(wsUrl,
       "occurrence/download/" + DownloadUtils.DOWNLOAD_ID_PLACEHOLDER + ".zip");

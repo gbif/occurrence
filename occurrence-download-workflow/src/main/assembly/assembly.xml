@@ -47,11 +47,6 @@
 
   <files>
     <file>
-      <source>${project.build.outputDirectory}/conf/hive-default.xml</source>
-      <outputDirectory>lib</outputDirectory>
-      <fileMode>0644</fileMode>
-    </file>
-    <file>
       <source>${project.build.outputDirectory}/inc/interpreted_headers.txt</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>

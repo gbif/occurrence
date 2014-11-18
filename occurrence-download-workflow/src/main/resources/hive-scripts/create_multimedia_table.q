@@ -7,7 +7,8 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-
+--this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
+SET hive.auto.convert.join=false;
 
 CREATE TABLE ${result_multimedia_table}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
@@ -17,3 +18,5 @@ FROM (
   SELECT occ.gbifid, occ.ext_multimedia  FROM ${occurrence_record} occ
   JOIN ${occurrence_intepreted_table} intocc ON intocc.gbifid = occ.gbifid
 ) occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
+
+SET hive.auto.convert.join=true;
