@@ -196,7 +196,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static void runMrSync(@Nullable UUID datasetKey) {
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.client.scanner.timeout.period", "600000");
-    conf.set("hbase.regionserver.lease.period", "600000");
     conf.set("hbase.rpc.timeout", "600000");
 
     Scan scan = new Scan();
@@ -221,20 +220,23 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
 
     try {
-      Job job = new Job(conf, jobTitle);
+      Job job = Job.getInstance(conf, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
-      job.getConfiguration().set("mapred.map.tasks.speculative.execution", "false");
-      job.getConfiguration().set("mapred.reduce.tasks.speculative.execution", "false");
-
+      job.getConfiguration().set("mapreduce.map.speculative", "false");
+      job.getConfiguration().set("mapreduce.reduce.speculative", "false");
+      job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
+      job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
+      job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
 
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
       } else {
+        // NOTE: addDependencyJars must be false or you'll see it trying to load hdfs://c1n1/home/user/app/lib/occurrence-cli.jar
         TableMapReduceUtil
           .initTableMapperJob(targetTable, scan, OccurrenceScanMapper.class, ImmutableBytesWritable.class,
-            NullWritable.class, job);
+            NullWritable.class, job, false);
         job.waitForCompletion(true);
       }
     } catch (Exception e) {
