@@ -119,8 +119,9 @@
     <mockito.version>1.9.0</mockito.version>
     <powermock-mockito.version>1.4.12</powermock-mockito.version>
     <servlet-api.version>2.5</servlet-api.version>
-    <!-- slf4j fixed to what cdh 5.2 uses -->
-    <slf4j.version>1.7.5</slf4j.version>
+    <!-- slf4j must be 1.7.7+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
+     will break when used with yarn -->
+    <slf4j.version>1.7.7</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
     <solr-lucene.version>4.4.0</solr-lucene.version>
     <jts.version>1.13</jts.version>
