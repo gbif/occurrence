@@ -25,6 +25,7 @@ import org.gbif.utils.file.FileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -321,10 +322,19 @@ public class ArchiveBuilder {
           entry = zin.getNextEntry();
         }
 
-        // TODO: Add headers(!)
-        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + interpretedDataTable), INTERPRETED_FILENAME);
-        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + verbatimDataTable), VERBATIM_FILENAME);
-        appendPreCompressedFile(out, new Path(hdfsPath + Path.SEPARATOR + multimediaDataTable), MULTIMEDIA_FILENAME);
+        // NOTE: hive lowercases all the paths
+        appendPreCompressedFile(out,
+                                new Path((hdfsPath + Path.SEPARATOR + interpretedDataTable).toLowerCase()),
+                                INTERPRETED_FILENAME,
+                                HeadersFileUtil.getIntepretedTableHeader());
+        appendPreCompressedFile(out,
+                                new Path((hdfsPath + Path.SEPARATOR + verbatimDataTable).toLowerCase()),
+                                VERBATIM_FILENAME,
+                                HeadersFileUtil.getVerbatimTableHeader());
+        appendPreCompressedFile(out,
+                                new Path((hdfsPath + Path.SEPARATOR + multimediaDataTable).toLowerCase()),
+                                MULTIMEDIA_FILENAME,
+                                HeadersFileUtil.getMultimediaTableHeader());
 
       } finally {
         // we've rewritten so remove the original
@@ -338,12 +348,20 @@ public class ArchiveBuilder {
       throw new IllegalStateException("Unable to rename existing zip, to allow appending occurrence data");
     }  }
 
+
   /**
    * Appends the compressed files found within the directory to the zip stream as the named file
    */
-  private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename) throws IOException {
+  private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename, String headerRow) throws IOException {
     RemoteIterator<LocatedFileStatus> files = hdfs.listFiles(dir, false);
     List<InputStream> parts = Lists.newArrayList();
+
+    // Add the header first, which must also be compressed
+    ByteArrayOutputStream header = new ByteArrayOutputStream();
+    D2Utils.compress(new ByteArrayInputStream(headerRow.getBytes()), header);
+    parts.add(new ByteArrayInputStream(header.toByteArray()));
+
+    // Locate the streams to the compressed content on HDFS
     while (files.hasNext()) {
       LocatedFileStatus fs = files.next();
       Path path = fs.getPath();
@@ -353,6 +371,7 @@ public class ArchiveBuilder {
       }
     }
 
+    // create the Zip entry, and write the compressed bytes
     org.gbif.hadoop.compress.d2.zip.ZipEntry ze = new org.gbif.hadoop.compress.d2.zip.ZipEntry(filename);
     out.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
     try (D2CombineInputStream in = new D2CombineInputStream(parts)) {
