@@ -119,7 +119,7 @@
     <mockito.version>1.9.0</mockito.version>
     <powermock-mockito.version>1.4.12</powermock-mockito.version>
     <servlet-api.version>2.5</servlet-api.version>
-    <!-- slf4j must be 1.7.7+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
+    <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
     <slf4j.version>1.7.7</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
@@ -612,6 +612,10 @@
           <exclusion>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

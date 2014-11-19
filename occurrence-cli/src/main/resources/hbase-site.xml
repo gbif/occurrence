@@ -22,8 +22,9 @@
     <name>hbase.zookeeper.quorum</name>
     <value>${zookeeper.quorum}</value>
   </property>
-  <property>
-    <name>hbase.defaults.for.version.skip</name>
-    <value>true</value>
-  </property>
+  <!-- TODO: this triggers a class not found, figure out why -->
+  <!--<property>-->
+    <!--<name>hbase.defaults.for.version.skip</name>-->
+    <!--<value>true</value>-->
+  <!--</property>-->
 </configuration>
