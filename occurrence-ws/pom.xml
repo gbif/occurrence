@@ -14,7 +14,7 @@
 
   <properties>
     <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
-    <gbif-microservice.version>0.1-SNAPSHOT</gbif-microservice.version>
+    <gbif-microservice.version>0.1</gbif-microservice.version>
   </properties>
 
   <build>

@@ -33,7 +33,7 @@
     <solr.version>4.4.0</solr.version>
     <super-csv.version>2.0.1</super-csv.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <hadoop-compress.version>1.1-SNAPSHOT</hadoop-compress.version>
+    <hadoop-compress.version>1.1</hadoop-compress.version>
     <guava.version>17.0</guava.version>
   </properties>
 
