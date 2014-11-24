@@ -1137,7 +1137,7 @@
       <id>prod_b</id>
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
-        <occurrence.env_prefix>prod_b</occurrence.env_prefix>
+        <occurrence.env_prefix>prod_b2</occurrence.env_prefix>
       </properties>
     </profile>
   </profiles>
