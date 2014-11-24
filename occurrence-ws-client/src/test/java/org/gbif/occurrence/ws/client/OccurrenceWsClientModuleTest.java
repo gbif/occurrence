@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.guice.AnonymousAuthModule;
@@ -57,4 +58,14 @@ public class OccurrenceWsClientModuleTest {
 
     System.out.print(d);
   }
+
+
+  private void f(){
+    Properties props = new Properties();
+    props.setProperty("occurrence.ws.url", "api.gbif.org/v1/");
+    Injector inj = Guice.createInjector(new OccurrenceWsClientModule(props));
+    OccurrenceService occService = inj.getInstance(OccurrenceService.class);
+    OccurrenceSearchService searchService = inj.getInstance(OccurrenceSearchService.class);
+  }
+
 }

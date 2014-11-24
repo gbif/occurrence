@@ -232,13 +232,6 @@
         <version>${gbif-common-ws.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.gbif</groupId>
-        <artifactId>gbif-common-test</artifactId>
-        <version>${gbif-common-test.version}</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.gbif.common</groupId>
         <artifactId>gbif-postal-service</artifactId>
         <version>${gbif-postal-service.version}</version>

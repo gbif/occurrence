@@ -10,7 +10,6 @@ import org.gbif.dwc.terms.TermFactory;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -26,102 +25,81 @@ import com.google.common.collect.Sets;
  */
 public class TermUtils {
 
-  private static final Set<Term> EXTENSION_TERMS = ImmutableSet.copyOf(
-    Iterables.transform(ImmutableList.copyOf(Extension.values()), new Function<Extension, Term>() {
+  private static final Set<Term> EXTENSION_TERMS =
+    ImmutableSet.copyOf(Iterables.transform(ImmutableList.copyOf(Extension.values()), new Function<Extension, Term>() {
 
-      @Nullable
-      @Override
-      public Term apply(@Nullable Extension e) {
-        return TermFactory.instance().findTerm(e.getRowType());
-      }
-    })
-    );
+        @Nullable
+        @Override
+        public Term apply(@Nullable Extension e) {
+          return TermFactory.instance().findTerm(e.getRowType());
+        }
+      }));
 
-  private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(
-    DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
-    DcTerm.modified, GbifInternalTerm.fragmentCreated);
+  private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet
+    .of(DwcTerm.eventDate, DwcTerm.dateIdentified, GbifTerm.lastInterpreted, GbifTerm.lastParsed, GbifTerm.lastCrawled,
+      DcTerm.modified, GbifInternalTerm.fragmentCreated);
 
-  private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(
-    DwcTerm.year, DwcTerm.month, DwcTerm.day, GbifTerm.taxonKey, GbifTerm.kingdomKey, GbifTerm.phylumKey,
-    GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
-    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
-    GbifInternalTerm.crawlId, GbifInternalTerm.identifierCount);
+  private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet
+    .of(DwcTerm.year, DwcTerm.month, DwcTerm.day, GbifTerm.taxonKey, GbifTerm.kingdomKey, GbifTerm.phylumKey,
+      GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey, GbifTerm.genusKey, GbifTerm.subgenusKey,
+      GbifTerm.speciesKey, GbifInternalTerm.crawlId, GbifInternalTerm.identifierCount);
 
-  private static final Set<? extends Term> INTERPRETED_BOOLEAN = ImmutableSet.of(GbifTerm.hasCoordinate,
-    GbifTerm.hasGeospatialIssues);
+  private static final Set<? extends Term> INTERPRETED_BOOLEAN =
+    ImmutableSet.of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
 
   private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue);
 
-  private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(
-    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy,
-    GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy);
+  private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet
+    .of(DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy, GbifTerm.elevation,
+      GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy);
 
-  private static final Set<? extends Term> NON_OCCURRENCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
-    Iterables.concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
-      DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP),
-      Sets.newHashSet(GbifTerm.infraspecificMarker, GbifTerm.isExtinct, GbifTerm.isFreshwater,
-        GbifTerm.isHybrid, GbifTerm.isMarine, GbifTerm.isPlural, GbifTerm.isPreferredName,
-        GbifTerm.isTerrestrial, GbifTerm.livingPeriod, GbifTerm.lifeForm, GbifTerm.ageInDays,
-        GbifTerm.sizeInMillimeter, GbifTerm.massInGram, GbifTerm.organismPart,
-        GbifTerm.appendixCITES, GbifTerm.typeDesignatedBy, GbifTerm.typeDesignationType,
-        GbifTerm.canonicalName, GbifTerm.nameType, GbifTerm.verbatimLabel,
-        GbifTerm.infraspecificMarker)
-      )
-    );
+  private static final Set<? extends Term> NON_OCCURRENCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(Iterables
+    .concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
+      DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP), Sets
+        .newHashSet(GbifTerm.infraspecificMarker, GbifTerm.isExtinct, GbifTerm.isFreshwater, GbifTerm.isHybrid,
+          GbifTerm.isMarine, GbifTerm.isPlural, GbifTerm.isPreferredName, GbifTerm.isTerrestrial, GbifTerm.livingPeriod,
+          GbifTerm.lifeForm, GbifTerm.ageInDays, GbifTerm.sizeInMillimeter, GbifTerm.massInGram, GbifTerm.organismPart,
+          GbifTerm.appendixCITES, GbifTerm.typeDesignatedBy, GbifTerm.typeDesignationType, GbifTerm.canonicalName,
+          GbifTerm.nameType, GbifTerm.verbatimLabel, GbifTerm.infraspecificMarker)));
 
   /**
    * Interpreted terms that exist as java properties on Occurrence.
    */
-  private static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet.of(
-    DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
-    DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.countryCode,
-    DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
-    DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
-    GbifTerm.species, DwcTerm.scientificName, DwcTerm.taxonRank,
-    GbifTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-    DwcTerm.basisOfRecord, DwcTerm.individualCount, DwcTerm.sex, DwcTerm.lifeStage, DwcTerm.establishmentMeans,
-    GbifTerm.taxonKey, DwcTerm.typeStatus, GbifTerm.typifiedName,
-    GbifTerm.kingdomKey, GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey,
-    GbifTerm.genusKey, GbifTerm.subgenusKey, GbifTerm.speciesKey,
-    GbifTerm.datasetKey, GbifTerm.publishingCountry,
-    GbifTerm.lastInterpreted, DcTerm.modified,
-    GbifTerm.coordinateAccuracy,
-    GbifTerm.elevation, GbifTerm.elevationAccuracy,
-    GbifTerm.depth, GbifTerm.depthAccuracy,
-    GbifInternalTerm.unitQualifier, GbifTerm.issue,
-    DcTerm.references,
-    GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed
-    );
+  private static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet
+    .of(DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince,
+      DwcTerm.countryCode, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
+      DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus,
+      GbifTerm.species, DwcTerm.scientificName, DwcTerm.taxonRank, GbifTerm.genericName, DwcTerm.specificEpithet,
+      DwcTerm.infraspecificEpithet, DwcTerm.basisOfRecord, DwcTerm.individualCount, DwcTerm.sex, DwcTerm.lifeStage,
+      DwcTerm.establishmentMeans, GbifTerm.taxonKey, DwcTerm.typeStatus, GbifTerm.typifiedName, GbifTerm.kingdomKey,
+      GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey, GbifTerm.genusKey,
+      GbifTerm.subgenusKey, GbifTerm.speciesKey, GbifTerm.datasetKey, GbifTerm.publishingCountry,
+      GbifTerm.lastInterpreted, DcTerm.modified, GbifTerm.coordinateAccuracy, GbifTerm.elevation,
+      GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy, GbifInternalTerm.unitQualifier,
+      GbifTerm.issue, DcTerm.references, GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol,
+      GbifTerm.lastCrawled, GbifTerm.lastParsed);
 
 
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
-    Iterables.concat(JAVA_PROPERTY_TERMS,
-      Lists.newArrayList(
-        DwcTerm.decimalLatitude, DwcTerm.decimalLongitude,
-        DwcTerm.verbatimLatitude, DwcTerm.verbatimLongitude, DwcTerm.verbatimCoordinates, DwcTerm.geodeticDatum,
-        DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
-        DwcTerm.continent, DwcTerm.waterBody, DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode,
-        DwcTerm.scientificName, DwcTerm.scientificNameAuthorship, DwcTerm.taxonRank,
-        DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_, DwcTerm.order, DwcTerm.family, DwcTerm.genus,
-        DwcTerm.subgenus,
-        GbifTerm.genericName, DwcTerm.specificEpithet, DwcTerm.infraspecificEpithet,
-        DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day,
-        DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
-        DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters,
-        DwcTerm.associatedMedia
-        )
-      )
-    );
+    Iterables.concat(JAVA_PROPERTY_TERMS, Lists
+        .newArrayList(DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.verbatimLatitude,
+          DwcTerm.verbatimLongitude, DwcTerm.verbatimCoordinates, DwcTerm.geodeticDatum,
+          DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision, DwcTerm.continent, DwcTerm.waterBody,
+          DwcTerm.stateProvince, DwcTerm.country, DwcTerm.countryCode, DwcTerm.scientificName,
+          DwcTerm.scientificNameAuthorship, DwcTerm.taxonRank, DwcTerm.kingdom, DwcTerm.phylum, DwcTerm.class_,
+          DwcTerm.order, DwcTerm.family, DwcTerm.genus, DwcTerm.subgenus, GbifTerm.genericName, DwcTerm.specificEpithet,
+          DwcTerm.infraspecificEpithet, DcTerm.modified, DwcTerm.dateIdentified, DwcTerm.eventDate, DwcTerm.year,
+          DwcTerm.month, DwcTerm.day, DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters,
+          DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters, DwcTerm.associatedMedia)));
 
   /**
    * Term list of the extension exluding the coreid just as defined by:
    * http://rs.gbif.org/extension/gbif/1.0/multimedia.xml
    */
-  private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(
-    DcTerm.type, DcTerm.format, DcTerm.identifier, DcTerm.references, DcTerm.title, DcTerm.description,
-    DcTerm.created, DcTerm.creator, DcTerm.contributor, DcTerm.publisher, DcTerm.audience, DcTerm.source,
-    DcTerm.license, DcTerm.rightsHolder
-    );
+  private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList
+    .of(DcTerm.type, DcTerm.format, DcTerm.identifier, DcTerm.references, DcTerm.title, DcTerm.description,
+      DcTerm.created, DcTerm.creator, DcTerm.contributor, DcTerm.publisher, DcTerm.audience, DcTerm.source,
+      DcTerm.license, DcTerm.rightsHolder);
 
   private TermUtils() {
     // private constructor
@@ -157,21 +135,19 @@ public class TermUtils {
    * UnknownTerms are not included as they are open ended.
    */
   public static Iterable<? extends Term> interpretedTerms() {
-    return Iterables.concat(
-      Lists.newArrayList(GbifTerm.gbifID),
+    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
       Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
 
         @Override
         public boolean apply(@Nullable DcTerm t) {
-          return !t.isClass()
-            && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
+          return !t.isClass() && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
         }
       }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
 
         @Override
         public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)
-            && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && (!INTERPRETED_SOURCE_TERMS.contains(t)
+                                                                       || JAVA_PROPERTY_TERMS.contains(t));
         }
       }), Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
 
@@ -179,8 +155,7 @@ public class TermUtils {
         public boolean apply(@Nullable GbifTerm t) {
           return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t;
         }
-      })
-      );
+      }));
   }
 
   /**
@@ -189,8 +164,7 @@ public class TermUtils {
    * UnknownTerms are not included as they are open ended.
    */
   public static Iterable<? extends Term> verbatimTerms() {
-    return Iterables.concat(
-      Lists.newArrayList(GbifTerm.gbifID),
+    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
       Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
 
         @Override
@@ -203,8 +177,7 @@ public class TermUtils {
         public boolean apply(@Nullable DwcTerm t) {
           return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
         }
-      })
-      );
+      }));
   }
 
   /**
