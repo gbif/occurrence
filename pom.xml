@@ -81,25 +81,7 @@
     <commmons-lang.version>3.3.2</commmons-lang.version>
     <curator.version>2.6.0</curator.version>
     <dbunit.version>2.4.8</dbunit.version>
-    <drupal-mybatis.version>0.11</drupal-mybatis.version>
-    <dwc-api.version>1.8</dwc-api.version>
-    <dwca-reader.version>1.18</dwca-reader.version>
-    <findbugs-jsr305.version>2.0.3</findbugs-jsr305.version>
-    <gbif-api.version>0.16</gbif-api.version>
-    <gbif-common.version>0.17</gbif-common.version>
-    <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.18</gbif-common-search.version>
-    <gbif-common-service.version>0.11</gbif-common-service.version>
-    <gbif-common-ws.version>0.16</gbif-common-ws.version>
-    <geocode.version>0.3</geocode.version>
-    <geotools.version>11.1</geotools.version>
-    <gbif-httputils.version>0.5</gbif-httputils.version>
-    <gbif-parsers.version>0.10</gbif-parsers.version>
-    <gbif-postal-service.version>0.12</gbif-postal-service.version>
-    <gbif-registry.version>2.18</gbif-registry.version>
-    <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.8</checklistbank-ws-client.version>
-    <name-parser.version>2.4</name-parser.version>
+
     <grizzly-servlet-webserver.version>1.9.50</grizzly-servlet-webserver.version>
     <!-- fixed to what hbase provides -->
     <guava.version>14.0.1</guava.version>
@@ -119,6 +101,7 @@
     <mail.version>1.4.5</mail.version>
     <mockito.version>1.9.0</mockito.version>
     <powermock-mockito.version>1.4.12</powermock-mockito.version>
+    <findbugs-jsr305.version>2.0.3</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
@@ -146,6 +129,25 @@
     <oozie.version>4.0.0-cdh5.2.0</oozie.version>
     <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
 
+    <!-- GBIF VERSIONS -->
+    <drupal-mybatis.version>0.14</drupal-mybatis.version>
+    <dwc-api.version>1.9</dwc-api.version>
+    <dwca-reader.version>1.19</dwca-reader.version>
+    <gbif-api.version>0.16</gbif-api.version>
+    <gbif-common.version>0.17</gbif-common.version>
+    <gbif-common-test.version>0.7</gbif-common-test.version>
+    <gbif-common-search.version>0.18</gbif-common-search.version>
+    <gbif-common-service.version>0.11</gbif-common-service.version>
+    <gbif-common-ws.version>0.16</gbif-common-ws.version>
+    <geocode.version>0.6</geocode.version>
+    <geotools.version>11.1</geotools.version>
+    <gbif-httputils.version>0.5</gbif-httputils.version>
+    <gbif-parsers.version>0.10</gbif-parsers.version>
+    <gbif-postal-service.version>0.12</gbif-postal-service.version>
+    <gbif-registry.version>2.18</gbif-registry.version>
+    <gbif-wrangler.version>0.2</gbif-wrangler.version>
+    <checklistbank-ws-client.version>2.9</checklistbank-ws-client.version>
+    <name-parser.version>2.5</name-parser.version>
   </properties>
 
   <repositories>

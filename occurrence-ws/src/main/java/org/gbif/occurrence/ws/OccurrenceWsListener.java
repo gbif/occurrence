@@ -76,7 +76,7 @@ public class OccurrenceWsListener extends GbifServletListener {
     modules.add(new SingleUserAuthModule(properties.getProperty(DOWNLOAD_USER_KEY),
                                          properties.getProperty(DOWNLOAD_PASSWORD_KEY)));
     modules.add(new RegistryWsClientModule(properties));
-    modules.add(new ChecklistBankWsClientModule(properties, false, true, true));
+    modules.add(new ChecklistBankWsClientModule(properties, true, true));
     // others
     modules.add(new WsAuthModule(properties));
     modules.add(new ValidationModule());
