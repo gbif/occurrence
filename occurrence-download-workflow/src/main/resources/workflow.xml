@@ -31,7 +31,7 @@
     <error to="kill" />
   </action>
 
-   <decision name="make_query_decision">
+  <decision name="make_query_decision">
     <switch>
       <!-- it's a small download -->
       <case to="small_download">
@@ -78,10 +78,10 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_occurrence_table.q</script>
 
-      <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
+      <param>occurrence_record=${occurrence.hive_db}.occurrence_hdfs</param>
       <param>select=${select_interpreted}</param>
       <param>query=${query}</param>
-      <param>query_result_table=${occurrence.env_prefix}.${query_result_table}_interpreted</param>
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}_interpreted</param>
     </hive>
 
     <ok to="secondary_files" />
@@ -95,10 +95,10 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_occurrence_table.q</script>
 
-      <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
+      <param>occurrence_record=${occurrence.hive_db}.occurrence_hdfs</param>
       <param>select=${select_verbatim}</param>
       <param>query=${query}</param>
-      <param>query_result_table=${occurrence.env_prefix}.${query_result_table}_verbatim</param>
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}_verbatim</param>
     </hive>
 
     <ok to="bundling" />
@@ -117,9 +117,9 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_multimedia_table.q</script>
 
-      <param>result_multimedia_table=${occurrence.env_prefix}.${query_result_table}_multimedia</param>
-      <param>occurrence_intepreted_table=${occurrence.env_prefix}.${query_result_table}_interpreted</param>
-      <param>occurrence_record=${occurrence.env_prefix}.occurrence_hdfs</param>
+      <param>result_multimedia_table=${occurrence.hive_db}.${query_result_table}_multimedia</param>
+      <param>occurrence_intepreted_table=${occurrence.hive_db}.${query_result_table}_interpreted</param>
+      <param>occurrence_record=${occurrence.hive_db}.occurrence_hdfs</param>
     </hive>
 
     <ok to="bundling" />
@@ -133,8 +133,8 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/citation.q</script>
 
-      <param>query_result_table=${occurrence.env_prefix}.${query_result_table}_interpreted</param>
-      <param>citation_table=${occurrence.env_prefix}.${citation_table}</param>
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}_interpreted</param>
+      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
     </hive>
 
     <ok to="bundling" />
@@ -179,7 +179,7 @@
     <switch>
       <!-- it's a small download the delete the occurrence data and citations file -->
       <case to="clean_hdfs_dirs">
-       ${wf:actionData('occurrence_count')['is_small_download']}
+        ${wf:actionData('occurrence_count')['is_small_download']}
       </case>
       <default to="drop_table" />
     </switch>
@@ -202,8 +202,8 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
-      <param>query_result_table=${occurrence.env_prefix}.${query_result_table}</param>
-      <param>citation_table=${occurrence.env_prefix}.${citation_table}</param>
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
+      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
     </hive>
 
     <ok to="end" />
@@ -218,8 +218,8 @@
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
-      <param>query_result_table=${occurrence.env_prefix}.${query_result_table}</param>
-      <param>citation_table=${occurrence.env_prefix}.${citation_table}</param>
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
+      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
     </hive>
 
     <ok to="kill" />
