@@ -70,7 +70,7 @@
     <from>${occurrence.download.service.from_address}</from>
     <to>${occurrence.download.service.admin_email}</to>
     <layout class="ch.qos.logback.classic.html.HTMLLayout"/>
-    <cyclicBufferTracker class="ch.qos.logback.core.spi.CyclicBufferTrackerImpl">
+    <cyclicBufferTracker class="ch.qos.logback.core.spi.CyclicBufferTracker">
       <bufferSize>1</bufferSize>
     </cyclicBufferTracker>
   </appender>
