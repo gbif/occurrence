@@ -1062,9 +1062,9 @@
         <checklistbank.match.ws.url>http://api.gbif-dev.org/v1/species/match/</checklistbank.match.ws.url>
         <checklistbank.ws.url>http://api.gbif-dev.org/v1/</checklistbank.ws.url>
         <registry.ws.url>http://api.gbif-dev.org/v1/</registry.ws.url>
-        <geocode.ws.url>http://api.gbif-dev.org/v1/geocode/reverse/</geocode.ws.url>
+        <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
         <!-- security -->
-        <drupal.db.url>jdbc:mysql://nerf.gbif.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.url>jdbc:mysql://my1.gbif-dev.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_devel</drupal.db.username>
         <appkeys.file>/usr/share/tomcat7/conf/appkeys.properties</appkeys.file>
       </properties>
