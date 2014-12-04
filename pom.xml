@@ -983,7 +983,7 @@
 
         <!-- cluster -->
         <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
+        <hadoop.jobtracker>c1n10.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
