@@ -133,7 +133,7 @@
     <drupal-mybatis.version>0.14</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
-    <gbif-api.version>0.16</gbif-api.version>
+    <gbif-api.version>0.17-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.17</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.18</gbif-common-search.version>
@@ -143,8 +143,8 @@
     <geotools.version>11.1</geotools.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <gbif-parsers.version>0.10</gbif-parsers.version>
-    <gbif-postal-service.version>0.12</gbif-postal-service.version>
-    <gbif-registry.version>2.18</gbif-registry.version>
+    <gbif-postal-service.version>0.13-SNAPSHOT</gbif-postal-service.version>
+    <gbif-registry.version>2.19-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.10-SNAPSHOT</checklistbank-ws-client.version>
     <name-parser.version>2.5</name-parser.version>

@@ -1,15 +1,19 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.common.InterpretedEnum;
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
+import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
@@ -54,6 +58,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -127,6 +132,7 @@ public class ArchiveBuilder {
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
+  private final OccurrenceDownloadService occurrenceDownloadService;
   private final Dataset dataset;
   private final File archiveDir;
   private final String downloadId;
@@ -172,6 +178,7 @@ public class ArchiveBuilder {
   @VisibleForTesting
   protected ArchiveBuilder(String downloadId, String user, String query,
     DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
+    OccurrenceDownloadService occurrenceDownloadService,
     Configuration conf, FileSystem hdfs, FileSystem localfs, File archiveDir, String interpretedDataTable,
     String verbatimDataTable, String multimediaDataTable, String citationTable, String hdfsPath,
     String downloadLink, boolean isSmallDownload)
@@ -181,6 +188,7 @@ public class ArchiveBuilder {
     this.query = query;
     this.datasetService = datasetService;
     this.datasetUsageService = datasetUsageService;
+    this.occurrenceDownloadService = occurrenceDownloadService;
     this.conf = conf;
     this.hdfs = hdfs;
     this.localfs = localfs;
@@ -223,10 +231,10 @@ public class ArchiveBuilder {
     File archiveDir = new File(downloadDir, downloadId);
     RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
-    // create registry client
+    // create registry client and services
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-
     DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
     // filesystem configs
     Configuration conf = new Configuration();
@@ -236,9 +244,9 @@ public class ArchiveBuilder {
 
     // build archive
     ArchiveBuilder generator =
-      new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, conf, hdfs, localfs, archiveDir,
-        interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable, hdfsHivePath, downloadLinkWithId,
-        Boolean.parseBoolean(isSmallDownload));
+      new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService,
+                         conf, hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable,
+                         citationTable, hdfsHivePath, downloadLinkWithId, Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
 
@@ -505,14 +513,25 @@ public class ArchiveBuilder {
     LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadId is not a string in UUID format
+      Download download = occurrenceDownloadService.get(downloadId);
+      String downloadUniqueID = downloadId;
+      if(download.getDoi() != null){
+        downloadUniqueID = download.getDoi().getDoiName();
+        dataset.setDoi(download.getDoi());
+        Identifier identifier = new Identifier();
+        identifier.setCreated(download.getCreated());
+        identifier.setIdentifier(downloadId);
+        identifier.setType(IdentifierType.GBIF_PORTAL);
+        dataset.setIdentifiers(Lists.newArrayList(identifier));
+      }
       dataset.setKey(UUID.randomUUID());
-      dataset.setTitle(String.format(DATASET_TITLE_FMT, downloadId));
+      dataset.setTitle(String.format(DATASET_TITLE_FMT, downloadUniqueID));
       dataset.setDescription(getDatasetDescription());
-      dataset.setCreated(new Date());
-      Citation citation = new Citation(String.format(DATASET_TITLE_FMT, downloadId), downloadId);
+      dataset.setCreated(download.getCreated());
+      Citation citation = new Citation(String.format(DATASET_TITLE_FMT, downloadUniqueID), downloadUniqueID);
       dataset.setCitation(citation);
       // can we derive a link from the query to set the dataset.homepage?
-      dataset.setPubDate(new Date());
+      dataset.setPubDate(download.getCreated());
       dataset.setDataLanguage(Language.ENGLISH);
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
@@ -521,10 +540,9 @@ public class ArchiveBuilder {
       dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, null, ContactType.ORIGINATOR, true));
       dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, null, ContactType.METADATA_AUTHOR, true));
 
-
       File eml = new File(archiveDir, METADATA_FILENAME);
       Writer writer = FileUtils.startNewUtf8File(eml);
-      EMLWriter.write(dataset, writer);
+      EMLWriter.write(dataset, writer,true);
 
     } catch (Exception e) {
       LOG.error("Failed to write query result dataset EML file", e);
@@ -709,6 +727,9 @@ public class ArchiveBuilder {
       }
     } else {
       LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
+    }
+    if(dataset.getDoi() != null){
+      citationWriter.write(" " + dataset.getDoi());
     }
     return citationLink;
   }

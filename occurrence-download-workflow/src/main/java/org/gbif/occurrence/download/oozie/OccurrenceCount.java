@@ -75,7 +75,7 @@ public class OccurrenceCount {
     @Provides
     @Singleton
     OccurrenceDownloadService provideOccurrenceDownloadService() {
-      RegistryClientUtil registryClientUtil = new RegistryClientUtil(this.getVerbatimProperties());
+      RegistryClientUtil registryClientUtil = new RegistryClientUtil(getVerbatimProperties());
       return registryClientUtil.setupOccurrenceDownloadService(regUrl);
     }
 
@@ -156,7 +156,7 @@ public class OccurrenceCount {
 
   /**
    * Update the oozie workflow data/parameters and persists the record of the occurrence download.
-   * 
+   *
    * @param solrQuery to be executed
    * @param workflowId oozie workflow id
    * @throws IOException in case of error reading or writing the 'oozie.action.output.properties' file
@@ -172,7 +172,7 @@ public class OccurrenceCount {
 
   /**
    * Sets the oozie action parameter 'is_small_download'.
-   * 
+   *
    * @param solrQuery to be executed
    * @throws IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
