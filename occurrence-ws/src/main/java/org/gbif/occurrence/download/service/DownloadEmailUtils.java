@@ -86,10 +86,6 @@ public class DownloadEmailUtils {
 
   }
 
-  public static void main(String[] args) {
-    System.out.println(new SimpleDateFormat(DATE_FMT).format(new Date()));
-  }
-
   /**
    * Converts the byte size into human-readable format.
    * Support both SI and byte format.
@@ -133,6 +129,13 @@ public class DownloadEmailUtils {
   private String getDownloadDetails(Download download) {
     String date = new SimpleDateFormat(DATE_FMT).format(download.getCreated());
     return MessageFormat.format(RESOURCES.getString("detail"), date, getHumanReadableFilter(download));
+  }
+
+  private String getDoiDetails(Download download){
+    if(download != null) {
+      return '\n' + MessageFormat.format(RESOURCES.getString("doi"), download.getDoi().getUrl());
+    }
+    return "";
   }
 
   /**
@@ -201,7 +204,7 @@ public class DownloadEmailUtils {
       msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[bccAddresses.size()]));
       msg.setSubject(subject);
       msg.setSentDate(new Date());
-      msg.setText(body + '\n' + getDownloadDetails(d));
+      msg.setText(body + '\n' + getDownloadDetails(d) + getDoiDetails(d));
       Transport.send(msg);
     } catch (MessagingException e) {
       LOG.error(NOTIFY_ADMIN, "Sending of notification Mail for download [{}] failed", d.getKey(), e);
