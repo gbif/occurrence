@@ -20,11 +20,10 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1 </version>
+    <version>0.22</version>
   </parent>
 
   <artifactId>occurrence-common</artifactId>
-  <version>0.22.1</version>
   <packaging>jar</packaging>
 
   <name>Occurrence Common</name>
@@ -77,8 +76,4 @@
     </dependency>
 
   </dependencies>
-
-  <scm>
-    <tag>occurrence-0.22.1 </tag>
-  </scm>
 </project>

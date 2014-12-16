@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1 </version>
+    <version>0.22</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -491,9 +491,5 @@
       </build>
     </profile>
   </profiles>
-
-  <scm>
-    <tag>occurrence-0.22.1 </tag>
-  </scm>
 </project>
 
