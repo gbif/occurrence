@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22</version>
+    <version>0.22.1 </version>
   </parent>
 
   <artifactId>occurrence-hive</artifactId>
@@ -162,4 +162,8 @@
       </exclusions>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>occurrence-0.22.1 </tag>
+  </scm>
 </project>
