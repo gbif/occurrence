@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.2-SNAPSHOT</version>
+    <version>0.22</version>
   </parent>
 
   <artifactId>occurrence-persistence</artifactId>
@@ -184,4 +184,5 @@
       <!--<artifactId>hadoop-hdfs</artifactId>-->
     <!--</dependency>-->
   </dependencies>
+
 </project>
