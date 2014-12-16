@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1</version>
+    <version>0.22.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-index-builder-workflow</artifactId>
@@ -262,9 +262,4 @@
       <scope>runtime</scope>
     </dependency>
   </dependencies>
-
-
-  <scm>
-    <tag>occurrence-0.22.1</tag>
-  </scm>
 </project>
