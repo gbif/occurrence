@@ -9,6 +9,7 @@
 
   <artifactId>occurrence-tables-coord</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Table Generator Workflow/Coordinator</name>
   <description>Oozie Workflow to generate the HDFS occurrence tables</description>

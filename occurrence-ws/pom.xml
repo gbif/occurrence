@@ -9,6 +9,7 @@
 
   <artifactId>occurrence-ws</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Web service</name>
 

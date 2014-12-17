@@ -10,6 +10,7 @@
 
   <artifactId>occurrence-ws-client</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Web service client</name>
 

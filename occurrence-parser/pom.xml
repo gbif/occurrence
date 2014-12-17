@@ -25,6 +25,7 @@
 
   <artifactId>occurrence-parser</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Parser</name>
   <description>Parser that accepts streams of occurrence records as provided by publishers.

@@ -10,6 +10,7 @@
 
   <artifactId>occurrence-index-builder-workflow</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Index Builder Oozie workflow</name>
 

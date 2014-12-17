@@ -10,6 +10,7 @@
 
   <artifactId>occurrence-search</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <properties>
     <super-csv.version>2.0.1</super-csv.version>

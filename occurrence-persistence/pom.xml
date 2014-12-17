@@ -25,6 +25,7 @@
 
   <artifactId>occurrence-persistence</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Persistence</name>
   <description>Persistence pieces for the Occurrence project</description>

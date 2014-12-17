@@ -9,6 +9,7 @@
 
   <artifactId>occurrence-hive</artifactId>
   <packaging>jar</packaging>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Hive</name>
   <description>Occurrence utilities for Hive</description>
