@@ -13,12 +13,12 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.2-SNAPSHOT</version>
+    <version>0.22.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-download-workflow</artifactId>
   <packaging>jar</packaging>
-  <version>0.22.2-SNAPSHOT</version>
+  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Download Oozie Workflow</name>
   <description>Oozie Workflow backing the Occurrence Download Service</description>
