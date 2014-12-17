@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1-SNAPSHOT</version>
+    <version>0.22.1</version>
   </parent>
 
   <artifactId>occurrence-deleter</artifactId>
   <packaging>jar</packaging>
-  <version>0.22.1-SNAPSHOT</version>
+  <version>0.22.1</version>
 
   <name>Occurrence Deleter</name>
   <description>
