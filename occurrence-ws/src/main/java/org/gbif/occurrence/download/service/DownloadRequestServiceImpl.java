@@ -142,17 +142,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   // ObjectMappers are thread safe if not reconfigured in code
   private final ObjectMapper mapper = new ObjectMapper();
-
   private final OozieClient client;
-
   private final Map<String, String> defaultProperties;
-
   private final String wsUrl;
-
   private final File downloadMount;
-
   private final OccurrenceDownloadService occurrenceDownloadService;
-
   private final DownloadEmailUtils downloadEmailUtils;
 
 
