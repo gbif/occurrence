@@ -25,7 +25,6 @@
 
   <artifactId>occurrence-common</artifactId>
   <packaging>jar</packaging>
-  <version>0.22.1-SNAPSHOT</version>
 
   <name>Occurrence Common</name>
   <description>Common objects for the Occurrence module that don't belong in the API</description>
