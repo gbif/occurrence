@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1-SNAPSHOT</version>
+    <version>0.22.1</version>
   </parent>
 
   <artifactId>occurrence-search</artifactId>
   <packaging>jar</packaging>
-  <version>0.22.1-SNAPSHOT</version>
+  <version>0.22.1</version>
 
   <properties>
     <super-csv.version>2.0.1</super-csv.version>
