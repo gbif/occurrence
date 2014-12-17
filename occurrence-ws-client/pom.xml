@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.22.1-SNAPSHOT</version>
+    <version>0.22.1</version>
   </parent>
 
   <artifactId>occurrence-ws-client</artifactId>
   <packaging>jar</packaging>
-  <version>0.22.1-SNAPSHOT</version>
+  <version>0.22.1</version>
 
   <name>Occurrence Web service client</name>
 
