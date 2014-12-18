@@ -69,16 +69,17 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   @Inject
   public OccurrenceSearchImpl(SolrServer solrServer, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
-    OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService) {
+    OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
+    @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
     this.solrServer = solrServer;
-    this.occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER);
+    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset,maxLimit);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
   /**
    * Builds a SearchResponse instance using the current builder state.
-   * 
+   *
    * @return a new instance of a SearchResponse.
    */
   public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(QueryResponse queryResponse,
@@ -153,7 +154,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.
-   * 
+   *
    * @param prefix search term
    * @param parameter mapped field to be searched
    * @param limit of maximum matches
@@ -180,7 +181,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   /**
    * Tries to get the corresponding name usage keys from the scientific_name parameter values.
-   * 
+   *
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific name was found
    *         false: if none scientific name was found
    */

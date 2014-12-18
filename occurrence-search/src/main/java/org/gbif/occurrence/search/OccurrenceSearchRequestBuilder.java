@@ -76,15 +76,23 @@ public class OccurrenceSearchRequestBuilder {
   // Solr request handler.
   private final String requestHandler;
 
+  private final int maxOffset;
+
+  private final int maxLimit;
+
   public final static int MAX_OFFSET = 1000000;
   public final static int MAX_PAGE_SIZE = 300;
 
   /**
    * Default constructor.
    */
-  public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder) {
+  public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset, int maxLimit) {
+    Preconditions.checkArgument(maxOffset > 0, "Max offset can't less than zero");
+    Preconditions.checkArgument(maxLimit > 0, "Max limit can't less than zero");
     this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
+    this.maxOffset = Math.min(maxOffset,MAX_OFFSET);
+    this.maxLimit = Math.min(maxLimit,MAX_PAGE_SIZE);
   }
 
   /**
@@ -108,14 +116,14 @@ public class OccurrenceSearchRequestBuilder {
   }
 
   public SolrQuery build(@Nullable OccurrenceSearchRequest request) {
-    final int maxOffset = MAX_OFFSET - request.getLimit();
-    Preconditions.checkArgument(request.getOffset() <= maxOffset, "maximum offset allowed is %s", MAX_OFFSET);
+    final int maxOffset = this.maxOffset - request.getLimit();
+    Preconditions.checkArgument(request.getOffset() <= maxOffset, "maximum offset allowed is %s", this.maxOffset);
 
     SolrQuery solrQuery = new SolrQuery();
     // q param
     solrQuery.setQuery(DEFAULT_QUERY);
     // paging
-    setQueryPaging(request, solrQuery, MAX_PAGE_SIZE);
+    setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
     setFilterParameters(request, solrQuery);
     // sorting

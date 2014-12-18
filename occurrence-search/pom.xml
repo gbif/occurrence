@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.23-SNAPSHOT</version>
+   <version>0.24-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-search</artifactId>
@@ -186,7 +186,6 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
