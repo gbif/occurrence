@@ -1,8 +1,10 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.common.search.Facet;
+import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
+import org.gbif.api.service.registry.DatasetService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class CitationsFileWriter {
 
   /**
    * Creates the dataset citation file using the the Solr query response.
-   * 
+   *
    * @param datasetUsages record count per dataset
    * @param citationFileName output file name
    * @param datasetOccUsageService usage service
@@ -52,7 +54,7 @@ public class CitationsFileWriter {
    * @throws IOException if an error occurs while the citation file is being created
    */
   public static void createCitationFile(final Map<UUID, Long> datasetUsages, String citationFileName,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService, String downloadKey) throws IOException {
+    DatasetOccurrenceDownloadUsageService datasetOccUsageService, DatasetService datasetService,  String downloadKey) throws IOException {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
       ICsvBeanWriter beanWriter = null;
       Closer closer = Closer.create();
@@ -63,7 +65,7 @@ public class CitationsFileWriter {
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {
             beanWriter.write(new Facet.Count(entry.getKey().toString(), entry.getValue()), HEADER, PROCESSORS);
-            persistDatasetUsage(entry, downloadKey, datasetOccUsageService);
+            persistDatasetUsage(entry, downloadKey, datasetOccUsageService,datasetService);
           }
         }
       } catch (IOException e) {
@@ -82,13 +84,21 @@ public class CitationsFileWriter {
    * Persists the dataset usage information and swallows any exception to avoid an error during the file building.
    */
   private static void persistDatasetUsage(Entry<UUID, Long> usage, String downloadKey,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService) {
+    DatasetOccurrenceDownloadUsageService datasetOccUsageService, DatasetService datasetService) {
     try {
-      DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-      datasetUsage.setDatasetKey(usage.getKey());
-      datasetUsage.setNumberRecords(usage.getValue());
-      datasetUsage.setDownloadKey(downloadKey);
-      datasetOccUsageService.create(datasetUsage);
+      Dataset dataset = datasetService.get(usage.getKey());
+      if(dataset != null) { //the dataset still exists
+        DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
+        datasetUsage.setDatasetKey(dataset.getKey());
+        datasetUsage.setNumberRecords(usage.getValue());
+        datasetUsage.setDownloadKey(downloadKey);
+        datasetUsage.setDatasetDOI(dataset.getDoi());
+        if(dataset.getCitation() != null && dataset.getCitation().getText() != null) {
+          datasetUsage.setDatasetCitation(dataset.getCitation().getText());
+        }
+        datasetUsage.setDatasetTitle(dataset.getTitle());
+        datasetOccUsageService.create(datasetUsage);
+      }
     } catch (Exception e) {
       LOG.error("Error persisting dataset usage information", e);
     }

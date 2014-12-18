@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
+import org.gbif.api.service.registry.DatasetService;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.wrangler.lock.Lock;
@@ -97,6 +98,9 @@ public class OccurrenceFileWriter {
   // Service that persist dataset usage information
   private final DatasetOccurrenceDownloadUsageService datasetOccUsageService;
 
+  //Dataset service
+  private final DatasetService datasetService;
+
   // Download key
   private final String downloadId;
 
@@ -107,12 +111,13 @@ public class OccurrenceFileWriter {
   @Inject
   public OccurrenceFileWriter(LockFactory lockFactory,
     Configuration configuration, SolrServer solrServer, OccurrenceMapReader occurrenceHBaseReader,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService, @Named("downloadId") String downloadId) {
-    this.conf = configuration;
+    DatasetOccurrenceDownloadUsageService datasetOccUsageService, DatasetService datasetService, @Named("downloadId") String downloadId) {
+    conf = configuration;
     this.lockFactory = lockFactory;
     this.solrServer = solrServer;
     this.occurrenceHBaseReader = occurrenceHBaseReader;
     this.datasetOccUsageService = datasetOccUsageService;
+    this.datasetService = datasetService;
     this.downloadId = downloadId;
   }
 
@@ -214,7 +219,7 @@ public class OccurrenceFileWriter {
           datasetUsages = sumUsages(datasetUsages, result.getDatasetUsages());
           appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter);
         }
-        CitationsFileWriter.createCitationFile(datasetUsages, citationFileName, datasetOccUsageService, downloadId);
+        CitationsFileWriter.createCitationFile(datasetUsages, citationFileName, datasetOccUsageService, datasetService, downloadId);
       }
     } catch (FileNotFoundException e) {
       Throwables.propagate(e);

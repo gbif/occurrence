@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
+import org.gbif.api.service.registry.DatasetService;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.OccurrenceFileWriter.Configuration;
@@ -104,8 +105,15 @@ public class DownloadTableBuilder {
     @Provides
     @Singleton
     DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService() {
-      RegistryClientUtil registryClientUtil = new RegistryClientUtil(this.getVerbatimProperties());
+      RegistryClientUtil registryClientUtil = new RegistryClientUtil(getVerbatimProperties());
       return registryClientUtil.setupDatasetUsageService(registryWsUri);
+    }
+
+    @Provides
+    @Singleton
+    DatasetService provideDatasetService() {
+      RegistryClientUtil registryClientUtil = new RegistryClientUtil(getVerbatimProperties());
+      return registryClientUtil.setupDatasetService(registryWsUri);
     }
 
     @Provides

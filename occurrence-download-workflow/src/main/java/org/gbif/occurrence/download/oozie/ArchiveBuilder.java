@@ -644,11 +644,19 @@ public class ArchiveBuilder {
    */
   private void persistDatasetUsage(Integer count, String downloadKey, UUID datasetKey) {
     try {
-      DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-      datasetUsage.setDatasetKey(datasetKey);
-      datasetUsage.setNumberRecords(count);
-      datasetUsage.setDownloadKey(downloadKey);
-      datasetUsageService.create(datasetUsage);
+      Dataset dataset = datasetService.get(datasetKey);
+      if(dataset != null) { //the dataset still exists
+        DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
+        datasetUsage.setDatasetKey(datasetKey);
+        datasetUsage.setNumberRecords(count);
+        datasetUsage.setDownloadKey(downloadKey);
+        datasetUsage.setDatasetDOI(dataset.getDoi());
+        if(dataset.getCitation() != null && dataset.getCitation().getText() != null) {
+          datasetUsage.setDatasetCitation(dataset.getCitation().getText());
+        }
+        datasetUsage.setDatasetTitle(dataset.getTitle());
+        datasetUsageService.create(datasetUsage);
+      }
     } catch (Exception e) {
       LOG.error("Error persisting dataset usage information", e);
     }
@@ -680,7 +688,7 @@ public class ArchiveBuilder {
                 Integer count = Integer.parseInt(iter.next());
                 srcDatasets.put(key, count);
                 // small downloads persist dataset usages while builds the citations file
-                if (!this.isSmallDownload) {
+                if (!isSmallDownload) {
                   persistDatasetUsage(count, downloadId, key);
                 }
               } catch (IllegalArgumentException e) {
