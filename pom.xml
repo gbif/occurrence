@@ -25,7 +25,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
- <version>0.24-SNAPSHOT</version>
+  <version>0.24-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -71,6 +71,7 @@
 
     <!-- VERSIONS -->
     <amqp-client.version>3.0.2</amqp-client.version>
+    <freemarker.version>2.3.20</freemarker.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
     <bval.version>0.5</bval.version>
@@ -328,6 +329,12 @@
         <artifactId>name-parser</artifactId>
         <version>${name-parser.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>gbif-common-test</artifactId>
+        <classifier>tests</classifier>
+        <version>${gbif-common-test.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.gbif.checklistbank</groupId>
@@ -384,6 +391,11 @@
         <groupId>org.codehaus.jackson</groupId>
         <artifactId>jackson-core-asl</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.freemarker</groupId>
+        <artifactId>freemarker</artifactId>
+        <version>${freemarker.version}</version>
       </dependency>
       <!-- these runtimes to avoid version mismatch dependency hell -->
       <dependency>
