@@ -7,18 +7,20 @@ import org.gbif.api.service.checklistbank.NameUsageService;
 import org.gbif.api.service.common.UserService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.util.occurrence.HumanFilterBuilder;
+import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
+import org.gbif.utils.file.FileUtils;
 
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
-
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -28,16 +30,20 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 
@@ -49,100 +55,75 @@ public class DownloadEmailUtils {
 
   // TODO: This does not do i18n because we don't pass in a Locale
   private static final ResourceBundle RESOURCES = ResourceBundle.getBundle("email");
-
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
-
   private static final Joiner COMMA_JOINER = Joiner.on(',');
-
-  private final UserService userService;
-
-  private final Set<Address> bccAddresses;
-
-  private final String wsUrl;
-
-  private final String dataUseUrl;
-
-  private final Session session;
-
-  private final DatasetService datasetService;
-
-  private final NameUsageService nameUsageService;
-
-  private final static String DATE_FMT = "yyyy-MM-dd HH:mm:ss z";
-
+  private static final String DATE_FMT = "yyyy-MM-dd HH:mm:ss z";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
 
+  private final Configuration freemarker = new Configuration();
+  private final UserService userService;
+  private final Set<Address> bccAddresses;
+  private final String portalUrl;
+  private final Session session;
+  private final DatasetService datasetService;
+  private final NameUsageService nameUsageService;
+
+
+
   @Inject
-  public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("ws.url") String wsUrl,
-    @Named("datause.url") String dataUseUrl,
+  public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("portal.url") String portalUrl,
     UserService userService, Session session, DatasetService datasetService, NameUsageService nameUsageService) {
     this.userService = userService;
     this.bccAddresses = Sets.newHashSet(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
-    this.wsUrl = wsUrl;
     this.session = session;
     this.datasetService = datasetService;
     this.nameUsageService = nameUsageService;
-    this.dataUseUrl = dataUseUrl;
-
+    this.portalUrl = portalUrl;
+    setupFreemarker();
   }
 
-  /**
-   * Converts the byte size into human-readable format.
-   * Support both SI and byte format.
-   */
-  private static String humanReadableByteCount(long bytes, boolean si) {
-    int unit = si ? 1000 : 1024;
-    if (bytes < unit) {
-      return bytes + " B";
-    }
-    int exp = (int) (Math.log(bytes) / Math.log(unit));
-    String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
-    return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+  private void setupFreemarker() {
+    freemarker.setDefaultEncoding("UTF-8");
+    freemarker.setLocale(Locale.US);
+    freemarker.setNumberFormat("0.####");
+    freemarker.setDateFormat("yyyy-mm-dd");
+    // create custom rendering for relative dates
+    freemarker.setSharedVariable("niceDate", new NiceDateTemplateMethodModel());
+    freemarker.setClassForTemplateLoading(DownloadEmailUtils.class, "/email");
   }
 
   /**
    * Sends an email notifying that an error occurred while creating the download file.
    */
   public void sendErrorNotificationMail(Download d) {
-    // Gets and prepares the E-Mail body text
-    // TODO: formatter.setLocale()
-    sendNotificationMail(d, RESOURCES.getString("error.subject"),
-      MessageFormat.format(RESOURCES.getString("error.text"), d.getKey()));
+    sendNotificationMail(d, "error.subject", "error.ftl");
   }
 
   /**
    * Sends an email notifying that the occurrence download is ready.
    */
   public void sendSuccessNotificationMail(Download d) {
-    // Gets and prepares the E-Mail body text
-    // TODO: formatter.setLocale()
-    final MessageFormat formatter = new MessageFormat(RESOURCES.getString("success.text"));
-    final Object[] bodyParams =
-      new Object[] {d.getKey(), downloadLink(wsUrl, d.getKey()), humanReadableByteCount(d.getSize(), true),
-        d.getTotalRecords(), d.getNumberDatasets(), dataUseUrl};
-    sendNotificationMail(d, RESOURCES.getString("success.subject"), formatter.format(bodyParams));
+    sendNotificationMail(d, "success.subject", "success.ftl");
   }
 
-  /**
-   * Returns a formatted string with download details: date created and filter used.
-   */
-  private String getDownloadDetails(Download download) {
-    String date = new SimpleDateFormat(DATE_FMT).format(download.getCreated());
-    return MessageFormat.format(RESOURCES.getString("detail"), date, getHumanReadableFilter(download));
-  }
-
-  private String getDoiDetails(Download download){
-    if(download != null) {
-      return '\n' + MessageFormat.format(RESOURCES.getString("doi"), download.getDoi().getUrl());
-    }
-    return "";
+  @VisibleForTesting
+  protected String buildBody(Download d, String bodyTemplate) throws IOException, TemplateException {
+    // Prepare the E-Mail body text
+    StringWriter contentBuffer = new StringWriter();
+    Template template = freemarker.getTemplate(bodyTemplate);
+    Map<String, Object> model = Maps.newHashMap();
+    model.put("download", d);
+    model.put("portal", portalUrl);
+    model.put("filter", getHumanReadableFilter(d));
+    model.put("size", FileUtils.humanReadableByteCount(d.getSize(), true));
+    template.process(model, contentBuffer);
+    return contentBuffer.toString();
   }
 
   /**
    * Gets a human readable version of the occurrence search filter used.
    */
   private String getHumanReadableFilter(Download download) {
-    // TODO: should escapeXml be false here?
     HumanFilterBuilder filter = new HumanFilterBuilder(RESOURCES, datasetService, nameUsageService, false);
     if (download.getRequest().getPredicate() != null) {
       StringBuilder stringBuilder = new StringBuilder();
@@ -190,7 +171,7 @@ public class DownloadEmailUtils {
   /**
    * Utility method that sends a notification email.
    */
-  private void sendNotificationMail(Download d, String subject, String body) {
+  private void sendNotificationMail(Download d, String subjectResource, String bodyTemplate) {
     List<Address> emails = getNotificationAddresses(d);
     if (emails.isEmpty() && bccAddresses.isEmpty()) {
       LOG.warn("No valid notification addresses given for download {}", d.getKey());
@@ -202,10 +183,13 @@ public class DownloadEmailUtils {
       msg.setFrom();
       msg.setRecipients(Message.RecipientType.TO, emails.toArray(new Address[emails.size()]));
       msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[bccAddresses.size()]));
-      msg.setSubject(subject);
+      msg.setSubject(RESOURCES.getString(subjectResource));
       msg.setSentDate(new Date());
-      msg.setText(body + '\n' + getDownloadDetails(d) + getDoiDetails(d));
+      msg.setText(buildBody(d, bodyTemplate));
       Transport.send(msg);
+
+    } catch (TemplateException | IOException e) {
+      LOG.error(NOTIFY_ADMIN, "Rendering of notification Mail for download [{}] failed", d.getKey(), e);
     } catch (MessagingException e) {
       LOG.error(NOTIFY_ADMIN, "Sending of notification Mail for download [{}] failed", d.getKey(), e);
     }
