@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="" type="org.gbif.occurrence.download.service.EmailModel" -->
 Hello ${download.request.creator},
 
 your download is available on the following address:
@@ -11,7 +12,7 @@ Download Information:
   Creation Date: ${download.created?datetime?string.full}
   Records included: ${download.doi.getUrl()} records from ${download.numberDatasets!0} published datasets
   Data size: ${size}
-  Filter used: ${filter!"All occurrence records"}
+  Filter used: ${query!"All occurrence records"}
 
 This download can always be viewed on ${portal}/occurrence/download/${download.key}
 

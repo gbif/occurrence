@@ -35,7 +35,7 @@ public class DownloadEmailUtilsTest {
 
     d.setStatus(Download.Status.FAILED);
     body = utils.buildBody(d, "error.ftl");
-    System.out.println(body);
+    //System.out.println(body);
     assertNotNull(body);
   }
 }

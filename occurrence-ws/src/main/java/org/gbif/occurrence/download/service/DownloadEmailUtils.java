@@ -8,17 +8,16 @@ import org.gbif.api.service.common.UserService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.util.occurrence.HumanFilterBuilder;
 import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
-import org.gbif.utils.file.FileUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
 import javax.mail.Address;
@@ -34,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -63,12 +61,10 @@ public class DownloadEmailUtils {
   private final Configuration freemarker = new Configuration();
   private final UserService userService;
   private final Set<Address> bccAddresses;
-  private final String portalUrl;
+  private final URI portalUrl;
   private final Session session;
   private final DatasetService datasetService;
   private final NameUsageService nameUsageService;
-
-
 
   @Inject
   public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("portal.url") String portalUrl,
@@ -78,7 +74,7 @@ public class DownloadEmailUtils {
     this.session = session;
     this.datasetService = datasetService;
     this.nameUsageService = nameUsageService;
-    this.portalUrl = portalUrl;
+    this.portalUrl = URI.create(portalUrl);
     setupFreemarker();
   }
 
@@ -111,37 +107,32 @@ public class DownloadEmailUtils {
     // Prepare the E-Mail body text
     StringWriter contentBuffer = new StringWriter();
     Template template = freemarker.getTemplate(bodyTemplate);
-    Map<String, Object> model = Maps.newHashMap();
-    model.put("download", d);
-    model.put("portal", portalUrl);
-    model.put("filter", getHumanReadableFilter(d));
-    model.put("size", FileUtils.humanReadableByteCount(d.getSize(), true));
-    template.process(model, contentBuffer);
+    template.process(new EmailModel(d, portalUrl, getHumanQuery(d)), contentBuffer);
     return contentBuffer.toString();
   }
 
   /**
-   * Gets a human readable version of the occurrence search filter used.
+   * Gets a human readable version of the occurrence search query used.
    */
-  private String getHumanReadableFilter(Download download) {
-    HumanFilterBuilder filter = new HumanFilterBuilder(RESOURCES, datasetService, nameUsageService, false);
+  public String getHumanQuery(Download download) {
+    HumanFilterBuilder filter = new HumanFilterBuilder(DownloadEmailUtils.RESOURCES, datasetService, nameUsageService, false);
     if (download.getRequest().getPredicate() != null) {
       StringBuilder stringBuilder = new StringBuilder();
       Map<OccurrenceSearchParameter, LinkedList<String>> params =
         filter.humanFilter(download.getRequest().getPredicate());
-      for (Iterator<Entry<OccurrenceSearchParameter, LinkedList<String>>> paramEntryIt = params.entrySet().iterator(); paramEntryIt
+      for (Iterator<Map.Entry<OccurrenceSearchParameter, LinkedList<String>>> paramEntryIt = params.entrySet().iterator(); paramEntryIt
         .hasNext();) {
-        Entry<OccurrenceSearchParameter, LinkedList<String>> paramEntry = paramEntryIt.next();
+        Map.Entry<OccurrenceSearchParameter, LinkedList<String>> paramEntry = paramEntryIt.next();
         stringBuilder.append('\t');
         stringBuilder.append(paramEntry.getKey().name() + ": ");
-        stringBuilder.append(COMMA_JOINER.join(paramEntry.getValue()));
+        stringBuilder.append(DownloadEmailUtils.COMMA_JOINER.join(paramEntry.getValue()));
         if (paramEntryIt.hasNext()) {
           stringBuilder.append('\n');
         }
       }
       return stringBuilder.toString();
     }
-    return RESOURCES.getString("filter.allrecords");
+    return DownloadEmailUtils.RESOURCES.getString("filter.allrecords");
   }
 
   /**

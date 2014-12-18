@@ -13,6 +13,9 @@ import freemarker.template.TemplateModelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Provides a java.util.Date rendering for freemarker in the form of "17th December 2014".
+ */
 public class NiceDateTemplateMethodModel implements TemplateMethodModelEx {
   private static final Logger LOG = LoggerFactory.getLogger(NiceDateTemplateMethodModel.class);
 
