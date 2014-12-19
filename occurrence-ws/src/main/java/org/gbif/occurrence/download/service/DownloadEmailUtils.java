@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -49,14 +48,14 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
  * Utility class that sends notification emails of occurrence downloads.
  */
 public class DownloadEmailUtils {
-
-
-  // TODO: This does not do i18n because we don't pass in a Locale
-  private static final ResourceBundle RESOURCES = ResourceBundle.getBundle("email");
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
   private static final Joiner COMMA_JOINER = Joiner.on(',');
   private static final String DATE_FMT = "yyyy-MM-dd HH:mm:ss z";
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
+
+  private static final String SUCCESS_SUBJECT = "Your GBIF data download is ready";
+  private static final String ERROR_SUBJECT = "Your GBIF data download failed";
+  private static final String NO_FILTER = "All occurrence records";
 
   private final Configuration freemarker = new Configuration();
   private final UserService userService;
@@ -92,14 +91,14 @@ public class DownloadEmailUtils {
    * Sends an email notifying that an error occurred while creating the download file.
    */
   public void sendErrorNotificationMail(Download d) {
-    sendNotificationMail(d, "error.subject", "error.ftl");
+    sendNotificationMail(d, ERROR_SUBJECT, "error.ftl");
   }
 
   /**
    * Sends an email notifying that the occurrence download is ready.
    */
   public void sendSuccessNotificationMail(Download d) {
-    sendNotificationMail(d, "success.subject", "success.ftl");
+    sendNotificationMail(d, SUCCESS_SUBJECT, "success.ftl");
   }
 
   @VisibleForTesting
@@ -115,7 +114,7 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    HumanFilterBuilder filter = new HumanFilterBuilder(DownloadEmailUtils.RESOURCES, datasetService, nameUsageService, false);
+    HumanFilterBuilder filter = new HumanFilterBuilder(datasetService, nameUsageService, false);
     if (download.getRequest().getPredicate() != null) {
       StringBuilder stringBuilder = new StringBuilder();
       Map<OccurrenceSearchParameter, LinkedList<String>> params =
@@ -132,7 +131,7 @@ public class DownloadEmailUtils {
       }
       return stringBuilder.toString();
     }
-    return DownloadEmailUtils.RESOURCES.getString("filter.allrecords");
+    return NO_FILTER;
   }
 
   /**
@@ -162,7 +161,7 @@ public class DownloadEmailUtils {
   /**
    * Utility method that sends a notification email.
    */
-  private void sendNotificationMail(Download d, String subjectResource, String bodyTemplate) {
+  private void sendNotificationMail(Download d, String subject, String bodyTemplate) {
     List<Address> emails = getNotificationAddresses(d);
     if (emails.isEmpty() && bccAddresses.isEmpty()) {
       LOG.warn("No valid notification addresses given for download {}", d.getKey());
@@ -174,7 +173,7 @@ public class DownloadEmailUtils {
       msg.setFrom();
       msg.setRecipients(Message.RecipientType.TO, emails.toArray(new Address[emails.size()]));
       msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[bccAddresses.size()]));
-      msg.setSubject(RESOURCES.getString(subjectResource));
+      msg.setSubject(subject);
       msg.setSentDate(new Date());
       msg.setText(buildBody(d, bodyTemplate));
       Transport.send(msg);
