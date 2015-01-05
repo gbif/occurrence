@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
@@ -50,7 +51,6 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.oozie.client.Job;
-import org.apache.oozie.client.Job.Status;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -69,7 +69,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
    */
-  private static final ImmutableMap<Job.Status, Download.Status> STATUSES_MAP =
+  @VisibleForTesting
+  protected static final ImmutableMap<Job.Status, Download.Status> STATUSES_MAP =
     new ImmutableMap.Builder<Job.Status, Download.Status>()
       .put(Job.Status.PREP, Download.Status.PREPARING)
       .put(Job.Status.PREPPAUSED, Download.Status.PREPARING)
@@ -133,8 +134,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
     HIVE_SELECT_VERBATIM = Joiner.on(',').join(columns);
   }
-
-  private static final EnumSet<Status> FAILURE_STATES = EnumSet.of(Status.FAILED, Status.KILLED);
 
   private static final Counter SUCCESSFUL_DOWNLOADS = Metrics.newCounter(CallbackService.class, "successful_downloads");
   private static final Counter FAILED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "failed_downloads");
@@ -270,53 +269,52 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     final Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
-    final Status jobStatus = opStatus.get();
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 
     LOG.debug("Processing callback for jobId [{}] with status [{}]", jobId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
-    // Updates the job status in the registry DB
-    org.gbif.api.model.occurrence.Download.Status newStatus = STATUSES_MAP.get(jobStatus);
-
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
       LOG.error(String.format("Download [%s] not found", downloadId));
       return;
     }
-    // Do nor kill a cancelled download
-    if (download.getStatus() == org.gbif.api.model.occurrence.Download.Status.CANCELLED
-      && org.gbif.api.model.occurrence.Download.Status.KILLED == newStatus) {
-      CANCELLED_DOWNLOADS.inc();
-      return;
-    } else {
-      updateDownloadStatus(download, newStatus);
+
+    Download.Status newStatus = STATUSES_MAP.get(opStatus.get());
+    switch (newStatus) {
+      case PREPARING:
+      case RUNNING:
+      case SUSPENDED:
+        // nothing needs to happen, just update the db at the very end
+        break;
+
+      case CANCELLED:
+        CANCELLED_DOWNLOADS.inc();
+        break;
+
+      case KILLED:
+        // Keep a manually cancelled download status as opposed to a killed one because of a bug
+        if (download.getStatus() == Download.Status.CANCELLED) {
+          newStatus = Download.Status.CANCELLED;
+        }
+        break;
+
+      case FAILED:
+        LOG.error(NOTIFY_ADMIN, "Got callback for unsuccessful query. JobId [{}], Status [{}]", jobId, status);
+        downloadEmailUtils.sendErrorNotificationMail(download);
+        FAILED_DOWNLOADS.inc();
+        break;
+
+      case SUCCEEDED:
+        SUCCESSFUL_DOWNLOADS.inc();
+        // notify about download
+        if (download.getRequest().getSendNotification()) {
+          downloadEmailUtils.sendSuccessNotificationMail(download);
+        }
+        break;
     }
 
-    // Catch failures
-    if (FAILURE_STATES.contains(jobStatus)) {
-      LOG.error(NOTIFY_ADMIN, "Got callback for unsuccessful query. JobId [{}], Status [{}]", jobId, status);
-      downloadEmailUtils.sendErrorNotificationMail(download);
-      FAILED_DOWNLOADS.inc();
-      return;
-    }
-
-    // Don't notify anyone for RUNNING jobs
-    if (Status.RUNNING == jobStatus) {
-      return;
-    }
-
-    // We got some invalid status
-    if (Status.SUCCEEDED != jobStatus) {
-      LOG.info("Got invalid callback status. JobId [{}], Status[{}]", jobId, status);
-      return;
-    }
-    SUCCESSFUL_DOWNLOADS.inc();
-
-    // notify about download
-    if (download.getRequest().getSendNotification()) {
-      downloadEmailUtils.sendSuccessNotificationMail(download);
-    }
+    updateDownloadStatus(download, newStatus);
   }
 
   /**
