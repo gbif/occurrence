@@ -282,25 +282,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     Download.Status newStatus = STATUSES_MAP.get(opStatus.get());
     switch (newStatus) {
-      case PREPARING:
-      case RUNNING:
-      case SUSPENDED:
-        // nothing needs to happen, just update the db at the very end
-        break;
-
-      case CANCELLED:
-        CANCELLED_DOWNLOADS.inc();
-        break;
-
       case KILLED:
-        // Keep a manually cancelled download status as opposed to a killed one because of a bug
+        // Keep a manually cancelled download status as opposed to a killed one
         if (download.getStatus() == Download.Status.CANCELLED) {
-          newStatus = Download.Status.CANCELLED;
+          CANCELLED_DOWNLOADS.inc();
+          return;
         }
-        break;
-
       case FAILED:
-        LOG.error(NOTIFY_ADMIN, "Got callback for unsuccessful query. JobId [{}], Status [{}]", jobId, status);
+        LOG.error(NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
         downloadEmailUtils.sendErrorNotificationMail(download);
         FAILED_DOWNLOADS.inc();
         break;
@@ -311,6 +300,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         if (download.getRequest().getSendNotification()) {
           downloadEmailUtils.sendSuccessNotificationMail(download);
         }
+        break;
+
+      default:
         break;
     }
 
