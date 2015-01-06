@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.common.InterpretedEnum;
+import org.gbif.api.model.common.User;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
@@ -8,6 +9,7 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
+import org.gbif.api.service.common.UserService;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -15,6 +17,7 @@ import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -26,6 +29,7 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
+import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -44,21 +48,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -67,6 +70,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -117,6 +122,7 @@ public class ArchiveBuilder {
   // The CRC is created by the function FileSyste.copyMerge function
   private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
+  private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
   private static final String METADATA_DESC_HEADER_FMT =
     "A dataset containing all occurrences available in GBIF matching the query: %s"
       +
@@ -136,7 +142,7 @@ public class ArchiveBuilder {
   private final Dataset dataset;
   private final File archiveDir;
   private final String downloadId;
-  private final String user;
+  private final User user;
   private final String query;
   private final String interpretedDataTable;
   private final String verbatimDataTable;
@@ -176,7 +182,7 @@ public class ArchiveBuilder {
    * @throws IOException on any read or write problems
    */
   @VisibleForTesting
-  protected ArchiveBuilder(String downloadId, String user, String query,
+  protected ArchiveBuilder(String downloadId, User user, String query,
     DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
     Configuration conf, FileSystem hdfs, FileSystem localfs, File archiveDir, String interpretedDataTable,
@@ -219,7 +225,7 @@ public class ArchiveBuilder {
     final String downloadDir = args[6];   // locally mounted download dir
     // for example 0000020-130108132303336
     final String downloadId = DownloadUtils.workflowToDownloadId(args[7]);
-    final String user = args[8];          // download user
+    final String username = args[8];          // download user
     final String query = args[9];         // download query filter
     final String downloadLink = args[10];  // download link to the final zip archive
     final String registryWs = args[11];    // registry ws url
@@ -235,6 +241,12 @@ public class ArchiveBuilder {
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
     DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
+
+    // create drupal mybatis service
+    Properties p = PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES);
+    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p));
+    UserService userService = inj.getInstance(UserService.class);
+    User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
 
     // filesystem configs
     Configuration conf = new Configuration();
@@ -536,9 +548,9 @@ public class ArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
 
-      dataset.getContacts().add(createContact(user, null, ContactType.AUTHOR, true));
-      dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, null, ContactType.ORIGINATOR, true));
-      dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, null, ContactType.METADATA_AUTHOR, true));
+      dataset.getContacts().add(createContact(user.getName(), user.getEmail(), ContactType.ORIGINATOR, true));
+      dataset.getContacts().add(createContact(user.getName(), user.getEmail(), ContactType.ADMINISTRATIVE_POINT_OF_CONTACT, true));
+      dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
 
       File eml = new File(archiveDir, METADATA_FILENAME);
       Writer writer = FileUtils.startNewUtf8File(eml);

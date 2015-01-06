@@ -131,7 +131,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.8-SNAPSHOT</hbase-utils.version>
-    <drupal-mybatis.version>0.14</drupal-mybatis.version>
+    <drupal-mybatis.version>0.15-SNAPSHOT</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
     <gbif-api.version>0.17-SNAPSHOT</gbif-api.version>
@@ -1042,7 +1042,7 @@
        All settings exist but we need this password from somewhere else:
        <occurrence.download.ws.password>
       -->
-      <id>dev</id>
+      <id>devOLD</id>
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>dev</occurrence.environment>

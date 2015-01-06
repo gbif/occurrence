@@ -226,6 +226,10 @@
       <artifactId>dwc-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>drupal-mybatis</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.klout</groupId>
       <artifactId>brickhouse</artifactId>
       <version>${brickhouse.version}</version>
