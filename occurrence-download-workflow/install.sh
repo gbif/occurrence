@@ -19,6 +19,10 @@ else
   git clone https://$GIT_CREDENTIALS@github.com/gbif/gbif-configuration
 fi
 
-mvn --settings gbif-configuration/occurrence-download-workflow/$VERSION/profiles.xml -P$P clean package assembly:single
+echo "Assembling workflow jar for $ENV"
+mvn --settings gbif-configuration/occurrence-download-workflow/$VERSION/profiles.xml -P$P -DskipTests clean package assembly:single
+
+echo "Copy workflow to hadoop"
 hadoop fs -rm -r -skipTrash /occurrence-download/$ENV
 hadoop fs -put target/oozie-workflow /occurrence-download/$ENV
+echo "Copied to hadoop"
