@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -244,6 +246,12 @@ public class ArchiveBuilder {
 
     // create drupal mybatis service
     Properties p = PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES);
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    p.list(pw);
+    LOG.info("Using download properties: \n{}", sw);
+
+    LOG.info("Connect to drupal db on {}", p.getProperty("drupal.db.host"));
     Injector inj = Guice.createInjector(new DrupalMyBatisModule(p));
     UserService userService = inj.getInstance(UserService.class);
     User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
