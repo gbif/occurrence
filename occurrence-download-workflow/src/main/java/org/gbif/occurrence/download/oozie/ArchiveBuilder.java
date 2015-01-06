@@ -250,10 +250,7 @@ public class ArchiveBuilder {
     PrintWriter pw = new PrintWriter(sw);
     p.list(pw);
     System.err.println("Using download properties: " + sw);
-    System.err.println("Connect to drupal db on " + p.getProperty("drupal.db.host"));
-
-    //TODO: remove, just for debugging
-    p.setProperty("drupal.db.host", "my1.gbif-dev.org");
+    System.err.println("Connect to drupal db on " + p.getProperty("drupal.db.dataSource.serverName"));
 
     Injector inj = Guice.createInjector(new DrupalMyBatisModule(p));
     UserService userService = inj.getInstance(UserService.class);
