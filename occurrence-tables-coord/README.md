@@ -8,6 +8,7 @@ The previous command generates a directory target/oozie-workflow that contains t
 
 The following properties are required in a maven profile:
    - occurrence.environment
+   - occurrence.env_prefix
    - hadoop.jobtracker
    - hdfs.namenode
    - zookeeper.quorum

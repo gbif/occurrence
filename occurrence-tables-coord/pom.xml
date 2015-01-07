@@ -137,44 +137,4 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>dev</id>
-      <properties>
-        <occurrence.hdfs.build.frequency>${coord:minutes(120)}</occurrence.hdfs.build.frequency>
-        <hive.server2>c1n1.gbif.org</hive.server2>
-        <hive.db>dev</hive.db>
-        <hive.user>jenkins</hive.user>
-        <hbase.table>dev_occurrence</hbase.table>
-        <synctables>false</synctables>
-        <create_tables_dynamically>false</create_tables_dynamically>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>uat</id>
-      <properties>
-        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
-        <hive.server2>c1n8.gbif.org</hive.server2>
-        <hive.db>uat</hive.db>
-        <hive.user>uat</hive.user>
-        <hbase.table>uat_occurrence</hbase.table>
-        <synctables>false</synctables>
-        <create_tables_dynamically>false</create_tables_dynamically>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>prod_b</id>
-      <properties>
-        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
-        <hive.server2>c1n8.gbif.org</hive.server2>
-        <hive.db>prod_b</hive.db>
-        <hive.user>prod</hive.user>
-        <hbase.table>prod_b_occurrence</hbase.table>
-        <synctables>false</synctables>
-        <create_tables_dynamically>false</create_tables_dynamically>
-      </properties>
-    </profile>
-  </profiles>
 </project>

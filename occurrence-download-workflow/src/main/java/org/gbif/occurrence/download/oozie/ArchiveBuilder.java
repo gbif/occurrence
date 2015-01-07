@@ -246,11 +246,11 @@ public class ArchiveBuilder {
 
     // create drupal mybatis service
     Properties p = PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES);
+    // debug to err so its shown in oozie logs
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
     p.list(pw);
     System.err.println("Using download properties: " + sw);
-    System.err.println("Connect to drupal db on " + p.getProperty("drupal.db.dataSource.serverName"));
 
     Injector inj = Guice.createInjector(new DrupalMyBatisModule(p));
     UserService userService = inj.getInstance(UserService.class);
