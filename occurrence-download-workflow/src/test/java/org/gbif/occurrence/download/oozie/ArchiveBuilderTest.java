@@ -16,7 +16,7 @@ public class ArchiveBuilderTest {
 
   @Before
   public void init() throws Exception {
-    TitleLookup tl = mock(TitleLookup.class);
+    tl = mock(TitleLookup.class);
     when(tl.getDatasetTitle(Matchers.<String>any())).thenReturn("The little Mermaid");
     when(tl.getSpeciesName(Matchers.<String>any())).thenReturn("Abies alba Mill.");
 
