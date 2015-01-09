@@ -4,6 +4,7 @@ import org.gbif.checklistbank.ws.client.guice.ChecklistBankWsClientModule;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.occurrence.download.service.OccurrenceDownloadServiceModule;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
+import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.occurrence.search.guice.OccurrenceSearchModule;
 import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
@@ -84,6 +85,7 @@ public class OccurrenceWsListener extends GbifServletListener {
     modules.add(new OccurrencePersistenceModule(properties));
     modules.add(new OccurrenceSearchModule(properties));
     modules.add(new OccurrenceDownloadServiceModule(properties));
+    modules.add(new TitleLookupModule(true, properties.getProperty("api.url")));
     modules.add(new FeaturedModule(properties));
     return modules;
   }

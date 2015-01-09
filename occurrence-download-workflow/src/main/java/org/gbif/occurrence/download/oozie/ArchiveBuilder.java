@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.oozie;
 import org.gbif.api.model.common.InterpretedEnum;
 import org.gbif.api.model.common.User;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
@@ -26,6 +27,9 @@ import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.util.DwcArchiveUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
+import org.gbif.occurrence.query.HumanFilterBuilder;
+import org.gbif.occurrence.query.TitleLookup;
+import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
@@ -84,6 +88,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,11 +131,11 @@ public class ArchiveBuilder {
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
   private static final String METADATA_DESC_HEADER_FMT =
-    "A dataset containing all occurrences available in GBIF matching the query: %s"
-      +
-      "<br/>The dataset includes records from the following constituent datasets. The full metadata for each constituent is also included in this archive:<br/>";
+    "A dataset containing all occurrences available in GBIF matching the query:<br/>\n%s" +
+    "<br/>\nThe dataset includes records from the following constituent datasets. "
+    + "The full metadata for each constituent is also included in this archive:<br/>\n";
   private static final String CITATION_HEADER =
-    "Please cite this data as follows, and pay attention to the rights documented in the rights.txt: \n"
+    "Please cite this data as follows, and pay attention to the rights documented in the rights.txt:<br/>\n"
       + "Please respect the rights declared for each dataset in the download: ";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
@@ -141,6 +146,7 @@ public class ArchiveBuilder {
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
   private final OccurrenceDownloadService occurrenceDownloadService;
+  private final TitleLookup titleLookup;
   private final Dataset dataset;
   private final File archiveDir;
   private final String downloadId;
@@ -168,10 +174,10 @@ public class ArchiveBuilder {
     });
 
   /**
-   * @param datasetService
+   * @param downloadId
    * @param user
    * @param query
-   * @param downloadId
+   * @param datasetService
    * @param conf
    * @param hdfs
    * @param localfs
@@ -181,15 +187,15 @@ public class ArchiveBuilder {
    * @param multimediaDataTable
    * @param citationTable like download_tmp_citation_1234
    * @param hdfsPath like /user/hive/warehouse
+   * @param titleLookup
    * @throws IOException on any read or write problems
    */
   @VisibleForTesting
-  protected ArchiveBuilder(String downloadId, User user, String query,
-    DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService,
-    OccurrenceDownloadService occurrenceDownloadService,
+  protected ArchiveBuilder(String downloadId, User user, String query, DatasetService datasetService,
+    DatasetOccurrenceDownloadUsageService datasetUsageService, OccurrenceDownloadService occurrenceDownloadService,
     Configuration conf, FileSystem hdfs, FileSystem localfs, File archiveDir, String interpretedDataTable,
-    String verbatimDataTable, String multimediaDataTable, String citationTable, String hdfsPath,
-    String downloadLink, boolean isSmallDownload)
+    String verbatimDataTable, String multimediaDataTable, String citationTable, String hdfsPath, String downloadLink,
+    TitleLookup titleLookup, boolean isSmallDownload)
     throws MalformedURLException {
     this.downloadId = downloadId;
     this.user = user;
@@ -206,6 +212,7 @@ public class ArchiveBuilder {
     this.multimediaDataTable = multimediaDataTable;
     this.citationTable = citationTable;
     this.hdfsPath = hdfsPath;
+    this.titleLookup = titleLookup;
     dataset = new Dataset();
     this.downloadLink = new URL(downloadLink);
     this.isSmallDownload = isSmallDownload;
@@ -252,9 +259,10 @@ public class ArchiveBuilder {
     p.list(pw);
     System.err.println("Using download properties: " + sw);
 
-    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p));
+    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, "api.url"));
     UserService userService = inj.getInstance(UserService.class);
     User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
+    TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
 
     // filesystem configs
     Configuration conf = new Configuration();
@@ -266,7 +274,7 @@ public class ArchiveBuilder {
     ArchiveBuilder generator =
       new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService,
                          conf, hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable,
-                         citationTable, hdfsHivePath, downloadLinkWithId, Boolean.parseBoolean(isSmallDownload));
+                         citationTable, hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
 
@@ -289,10 +297,10 @@ public class ArchiveBuilder {
       archiveDir.mkdirs();
 
       // metadata, citation and rights
-      addDatasetMetadata();
+      addConstituentMetadata();
 
       // metadata about the entire archive data
-      addQueryMetadata();
+      addMetadata();
 
       // meta.xml
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
@@ -442,7 +450,7 @@ public class ArchiveBuilder {
    *
    * @throws IOException
    */
-  private void addDatasetMetadata() throws IOException {
+  private void addConstituentMetadata() throws IOException {
 
     Path citationSrc = new Path(hdfsPath + Path.SEPARATOR + citationTable);
 
@@ -529,7 +537,7 @@ public class ArchiveBuilder {
    *
    * @throws IOException
    */
-  private void addQueryMetadata() {
+  private void addMetadata() {
     LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadId is not a string in UUID format
@@ -648,10 +656,20 @@ public class ArchiveBuilder {
   /**
    * Creates the dataset description.
    */
-  private String getDatasetDescription() {
+  @VisibleForTesting
+  protected String getDatasetDescription() {
     StringBuilder description = new StringBuilder();
-    // TODO: transform json filter into human readable query
-    description.append(String.format(METADATA_DESC_HEADER_FMT, query));
+    // transform json filter into predicate instance and then into human readable string
+    String humanQuery = query;
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      Predicate p = (Predicate) mapper.readValue(query, Predicate.class);
+      humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
+    } catch (Exception e) {
+      LOG.error("Failed to transform JSON query into human query: {}", query, e);
+    }
+
+    description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
     List<Constituent> byRecords = constituentsOrder.sortedCopy(constituents);
     for (Constituent c : byRecords) {
       description.append(c.records + " records from " + c.title + "<br/>");

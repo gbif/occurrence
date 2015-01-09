@@ -131,6 +131,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.8-SNAPSHOT</hbase-utils.version>
+    <download-query-tools.version>1.0-SNAPSHOT</download-query-tools.version>
     <drupal-mybatis.version>0.15-SNAPSHOT</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
@@ -196,6 +197,11 @@
         <groupId>org.gbif</groupId>
         <artifactId>gbif-httputils</artifactId>
         <version>${gbif-httputils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>download-query-tools</artifactId>
+        <version>${download-query-tools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>

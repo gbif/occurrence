@@ -2,22 +2,17 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.common.User;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.service.checklistbank.NameUsageService;
 import org.gbif.api.service.common.UserService;
-import org.gbif.api.service.registry.DatasetService;
-import org.gbif.api.util.occurrence.HumanFilterBuilder;
 import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
+import org.gbif.occurrence.query.HumanFilterBuilder;
+import org.gbif.occurrence.query.TitleLookup;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -29,7 +24,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -50,29 +44,23 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 public class DownloadEmailUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
-  private static final Joiner COMMA_JOINER = Joiner.on(',');
-  private static final String DATE_FMT = "yyyy-MM-dd HH:mm:ss z";
-
   private static final String SUCCESS_SUBJECT = "Your GBIF data download is ready";
   private static final String ERROR_SUBJECT = "Your GBIF data download failed";
-  private static final String NO_FILTER = "All occurrence records";
 
   private final Configuration freemarker = new Configuration();
   private final UserService userService;
   private final Set<Address> bccAddresses;
   private final URI portalUrl;
   private final Session session;
-  private final DatasetService datasetService;
-  private final NameUsageService nameUsageService;
+  private final TitleLookup titleLookup;
 
   @Inject
   public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("portal.url") String portalUrl,
-    UserService userService, Session session, DatasetService datasetService, NameUsageService nameUsageService) {
+    UserService userService, Session session, TitleLookup titleLookup) {
     this.userService = userService;
+    this.titleLookup = titleLookup;
     this.bccAddresses = Sets.newHashSet(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
     this.session = session;
-    this.datasetService = datasetService;
-    this.nameUsageService = nameUsageService;
     this.portalUrl = URI.create(portalUrl);
     setupFreemarker();
   }
@@ -114,24 +102,7 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    HumanFilterBuilder filter = new HumanFilterBuilder(datasetService, nameUsageService, false);
-    if (download.getRequest().getPredicate() != null) {
-      StringBuilder stringBuilder = new StringBuilder();
-      Map<OccurrenceSearchParameter, LinkedList<String>> params =
-        filter.humanFilter(download.getRequest().getPredicate());
-      for (Iterator<Map.Entry<OccurrenceSearchParameter, LinkedList<String>>> paramEntryIt = params.entrySet().iterator(); paramEntryIt
-        .hasNext();) {
-        Map.Entry<OccurrenceSearchParameter, LinkedList<String>> paramEntry = paramEntryIt.next();
-        stringBuilder.append('\t');
-        stringBuilder.append(paramEntry.getKey().name() + ": ");
-        stringBuilder.append(DownloadEmailUtils.COMMA_JOINER.join(paramEntry.getValue()));
-        if (paramEntryIt.hasNext()) {
-          stringBuilder.append('\n');
-        }
-      }
-      return stringBuilder.toString();
-    }
-    return NO_FILTER;
+    return new HumanFilterBuilder(titleLookup).humanFilterString(download.getRequest().getPredicate());
   }
 
   /**
