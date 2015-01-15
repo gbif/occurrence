@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.oozie;
 
-import org.gbif.api.model.common.InterpretedEnum;
 import org.gbif.api.model.common.User;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.predicate.Predicate;
@@ -253,13 +252,13 @@ public class ArchiveBuilder {
 
     // create drupal mybatis service
     Properties p = PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES);
-    // debug to err so its shown in oozie logs
+    // debug used properties in oozie logs
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
     p.list(pw);
-    System.err.println("Using download properties: " + sw);
+    LOG.info("ArchiveBuilder uses properties:\n{}", sw);
 
-    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, "api.url"));
+    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, p.getProperty("api.url")));
     UserService userService = inj.getInstance(UserService.class);
     User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
@@ -564,8 +563,8 @@ public class ArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
 
-      dataset.getContacts().add(createContact(user.getName(), user.getEmail(), ContactType.ORIGINATOR, true));
-      dataset.getContacts().add(createContact(user.getName(), user.getEmail(), ContactType.ADMINISTRATIVE_POINT_OF_CONTACT, true));
+      dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ORIGINATOR, true));
+      dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ADMINISTRATIVE_POINT_OF_CONTACT, true));
       dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
 
       File eml = new File(archiveDir, METADATA_FILENAME);
@@ -595,10 +594,16 @@ public class ArchiveBuilder {
    * Utility method that creates a Contact with a limited number of fields.
    */
   private Contact createContact(String name, String email, ContactType type, boolean preferred) {
+    return createContact(null, name, email, type, preferred);
+  }
+
+  private Contact createContact(String firstname, String lastname, String email, ContactType type, boolean preferred) {
     Contact contact = new Contact();
     contact.setEmail(Lists.newArrayList(email));
-    contact.setLastName(name);
-    contact.setType(new InterpretedEnum<String, ContactType>(type.toString(), type).getInterpreted());
+    contact.setFirstName(firstname);
+    contact.setLastName(lastname);
+    contact.setType(type);
+    contact.setPrimary(preferred);
     return contact;
   }
 
@@ -663,7 +668,7 @@ public class ArchiveBuilder {
     String humanQuery = query;
     try {
       ObjectMapper mapper = new ObjectMapper();
-      Predicate p = (Predicate) mapper.readValue(query, Predicate.class);
+      Predicate p = mapper.readValue(query, Predicate.class);
       humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
     } catch (Exception e) {
       LOG.error("Failed to transform JSON query into human query: {}", query, e);
