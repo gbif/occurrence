@@ -138,6 +138,8 @@ public class ArchiveBuilder {
       + "Please respect the rights declared for each dataset in the download: ";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
+  private static final String RIGHTS_URL = "http://creativecommons.org/publicdomain/zero/1.0/";
+  private static final String RIGHTS = "To the extent possible under law, %s has waived all copyright and related or neighboring rights to %s.";
 
   private static final List<ContactType> AUTHOR_TYPES = ImmutableList.of(
     ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
@@ -562,7 +564,8 @@ public class ArchiveBuilder {
       dataset.setDataLanguage(Language.ENGLISH);
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
-
+      //TODO: use new license field once available
+      dataset.setRights(String.format(RIGHTS, user.getName(), dataset.getTitle()));
       dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ORIGINATOR, true));
       dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ADMINISTRATIVE_POINT_OF_CONTACT, true));
       dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
