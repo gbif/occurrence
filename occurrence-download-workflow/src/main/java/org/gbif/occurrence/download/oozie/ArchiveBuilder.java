@@ -139,7 +139,7 @@ public class ArchiveBuilder {
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
   private static final String RIGHTS_URL = "http://creativecommons.org/publicdomain/zero/1.0/";
-  private static final String RIGHTS = "To the extent possible under law, %s has waived all copyright and related or neighboring rights to %s.";
+  private static final String RIGHTS = "To the extent possible under law, %s has waived all copyright and related or neighboring rights to %s. (CC0 1.0 Universal)";
 
   private static final List<ContactType> AUTHOR_TYPES = ImmutableList.of(
     ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
