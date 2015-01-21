@@ -27,12 +27,12 @@ public class ArchiveBuilderTest {
   public void testGetDatasetDescription() throws Exception {
     ArchiveBuilder ab = new ArchiveBuilder("abc", null, query, null, null, null, null, null, null, null, null, null,
       null, null, null, "http://api.gbif.org/v1/occurrence/download/request/0008474-141123120432318.zip", tl, false);
-    assertEquals("A dataset containing all occurrences available in GBIF matching the query:<br/>\n"
+    assertEquals("A dataset containing all occurrences available in GBIF matching the query:\n"
                  + "TaxonKey: Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. or Abies alba Mill. \n"
                  + "Geometry: POLYGON((-10.063476 43.992814,-10.063476 35.889050,5.317382 35.889050,5.317382 43.992814,-10.063476 43.992814)) \n"
                  + "Country: Portugal or Spain"
-                 + "<br/>\nThe dataset includes records from the following constituent datasets. "
-                 + "The full metadata for each constituent is also included in this archive:<br/>\n",
+                 + "\nThe dataset includes records from the following constituent datasets. "
+                 + "The full metadata for each constituent is also included in this archive:\n",
       ab.getDatasetDescription());
   }
 
