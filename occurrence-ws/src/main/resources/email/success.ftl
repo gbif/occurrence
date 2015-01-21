@@ -15,7 +15,7 @@ Download Information:
     Filter used: ${query!"All occurrence records"}
 
 This download can always be viewed on
-    ${portal}/occurrence/download/${download.key}
+    ${portal}occurrence/download/${download.key}
 
 For information about download formats please visit
     ${portal}/faq/datause
