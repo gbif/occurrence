@@ -18,4 +18,4 @@ This download can always be viewed on
     ${portal}occurrence/download/${download.key}
 
 For information about download formats please visit
-    ${portal}/faq/datause
+    ${portal}faq/datause
