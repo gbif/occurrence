@@ -125,24 +125,24 @@ public class ArchiveBuilder {
   // file using the copyMerge function
   private static final String HEADERS_FILENAME = "0";
 
-  // The CRC is created by the function FileSyste.copyMerge function
+  // The CRC is created by the function FileSystem.copyMerge function
   private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
   private static final String METADATA_DESC_HEADER_FMT =
-    "A dataset containing all occurrences available in GBIF matching the query:<br/>\n%s" +
-    "<br/>\nThe dataset includes records from the following constituent datasets. "
-    + "The full metadata for each constituent is also included in this archive:<br/>\n";
+    "A dataset containing all occurrences available in GBIF matching the query:\n%s" +
+    "\nThe dataset includes records from the following constituent datasets. "
+    + "The full metadata for each constituent is also included in this archive:\n";
   private static final String CITATION_HEADER =
-    "Please cite this data as follows, and pay attention to the rights documented in the rights.txt:<br/>\n"
-      + "Please respect the rights declared for each dataset in the download: ";
+    "Please cite this data as follows, and pay attention to the rights documented in the rights.txt:\n"
+    + "Please respect the rights declared for each dataset in the download: ";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
-  private static final String RIGHTS_URL = "http://creativecommons.org/publicdomain/zero/1.0/";
-  private static final String RIGHTS = "To the extent possible under law, %s has waived all copyright and related or neighboring rights to %s. (CC0 1.0 Universal)";
+  private static final String RIGHTS =
+    "The data included in this download are provided to the user under a Creative Commons BY-NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0) which means that you are free to use, share, and adapt the data provided that you give reasonable and appropriate credit (attribution) and that you do not use the material for commercial purposes (non-commercial).\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
 
-  private static final List<ContactType> AUTHOR_TYPES = ImmutableList.of(
-    ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
+  private static final List<ContactType> AUTHOR_TYPES =
+    ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
@@ -166,29 +166,19 @@ public class ArchiveBuilder {
   private final List<Constituent> constituents = Lists.newArrayList();
   private final boolean isSmallDownload;
 
-  private final Ordering<Constituent> constituentsOrder = Ordering.natural().onResultOf(
-    new Function<Constituent, Integer>() {
+  private final Ordering<Constituent> constituentsOrder =
+    Ordering.natural().onResultOf(new Function<Constituent, Integer>() {
 
-      public Integer apply(Constituent c) {
-        return c.records;
-      }
-    });
+        public Integer apply(Constituent c) {
+          return c.records;
+        }
+      });
 
   /**
-   * @param downloadId
-   * @param user
-   * @param query
-   * @param datasetService
-   * @param conf
-   * @param hdfs
-   * @param localfs
-   * @param archiveDir local archvie directory to copy into, e.g. /mnt/ftp/download/0000020-130108132303336
-   * @param interpretedDataTable
-   * @param verbatimDataTable
-   * @param multimediaDataTable
+   * @param archiveDir    local archive directory to copy into, e.g. /mnt/ftp/download/0000020-130108132303336
    * @param citationTable like download_tmp_citation_1234
-   * @param hdfsPath like /user/hive/warehouse
-   * @param titleLookup
+   * @param hdfsPath      like /user/hive/warehouse
+   *
    * @throws IOException on any read or write problems
    */
   @VisibleForTesting
@@ -196,8 +186,7 @@ public class ArchiveBuilder {
     DatasetOccurrenceDownloadUsageService datasetUsageService, OccurrenceDownloadService occurrenceDownloadService,
     Configuration conf, FileSystem hdfs, FileSystem localfs, File archiveDir, String interpretedDataTable,
     String verbatimDataTable, String multimediaDataTable, String citationTable, String hdfsPath, String downloadLink,
-    TitleLookup titleLookup, boolean isSmallDownload)
-    throws MalformedURLException {
+    TitleLookup titleLookup, boolean isSmallDownload) throws MalformedURLException {
     this.downloadId = downloadId;
     this.user = user;
     this.query = query;
@@ -260,7 +249,8 @@ public class ArchiveBuilder {
     p.list(pw);
     LOG.info("ArchiveBuilder uses properties:\n{}", sw);
 
-    Injector inj = Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, p.getProperty("api.url")));
+    Injector inj =
+      Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, p.getProperty("api.url")));
     UserService userService = inj.getInstance(UserService.class);
     User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
@@ -273,9 +263,9 @@ public class ArchiveBuilder {
 
     // build archive
     ArchiveBuilder generator =
-      new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService,
-                         conf, hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable,
-                         citationTable, hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
+      new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
+        hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable,
+        hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
 
@@ -309,7 +299,8 @@ public class ArchiveBuilder {
       // large downloads are compressed by hive and added later
       if (isSmallDownload) {
         LOG.info("Copying the uncompressed occurrence files from HDFS");
-        addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME, INTERPRETED_FILENAME);
+        addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME,
+          INTERPRETED_FILENAME);
         addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
         addOccurrenceDataFile(multimediaDataTable, HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
       } else {
@@ -343,7 +334,7 @@ public class ArchiveBuilder {
     LOG.info("Appending pre-compressed occurrence content to the Zip: " + zipFile.getAbsolutePath());
 
     File tempZip = new File(archiveDir, zipFile.getName() + ".part");
-    boolean renameOk=zipFile.renameTo(tempZip);
+    boolean renameOk = zipFile.renameTo(tempZip);
     if (renameOk) {
       try (
         ZipInputStream zin = new ZipInputStream(new FileInputStream(tempZip));
@@ -354,24 +345,18 @@ public class ArchiveBuilder {
         ZipEntry entry = zin.getNextEntry();
         while (entry != null) {
           out.putNextEntry(new org.gbif.hadoop.compress.d2.zip.ZipEntry(entry.getName()),
-                           ModalZipOutputStream.MODE.DEFAULT);
+            ModalZipOutputStream.MODE.DEFAULT);
           ByteStreams.copy(zin, out);
           entry = zin.getNextEntry();
         }
 
         // NOTE: hive lowercases all the paths
-        appendPreCompressedFile(out,
-                                new Path((hdfsPath + Path.SEPARATOR + interpretedDataTable).toLowerCase()),
-                                INTERPRETED_FILENAME,
-                                HeadersFileUtil.getIntepretedTableHeader());
-        appendPreCompressedFile(out,
-                                new Path((hdfsPath + Path.SEPARATOR + verbatimDataTable).toLowerCase()),
-                                VERBATIM_FILENAME,
-                                HeadersFileUtil.getVerbatimTableHeader());
-        appendPreCompressedFile(out,
-                                new Path((hdfsPath + Path.SEPARATOR + multimediaDataTable).toLowerCase()),
-                                MULTIMEDIA_FILENAME,
-                                HeadersFileUtil.getMultimediaTableHeader());
+        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + interpretedDataTable).toLowerCase()),
+          INTERPRETED_FILENAME, HeadersFileUtil.getIntepretedTableHeader());
+        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + verbatimDataTable).toLowerCase()),
+          VERBATIM_FILENAME, HeadersFileUtil.getVerbatimTableHeader());
+        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + multimediaDataTable).toLowerCase()),
+          MULTIMEDIA_FILENAME, HeadersFileUtil.getMultimediaTableHeader());
 
       } finally {
         // we've rewritten so remove the original
@@ -383,13 +368,15 @@ public class ArchiveBuilder {
 
     } else {
       throw new IllegalStateException("Unable to rename existing zip, to allow appending occurrence data");
-    }  }
+    }
+  }
 
 
   /**
    * Appends the compressed files found within the directory to the zip stream as the named file
    */
-  private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename, String headerRow) throws IOException {
+  private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename, String headerRow)
+    throws IOException {
     RemoteIterator<LocatedFileStatus> files = hdfs.listFiles(dir, false);
     List<InputStream> parts = Lists.newArrayList();
 
@@ -448,8 +435,6 @@ public class ArchiveBuilder {
    * Adds an eml file per dataset involved into a subfolder "dataset" which is supported by our dwc archive reader.
    * Create a rights.txt and citation.txt file targeted at humans to quickly yield an overview about rights and
    * datasets involved.
-   *
-   * @throws IOException
    */
   private void addConstituentMetadata() throws IOException {
 
@@ -503,8 +488,8 @@ public class ArchiveBuilder {
           dataset.getContacts().add(provider);
         }
       } catch (UniformInterfaceException e) {
-        LOG.error(String.format("Registry client http exception: %d \n %s", e.getResponse().getStatus(), e
-          .getResponse().getEntity(String.class)), e);
+        LOG.error(String.format("Registry client http exception: %d \n %s", e.getResponse().getStatus(),
+          e.getResponse().getEntity(String.class)), e);
       } catch (Exception e) {
         LOG.error("Error creating download file", e);
       }
@@ -535,8 +520,6 @@ public class ArchiveBuilder {
   /**
    * Creates a single EML metadata file for the entire archive.
    * Make sure we execute this method AFTER building the constituents metadata which adds to our dataset instance.
-   *
-   * @throws IOException
    */
   private void addMetadata() {
     LOG.info("Add query dataset metadata to archive");
@@ -544,7 +527,7 @@ public class ArchiveBuilder {
       // Random UUID use because the downloadId is not a string in UUID format
       Download download = occurrenceDownloadService.get(downloadId);
       String downloadUniqueID = downloadId;
-      if(download.getDoi() != null){
+      if (download.getDoi() != null) {
         downloadUniqueID = download.getDoi().getDoiName();
         dataset.setDoi(download.getDoi());
         Identifier identifier = new Identifier();
@@ -566,13 +549,17 @@ public class ArchiveBuilder {
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
       dataset.setRights(String.format(RIGHTS, user.getName(), dataset.getTitle()));
-      dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ORIGINATOR, true));
-      dataset.getContacts().add(createContact(user.getFirstName(), user.getLastName(), user.getEmail(), ContactType.ADMINISTRATIVE_POINT_OF_CONTACT, true));
-      dataset.getContacts().add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
+      dataset.getContacts()
+        .add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.ORIGINATOR, true));
+      dataset.getContacts().add(
+        createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.ADMINISTRATIVE_POINT_OF_CONTACT,
+          true));
+      dataset.getContacts()
+        .add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
 
       File eml = new File(archiveDir, METADATA_FILENAME);
       Writer writer = FileUtils.startNewUtf8File(eml);
-      EMLWriter.write(dataset, writer,true);
+      EMLWriter.write(dataset, writer, true);
 
     } catch (Exception e) {
       LOG.error("Failed to write query result dataset EML file", e);
@@ -680,7 +667,7 @@ public class ArchiveBuilder {
     description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
     List<Constituent> byRecords = constituentsOrder.sortedCopy(constituents);
     for (Constituent c : byRecords) {
-      description.append(c.records + " records from " + c.title + "<br/>");
+      description.append(c.records + " records from " + c.title + '\n');
     }
     return description.toString();
   }
@@ -691,13 +678,13 @@ public class ArchiveBuilder {
   private void persistDatasetUsage(Integer count, String downloadKey, UUID datasetKey) {
     try {
       Dataset dataset = datasetService.get(datasetKey);
-      if(dataset != null) { //the dataset still exists
+      if (dataset != null) { //the dataset still exists
         DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
         datasetUsage.setDatasetKey(datasetKey);
         datasetUsage.setNumberRecords(count);
         datasetUsage.setDownloadKey(downloadKey);
         datasetUsage.setDatasetDOI(dataset.getDoi());
-        if(dataset.getCitation() != null && dataset.getCitation().getText() != null) {
+        if (dataset.getCitation() != null && dataset.getCitation().getText() != null) {
           datasetUsage.setDatasetCitation(dataset.getCitation().getText());
         }
         datasetUsage.setDatasetTitle(dataset.getTitle());
@@ -782,7 +769,7 @@ public class ArchiveBuilder {
     } else {
       LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
     }
-    if(dataset.getDoi() != null){
+    if (dataset.getDoi() != null) {
       citationWriter.write(" " + dataset.getDoi());
     }
     return citationLink;
@@ -790,11 +777,6 @@ public class ArchiveBuilder {
 
   /**
    * Write rights text.
-   *
-   * @param rightsWriter
-   * @param dataset
-   * @param citationLink
-   * @throws IOException
    */
   private void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
     throws IOException {
