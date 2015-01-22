@@ -290,12 +290,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         }
       case FAILED:
         LOG.error(NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
+        updateDownloadStatus(download, newStatus);
         downloadEmailUtils.sendErrorNotificationMail(download);
         FAILED_DOWNLOADS.inc();
         break;
 
       case SUCCEEDED:
         SUCCESSFUL_DOWNLOADS.inc();
+        updateDownloadStatus(download, newStatus);
         // notify about download
         if (download.getRequest().getSendNotification()) {
           downloadEmailUtils.sendSuccessNotificationMail(download);
@@ -303,10 +305,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         break;
 
       default:
+        updateDownloadStatus(download, newStatus);
         break;
     }
-
-    updateDownloadStatus(download, newStatus);
   }
 
   /**

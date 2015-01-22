@@ -37,6 +37,7 @@ public class DownloadEmailUtilsTest {
     req.setCreator("markus");
     d.setRequest(req);
     String body = utils.buildBody(d, "success.ftl");
+
     //System.out.println(body);
     assertNotNull(body);
 
