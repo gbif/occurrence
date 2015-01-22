@@ -11,7 +11,7 @@ Download Information:
     DOI: ${download.doi.getUrl()} (may take some hours before being active)
     Creation Date: ${download.created?datetime?string.full}
     Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
-    Data size: ${download.size}
+    Data size: ${size}
     Filter used: ${query!"All occurrence records"}
 
 This download can always be viewed on
