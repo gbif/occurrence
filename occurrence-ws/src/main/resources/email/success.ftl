@@ -5,7 +5,7 @@ your download is available on the following address:
     ${download.downloadLink}
 
 When using this dataset please use the following citation:
-    GBIF.org (${niceDate(download.created)}) ${download.doi.getUrl()}
+    GBIF.org (${niceDate(download.created)}) GBIF Occurrence Download ${download.doi.getUrl()}
 
 Download Information:
     DOI: ${download.doi.getUrl()} (may take some hours before being active)
