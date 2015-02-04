@@ -162,6 +162,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Required by the hbase minicluster-->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- needed by hbaseminicluster, mvn false positive for Unused declared -->
     <!--<dependency>-->
       <!--<groupId>org.apache.hadoop</groupId>-->
