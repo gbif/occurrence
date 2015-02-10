@@ -129,7 +129,7 @@
     <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
 
     <!-- GBIF VERSIONS -->
-    <hbase-utils.version>0.9-SNAPSHOT</hbase-utils.version>
+    <hbase-utils.version>0.9</hbase-utils.version>
     <download-query-tools.version>1.1-SNAPSHOT</download-query-tools.version>
     <drupal-mybatis.version>0.15</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
