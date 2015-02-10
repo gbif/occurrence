@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2012 Global Biodiversity Information Facility (GBIF)
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -129,8 +114,8 @@
     <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
 
     <!-- GBIF VERSIONS -->
-    <hbase-utils.version>0.9-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.1-SNAPSHOT</download-query-tools.version>
+    <hbase-utils.version>0.9</hbase-utils.version>
+    <download-query-tools.version>1.1</download-query-tools.version>
     <drupal-mybatis.version>0.15</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
@@ -139,13 +124,13 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.18</gbif-common-search.version>
     <gbif-common-service.version>0.11</gbif-common-service.version>
-    <gbif-common-ws.version>0.18-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-ws.version>0.18</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.6</gbif-httputils.version>
     <gbif-parsers.version>0.10</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
-    <gbif-registry.version>2.19</gbif-registry.version>
+    <gbif-registry.version>2.21</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.10</checklistbank-ws-client.version>
     <name-parser.version>2.5</name-parser.version>
