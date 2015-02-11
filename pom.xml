@@ -998,12 +998,12 @@
         <occurrence.env_prefix>uat</occurrence.env_prefix>
         <occurrence.hive_db>uat</occurrence.hive_db>
 
-        <!-- cluster -->
-        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>c1n10.gbif.org:8032</hadoop.jobtracker>
-        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
-        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
-        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+        <!-- cluster config -->
+        <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
         <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
@@ -1112,11 +1112,11 @@
         <occurrence.environment>prod</occurrence.environment>
 
         <!-- cluster config -->
-        <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>c1n10.gbif.org:8032</hadoop.jobtracker>
-        <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
-        <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
-        <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+        <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
         <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
