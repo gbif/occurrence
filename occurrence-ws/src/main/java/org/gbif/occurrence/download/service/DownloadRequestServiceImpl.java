@@ -248,7 +248,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public InputStream getResult(String downloadKey) {
     Download d = occurrenceDownloadService.get(downloadKey);
 
-    if (d != null) {
+    if (d == null) {
       throw new NotFoundException("Download " + downloadKey + " doesn't exist");
     }
 
