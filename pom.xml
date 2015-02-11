@@ -985,7 +985,7 @@
 
         <!-- cluster config -->
         <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
@@ -1098,7 +1098,7 @@
 
         <!-- cluster config -->
         <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
