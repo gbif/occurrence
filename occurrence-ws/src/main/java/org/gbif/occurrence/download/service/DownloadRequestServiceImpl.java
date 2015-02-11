@@ -247,6 +247,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   @Override
   public InputStream getResult(String downloadKey) {
     Download d = occurrenceDownloadService.get(downloadKey);
+
+    if (d != null) {
+      throw new NotFoundException("Download " + downloadKey + " doesn't exist");
+    }
+
     if (!d.isAvailable()) {
       throw new NotFoundException("Download " + downloadKey + " is not ready yet");
     }
