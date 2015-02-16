@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.26-SNAPSHOT</version>
+  <version>0.27-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -101,11 +101,11 @@
     <occurrence.environment>prod</occurrence.environment>
     <occurrence.env_prefix>prod_b</occurrence.env_prefix>
     <!-- cluster -->
-    <zookeeper.quorum>c1n10.gbif.org:2181,c1n9.gbif.org:2181,c1n8.gbif.org:2181</zookeeper.quorum>
-    <hadoop.jobtracker>c1n10.gbif.org:8021</hadoop.jobtracker>
-    <hdfs.namenode>hdfs://c1n8.gbif.org:8020</hdfs.namenode>
-    <oozie.url>http://c1n8.gbif.org:11000/oozie</oozie.url>
-    <hive.metastore.uris>thrift://c1n8.gbif.org:9083</hive.metastore.uris>
+    <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
+    <hadoop.jobtracker>rm.gbif.org:8021</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
+    <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
     <!-- cluster version -->
     <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
     <hbase.version>0.98.6-cdh5.2.0</hbase.version>
@@ -130,7 +130,7 @@
     <gbif-httputils.version>0.6</gbif-httputils.version>
     <gbif-parsers.version>0.10</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
-    <gbif-registry.version>2.21</gbif-registry.version>
+    <gbif-registry.version>2.24</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.10</checklistbank-ws-client.version>
     <name-parser.version>2.5</name-parser.version>
@@ -985,7 +985,7 @@
 
         <!-- cluster config -->
         <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
@@ -1098,7 +1098,7 @@
 
         <!-- cluster config -->
         <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>mr.gbif.org:8032</hadoop.jobtracker>
+        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
         <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
         <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
         <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
