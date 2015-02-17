@@ -278,6 +278,10 @@
           <groupId>org.apache.hbase</groupId>
           <artifactId>hbase-client</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -447,12 +451,5 @@
       <artifactId>mockito-core</artifactId>
     </dependency>
 
-    <!-- this is horrible, but without it (as of 0.26) copy and zip will fail claiming can't find
-    org.apache.log4j.Log4jLoggerFactory. It is _not_ enough to add log4j-over-slf4j (1.7.10 was last tested) -->
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
   </dependencies>
 </project>
