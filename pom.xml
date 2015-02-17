@@ -101,11 +101,11 @@
     <occurrence.environment>prod</occurrence.environment>
     <occurrence.env_prefix>prod_b</occurrence.env_prefix>
     <!-- cluster -->
-    <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-    <hadoop.jobtracker>rm.gbif.org:8021</hadoop.jobtracker>
-    <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
-    <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
-    <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
+    <zookeeper.quorum>prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181</zookeeper.quorum>
+    <hadoop.jobtracker>prodmaster3-vh.gbif.org:8021</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
+    <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
     <!-- cluster version -->
     <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
     <hbase.version>0.98.6-cdh5.2.0</hbase.version>
@@ -984,11 +984,11 @@
         <occurrence.hive_db>uat</occurrence.hive_db>
 
         <!-- cluster config -->
-        <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
-        <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
-        <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
-        <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
+        <zookeeper.quorum>prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>prodmaster3-vh.gbif.org:8032</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
         <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
@@ -1097,11 +1097,11 @@
         <occurrence.environment>prod</occurrence.environment>
 
         <!-- cluster config -->
-        <zookeeper.quorum>zk1.gbif.org:2181,zk2.gbif.org:2181,zk3.gbif.org:2181</zookeeper.quorum>
-        <hadoop.jobtracker>rm.gbif.org:8032</hadoop.jobtracker>
-        <hdfs.namenode>hdfs://hdfs.gbif.org:8020</hdfs.namenode>
-        <oozie.url>http://oozie.gbif.org:11000/oozie</oozie.url>
-        <hive.metastore.uris>thrift://hive.gbif.org:9083</hive.metastore.uris>
+        <zookeeper.quorum>prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>prodmaster3-vh.gbif.org:8032</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
+        <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
         <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
