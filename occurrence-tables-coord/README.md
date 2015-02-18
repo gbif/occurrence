@@ -18,11 +18,10 @@ The following properties are required in a maven profile:
 
 Installation
 -------------
-The workflow can be installed using the script bin/install.sh, this scripts builds the project
+The workflow can be installed using the script bin/install.sh, this scripts builds the project using profiles.xml from gbif-configuration in github,
 and copies the workflow into the HDFS, the parameters required by the script are the maven profile,  the workflow destination in the HDFS and  the oozie url, for example:
- ./install.sh dev dev http://c1n8.gbif.org:11000/oozie/
-will install the workflow  in the HDFS directory occurrence-tables-coord/dev using the 'dev' profile, and will run the coordinator job using the ooze server http://c1n8.gbif.org:11000/oozie/
+ ./install.sh dev dev http://c1n1.gbif.org:11000/oozie/ 1234578901234
+will install the workflow  in the HDFS directory occurrence-tables-coord/dev using the 'dev' profile, and will run the coordinator job using the oozie server http://c1n1.gbif.org:11000/oozie/.
+The final param in the script is a github auth token. The installation scripts uses the default directory 'occurrence-tables-coord'.
 
-Note: the installation scripts uses the default directory 'occurrence-tables-coord'.
-
-
+NOTE: you must change the start date in the coordinator.xml to the day after you run the install script, so that we don't get a million historical builds (one per missed day) started by oozie
