@@ -26,7 +26,7 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <includes>
-          <include>conf/hive-default.xml</include>
+          <include>conf/hive-site.xml</include>
           <include>workflow.xml</include>
           <include>hbase-site.xml</include>
           <include>coordinator.xml</include>
