@@ -73,9 +73,5 @@
   </property>
 
   <!-- default is 7, should be at least 2x compactionThreshold -->
-  <property>
-    <name>hbase.hstore.blockingStoreFiles</name>
-    <value>200</value>
-  </property>
 
 </configuration>

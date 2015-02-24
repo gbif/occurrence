@@ -27,16 +27,16 @@
   <fileSets>
     <fileSet>
       <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/</outputDirectory>      
-    </fileSet>    
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
   </fileSets>
 
   <files>
     <file>
-      <source>${project.build.outputDirectory}/conf/hive-default.xml</source>
+      <source>${project.build.outputDirectory}/conf/hive-site.xml</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
-    </file>     
+    </file>
   </files>
 
   <dependencySets>

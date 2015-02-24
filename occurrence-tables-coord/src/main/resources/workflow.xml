@@ -26,7 +26,7 @@
     <hive xmlns="uri:oozie:hive-action:0.2">
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/create_occurrence_tables.q</script>
 
       <param>hive_db=${occurrence.env_prefix}</param>
@@ -40,7 +40,7 @@
     <java>
       <job-tracker>${hadoop.jobtracker}</job-tracker>
       <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
+      <job-xml>conf/hive-site.xml</job-xml>
       <main-class>org.gbif.occurrence.hive.DownloadTableHiveAction</main-class>
       <arg>${hive.server2}</arg>
       <arg>${hive.db}</arg>
