@@ -30,13 +30,17 @@ import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
+import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
+import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.search.OccurrenceSearchDateUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +49,9 @@ import java.util.Map;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +147,7 @@ class HiveQueryVisitor {
   /**
    * Translates a valid {@link Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
-   * 
+   *
    * @param predicate to translate
    * @return WHERE clause
    */
@@ -167,7 +174,7 @@ class HiveQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   * 
+   *
    * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
@@ -255,7 +262,7 @@ class HiveQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   * 
+   *
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -280,15 +287,29 @@ class HiveQueryVisitor {
     if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       // ignore - there's no way to actually request this in the interface, nor is it indexed in solr
     } else {
+      if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+        if(SearchTypeValidator.isRange(predicate.getValue())) {
+          visit(toDateRangePredicate(IsoDateParsingUtils.parseDateRange(predicate.getValue()),predicate.getKey()));
+          return;
+        } else {
+          IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(predicate.getValue());
+          if (IsoDateFormat.FULL != isoDateFormat ) {
+            visit(toDatePredicateQuery(predicate.getKey(), predicate.getValue(), isoDateFormat));
+            return;
+          }
+        }
+
+      }
       builder.append(toHiveField(predicate.getKey()));
       builder.append(op);
       builder.append(toHiveValue(predicate.getKey(), predicate.getValue()));
+
     }
   }
 
   /**
    * Searches any of the nub keys in hbase of any rank.
-   * 
+   *
    * @param taxonKey
    */
   private void appendTaxonKeyFilter(String taxonKey) {
@@ -307,9 +328,31 @@ class HiveQueryVisitor {
   }
 
   /**
+   * Converts a Date query into conjunction predicate.
+   * If the value has the forms 'yyyy'/'yyyy-MM' it's translated to:
+   *  field >= firstDateOfYear/Month(value) and field <= lastDateOfYear/Month(value).
+   * If the value is a range it is translated to: field >= range.lower AND field <= range.upper.
+   */
+  private CompoundPredicate toDatePredicateQuery(OccurrenceSearchParameter key,String value, IsoDateFormat dateFormat) {
+      final Date lowerDate = IsoDateParsingUtils.parseDate(value);
+      return toDateRangePredicate(Range.closed(lowerDate,IsoDateParsingUtils.toLastDayOf(lowerDate, dateFormat)),key);
+  }
+
+  /**
+   * Converts date range into a conjunction predicate with the form: field >= range.lower AND field <= range.upper.
+   *
+   * */
+  private CompoundPredicate toDateRangePredicate(Range<Date> range, OccurrenceSearchParameter key){
+    ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>()
+      .add(new GreaterThanOrEqualsPredicate(key,IsoDateFormat.FULL.getDateFormat().format(range.lowerEndpoint().getTime())))
+      .add(new LessThanOrEqualsPredicate(key, IsoDateFormat.FULL.getDateFormat().format(range.upperEndpoint()))).build();
+    return new ConjunctionPredicate(predicates);
+  }
+
+  /**
    * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
-   * 
+   *
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    * @return the converted value expected by HBase

@@ -14,15 +14,19 @@ import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.util.IsoDateParsingUtils;
+import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
+import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.occurrence.search.OccurrenceSearchDateUtils;
 
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 import com.google.common.collect.Lists;
-import org.junit.Ignore;
+import com.google.common.collect.Range;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -131,8 +135,6 @@ public class HiveQueryVisitorTest {
     Predicate p = new NotPredicate(cp);
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("NOT ((catalognumber = \'value_1\') AND (institutioncode = \'value_2\'))"));
-
-
   }
 
   @Test
@@ -173,7 +175,45 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
-  @Ignore
+  public void testPartialDates() throws QueryBuildingException {
+    testPartialDate("2014-10");
+    testPartialDate("1936");
+  }
+
+  @Test
+  public void testDateRanges() throws QueryBuildingException {
+    testPartialDate("2014-05,2014-10");
+    testPartialDate("1936,1940");
+  }
+
+  /**
+   * Reusable method to test partial dates, i.e., dates with the format: yyyy, yyyy-MM.
+   */
+  private void testPartialDate(String value) throws QueryBuildingException {
+    Range<Date> range = null;
+    if(SearchTypeValidator.isRange(value)){
+      range = IsoDateParsingUtils.parseDateRange(value);
+    } else {
+      Date lowerDate = IsoDateParsingUtils.parseDate(value);
+      Date upperDate = null;
+      IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(value);
+      if(IsoDateFormat.YEAR == isoDateFormat) {
+        upperDate = IsoDateParsingUtils.toLastDayOfYear(lowerDate);
+      } else if(IsoDateFormat.YEAR_MONTH == isoDateFormat){
+        upperDate = IsoDateParsingUtils.toLastDayOfMonth(lowerDate);
+      }
+      range = Range.closed(lowerDate,upperDate);
+    }
+
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED,value);
+
+    String query = visitor.getHiveQuery(p);
+    assertThat(query, equalTo(String.format("((lastinterpreted >= %s) AND (lastinterpreted <= %s))",
+                                            String.valueOf(range.lowerEndpoint().getTime()),
+                                            String.valueOf(range.upperEndpoint().getTime()))));
+  }
+
+  @Test
   public void testAllParamsExist() throws QueryBuildingException {
     List<Predicate> predicates = Lists.newArrayList();
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
