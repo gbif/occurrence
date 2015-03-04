@@ -12,6 +12,7 @@ import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.common.search.exception.SearchException;
+import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.util.LinkedHashMap;
@@ -164,7 +165,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     List<String> suggestions = Lists.newArrayList();
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
-      SolrQuery solrQuery = buildTermQuery(prefix, solrField, Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField, Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       QueryResponse queryResponse = solrServer.query(solrQuery);
       TermsResponse termsResponse = queryResponse.getTermsResponse();
       List<Term> terms = termsResponse.getTerms(solrField);
