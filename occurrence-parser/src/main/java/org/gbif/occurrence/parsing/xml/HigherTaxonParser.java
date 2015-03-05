@@ -58,7 +58,7 @@ public class HigherTaxonParser {
       processedTaxonRank = processedTaxonRank.replaceAll(" ", "").toUpperCase();
       String rawRank = taxonRankMapping.getProperty(processedTaxonRank);
       if (rawRank == null) {
-        LOG.warn("Could not process taxon ranking of [{}], skipping.", processedTaxonRank);
+        LOG.info("Could not process taxon ranking of [{}], skipping.", processedTaxonRank);
       } else {
         int rank = Integer.valueOf(rawRank.trim());
         LOG.debug("ProcessedTaxonRank [{}] gives numeric rank [{}]", processedTaxonRank, rank);
