@@ -18,7 +18,8 @@ public class OccurrenceWsTestModule extends GbifServletListener {
   @Override
   protected List<Module> getModules(Properties properties) {
     List<Module> modules = Lists.newArrayList();
-    modules.add(new OccurrencePersistenceMockModule());
+    modules.add(new OccurrenceWsMockModule());
+
     return modules;
   }
 
