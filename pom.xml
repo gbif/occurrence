@@ -1032,7 +1032,7 @@
        All settings exist but we need this password from somewhere else:
        <occurrence.download.ws.password>
       -->
-      <id>devOLD</id>
+      <id>dev</id>
       <properties>
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>dev</occurrence.environment>
