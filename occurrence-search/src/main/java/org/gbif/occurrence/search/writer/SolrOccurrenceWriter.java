@@ -45,6 +45,8 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SPATIAL_ISSUES
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ESTABLISHMENT_MEANS;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.OCCURRENCE_ID;
 
 
 /**
@@ -156,6 +158,8 @@ public class SolrOccurrenceWriter {
     }
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
     doc.setField(ISSUE.getFieldName(), occurrence.getIssues());
+    doc.setField(ESTABLISHMENT_MEANS.getFieldName(), occurrence.getEstablishmentMeans().name());
+    doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
     return doc;
   }
 

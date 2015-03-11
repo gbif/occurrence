@@ -152,6 +152,11 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     return suggestTermByField(prefix, OccurrenceSearchParameter.RECORD_NUMBER, limit);
   }
 
+  @Override
+  public List<String> suggestOccurrenceIds(String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.OCCURRENCE_ID, limit);
+  }
+
 
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.

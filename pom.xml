@@ -124,7 +124,7 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.21-SNAPSHOT</gbif-common-search.version>
     <gbif-common-service.version>0.11</gbif-common-service.version>
-    <gbif-common-ws.version>0.18</gbif-common-ws.version>
+    <gbif-common-ws.version>0.19-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.6</gbif-httputils.version>
@@ -454,6 +454,18 @@
           <exclusion>
             <artifactId>slf4j-jdk14</artifactId>
             <groupId>org.slf4j</groupId>
+          </exclusion>
+          <exclusion>
+          <artifactId>org.restlet</artifactId>
+          <groupId>org.restlet.jee</groupId>
+        </exclusion>
+          <exclusion>
+            <artifactId>org.restlet.ext.servlet</artifactId>
+            <groupId>org.restlet.jee</groupId>
+          </exclusion>
+          <exclusion>
+            <artifactId>org.restlet.ext.servlet</artifactId>
+            <groupId>org.restlet.jee</groupId>
           </exclusion>
         </exclusions>
       </dependency>

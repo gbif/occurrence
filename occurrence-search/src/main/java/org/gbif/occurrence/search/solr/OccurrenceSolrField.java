@@ -11,7 +11,8 @@ public enum OccurrenceSolrField {
   BASIS_OF_RECORD("basis_of_record"), DATASET_KEY("dataset_key"), TAXON_KEY("taxon_key"),
   COLLECTION_CODE("collection_code"), ELEVATION("elevation"), DEPTH("depth"), INSTITUTION_CODE("institution_code"),
   SPATIAL_ISSUES("spatial_issues"), HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"),
-  LAST_INTERPRETED("last_interpreted"), TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue");
+  LAST_INTERPRETED("last_interpreted"), TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue"),
+  ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id");
 
   private final String fieldName;
 

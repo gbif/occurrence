@@ -29,6 +29,7 @@ import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
 
 /**
  * Ws client for {@link OccurrenceSearchService}.
@@ -98,6 +99,11 @@ public class OccurrenceWsSearchClient extends
   @Override
   public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
     return suggestTerms(INSTITUTION_CODE_PATH, prefix, limit);
+  }
+
+  @Override
+  public List<String> suggestOccurrenceIds(String prefix, @Nullable Integer limit) {
+    return suggestTerms(OCCURRENCE_ID_PATH, prefix, limit);
   }
 
   /**
