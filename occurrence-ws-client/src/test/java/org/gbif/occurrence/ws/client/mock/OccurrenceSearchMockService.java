@@ -62,4 +62,9 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService {
     return new ImmutableList.Builder<String>().add("AUDCLO").add("GBIF-SE:ArtDatabanken SG").add("CLO").build();
   }
 
+  @Override
+  public List<String> suggestOccurrenceIds(String prefix, @Nullable Integer limit) {
+    return new ImmutableList.Builder<String>().add("id1").add("id2").add("id3").build();
+  }
+
 }
