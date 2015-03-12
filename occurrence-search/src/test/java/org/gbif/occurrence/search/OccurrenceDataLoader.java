@@ -6,6 +6,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EstablishmentMeans;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -54,6 +55,23 @@ import org.supercsv.util.CsvContext;
  * passed as parameters to the function loadOccurrences.
  */
 public class OccurrenceDataLoader {
+
+  /**
+   * Produces a Basis of Record instance.
+   */
+  private static class EstablishmentMeansProcessor implements CellProcessor {
+
+    @Override
+    public EstablishmentMeans execute(Object value, CsvContext context) {
+      Enum<?> establishmentMeans = VocabularyUtils.lookupEnum((String) value, EstablishmentMeans.class);
+      if (establishmentMeans != null) {
+        return (EstablishmentMeans) establishmentMeans;
+      }
+      return null;
+    }
+
+  }
+
 
   /**
    * Produces a Basis of Record instance.
@@ -173,7 +191,7 @@ public class OccurrenceDataLoader {
     new Optional(new ParseInt()),// kingdomKey
     new Optional(new ParseDouble()),// latitude
     new Optional(new ParseDouble()),// longitude
-    new Optional(new ParseDate(DATE_FORMAT)),// modified
+    new Optional(new ParseDate(DATE_FORMAT)),// lastInterpreted
     new Optional(new ParseInt()),// month
     new Optional(new ParseInt()),// taxonKey
     new Optional(new ParseDate(DATE_FORMAT)),// eventDate
@@ -196,7 +214,8 @@ public class OccurrenceDataLoader {
     new Optional(),// identifierName
     new Optional(new ParseDate(DATE_FORMAT)),// identificationDate
     new Optional(new TypeStatusProcessor()),// typeStatus
-    new Optional(new MediaListProcessor())// List<Media> in JSON
+    new Optional(new MediaListProcessor()),// List<Media> in JSON
+    new Optional(new EstablishmentMeansProcessor())// establishmentMeans.
   };
 
 
@@ -222,7 +241,7 @@ public class OccurrenceDataLoader {
     "kingdomKey",
     "decimalLatitude",
     "decimalLongitude",
-    "modified",
+    "lastInterpreted",
     "month",
     "taxonKey",
     "eventDate",
@@ -245,7 +264,8 @@ public class OccurrenceDataLoader {
     "identifiedBy",
     "dateIdentified",
     "typeStatus",
-    "media"
+    "media",
+    "establishmentMeans"
   };
 
 

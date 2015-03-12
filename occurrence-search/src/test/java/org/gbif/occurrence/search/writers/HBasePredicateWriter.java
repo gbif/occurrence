@@ -114,11 +114,6 @@ public class HBasePredicateWriter implements Predicate<Occurrence> {
         Bytes.toBytes(occ.getGenusKey()));
     }
 
-    // TODO geospatial issue has changed a lot
-    // if (occ.getGeospatialIssue() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.I_GEOSPATIAL_ISSUE)),
-    // Bytes.toBytes(occ.getGeospatialIssue()));
-    // }
 
     if (occ.getVerbatimField(DwcTerm.institutionCode) != null) {
       put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)),
@@ -245,18 +240,6 @@ public class HBasePredicateWriter implements Predicate<Occurrence> {
         Bytes.toBytes(occ.getSpeciesKey()));
     }
 
-    // TODO: deprecated
-    // if (occ.getTaxonomicIssue() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.I_TAXONOMIC_ISSUE)),
-    // Bytes.toBytes(occ.getTaxonomicIssue()));
-    // }
-
-    // TODO: deprecated
-    // if (occ.getUnitQualifier() != null) {
-    // put.add(CF, Bytes.toBytes(ColumnUtil.column(FieldName.UNIT_QUALIFIER)),
-    // Bytes.toBytes(occ.getUnitQualifier()));
-    // }
-
     if (occ.getYear() != null) {
       put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.year)),
         Bytes.toBytes(occ.getYear()));
@@ -265,6 +248,11 @@ public class HBasePredicateWriter implements Predicate<Occurrence> {
     if (occ.getTypeStatus() != null) {
       put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typeStatus)),
         Bytes.toBytes(occ.getTypeStatus().name()));
+    }
+
+    if (occ.getEstablishmentMeans() != null) {
+      put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.establishmentMeans)),
+              Bytes.toBytes(occ.getEstablishmentMeans().name()));
     }
 
     hTable.put(put);
