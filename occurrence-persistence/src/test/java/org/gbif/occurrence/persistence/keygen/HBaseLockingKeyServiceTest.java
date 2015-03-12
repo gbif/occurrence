@@ -50,6 +50,8 @@ public class HBaseLockingKeyServiceTest {
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
   private HBaseLockingKeyService keyService;
 
+  private OccurrenceKeyBuilder keyBuilder = new OccurrenceKeyBuilder();
+
   @Rule
   public ExpectedException exception = ExpectedException.none();
 
@@ -90,6 +92,26 @@ public class HBaseLockingKeyServiceTest {
     KeyLookupResult result2 = keyService.findKey(uniqueIds, "boo");
     assertEquals(1, result2.getKey());
     assertFalse(result2.isCreated());
+  }
+
+  @Test
+  public void testAddOccIdToExistingTriplet() throws IOException {
+    // setup: 1 finalized row, the triplet
+    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
+    String datasetKey = UUID.randomUUID().toString();
+    String triplet = "IC|CC|CN|null";
+    byte[] lookupKey1 = Bytes.toBytes(keyBuilder.buildKey(triplet, datasetKey));
+    Put put = new Put(lookupKey1);
+    put.add(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    lookupTable.put(put);
+    lookupTable.flushCommits();
+    lookupTable.close();
+
+    // test: keygen attempt uses previous unique id and a new "occurrenceId", expects the existing key to be returned
+    KeyLookupResult result = keyService.generateKey(ImmutableSet.of(triplet, "ABCD"), datasetKey);
+    assertEquals(2, result.getKey());
+    assertFalse(result.isCreated());
   }
 
   @Test

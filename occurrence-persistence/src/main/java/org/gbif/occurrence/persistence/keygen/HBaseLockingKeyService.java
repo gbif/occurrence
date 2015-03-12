@@ -71,6 +71,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     for (String lookupKey : lookupKeys) {
       Result row = lookupTableStore.getRow(lookupKey);
       LOG.debug("Lookup for [{}] produced [{}]", lookupKey, row);
+      System.out.println("Lookup for [" + lookupKey +"] produced [" + row +"]");
       KeyStatus status = null;
       byte[] existingLock = null;
       if (row != null) {
@@ -163,10 +164,12 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     KeyLookupResult lookupResult;
     if (foundKey == null) {
       key = getNextKey();
-      LOG.debug("Now assigning new key [{}]", key);
       lookupResult = new KeyLookupResult(key, true);
+      LOG.debug("Now assigning new key [{}]", key);
     } else {
-      lookupResult = new KeyLookupResult(foundKey, false);
+      key = foundKey;
+      lookupResult = new KeyLookupResult(key, false);
+      LOG.debug("Using found key [{}]", key);
     }
 
     // write the key and update status to ALLOCATED
@@ -220,7 +223,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     }
   }
 
-  private static enum KeyStatus {
+  private enum KeyStatus {
     ALLOCATING, ALLOCATED
   }
 }
