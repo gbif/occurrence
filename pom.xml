@@ -128,12 +128,12 @@
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.6</gbif-httputils.version>
-    <gbif-parsers.version>0.10</gbif-parsers.version>
+    <gbif-parsers.version>0.11-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
     <gbif-registry.version>2.24</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.10</checklistbank-ws-client.version>
-    <name-parser.version>2.5</name-parser.version>
+    <checklistbank-ws-client.version>2.12-SNAPSHOT</checklistbank-ws-client.version>
+    <name-parser.version>2.6-SNAPSHOT</name-parser.version>
   </properties>
 
   <repositories>
