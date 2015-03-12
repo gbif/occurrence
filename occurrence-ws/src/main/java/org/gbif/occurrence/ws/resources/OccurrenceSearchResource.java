@@ -28,6 +28,7 @@ import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
 
 
 /**
@@ -90,5 +91,13 @@ public class OccurrenceSearchResource {
     suggestInstitutionCodes(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing institution codes suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestInstitutionCodes(prefix, limit);
+  }
+
+  @GET
+  @Path(OCCURRENCE_ID_PATH)
+  public List<String>
+  suggestOccurrenceIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing occurrenceId suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestOccurrenceIds(prefix, limit);
   }
 }
