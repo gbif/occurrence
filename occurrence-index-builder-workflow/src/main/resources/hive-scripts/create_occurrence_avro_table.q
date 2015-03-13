@@ -39,5 +39,5 @@ TBLPROPERTIES (
     {"name":"establishment_means","type":"string"},
     {"name":"occurrence_id","type":"string"},
     {"name":"media_type","type":{"type":"array", "items":"string"}},
-    {"name":"issue","type":{"type":"array", "items":"string"}}
+    {"name":"issue","type":{"type":"array", "items":"string"}}]
 }');
