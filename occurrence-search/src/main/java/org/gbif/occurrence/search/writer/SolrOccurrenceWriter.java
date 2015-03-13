@@ -158,7 +158,8 @@ public class SolrOccurrenceWriter {
     }
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
     doc.setField(ISSUE.getFieldName(), occurrence.getIssues());
-    doc.setField(ESTABLISHMENT_MEANS.getFieldName(), occurrence.getEstablishmentMeans().name());
+    doc.setField(ESTABLISHMENT_MEANS.getFieldName(),
+      occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
     return doc;
   }

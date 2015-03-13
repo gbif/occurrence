@@ -71,7 +71,6 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     for (String lookupKey : lookupKeys) {
       Result row = lookupTableStore.getRow(lookupKey);
       LOG.debug("Lookup for [{}] produced [{}]", lookupKey, row);
-      System.out.println("Lookup for [" + lookupKey +"] produced [" + row +"]");
       KeyStatus status = null;
       byte[] existingLock = null;
       if (row != null) {
