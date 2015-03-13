@@ -1,5 +1,5 @@
-INSERT OVERWRITE TABLE ${tempAvroTable} 
-SELECT 
+INSERT OVERWRITE TABLE ${tempAvroTable}
+SELECT
   gbifid,
   COALESCE(datasetkey,""),
   COALESCE(institutioncode,""),
@@ -14,7 +14,7 @@ SELECT
   COALESCE(publishingcountry,""),
   COALESCE(decimallatitude,-1000),
   COALESCE(decimallongitude,-1000),
-  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),""), --coordinate  
+  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),""), --coordinate
   COALESCE(year,-1),
   COALESCE(month,-1),
   COALESCE(eventdate,CAST(-1 AS BIGINT)),
@@ -25,5 +25,7 @@ SELECT
   COALESCE(elevation,-1000000),
   COALESCE(depth,-1000000),
   COALESCE(mediatype,array()),
-  COALESCE(issue,array())
-FROM ${sourceOccurrenceTable} occ; 
+  COALESCE(issue,array()) ,
+  COALESCE(establishmentmeans,""),
+  COALESCE(occurrenceid,"")
+FROM ${sourceOccurrenceTable} occ;

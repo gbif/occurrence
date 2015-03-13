@@ -1,25 +1,25 @@
 DROP TABLE IF EXISTS ${tempAvroTable};
 CREATE TABLE ${tempAvroTable}
-ROW FORMAT SERDE 
+ROW FORMAT SERDE
 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
-STORED AS INPUTFORMAT 
+STORED AS INPUTFORMAT
 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
-OUTPUTFORMAT 
+OUTPUTFORMAT
 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 TBLPROPERTIES (
 'avro.schema.literal'='{
   "namespace":"org.gbif.api.model.occurrence",
   "name":"Occurrence",
   "type":"record",
-  "fields": 
+  "fields":
     [{"name":"key","type":"int"},
     {"name":"dataset_key","type":"string"},
     {"name":"institution_code","type":"string"},
     {"name":"collection_code","type":"string"},
-    {"name":"catalog_number","type":"string"}, 
-    {"name":"recorded_by","type":"string"}, 
-    {"name":"record_number","type":"string"},     
-    {"name":"last_interpreted","type":"long"}, 
+    {"name":"catalog_number","type":"string"},
+    {"name":"recorded_by","type":"string"},
+    {"name":"record_number","type":"string"},
+    {"name":"last_interpreted","type":"long"},
     {"name":"taxon_key","type":{"type":"array", "items":"int"}},
     {"name":"country","type":"string"},
     {"name":"continent","type":"string"},
@@ -37,5 +37,7 @@ TBLPROPERTIES (
     {"name":"elevation","type":"int"},
     {"name":"depth","type":"int"},
     {"name":"media_type","type":{"type":"array", "items":"string"}},
-    {"name":"issue","type":{"type":"array", "items":"string"}}]
+    {"name":"issue","type":{"type":"array", "items":"string"}},
+    {"name":"establishment_means","type":"string"},
+    {"name":"occurrence_id","type":"string"}
 }');
