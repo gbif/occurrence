@@ -89,8 +89,7 @@ class HiveQueryVisitor {
     + HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
   private static final String ISSUE_CONTAINS_FMT = "array_contains("
     + HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
-  private static final String ESTABLISHMENT_MEANS_CONTAINS_FMT = "array_contains("
-                                                   + HiveColumnsUtils.getHiveColumn(DwcTerm.establishmentMeans) + ",'%s')";
+
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
 
@@ -188,9 +187,7 @@ class HiveQueryVisitor {
       builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
-    } else if (OccurrenceSearchParameter.ESTABLISHMENT_MEANS == predicate.getKey()) {
-      builder.append(String.format(ESTABLISHMENT_MEANS_CONTAINS_FMT, predicate.getValue().toUpperCase()));
-    } else {
+    }  else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }
   }
