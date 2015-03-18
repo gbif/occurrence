@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>19</version>
+    <version>20</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -115,25 +115,25 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.9</hbase-utils.version>
-    <download-query-tools.version>1.2-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>1.2</download-query-tools.version>
     <drupal-mybatis.version>0.15</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
-    <gbif-api.version>0.18-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.18</gbif-api.version>
     <gbif-common.version>0.17</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.21-SNAPSHOT</gbif-common-search.version>
+    <gbif-common-search.version>0.21</gbif-common-search.version>
     <gbif-common-service.version>0.11</gbif-common-service.version>
-    <gbif-common-ws.version>0.19-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-ws.version>0.19</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.6</gbif-httputils.version>
-    <gbif-parsers.version>0.11-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.11</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
-    <gbif-registry.version>2.26-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>2.26</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.12-SNAPSHOT</checklistbank-ws-client.version>
-    <name-parser.version>2.6-SNAPSHOT</name-parser.version>
+    <checklistbank-ws-client.version>2.12</checklistbank-ws-client.version>
+    <name-parser.version>2.6</name-parser.version>
   </properties>
 
   <repositories>
