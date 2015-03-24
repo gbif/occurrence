@@ -4,6 +4,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.ws.json.JacksonJsonContextResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +69,9 @@ public class NubLookupInterpreter {
     cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, HTTP_TIMEOUT);
     cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, HTTP_TIMEOUT);
     cc.getClasses().add(JacksonJsonProvider.class);
+    // use custom configured object mapper ignoring
+    cc.getClasses().add(JacksonJsonContextResolver.class);
+
     Client client = ApacheHttpClient.create(cc);
     RESOURCE = client.resource(WEB_SERVICE_URL);
     LOG.info("Creating new nub lookup service at " + WEB_SERVICE_URL);
