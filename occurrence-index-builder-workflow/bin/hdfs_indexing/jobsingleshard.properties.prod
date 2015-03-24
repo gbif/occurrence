@@ -15,6 +15,6 @@ oozie.server=http://oozie.gbif.org:11000/oozie
 oozie.launcher.mapred.job.priority=VERY_HIGH
 mapred.job.priority=VERY_HIGH
 
-#Required  by the file hive-default.xml
-zookeeper.quorum=cprodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181
+#Required by the file hive-default.xml
+zookeeper.quorum=prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181
 hive.metastore.uris=thrift://prodmaster1-vh.gbif.org:9083
