@@ -19,7 +19,7 @@
     <brickhouse.version>0.6.0</brickhouse.version>
     <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
     <timestamp>${maven.build.timestamp}</timestamp>
-    <maven.build.timestamp.format>yyyy-MM-DD'T'HH:mm'Z'</maven.build.timestamp.format>
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
   </properties>
 
   <build>
