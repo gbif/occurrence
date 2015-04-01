@@ -38,6 +38,7 @@
     <module>occurrence-ws-client</module>
     <module>occurrence-hive</module>
     <module>occurrence-tables-coord</module>
+    <module>occurrence-download</module>
   </modules>
 
   <properties>
@@ -1009,6 +1010,9 @@
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>
         <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
 
+        <!-- determines how often the HDFS tables are built -->
+        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
+
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif-uat.org:8081/occurrence-solr/</occurrence.search.solr.server>
         <occurrence.download.ws.url>http://api.gbif-uat.org/v1/</occurrence.download.ws.url>
@@ -1049,7 +1053,7 @@
         <!-- the environment is used to build lots of configuration conventions like hbase & hive table names -->
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
-        <occurrence.hive_db>dev</occurrence.hive_db>
+        <occurrence.hive_db>fede</occurrence.hive_db>
 
         <!-- cluster -->
         <zookeeper.quorum>c1n1.gbif.org:2181,c1n2.gbif.org:2181,c1n3.gbif.org:2181</zookeeper.quorum>
@@ -1064,6 +1068,9 @@
         <hive.version>0.13.1-cdh5.2.0</hive.version>
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>
         <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
+
+        <!-- determines how often the HDFS tables are built -->
+        <occurrence.hdfs.build.frequency>${coord:hours(4)}</occurrence.hdfs.build.frequency>
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps2.gbif-dev.org:8081/occurrence-solr/</occurrence.search.solr.server>
@@ -1121,6 +1128,9 @@
         <hive.version>0.13.1-cdh5.2.0</hive.version>
         <oozie.version>4.0.0-cdh5.2.0</oozie.version>
         <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
+
+        <!-- determines how often the HDFS tables are built -->
+        <occurrence.hdfs.build.frequency>${coord:days(1)}</occurrence.hdfs.build.frequency>
 
         <!-- webservices -->
         <occurrence.search.solr.server>http://apps.gbif.org:8081/occurrence-solr/</occurrence.search.solr.server>

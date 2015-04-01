@@ -27,7 +27,7 @@
     <name>hbase.zookeeper.quorum</name>
     <value>${zookeeper.quorum}</value>
   </property>
- 
+
   <property>
     <name>hive.metastore.local</name>
     <value>false</value>
@@ -66,3 +66,6 @@
     <description>Scratch space for Hive jobs</description>
   </property>
 </configuration>
+
+
+

@@ -18,7 +18,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
 
-  <id>oozie</id>
+  <id>common</id>
   <formats>
     <format>dir</format>
   </formats>
@@ -26,41 +26,39 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/</outputDirectory>
-      <excludes>
-        <exclude>**/*.sh</exclude>
-        <exclude>solr/</exclude>
-      </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/</outputDirectory>
-      <fileMode>0755</fileMode>
-      <includes>
-        <include>**/*.sh</include>
-      </includes>
+      <directory>${project.build.outputDirectory}/conf</directory>
+      <outputDirectory>/conf</outputDirectory>
     </fileSet>
   </fileSets>
 
-  <files>
-    <file>
-      <source>${project.build.outputDirectory}/conf/hive-config.xml</source>
-      <outputDirectory>lib</outputDirectory>
-    </file>
-     <file>
-      <source>${project.build.outputDirectory}/conf/solr_occurrence_morphline.conf</source>
-      <outputDirectory>lib</outputDirectory>
-      <fileMode>0644</fileMode>
-    </file>
-  </files>
-
+  <!--
+    Dependencies here are references to POM dependencies.
+  -->
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
+      <includes>
+        <include>org.gbif:gbif-api:jar</include>
+        <include>org.gbif.occurrence:occurrence-common:jar</include>
+        <include>org.gbif.occurrence:occurrence-download:jar</include>
+        <include>org.gbif.occurrence:occurrence-hive:jar</include>
+        <include>org.gbif.hadoop:hadoop-compress:jar</include>
+        <include>com.google.guava:guava</include>
+        <include>com.klout:brickhouse:jar</include>
+        <include>org.apache.hbase:hbase-client:jar</include>
+        <include>org.apache.hbase:hbase-common:jar</include>
+        <include>org.apache.hbase:hbase-hadoop-compat:jar</include>
+        <include>org.apache.hbase:hbase-protocol:jar</include>
+        <include>org.apache.hbase:hbase-server:jar</include>
+        <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>
+        <include>org.cloudera.htrace:htrace-core</include>
+        <include>com.vividsolutions:jts:jar</include>
+        <include>joda-time:joda-time:jar</include>
+      </includes>
+      <excludes>
+        <exclude>*:tests</exclude>
+      </excludes>
     </dependencySet>
   </dependencySets>
-
-
 </assembly>

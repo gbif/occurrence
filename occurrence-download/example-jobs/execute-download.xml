@@ -1,0 +1,43 @@
+<!--
+  Run this with:
+   oozie job -oozie http://c1n1.gbif.org:11000/oozie/ -config example-jobs/execute-download.xml -run
+-->
+<configuration>
+  <!-- See the install-workflow.sh which declares this location during development -->
+  <property>
+    <name>oozie.wf.application.path</name>
+    <value>hdfs://c1n1.gbif.org:8020/new-occurrence-download/simple-download</value>
+  </property>
+
+  <!--
+    During development we overwrite defaults with our own values (!)
+  -->
+  <property>
+    <name>user.name</name>
+    <value>fmendez</value>
+  </property>
+  <property>
+    <name>hiveDB</name>
+    <value>fede</value>
+  </property>
+  <property>
+    <name>env</name>
+    <value>dev</value>
+  </property>
+  <property>
+    <name>occurrenceTable</name>
+    <value>fmendez_occurrence</value>
+  </property>
+  <property>
+    <name>whereClause</name>
+    <value>kingdomkey=1</value>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.workflow</name>
+    <value>
+      workflowToDownloadId=org.gbif.occurrence.common.download.DownloadUtils#workflowToDownloadId
+    </value>
+  </property>
+
+
+</configuration>

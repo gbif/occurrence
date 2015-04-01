@@ -18,7 +18,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
 
-  <id>oozie</id>
+  <id>download</id>
   <formats>
     <format>dir</format>
   </formats>
@@ -26,41 +26,9 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/</outputDirectory>
-      <excludes>
-        <exclude>**/*.sh</exclude>
-        <exclude>solr/</exclude>
-      </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/</outputDirectory>
-      <fileMode>0755</fileMode>
-      <includes>
-        <include>**/*.sh</include>
-      </includes>
+      <directory>${project.build.outputDirectory}/download</directory>
+      <outputDirectory>/download/</outputDirectory>
     </fileSet>
   </fileSets>
-
-  <files>
-    <file>
-      <source>${project.build.outputDirectory}/conf/hive-config.xml</source>
-      <outputDirectory>lib</outputDirectory>
-    </file>
-     <file>
-      <source>${project.build.outputDirectory}/conf/solr_occurrence_morphline.conf</source>
-      <outputDirectory>lib</outputDirectory>
-      <fileMode>0644</fileMode>
-    </file>
-  </files>
-
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory>lib</outputDirectory>
-      <fileMode>0644</fileMode>
-    </dependencySet>
-  </dependencySets>
-
 
 </assembly>
