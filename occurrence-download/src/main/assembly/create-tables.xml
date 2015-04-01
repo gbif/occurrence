@@ -28,6 +28,10 @@
       <directory>${project.build.outputDirectory}/create-tables</directory>
       <outputDirectory>/create-tables</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.outputDirectory}/conf</directory>
+      <outputDirectory>/create-tables/conf</outputDirectory>
+    </fileSet>
   </fileSets>
 
 </assembly>

@@ -29,6 +29,10 @@
       <directory>${project.build.outputDirectory}/download</directory>
       <outputDirectory>/download/</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.outputDirectory}/conf</directory>
+      <outputDirectory>/download/conf</outputDirectory>
+    </fileSet>
   </fileSets>
 
 </assembly>

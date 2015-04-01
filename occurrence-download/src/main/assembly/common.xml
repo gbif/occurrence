@@ -24,13 +24,6 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
 
-  <fileSets>
-    <fileSet>
-      <directory>${project.build.outputDirectory}/conf</directory>
-      <outputDirectory>/conf</outputDirectory>
-    </fileSet>
-  </fileSets>
-
   <!--
     Dependencies here are references to POM dependencies.
   -->
