@@ -19,12 +19,11 @@ import org.slf4j.LoggerFactory;
  * Provides an iterator over occurrence keys for a given HBase scan. To guarantee that all resources are released after
  * use, please make sure to iterate over the entire result (until hasNext() returns false).
  */
-public class OccurrenceKeyIterator implements Iterator<Integer> {
+public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceKeyIterator.class);
   private final ResultScanner scanner;
   private final Iterator<Result> iterator;
-  private final HTablePool tablePool;
   private final HTableInterface table;
   private boolean scannerClosed = false;
 
@@ -38,7 +37,6 @@ public class OccurrenceKeyIterator implements Iterator<Integer> {
    */
   public OccurrenceKeyIterator(HTablePool tablePool, String occurrenceTableName, Scan scan) {
     // TODO: heartbeat thread to shutdown/close resources if no activity after x seconds?
-    this.tablePool = tablePool;
     this.table = tablePool.getTable(occurrenceTableName);
     try {
       this.scanner = table.getScanner(scan);
@@ -63,8 +61,7 @@ public class OccurrenceKeyIterator implements Iterator<Integer> {
     if (iterator.hasNext()) {
       return true;
     } else {
-      scanner.close();
-      scannerClosed = true;
+      close();
       return false;
     }
   }
@@ -82,5 +79,11 @@ public class OccurrenceKeyIterator implements Iterator<Integer> {
   @Override
   public void remove() {
     throw new UnsupportedOperationException("This iterator does not support removal.");
+  }
+
+  @Override
+  public void close() {
+    scanner.close();
+    scannerClosed = true;
   }
 }

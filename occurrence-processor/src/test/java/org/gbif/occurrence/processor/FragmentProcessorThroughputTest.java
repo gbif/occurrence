@@ -5,6 +5,7 @@ import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
@@ -20,10 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.rabbitmq.client.ConnectionFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import com.rabbitmq.client.ConnectionFactory;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
 
@@ -31,10 +32,10 @@ import org.apache.hadoop.hbase.client.HTablePool;
  * Note not a real JUnit test but rather an extremely expensive test that is meant to be run against the real cluster.
  */
 public class FragmentProcessorThroughputTest {
-
-  private static final String LOOKUP_TABLE_NAME = "keygen_test_occurrence_lookup";
-  private static final String COUNTER_TABLE_NAME = "keygen_test_occurrence_counter";
-  private static final String OCCURRENCE_TABLE_NAME = "keygen_test_occurrence";
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("keygen_test");
+  }
 
   private static final String xmlPrefix =
     "<DarwinRecord><GlobalUniqueIdentifier>ZMA:Entomology:Diptera_Tipulidae_NL_TEMP_09183</GlobalUniqueIdentifier>"
@@ -62,10 +63,10 @@ public class FragmentProcessorThroughputTest {
   public FragmentProcessorThroughputTest(int hbasePoolSize) throws IOException {
     HTablePool tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
     HBaseLockingKeyService keyService =
-      new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
+      new HBaseLockingKeyService(CFG, tablePool);
     OccurrenceKeyPersistenceService occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyService);
     FragmentPersistenceService fragService =
-      new FragmentPersistenceServiceImpl(OCCURRENCE_TABLE_NAME, tablePool, occurrenceKeyService);
+      new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost("mq.gbif.org");
     connectionFactory.setVirtualHost("/users/omeyn");

@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.guice;
 
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.DatasetDeletionServiceImpl;
 import org.gbif.occurrence.persistence.FragmentPersistenceServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceKeyPersistenceServiceImpl;
@@ -12,34 +13,60 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
-import org.gbif.service.guice.PrivateServiceModule;
 
 import java.util.Properties;
 
+import com.google.common.base.Throwables;
+import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import com.google.inject.name.Named;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A convenience module to include the OccurrencePersistenceServiceImpl via Guice. See the README for needed
  * properties.
  */
-public class OccurrencePersistenceModule extends PrivateServiceModule {
+public class OccurrencePersistenceModule extends PrivateModule {
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceModule.class);
 
-  private static final String PREFIX = "occurrence.db.";
+  private final OccHBaseConfiguration cfg;
 
+  @Deprecated
   public OccurrencePersistenceModule(Properties properties) {
-    super(PREFIX, properties);
+    this(toCfg(properties));
+  }
+
+  public OccurrencePersistenceModule(OccHBaseConfiguration cfg) {
+    this.cfg = cfg;
+  }
+
+  private static OccHBaseConfiguration toCfg(Properties props) {
+    OccHBaseConfiguration cfg = new OccHBaseConfiguration();
+    try {
+      cfg.occTable = props.getProperty("occurrence.db.table_name");
+      cfg.counterTable = props.getProperty("occurrence.db.counter_table_name");
+      cfg.lookupTable = props.getProperty("occurrence.db.id_lookup_table_name");
+      cfg.hbasePoolSize = Integer.valueOf(props.getProperty("occurrence.db.max_connection_pool"));
+      cfg.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
+
+    } catch (RuntimeException e) {
+      LOG.error("Occurrence persistence property configs invalid", e);
+      Throwables.propagate(e);
+    }
+    return cfg;
   }
 
   @Override
-  protected void configureService() {
+  protected void configure() {
+    bind(OccHBaseConfiguration.class).toInstance(cfg);
+
     bind(OccurrenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrencePersistenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrenceKeyPersistenceService.class).to(OccurrenceKeyPersistenceServiceImpl.class);
@@ -58,19 +85,19 @@ public class OccurrencePersistenceModule extends PrivateServiceModule {
   }
 
   @Provides
-  public HTablePool provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) {
-    return new HTablePool(HBaseConfiguration.create(), maxConnectionPool);
+  public HTablePool provideHTablePool() {
+    return new HTablePool(HBaseConfiguration.create(), cfg.hbasePoolSize);
   }
 
   @Provides
   @Singleton
-  public ThreadLocalLockProvider provideLockProvider(@Named("zookeeper.connection_string") String zkUrl) {
-    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace("hbasePersistence").connectString(zkUrl)
+  public ThreadLocalLockProvider provideLockProvider() {
+    CuratorFramework curator = CuratorFrameworkFactory.builder()
+      .namespace("hbasePersistence")
+      .connectString(cfg.zkConnectionString)
       .retryPolicy(new RetryNTimes(5, 1000)).build();
     curator.start();
 
-    ThreadLocalLockProvider provider = new ThreadLocalLockProvider(curator);
-
-    return provider;
+    return new ThreadLocalLockProvider(curator);
   }
 }

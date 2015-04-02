@@ -13,6 +13,7 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
@@ -25,14 +26,12 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -58,14 +57,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
-  private static final int SCANNER_BATCH_SIZE = 50;
   private static final int SCANNER_CACHE_SIZE = 50;
   private final String occurrenceTableName;
   private final HTablePool tablePool;
 
   @Inject
-  public OccurrencePersistenceServiceImpl(@Named("table_name") String tableName, HTablePool tablePool) {
-    this.occurrenceTableName = checkNotNull(tableName, "tableName can't be null");
+  public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, HTablePool tablePool) {
+    this.occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
     this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
   }
 

@@ -1,8 +1,8 @@
-package org.gbif.occurrence.cli.dataset.service;
+package org.gbif.occurrence.processor.guice;
 
 import org.gbif.common.messaging.config.MessagingConfiguration;
-import org.gbif.occurrence.cli.common.GangliaConfiguration;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
+import org.gbif.occurrence.common.config.ZooKeeperConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -10,8 +10,9 @@ import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.base.Objects;
 
-public class DatasetMutationConfiguration {
+public class ProcessorConfiguration {
 
   @ParametersDelegate
   @NotNull
@@ -21,7 +22,12 @@ public class DatasetMutationConfiguration {
   @ParametersDelegate
   @Valid
   @NotNull
-  public GangliaConfiguration ganglia = new GangliaConfiguration();
+  public ZooKeeperConfiguration zooKeeper = new ZooKeeperConfiguration();
+
+  @ParametersDelegate
+  @Valid
+  @NotNull
+  public ApiClientConfiguration api = new ApiClientConfiguration();
 
   @ParametersDelegate
   @Valid
@@ -32,16 +38,15 @@ public class DatasetMutationConfiguration {
   @Min(1)
   public int msgPoolSize = 10;
 
-  @Parameter(names = "--delete-dataset-queue-name")
-  @NotNull
-  public String deleteDatasetQueueName;
 
-  @Parameter(names = "--interpret-dataset-queue-name")
-  @NotNull
-  public String interpretDatasetQueueName;
-
-  @Parameter(names = "--parse-dataset-queue-name")
-  @NotNull
-  public String parseDatasetQueueName;
-
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+      .add("messaging", messaging)
+      .add("zooKeeper", zooKeeper)
+      .add("api", api)
+      .add("hbase", hbase)
+      .add("msgPoolSize", msgPoolSize)
+      .toString();
+  }
 }

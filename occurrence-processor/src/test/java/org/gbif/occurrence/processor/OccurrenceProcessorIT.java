@@ -20,6 +20,11 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
+import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
+import org.gbif.occurrence.processor.interpreting.PublishingOrgInterpreter;
+import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.messaging.FragmentPersistedListener;
 import org.gbif.occurrence.processor.messaging.OccurrenceFragmentedListener;
@@ -91,6 +96,9 @@ public class OccurrenceProcessorIT {
 
   @Before
   public void setUp() throws Exception {
+    ApiClientConfiguration cfg = new ApiClientConfiguration();;
+    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
+
     ConnectionParameters connectionParams = new ConnectionParameters("localhost", 5672, "guest", "guest", "/");
     messagePublisher = new DefaultMessagePublisher(connectionParams);
     messageListener = new MessageListener(connectionParams);
@@ -110,7 +118,11 @@ public class OccurrenceProcessorIT {
       new VerbatimProcessor(fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector);
     fragmentPersistedListener = new FragmentPersistedListener(verbatimProcessor);
     messageListener.listen("frag_persisted_test_" + now, 1, fragmentPersistedListener);
-    verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
+    verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
+      new PublishingOrgInterpreter(cfg.newApiClient()),
+      new TaxonomyInterpreter(cfg.newApiClient()),
+      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))
+    );
     interpretedProcessor =
       new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher,
         zookeeperConnector);

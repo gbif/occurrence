@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.keygen;
 
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -7,7 +8,6 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import java.util.Set;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +27,9 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
   private final ThreadLocalLockProvider zookeeperLockManagerProvider;
 
   @Inject
-  public ZkLockingKeyService(@Named("id_lookup_table_name") String occurrenceIdTableName,
-    @Named("counter_table_name") String counterTableName, @Named("table_name") String occurrenceTableName,
-    HTablePool tablePool, ThreadLocalLockProvider zookeeperLockManagerProvider) {
-    super(occurrenceIdTableName, counterTableName, occurrenceTableName, tablePool, new OccurrenceKeyBuilder());
+  public ZkLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool,
+    ThreadLocalLockProvider zookeeperLockManagerProvider) {
+    super(cfg, tablePool, new OccurrenceKeyBuilder());
     this.zookeeperLockManagerProvider = zookeeperLockManagerProvider;
   }
 

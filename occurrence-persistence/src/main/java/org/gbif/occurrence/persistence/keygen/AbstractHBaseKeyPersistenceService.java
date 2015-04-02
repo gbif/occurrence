@@ -2,6 +2,7 @@ package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.OccurrenceKeyHelper;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -48,17 +49,16 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   protected final HBaseStore<Integer> counterTableStore;
   protected final KeyBuilder keyBuilder;
 
-  public AbstractHBaseKeyPersistenceService(String occurrenceIdTableName, String counterTableName,
-    String occurrenceTableName, HTablePool tablePool, KeyBuilder keyBuilder) {
-    this.lookupTableName = checkNotNull(occurrenceIdTableName, "occurrenceIdTableName can't be null");
+  public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, HTablePool tablePool, KeyBuilder keyBuilder) {
+    this.lookupTableName = checkNotNull(cfg.lookupTable, "lookupTable can't be null");
     this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
     this.lookupTableStore =
-      new HBaseStore<String>(occurrenceIdTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
     this.counterTableStore =
-      new HBaseStore<Integer>(counterTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
     this.occurrenceTableStore =
-      new HBaseStore<Integer>(occurrenceTableName, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+      new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
   }
 
   @Override

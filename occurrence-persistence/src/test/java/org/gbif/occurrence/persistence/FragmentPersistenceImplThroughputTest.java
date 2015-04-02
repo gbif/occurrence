@@ -2,6 +2,7 @@ package org.gbif.occurrence.persistence;
 
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
@@ -26,9 +27,10 @@ import org.apache.hadoop.hbase.client.HTablePool;
  */
 public class FragmentPersistenceImplThroughputTest {
 
-  private static final String LOOKUP_TABLE_NAME = "keygen_test_occurrence_lookup";
-  private static final String COUNTER_TABLE_NAME = "keygen_test_occurrence_counter";
-  private static final String OCCURRENCE_TABLE_NAME = "keygen_test_occurrence";
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("keygen_test");
+  }
 
   private final FragmentPersistenceServiceImpl fragService;
 
@@ -36,10 +38,8 @@ public class FragmentPersistenceImplThroughputTest {
 
   public FragmentPersistenceImplThroughputTest(int hbasePoolSize) {
     HTablePool tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
-    HBaseLockingKeyService keyService =
-      new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
-    fragService = new FragmentPersistenceServiceImpl(OCCURRENCE_TABLE_NAME, tablePool,
-      new OccurrenceKeyPersistenceServiceImpl(keyService));
+    HBaseLockingKeyService keyService = new HBaseLockingKeyService(CFG, tablePool);
+    fragService = new FragmentPersistenceServiceImpl(CFG, tablePool, new OccurrenceKeyPersistenceServiceImpl(keyService));
   }
 
   public void testNoContention(int threadCount) throws InterruptedException {

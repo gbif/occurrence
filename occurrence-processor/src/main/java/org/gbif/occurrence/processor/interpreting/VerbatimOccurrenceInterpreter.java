@@ -22,6 +22,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.util.Date;
@@ -49,12 +50,19 @@ public class VerbatimOccurrenceInterpreter {
   private static final EstablishmentMeansParser EST_PARSER = EstablishmentMeansParser.getInstance();
   private static final LifeStageParser LST_PARSER = LifeStageParser.getInstance();
 
+  private final PublishingOrgInterpreter publishingOrgInterpreter;
+  private final TaxonomyInterpreter taxonomyInterpreter;
+  private final LocationInterpreter locationInterpreter;
   private final OccurrencePersistenceService occurrenceService;
   private final ZookeeperConnector zookeeperConnector;
 
   @Inject
   public VerbatimOccurrenceInterpreter(OccurrencePersistenceService occurrenceService,
-    ZookeeperConnector zookeeperConnector) {
+    ZookeeperConnector zookeeperConnector, PublishingOrgInterpreter publishingOrgInterpreter,
+    TaxonomyInterpreter taxonomyInterpreter, LocationInterpreter locationInterpreter) {
+    this.publishingOrgInterpreter = publishingOrgInterpreter;
+    this.taxonomyInterpreter = taxonomyInterpreter;
+    this.locationInterpreter = locationInterpreter;
     this.occurrenceService = checkNotNull(occurrenceService, "occurrenceService can't be null");
     this.zookeeperConnector = checkNotNull(zookeeperConnector, "zookeeperConnector can't be null");
   }
@@ -75,59 +83,70 @@ public class VerbatimOccurrenceInterpreter {
 
     // TODO: these interpreters throw a variety of runtime exceptions but should throw checked exceptions
     try {
-      LocationInterpreter.interpretLocation(verbatim, occ);
+      locationInterpreter.interpretLocation(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during location interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
-      TaxonomyInterpreter.interpretTaxonomy(verbatim, occ);
+      taxonomyInterpreter.interpretTaxonomy(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during taxonomy interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
-      PublishingOrgInterpreter.interpretPublishingOrg(occ);
+      publishingOrgInterpreter.interpretPublishingOrg(occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during owning org interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       MultiMediaInterpreter.interpretMedia(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during media interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretBor(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during basis of record interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretSex(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during sex interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretEstablishmentMeans(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during establishment means interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretLifeStage(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during life stage interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretTypification(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during typification interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       TemporalInterpreter.interpretTemporal(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during temporal interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
       interpretReferences(verbatim, occ);
     } catch (Exception e) {
       LOG.warn("Caught a runtime exception during basis of record interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
 
     occ.setLastInterpreted(new Date());

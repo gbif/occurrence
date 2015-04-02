@@ -5,6 +5,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
@@ -38,16 +39,17 @@ import static org.junit.Assert.assertNull;
 @Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class OccurrenceDeletionServiceTest {
 
-  private static final String TABLE_NAME = "occurrence_test";
-  private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] TABLE = Bytes.toBytes(CFG.occTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final String COUNTER_TABLE_NAME = "counter_test";
-  private static final byte[] COUNTER_TABLE = Bytes.toBytes(COUNTER_TABLE_NAME);
+  private static final byte[] COUNTER_TABLE = Bytes.toBytes(CFG.counterTable);
   private static final String COUNTER_CF_NAME = "o";
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
-  private static final String LOOKUP_TABLE_NAME = "lookup_test";
-  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(LOOKUP_TABLE_NAME);
+  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(CFG.lookupTable);
   private static final String LOOKUP_CF_NAME = "o";
   private static final byte[] LOOKUP_CF = Bytes.toBytes(LOOKUP_CF_NAME);
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
@@ -76,10 +78,10 @@ public class OccurrenceDeletionServiceTest {
   public void setUp() {
     HTablePool tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
     KeyPersistenceService keyPersistenceService =
-      new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, TABLE_NAME, tablePool);
+      new HBaseLockingKeyService(CFG, tablePool);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
-    fragmentService = new FragmentPersistenceServiceImpl(TABLE_NAME, tablePool, occurrenceKeyService);
-    occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
+    fragmentService = new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
+    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, tablePool);
     occurrenceDeletionService = new OccurrenceDeletionService(occurrenceService, occurrenceKeyService);
 
     // add some occurrences
