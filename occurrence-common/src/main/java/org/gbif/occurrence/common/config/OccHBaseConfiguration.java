@@ -28,7 +28,7 @@ public class OccHBaseConfiguration {
   public String lookupTable;
 
   /**
-   * The zookeeper conenction being used to create a lock provider
+   * The zookeeper connection being used to create a lock provider
    */
   @Parameter(names = "--occ-zk-connection")
   @NotNull

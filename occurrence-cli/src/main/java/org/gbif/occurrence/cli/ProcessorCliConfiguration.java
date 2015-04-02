@@ -18,16 +18,16 @@ public class ProcessorCliConfiguration extends ProcessorConfiguration {
   @NotNull
   public GangliaConfiguration ganglia = new GangliaConfiguration();
 
-  @Parameter(names = "--msg-pool-size")
-  @Min(1)
-  public int msgPoolSize = 10;
-
   @Parameter(names = "--primary-queue-name")
   @NotNull
   public String primaryQueueName;
 
   @Parameter(names = "--secondary-queue-name")
   public String secondaryQueueName;
+
+  @Parameter(names = "--msg-pool-size")
+  @Min(1)
+  public int msgPoolSize = 10;
 
   @Override
   public String toString() {

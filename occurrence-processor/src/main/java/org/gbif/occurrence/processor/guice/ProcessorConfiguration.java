@@ -5,10 +5,8 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.config.ZooKeeperConfiguration;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Objects;
 
@@ -34,11 +32,6 @@ public class ProcessorConfiguration {
   @NotNull
   public OccHBaseConfiguration hbase = new OccHBaseConfiguration();
 
-  @Parameter(names = "--msg-pool-size")
-  @Min(1)
-  public int msgPoolSize = 10;
-
-
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
@@ -46,7 +39,6 @@ public class ProcessorConfiguration {
       .add("zooKeeper", zooKeeper)
       .add("api", api)
       .add("hbase", hbase)
-      .add("msgPoolSize", msgPoolSize)
       .toString();
   }
 }
