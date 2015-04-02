@@ -1,0 +1,39 @@
+<!--
+  The default configuration to use in jobs.
+  Properties can be overridden by the job config when each job is submitted.
+-->
+<configuration>
+  <!--
+    Ensure application controls classpath before default Hadoop libraries.
+    Jackson, Guava versions in particular are vary old in Hadoop transitive dependencies.
+  -->
+  <property>
+    <name>mapreduce.task.classpath.user.precedence</name>
+    <value>true</value>
+  </property>
+
+  <!--
+    Instruct oozie to use the shared CP which is on HDFS /user/oozie/share/lib
+    and has all the common jars needed to e.g. start hive actions.
+  -->
+  <property>
+    <name>oozie.use.system.libpath</name>
+    <value>true</value>
+  </property>
+
+  <!--
+    Hive DB which to work with [can be overridden on job config].
+  -->
+  <property>
+    <name>hiveDB</name>
+    <value>${occurrence.environment}-TODO-REMOVE-THIS-SUFFIX</value>
+  </property>
+
+  <!--
+    HBase table to source data from [can be overridden on job config].
+  -->
+  <property>
+    <name>occurrenceHBaseTable</name>
+    <value>${occurrence.environment}_occurrence</value>
+  </property>
+</configuration>
