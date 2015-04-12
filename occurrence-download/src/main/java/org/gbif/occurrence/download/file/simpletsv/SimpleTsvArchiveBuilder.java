@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.file;
+package org.gbif.occurrence.download.file.simpletsv;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -6,14 +6,17 @@ import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.Properties;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -23,8 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,12 +34,12 @@ import org.apache.hadoop.fs.Path;
 /**
  * Utility class that creates zip file from a directory that stores the data of a Hive table.
  */
-public class SimpleFormatArchiveBuilder {
+public class SimpleTsvArchiveBuilder {
 
   /**
    * Private constructor.
    */
-  private SimpleFormatArchiveBuilder(){
+  private SimpleTsvArchiveBuilder(){
     //do nothing
   }
 
@@ -61,28 +62,26 @@ public class SimpleFormatArchiveBuilder {
    * Merges the content of the hiveTableInputPath (directory) into a zip file in  hdfsOutputPath.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
-   public static void mergeToZip(String nameNode, String hiveTableInputPath, String hdfsOutputPath, String workflowId) throws IOException {
-     Configuration conf = new Configuration();
-     conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
-     Path outputPath = new Path(hdfsOutputPath, DownloadUtils.workflowToDownloadId(workflowId) + ".zip");
+   public static void mergeToZip(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, String targetPath, String workflowId, ModalZipOutputStream.MODE mode) throws IOException {
+
+     Path outputPath = new Path(targetPath, DownloadUtils.workflowToDownloadId(workflowId) + ".zip");
      try (
-       FileSystem hdfs = FileSystem.get(conf);
-       FSDataOutputStream zipped = hdfs.create(outputPath,true);
+       FSDataOutputStream zipped = targetFileSystem.create(outputPath,true);
        ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
      ) {
-       final Path inputPath = new Path(hiveTableInputPath);
+       final Path inputPath = new Path(sourcePath);
        //appends the header file
-       appendHeaderFile(hdfs,inputPath);
+       appendHeaderFile(sourceFileSystem,inputPath,mode);
 
        ZipEntry ze = new ZipEntry(Files.getNameWithoutExtension(outputPath.getName()) + ".txt");
-       zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
+       zos.putNextEntry(ze, mode);
        //Get all the files inside the directory and creates a list of InputStreams.
-       try (D2CombineInputStream in = new D2CombineInputStream(Lists.transform(Lists.newArrayList(hdfs.listStatus(inputPath)), new Function<FileStatus, InputStream>() {
+       try (D2CombineInputStream in = new D2CombineInputStream(Lists.transform(Lists.newArrayList(sourceFileSystem.listStatus(inputPath)), new Function<FileStatus, InputStream>() {
          @Nullable
          @Override
          public InputStream apply(@Nullable FileStatus input) {
            try {
-             return hdfs.open(input.getPath());
+             return sourceFileSystem.open(input.getPath());
            } catch (IOException ex){
              Throwables.propagate(ex);
              return null;
@@ -105,13 +104,19 @@ public class SimpleFormatArchiveBuilder {
   /**
    * Creates a compressed file named '0' that contains the content of the file HEADER.
    */
-  private static void appendHeaderFile(FileSystem hdfs, Path dir) throws IOException {
-    try(FSDataOutputStream fsDataOutputStream = hdfs.create(new Path(dir,HEADER_FILE_NAME))) {
-      D2Utils.compress(new ByteArrayInputStream(HEADER.getBytes()), fsDataOutputStream);
+  private static void appendHeaderFile(FileSystem targetFileSystem, Path dir, ModalZipOutputStream.MODE mode) throws IOException {
+    try(FSDataOutputStream fsDataOutputStream = targetFileSystem.create(new Path(dir,HEADER_FILE_NAME))) {
+      if(ModalZipOutputStream.MODE.PRE_DEFLATED == mode ) {
+        D2Utils.compress(new ByteArrayInputStream(HEADER.getBytes()), fsDataOutputStream);
+      } else {
+        fsDataOutputStream.write(HEADER.getBytes());
+      }
     }
   }
 
   public static void main(String[] args) throws IOException {
-     mergeToZip(args[0],args[1],args[2],args[3]);
+    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    FileSystem sourceFileSystem = DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
+    mergeToZip(sourceFileSystem,sourceFileSystem,args[0],args[1],args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 }

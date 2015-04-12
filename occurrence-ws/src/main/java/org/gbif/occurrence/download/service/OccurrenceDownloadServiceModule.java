@@ -53,17 +53,21 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Singleton
   @Named("oozie.default_properties")
   Map<String, String> providesOozieDefaultProperties(@Named("ws.url") String wsUrl,
-    @Named("oozie.workflow.path") String workflowPath, @Named("hive.hdfs.out") String hdfsOutput) {
+    @Named("oozie.workflows.path") String workflowsPath,
+    @Named("hive.hdfs.out") String hdfsOutput,
+    @Named("occurrence.hive_db") String hiveDB) {
 
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 
-    builder.put(OozieClient.APP_PATH, workflowPath)
+    builder.put("oozie.workflows.path", workflowsPath)
       .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
       .put("hdfs_hive_path", hdfsOutput)
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
         DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
-      .put("oozie.action.sharelib.for.hive","hive");
+      .put("oozie.action.sharelib.for.hive","hive")
+      //hiveDB is required by the simple_tsv workflow
+      .put("hiveDB",hiveDB);
     // we dont have a specific downloadId yet, submit a placeholder
     String downloadLinkTemplate = DownloadUtils.concatUrlPaths(wsUrl,
       "occurrence/download/" + DownloadUtils.DOWNLOAD_ID_PLACEHOLDER + ".zip");
