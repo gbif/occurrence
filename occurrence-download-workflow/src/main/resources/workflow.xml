@@ -171,8 +171,22 @@
       <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
     </java>
 
-    <ok to="cleaning_decision" />
+    <ok to="copy_to_hdfs" />
     <error to="failure_cleaning_decision" />
+  </action>
+
+  <action name='copy_to_hdfs'>
+    <shell xmlns="uri:oozie:shell-action:0.1">
+      <job-tracker>${hadoop.jobtracker}</job-tracker>
+      <name-node>${hdfs.namenode}</name-node>
+      <exec>scripts/copy_to_hdfs.sh</exec>
+      <argument>${wf:id()}</argument>
+      <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
+      <argument>/occurrence-download/${occurrence.environment}-downloads</argument>
+      <file>scripts/copy_to_hdfs.sh</file>
+    </shell>
+    <ok to="cleaning_decision"/>
+    <error to="failure_cleaning_decision"/>
   </action>
 
   <decision name="cleaning_decision">
