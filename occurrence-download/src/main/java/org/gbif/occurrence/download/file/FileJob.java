@@ -21,19 +21,19 @@ public class FileJob implements Comparable<FileJob> {
 
   private final int jobId;
 
-  private final String baseTableName;
+  private final String baseDataFileName;
 
 
 
   /**
    * Default constructor.
    */
-  public FileJob(int from, int to, String baseTableName, int jobId, String query) {
+  public FileJob(int from, int to, String baseDataFileName, int jobId, String query) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
     this.to = to;
-    this.baseTableName = baseTableName;
+    this.baseDataFileName = baseDataFileName;
     this.jobId = jobId;
   }
 
@@ -52,7 +52,7 @@ public class FileJob implements Comparable<FileJob> {
     }
 
     FileJob that = (FileJob) obj;
-    return Objects.equal(this.baseTableName, that.baseTableName)
+    return Objects.equal(this.baseDataFileName, that.baseDataFileName)
       && Objects.equal(this.jobId, that.jobId) && Objects.equal(this.query, that.query)
       && Objects.equal(this.from, that.from) && Objects.equal(this.to, that.to);
   }
@@ -60,8 +60,16 @@ public class FileJob implements Comparable<FileJob> {
   /**
    * Gets the base table name.
    */
-  public String getBaseTableName() {
-    return baseTableName;
+  public String getBaseDataFileName() {
+    return baseDataFileName;
+  }
+
+  /**
+   *
+   * @return baseDataFileName + jobId.
+   */
+  public String getJobDataFileName(){
+    return baseDataFileName + jobId;
   }
 
   /**
@@ -94,13 +102,13 @@ public class FileJob implements Comparable<FileJob> {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(baseTableName, jobId, query, from, to);
+    return Objects.hashCode(baseDataFileName, jobId, query, from, to);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("from", from).add("to", to)
-      .add("baseTableName", baseTableName).add("jobId", jobId).add("query", query).toString();
+      .add("baseDataFileName", baseDataFileName).add("jobId", jobId).add("query", query).toString();
   }
 
 }

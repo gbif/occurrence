@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.file.simpletsv;
+package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.occurrence.download.file.FileJob;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
@@ -10,6 +10,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -31,9 +32,9 @@ import org.supercsv.prefs.CsvPreference;
 /**
  * Job that creates a part of CSV file. The file is generated according to the fileJob field.
  */
-class SimpleTsvFileWriterJob implements Callable<Result> {
+class SimpleCsvFileWriterJob implements Callable<Result> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleTsvFileWriterJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvFileWriterJob.class);
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -57,7 +58,7 @@ class SimpleTsvFileWriterJob implements Callable<Result> {
   /**
    * Default constructor.
    */
-  public SimpleTsvFileWriterJob(
+  public SimpleCsvFileWriterJob(
     FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader
   ) {
     this.fileJob = fileJob;
@@ -76,7 +77,7 @@ class SimpleTsvFileWriterJob implements Callable<Result> {
 
 
     try (ICsvMapWriter csvMapWriter =
-           new CsvMapWriter(new FileWriterWithEncoding(fileJob.getBaseTableName(), Charsets.UTF_8),
+           new CsvMapWriter(new FileWriterWithEncoding(fileJob.getBaseDataFileName() + '/' + fileJob.getJobDataFileName(), Charsets.UTF_8),
                             CsvPreference.TAB_PREFERENCE)) {
 
 

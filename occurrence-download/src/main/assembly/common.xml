@@ -51,11 +51,12 @@
         <include>commons-logging:commons-logging:jar</include>
         <include>org.apache.curator:curator-client:jar</include>
         <include>org.apache.curator:curator-framework:jar</include>
+        <include>org.apache.curator:curator-recipes:jar</include>
         <include>org.apache.hadoop:hadoop-common:jar</include>
         <include>org.apache.hbase:hbase-client:jar</include>
         <include>org.apache.hbase:hbase-common:jar</include>
         <include>org.apache.hbase:hbase-server:jar</include>
-        <include>org.apache.hive:hive-exec:jar</include>
+        <include>org.apache.hbase:hbase-protocol:jar</include>
         <include>org.apache.hive:hive-hbase-handler</include>
         <include>org.apache.httpcomponents:httpclient</include>
         <include>org.apache.httpcomponents:httpcore</include>
@@ -65,6 +66,7 @@
         <include>org.cloudera.htrace:htrace-core</include>
         <include>org.codehaus.jackson:jackson-jaxrs:jar</include>
         <include>org.codehaus.jackson:jackson-mapper-asl</include>
+        <include>org.codehaus.jackson:jackson-core-asl</include>
         <include>org.gbif.hadoop:hadoop-compress:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
@@ -80,6 +82,7 @@
         <include>org.gbif:gbif-common:jar</include>
         <include>org.gbif:gbif-wrangler:jar</include>
         <include>org.noggit:noggit:jar</include>
+        <include>org.scala-lang:scala-library:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>

@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.oozie;
+package org.gbif.occurrence.download.util;
 
 import java.util.Map;
 import javax.ws.rs.Produces;

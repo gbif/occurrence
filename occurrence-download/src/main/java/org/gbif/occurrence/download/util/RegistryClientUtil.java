@@ -3,7 +3,7 @@ package org.gbif.occurrence.download.util;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.oozie.JacksonJsonContextResolver;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageWsClient;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadWsClient;
@@ -30,9 +30,7 @@ public class RegistryClientUtil {
 
   private static final int REGISTRY_CLIENT_TO = 600000; // registry client default timeout
 
-  public static final String OCC_PROPERTIES = "occurrence-download.properties";
-  private static final String DOWNLOAD_USER_KEY = "occurrence.download.ws.username";
-  private static final String DOWNLOAD_PASSWORD_KEY = "occurrence.download.ws.password";
+
 
   private final Injector injector;
 
@@ -50,7 +48,7 @@ public class RegistryClientUtil {
    */
   public RegistryClientUtil() {
     try {
-      injector = Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(OCC_PROPERTIES)));
+      injector = Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE)));
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (IOException e) {
@@ -111,7 +109,7 @@ public class RegistryClientUtil {
    * Creates a instance of the gbif authentication module.
    */
   private AbstractModule createAuthModuleInstance(Properties properties) {
-    return new SingleUserAuthModule(properties.getProperty(DOWNLOAD_USER_KEY),
-      properties.getProperty(DOWNLOAD_PASSWORD_KEY));
+    return new SingleUserAuthModule(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
+      properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY));
   }
 }

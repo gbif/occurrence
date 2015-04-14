@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.file.simpletsv;
+package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -25,6 +25,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -34,12 +35,12 @@ import org.apache.hadoop.fs.Path;
 /**
  * Utility class that creates zip file from a directory that stores the data of a Hive table.
  */
-public class SimpleTsvArchiveBuilder {
+public class SimpleCsvArchiveBuilder {
 
   /**
    * Private constructor.
    */
-  private SimpleTsvArchiveBuilder(){
+  private SimpleCsvArchiveBuilder(){
     //do nothing
   }
 
@@ -62,9 +63,9 @@ public class SimpleTsvArchiveBuilder {
    * Merges the content of the hiveTableInputPath (directory) into a zip file in  hdfsOutputPath.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
-   public static void mergeToZip(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, String targetPath, String workflowId, ModalZipOutputStream.MODE mode) throws IOException {
+   public static void mergeToZip(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, String targetPath, String workflowKey, ModalZipOutputStream.MODE mode) throws IOException {
 
-     Path outputPath = new Path(targetPath, DownloadUtils.workflowToDownloadId(workflowId) + ".zip");
+     Path outputPath = new Path(targetPath, workflowKey + ".zip");
      try (
        FSDataOutputStream zipped = targetFileSystem.create(outputPath,true);
        ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
@@ -75,24 +76,28 @@ public class SimpleTsvArchiveBuilder {
 
        ZipEntry ze = new ZipEntry(Files.getNameWithoutExtension(outputPath.getName()) + ".txt");
        zos.putNextEntry(ze, mode);
+       Closer closer = Closer.create();
        //Get all the files inside the directory and creates a list of InputStreams.
-       try (D2CombineInputStream in = new D2CombineInputStream(Lists.transform(Lists.newArrayList(sourceFileSystem.listStatus(inputPath)), new Function<FileStatus, InputStream>() {
-         @Nullable
-         @Override
-         public InputStream apply(@Nullable FileStatus input) {
-           try {
-             return sourceFileSystem.open(input.getPath());
-           } catch (IOException ex){
-             Throwables.propagate(ex);
-             return null;
+       try {
+         D2CombineInputStream in = closer.register(new D2CombineInputStream(Lists.transform(Lists.newArrayList(sourceFileSystem.listStatus(inputPath)), new Function<FileStatus, InputStream>() {
+           @Nullable
+           @Override
+           public InputStream apply(@Nullable FileStatus input) {
+             try {
+               return sourceFileSystem.open(input.getPath());
+             } catch (IOException ex){
+               Throwables.propagate(ex);
+               return null;
+             }
            }
-         }
-       }))) {
+         })));
          ByteStreams.copy(in, zos);
          in.close(); // required to get the sizes
          ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
          ze.setCompressedSize(in.getCompressedLength());
          ze.setCrc(in.getCrc32());
+       } finally {
+         closer.close();
        }
 
        zos.closeEntry();
@@ -117,6 +122,6 @@ public class SimpleTsvArchiveBuilder {
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     FileSystem sourceFileSystem = DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    mergeToZip(sourceFileSystem,sourceFileSystem,args[0],args[1],args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
+    mergeToZip(sourceFileSystem,sourceFileSystem,args[0],args[1],DownloadUtils.workflowToDownloadId(args[2]),ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 }

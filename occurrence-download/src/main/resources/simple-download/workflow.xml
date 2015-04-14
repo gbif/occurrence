@@ -51,10 +51,10 @@
           <value>true</value>
         </property>
       </configuration>
-      <main-class>org.gbif.occurrence.download.file.oozie.DownloadTablesAction</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
       <arg>${occurrenceTable}</arg>
       <arg>${downloadFormat}</arg>
-      <arg>${solr_query}</arg>
+      <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
       <arg>${hdfs.namenode}</arg>
       <arg>/user/hive/warehouse/${hiveDB}.db/</arg>
       <arg>${wf:id()}</arg>
@@ -93,7 +93,7 @@
           <value>true</value>
         </property>
       </configuration>
-      <main-class>org.gbif.occurrence.download.file.simpletsv.SimpleTsvArchiveBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
       <arg>/user/hive/warehouse/${hiveDB}.db/${occurrenceTable}/</arg>
       <arg>/occurrence-download/${occurrence.environment}/files/</arg>
       <arg>${wf:id()}</arg>

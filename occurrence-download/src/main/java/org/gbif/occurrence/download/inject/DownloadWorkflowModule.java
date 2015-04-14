@@ -5,11 +5,11 @@ import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.search.inject.SolrModule;
-import org.gbif.occurrence.download.file.DownloadFilesAggregator;
-import org.gbif.occurrence.download.file.OccurrenceFileWriter;
+import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
+import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
-import org.gbif.occurrence.download.file.dwca.DwcaDownloadFilesAggregator;
-import org.gbif.occurrence.download.file.simpletsv.SimpleTsvDownloadFilesAggregator;
+import org.gbif.occurrence.download.file.dwca.DwcaOccurrenceDownloadFileCoordinator;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvOccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareStep;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -93,6 +93,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";
     public static final String ZK_LOCK_NAME_KEY = PROPERTIES_PREFIX + "zookeeper.lock_name";
     public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
+    public static final String DOWNLOAD_USER_KEY = PROPERTIES_PREFIX + "ws.username";
+    public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
 
   }
 
@@ -134,13 +136,13 @@ public final class DownloadWorkflowModule extends AbstractModule {
    */
   private void bindDownloadFilesBuilding(){
     if(properties.containsKey(DynamicSettings.DOWNLOAD_FORMAT_KEY)){
-      bind(OccurrenceFileWriter.Configuration.class);
-      bind(OccurrenceFileWriter.class);
+      bind(OccurrenceDownloadFileSupervisor.Configuration.class);
+      bind(OccurrenceDownloadFileSupervisor.class);
       DownloadFormat downloadFormat = DownloadFormat.valueOf(properties.getProperty(DynamicSettings.DOWNLOAD_FORMAT_KEY));
       if (DownloadFormat.DWCA == downloadFormat) {
-        bind(DownloadFilesAggregator.class).to(DwcaDownloadFilesAggregator.class);
-      } else if (DownloadFormat.SIMPLE_TSV == downloadFormat) {
-        bind(DownloadFilesAggregator.class).to(SimpleTsvDownloadFilesAggregator.class);
+        bind(OccurrenceDownloadFileCoordinator.class).to(DwcaOccurrenceDownloadFileCoordinator.class);
+      } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
+        bind(OccurrenceDownloadFileCoordinator.class).to(SimpleCsvOccurrenceDownloadFileCoordinator.class);
       }
     }
   }

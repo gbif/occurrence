@@ -1,8 +1,8 @@
-package org.gbif.occurrence.download.file.oozie;
+package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.file.OccurrenceFileWriter;
+import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -53,13 +53,14 @@ public class DownloadTablesAction {
    * Citation and data files are created in the local file system and the moved to hadoop file system directory
    * 'hdfsPath'.
    */
-  public static void run(String tableBaseName, DownloadFormat downloadFormat,
+  public static void run(String baseDataFileName, DownloadFormat downloadFormat,
     String query, String nameNode, String hdfsOutputPath, String downloadId)
     throws IOException {
     final Injector injector = createInjector(downloadId, downloadFormat,hdfsOutputPath, nameNode);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
-    OccurrenceFileWriter occurrenceFileWriter = injector.getInstance(OccurrenceFileWriter.class);
-    occurrenceFileWriter.run(tableBaseName, query, downloadFormat);
+    OccurrenceDownloadFileSupervisor
+      occurrenceDownloadFileSupervisor = injector.getInstance(OccurrenceDownloadFileSupervisor.class);
+    occurrenceDownloadFileSupervisor.run(baseDataFileName, query, downloadFormat);
     curator.close();
   }
 
@@ -73,6 +74,7 @@ public class DownloadTablesAction {
       Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
       properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY,downloadKey);
       properties.put(DownloadWorkflowModule.DynamicSettings.HDFS_OUPUT_PATH_KEY,hdfsOutputPath);
+      properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,downloadFormat.name());
       return Guice.createInjector(new DownloadWorkflowModule(properties));
     } catch (IllegalArgumentException e) {
       LOG.error("Error initializing injection module", e);

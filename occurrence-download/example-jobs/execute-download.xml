@@ -26,11 +26,11 @@
   </property>
   <property>
     <name>downloadFormat</name>
-    <value>SIMPLE_TSV</value>
+    <value>SIMPLE_CSV</value>
   </property>
   <property>
     <name>gbif_filter</name>
-    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
+    <value>{"type":"equals","key":"YEAR","value":"2000"}</value>
   </property>
 
   <property>
@@ -39,7 +39,11 @@
   </property>
   <property>
     <name>oozie.use.system.libpath</name>
-    <value>false</value>
+    <value>true</value>
+  </property>
+  <property>
+    <name>mapreduce.job.user.classpath.first</name>
+    <value>true</value>
   </property>
 
 </configuration>

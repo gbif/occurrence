@@ -14,6 +14,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
 
 import com.google.common.base.Strings;
@@ -121,6 +123,7 @@ public class DownloadPrepareStep {
       return ERROR_COUNT;
     }
   }
+
 
   /**
    * Update the oozie workflow data/parameters and persists the record of the occurrence download.
