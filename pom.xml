@@ -125,15 +125,15 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.21</gbif-common-search.version>
     <gbif-common-service.version>0.11</gbif-common-service.version>
-    <gbif-common-ws.version>0.19</gbif-common-ws.version>
+    <gbif-common-ws.version>0.20-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.6</gbif-httputils.version>
     <gbif-parsers.version>0.12-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
-    <gbif-registry.version>2.26</gbif-registry.version>
+    <gbif-registry.version>2.27-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.12</checklistbank-ws-client.version>
+    <checklistbank-ws-client.version>2.14-SNAPSHOT</checklistbank-ws-client.version>
     <name-parser.version>2.6</name-parser.version>
   </properties>
 
