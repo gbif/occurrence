@@ -17,20 +17,16 @@
     <value>oozie</value>
   </property>
   <property>
-    <name>hiveDB</name>
+    <name>hive_db</name>
     <value>dev_downloads</value>
   </property>
   <property>
-    <name>occurrenceTable</name>
-    <value>fmendez_occurrence</value>
-  </property>
-  <property>
-    <name>downloadFormat</name>
+    <name>download_format</name>
     <value>SIMPLE_CSV</value>
   </property>
   <property>
     <name>gbif_filter</name>
-    <value>{"type":"equals","key":"YEAR","value":"2000"}</value>
+    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
   </property>
 
   <property>

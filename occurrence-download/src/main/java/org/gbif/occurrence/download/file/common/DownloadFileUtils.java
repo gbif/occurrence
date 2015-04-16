@@ -54,7 +54,7 @@ public class DownloadFileUtils {
       ByteStreams.copy(fileReader, outputFileStreamWriter);
     } catch (FileNotFoundException e) {
       LOG.info("Error creating occurrence files", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     } finally {
       inputFile.delete();
     }

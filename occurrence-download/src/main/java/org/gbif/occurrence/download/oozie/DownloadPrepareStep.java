@@ -14,8 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Properties;
 
 import com.google.common.base.Strings;
@@ -58,6 +56,12 @@ public class DownloadPrepareStep {
 
   private static final String HIVE_QUERY = "hive_query";
 
+  private static final String DOWNLOAD_KEY = "download_key";
+
+  //'-' is not allowed in a Hive table name.
+  // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
+  private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
+
   private final SolrServer solrServer;
 
   // Holds the value of the maximum number of records that a small download can have.
@@ -85,7 +89,7 @@ public class DownloadPrepareStep {
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The solr query argument hasn't been specified");
     DownloadPrepareStep occurrenceCount = getInjector().getInstance(DownloadPrepareStep.class);
-    occurrenceCount.updateDownloadData(args[0], args[1]);
+    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]));
   }
 
   /**
@@ -96,9 +100,8 @@ public class DownloadPrepareStep {
       return Guice.createInjector(new DownloadWorkflowModule());
     } catch (IllegalArgumentException e) {
       LOG.error("Error creating Guice module", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     }
-    throw new IllegalStateException("Error initializing occurrence count guice module");
   }
 
 
@@ -129,10 +132,10 @@ public class DownloadPrepareStep {
    * Update the oozie workflow data/parameters and persists the record of the occurrence download.
    *
    * @param rawPredicate to be executed
-   * @param workflowId oozie workflow id
+   * @param downloadKey  workflow id
    * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
-  public void updateDownloadData(String rawPredicate, String workflowId) throws IOException, QueryBuildingException {
+  public void updateDownloadData(String rawPredicate, String downloadKey) throws IOException, QueryBuildingException {
     Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate,Predicate.class);
     String solrQuery = new SolrQueryVisitor().getQuery(predicate);
     final long recordCount = getRecordCount(solrQuery);
@@ -144,36 +147,37 @@ public class DownloadPrepareStep {
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
         props.setProperty(SOLR_QUERY,solrQuery);
         props.setProperty(HIVE_QUERY,StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
+        props.setProperty(DOWNLOAD_KEY,downloadKey);
+        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_'));
         props.store(os, "");
       } catch (FileNotFoundException e) {
         LOG.error("Error reading properties file", e);
-        Throwables.propagate(e);
+        throw Throwables.propagate(e);
       }
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
     if (recordCount >= 0) {
-      updateTotalRecordsCount(workflowId, recordCount);
+      updateTotalRecordsCount(downloadKey, recordCount);
     }
   }
 
   /**
    * Updates the record count of the download entity.
    */
-  private void updateTotalRecordsCount(String workflowId, long recordCount) {
+  private void updateTotalRecordsCount(String downloadKey, long recordCount) {
     try {
-      String downloadId = DownloadUtils.workflowToDownloadId(workflowId);
-      LOG.info("Updating record count({}) of download {}", recordCount, downloadId);
-      Download download = occurrenceDownloadService.get(downloadId);
+      LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
+      Download download = occurrenceDownloadService.get(downloadKey);
       if (download == null) {
-        LOG.error("Download {} was not found!", downloadId);
+        LOG.error("Download {} was not found!", downloadKey);
       } else {
         download.setTotalRecords(recordCount);
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
       LOG.error(String.format("Error updating record count for download worflow %s, reported count is %,d",
-        workflowId, recordCount), ex);
+                              downloadKey, recordCount), ex);
     }
   }
 

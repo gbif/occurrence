@@ -5,7 +5,6 @@ import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
-import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.HiveColumns;
@@ -46,6 +45,10 @@ public class SimpleCsvArchiveBuilder {
   //Occurrences file name
   private static final String OCCURRENCES_FILE_NAME = "occurrences.csv";
 
+  private static final String ZIP_EXTENSION = ".zip";
+
+  private static final String ERROR_ZIP_MSG = "Error creating zip file";
+
   /**
    * Private constructor.
    */
@@ -69,21 +72,26 @@ public class SimpleCsvArchiveBuilder {
                                                                                  })) + '\n';
 
   /**
-   * Merges the content of the hiveTableInputPath (directory) into a zip file in  hdfsOutputPath.
+   * Merges the content of sourceFileSystem:sourcePath into targetFileSystem:outputPath in a file called downloadKey.zip.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
    public static void mergeToZip(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
 
-     Path outputPath = new Path(targetPath, downloadKey + ".zip");
+     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
      if(ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
+       //Use hadoop-compress for pre_deflated files
        zipPreDeflated(sourceFileSystem, targetFileSystem, sourcePath, outputPath, downloadKey);
      } else {
+       //Use standard Java libraries for uncompressed input
        zipDefault(sourceFileSystem, targetFileSystem, sourcePath, outputPath, downloadKey);
      }
 
   }
 
-  private static void zipDefault(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, Path outputPath, String downloadKey) throws IOException{
+  /**
+   * Merges the file using the standard java libraries java.util.zip.
+   */
+  private static void zipDefault(final FileSystem sourceFileSystem, final FileSystem targetFileSystem, String sourcePath, Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFileSystem.create(outputPath,true);
       ZipOutputStream zos = new ZipOutputStream(zipped);
@@ -100,12 +108,15 @@ public class SimpleCsvArchiveBuilder {
       }
       zos.closeEntry();
     } catch (Exception ex) {
-      LOG.error("Error creating zip file",ex);
+      LOG.error(ERROR_ZIP_MSG,ex);
+      throw Throwables.propagate(ex);
     }
   }
 
-
-  private static void zipPreDeflated(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, Path outputPath, String downloadKey) throws IOException{
+  /**
+   * Merges the pre-deflated content using the hadoop-compress library.
+   */
+  private static void zipPreDeflated(final FileSystem sourceFileSystem, FileSystem targetFileSystem, String sourcePath, Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFileSystem.create(outputPath,true);
       ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
@@ -136,7 +147,8 @@ public class SimpleCsvArchiveBuilder {
         ze.setCrc(in.getCrc32());
         zos.closeEntry();
       } catch (Exception ex){
-          LOG.error("Error creating zip file",ex);
+        LOG.error(ERROR_ZIP_MSG,ex);
+        throw Throwables.propagate(ex);
       }
     }
   }
@@ -154,9 +166,17 @@ public class SimpleCsvArchiveBuilder {
     }
   }
 
+  /**
+   * Executes the archive/zip creation process.
+   * The expected parameters are:
+   *  0. sourcePath: HDFS path to the directory that contains the data files.
+   *  1. targetPath: HDFS path where the resulting file will be copied.
+   *  2. downloadKey: occurrence download key.
+   *  3. MODE: ModalZipOutputStream.MODE of input files.
+   */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     FileSystem sourceFileSystem = DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    mergeToZip(sourceFileSystem,sourceFileSystem,args[0],args[1],DownloadUtils.workflowToDownloadId(args[2]),ModalZipOutputStream.MODE.valueOf(args[3]));
+    mergeToZip(sourceFileSystem,sourceFileSystem,args[0],args[1],args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 }

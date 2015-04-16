@@ -107,9 +107,9 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
       } catch (IllegalAccessException e) {
-        Throwables.propagate(e);
+        throw Throwables.propagate(e);
       } catch (InvocationTargetException e) {
-        Throwables.propagate(e);
+        throw Throwables.propagate(e);
       }
     }
 
@@ -252,7 +252,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
                 LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
               }
             } catch (Exception e) {
-              Throwables.propagate(e);
+              throw Throwables.propagate(e);
             }
             return false;
           }

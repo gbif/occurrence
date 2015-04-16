@@ -63,11 +63,12 @@
         <include>org.apache.httpcomponents:httpmime:jar</include>
         <include>org.apache.solr:solr-solrj:jar</include>
         <include>org.apache.solr:solr-core:jar</include>
-        <include>org.cloudera.htrace:htrace-core</include>
+        <include>org.cloudera.htrace:htrace-core:jar</include>
         <include>org.codehaus.jackson:jackson-jaxrs:jar</include>
-        <include>org.codehaus.jackson:jackson-mapper-asl</include>
-        <include>org.codehaus.jackson:jackson-core-asl</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl:jar</include>
+        <include>org.codehaus.jackson:jackson-core-asl:jar</include>
         <include>org.gbif.hadoop:hadoop-compress:jar</include>
+        <include>org.gbif:hbase-utils:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>

@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -17,50 +16,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class that wraps the process of creating the occurrence and citation files.
- * This class can be executed as jvm application that receives the following arguments:
- * - occurrence data outputFile
- * - citationFileName
- * - solr query
- * - hadoop name node, required to access the hdfs.
- * - hadoop dfs output directory where the citation and data files will be copied
+ * Class that wraps the process of creating the occurrence files.
+ * The parameter 'DownloadFormat' defines the OccurrenceDownloadFileCoordinator to be used.
  */
 public class DownloadTablesAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadTablesAction.class);
 
   /**
-   * Entry point, receives the following arguments:
-   * - occurrence interpreted data output file
-   * - occurrence verbatim data output file
-   * - citationFileName
-   * - solr query
-   * - hadoop name node, required to access the hdfs.
-   * - hadoop dfs output directory where the citation and data files will be copied
+   * Executes the download creation process.
+   * All the arguments are required and expected in the following order:
+   *  0. downloadFormat: output format
+   *  1. solrQuery: Solr query to produce to be used to retrieve the results.
+   *  2. hdfsOutputPath: path where the resulting file will be stored.
+   *  3. downloadKey: occurrence download identifier.
    */
   public static void main(String[] args) throws IOException {
-    DownloadTablesAction downloadTablesAction = new DownloadTablesAction();
-    downloadTablesAction.run(args[0],
-                             DownloadFormat.valueOf(args[1]),
-                             args[2],
-                             args[3],
-                             args[4],
-                             DownloadUtils.workflowToDownloadId(args[5]));
+    run(DownloadFormat.valueOf(args[0]), //downloadFormat
+                             args[1], //solrQuery
+                             args[2], // hdfsOutputPath
+                             args[3]); //downlaodKey
   }
 
   /**
-   * Executes the file creation process.
-   * Citation and data files are created in the local file system and the moved to hadoop file system directory
-   * 'hdfsPath'.
+   * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
-  public static void run(String baseDataFileName, DownloadFormat downloadFormat,
-    String query, String nameNode, String hdfsOutputPath, String downloadId)
+  public static void run(DownloadFormat downloadFormat, String query,String hdfsOutputPath, String downloadKey)
     throws IOException {
-    final Injector injector = createInjector(downloadId, downloadFormat,hdfsOutputPath, nameNode);
+    final Injector injector = createInjector(downloadKey, downloadFormat,hdfsOutputPath);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
-    OccurrenceDownloadFileSupervisor
-      occurrenceDownloadFileSupervisor = injector.getInstance(OccurrenceDownloadFileSupervisor.class);
-    occurrenceDownloadFileSupervisor.run(baseDataFileName, query, downloadFormat);
+    final OccurrenceDownloadFileSupervisor
+      downloadFileSupervisor = injector.getInstance(OccurrenceDownloadFileSupervisor.class);
+    downloadFileSupervisor.run(downloadKey, query, downloadFormat);
     curator.close();
   }
 
@@ -69,7 +56,7 @@ public class DownloadTablesAction {
   /**
    * Utility method that creates the Guice injector.
    */
-  private static Injector createInjector(String downloadKey, DownloadFormat downloadFormat, String hdfsOutputPath, String nameNode) {
+  private static Injector createInjector(String downloadKey, DownloadFormat downloadFormat, String hdfsOutputPath) {
     try {
       Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
       properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY,downloadKey);
@@ -78,12 +65,11 @@ public class DownloadTablesAction {
       return Guice.createInjector(new DownloadWorkflowModule(properties));
     } catch (IllegalArgumentException e) {
       LOG.error("Error initializing injection module", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     } catch (IOException e) {
       LOG.error("Error initializing injection module", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     }
-    throw new IllegalStateException("Guice couldn't be initialized");
   }
 
 }

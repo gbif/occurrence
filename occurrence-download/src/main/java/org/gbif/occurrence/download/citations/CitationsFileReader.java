@@ -4,7 +4,6 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
-import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
@@ -110,11 +109,11 @@ public class CitationsFileReader {
    * Each line in read from the TSV file is transformed into a DatasetOccurrenceDownloadUsage.
    * @param nameNode Hadoop name node uri
    * @param citationPath path to the directory that contains the citation table files
-   * @param workflowId oozie workflow ID
+   * @param downloadKey occurrence download key
    * @param predicates list of predicates to apply while reading the file
    * @throws IOException
    */
-  public static void readCitations(String nameNode, String citationPath, String workflowId, Predicate<DatasetOccurrenceDownloadUsage>...predicates) throws IOException {
+  public static void readCitations(String nameNode, String citationPath, String downloadKey, Predicate<DatasetOccurrenceDownloadUsage>...predicates) throws IOException {
     final FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
@@ -126,7 +125,7 @@ public class CitationsFileReader {
               // catch all error to avoid breaking the loop
               try {
                 for(Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates){
-                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, DownloadUtils.workflowToDownloadId(workflowId)));
+                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
                 }
               } catch (Throwable e) {
                 LOG.info("Error processing citation line: {}", tsvLine);

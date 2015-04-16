@@ -3,8 +3,8 @@ package org.gbif.occurrence.download.file.dwca;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
-import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.FileJob;
+import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
@@ -78,7 +78,7 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
       file.createNewFile();
     } catch (IOException e) {
       LOG.error("Error creating file", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     }
 
   }
@@ -127,7 +127,7 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
                                         baseDataFileName + Constants.CITATION_SUFFIX);
       }
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     } finally {
       outFileCloser.close();
     }

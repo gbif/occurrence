@@ -14,7 +14,6 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -65,7 +64,7 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
-    Download.Status.RUNNING, Download.Status.SUSPENDED);
+                                                                             Download.Status.RUNNING, Download.Status.SUSPENDED);
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -136,8 +135,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     HIVE_SELECT_VERBATIM = Joiner.on(',').join(columns);
   }
 
-
-
   private static final Counter SUCCESSFUL_DOWNLOADS = Metrics.newCounter(CallbackService.class, "successful_downloads");
   private static final Counter FAILED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "cancelled_downloads");
@@ -154,16 +151,16 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Inject
   public DownloadRequestServiceImpl(OozieClient client,
-    @Named("oozie.default_properties") Map<String, String> defaultProperties,
-    @Named("ws.url") String wsUrl,
-    @Named("ws.mount") String wsMountDir,
-    OccurrenceDownloadService occurrenceDownloadService,
-    DownloadEmailUtils downloadEmailUtils) {
+                                    @Named("oozie.default_properties") Map<String, String> defaultProperties,
+                                    @Named("ws.url") String wsUrl,
+                                    @Named("ws.mount") String wsMountDir,
+                                    OccurrenceDownloadService occurrenceDownloadService,
+                                    DownloadEmailUtils downloadEmailUtils) {
 
     this.client = client;
     this.defaultProperties = defaultProperties;
     this.wsUrl = wsUrl;
-    downloadMount = new File(wsMountDir);
+    this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadEmailUtils = downloadEmailUtils;
 
@@ -197,7 +194,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     String hiveQuery;
     String solrQuery;
     try {
-      hiveQuery = StringEscapeUtils.escapeXml10(hiveVisitor.getHiveQuery(request.getPredicate()));
+      hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
       solrQuery = solrVisitor.getQuery(request.getPredicate());
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
@@ -216,8 +213,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     jobProps.setProperty("query", hiveQuery);
     jobProps.setProperty("solr_query", solrQuery);
     jobProps.setProperty("query_result_table", tmpTable);
-    //occurrenceTable parameter it's used by the simple_tsv workflow
-    jobProps.setProperty("occurrenceTable",tmpTable);
     jobProps.setProperty("citation_table", citationTable);
     // we dont have a downloadId yet, submit a placeholder
     jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER));
@@ -238,11 +233,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("job properties: {}", jobProps);
 
     try {
-      if(DownloadFormat.SIMPLE_TSV == request.getFormat()){
-        jobProps.put(OozieClient.APP_PATH,jobProps.getProperty("oozie.workflows.path") + "simple-download");
-      } else { //dwca is the default workflow
-        jobProps.put(OozieClient.APP_PATH,jobProps.getProperty("oozie.workflows.path") + "dwca-download");
-      }
       final String jobId = client.run(jobProps);
       LOG.debug("oozie job id is: [{}], with tmpTable [{}]", jobId, tmpTable);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);

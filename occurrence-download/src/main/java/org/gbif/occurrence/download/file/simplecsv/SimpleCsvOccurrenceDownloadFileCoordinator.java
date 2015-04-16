@@ -3,21 +3,19 @@ package org.gbif.occurrence.download.file.simplecsv;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
-import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
-import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.FileJob;
+import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.download.util.HeadersFileUtil;
+import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -32,7 +30,6 @@ import akka.dispatch.Future;
 import akka.util.Duration;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closer;
 import com.google.inject.name.Named;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -82,7 +79,8 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
       Files.createDirectory(Paths.get(baseDataFileName));
       Files.createFile(Paths.get(getOutputFileName(baseDataFileName,CSV_EXTENSION)));
     } catch (Throwable t){
-      Throwables.propagate(t);
+      LOG.error("Error creating files",t);
+      throw  Throwables.propagate(t);
     }
   }
   /**
@@ -102,6 +100,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
                                          hdfsOutputPath,
                                          downloadKey,
                                          ModalZipOutputStream.MODE.DEFAULT);
+      FileUtils.deleteDirectoryRecursively(Paths.get(baseDataFileName).toFile());
     }
   }
 
@@ -121,11 +120,15 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
       }
       persistUsages(datasetUsagesCollector);
     } catch (Exception e) {
-      Throwables.propagate(e);
+      LOG.error("Error merging results", e);
+      throw Throwables.propagate(e);
     }
   }
 
-  private void persistUsages(DatasetUsagesCollector datasetUsagesCollector){
+  /**
+   * Persists the dataset usages collected in by the datasetUsagesCollector.
+   */
+  private void persistUsages(DatasetUsagesCollector datasetUsagesCollector) {
     CitationsFileReader.PersistUsage persistUsage = new CitationsFileReader.PersistUsage(registryWsUrl);
     for(Map.Entry<UUID,Long> usage :  datasetUsagesCollector.getDatasetUsages().entrySet()){
       DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
@@ -136,6 +139,9 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
     }
   }
 
+  /**
+   * Builds a new instance of a SimpleCsvFileWriterJob.
+   */
   public Callable<Result> createJob(FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader){
     return new SimpleCsvFileWriterJob(fileJob, lock, solrServer, occurrenceMapReader);
   }

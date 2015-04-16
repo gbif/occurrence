@@ -6,13 +6,10 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
-import org.gbif.occurrence.download.hive.DownloadTableDefinitions;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -101,7 +98,7 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
               LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
             }
           } catch (Exception e) {
-            Throwables.propagate(e);
+            throw Throwables.propagate(e);
           }
           return false;
         }

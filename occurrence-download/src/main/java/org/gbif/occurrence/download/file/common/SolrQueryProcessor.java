@@ -52,7 +52,7 @@ public class SolrQueryProcessor {
         }
       }
     } catch (SolrServerException e) {
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     }
   }
 

@@ -6,7 +6,6 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -125,7 +124,7 @@ public class OccurrenceDownloadFileSupervisor {
       LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
     } catch (Exception e) {
       LOG.info("Error creating occurrence file", e);
-      Throwables.propagate(e);
+      throw Throwables.propagate(e);
     }
   }
 
