@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.FileJob;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
@@ -11,14 +12,17 @@ import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
@@ -41,11 +45,13 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private static final String[] COLUMNS = DownloadTableDefinitions.simpleDownload().toArray(new String[0]);
-
-
-  // Default page size for Solr queries.
-  private static final int LIMIT = 300;
+  private static final String[] COLUMNS = Collections2.transform(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
+    @Nullable
+    @Override
+    public String apply(@Nullable Term input) {
+      return input.simpleName();
+    }
+  }).toArray(new String[0]);
 
   private final FileJob fileJob;
 
