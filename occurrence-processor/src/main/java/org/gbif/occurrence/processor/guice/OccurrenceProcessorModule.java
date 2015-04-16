@@ -11,7 +11,6 @@ import org.gbif.occurrence.processor.InterpretedProcessor;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
-import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -26,8 +25,6 @@ import org.apache.curator.retry.RetryNTimes;
  * properties. Only needed when using the Startup class - see also the occurrence-cli project.
  */
 public class OccurrenceProcessorModule extends PrivateModule {
-
-  private static final String PREFIX = "occurrence.processor.";
 
   private final ProcessorConfiguration cfg;
 
@@ -75,8 +72,14 @@ public class OccurrenceProcessorModule extends PrivateModule {
   }
 
   @Provides
-  @Inject
-  public WebResource provideClient(ProcessorConfiguration cfg) {
+  @Singleton
+  public ProcessorConfiguration provideCfg() {
+    return cfg;
+  }
+
+  @Provides
+  @Singleton
+  public WebResource provideClient() {
     return cfg.api.newApiClient();
   }
 }

@@ -18,8 +18,11 @@ import com.sun.jersey.client.apache4.ApacheHttpClient4;
 import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
 import org.apache.http.client.HttpClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApiClientConfiguration {
+  private static final Logger LOG = LoggerFactory.getLogger(ApiClientConfiguration.class);
 
   /**
    * The base URL to the GBIF API.
@@ -57,6 +60,8 @@ public class ApiClientConfiguration {
     HttpClient http = HttpUtil.newMultithreadedClient(timeout, maxConnections, maxConnections);
     ApacheHttpClient4Handler hch = new ApacheHttpClient4Handler(http, null, false);
     Client client = new ApacheHttpClient4(hch, cc);
+
+    LOG.info("Connecting to GBIF API: {}", url);
     return client.resource(url);
   }
 
