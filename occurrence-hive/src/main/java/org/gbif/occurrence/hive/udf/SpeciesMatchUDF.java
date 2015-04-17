@@ -74,7 +74,7 @@ public class SpeciesMatchUDF extends GenericUDF {
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
     assert arguments.length == argLength;
 
-    URI api = URI.create(arguments[0].get().toString().toUpperCase());
+    URI api = URI.create(arguments[0].get().toString());
 
     String k = clean(arguments[1].get());
     String p = clean(arguments[2].get());
