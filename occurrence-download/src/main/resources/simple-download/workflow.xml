@@ -41,7 +41,7 @@
       <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
       <arg>${download_format}</arg>
       <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
-      <arg>/occurrence-download/${occurrence.environment}/files/</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>
     </java>
 
@@ -66,7 +66,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}/</arg>
-      <arg>/occurrence-download/${occurrence.environment}/files/</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>
       <arg>${wf:actionData('download_prepare')['is_small_download'] ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
       <capture-output/>

@@ -3,6 +3,7 @@
   "notificationAddresses": ["gbif@mailinator.com"],
   "send_notification":"true",
   "created":"2013",
+  "format": "SIMPLE_CSV",
   "predicate":{
     "type":"equals",
     "key":"CATALOG_NUMBER",
