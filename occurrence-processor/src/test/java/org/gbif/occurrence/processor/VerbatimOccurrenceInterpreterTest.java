@@ -16,10 +16,16 @@ import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
-import org.gbif.occurrence.processor.interpreting.OccurrenceInterpretationResult;
+import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
+import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
+import org.gbif.occurrence.processor.interpreting.PublishingOrgInterpreter;
+import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
+import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
+import java.net.URI;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
@@ -58,6 +64,9 @@ public class VerbatimOccurrenceInterpreterTest {
 
   @Before
   public void setUp() throws Exception {
+    ApiClientConfiguration cfg = new ApiClientConfiguration();;
+    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
+
     zkServer = new TestingServer();
     curator = CuratorFrameworkFactory.builder().connectString(zkServer.getConnectString()).namespace("crawler")
       .retryPolicy(new RetryNTimes(1, 1000)).build();
@@ -72,7 +81,11 @@ public class VerbatimOccurrenceInterpreterTest {
     uniqueIds.add(new HolyTriplet(DATASET_KEY, "ic", "cc", "cn", null));
     fragmentPersister.insert(fragment, uniqueIds);
     OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceMock(fragmentPersister);
-    interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector);
+    interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
+      new PublishingOrgInterpreter(cfg.newApiClient()),
+      new TaxonomyInterpreter(cfg.newApiClient()),
+      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))
+    );
 
     verb = buildVerbatim(fragment.getKey());
 

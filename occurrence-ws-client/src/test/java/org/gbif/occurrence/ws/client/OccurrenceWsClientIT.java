@@ -2,26 +2,16 @@ package org.gbif.occurrence.ws.client;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.ws.OccurrenceWsListener;
 import org.gbif.occurrence.ws.client.mock.OccurrenceWsTestModule;
-import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.BaseResourceTest;
-import org.gbif.ws.client.filter.HttpGbifAuthFilter;
-import org.gbif.ws.client.filter.HttpGbifAuthFilterTest;
-import org.gbif.ws.client.guice.UrlBindingModule;
-import org.gbif.ws.security.GbifAppAuthService;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Properties;
 
-import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 

@@ -21,7 +21,9 @@ public interface OccurrencePersistenceService extends OccurrenceService, Occurre
    *
    * @return an Iterator over the occurrence keys matching the requested column
    *
+   * //TODO: this seems to throw PersistenceException in code not ServiceUnavailableException
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
   Iterator<Integer> getKeysByColumn(byte[] columnValue, String columnName);
+
 }

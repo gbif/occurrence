@@ -1,4 +1,4 @@
-package org.gbif.occurrence.processor.interpreting;
+package org.gbif.occurrence.processor.interpreting.result;
 
 import org.gbif.api.model.occurrence.Occurrence;
 

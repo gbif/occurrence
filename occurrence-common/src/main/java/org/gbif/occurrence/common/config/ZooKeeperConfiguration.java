@@ -1,22 +1,14 @@
-package org.gbif.occurrence.cli.common;
+package org.gbif.occurrence.common.config;
 
-import java.io.IOException;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 
 /**
  * A configuration class which can be used to get all the details needed to create a connection to ZooKeeper needed by
  * the Curator Framework.
- * It provides a convenience method ({@link #getCuratorFramework()} ()} to actually get a {@link
- * org.apache.curator.framework.CuratorFramework}
- * object when populated fully.
  */
 @SuppressWarnings("PublicField")
 public class ZooKeeperConfiguration {
@@ -44,24 +36,6 @@ public class ZooKeeperConfiguration {
     description = "Max number of times to retry")
   @Min(1)
   public int maxRetries = 10;
-
-  /**
-   * This method returns a connection object to ZooKeeper with the provided settings and creates and starts a {@link
-   * org.apache.curator.framework.CuratorFramework}. These settings are not validated in this method so only call it
-   * when the object has been
-   * validated.
-   *
-   * @return started CuratorFramework
-   *
-   * @throws java.io.IOException if connection fails
-   */
-  @JsonIgnore
-  public CuratorFramework getCuratorFramework() throws IOException {
-    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(namespace)
-      .retryPolicy(new ExponentialBackoffRetry(baseSleepTime, maxRetries)).connectString(connectionString).build();
-    curator.start();
-    return curator;
-  }
 
   @Override
   public String toString() {

@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
@@ -41,16 +42,17 @@ public class KeyPersistenceServiceTest {
   private static final String D = "d";
   private static final String E = "e";
 
-  private static final String LOOKUP_TABLE_NAME = "occurrence_lookup_test";
-  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(LOOKUP_TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(CFG.lookupTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final String COUNTER_TABLE_NAME = "counter_test";
-  private static final byte[] COUNTER_TABLE = Bytes.toBytes(COUNTER_TABLE_NAME);
+  private static final byte[] COUNTER_TABLE = Bytes.toBytes(CFG.counterTable);
   private static final String COUNTER_CF_NAME = "o";
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
-  private static final String OCCURRENCE_TABLE_NAME = "occurrence_test";
-  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(OCCURRENCE_TABLE_NAME);
+  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
 
   private HTablePool tablePool = null;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
@@ -67,8 +69,9 @@ public class KeyPersistenceServiceTest {
     TEST_UTIL.createTable(OCCURRENCE_TABLE, CF);
 
     ZOOKEEPER_SERVER = new TestingServer();
-    CURATOR =
-      CuratorFrameworkFactory.builder().namespace("hbasePersistence").connectString(ZOOKEEPER_SERVER.getConnectString())
+    CURATOR = CuratorFrameworkFactory.builder()
+        .namespace("hbasePersistence")
+        .connectString(ZOOKEEPER_SERVER.getConnectString())
         .retryPolicy(new RetryNTimes(1, 1000)).build();
     CURATOR.start();
     ZOO_LOCK_PROVIDER = new ThreadLocalLockProvider(CURATOR);
@@ -93,17 +96,14 @@ public class KeyPersistenceServiceTest {
   @Ignore
   @Test
   public void testZkLockingKeyService() {
-    ZkLockingKeyService service =
-      new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool,
-        ZOO_LOCK_PROVIDER);
+    ZkLockingKeyService service = new ZkLockingKeyService(CFG, tablePool, ZOO_LOCK_PROVIDER);
     testContention(service);
   }
 
   @Ignore
   @Test
   public void testHBaseLockingKeyService() {
-    HBaseLockingKeyService service =
-      new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
+    HBaseLockingKeyService service = new HBaseLockingKeyService(CFG, tablePool);
     testContention(service);
   }
 

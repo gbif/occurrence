@@ -23,6 +23,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
@@ -60,8 +61,11 @@ import static org.junit.Assert.assertTrue;
 
 public class OccurrencePersistenceServiceImplTest {
 
-  private static final String TABLE_NAME = "occurrence_test";
-  private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] TABLE = Bytes.toBytes(CFG.occTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
   private static final int KEY = 1000000;
@@ -157,8 +161,8 @@ public class OccurrencePersistenceServiceImplTest {
 
     tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 20);
 
-    occurrenceService = new OccurrencePersistenceServiceImpl(TABLE_NAME, tablePool);
-    HTableInterface table = tablePool.getTable(TABLE_NAME);
+    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, tablePool);
+    HTableInterface table = tablePool.getTable(CFG.occTable);
     Put put = new Put(Bytes.toBytes(KEY));
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevation)), Bytes.toBytes(ELEV));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.basisOfRecord)),
@@ -303,7 +307,7 @@ public class OccurrencePersistenceServiceImplTest {
 
 
   private void setUpIdentifiers() throws IOException {
-    HTableInterface table = tablePool.getTable(TABLE_NAME);
+    HTableInterface table = tablePool.getTable(CFG.occTable);
     Put put = new Put(Bytes.toBytes(KEY));
     put.add(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
     put.add(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
@@ -317,7 +321,7 @@ public class OccurrencePersistenceServiceImplTest {
   }
 
   private void setUpIssues() throws IOException {
-    HTableInterface table = tablePool.getTable(TABLE_NAME);
+    HTableInterface table = tablePool.getTable(CFG.occTable);
     Put put = new Put(Bytes.toBytes(KEY));
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
       put.add(CF, Bytes.toBytes(Columns.column(issue)), Bytes.toBytes(1));
@@ -544,7 +548,7 @@ public class OccurrencePersistenceServiceImplTest {
   }
 
   @Test
-  public void testKeyIterator() {
+  public void testKeyByColumnIterator() {
     int count = 0;
     Iterator<Integer> iterator =
       occurrenceService.getKeysByColumn(Bytes.toBytes(DATASET_KEY.toString()), Columns.column(GbifTerm.datasetKey));

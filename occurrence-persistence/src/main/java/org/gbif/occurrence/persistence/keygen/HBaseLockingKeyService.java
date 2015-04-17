@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.hbase.util.ResultReader;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
@@ -12,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
 import org.apache.hadoop.hbase.client.HTablePool;
@@ -46,11 +46,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     Metrics.newMeter(HBaseLockingKeyService.class, "reattempts", "reattempts", TimeUnit.SECONDS);
 
   @Inject
-  public HBaseLockingKeyService(@Named("id_lookup_table_name") String occurrenceIdTableName,
-    @Named("counter_table_name") String counterTableName, @Named("table_name") String occurrenceTableName,
-    HTablePool tablePool) {
-
-    super(occurrenceIdTableName, counterTableName, occurrenceTableName, tablePool, new OccurrenceKeyBuilder());
+  public HBaseLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool) {
+    super(cfg, tablePool, new OccurrenceKeyBuilder());
   }
 
   @Override

@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
@@ -39,16 +40,17 @@ import static org.junit.Assert.assertTrue;
 
 public class OccurrenceKeyPersistenceServiceImplTest {
 
-  private static final String LOOKUP_TABLE_NAME = "occurrence_lookup_test";
-  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(LOOKUP_TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(CFG.lookupTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final String COUNTER_TABLE_NAME = "counter_test";
-  private static final byte[] COUNTER_TABLE = Bytes.toBytes(COUNTER_TABLE_NAME);
+  private static final byte[] COUNTER_TABLE = Bytes.toBytes(CFG.counterTable);
   private static final String COUNTER_CF_NAME = "o";
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
-  private static final String OCCURRENCE_TABLE_NAME = "occurrence_test";
-  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(OCCURRENCE_TABLE_NAME);
+  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
   private static final UUID datasetKey = UUID.fromString("2bc753d7-125d-41a1-b3a8-8edbd6777ec3");
   private static final String IC = "BGBM";
   private static final String CC = "Vascular Plants";
@@ -104,11 +106,10 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     TEST_UTIL.truncateTable(OCCURRENCE_TABLE);
 
     tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
-    KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME,
-      OCCURRENCE_TABLE_NAME, tablePool, ZOO_LOCK_PROVIDER);
+    KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, tablePool, ZOO_LOCK_PROVIDER);
     occurrenceKeyService =
       new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE_NAME);
+    HTableInterface lookupTable = tablePool.getTable(CFG.lookupTable);
     Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
     put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
     lookupTable.put(put);
@@ -118,7 +119,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     lookupTable.flushCommits();
     lookupTable.close();
 
-    HTableInterface counterTable = tablePool.getTable(COUNTER_TABLE_NAME);
+    HTableInterface counterTable = tablePool.getTable(CFG.counterTable);
     put = new Put(Bytes.toBytes(HBaseLockingKeyService.COUNTER_ROW));
     put.add(CF, Bytes.toBytes(Columns.COUNTER_COLUMN),
       Bytes.toBytes(Long.valueOf(2)));
@@ -371,8 +372,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     private KeyGeneratorThread(Set<UniqueIdentifier> ids) {
       this.ids = ids;
       ThreadLocalLockProvider threadLocalLockProvider = new ThreadLocalLockProvider(CURATOR);
-      KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME,
-        OCCURRENCE_TABLE_NAME, tablePool, threadLocalLockProvider);
+      KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, tablePool, threadLocalLockProvider);
       this.occKeyService =
         new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     }

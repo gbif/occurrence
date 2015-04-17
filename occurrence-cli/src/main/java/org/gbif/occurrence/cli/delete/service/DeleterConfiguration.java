@@ -2,6 +2,7 @@ package org.gbif.occurrence.cli.delete.service;
 
 import org.gbif.common.messaging.config.MessagingConfiguration;
 import org.gbif.occurrence.cli.common.GangliaConfiguration;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -22,27 +23,16 @@ public class DeleterConfiguration {
   @NotNull
   public GangliaConfiguration ganglia = new GangliaConfiguration();
 
+  @ParametersDelegate
+  @Valid
+  @NotNull
+  public OccHBaseConfiguration hbase = new OccHBaseConfiguration();
+
   @Parameter(names = "--msg-pool-size")
   @Min(1)
-  public int msgPoolSize = 10;
-
-  @Parameter(names = "--hbase-pool-size")
-  @Min(1)
-  public int hbasePoolSize = 5;
+  public int msgPoolSize = 1;
 
   @Parameter(names = "--queue-name")
   @NotNull
   public String queueName;
-
-  @Parameter(names = "--occ-table")
-  @NotNull
-  public String occTable;
-
-  @Parameter(names = "--occ-counter-table")
-  @NotNull
-  public String counterTable;
-
-  @Parameter(names = "--occ-lookup-table")
-  @NotNull
-  public String lookupTable;
 }

@@ -3,6 +3,7 @@ package org.gbif.occurrence.persistence;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
@@ -18,7 +19,6 @@ import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
@@ -44,9 +44,9 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
   private final OccurrenceKeyPersistenceService keyService;
 
   @Inject
-  public FragmentPersistenceServiceImpl(@Named("table_name") String tableName, HTablePool tablePool,
+  public FragmentPersistenceServiceImpl(OccHBaseConfiguration cfg, HTablePool tablePool,
     OccurrenceKeyPersistenceService keyService) {
-    this.occurrenceTableName = tableName;
+    this.occurrenceTableName = cfg.occTable;
     this.tablePool = tablePool;
     this.keyService = keyService;
   }

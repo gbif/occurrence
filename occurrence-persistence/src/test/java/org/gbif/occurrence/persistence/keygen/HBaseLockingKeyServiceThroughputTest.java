@@ -1,5 +1,7 @@
 package org.gbif.occurrence.persistence.keygen;
 
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -15,9 +17,10 @@ import org.apache.hadoop.hbase.client.HTablePool;
  */
 public class HBaseLockingKeyServiceThroughputTest {
 
-  private static final String LOOKUP_TABLE_NAME = "keygen_test_occurrence_lookup";
-  private static final String COUNTER_TABLE_NAME = "keygen_test_occurrence_counter";
-  private static final String OCCURRENCE_TABLE_NAME = "keygen_test_occurrence";
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("keygen_test");
+  }
 
   private HTablePool tablePool = null;
   private final HBaseLockingKeyService keyService;
@@ -26,7 +29,7 @@ public class HBaseLockingKeyServiceThroughputTest {
 
   public HBaseLockingKeyServiceThroughputTest(int hbasePoolSize) {
     tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
-    keyService = new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
+    keyService = new HBaseLockingKeyService(CFG, tablePool);
   }
 
   public void testNoContention(int threadCount) throws InterruptedException {

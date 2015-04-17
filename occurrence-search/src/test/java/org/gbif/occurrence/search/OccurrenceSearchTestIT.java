@@ -13,6 +13,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 import org.gbif.occurrence.search.writers.HBasePredicateWriter;
@@ -72,7 +73,7 @@ public class OccurrenceSearchTestIT {
     @Provides
     @Singleton
     public OccurrenceService provideOccurrenceService() {
-      OccurrenceService occurrenceService = new OccurrencePersistenceServiceImpl(OCCURRENCE_TABLE_NAME, hTablePool);
+      OccurrenceService occurrenceService = new OccurrencePersistenceServiceImpl(CFG, hTablePool);
       return occurrenceService;
     }
 
@@ -96,9 +97,12 @@ public class OccurrenceSearchTestIT {
   // HBase mini-cluster variables
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
-  private static final String OCCURRENCE_TABLE_NAME = "occurrence_test";
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
 
-  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(OCCURRENCE_TABLE_NAME);
+  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
 
   private static final String CF_NAME = "o";
 

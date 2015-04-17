@@ -2,7 +2,7 @@ package org.gbif.occurrence.cli.dataset.service;
 
 import org.gbif.common.messaging.config.MessagingConfiguration;
 import org.gbif.occurrence.cli.common.GangliaConfiguration;
-import org.gbif.occurrence.cli.common.ZooKeeperConfiguration;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -26,15 +26,11 @@ public class DatasetMutationConfiguration {
   @ParametersDelegate
   @Valid
   @NotNull
-  public ZooKeeperConfiguration zooKeeper = new ZooKeeperConfiguration();
+  public OccHBaseConfiguration hbase = new OccHBaseConfiguration();
 
   @Parameter(names = "--msg-pool-size")
   @Min(1)
   public int msgPoolSize = 10;
-
-  @Parameter(names = "--hbase-pool-size")
-  @Min(1)
-  public int hbasePoolSize = 20;
 
   @Parameter(names = "--delete-dataset-queue-name")
   @NotNull
@@ -48,15 +44,4 @@ public class DatasetMutationConfiguration {
   @NotNull
   public String parseDatasetQueueName;
 
-  @Parameter(names = "--occ-table")
-  @NotNull
-  public String occTable;
-
-  @Parameter(names = "--occ-counter-table")
-  @NotNull
-  public String counterTable;
-
-  @Parameter(names = "--occ-lookup-table")
-  @NotNull
-  public String lookupTable;
 }

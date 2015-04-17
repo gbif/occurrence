@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.keygen;
 
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
@@ -35,16 +36,19 @@ public class HBaseLockingKeyServiceTest {
   private static final String B = "b";
   private static final String C = "c";
 
-  private static final String LOOKUP_TABLE_NAME = "occurrence_lookup_test";
-  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(LOOKUP_TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(CFG.lookupTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final String COUNTER_TABLE_NAME = "counter_test";
-  private static final byte[] COUNTER_TABLE = Bytes.toBytes(COUNTER_TABLE_NAME);
+  private static final byte[] COUNTER_TABLE = Bytes.toBytes(CFG.counterTable);
   private static final String COUNTER_CF_NAME = "o";
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
-  private static final String OCCURRENCE_TABLE_NAME = "occurrence_test";
-  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(OCCURRENCE_TABLE_NAME);
+  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
+
+
 
   private HTablePool tablePool = null;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
@@ -71,7 +75,7 @@ public class HBaseLockingKeyServiceTest {
 
     tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
 
-    keyService = new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
+    keyService = new HBaseLockingKeyService(CFG, tablePool);
   }
 
   @AfterClass
@@ -135,7 +139,7 @@ public class HBaseLockingKeyServiceTest {
 
     // first one claimed up to 300, then "died". On restart we claim 300 to 400.
     HBaseLockingKeyService keyService2 =
-      new HBaseLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, OCCURRENCE_TABLE_NAME, tablePool);
+      new HBaseLockingKeyService(CFG, tablePool);
     for (int i = 0; i < 50; i++) {
       Set<String> uniqueIds = ImmutableSet.of("A" + i);
       result = keyService2.generateKey(uniqueIds, "boo");

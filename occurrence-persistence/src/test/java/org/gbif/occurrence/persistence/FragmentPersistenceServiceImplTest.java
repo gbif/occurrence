@@ -4,6 +4,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
@@ -52,16 +53,17 @@ import static org.junit.Assert.assertTrue;
 
 public class FragmentPersistenceServiceImplTest {
 
-  private static final String TABLE_NAME = "occurrence_test";
-  private static final byte[] TABLE = Bytes.toBytes(TABLE_NAME);
+  private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
+  static {
+    CFG.setEnvironment("test");
+  }
+  private static final byte[] TABLE = Bytes.toBytes(CFG.occTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final String COUNTER_TABLE_NAME = "counter_test";
-  private static final byte[] COUNTER_TABLE = Bytes.toBytes(COUNTER_TABLE_NAME);
+  private static final byte[] COUNTER_TABLE = Bytes.toBytes(CFG.counterTable);
   private static final String COUNTER_CF_NAME = "o";
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
-  private static final String LOOKUP_TABLE_NAME = "lookup_test";
-  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(LOOKUP_TABLE_NAME);
+  private static final byte[] LOOKUP_TABLE = Bytes.toBytes(CFG.lookupTable);
   private static final String LOOKUP_CF_NAME = "o";
   private static final byte[] LOOKUP_CF = Bytes.toBytes(LOOKUP_CF_NAME);
 
@@ -132,7 +134,7 @@ public class FragmentPersistenceServiceImplTest {
 
     // reset lookup table
     KeyPersistenceService keyPersistenceService =
-      new ZkLockingKeyService(LOOKUP_TABLE_NAME, COUNTER_TABLE_NAME, TABLE_NAME, tablePool, zooLockProvider);
+      new ZkLockingKeyService(CFG, tablePool, zooLockProvider);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     HolyTriplet holyTriplet = new HolyTriplet(XML_DATASET_KEY, INST_CODE, COL_CODE, CAT, UNIT_QUALIFIER);
@@ -148,9 +150,9 @@ public class FragmentPersistenceServiceImplTest {
     ids.add(pubId);
     jsonKey = occurrenceKeyService.generateKey(ids).getKey();
 
-    fragmentService = new FragmentPersistenceServiceImpl(TABLE_NAME, tablePool, occurrenceKeyService);
+    fragmentService = new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
 
-    HTableInterface table = tablePool.getTable(TABLE_NAME);
+    HTableInterface table = tablePool.getTable(CFG.occTable);
 
     Put put = new Put(Bytes.toBytes(xmlKey));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.catalogNumber)),

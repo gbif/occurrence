@@ -9,7 +9,7 @@ import org.kohsuke.MetaInfServices;
 @MetaInfServices(Command.class)
 public class VerbatimProcessorCommand extends ServiceCommand {
 
-  private final ProcessorConfiguration configuration = new ProcessorConfiguration();
+  private final ProcessorCliConfiguration configuration = new ProcessorCliConfiguration();
 
   public VerbatimProcessorCommand() {
     super("verbatim-processor");

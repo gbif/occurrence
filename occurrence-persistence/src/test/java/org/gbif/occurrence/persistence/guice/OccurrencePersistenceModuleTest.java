@@ -1,11 +1,10 @@
 package org.gbif.occurrence.persistence.guice;
 
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
-
-import java.util.Properties;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -19,14 +18,12 @@ public class OccurrencePersistenceModuleTest {
   // ensure that the guice module is currrent - if you change this, change the README to match!
   @Test
   public void testModule() {
-    Properties props = new Properties();
-    props.setProperty("occurrence.db.table_name", "occurrence");
-    props.setProperty("occurrence.db.counter_table_name", "occurrence_counter");
-    props.setProperty("occurrence.db.id_lookup_table_name", "occurrence_id");
-    props.setProperty("occurrence.db.max_connection_pool", "1");
-    props.setProperty("occurrence.db.zookeeper.connection_string", "localhost:2181");
+    OccHBaseConfiguration cfg = new OccHBaseConfiguration();
+    cfg.setEnvironment("");
+    cfg.hbasePoolSize=1;
+    cfg.zkConnectionString="localhost:2181";
 
-    Injector injector = Guice.createInjector(new OccurrencePersistenceModule(props));
+    Injector injector = Guice.createInjector(new OccurrencePersistenceModule(cfg));
     OccurrenceService occService = injector.getInstance(OccurrenceService.class);
     assertNotNull(occService);
     FragmentPersistenceService fragService = injector.getInstance(FragmentPersistenceService.class);

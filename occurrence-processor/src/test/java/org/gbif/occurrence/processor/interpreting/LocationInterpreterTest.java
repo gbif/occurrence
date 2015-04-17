@@ -4,8 +4,11 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.junit.Ignore;
@@ -17,9 +20,26 @@ import static org.junit.Assert.assertTrue;
 
 @Ignore("Requires live webservices")
 public class LocationInterpreterTest {
+  static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
+  static final LocationInterpreter interpreter;
+  static {
+    cfg.url = URI.create("http://api.gbif-uat.org/v1/");
+    interpreter = new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()));
+  }
 
   private VerbatimOccurrence verb;
   private Occurrence occ;
+
+  @Test
+  public void testNull() {
+    ParseResult result = interpreter.interpretCountry(null);
+    assertNotNull(result);
+    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+
+    result = interpreter.interpretCountry(null, null);
+    assertNotNull(result);
+    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+  }
 
   @Test
   public void testVerbCoordInterp() throws InterruptedException {
@@ -30,7 +50,7 @@ public class LocationInterpreterTest {
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "55.678");
     occ = new Occurrence(verb);
 
-    LocationInterpreter.interpretLocation(verb, occ);
+    interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
     assertEquals(10.123, occ.getDecimalLatitude(), 0.0001);
     assertEquals(55.678, occ.getDecimalLongitude(), 0.0001);
@@ -49,7 +69,7 @@ public class LocationInterpreterTest {
     verb.setVerbatimField(DwcTerm.coordinatePrecision, "1.2345");
     occ = new Occurrence(verb);
 
-    LocationInterpreter.interpretLocation(verb, occ);
+    interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
@@ -68,7 +88,7 @@ public class LocationInterpreterTest {
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "5.2124");
     occ = new Occurrence(verb);
 
-    LocationInterpreter.interpretLocation(verb, occ);
+    interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
     assertEquals(52.0112, occ.getDecimalLatitude(), 0.0001);
     assertEquals(5.2124, occ.getDecimalLongitude(), 0.0001);
@@ -88,7 +108,7 @@ public class LocationInterpreterTest {
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "-58.1575");
     occ = new Occurrence(verb);
 
-    LocationInterpreter.interpretLocation(verb, occ);
+    interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
     assertEquals(-20.1825, occ.getDecimalLatitude(), 0.0001);
     assertEquals(-58.1575, occ.getDecimalLongitude(), 0.0001);
@@ -104,7 +124,7 @@ public class LocationInterpreterTest {
     verb.setDatasetKey(UUID.randomUUID());
     occ = new Occurrence(verb);
 
-    LocationInterpreter.interpretLocation(verb, occ);
+    interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
   }
 }

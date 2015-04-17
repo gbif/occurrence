@@ -9,7 +9,7 @@ import org.kohsuke.MetaInfServices;
 @MetaInfServices(Command.class)
 public class FragmentProcessorCommand extends ServiceCommand {
 
-  private final ProcessorConfiguration configuration = new ProcessorConfiguration();
+  private final ProcessorCliConfiguration configuration = new ProcessorCliConfiguration();
 
   public FragmentProcessorCommand() {
     super("fragment-processor");
