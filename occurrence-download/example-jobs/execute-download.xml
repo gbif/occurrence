@@ -6,7 +6,7 @@
   <!-- See the install-workflow.sh which declares this location during development -->
   <property>
     <name>oozie.wf.application.path</name>
-    <value>hdfs://c1n1.gbif.org:8020/new-occurrence-download/simple-download</value>
+    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev_downloads/simple-download</value>
   </property>
 
   <!--
@@ -14,30 +14,32 @@
   -->
   <property>
     <name>user.name</name>
-    <value>fmendez</value>
+    <value>oozie</value>
   </property>
   <property>
-    <name>hiveDB</name>
-    <value>fede</value>
+    <name>hive_db</name>
+    <value>dev_downloads</value>
   </property>
   <property>
-    <name>env</name>
-    <value>dev</value>
+    <name>download_format</name>
+    <value>SIMPLE_CSV</value>
   </property>
   <property>
-    <name>occurrenceTable</name>
-    <value>fmendez_occurrence</value>
-  </property>
-  <property>
-    <name>whereClause</name>
-    <value>kingdomkey=1</value>
-  </property>
-  <property>
-    <name>oozie.service.ELService.ext.functions.workflow</name>
-    <value>
-      workflowToDownloadId=org.gbif.occurrence.common.download.DownloadUtils#workflowToDownloadId
-    </value>
+    <name>gbif_filter</name>
+    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
   </property>
 
+  <property>
+    <name>oozie.libpath</name>
+    <value>/occurrence-download-workflows-dev_downloads/lib/</value>
+  </property>
+  <property>
+    <name>oozie.use.system.libpath</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>mapreduce.job.user.classpath.first</name>
+    <value>true</value>
+  </property>
 
 </configuration>

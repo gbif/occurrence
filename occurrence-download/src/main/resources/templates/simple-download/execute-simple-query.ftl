@@ -14,6 +14,7 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${occurrenceTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
@@ -23,3 +24,7 @@ AS SELECT
 </#list>
 FROM occurrence_download
 WHERE ${r"${whereClause}"};
+
+-- creates the citations table
+CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${occurrenceTable}"} GROUP BY datasetkey;

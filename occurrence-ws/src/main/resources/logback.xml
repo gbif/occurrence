@@ -82,9 +82,7 @@
   <logger name="org.apache.tomcat.util.digester.Digester" level="INFO"/>
 
   <root level="INFO">
-    <appender-ref ref="FILE"/>
-    <appender-ref ref="ERROR_FILE"/>
-    <appender-ref ref="EMAIL"/>
+    <appender-ref ref="CONSOLE"/>
   </root>
 
 </configuration>

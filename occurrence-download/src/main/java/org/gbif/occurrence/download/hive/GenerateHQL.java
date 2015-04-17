@@ -42,7 +42,7 @@ public class GenerateHQL {
       simpleDownloadDir.mkdirs();
 
       Configuration cfg = new Configuration();
-      cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/hql-templates"));
+      cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
       // generates HQL for the coordinator jobs to create the tables to be queried
       generateHBaseTableHQL(cfg, createTablesDir);

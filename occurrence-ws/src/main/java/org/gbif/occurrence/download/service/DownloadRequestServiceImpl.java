@@ -17,43 +17,31 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
-import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.sun.jersey.api.NotFoundException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +51,10 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 @Singleton
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
+
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
-    Download.Status.RUNNING, Download.Status.SUSPENDED);
+                                                                             Download.Status.RUNNING, Download.Status.SUSPENDED);
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -87,83 +77,34 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       .put(Job.Status.SUSPENDED, Download.Status.SUSPENDED)
       .put(Job.Status.SUSPENDEDWITHERROR, Download.Status.SUSPENDED).build();
 
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
-  private static final Joiner EMAIL_JOINER = Joiner.on(';').skipNulls();
-  private static final CharMatcher REPL_INVALID_HIVE_CHARS = CharMatcher.inRange('a', 'z')
-    .or(CharMatcher.inRange('A', 'Z'))
-    .or(CharMatcher.DIGIT)
-    .or(CharMatcher.is('_'))
-    .negate();
-
-  private static final String HIVE_SELECT_INTERPRETED;
-  private static final String HIVE_SELECT_VERBATIM;
-  private static final String JOIN_ARRAY_FMT = "if(%1$s IS NULL,'',join_array(%1$s,';')) AS %1$s";
-
-  static {
-    List<String> columns = Lists.newArrayList();
-    for (Term term : TermUtils.interpretedTerms()) {
-      final String iCol = HiveColumnsUtils.getHiveColumn(term);
-      if (TermUtils.isInterpretedDate(term)) {
-        columns.add("toISO8601(" + iCol + ") AS " + iCol);
-      } else if (TermUtils.isInterpretedNumerical(term) || TermUtils.isInterpretedDouble(term)) {
-        columns.add("cleanNull(" + iCol + ") AS " + iCol);
-      } else if (TermUtils.isInterpretedBoolean(term)) {
-        columns.add(iCol);
-      } else if (term == GbifTerm.issue) {
-        // OccurrnceIssues are exposed as an String separate by ;
-        columns.add(String.format(JOIN_ARRAY_FMT, iCol));
-      } else if (term == GbifTerm.mediaType) {
-        // OccurrnceIssues are exposed as an String separate by ;
-        columns.add(String.format(JOIN_ARRAY_FMT, iCol));
-      } else if (!TermUtils.isComplexType(term)) {
-        // complex type fields are not added to the select statement
-        columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
-      }
-    }
-    HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);
-
-
-    columns = Lists.newArrayList();
-    // manually add the GBIF occ key as first column
-    columns.add(HiveColumnsUtils.getHiveColumn(GbifTerm.gbifID));
-    for (Term term : TermUtils.verbatimTerms()) {
-      if (GbifTerm.gbifID != term) {
-        String colName = HiveColumnsUtils.getHiveColumn(term);
-        columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
-      }
-    }
-    HIVE_SELECT_VERBATIM = Joiner.on(',').join(columns);
-  }
-
   private static final Counter SUCCESSFUL_DOWNLOADS = Metrics.newCounter(CallbackService.class, "successful_downloads");
   private static final Counter FAILED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "cancelled_downloads");
 
-  // ObjectMappers are thread safe if not reconfigured in code
-  private final ObjectMapper mapper = new ObjectMapper();
+
   private final OozieClient client;
-  private final Map<String, String> defaultProperties;
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final DownloadEmailUtils downloadEmailUtils;
+  private final DownloadWorkflowParametersBuilder parametersBuilder;
 
 
   @Inject
   public DownloadRequestServiceImpl(OozieClient client,
-    @Named("oozie.default_properties") Map<String, String> defaultProperties,
-    @Named("ws.url") String wsUrl,
-    @Named("ws.mount") String wsMountDir,
-    OccurrenceDownloadService occurrenceDownloadService,
-    DownloadEmailUtils downloadEmailUtils) {
+                                    @Named("oozie.default_properties") Map<String, String> defaultProperties,
+                                    @Named("oozie.default_simplecsv_properties") Map<String, String> simpleCSVDefaultProperties,
+                                    @Named("ws.url") String wsUrl,
+                                    @Named("ws.mount") String wsMountDir,
+                                    OccurrenceDownloadService occurrenceDownloadService,
+                                    DownloadEmailUtils downloadEmailUtils) {
 
     this.client = client;
-    this.defaultProperties = defaultProperties;
     this.wsUrl = wsUrl;
-    this.downloadMount = new File(wsMountDir);
+    downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadEmailUtils = downloadEmailUtils;
-
+    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties,simpleCSVDefaultProperties,wsUrl);
   }
 
   @Override
@@ -189,58 +130,16 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
 
-    HiveQueryVisitor hiveVisitor = new HiveQueryVisitor();
-    SolrQueryVisitor solrVisitor = new SolrQueryVisitor();
-    String hiveQuery;
-    String solrQuery;
     try {
-      hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
-      solrQuery = solrVisitor.getQuery(request.getPredicate());
-    } catch (QueryBuildingException e) {
-      throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
-    }
-    LOG.debug("Attempting to download with hive query [{}]", hiveQuery);
-
-    final String uniqueId =
-      REPL_INVALID_HIVE_CHARS.removeFrom(request.getCreator() + '_' + UUID.randomUUID().toString());
-    final String tmpTable = "download_tmp_" + uniqueId;
-    final String citationTable = "download_tmp_citation_" + uniqueId;
-
-    Properties jobProps = new Properties();
-    jobProps.putAll(defaultProperties);
-    jobProps.setProperty("select_interpreted", HIVE_SELECT_INTERPRETED);
-    jobProps.setProperty("select_verbatim", HIVE_SELECT_VERBATIM);
-    jobProps.setProperty("query", hiveQuery);
-    jobProps.setProperty("solr_query", solrQuery);
-    jobProps.setProperty("query_result_table", tmpTable);
-    jobProps.setProperty("citation_table", citationTable);
-    // we dont have a downloadId yet, submit a placeholder
-    jobProps.setProperty("download_link", downloadLink(wsUrl, DownloadUtils.DOWNLOAD_ID_PLACEHOLDER));
-    jobProps.setProperty(Constants.USER_PROPERTY, request.getCreator());
-    if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
-      jobProps.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
-    }
-    // serialize the predicate filter into json
-    StringWriter writer = new StringWriter();
-    try {
-      mapper.writeValue(writer, request.getPredicate());
-      writer.flush();
-      jobProps.setProperty(Constants.FILTER_PROPERTY, writer.toString());
-    } catch (IOException e) {
-      throw new ServiceUnavailableException("Failed to serialize download filter " + request.getPredicate(), e);
-    }
-
-    LOG.debug("job properties: {}", jobProps);
-
-    try {
-      final String jobId = client.run(jobProps);
-      LOG.debug("oozie job id is: [{}], with tmpTable [{}]", jobId, tmpTable);
+      final String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
+      LOG.debug("oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
       return downloadId;
     } catch (OozieClientException e) {
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
+
   }
 
 

@@ -1,67 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.2">
+<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
 
-  <start to="execute_query"/>
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
 
-  <!-- TODO: interpret the incoming query, and populate WF params for later -->
+  <start to="download_prepare" />
 
-  <!-- Execute the query using sequential approach -->
-  <action name="execute_query">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-simple-query.q</script>
-      <param>hiveDB=${hiveDB}</param>
-      <param>occurrenceTable=${occurrenceTable}</param>
-      <param>whereClause=${whereClause}</param>
-    </hive>
-    <ok to="archive_table" />
-    <error to="drop_table_failure" />
-  </action>
-
-  <action name="archive_table">
+  <action name="download_prepare">
     <java>
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <configuration>
-        <property>
-          <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
-          <value>true</value>
-        </property>
-      </configuration>
-      <main-class> org.gbif.occurrence.download.file.SimpleFormatArchiveBuilder</main-class>
-      <arg>${hdfs.namenode}</arg>
-      <arg>/user/hive/warehouse/${hiveDB}.db/${occurrenceTable}/</arg>
-      <arg>/occurrence-download/${occurrence.environment}/files/</arg>
+      <main-class>org.gbif.occurrence.download.oozie.DownloadPrepareStep</main-class>
+      <arg>${gbif_filter}</arg>
       <arg>${wf:id()}</arg>
       <capture-output/>
     </java>
 
-    <ok to="drop_table" />
+    <ok to="download_size_decision" />
     <error to="kill" />
   </action>
 
-  <action name="drop_table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
+  <decision name="download_size_decision">
+    <switch>
+      <!-- it's a small download -->
+      <case to="from_solr_download">
+        ${wf:actionData('download_prepare')['is_small_download']}
+      </case>
+      <default to="from_hive_download" />
+    </switch>
+  </decision>
+
+  <action name="from_solr_download">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
+      <arg>${download_format}</arg>
+      <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
+      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+    </java>
+
+    <ok to="end" />
+    <error to="kill" />
+  </action>
+
+  <!-- Execute the query using sequential approach -->
+  <action name="from_hive_download">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/drop_table.q</script>
-      <param>occurrenceTable=${occurrenceTable}</param>
+      <script>hive-scripts/execute-simple-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
+      <param>whereClause=${wf:actionData('download_prepare')['hive_query']}</param>
+    </hive>
+    <ok to="archive_table" />
+    <error to="drop_tables_failure" />
+  </action>
+
+  <action name="archive_table">
+    <java>
+      <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}/</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
+      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+      <arg>${wf:actionData('download_prepare')['is_small_download'] ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
+      <capture-output/>
+    </java>
+
+    <ok to="persist_usages" />
+    <error to="kill" />
+  </action>
+
+  <action name="persist_usages">
+    <java>
+      <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}_citation/</arg>
+      <arg>${wf:id()}</arg>
+      <capture-output/>
+    </java>
+
+    <ok to="drop_tables" />
+    <error to="drop_tables_failure" />
+  </action>
+
+  <action name="drop_tables">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
+      <param>hiveDB=${hive_db}</param>
     </hive>
 
     <ok to="end" />
     <error to="kill" />
   </action>
 
-  <action name="drop_table_failure">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
+  <action name="drop_tables_failure">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/drop_table.q</script>
-      <param>occurrenceTable=${occurrenceTable}</param>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
+      <param>hiveDB=${hive_db}</param>
     </hive>
 
     <ok to="kill" />

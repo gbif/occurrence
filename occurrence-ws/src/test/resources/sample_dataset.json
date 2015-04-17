@@ -1,7 +1,8 @@
 {
   "creator":"markus",
-  "notification_addresses": ["gbif@mailinator.com"],  
+  "notification_addresses": ["gbif@mailinator.com"],
   "send_notification":"true",
+  "format": "SIMPLE_CSV",
   "predicate":{
     "type":"equals",
     "key":"DATASET_KEY",
