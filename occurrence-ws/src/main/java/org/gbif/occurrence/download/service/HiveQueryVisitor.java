@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  * The only entry point into this class is the {@code getHiveQuery} method!
  */
 // TODO: We should check somewhere for the length of the string to avoid possible attacks/oom situations (OCC-35)
-class HiveQueryVisitor {
+public class HiveQueryVisitor {
 
   private static final Logger LOG = LoggerFactory.getLogger(HiveQueryVisitor.class);
 

@@ -82,8 +82,8 @@ public class CallbackServiceTest {
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), "http://localhost:8080/",
-        "", occurrenceDownloadService, downloadEmailUtils);
+      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), Maps.<String, String>newHashMap(),
+                                     "http://localhost:8080/", "", occurrenceDownloadService, downloadEmailUtils);
   }
 
 

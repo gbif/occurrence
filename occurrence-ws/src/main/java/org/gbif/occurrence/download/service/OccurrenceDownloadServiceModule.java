@@ -1,7 +1,9 @@
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.service.guice.PrivateServiceModule;
 
 import java.util.Map;
@@ -53,26 +55,38 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Singleton
   @Named("oozie.default_properties")
   Map<String, String> providesOozieDefaultProperties(@Named("ws.url") String wsUrl,
-    @Named("oozie.workflows.path") String workflowsPath,
-    @Named("hive.hdfs.out") String hdfsOutput,
-    @Named("occurrence.hive_db") String hiveDB) {
+                                                     @Named("oozie.workflow.path") String workflowPath, @Named("hive.hdfs.out") String hdfsOutput) {
 
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
 
-    builder.put("oozie.workflows.path", workflowsPath)
+    builder.put(OozieClient.APP_PATH, workflowPath)
       .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
       .put("hdfs_hive_path", hdfsOutput)
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
-        DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
+           DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
-      .put("oozie.action.sharelib.for.hive","hive")
-      //hiveDB is required by the simple_tsv workflow
-      .put("hiveDB",hiveDB);
+      .put("oozie.action.sharelib.for.hive", "hive");
     // we dont have a specific downloadId yet, submit a placeholder
     String downloadLinkTemplate = DownloadUtils.concatUrlPaths(wsUrl,
-      "occurrence/download/" + DownloadUtils.DOWNLOAD_ID_PLACEHOLDER + ".zip");
+                                                               "occurrence/download/" + DownloadUtils.DOWNLOAD_ID_PLACEHOLDER + ".zip");
     builder.put("download_link", downloadLinkTemplate);
 
     return builder.build();
+  }
+
+  @Provides
+  @Singleton
+  @Named("oozie.default_simplecsv_properties")
+  Map<String,String> providesSimpleCsvDefaultParameters(@Named("hive_db") String hiveDB,
+                                                        @Named("environment") String environment,
+                                                        @Named("ws.url") String wsUrl,
+                                                        @Named("hdfs.namenode") String nameNode){
+    return new ImmutableMap.Builder<String, String>().put(DownloadWorkflowParameters.SimpleCsv.HIVE_DB, hiveDB)
+                                              .put(DownloadWorkflowParameters.SimpleCsv.DOWNLOAD_FORMAT, DownloadFormat.SIMPLE_CSV.name())
+                                              .put(OozieClient.LIBPATH,String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,environment))
+                                               .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.SimpleCsv.WORKFLOW_PATH_FMT,environment))
+                                              .put(OozieClient.WORKFLOW_NOTIFICATION_URL, DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
+                                              .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
+                                              .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 }
