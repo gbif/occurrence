@@ -1,5 +1,6 @@
 package org.gbif.occurrence.ws.client;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -52,7 +53,8 @@ public class OccurrenceWsClientModuleTest {
     DownloadRequestService client = inj.getInstance(DownloadRequestService.class);
 
     DownloadRequest d =
-      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true);
+      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
+        DownloadFormat.DWCA);
 
     client.create(d);
 
