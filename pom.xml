@@ -120,7 +120,7 @@
     <drupal-mybatis.version>0.15</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-reader.version>1.19</dwca-reader.version>
-    <gbif-api.version>0.19</gbif-api.version>
+    <gbif-api.version>0.20-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.17</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.21</gbif-common-search.version>

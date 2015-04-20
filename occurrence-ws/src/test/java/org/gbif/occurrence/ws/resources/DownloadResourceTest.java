@@ -1,6 +1,7 @@
 package org.gbif.occurrence.ws.resources;
 
 import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -59,7 +60,8 @@ public class DownloadResourceTest {
     when(sec.getUserPrincipal()).thenReturn(userP);
 
     resource = new DownloadResource(service, callbackService, downloadService);
-    dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true);
+    dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
+      DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);
   }
 

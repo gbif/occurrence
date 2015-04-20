@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.export;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
@@ -18,7 +19,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX Handler that can parse a single oozie download job definition and extract a download instance from it.
  * Extracts download properties using the Hadoop configuration conventions.
- * 
+ *
  * <pre>
  * {@code
  * <configuration>
@@ -52,7 +53,7 @@ public class OozieJobSaxHandler extends DefaultHandler {
   private String propValue;
 
   public DownloadRequest buildDownload() {
-    return new DownloadRequest(predicate, creator, notificationAddresses, sendNotification);
+    return new DownloadRequest(predicate, creator, notificationAddresses, sendNotification, DownloadFormat.DWCA);
   }
 
   @Override
