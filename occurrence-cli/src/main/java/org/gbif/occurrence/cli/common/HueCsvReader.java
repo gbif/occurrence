@@ -57,4 +57,35 @@ public class HueCsvReader {
 
     return keys;
   }
+
+  public static List<Integer> readIntKeys(String keyFileName) {
+    List<Integer> keys = Lists.newArrayList();
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(new FileReader(keyFileName));
+      String line;
+      while ((line = br.readLine()) != null) {
+        try {
+          Integer key = Integer.valueOf(line.trim());
+          keys.add(key);
+        } catch (NumberFormatException e) {
+          LOG.error("Ignore invalid integer key: {}", line);
+        }
+      }
+    } catch (FileNotFoundException e) {
+      LOG.error("Could not find csv key file [{}]. Exiting", keyFileName, e);
+    } catch (IOException e) {
+      LOG.error("Error while reading csv key file [{}]. Exiting", keyFileName, e);
+    } finally {
+      if (br != null) {
+        try {
+          br.close();
+        } catch (IOException e) {
+          LOG.warn("Couldn't close key file. Attempting to continue anyway.", e);
+        }
+      }
+    }
+
+    return keys;
+  }
 }

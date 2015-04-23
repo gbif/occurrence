@@ -142,9 +142,10 @@ public class TaxonomyInterpreter {
         ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet)));
 
     if (!matchPR.isSuccessful()) {
-      LOG.debug("Unsuccessful backbone match for [{}]", sciname);
+      LOG.debug("Unsuccessful backbone match for occurrence {} with name {}", occ.getKey(), sciname);
       occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
       occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
+
     } else {
       NameUsageMatch match = matchPR.getPayload();
       occ.setTaxonKey(match.getUsageKey());
@@ -155,19 +156,19 @@ public class TaxonomyInterpreter {
 
       // parse name into pieces - we dont get them from the nub lookup
       try {
-        ParsedName pn = parser.parse(occ.getScientificName());
+        ParsedName pn = parser.parse(match.getScientificName());
         occ.setGenericName(pn.getGenusOrAbove());
         occ.setSpecificEpithet(pn.getSpecificEpithet());
         occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());
       } catch (UnparsableException e) {
-        LOG.warn("Fail to parse backbone name {}: {}", occ.getScientificName(), e);
+        LOG.warn("Fail to parse backbone name {} for occurrence {}: {}", e.name, occ.getKey(), e.type);
       }
 
       for (Rank r : Rank.DWC_RANKS) {
         org.gbif.api.util.ClassificationUtils.setHigherRank(occ, r, match.getHigherRank(r));
         org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
       }
-      LOG.debug("Got nub sci name [{}]", occ.getScientificName());
+      LOG.debug("Occurrence {} matched to nub {}", occ.getKey(), occ.getScientificName());
     }
   }
 }
