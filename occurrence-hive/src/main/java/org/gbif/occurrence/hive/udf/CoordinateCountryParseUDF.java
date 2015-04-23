@@ -68,12 +68,12 @@ public class CoordinateCountryParseUDF extends GenericUDF {
       }
     }
   }
-  
+
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
     assert arguments.length == argLength;
 
-    URI api = URI.create(arguments[0].get().toString().toUpperCase());
+    URI api = URI.create(arguments[0].get().toString());
 
     // Interpret the country to pass in to the geo lookup
     String country = arguments[3].get() == null ? null : converters[3].convert(arguments[3].get()).toString();
@@ -96,8 +96,8 @@ public class CoordinateCountryParseUDF extends GenericUDF {
       return result;
     }
 
-    String latitude = converters[0].convert(arguments[1].get()).toString();
-    String longitude = converters[1].convert(arguments[2].get()).toString();
+    String latitude = converters[1].convert(arguments[1].get()).toString();
+    String longitude = converters[2].convert(arguments[2].get()).toString();
 
     // while we have interpreted the country to try and pass something sensible to the CoordinateInterpreter,
     // it will not infer countries if we pass in UNKNOWN, as it likes NULL.
@@ -139,14 +139,14 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
   @Override
   public String getDisplayString(String[] strings) {
-    assert strings.length == 3;
-    return "parseCoordinates(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ")";
+    assert strings.length == 4;
+    return "parseCoordinates(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ')';
   }
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-    if (arguments.length != 3) {
-      throw new UDFArgumentException("parseCoordinates takes three arguments");
+    if (arguments.length != 4) {
+      throw new UDFArgumentException("parseCoordinates takes four arguments");
     }
 
     converters = new ObjectInspectorConverters.Converter[arguments.length];
