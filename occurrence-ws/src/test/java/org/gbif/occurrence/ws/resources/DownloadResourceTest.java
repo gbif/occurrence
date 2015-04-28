@@ -61,7 +61,7 @@ public class DownloadResourceTest {
 
     resource = new DownloadResource(service, callbackService, downloadService);
     dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
-                             DownloadFormat.DWCA);
+      DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);
   }
 

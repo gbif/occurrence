@@ -45,7 +45,6 @@ public class OozieJobSaxHandler extends DefaultHandler {
   private Predicate predicate;
   private Set<String> notificationAddresses;
   private boolean sendNotification;
-  private DownloadFormat downloadFormat;
 
   private boolean inConfiguration;
   private boolean inProperty;
@@ -54,7 +53,7 @@ public class OozieJobSaxHandler extends DefaultHandler {
   private String propValue;
 
   public DownloadRequest buildDownload() {
-    return new DownloadRequest(predicate, creator, notificationAddresses, sendNotification, downloadFormat);
+    return new DownloadRequest(predicate, creator, notificationAddresses, sendNotification, DownloadFormat.DWCA);
   }
 
   @Override

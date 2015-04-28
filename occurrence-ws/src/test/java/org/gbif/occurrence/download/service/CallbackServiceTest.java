@@ -8,11 +8,9 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.mail.MessagingException;
 
 import com.google.common.collect.Lists;
@@ -65,7 +63,7 @@ public class CallbackServiceTest {
    */
   private static Download mockDownload() {
     DownloadRequest downloadRequest = new DownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true,
-                                                          DownloadFormat.DWCA);
+      DownloadFormat.DWCA);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(DOWNLOAD_ID);
@@ -83,9 +81,8 @@ public class CallbackServiceTest {
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), Maps.<String, String>newHashMap(),
-                                     "http://localhost:8080/", "", occurrenceDownloadService, downloadEmailUtils,
-                                     mock(DownloadLimitsService.class));
+      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), "http://localhost:8080/",
+        "", occurrenceDownloadService, downloadEmailUtils);
   }
 
 

@@ -35,7 +35,7 @@ public class OccurrenceProcessorModule extends PrivateModule {
   @Provides
   public ZookeeperConnector provideZookeeperConnector() throws Exception {
     CuratorFramework curator = CuratorFrameworkFactory.builder()
-      .namespace("crawler")
+      .namespace(cfg.zooKeeper.namespace)
       .connectString(cfg.zooKeeper.connectionString)
       .retryPolicy(new RetryNTimes(1, 1000))
       .build();
