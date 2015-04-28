@@ -15,14 +15,15 @@ HBASE_TABLE=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="pro
 HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="dev"]]/*[name()="properties"]/*[name()="hive.db"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 
 #gets the oozie id of the current coordinator job if it exists
-WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV\;status=RUNNING |  awk 'NR==3' | awk '{print $1;}')
+WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV\;status=RUNNING\;status=PREP\;status=PREPSUSPENDED\;status=SUSPENDED\;status=PREPPAUSED\;status=PAUSED\;status=SUCCEEDED\;status=DONEWITHERROR\;status=FAILED |  awk 'NR==3' | awk '{print $1;}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
   oozie job -oozie $OOZIE -kill $WID
 fi
 
 echo "Assembling jar for $ENV"
-mvn --settings profiles.xml -P$P -DskipTests clean install package assembly:single
+#Oozie uses timezone UTC
+mvn --settings profiles.xml -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder dev  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
