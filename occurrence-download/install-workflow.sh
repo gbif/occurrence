@@ -5,7 +5,6 @@ set -e
 P=$1
 TOKEN=$2
 
-
 echo "Get latest tables-coord config profiles from github"
 curl -s -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L https://api.github.com/repos/gbif/gbif-configuration/contents/occurrence-download/profiles.xml
 
@@ -32,5 +31,4 @@ hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
 echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE"  > job.properties
 
 oozie job --oozie $OOZIE -config job.properties -run
-
 
