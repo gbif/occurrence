@@ -18,7 +18,9 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.conf.DownloadLimits;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
+import org.gbif.ws.response.GbifResponseStatus;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +28,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.Map;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
@@ -89,6 +94,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final DownloadEmailUtils downloadEmailUtils;
   private final DownloadWorkflowParametersBuilder parametersBuilder;
 
+  private final DownloadLimitsService downloadLimitsService;
+
 
   @Inject
   public DownloadRequestServiceImpl(OozieClient client,
@@ -97,7 +104,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
                                     @Named("ws.url") String wsUrl,
                                     @Named("ws.mount") String wsMountDir,
                                     OccurrenceDownloadService occurrenceDownloadService,
-                                    DownloadEmailUtils downloadEmailUtils) {
+                                    DownloadEmailUtils downloadEmailUtils,
+                                    DownloadLimitsService downloadLimitsService) {
 
     this.client = client;
     this.wsUrl = wsUrl;
@@ -105,6 +113,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadEmailUtils = downloadEmailUtils;
     parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties,simpleCSVDefaultProperties,wsUrl);
+    this.downloadLimitsService = downloadLimitsService;
   }
 
   @Override
@@ -129,8 +138,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public String create(DownloadRequest request) {
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
-
     try {
+      if(!downloadLimitsService.isInDownloadLimits(request.getCreator())){
+        throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
+      }
       final String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
       LOG.debug("oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);

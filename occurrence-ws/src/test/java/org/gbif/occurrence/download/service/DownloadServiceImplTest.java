@@ -12,6 +12,7 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -57,14 +59,18 @@ public class DownloadServiceImplTest {
 
   private OccurrenceDownloadService downloadService;
 
+  private DownloadLimitsService downloadLimitsService;
+
   private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar");
 
   @Before
   public void setup() {
     props.clear();
     downloadService = mock(OccurrenceDownloadService.class);
+    downloadLimitsService = mock(DownloadLimitsService.class);
+    when(downloadLimitsService.isInDownloadLimits(any(String.class))).thenReturn(true);
     requestService =
-      new DownloadRequestServiceImpl(oozieClient, props,props, "", "", downloadService, mock(DownloadEmailUtils.class));
+      new DownloadRequestServiceImpl(oozieClient, props,props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
   }
 
 
@@ -102,13 +108,13 @@ public class DownloadServiceImplTest {
     allDownloads.add(job1);
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
-    when(downloadService.listByUser(any(String.class), any(Pageable.class))).thenReturn(
+    when(downloadService.listByUser(any(String.class), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
       new PagingResponse<Download>(0L, 0, 0L, emptyDownloads));
-    when(downloadService.listByUser(eq("peter"), any(Pageable.class))).thenReturn(
+    when(downloadService.listByUser(eq("peter"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
       new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), peterDownloads));
-    when(downloadService.listByUser(eq("karl"), any(Pageable.class))).thenReturn(
+    when(downloadService.listByUser(eq("karl"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
       new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), karlDownloads));
-    when(downloadService.list(any(Pageable.class))).thenReturn(
+    when(downloadService.list(any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
       new PagingResponse<Download>(0L, allDownloads.size(), new Long(allDownloads.size()), allDownloads));
     // mock get details
     when(downloadService.get(eq("1-oozie-oozi-W"))).thenReturn(job1);
@@ -116,16 +122,16 @@ public class DownloadServiceImplTest {
 
     // test
     PagingRequest req = new PagingRequest(0, 2);
-    PagingResponse<Download> x = downloadService.list(req);
+    PagingResponse<Download> x = downloadService.list(req,null);
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req);
+    x = downloadService.listByUser("harald", req, null);
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req);
+    x = downloadService.listByUser("karl", req, null);
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req);
+    x = downloadService.listByUser("peter", req, null);
     assertEquals(1, x.getResults().size());
   }
 

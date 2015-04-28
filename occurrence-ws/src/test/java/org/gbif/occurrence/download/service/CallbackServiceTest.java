@@ -8,6 +8,7 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
 import java.util.Date;
 import java.util.List;
@@ -83,7 +84,8 @@ public class CallbackServiceTest {
     oozieClient = mock(OozieClient.class);
     service =
       new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), Maps.<String, String>newHashMap(),
-                                     "http://localhost:8080/", "", occurrenceDownloadService, downloadEmailUtils);
+                                     "http://localhost:8080/", "", occurrenceDownloadService, downloadEmailUtils,
+                                     mock(DownloadLimitsService.class));
   }
 
 

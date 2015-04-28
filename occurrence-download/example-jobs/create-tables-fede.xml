@@ -1,0 +1,28 @@
+<!--
+  Run this with:
+     oozie job -oozie http://c1n1.gbif.org:11000/oozie/ -config example-jobs/create-tables.xml -run
+-->
+<configuration>
+  <!-- See the install-workflow.sh which declares this location during development -->
+  <property>
+    <name>oozie.wf.application.path</name>
+    <value>hdfs://c1n1.gbif.org:8020/new-occurrence-download/create-tables</value>
+  </property>
+
+  <!--
+    During development we overwrite defaults with our own values (!)
+  -->
+  <property>
+    <name>user.name</name>
+    <value>fmendez</value>
+  </property>
+  <property>
+    <name>hiveDB</name>
+    <value>fede</value>
+  </property>
+  <property>
+    <name>occurrenceHBaseTable</name>
+    <value>dev_occurrence</value>
+  </property>
+
+</configuration>

@@ -6,6 +6,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
@@ -25,7 +26,7 @@ public class OccurrenceDownloadMockServices implements OccurrenceDownloadService
 
   @Override
   public PagingResponse<Download> list(
-    @Nullable Pageable pageable
+    @Nullable Pageable pageable, @Nullable Set<Download.Status> status
   ) {
     // TODO: Write implementation
     throw new UnsupportedOperationException("Not implemented yet");
@@ -33,7 +34,7 @@ public class OccurrenceDownloadMockServices implements OccurrenceDownloadService
 
   @Override
   public PagingResponse<Download> listByUser(
-    @NotNull String s, @Nullable Pageable pageable
+    @NotNull String s, @Nullable Pageable pageable, @Nullable Set<Download.Status> status
   ) {
     // TODO: Write implementation
     throw new UnsupportedOperationException("Not implemented yet");
