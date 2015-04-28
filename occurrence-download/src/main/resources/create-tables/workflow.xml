@@ -38,21 +38,6 @@
       <script>hive-scripts/create-occurrence-hdfs.q</script>
       <param>hiveDB=${hiveDB}</param>
     </hive>
-    <ok to="create-download-tables" />
-    <error to="kill" />
-  </action>
-
-  <!--
-    Creates and populates HDFS tables for download formats
-  -->
-  <action name="create-download-tables">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create-download-tables.q</script>
-      <param>hiveDB=${hiveDB}</param>
-    </hive>
     <ok to="end" />
     <error to="kill" />
   </action>
