@@ -19,17 +19,18 @@ HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile
 WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV\;status=RUNNING |  awk 'NR==3' | awk '{print $1;}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
-  oozie job -oozie $OOZIE -kill $WID
+  #oozie job -oozie $OOZIE -kill $WID
 fi
 
 echo "Assembling jar for $ENV"
 mvn --settings profiles.xml -P$P -DskipTests clean install package assembly:single
 
+java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder dev  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
 hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
 hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
 echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE"  > job.properties
 
-oozie job --oozie $OOZIE -config job.properties -run
+#oozie job --oozie $OOZIE -config job.properties -run
 
 

@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;

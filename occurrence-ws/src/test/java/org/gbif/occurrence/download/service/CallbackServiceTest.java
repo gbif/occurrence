@@ -21,6 +21,7 @@ import org.apache.oozie.client.WorkflowJob;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.mockpolicies.Slf4jMockPolicy;
 import org.powermock.core.classloader.annotations.MockPolicy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -57,6 +58,7 @@ public class CallbackServiceTest {
   private CallbackService service;
   private OccurrenceDownloadService occurrenceDownloadService;
   private DownloadEmailUtils downloadEmailUtils;
+  private DownloadLimitsService downloadLimitsService;
 
   /**
    * Creates a mock download object.
@@ -78,11 +80,13 @@ public class CallbackServiceTest {
   public void setup() {
     downloadEmailUtils = mock(DownloadEmailUtils.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
+    downloadLimitsService= mock(DownloadLimitsService.class);
+    when(downloadLimitsService.isInDownloadLimits(Matchers.any(String.class))).thenReturn(true);
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), "http://localhost:8080/",
-        "", occurrenceDownloadService, downloadEmailUtils);
+      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(),Maps.<String, String>newHashMap(), "http://localhost:8080/",
+        "", occurrenceDownloadService, downloadEmailUtils,downloadLimitsService);
   }
 
 

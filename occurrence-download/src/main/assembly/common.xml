@@ -32,22 +32,58 @@
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
       <includes>
-        <include>org.gbif:gbif-api:jar</include>
+        <include>com.beust:jcommander:jar</include>
+        <include>com.google.guava:guava:jar</include>
+        <include>com.google.inject:guice:jar</include>
+        <include>com.klout:brickhouse:jar</include>
+        <include>com.sun.jersey.contribs:jersey-apache-client:jar</include>
+        <include>com.sun.jersey:jersey-client:jar</include>
+        <include>com.sun.jersey:jersey-core:jar</include>
+        <include>com.typesafe.akka:akka-actor:jar</include>
+        <include>com.vividsolutions:jts:jar</include>
+        <include>commons-beanutils:commons-beanutils:jar</include>
+        <include>commons-io:commons-io:jar</include>
+        <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>
+        <include>net.sf.supercsv:super-csv:jar</include>
+        <include>joda-time:joda-time:jar</include>
+        <include>log4j:log4j:jar</include>
+        <include>org.apache.commons:commons-lang3:jar</include>
+        <include>commons-logging:commons-logging:jar</include>
+        <include>org.apache.curator:curator-client:jar</include>
+        <include>org.apache.curator:curator-framework:jar</include>
+        <include>org.apache.curator:curator-recipes:jar</include>
+        <include>org.apache.hadoop:hadoop-common:jar</include>
+        <include>org.apache.hbase:hbase-client:jar</include>
+        <include>org.apache.hbase:hbase-common:jar</include>
+        <include>org.apache.hbase:hbase-server:jar</include>
+        <include>org.apache.hbase:hbase-protocol:jar</include>
+        <include>org.apache.hive:hive-hbase-handler</include>
+        <include>org.apache.httpcomponents:httpclient</include>
+        <include>org.apache.httpcomponents:httpcore</include>
+        <include>org.apache.httpcomponents:httpmime:jar</include>
+        <include>org.apache.solr:solr-solrj:jar</include>
+        <include>org.apache.solr:solr-core:jar</include>
+        <include>org.cloudera.htrace:htrace-core:jar</include>
+        <include>org.codehaus.jackson:jackson-jaxrs:jar</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl:jar</include>
+        <include>org.codehaus.jackson:jackson-core-asl:jar</include>
+        <include>org.gbif.hadoop:hadoop-compress:jar</include>
+        <include>org.gbif:hbase-utils:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>
-        <include>org.gbif.hadoop:hadoop-compress:jar</include>
-        <include>com.google.guava:guava</include>
-        <include>com.klout:brickhouse:jar</include>
-        <include>org.apache.hbase:hbase-client:jar</include>
-        <include>org.apache.hbase:hbase-common:jar</include>
-        <include>org.apache.hbase:hbase-hadoop-compat:jar</include>
-        <include>org.apache.hbase:hbase-protocol:jar</include>
-        <include>org.apache.hbase:hbase-server:jar</include>
-        <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>
-        <include>org.cloudera.htrace:htrace-core</include>
-        <include>com.vividsolutions:jts:jar</include>
-        <include>joda-time:joda-time:jar</include>
+        <include>org.gbif.occurrence:occurrence-persistence:jar</include>
+        <include>org.gbif.occurrence:occurrence-search:jar</include>
+        <include>org.gbif.registry:registry-ws-client:jar</include>
+        <include>org.gbif:dwc-api:jar</include>
+        <include>org.gbif:gbif-api:jar</include>
+        <include>org.gbif:gbif-common-search:jar</include>
+        <include>org.gbif:gbif-common-service:jar</include>
+        <include>org.gbif:gbif-common-ws:jar</include>
+        <include>org.gbif:gbif-common:jar</include>
+        <include>org.gbif:gbif-wrangler:jar</include>
+        <include>org.noggit:noggit:jar</include>
+        <include>org.scala-lang:scala-library:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>

@@ -54,7 +54,7 @@ public class OccurrenceWsClientModuleTest {
 
     DownloadRequest d =
       new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
-        DownloadFormat.DWCA);
+                          DownloadFormat.DWCA);
 
     client.create(d);
 

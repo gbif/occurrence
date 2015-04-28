@@ -56,7 +56,7 @@
           <value>true</value>
         </property>
       </configuration>
-      <main-class>org.gbif.occurrence.download.file.DownloadTableBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.oozie.DownloadTableBuilder</main-class>
       <arg>${query_result_table}_interpreted</arg>
       <arg>${query_result_table}_verbatim</arg>
       <arg>${query_result_table}_multimedia</arg>
