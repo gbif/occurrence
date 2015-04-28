@@ -47,7 +47,6 @@ public class GenerateHQL {
       // generates HQL for the coordinator jobs to create the tables to be queried
       generateHBaseTableHQL(cfg, createTablesDir);
       generateOccurrenceTableHQL(cfg, createTablesDir);
-      generateDownloadTablesHQL(cfg, createTablesDir);
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
@@ -100,24 +99,9 @@ public class GenerateHQL {
     }
   }
 
-  /**
-   * Generates HQL which can be used to create the actual tables queried at download time.  The downloads tables are
-   * simplified versions of the occurrence HBase table snapshot, and thus optimized for runtime performance where less
-   * data is scanned at each download.
-   */
-  private static void generateDownloadTablesHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "create-download-tables.q"))) {
-      Template template = cfg.getTemplate("configure/create-download-tables.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "fullDownloadFields", DownloadTableDefinitions.fullDownload(),
-        "simpleDownloadFields", DownloadTableDefinitions.simpleDownload()
-      );
-      template.process(data, out);
-    }
-  }
 
   /**
-   * TODO
+   * Generates the Hive query file used for DwAc downloads.
    */
   private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
@@ -131,7 +115,7 @@ public class GenerateHQL {
   }
 
   /**
-   * TODO
+   * Generates the Hive verbatim query file used for DwAc downloads.
    */
   private static void generateVerbatimQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-verbatim-query.q"))) {
@@ -144,7 +128,7 @@ public class GenerateHQL {
   }
 
   /**
-   * TODO
+   * Generates the Hive interpreted query file used for DwAc downloads.
    */
   private static void generateInterpretedQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-interpreted-query.q"))) {
@@ -157,7 +141,7 @@ public class GenerateHQL {
   }
 
   /**
-   * TODO
+   * Generates the Hive citations query file used for DwAc downloads.
    */
   private static void generateCitationQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-citation-query.q"))) {
@@ -167,7 +151,7 @@ public class GenerateHQL {
   }
 
   /**
-   * TODO
+   * Generates the Hive multimedia query file used for DwAc downloads.
    */
   private static void generateMultimediaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-multimedia-query.q"))) {
@@ -176,7 +160,9 @@ public class GenerateHQL {
     }
   }
 
-
+  /**
+   * Generates the Hive query file used for CSV downloads.
+   */
   private static void generateSimpleQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-query.q"))) {
       Template template = cfg.getTemplate("simple-download/execute-simple-query.ftl");
