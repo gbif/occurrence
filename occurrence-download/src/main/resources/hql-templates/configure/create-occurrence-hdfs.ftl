@@ -5,7 +5,7 @@
   a query over the HBase backed occurrence table.
 -->
 
-<#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
+<#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
 
 -- snappy compression
