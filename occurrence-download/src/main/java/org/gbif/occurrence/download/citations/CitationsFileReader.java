@@ -35,28 +35,6 @@ import org.slf4j.LoggerFactory;
 public class CitationsFileReader {
 
   /**
-   * Predicates that copies the DatasetUsage into a Map.
-   */
-  public static class UsageToMap implements Predicate<DatasetOccurrenceDownloadUsage> {
-
-    private Map<UUID,Long> usages;
-
-    /**
-     * @param usages where the DatasetUsage will be copied.
-     */
-    public UsageToMap(Map<UUID,Long> usages){
-      this.usages = usages;
-    }
-
-    @Override
-    public boolean apply(
-      @Nullable DatasetOccurrenceDownloadUsage input
-    ) {
-      return usages.put(input.getDatasetKey(), input.getNumberRecords()) == null;
-    }
-  }
-
-  /**
    * Persists the dataset usage into the Registry data base.
    */
   public static class PersistUsage implements Predicate<DatasetOccurrenceDownloadUsage> {

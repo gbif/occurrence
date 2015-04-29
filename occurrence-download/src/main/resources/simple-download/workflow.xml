@@ -80,7 +80,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}_citation/</arg>
-      <arg>${wf:id()}</arg>
+      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
       <capture-output/>
     </java>
 
