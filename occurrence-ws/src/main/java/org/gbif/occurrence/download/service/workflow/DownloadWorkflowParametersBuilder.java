@@ -81,6 +81,9 @@ public class DownloadWorkflowParametersBuilder {
     for (Term term : TermUtils.verbatimTerms()) {
       if (GbifTerm.gbifID != term) {
         String colName = HiveColumnsUtils.getHiveColumn(term);
+        if('_' == colName.charAt(colName.length()- 1)) { //verbatim columns don't use the suffix '_'
+          colName = colName.substring(0,colName.length() - 1);
+        }
         columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
       }
     }
