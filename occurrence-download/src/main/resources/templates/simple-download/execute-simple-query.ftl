@@ -23,7 +23,7 @@ AS SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-FROM occurrence_download
+FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table
