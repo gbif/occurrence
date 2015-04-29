@@ -18,7 +18,6 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.conf.DownloadLimits;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
 import org.gbif.ws.response.GbifResponseStatus;
 
@@ -120,7 +119,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public void cancel(String downloadKey) {
     try {
       Download download = occurrenceDownloadService.get(downloadKey);
-      if (download != null) {
+        if (download != null) {
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
           client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
