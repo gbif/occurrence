@@ -8,7 +8,6 @@ import org.gbif.service.guice.PrivateServiceModule;
 
 import java.util.Map;
 import java.util.Properties;
-
 import javax.mail.Session;
 
 import com.google.common.collect.ImmutableMap;

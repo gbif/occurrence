@@ -23,7 +23,6 @@ import org.gbif.ws.util.ExtraMediaTypes;
 import java.io.InputStream;
 import java.security.AccessControlException;
 import java.security.Principal;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;

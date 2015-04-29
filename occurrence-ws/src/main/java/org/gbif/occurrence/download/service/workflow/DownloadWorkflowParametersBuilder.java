@@ -62,14 +62,14 @@ public class DownloadWorkflowParametersBuilder {
       } else if (TermUtils.isInterpretedBoolean(term)) {
         columns.add(iCol);
       } else if (term == GbifTerm.issue) {
-        // OccurrnceIssues are exposed as an String separate by ;
+        // OccurrenceIssues are exposed as an String separate by ;
         columns.add(String.format(JOIN_ARRAY_FMT, iCol));
       } else if (term == GbifTerm.mediaType) {
-        // OccurrnceIssues are exposed as an String separate by ;
+        // MediaTypes are exposed as an String separate by ;
         columns.add(String.format(JOIN_ARRAY_FMT, iCol));
       } else if (!TermUtils.isComplexType(term)) {
         // complex type fields are not added to the select statement
-        columns.add("cleanDelimiters(" + iCol + ") AS " + iCol);
+        columns.add(iCol);
       }
     }
     HIVE_SELECT_INTERPRETED = Joiner.on(',').join(columns);
@@ -130,7 +130,7 @@ public class DownloadWorkflowParametersBuilder {
   /**
    * Serializes a predicate filter into a json string.
    */
-  private String getJsonStringPredicate(final Predicate predicate){
+  private static String getJsonStringPredicate(final Predicate predicate){
     StringWriter writer = new StringWriter();
     try {
       JSON_MAPPER.writeValue(writer, predicate);

@@ -12,7 +12,6 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
 import java.util.Date;
 import java.util.List;

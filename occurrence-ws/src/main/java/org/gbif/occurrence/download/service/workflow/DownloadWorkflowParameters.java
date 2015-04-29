@@ -1,7 +1,5 @@
 package org.gbif.occurrence.download.service.workflow;
 
-import java.util.Map;
-
 import com.google.common.collect.ImmutableMap;
 import org.apache.oozie.client.OozieClient;
 

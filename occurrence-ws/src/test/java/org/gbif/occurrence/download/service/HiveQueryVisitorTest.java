@@ -19,7 +19,6 @@ import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
-import org.gbif.occurrence.search.OccurrenceSearchDateUtils;
 
 import java.util.Date;
 import java.util.List;
