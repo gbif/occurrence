@@ -22,6 +22,7 @@ SET mapred.max.split.size=256000000;
 -- hint: ensure these are on the job classpath
 CREATE TEMPORARY FUNCTION collectMediaTypes AS 'org.gbif.occurrence.hive.udf.CollectMediaTypesUDF';
 CREATE TEMPORARY FUNCTION removeNulls AS 'org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF';
+CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 
 -- create the HDFS view of the HBase table
 CREATE TABLE IF NOT EXISTS occurrence_hdfs (

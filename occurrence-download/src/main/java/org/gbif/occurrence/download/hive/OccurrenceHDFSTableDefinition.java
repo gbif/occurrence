@@ -61,6 +61,10 @@ public class OccurrenceHDFSTableDefinition {
            + " IS NOT NULL AND " + HiveColumns.columnFor(DwcTerm.decimalLongitude)+ " IS NOT NULL)";
   }
 
+  private static String cleanDelimitersInitializer(String column){
+    return "cleanDelimiters(" + column + ") AS " + column;
+  }
+
   /**
    * @return a string for constructing the hasGeospatialIssues field
    */
@@ -201,10 +205,12 @@ public class OccurrenceHDFSTableDefinition {
    * Constructs a Field for the given term, when used in the verbatim context.
    */
   private static InitializableField verbatimField(Term term) {
+    String column = HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase();
     return new InitializableField(term,
-                                  HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(),
+                                  column,
                                   // no escape needed, due to prefix
-                                  HiveDataTypes.typeForTerm(term, true) // verbatim context
+                                  HiveDataTypes.typeForTerm(term, true), // verbatim context
+                                  cleanDelimitersInitializer(column) //remove delimiters '\n', '\t', etc.
     );
   }
 
@@ -213,6 +219,9 @@ public class OccurrenceHDFSTableDefinition {
    * initializer.
    */
   private static InitializableField interpretedField(Term term) {
+    if(HiveDataTypes.TYPE_STRING == HiveDataTypes.typeForTerm(term,false)){
+      return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
+    }
     return interpretedField(term, null); // no initializer
   }
 

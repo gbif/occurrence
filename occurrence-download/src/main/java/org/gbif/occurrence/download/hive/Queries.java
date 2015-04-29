@@ -2,6 +2,7 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -70,12 +71,17 @@ class Queries {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }
-
-      builder.add(new InitializableField(
-        term,
-        HiveColumns.columnFor(term),
-        HiveDataTypes.TYPE_STRING));
+      if(TermUtils.isInterpretedDate(term)){
+        builder.add(new InitializableField(term, toISO8601Initializer(term), HiveDataTypes.TYPE_STRING));
+      } else {
+        builder.add(new InitializableField(term, HiveColumns.columnFor(term), HiveDataTypes.TYPE_STRING));
+      }
     }
     return builder.build();
+  }
+
+  private static String toISO8601Initializer(Term term){
+    final String column = HiveColumns.columnFor(term);
+    return "toISO8601(" + column + ") AS " + column;
   }
 }

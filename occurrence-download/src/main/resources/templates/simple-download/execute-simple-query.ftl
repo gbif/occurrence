@@ -11,6 +11,7 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
+CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
