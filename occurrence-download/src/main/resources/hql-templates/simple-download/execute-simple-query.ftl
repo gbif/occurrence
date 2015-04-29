@@ -11,15 +11,21 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
+CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${occurrenceTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT
 <#list fields as field>
-  ${field.hiveField}<#if field_has_next>,</#if>
+${field.hiveField}<#if field_has_next>,</#if>
 </#list>
 FROM occurrence_download
 WHERE ${r"${whereClause}"};
+
+-- creates the citations table
+CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${occurrenceTable}"} GROUP BY datasetkey;
