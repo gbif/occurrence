@@ -153,7 +153,7 @@ public class DownloadWorkflowParametersBuilder {
     String hiveQuery;
     String solrQuery;
     try {
-      hiveQuery = StringEscapeUtils.escapeXml(hiveVisitor.getHiveQuery(request.getPredicate()));
+      hiveQuery = StringEscapeUtils.escapeXml10(hiveVisitor.getHiveQuery(request.getPredicate()));
       solrQuery = solrVisitor.getQuery(request.getPredicate());
     } catch (QueryBuildingException e) {
       throw new ServiceUnavailableException("Error building the hive query, attempting to continue", e);
