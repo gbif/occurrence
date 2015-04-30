@@ -23,6 +23,13 @@ import com.google.common.collect.Maps;
  */
 class HiveDataTypes {
 
+  /**
+   * Hidden constructor.
+   */
+  private HiveDataTypes(){
+    //empty default constructor.
+  }
+
   static final String TYPE_STRING = "STRING";
   static final String TYPE_BOOLEAN = "BOOLEAN";
   static final String TYPE_INT = "INT";

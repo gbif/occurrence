@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${occurrenceTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>

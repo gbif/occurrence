@@ -12,6 +12,7 @@ Download Information:
     Creation Date: ${download.created?datetime?string.full}
     Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
     Data size: ${size}
+    Download format: ${download.request.format}
     Filter used: ${query!"All occurrence records"}
 
 This download can always be viewed on

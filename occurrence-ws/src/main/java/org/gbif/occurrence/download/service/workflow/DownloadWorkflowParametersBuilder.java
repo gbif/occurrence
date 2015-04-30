@@ -57,8 +57,6 @@ public class DownloadWorkflowParametersBuilder {
       final String iCol = HiveColumnsUtils.getHiveColumn(term);
       if (TermUtils.isInterpretedDate(term)) {
         columns.add("toISO8601(" + iCol + ") AS " + iCol);
-      } else if (TermUtils.isInterpretedNumerical(term) || TermUtils.isInterpretedDouble(term)) {
-        columns.add("cleanNull(" + iCol + ") AS " + iCol);
       } else if (TermUtils.isInterpretedBoolean(term)) {
         columns.add(iCol);
       } else if (term == GbifTerm.issue) {
@@ -84,7 +82,7 @@ public class DownloadWorkflowParametersBuilder {
         if('_' == colName.charAt(colName.length()- 1)) { //verbatim columns don't use the suffix '_'
           colName = colName.substring(0,colName.length() - 1);
         }
-        columns.add("cleanDelimiters(v_" + colName + ") AS v_" + colName);
+        columns.add(colName);
       }
     }
     HIVE_SELECT_VERBATIM = Joiner.on(',').join(columns);

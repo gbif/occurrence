@@ -1,7 +1,6 @@
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
 
-CREATE TEMPORARY FUNCTION cleanNull AS 'org.gbif.occurrence.hive.udf.NullStringRemoverUDF';
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
@@ -29,6 +28,7 @@ SET mapred.map.tasks=1000;
 SET mapred.reduce.tasks=12;
 CREATE TABLE ${r"${multimediaTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
   gbifid AS gbifId,
   cleanDelimiters(mm_record['type']) AS type,
