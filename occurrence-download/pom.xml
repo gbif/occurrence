@@ -22,6 +22,10 @@
     <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
+
+    <!-- Plugins versions-->
+    <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
+    <maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>
   </properties>
 
   <build>
@@ -34,6 +38,7 @@
           <include>**/workflow.xml</include>
           <include>**/config-default.xml</include>
           <include>**/coordinator.xml</include>
+          <include>**/hbase-site.xml</include>
         </includes>
       </resource>
       <resource>
@@ -44,7 +49,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
@@ -136,6 +141,21 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven-jar-plugin.version}</version>
+          <configuration>
+            <excludes>
+              <exclude>conf/</exclude>
+              <exclude>create-tables/config-default.xml</exclude>
+              <exclude>download/config-default.xml</exclude>
+              <exclude>hbase-site.xml</exclude>
+            </excludes>
+          </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

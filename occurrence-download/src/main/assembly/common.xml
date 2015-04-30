@@ -90,4 +90,10 @@
       </excludes>
     </dependencySet>
   </dependencySets>
+  <files>
+    <file>
+      <source>${project.build.outputDirectory}/hbase-site.xml</source>
+      <outputDirectory>lib</outputDirectory>
+    </file>
+  </files>
 </assembly>
