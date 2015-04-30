@@ -22,10 +22,6 @@
     <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
-
-    <!-- Plugins versions-->
-    <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>
   </properties>
 
   <build>
@@ -49,7 +45,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
@@ -145,7 +140,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven-jar-plugin.version}</version>
           <configuration>
             <excludes>
               <exclude>conf/</exclude>
