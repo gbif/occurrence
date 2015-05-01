@@ -74,6 +74,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
     return baseDataFileName + "/" + baseDataFileName;
   }
 
+  @Override
   public void init(String baseDataFileName, DownloadFormat downloadFormat){
     try {
       Files.createDirectory(Paths.get(baseDataFileName));
@@ -87,6 +88,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
+  @Override
   public void aggregateResults(Future<Iterable<Result>> futures, String baseDataFileName)
     throws Exception {
     List<Result> results =
@@ -142,6 +144,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
   /**
    * Builds a new instance of a SimpleCsvFileWriterJob.
    */
+  @Override
   public Callable<Result> createJob(FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader){
     return new SimpleCsvFileWriterJob(fileJob, lock, solrServer, occurrenceMapReader);
   }
