@@ -56,14 +56,6 @@ FROM occurrence_hdfs
 </#list>
   WHERE ${r"${whereClause}"};
 
---
--- Creates the citation table
--- At most this produces #datasets, so single reducer
---
-SET mapred.reduce.tasks=1;
-CREATE TABLE ${r"${citationTable}"}
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} GROUP BY datasetkey;
 
 --
 -- Creates the multimedia table
@@ -77,3 +69,11 @@ FROM
   ${r"${interpretedTable}"} i
   JOIN occurrence_multimedia m ON m.gbifId = i.gbifId;
 
+--
+-- Creates the citation table
+-- At most this produces #datasets, so single reducer
+--
+SET mapred.reduce.tasks=1;
+CREATE TABLE ${r"${citationTable}"}
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} GROUP BY datasetkey;

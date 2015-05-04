@@ -46,7 +46,7 @@
     </repository>
     <repository>
       <id>cloudera</id>
-      <url>https://repository.cloudera.com/content/repositories/releases/</url>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
