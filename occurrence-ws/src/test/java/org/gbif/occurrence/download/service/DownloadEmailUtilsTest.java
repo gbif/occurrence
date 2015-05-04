@@ -2,6 +2,7 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.occurrence.query.TitleLookup;
 
@@ -33,7 +34,9 @@ public class DownloadEmailUtilsTest {
     d.setNumberDatasets(3);
     d.setSize(1787823);
     d.setTotalRecords(8792);
+
     DownloadRequest req = new DownloadRequest();
+    req.setFormat(DownloadFormat.SIMPLE_CSV);
     req.setCreator("markus");
     d.setRequest(req);
     String body = utils.buildBody(d, "success.ftl");
