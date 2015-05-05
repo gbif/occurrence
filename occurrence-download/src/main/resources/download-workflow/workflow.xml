@@ -30,10 +30,10 @@
     <switch>
       <!-- it's a small download -->
       <case to="simple_download">
-        ${wf:actionData('download_prepare')['download_format'] eq 'SIMPLE_CSV'}
+        ${download_format eq 'SIMPLE_CSV'}
       </case>
       <case to="dwca_download">
-        ${wf:actionData('download_prepare')['download_format'] eq 'DWCA'}
+        ${download_format eq 'DWCA'}
       </case>
       <default to="end" />
     </switch>
