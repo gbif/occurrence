@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
 
-  <start to="download_prepare" />
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
 
   <decision name="download_size_decision">
     <switch>
