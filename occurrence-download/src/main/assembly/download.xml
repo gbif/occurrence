@@ -26,12 +26,12 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}/simple-download</directory>
-      <outputDirectory>/simple-download/</outputDirectory>
+      <directory>${project.build.outputDirectory}/download-workflow/dwca</directory>
+      <outputDirectory>/download-workflow/dwca/</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${project.build.outputDirectory}/conf</directory>
-      <outputDirectory>/simple-download/conf</outputDirectory>
+      <outputDirectory>/download-workflow/dwca/conf</outputDirectory>
     </fileSet>
   </fileSets>
 

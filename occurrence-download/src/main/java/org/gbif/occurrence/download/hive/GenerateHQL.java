@@ -24,8 +24,8 @@ import freemarker.template.TemplateException;
  */
 public class GenerateHQL {
   private static final String CREATE_TABLES_DIR = "create-tables/hive-scripts";
-  private static final String DOWNLOAD_DIR = "download/hive-scripts";
-  private static final String SIMPLE_DOWNLOAD_DIR = "simple-download/hive-scripts";
+  private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
+  private static final String SIMPLE_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
 
   public static void main(String[] args) {
     try {

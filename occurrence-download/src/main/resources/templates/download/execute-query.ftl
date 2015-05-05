@@ -72,7 +72,9 @@ FROM
 --
 -- Creates the citation table
 -- At most this produces #datasets, so single reducer
---
+-- creates the citations table, citation table is not compressed since it is read later
+SET mapred.output.compress=false;
+SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 CREATE TABLE ${r"${citationTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
