@@ -96,4 +96,11 @@
       <outputDirectory>lib</outputDirectory>
     </file>
   </files>
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.outputDirectory}/download-workflow/</directory>
+      <outputDirectory>/download-workflow/</outputDirectory>
+    </fileSet>
+  </fileSets>
+
 </assembly>

@@ -6,7 +6,7 @@
   <!-- See the install-workflow.sh which declares this location during development -->
   <property>
     <name>oozie.wf.application.path</name>
-    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev_downloads/simple-download</value>
+    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev-subworkflows/occurrence-download-workflows-dev/download-workflow/</value>
   </property>
 
   <!--
@@ -18,7 +18,7 @@
   </property>
   <property>
     <name>hive_db</name>
-    <value>dev_downloads</value>
+    <value>dev</value>
   </property>
   <property>
     <name>download_format</name>
@@ -31,7 +31,7 @@
 
   <property>
     <name>oozie.libpath</name>
-    <value>/occurrence-download-workflows-dev_downloads/lib/</value>
+    <value>/occurrence-download-workflows-dev-subworkflows/occurrence-download-workflows-dev/lib/</value>
   </property>
   <property>
     <name>oozie.use.system.libpath</name>

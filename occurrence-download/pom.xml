@@ -104,28 +104,9 @@
           <!--
             Assembly to create a workflow for the download
           -->
-          <execution>
-            <id>download</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>occurrence-download-workflows-${occurrence.environment}</finalName>
-            </configuration>
-          </execution>
+
           <execution>
             <id>common</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>occurrence-download-workflows-${occurrence.environment}</finalName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>simple-download</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
