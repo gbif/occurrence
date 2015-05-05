@@ -22,16 +22,17 @@
       <capture-output/>
     </java>
 
-    <ok to="download_size_decision" />
+    <ok to="download_format_decision" />
     <error to="kill" />
   </action>
 
-  <decision name="download_size_decision">
+  <decision name="download_format_decision">
     <switch>
-      <!-- it's a small download -->
+      <!-- it's a simple-csv download -->
       <case to="simple_download">
         ${download_format eq 'SIMPLE_CSV'}
       </case>
+      <!-- it's a dwca download -->
       <case to="dwca_download">
         ${download_format eq 'DWCA'}
       </case>
