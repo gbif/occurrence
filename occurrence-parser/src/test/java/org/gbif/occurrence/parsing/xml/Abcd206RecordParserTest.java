@@ -33,6 +33,7 @@ public class Abcd206RecordParserTest extends ParserTestCase {
     assertEquals("500", ror.getMaxAltitude());
     assertEquals("50", ror.getLatLongPrecision());
     assertEquals("GDA94", ror.getGeodeticDatum());
+    assertEquals("0123456789ABCD", ror.getId());
   }
 
   @Test
@@ -40,8 +41,9 @@ public class Abcd206RecordParserTest extends ParserTestCase {
     String fileName = getClass().getResource("/responses/abcd206/abcd206_idtype.gz").getFile();
     RawOccurrenceRecord ror = setupRor(fileName).get(0);
 
-    // showIdentifiers(ror);
-    assertEquals(6, ror.getIdentifierRecords().size());
+//    showIdentifiers(ror);
+    assertEquals(7, ror.getIdentifierRecords().size());
+    assertEquals("0123456789ABCD", ror.getId());
   }
 
   @Test

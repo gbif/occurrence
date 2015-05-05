@@ -40,7 +40,7 @@ public abstract class ParserTestCase {
   protected List<RawOccurrenceRecord> setupRor(String fileName) {
     File response = new File(fileName);
     RawXmlOccurrence xmlRecord = occurrenceParser.parseResponseFileToRawXml(response).get(0);
-    System.out.println("got raw record:\n" + xmlRecord.getXml());
+//    System.out.println("got raw record:\n" + xmlRecord.getXml());
     List<RawOccurrenceRecord> records = XmlFragmentParser.parseRecord(xmlRecord);
 
     return records;

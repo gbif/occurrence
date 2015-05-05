@@ -24,9 +24,9 @@ import org.gbif.occurrence.model.PropertyPrioritizer;
 import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.model.TypificationRecord;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.beust.jcommander.internal.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,21 +94,21 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
   private String dayIdentified;
   private String dateIdentified;
 
-  private List<IdentifierRecord> identifierRecords = new ArrayList<IdentifierRecord>();
-  private List<TypificationRecord> typificationRecords = new ArrayList<TypificationRecord>();
-  private List<Identification> identifications = new ArrayList<Identification>();
-  private List<ImageRecord> images = new ArrayList<ImageRecord>();
-  private List<LinkRecord> links = new ArrayList<LinkRecord>();
+  private List<IdentifierRecord> identifierRecords = Lists.newArrayList();
+  private List<TypificationRecord> typificationRecords = Lists.newArrayList();
+  private List<Identification> identifications = Lists.newArrayList();
+  private List<ImageRecord> images = Lists.newArrayList();
+  private List<LinkRecord> links = Lists.newArrayList();
 
   public List<RawOccurrenceRecord> generateRawOccurrenceRecords() {
-    List<RawOccurrenceRecord> records = new ArrayList<RawOccurrenceRecord>();
+    List<RawOccurrenceRecord> records = Lists.newArrayList();
 
     // reconcile year/month/date into an occurrenceDate string, if necessary
     occurrenceDate = reconcileDate(occurrenceDate, year, month, day);
     dateIdentified = reconcileDate(dateIdentified, yearIdentified, monthIdentified, dayIdentified);
 
     // if multiple valid identifications, generate multiple RoRs and set UnitQualifier to Identification's SciName
-    if (identifications.size() > 0) {
+    if (!identifications.isEmpty()) {
       if (identifications.size() == 1) {
         RawOccurrenceRecord bareBones = generateBareRor();
         Identification ident = identifications.get(0);
@@ -118,7 +118,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
         // take any that have preferred flag set
         // if no preferred flags are set, take them all
         boolean gotPreferred = false;
-        List<RawOccurrenceRecord> preferred = new ArrayList<RawOccurrenceRecord>();
+        List<RawOccurrenceRecord> preferred = Lists.newArrayList();
         for (Identification ident : identifications) {
           RawOccurrenceRecord bareBones = generateBareRor();
           ident.populateRawOccurrenceRecord(bareBones, true);
@@ -129,12 +129,24 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
             records.add(bareBones);
           }
         }
-        if (gotPreferred) records = preferred;
+        if (gotPreferred) {
+          records = preferred;
+        }
       }
     } else {
       // no identifications, take bare bones only
       RawOccurrenceRecord bareBones = generateBareRor();
       records.add(bareBones);
+    }
+
+    // if we have exactly one final record and an "occurrenceId" identifier, add it to the record
+    if (records.size() == 1) {
+      for (IdentifierRecord id : identifierRecords) {
+        if (id.getIdentifierType() == IdentifierRecord.OCCURRENCE_ID_TYPE) {
+          records.get(0).setId(id.getIdentifier());
+          break;
+        }
+      }
     }
 
     return records;

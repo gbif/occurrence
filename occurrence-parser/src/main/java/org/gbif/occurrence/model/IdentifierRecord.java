@@ -17,11 +17,17 @@ package org.gbif.occurrence.model;
 
 import java.io.Serializable;
 
+/**
+ * This class represents an identifier for a RawOccurrenceRecord. For historical (ie old MySQL schema) reasons
+ * the types have numbers. The only really interesting one is type 7: meant as a guid, and usable as the occurrenceId.
+ */
 public class IdentifierRecord implements Serializable {
 
   // TODO: change this to int backed enum
   private Integer identifierType;
   private String identifier;
+
+  public static final int OCCURRENCE_ID_TYPE = 7;
 
   public Integer getIdentifierType() {
     return identifierType;

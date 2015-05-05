@@ -35,6 +35,8 @@ public class Dwc14RecordParserTest extends ParserTestCase {
 
     // dwc 1.4 only
     assertEquals("50058", ror.getCatalogueNumber());
+    assertEquals("UGENT:vertebrata:50058", ror.getId());
+
     /** TODO: more complete sample */
   }
 
@@ -44,7 +46,7 @@ public class Dwc14RecordParserTest extends ParserTestCase {
     RawOccurrenceRecord ror = setupRor(fileName).get(0);
 
     // showIdentifiers(ror);
-    assertEquals(1, ror.getIdentifierRecords().size());
+    assertEquals(2, ror.getIdentifierRecords().size());
   }
 
   @Test

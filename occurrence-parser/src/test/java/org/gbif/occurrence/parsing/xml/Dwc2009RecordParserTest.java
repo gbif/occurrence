@@ -44,6 +44,8 @@ public class Dwc2009RecordParserTest extends ParserTestCase {
     IdentifierRecord id = ror.getIdentifierRecords().get(0);
     assertEquals("142316220", id.getIdentifier());
 
+    assertEquals("142316220", ror.getId());
+
     /** TODO: more complete sample */
   }
 }
