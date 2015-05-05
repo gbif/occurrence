@@ -12,13 +12,13 @@
     </configuration>
   </global>
 
-  <start to="download_size_decision" />
+  <start to="download_size_decision"/>
 
   <decision name="download_size_decision">
     <switch>
       <!-- it's a small download -->
       <case to="from_solr_download">
-        ${wf:actionData('download_prepare')['is_small_download']}
+        ${is_small_download}
       </case>
       <default to="from_hive_download" />
     </switch>
@@ -28,9 +28,9 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
       <arg>${download_format}</arg>
-      <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
+      <arg>${solr_query}</arg>
       <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
-      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+      <arg>${download_key}</arg>
     </java>
 
     <ok to="end" />
@@ -43,8 +43,8 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-simple-query.q</script>
       <param>hiveDB=${hive_db}</param>
-      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
-      <param>whereClause=${wf:actionData('download_prepare')['hive_query']}</param>
+      <param>occurrenceTable=${download_table_name}</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="archive_table" />
     <error to="drop_tables_failure" />
@@ -53,10 +53,10 @@
   <action name="archive_table">
     <java>
       <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}/</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
       <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
-      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
-      <arg>${wf:actionData('download_prepare')['is_small_download'] ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
+      <arg>${download_key}</arg>
+      <arg>${is_small_download ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
       <capture-output/>
     </java>
 
@@ -67,8 +67,8 @@
   <action name="persist_usages">
     <java>
       <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${wf:actionData('download_prepare')['download_table_name']}_citation/</arg>
-      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <arg>${download_key}</arg>
       <capture-output/>
     </java>
 
@@ -80,7 +80,7 @@
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_tables.q</script>
-      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
+      <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 
@@ -92,7 +92,7 @@
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_tables.q</script>
-      <param>occurrenceTable=${wf:actionData('download_prepare')['download_table_name']}</param>
+      <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 
