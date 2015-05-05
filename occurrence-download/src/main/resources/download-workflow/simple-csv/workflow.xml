@@ -12,6 +12,8 @@
     </configuration>
   </global>
 
+  <start to="download_size_decision"/>
+
   <decision name="download_size_decision">
     <switch>
       <!-- it's a small download -->
