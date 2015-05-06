@@ -101,6 +101,7 @@
       <arg>${download_table_name}_multimedia</arg>
       <arg>${download_table_name}_citation</arg>
       <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
+      <arg>${download_key}</arg>
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>

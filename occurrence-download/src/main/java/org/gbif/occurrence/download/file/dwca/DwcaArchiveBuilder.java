@@ -150,7 +150,7 @@ public class DwcaArchiveBuilder {
   private final TitleLookup titleLookup;
   private final Dataset dataset;
   private final File archiveDir;
-  private final String downloadId;
+  private final String downloadKey;
   private final User user;
   private final String query;
   private final String interpretedDataTable;
@@ -183,7 +183,7 @@ public class DwcaArchiveBuilder {
    */
   @VisibleForTesting
   protected DwcaArchiveBuilder(
-    String downloadId,
+    String downloadKey,
     User user,
     String query,
     DatasetService datasetService,
@@ -202,7 +202,7 @@ public class DwcaArchiveBuilder {
     TitleLookup titleLookup,
     boolean isSmallDownload
   ) throws MalformedURLException {
-    this.downloadId = downloadId;
+    this.downloadKey = downloadKey;
     this.user = user;
     this.query = query;
     this.datasetService = datasetService;
@@ -239,17 +239,17 @@ public class DwcaArchiveBuilder {
     final String citationTable = args[4]; // hive citation results table
     final String downloadDir = args[5];   // locally mounted download dir
     // for example 0000020-130108132303336
-    final String downloadId = properties.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY);
-    final String username = args[6];          // download user
-    final String query = args[7];         // download query filter
-    final String downloadLink = args[8];  // download link to the final zip archive
+    final String downloadKey = args[6];
+    final String username = args[7];          // download user
+    final String query = args[8];         // download query filter
+    final String downloadLink = args[9];  // download link to the final zip archive
     final String registryWs = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);    // registry ws url
-    final String isSmallDownload = args[9];    // isSmallDownload
+    final String isSmallDownload = args[10];    // isSmallDownload
     // download link needs to be constructed
-    final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadId);
+    final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadKey);
 
     // create temporary, local, download specific directory
-    File archiveDir = new File(downloadDir, downloadId);
+    File archiveDir = new File(downloadDir, downloadKey);
     RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
     // create registry client and services
@@ -279,11 +279,11 @@ public class DwcaArchiveBuilder {
 
     // build archive
     DwcaArchiveBuilder generator =
-      new DwcaArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
+      new DwcaArchiveBuilder(downloadKey, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
         hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable,
         hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
-    generator.buildArchive(new File(downloadDir, downloadId + ".zip"));
+    generator.buildArchive(new File(downloadDir, downloadKey + ".zip"));
 
     // SUCCESS!
   }
@@ -540,15 +540,15 @@ public class DwcaArchiveBuilder {
   private void addMetadata() {
     LOG.info("Add query dataset metadata to archive");
     try {
-      // Random UUID use because the downloadId is not a string in UUID format
-      Download download = occurrenceDownloadService.get(downloadId);
-      String downloadUniqueID = downloadId;
+      // Random UUID use because the downloadKey is not a string in UUID format
+      Download download = occurrenceDownloadService.get(downloadKey);
+      String downloadUniqueID = downloadKey;
       if (download.getDoi() != null) {
         downloadUniqueID = download.getDoi().getDoiName();
         dataset.setDoi(download.getDoi());
         Identifier identifier = new Identifier();
         identifier.setCreated(download.getCreated());
-        identifier.setIdentifier(downloadId);
+        identifier.setIdentifier(downloadKey);
         identifier.setType(IdentifierType.GBIF_PORTAL);
         dataset.setIdentifiers(Lists.newArrayList(identifier));
       }
@@ -738,7 +738,7 @@ public class DwcaArchiveBuilder {
                 srcDatasets.put(key, count);
                 // small downloads persist dataset usages while builds the citations file
                 if (!isSmallDownload) {
-                  persistDatasetUsage(count, downloadId, key);
+                  persistDatasetUsage(count, downloadKey, key);
                 }
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs

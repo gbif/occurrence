@@ -35,7 +35,7 @@ public class DownloadTablesAction {
     run(DownloadFormat.valueOf(args[0]), //downloadFormat
                              args[1], //solrQuery
                              args[2], // hdfsOutputPath
-                             args[3]); //downlaodKey
+                             args[3]); //downloadKey
   }
 
   /**
