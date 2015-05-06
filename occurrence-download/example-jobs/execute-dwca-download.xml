@@ -21,6 +21,14 @@
     <value>dev</value>
   </property>
   <property>
+    <name>gbif_user</name>
+    <value>fmendez</value>
+  </property>
+  <property>
+    <name>download_link</name>
+    <value>http://api.gbif-dev.org/v1/occurrence/download/request/_DOWNLOAD_ID_.zip</value>
+  </property>
+  <property>
     <name>download_format</name>
     <value>DWCA</value>
   </property>

@@ -230,20 +230,21 @@ public class DwcaArchiveBuilder {
    * @throws java.io.IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
-    final String nameNode = args[0];      // same as namenode, like hdfs://c1n2.gbif.org:8020
-    final String hdfsHivePath = args[1];  // path on hdfs to hive results
-    final String interpretedDataTable = args[2];     // hive occurrence results table
-    final String verbatimDataTable = args[3];     // hive occurrence results table
-    final String multimediaDataTable = args[4];     // hive multimedia results table
-    final String citationTable = args[5]; // hive citation results table
-    final String downloadDir = args[6];   // locally mounted download dir
+    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    final String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);      // same as namenode, like hdfs://c1n2.gbif.org:8020
+    final String hdfsHivePath = args[0];  // path on hdfs to hive results
+    final String interpretedDataTable = args[1];     // hive occurrence results table
+    final String verbatimDataTable = args[2];     // hive occurrence results table
+    final String multimediaDataTable = args[3];     // hive multimedia results table
+    final String citationTable = args[4]; // hive citation results table
+    final String downloadDir = args[5];   // locally mounted download dir
     // for example 0000020-130108132303336
-    final String downloadId = DownloadUtils.workflowToDownloadId(args[7]);
-    final String username = args[8];          // download user
-    final String query = args[9];         // download query filter
-    final String downloadLink = args[10];  // download link to the final zip archive
-    final String registryWs = args[11];    // registry ws url
-    final String isSmallDownload = args[12];    // isSmallDownload
+    final String downloadId = properties.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY);
+    final String username = args[6];          // download user
+    final String query = args[7];         // download query filter
+    final String downloadLink = args[8];  // download link to the final zip archive
+    final String registryWs = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);    // registry ws url
+    final String isSmallDownload = args[9];    // isSmallDownload
     // download link needs to be constructed
     final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadId);
 

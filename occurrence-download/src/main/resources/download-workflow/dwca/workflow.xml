@@ -95,19 +95,16 @@
   <action name="copy_and_zip">
     <java>
       <main-class>org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder</main-class>
-      <arg>${hdfs.namenode}</arg>
-      <arg>${hdfs_hive_path}</arg>
-      <arg>${query_result_table}_interpreted</arg>
-      <arg>${query_result_table}_verbatim</arg>
-      <arg>${query_result_table}_multimedia</arg>
-      <arg>${citation_table}</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/</arg>
+      <arg>${download_table_name}_interpreted</arg>
+      <arg>${download_table_name}_verbatim</arg>
+      <arg>${download_table_name}_multimedia</arg>
+      <arg>${download_table_name}_citation</arg>
       <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
-      <arg>${wf:id()}</arg>
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
       <arg>${download_link}</arg>
-      <arg>${registry.ws.url}</arg>
-      <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
+      <arg>${is_small_download}</arg>
     </java>
 
     <ok to="copy_to_hdfs" />
@@ -149,10 +146,8 @@
   <action name="drop_table">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-site.xml</job-xml>
-      <script>hive-scripts/drop_table.q</script>
-
-      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
-      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${download_table_name}</param>
     </hive>
 
     <ok to="end" />
@@ -163,10 +158,8 @@
   <action name="failure_drop_table">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-site.xml</job-xml>
-      <script>hive-scripts/drop_table.q</script>
-
-      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
-      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${download_table_name}</param>
     </hive>
 
     <ok to="kill" />
@@ -175,10 +168,10 @@
 
   <action name="clean_hdfs_dirs">
     <fs>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_multimedia'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_interpreted'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_multimedia'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_citation'/>
     </fs>
     <ok to="end" />
     <error to="kill" />
@@ -186,9 +179,10 @@
 
   <action name="failure_clean_hdfs_dirs">
     <fs>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_interpreted'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_multimedia'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_citation'/>
     </fs>
     <ok to="kill" />
     <error to="kill" />
