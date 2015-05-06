@@ -168,6 +168,14 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-metadata</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>drupal-mybatis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
     </dependency>
     <dependency>
@@ -189,6 +197,10 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>download-query-tools</artifactId>
     </dependency>
 
 
