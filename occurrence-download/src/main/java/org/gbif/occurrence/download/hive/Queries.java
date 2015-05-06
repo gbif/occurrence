@@ -43,8 +43,8 @@ class Queries {
   /**
    * @return the select fields for the interpreted table in the simple download
    */
-  static List<InitializableField> selectInterpretedFields() {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, false);
+  static List<InitializableField> selectInterpretedFields(boolean useInitializers) {
+    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers);
   }
 
 

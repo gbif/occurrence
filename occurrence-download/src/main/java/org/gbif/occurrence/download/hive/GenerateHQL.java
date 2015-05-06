@@ -108,7 +108,8 @@ public class GenerateHQL {
       Template template = cfg.getTemplate("download/execute-query.ftl");
       Map<String, Object> data = ImmutableMap.<String, Object>of(
         "verbatimFields", Queries.selectVerbatimFields(),
-        "interpretedFields", Queries.selectInterpretedFields()
+        "interpretedFields", Queries.selectInterpretedFields(false),
+        "initializedInterpretedFields", Queries.selectInterpretedFields(true)
       );
       template.process(data, out);
     }
@@ -134,7 +135,7 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-interpreted-query.q"))) {
       Template template = cfg.getTemplate("download/execute-interpreted-query.ftl");
       Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "interpretedFields", Queries.selectInterpretedFields()
+        "interpretedFields", Queries.selectInterpretedFields(true)
       );
       template.process(data, out);
     }

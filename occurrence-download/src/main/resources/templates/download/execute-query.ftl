@@ -51,7 +51,7 @@ FROM occurrence_hdfs
   WHERE ${r"${whereClause}"}
   INSERT INTO TABLE ${r"${interpretedTable}"}
   SELECT
-<#list interpretedFields as field>
+<#list initializedInterpretedFields as field>
     ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"};
