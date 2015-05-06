@@ -112,7 +112,7 @@
   </action>
 
   <action name='copy_to_hdfs'>
-    <shell xmlns="uri:oozie:shell-action:0.4">
+    <shell xmlns="uri:oozie:shell-action:0.2">
       <exec>scripts/copy_to_hdfs.sh</exec>
       <argument>${wf:id()}</argument>
       <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
