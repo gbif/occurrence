@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.2">
+<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
 
   <start to="execute_query"/>
 
@@ -13,14 +24,11 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-query.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>verbatimTable=verbatimTable</param>
-      <param>interpretedTable=interpretedTable</param>
-      <param>citationTable=citationTable</param>
-      <param>multimediaTable=multimediaTable</param>
-      <param>whereClause=${whereClause}</param>
+      <param>downloadTableName=${download_table_name}</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
-    <ok to="end" />
-    <error to="kill" />
+    <ok to="copy_and_zip" />
+    <error to="failure_drop_table" />
   </action>
 
   <!--
@@ -35,13 +43,11 @@
 
   <action name="query_verbatim">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-verbatim-query.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>verbatimTable=verbatimTable</param>
-      <param>whereClause=${whereClause}</param>
+      <param>verbatimTable=${download_table_name}_verbatim</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="queries_finished" />
     <error to="kill" />
@@ -49,13 +55,11 @@
 
   <action name="query_interpreted">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-interpreted-query.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>interpretedTable=interpretedTable</param>
-      <param>whereClause=${whereClause}</param>
+      <param>interpretedTable=${download_table_name}_interpreted</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="queries_finished" />
     <error to="kill" />
@@ -63,13 +67,11 @@
 
   <action name="query_citation">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-citation-query.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>citationTable=citationTable</param>
-      <param>whereClause=${whereClause}</param>
+      <param>citationTable=${download_table_name}_citation</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="queries_finished" />
     <error to="kill" />
@@ -77,19 +79,119 @@
 
   <action name="query_multimedia">
     <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-multimedia-query.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>multimediaTable=multimediaTable</param>
-      <param>whereClause=${whereClause}</param>
+      <param>multimediaTable=${download_table_name}_multimedia</param>
+      <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="queries_finished" />
     <error to="kill" />
   </action>
 
   <join name="queries_finished" to="end"/>
+
+  <action name="copy_and_zip">
+    <java>
+      <main-class>org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder</main-class>
+      <arg>${hdfs.namenode}</arg>
+      <arg>${hdfs_hive_path}</arg>
+      <arg>${query_result_table}_interpreted</arg>
+      <arg>${query_result_table}_verbatim</arg>
+      <arg>${query_result_table}_multimedia</arg>
+      <arg>${citation_table}</arg>
+      <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
+      <arg>${wf:id()}</arg>
+      <arg>${gbif_user}</arg>
+      <arg>${gbif_filter}</arg>
+      <arg>${download_link}</arg>
+      <arg>${registry.ws.url}</arg>
+      <arg>${wf:actionData('occurrence_count')['is_small_download']}</arg>
+    </java>
+
+    <ok to="copy_to_hdfs" />
+    <error to="failure_cleaning_decision" />
+  </action>
+
+  <action name='copy_to_hdfs'>
+    <shell xmlns="uri:oozie:shell-action:0.2">
+      <exec>scripts/copy_to_hdfs.sh</exec>
+      <argument>${wf:id()}</argument>
+      <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
+      <argument>/occurrence-download/${occurrence.environment}-downloads</argument>
+      <file>scripts/copy_to_hdfs.sh</file>
+    </shell>
+    <ok to="cleaning_decision"/>
+    <error to="failure_cleaning_decision"/>
+  </action>
+
+  <decision name="cleaning_decision">
+    <switch>
+      <!-- it's a small download the delete the occurrence data and citations file -->
+      <case to="clean_hdfs_dirs">
+        ${wf:actionData('occurrence_count')['is_small_download']}
+      </case>
+      <default to="drop_table" />
+    </switch>
+  </decision>
+
+  <decision name="failure_cleaning_decision">
+    <switch>
+      <!-- it's a small download the delete the occurrence data and citations file -->
+      <case to="failure_clean_hdfs_dirs">
+        ${wf:actionData('occurrence_count')['is_small_download']}
+      </case>
+      <default to="failure_drop_table" />
+    </switch>
+  </decision>
+
+  <action name="drop_table">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-xml>conf/hive-site.xml</job-xml>
+      <script>hive-scripts/drop_table.q</script>
+
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
+      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
+    </hive>
+
+    <ok to="end" />
+    <error to="kill" />
+  </action>
+
+
+  <action name="failure_drop_table">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-xml>conf/hive-site.xml</job-xml>
+      <script>hive-scripts/drop_table.q</script>
+
+      <param>query_result_table=${occurrence.hive_db}.${query_result_table}</param>
+      <param>citation_table=${occurrence.hive_db}.${citation_table}</param>
+    </hive>
+
+    <ok to="kill" />
+    <error to="kill" />
+  </action>
+
+  <action name="clean_hdfs_dirs">
+    <fs>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_multimedia'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
+    </fs>
+    <ok to="end" />
+    <error to="kill" />
+  </action>
+
+  <action name="failure_clean_hdfs_dirs">
+    <fs>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_interpreted'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${query_result_table}_verbatim'/>
+      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${citation_table}'/>
+    </fs>
+    <ok to="kill" />
+    <error to="kill" />
+  </action>
 
 
   <kill name="kill">
