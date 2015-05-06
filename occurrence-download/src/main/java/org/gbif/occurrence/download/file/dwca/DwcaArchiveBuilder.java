@@ -23,7 +23,7 @@ import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.util.DwcArchiveUtils;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanFilterBuilder;
@@ -91,12 +91,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.CITATIONS_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.METADATA_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.RIGHTS_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.VERBATIM_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.CITATIONS_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.RIGHTS_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
  * Creates a dwc archive for occurrence downloads based on the hive query result files generated
@@ -105,7 +105,7 @@ import static org.gbif.occurrence.download.util.DwcDownloadsConstants.VERBATIM_F
  */
 public class DwcaArchiveBuilder {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ArchiveBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DwcaArchiveBuilder.class);
 
   /**
    * Simple, local representation for a constituent dataset.
@@ -257,7 +257,7 @@ public class DwcaArchiveBuilder {
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
     // create drupal mybatis service
-    Properties p = PropertiesUtil.loadProperties(RegistryClientUtil.OCC_PROPERTIES);
+    Properties p = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     // debug used properties in oozie logs
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
@@ -277,8 +277,8 @@ public class DwcaArchiveBuilder {
     FileSystem localfs = FileSystem.getLocal(conf);
 
     // build archive
-    ArchiveBuilder generator =
-      new ArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
+    DwcaArchiveBuilder generator =
+      new DwcaArchiveBuilder(downloadId, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
         hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable,
         hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));

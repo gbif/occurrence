@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.util;
+package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -18,11 +18,11 @@ import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.METADATA_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
-import static org.gbif.occurrence.download.util.DwcDownloadsConstants.VERBATIM_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
  * Utility class for Dwc archive handling during the download file creation.
@@ -40,7 +40,7 @@ public class DwcArchiveUtils {
   /**
    * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
-   * 
+   *
    * @param columns iterable for column terms in the right order. Must include GbifTerm.gbifID
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
