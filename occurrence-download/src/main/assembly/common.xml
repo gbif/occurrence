@@ -71,12 +71,15 @@
         <include>org.gbif:hbase-utils:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
+        <include>org.gbif.occurrence:download-query-tools:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>
         <include>org.gbif.occurrence:occurrence-persistence:jar</include>
         <include>org.gbif.occurrence:occurrence-search:jar</include>
         <include>org.gbif.registry:registry-ws-client:jar</include>
+        <include>org.gbif.registry:registry-metadata:jar</include>
         <include>org.gbif:dwc-api:jar</include>
         <include>org.gbif:gbif-api:jar</include>
+        <include>org.gbif:drupal-mybatis:jar</include>
         <include>org.gbif:gbif-common-search:jar</include>
         <include>org.gbif:gbif-common-service:jar</include>
         <include>org.gbif:gbif-common-ws:jar</include>
