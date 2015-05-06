@@ -18,7 +18,7 @@
 
   <!-- Execute the query using sequential approach -->
   <action name="execute_query">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-query.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -40,7 +40,7 @@
   </fork>
 
   <action name="query_verbatim">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-verbatim-query.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -52,7 +52,7 @@
   </action>
 
   <action name="query_interpreted">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-interpreted-query.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -64,7 +64,7 @@
   </action>
 
   <action name="query_citation">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-citation-query.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -76,7 +76,7 @@
   </action>
 
   <action name="query_multimedia">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/execute-multimedia-query.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -112,7 +112,7 @@
   </action>
 
   <action name='copy_to_hdfs'>
-    <shell xmlns="uri:oozie:shell-action:0.2">
+    <shell xmlns="uri:oozie:shell-action:0.4">
       <exec>scripts/copy_to_hdfs.sh</exec>
       <argument>${wf:id()}</argument>
       <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
@@ -144,7 +144,7 @@
   </decision>
 
   <action name="drop_table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
@@ -158,7 +158,7 @@
 
 
   <action name="failure_drop_table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-site.xml</job-xml>
       <script>hive-scripts/drop_table.q</script>
 
