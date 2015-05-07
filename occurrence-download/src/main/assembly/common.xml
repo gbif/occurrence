@@ -64,6 +64,7 @@
         <include>org.apache.httpcomponents:httpmime:jar</include>
         <include>org.apache.solr:solr-solrj:jar</include>
         <include>org.apache.solr:solr-core:jar</include>
+        <include>org.mybatis:mybatis:jar</include>
         <include>org.cloudera.htrace:htrace-core:jar</include>
         <include>org.codehaus.jackson:jackson-jaxrs:jar</include>
         <include>org.codehaus.jackson:jackson-mapper-asl:jar</include>
