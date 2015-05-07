@@ -89,6 +89,7 @@
         <include>org.gbif:gbif-common:jar</include>
         <include>org.gbif:gbif-wrangler:jar</include>
         <include>org.gbif:gbif-common-mybatis:jar</include>
+        <include>org.gbif:gbif-httputils:jar</include>
         <include>org.noggit:noggit:jar</include>
         <include>org.scala-lang:scala-library:jar</include>
       </includes>
