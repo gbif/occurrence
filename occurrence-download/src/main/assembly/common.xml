@@ -47,6 +47,7 @@
         <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>
         <include>net.sf.supercsv:super-csv:jar</include>
         <include>joda-time:joda-time:jar</include>
+        <include>javassist:javassist:jar</include>
         <include>log4j:log4j:jar</include>
         <include>org.apache.commons:commons-lang3:jar</include>
         <include>org.mybatis:mybatis-guice:jar</include>
