@@ -49,6 +49,7 @@
         <include>net.sf.supercsv:super-csv:jar</include>
         <include>joda-time:joda-time:jar</include>
         <include>org.javassist:javassist:jar</include>
+        <include>org.freemarker:freemarker:jar</include>
         <include>log4j:log4j:jar</include>
         <include>org.apache.commons:commons-lang3:jar</include>
         <include>org.mybatis:mybatis-guice:jar</include>
