@@ -115,7 +115,7 @@
   <action name='copy_to_hdfs'>
     <shell xmlns="uri:oozie:shell-action:0.3">
       <exec>scripts/copy_to_hdfs.sh</exec>
-      <argument>${wf:id()}</argument>
+      <argument>${download_key}</argument>
       <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
       <argument>/occurrence-download/${occurrence.environment}-downloads</argument>
       <file>scripts/copy_to_hdfs.sh</file>

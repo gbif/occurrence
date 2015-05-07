@@ -116,6 +116,14 @@
       <directory>${project.build.outputDirectory}/download-workflow/</directory>
       <outputDirectory>/download-workflow/</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.outputDirectory}</directory>
+      <outputDirectory>/</outputDirectory>
+      <fileMode>0755</fileMode>
+      <includes>
+        <include>**/*.sh</include>
+      </includes>
+    </fileSet>
   </fileSets>
 
 </assembly>
