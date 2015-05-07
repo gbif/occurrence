@@ -50,6 +50,7 @@
         <include>log4j:log4j:jar</include>
         <include>org.apache.commons:commons-lang3:jar</include>
         <include>org.mybatis:mybatis-guice:jar</include>
+        <include>com.zaxxer:HikariCP-java6:jar</include>
         <include>commons-logging:commons-logging:jar</include>
         <include>org.apache.curator:curator-client:jar</include>
         <include>org.apache.curator:curator-framework:jar</include>
