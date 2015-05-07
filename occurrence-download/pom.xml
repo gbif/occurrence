@@ -19,7 +19,6 @@
     <brickhouse.version>0.6.0</brickhouse.version>
     <super-csv.version>2.0.1</super-csv.version>
     <akka-actor.version>2.0.5</akka-actor.version>
-    <gbif-common-mybatis.version>0.15</gbif-common-mybatis.version>
     <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
@@ -174,11 +173,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>drupal-mybatis</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-mybatis</artifactId>
-      <version>${gbif-common-mybatis.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>

@@ -48,6 +48,7 @@
         <include>joda-time:joda-time:jar</include>
         <include>log4j:log4j:jar</include>
         <include>org.apache.commons:commons-lang3:jar</include>
+        <include>org.mybatis:mybatis-guice:jar</include>
         <include>commons-logging:commons-logging:jar</include>
         <include>org.apache.curator:curator-client:jar</include>
         <include>org.apache.curator:curator-framework:jar</include>
@@ -80,7 +81,6 @@
         <include>org.gbif:dwc-api:jar</include>
         <include>org.gbif:gbif-api:jar</include>
         <include>org.gbif:drupal-mybatis:jar</include>
-        <include>org.gbif:gbif-common-mybatis:jar</include>
         <include>org.gbif:gbif-common-search:jar</include>
         <include>org.gbif:gbif-common-service:jar</include>
         <include>org.gbif:gbif-common-ws:jar</include>
