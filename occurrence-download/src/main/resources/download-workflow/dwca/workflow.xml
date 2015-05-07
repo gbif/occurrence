@@ -148,6 +148,7 @@
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_tables.q</script>
+      <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
     </hive>
 
@@ -160,6 +161,7 @@
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/drop_tables.q</script>
+      <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
     </hive>
 
