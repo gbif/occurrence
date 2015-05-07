@@ -80,6 +80,7 @@
         <include>org.gbif:dwc-api:jar</include>
         <include>org.gbif:gbif-api:jar</include>
         <include>org.gbif:drupal-mybatis:jar</include>
+        <include>org.gbif:gbif-common-mybatis:jar</include>
         <include>org.gbif:gbif-common-search:jar</include>
         <include>org.gbif:gbif-common-service:jar</include>
         <include>org.gbif:gbif-common-ws:jar</include>
