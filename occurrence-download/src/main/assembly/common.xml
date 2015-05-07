@@ -35,6 +35,7 @@
         <include>com.beust:jcommander:jar</include>
         <include>com.google.guava:guava:jar</include>
         <include>com.google.inject:guice:jar</include>
+        <include>com.google.inject.extensions:guice-multibindings:jar</include>
         <include>com.klout:brickhouse:jar</include>
         <include>com.sun.jersey.contribs:jersey-apache-client:jar</include>
         <include>com.sun.jersey:jersey-client:jar</include>
