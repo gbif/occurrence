@@ -107,12 +107,13 @@
     <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
     <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
+
     <!-- cluster version -->
-    <hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
-    <hbase.version>0.98.6-cdh5.2.0</hbase.version>
-    <hive.version>0.13.1-cdh5.2.0</hive.version>
-    <oozie.version>4.0.0-cdh5.2.0</oozie.version>
-    <zookeeper.version>3.4.5-cdh5.2.0</zookeeper.version>
+    <hadoop.version>2.6.0-cdh5.4.0</hadoop.version>
+    <hbase.version>1.0.0-cdh5.4.0</hbase.version>
+    <hive.version>1.1.0-cdh5.4.0</hive.version>
+    <oozie.version>4.1.0-cdh5.4.0</oozie.version>
+    <zookeeper.version>3.4.5-cdh5.4.0</zookeeper.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.10-SNAPSHOT</hbase-utils.version>
@@ -1063,11 +1064,11 @@
         <hive.metastore.uris>thrift://c1n1.gbif.org:9083</hive.metastore.uris>
 
         <!-- cluster version -->
-        <hadoop.version>2.5.0-cdh5.3.3</hadoop.version>
-        <hbase.version>0.98.6-cdh5.3.3</hbase.version>
-        <hive.version>0.13.1-cdh5.3.3</hive.version>
-        <oozie.version>4.0.0-cdh5.3.3</oozie.version>
-        <zookeeper.version>3.4.5-cdh5.3.3</zookeeper.version>
+        <hadoop.version>2.6.0-cdh5.4.0</hadoop.version>
+        <hbase.version>1.0.0-cdh5.4.0</hbase.version>
+        <hive.version>1.1.0-cdh5.4.0</hive.version>
+        <oozie.version>4.1.0-cdh5.4.0</oozie.version>
+        <zookeeper.version>3.4.5-cdh5.4.0</zookeeper.version>
 
         <!-- determines how often the HDFS tables are built -->
         <occurrence.hdfs.build.frequency>${coord:hours(4)}</occurrence.hdfs.build.frequency>
