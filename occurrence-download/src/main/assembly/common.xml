@@ -86,6 +86,7 @@
         <include>org.gbif.registry:registry-ws-client:jar</include>
         <include>org.gbif.registry:registry-metadata:jar</include>
         <include>org.gbif:dwc-api:jar</include>
+        <include>org.gbif:dwc-reader:jar</include>
         <include>org.gbif:gbif-api:jar</include>
         <include>org.gbif:drupal-mybatis:jar</include>
         <include>org.gbif:gbif-common-search:jar</include>
