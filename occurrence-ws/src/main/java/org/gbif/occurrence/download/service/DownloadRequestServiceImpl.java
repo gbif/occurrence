@@ -79,7 +79,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       .put(Job.Status.PAUSEDWITHERROR, Download.Status.RUNNING)
       .put(Job.Status.SUCCEEDED, Download.Status.SUCCEEDED)
       .put(Job.Status.SUSPENDED, Download.Status.SUSPENDED)
-      .put(Job.Status.SUSPENDEDWITHERROR, Download.Status.SUSPENDED).build();
+      .put(Job.Status.SUSPENDEDWITHERROR, Download.Status.SUSPENDED)
+      .put(Job.Status.IGNORED, Download.Status.FAILED).build();
 
   private static final Counter SUCCESSFUL_DOWNLOADS = Metrics.newCounter(CallbackService.class, "successful_downloads");
   private static final Counter FAILED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "failed_downloads");
