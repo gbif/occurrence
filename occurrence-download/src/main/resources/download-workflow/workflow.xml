@@ -65,6 +65,10 @@
           <value>${wf:actionData('download_prepare')['download_key']}</value>
         </property>
         <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
           <name>download_table_name</name>
           <value>${wf:actionData('download_prepare')['download_table_name']}</value>
         </property>
@@ -87,6 +91,10 @@
         <property>
           <name>download_key</name>
           <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
         </property>
         <property>
           <name>download_table_name</name>
