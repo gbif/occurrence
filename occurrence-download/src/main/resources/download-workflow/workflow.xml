@@ -22,23 +22,38 @@
       <capture-output/>
     </java>
 
-    <ok to="download_format_decision" />
+    <ok to="download_size_decision" />
     <error to="kill" />
   </action>
 
-  <decision name="download_format_decision">
+  <decision name="download_size_decision">
     <switch>
-      <!-- it's a simple-csv download -->
+      <!-- it's a small download -->
+      <case to="from_solr_download">
+        ${wf:actionData('download_prepare')['is_small_download']}
+      </case>
       <case to="simple_download">
-        ${download_format eq 'SIMPLE_CSV'}
+        ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'SIMPLE_CSV')}
       </case>
-      <!-- it's a dwca download -->
       <case to="dwca_download">
-        ${download_format eq 'DWCA'}
+        ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'DWCA')}
       </case>
-      <default to="end" />
+      <default to="kill" />
     </switch>
   </decision>
+
+  <action name="from_solr_download">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
+      <arg>${download_format}</arg>
+      <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
+      <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+    </java>
+
+    <ok to="end" />
+    <error to="kill" />
+  </action>
 
   <action name="simple_download">
     <sub-workflow>
@@ -46,20 +61,12 @@
       <propagate-configuration/>
       <configuration>
         <property>
-          <name>is_small_download</name>
-          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
-        </property>
-        <property>
           <name>download_key</name>
           <value>${wf:actionData('download_prepare')['download_key']}</value>
         </property>
         <property>
           <name>download_table_name</name>
           <value>${wf:actionData('download_prepare')['download_table_name']}</value>
-        </property>
-        <property>
-          <name>solr_query</name>
-          <value>${wf:actionData('download_prepare')['solr_query']}</value>
         </property>
         <property>
           <name>hive_query</name>
@@ -78,20 +85,12 @@
       <propagate-configuration/>
       <configuration>
         <property>
-          <name>is_small_download</name>
-          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
-        </property>
-        <property>
           <name>download_key</name>
           <value>${wf:actionData('download_prepare')['download_key']}</value>
         </property>
         <property>
           <name>download_table_name</name>
           <value>${wf:actionData('download_prepare')['download_table_name']}</value>
-        </property>
-        <property>
-          <name>solr_query</name>
-          <value>${wf:actionData('download_prepare')['solr_query']}</value>
         </property>
         <property>
           <name>hive_query</name>

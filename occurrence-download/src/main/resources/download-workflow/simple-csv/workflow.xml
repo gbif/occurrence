@@ -12,30 +12,7 @@
     </configuration>
   </global>
 
-  <start to="download_size_decision"/>
-
-  <decision name="download_size_decision">
-    <switch>
-      <!-- it's a small download -->
-      <case to="from_solr_download">
-        ${is_small_download}
-      </case>
-      <default to="from_hive_download" />
-    </switch>
-  </decision>
-
-  <action name="from_solr_download">
-    <java>
-      <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
-      <arg>${download_format}</arg>
-      <arg>${solr_query}</arg>
-      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
-      <arg>${download_key}</arg>
-    </java>
-
-    <ok to="end" />
-    <error to="kill" />
-  </action>
+  <start to="from_hive_download"/>
 
   <!-- Execute the query using sequential approach -->
   <action name="from_hive_download">
