@@ -65,7 +65,7 @@
         <include>org.apache.hbase:hbase-server:jar</include>
         <include>org.apache.hbase:hbase-protocol:jar</include>
         <include>org.apache.hive:hive-hbase-handler</include>
-        <include>org.htrace:htrace-core:jar</include>
+        <include>org.apache.htrace:htrace-core:jar</include>
         <include>org.apache.httpcomponents:httpclient</include>
         <include>org.apache.httpcomponents:httpcore</include>
         <include>org.apache.httpcomponents:httpmime:jar</include>
