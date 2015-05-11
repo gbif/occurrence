@@ -43,7 +43,7 @@
   -->
   <property>
     <name>hive.metastore.warehouse.dir</name>
-    <value>${occurrence.download.hive.hdfs.out}</value>
+    <value>${occurrence.download.hive.sourceFs.out}</value>
   </property>
   <property>
     <name>hive.warehouse.subdir.inherit.perms</name>

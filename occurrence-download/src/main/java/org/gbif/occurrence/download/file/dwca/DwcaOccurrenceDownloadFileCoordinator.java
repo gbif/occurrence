@@ -1,9 +1,9 @@
 package org.gbif.occurrence.download.file.dwca;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.occurrence.download.file.FileJob;
+import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
@@ -43,26 +43,16 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
   //Dataset service
   private final DatasetService datasetService;
 
-  private final String downloadKey;
-
-  private final String nameNode;
-
-  private final String hdfsOutputPath;
+  private OccurrenceDownloadConfiguration configuration;
 
 
   @Inject
   public DwcaOccurrenceDownloadFileCoordinator(
     DatasetOccurrenceDownloadUsageService datasetOccUsageService,
-    DatasetService datasetService,
-    @Named(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY) String downloadKey,
-    @Named(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY) String nameNode,
-    @Named(DownloadWorkflowModule.DynamicSettings.HDFS_OUPUT_PATH_KEY) String hdfsOutputPath
+    DatasetService datasetService
   ){
     this.datasetService = datasetService;
     this.datasetOccUsageService = datasetOccUsageService;
-    this.downloadKey = downloadKey;
-    this.hdfsOutputPath = hdfsOutputPath;
-    this.nameNode = nameNode;
   }
 
 
@@ -83,16 +73,17 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
 
   }
 
-  public void init(String baseDataFileName, DownloadFormat downloadFormat){
-    createFile(baseDataFileName + Constants.INTERPRETED_SUFFIX);
-    createFile(baseDataFileName + Constants.VERBATIM_SUFFIX);
-    createFile(baseDataFileName + Constants.MULTIMEDIA_SUFFIX);
+  public void init(OccurrenceDownloadConfiguration configuration){
+    this.configuration = configuration;
+    createFile(configuration.getInterpretedDataFileName());
+    createFile(configuration.getVerbatimDataFileName());
+    createFile(configuration.getMultimediaDataFileName());
   }
   /**
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
-  public void aggregateResults(Future<Iterable<Result>> futures, String baseDataFileName)
+  public void aggregateResults(Future<Iterable<Result>> futures)
     throws IOException {
     Closer outFileCloser = Closer.create();
     try {
@@ -102,11 +93,11 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
         // Results are sorted to respect the original ordering
         Collections.sort(results);
         FileOutputStream interpretedFileWriter =
-          outFileCloser.register(new FileOutputStream(baseDataFileName + Constants.INTERPRETED_SUFFIX, true));
+          outFileCloser.register(new FileOutputStream(configuration.getInterpretedDataFileName(), true));
         FileOutputStream verbatimFileWriter =
-          outFileCloser.register(new FileOutputStream(baseDataFileName + Constants.VERBATIM_SUFFIX, true));
+          outFileCloser.register(new FileOutputStream(configuration.getVerbatimDataFileName(), true));
         FileOutputStream multimediaFileWriter =
-          outFileCloser.register(new FileOutputStream(baseDataFileName + Constants.MULTIMEDIA_SUFFIX, true));
+          outFileCloser.register(new FileOutputStream(configuration.getMultimediaDataFileName(), true));
         HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
         HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
         HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
@@ -116,21 +107,21 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
           appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter);
         }
         CitationsFileWriter.createCitationFile(datasetUsagesCollector.getDatasetUsages(),
-                                               baseDataFileName + Constants.CITATION_SUFFIX,
+                                               configuration.getCitationDataFileName(),
                                                datasetOccUsageService,
-                                               datasetService, downloadKey);
-        DownloadFileUtils.copyDataFiles(hdfsOutputPath,
-                                        nameNode,
-                                        baseDataFileName + Constants.INTERPRETED_SUFFIX,
-                                        baseDataFileName + Constants.VERBATIM_SUFFIX,
-                                        baseDataFileName + Constants.MULTIMEDIA_SUFFIX,
-                                        baseDataFileName + Constants.CITATION_SUFFIX);
+                                               datasetService, configuration.getDownloadKey());
+
+        DwcaArchiveBuilder.buildArchive(configuration);
       }
     } catch (Exception e) {
       throw Throwables.propagate(e);
     } finally {
       outFileCloser.close();
     }
+  }
+
+  private void createArchive(){
+
   }
 
   public Callable<Result> createJob(FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader){
@@ -143,9 +134,9 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
   private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
                             OutputStream multimediaFileWriter)
     throws IOException {
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getBaseDataFileName() + Constants.INTERPRETED_SUFFIX, interpretedFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getBaseDataFileName() + Constants.VERBATIM_SUFFIX, verbatimFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getBaseDataFileName() + Constants.MULTIMEDIA_SUFFIX, multimediaFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.INTERPRETED_SUFFIX, interpretedFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.VERBATIM_SUFFIX, verbatimFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
 }

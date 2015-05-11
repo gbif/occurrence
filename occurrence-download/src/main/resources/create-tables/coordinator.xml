@@ -1,10 +1,10 @@
 <!--
  Triggers the oozie workflow. NOTE: you have to set start date to the day after you are running the install script e.g. if today is 2015-02-18 you'd set start to "2015-02-19T03:00Z"
 -->
-<coordinator-app name="OccurrenceHDFSBuild-${occurrence.environment}" frequency="${occurrence.hdfs.build.frequency}" start="${timestamp}" end="2050-05-28T09:28Z" timezone="UTC" xmlns="uri:oozie:coordinator:0.2">
+<coordinator-app name="OccurrenceHDFSBuild-${occurrence.environment}" frequency="${occurrence.sourceFs.build.frequency}" start="${timestamp}" end="2050-05-28T09:28Z" timezone="UTC" xmlns="uri:oozie:coordinator:0.2">
   <action>
     <workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/create-tables/</app-path>
+      <app-path>${sourceFs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/create-tables/</app-path>
     </workflow>
   </action>
 </coordinator-app>

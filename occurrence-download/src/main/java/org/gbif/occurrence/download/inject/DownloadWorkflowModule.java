@@ -69,8 +69,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
     public static final String DOWNLOAD_KEY = WORKFLOW_PROPERTIES_PREFIX + "downloadKey";
 
-    public static final String HDFS_OUPUT_PATH_KEY = WORKFLOW_PROPERTIES_PREFIX + "hdfsOutputPath";
-
   }
 
   /**
@@ -95,6 +93,10 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
     public static final String DOWNLOAD_USER_KEY = PROPERTIES_PREFIX + "ws.username";
     public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
+    public static final String DOWNLOAD_LINK_KEY = PROPERTIES_PREFIX + "link";
+    public static final String HDFS_OUPUT_PATH_KEY = PROPERTIES_PREFIX + "hdfsOutputPath";
+    public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
+    public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.db.path";
 
   }
 

@@ -5,6 +5,7 @@ import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.file.FileJob;
+import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
@@ -51,11 +52,13 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
 
   private final String downloadKey;
 
+  private OccurrenceDownloadConfiguration configuration;
+
 
   @Inject
   public SimpleCsvOccurrenceDownloadFileCoordinator(
     @Named(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY) String nameNode,
-    @Named(DownloadWorkflowModule.DynamicSettings.HDFS_OUPUT_PATH_KEY) String hdfsOutputPath,
+    @Named(DownloadWorkflowModule.DefaultSettings.HDFS_OUPUT_PATH_KEY) String hdfsOutputPath,
     @Named(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY) String registryWsUrl,
     @Named(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY) String downloadKey
   ){
@@ -75,10 +78,11 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
   }
 
   @Override
-  public void init(String baseDataFileName, DownloadFormat downloadFormat){
+  public void init(OccurrenceDownloadConfiguration configuration){
     try {
-      Files.createDirectory(Paths.get(baseDataFileName));
-      Files.createFile(Paths.get(getOutputFileName(baseDataFileName,CSV_EXTENSION)));
+      this.configuration = configuration;
+      Files.createDirectory(Paths.get(configuration.getDownloadKey()));
+      Files.createFile(Paths.get(getOutputFileName(configuration.getDownloadKey(),CSV_EXTENSION)));
     } catch (Throwable t){
       LOG.error("Error creating files",t);
       throw  Throwables.propagate(t);
@@ -89,35 +93,35 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
    * Iterates over the list of futures to collect individual results.
    */
   @Override
-  public void aggregateResults(Future<Iterable<Result>> futures, String baseDataFileName)
+  public void aggregateResults(Future<Iterable<Result>> futures)
     throws Exception {
     List<Result> results =
       Lists.newArrayList(Await.result(futures, Duration.Inf()));
     if (!results.isEmpty()) {
-      mergeResults(baseDataFileName, results);
+      mergeResults(results);
       FileSystem fileSystem = DownloadFileUtils.getHdfs(nameNode);
       SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          fileSystem,
-                                         baseDataFileName,
+                                         configuration.getDownloadKey(),
                                          hdfsOutputPath,
                                          downloadKey,
                                          ModalZipOutputStream.MODE.DEFAULT);
-      FileUtils.deleteDirectoryRecursively(Paths.get(baseDataFileName).toFile());
+      FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadKey()).toFile());
     }
   }
 
   /**
    * Merges the files of each job into a single CSV file.
    */
-  private void mergeResults(String baseDataFileName, List<Result> results) throws IOException {
+  private void mergeResults(List<Result> results) throws IOException {
     try (FileOutputStream outputFileWriter =
-           new FileOutputStream(getOutputFileName(baseDataFileName, CSV_EXTENSION), true)) {
+           new FileOutputStream(getOutputFileName(configuration.getDownloadKey(), CSV_EXTENSION), true)) {
       // Results are sorted to respect the original ordering
       Collections.sort(results);
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
       for (Result result : results) {
         datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-        DownloadFileUtils.appendAndDelete(Paths.get(baseDataFileName, result.getFileJob().getJobDataFileName())
+        DownloadFileUtils.appendAndDelete(Paths.get(configuration.getDownloadKey(), result.getFileJob().getJobDataFileName())
                                             .toString(), outputFileWriter);
       }
       persistUsages(datasetUsagesCollector);

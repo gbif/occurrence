@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file.dwca;
 
-import org.gbif.api.model.common.User;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
@@ -23,6 +22,7 @@ import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
@@ -66,7 +66,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -147,24 +146,19 @@ public class DwcaArchiveBuilder {
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
   private final OccurrenceDownloadService occurrenceDownloadService;
+  private final UserService userService;
   private final TitleLookup titleLookup;
   private final Dataset dataset;
   private final File archiveDir;
-  private final String downloadKey;
-  private final User user;
-  private final String query;
-  private final String interpretedDataTable;
-  private final String verbatimDataTable;
-  private final String multimediaDataTable;
-  private final String citationTable;
   // HDFS related
   private final Configuration conf;
-  private final FileSystem hdfs;
-  private final FileSystem localfs;
-  private final String hdfsPath;
+  private final FileSystem sourceFs;
+  private final FileSystem targetFs;
+  private final String sourcePath;
+  private final String targetPath;
   private final URL downloadLink;
+  private final OccurrenceDownloadConfiguration configuration;
   private final List<Constituent> constituents = Lists.newArrayList();
-  private final boolean isSmallDownload;
 
   private final Ordering<Constituent> constituentsOrder =
     Ordering.natural().onResultOf(new Function<Constituent, Integer>() {
@@ -177,50 +171,40 @@ public class DwcaArchiveBuilder {
   /**
    * @param archiveDir    local archive directory to copy into, e.g. /mnt/ftp/download/0000020-130108132303336
    * @param citationTable like download_tmp_citation_1234
-   * @param hdfsPath      like /user/hive/warehouse
+   * @param sourcePath      like /user/hive/warehouse
    *
    * @throws java.io.IOException on any read or write problems
    */
   @VisibleForTesting
   protected DwcaArchiveBuilder(
-    String downloadKey,
-    User user,
-    String query,
     DatasetService datasetService,
     DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
+    UserService userService,
     Configuration conf,
-    FileSystem hdfs,
-    FileSystem localfs,
+    FileSystem sourceFs,
+    FileSystem targetFs,
     File archiveDir,
-    String interpretedDataTable,
-    String verbatimDataTable,
-    String multimediaDataTable,
-    String citationTable,
-    String hdfsPath,
+    String sourcePath,
+    String targetPath,
     String downloadLink,
     TitleLookup titleLookup,
-    boolean isSmallDownload
+    OccurrenceDownloadConfiguration configuration
   ) throws MalformedURLException {
-    this.downloadKey = downloadKey;
-    this.user = user;
-    this.query = query;
     this.datasetService = datasetService;
     this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.userService = userService;
     this.conf = conf;
-    this.hdfs = hdfs;
-    this.localfs = localfs;
+    this.sourceFs = sourceFs;
+    this.targetFs = targetFs;
     this.archiveDir = archiveDir;
-    this.interpretedDataTable = interpretedDataTable;
-    this.verbatimDataTable = verbatimDataTable;
-    this.multimediaDataTable = multimediaDataTable;
-    this.citationTable = citationTable;
-    this.hdfsPath = hdfsPath;
+    this.sourcePath = sourcePath;
+    this.targetPath = targetPath;
     this.titleLookup = titleLookup;
     dataset = new Dataset();
     this.downloadLink = new URL(downloadLink);
-    this.isSmallDownload = isSmallDownload;
+    this.configuration = configuration;
   }
 
   /**
@@ -230,26 +214,38 @@ public class DwcaArchiveBuilder {
    * @throws java.io.IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
+    final String sourcePath = args[0];  // path on sourceFs of hive results
+    final String downloadKey = args[2];
+    final String username = args[3];          // download user
+    final String query = args[4];         // download query filter
+    final boolean isSmallDownload = Boolean.parseBoolean(args[5]);    // isSmallDownload
+
+    OccurrenceDownloadConfiguration configuration = new OccurrenceDownloadConfiguration.Builder()
+                                                    .withDownloadKey(downloadKey)
+                                                    .withFilter(query)
+                                                    .withIsSmallDownload(isSmallDownload)
+                                                    .withUser(username)
+                                                    .build();
+
+    LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
+    buildArchive(configuration);
+  }
+
+  public static void buildArchive(OccurrenceDownloadConfiguration configuration) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    final String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);      // same as namenode, like hdfs://c1n2.gbif.org:8020
-    final String hdfsHivePath = args[0];  // path on hdfs to hive results
-    final String interpretedDataTable = args[1];     // hive occurrence results table
-    final String verbatimDataTable = args[2];     // hive occurrence results table
-    final String multimediaDataTable = args[3];     // hive multimedia results table
-    final String citationTable = args[4]; // hive citation results table
-    final String downloadDir = args[5];   // locally mounted download dir
-    // for example 0000020-130108132303336
-    final String downloadKey = args[6];
-    final String username = args[7];          // download user
-    final String query = args[8];         // download query filter
-    final String downloadLink = args[9];  // download link to the final zip archive
+    final String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);      // same as namenode, like sourceFs://c1n2.gbif.org:8020
     final String registryWs = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);    // registry ws url
-    final String isSmallDownload = args[10];    // isSmallDownload
+    final String tmpDir = properties.getProperty(DownloadWorkflowModule.DefaultSettings.TMP_DIR_KEY);    // registry ws url
     // download link needs to be constructed
-    final String downloadLinkWithId = downloadLink.replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadKey);
+    final String downloadLinkWithId = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_LINK_KEY)
+                                      .replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, configuration.getDownloadKey());
+    final String targetPath = properties.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_OUPUT_PATH_KEY);
+
+    final String sourcePath = configuration.isSmallDownload()? tmpDir :
+      properties.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
 
     // create temporary, local, download specific directory
-    File archiveDir = new File(downloadDir, downloadKey);
+    File archiveDir = new File(tmpDir, configuration.getDownloadKey());
     RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
     // create registry client and services
@@ -268,24 +264,20 @@ public class DwcaArchiveBuilder {
     Injector inj =
       Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, p.getProperty("api.url")));
     UserService userService = inj.getInstance(UserService.class);
-    User user = Preconditions.checkNotNull(userService.get(username), "Unknown user " + username);
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
 
     // filesystem configs
     Configuration conf = new Configuration();
     conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
-    FileSystem hdfs = FileSystem.get(conf);
-    FileSystem localfs = FileSystem.getLocal(conf);
+
+    FileSystem sourceFs = configuration.isSmallDownload() ? FileSystem.getLocal(conf) : FileSystem.get(conf);
+    FileSystem targetFs = FileSystem.getLocal(conf);
 
     // build archive
     DwcaArchiveBuilder generator =
-      new DwcaArchiveBuilder(downloadKey, user, query, datasetService, datasetUsageService, occurrenceDownloadService, conf,
-        hdfs, localfs, archiveDir, interpretedDataTable, verbatimDataTable, multimediaDataTable, citationTable,
-        hdfsHivePath, downloadLinkWithId, titleLookup, Boolean.parseBoolean(isSmallDownload));
-    LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
-    generator.buildArchive(new File(downloadDir, downloadKey + ".zip"));
-
-    // SUCCESS!
+      new DwcaArchiveBuilder(datasetService, datasetUsageService, occurrenceDownloadService, userService, conf, sourceFs, targetFs,
+                             archiveDir, sourcePath, targetPath, downloadLinkWithId, titleLookup, configuration);
+    generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
   /**
@@ -313,12 +305,12 @@ public class DwcaArchiveBuilder {
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
       // large downloads are compressed by hive and added later
-      if (isSmallDownload) {
+      if (configuration.isSmallDownload()) {
         LOG.info("Copying the uncompressed occurrence files from HDFS");
-        addOccurrenceDataFile(interpretedDataTable, HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME,
+        addOccurrenceDataFile(configuration.getInterpretedDataFileName(), HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME,
           INTERPRETED_FILENAME);
-        addOccurrenceDataFile(verbatimDataTable, HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
-        addOccurrenceDataFile(multimediaDataTable, HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
+        addOccurrenceDataFile(configuration.getVerbatimDataFileName(), HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
+        addOccurrenceDataFile(configuration.getMultimediaDataFileName(), HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
       } else {
         LOG.info("Skipping the copy of occurrence files from HDFS as they are already compressed");
       }
@@ -328,10 +320,10 @@ public class DwcaArchiveBuilder {
       CompressionUtil.zipDir(archiveDir, zipFile, true);
 
       // add the large download data files to the zip stream
-      if (!isSmallDownload) {
+      if (!configuration.isSmallDownload()) {
         appendPreCompressedFiles(zipFile);
       }
-
+      targetFs.moveFromLocalFile(new Path(archiveDir.getPath()),new Path(targetPath));
     } catch (IOException e) {
       throw new DownloadException(e);
 
@@ -367,11 +359,11 @@ public class DwcaArchiveBuilder {
         }
 
         // NOTE: hive lowercases all the paths
-        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + interpretedDataTable).toLowerCase()),
+        appendPreCompressedFile(out, new Path(configuration.getInterpretedDataFileName()),
           INTERPRETED_FILENAME, HeadersFileUtil.getIntepretedTableHeader());
-        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + verbatimDataTable).toLowerCase()),
+        appendPreCompressedFile(out, new Path(configuration.getVerbatimDataFileName()),
           VERBATIM_FILENAME, HeadersFileUtil.getVerbatimTableHeader());
-        appendPreCompressedFile(out, new Path((hdfsPath + Path.SEPARATOR + multimediaDataTable).toLowerCase()),
+        appendPreCompressedFile(out, new Path(configuration.getMultimediaDataFileName()),
           MULTIMEDIA_FILENAME, HeadersFileUtil.getMultimediaTableHeader());
 
       } finally {
@@ -393,7 +385,7 @@ public class DwcaArchiveBuilder {
    */
   private void appendPreCompressedFile(ModalZipOutputStream out, Path dir, String filename, String headerRow)
     throws IOException {
-    RemoteIterator<LocatedFileStatus> files = hdfs.listFiles(dir, false);
+    RemoteIterator<LocatedFileStatus> files = sourceFs.listFiles(dir, false);
     List<InputStream> parts = Lists.newArrayList();
 
     // Add the header first, which must also be compressed
@@ -407,7 +399,7 @@ public class DwcaArchiveBuilder {
       Path path = fs.getPath();
       if (path.toString().endsWith(D2Utils.FILE_EXTENSION)) {
         LOG.info("Deflated content to merge: " + path);
-        parts.add(hdfs.open(path));
+        parts.add(sourceFs.open(path));
       }
     }
 
@@ -454,13 +446,13 @@ public class DwcaArchiveBuilder {
    */
   private void addConstituentMetadata() throws IOException {
 
-    Path citationSrc = new Path(hdfsPath + Path.SEPARATOR + citationTable);
+    Path citationSrc = new Path(configuration.getCitationDataFileName());
 
     LOG.info("Adding constituent dataset metadata to archive, based on: " + citationSrc);
 
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
-    if (!hdfs.exists(citationSrc)) {
+    if (!sourceFs.exists(citationSrc)) {
       LOG.warn("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
       return;
     }
@@ -517,18 +509,19 @@ public class DwcaArchiveBuilder {
    * Copies and merges the hive query results files into a single, local occurrence data file.
    */
   private void addOccurrenceDataFile(String dataTable, String headerFileName, String destFileName) throws IOException {
-    LOG.info("Copy-merge occurrence data hdfs file {} to local filesystem", dataTable);
-    final Path dataSrc = new Path(hdfsPath + Path.SEPARATOR + dataTable);
-    boolean hasRecords = hdfs.exists(dataSrc);
+    LOG.info("Copy-merge occurrence data sourceFs file {} to local filesystem", dataTable);
+    final Path dataSrc = new Path(sourcePath + Path.SEPARATOR + dataTable);
+    boolean hasRecords = sourceFs.exists(dataSrc);
     if (!hasRecords) {
-      hdfs.create(dataSrc);
+      sourceFs.create(dataSrc);
     }
-    if (!isSmallDownload && hasRecords) { // small downloads already include the headers
-      FileUtil.copy(new File(headerFileName), hdfs, new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME), false, conf);
+    if (!configuration.isSmallDownload() && hasRecords) { // small downloads already include the headers
+      FileUtil.copy(new File(headerFileName),
+                    sourceFs, new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME), false, conf);
     }
     File rawDataResult = new File(archiveDir, destFileName);
     Path dataDest = new Path(rawDataResult.toURI());
-    FileUtil.copyMerge(hdfs, dataSrc, localfs, dataDest, false, conf, null);
+    FileUtil.copyMerge(sourceFs, dataSrc, targetFs, dataDest, false, conf, null);
     // remove the CRC file created by copyMerge method
     removeDataCRCFile(destFileName);
   }
@@ -541,14 +534,14 @@ public class DwcaArchiveBuilder {
     LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadKey is not a string in UUID format
-      Download download = occurrenceDownloadService.get(downloadKey);
-      String downloadUniqueID = downloadKey;
+      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+      String downloadUniqueID = configuration.getDownloadKey();
       if (download.getDoi() != null) {
         downloadUniqueID = download.getDoi().getDoiName();
         dataset.setDoi(download.getDoi());
         Identifier identifier = new Identifier();
         identifier.setCreated(download.getCreated());
-        identifier.setIdentifier(downloadKey);
+        identifier.setIdentifier(configuration.getDownloadKey());
         identifier.setType(IdentifierType.GBIF_PORTAL);
         dataset.setIdentifiers(Lists.newArrayList(identifier));
       }
@@ -564,7 +557,7 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      dataset.setRights(String.format(RIGHTS, user.getName(), dataset.getTitle()));
+      dataset.setRights(String.format(RIGHTS, userService.get(configuration.getUser()).getName(), dataset.getTitle()));
       dataset.getContacts()
         .add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.ORIGINATOR, true));
       dataset.getContacts().add(
@@ -589,8 +582,7 @@ public class DwcaArchiveBuilder {
   private void cleanupFS() throws DownloadException {
     try {
       LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
-      localfs.delete(new Path(archiveDir.toURI()), true);
-      archiveDir.delete();
+      targetFs.delete(new Path(archiveDir.toURI()), true);
     } catch (IOException e) {
       throw new DownloadException(e);
     }
@@ -603,7 +595,7 @@ public class DwcaArchiveBuilder {
     return createContact(null, name, email, type, preferred);
   }
 
-  private Contact createContact(String firstname, String lastname, String email, ContactType type, boolean preferred) {
+  private static Contact createContact(String firstname, String lastname, String email, ContactType type, boolean preferred) {
     Contact contact = new Contact();
     contact.setEmail(Lists.newArrayList(email));
     contact.setFirstName(firstname);
@@ -632,7 +624,7 @@ public class DwcaArchiveBuilder {
    *
    * @return preferred author contact or null
    */
-  private Contact getContentProviderContact(Dataset dataset) {
+  private static Contact getContentProviderContact(Dataset dataset) {
     Contact author = null;
     for (ContactType type : AUTHOR_TYPES) {
       for (Contact c : dataset.getContacts()) {
@@ -671,13 +663,13 @@ public class DwcaArchiveBuilder {
   protected String getDatasetDescription() {
     StringBuilder description = new StringBuilder();
     // transform json filter into predicate instance and then into human readable string
-    String humanQuery = query;
+    String humanQuery = configuration.getFilter();
     try {
       ObjectMapper mapper = new ObjectMapper();
-      Predicate p = mapper.readValue(query, Predicate.class);
+      Predicate p = mapper.readValue(configuration.getFilter(), Predicate.class);
       humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
     } catch (Exception e) {
-      LOG.error("Failed to transform JSON query into human query: {}", query, e);
+      LOG.error("Failed to transform JSON query into human query: {}", configuration.getFilter(), e);
     }
 
     description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
@@ -717,13 +709,13 @@ public class DwcaArchiveBuilder {
   private Map<UUID, Integer> readDatasetCounts(Path citationSrc) throws IOException {
     // the hive query result is a directory with one or more files - read them all into a uuid set
     Map<UUID, Integer> srcDatasets = Maps.newHashMap(); // map of uuids to occurrence counts
-    FileStatus[] citFiles = hdfs.listStatus(citationSrc);
+    FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
     int invalidUuids = 0;
     Closer closer = Closer.create();
     for (FileStatus fs : citFiles) {
       if (!fs.isDirectory()) {
         BufferedReader citationReader =
-          new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), Charsets.UTF_8));
+          new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), Charsets.UTF_8));
         closer.register(citationReader);
         try {
           String line = citationReader.readLine();
@@ -737,8 +729,8 @@ public class DwcaArchiveBuilder {
                 Integer count = Integer.parseInt(iter.next());
                 srcDatasets.put(key, count);
                 // small downloads persist dataset usages while builds the citations file
-                if (!isSmallDownload) {
-                  persistDatasetUsage(count, downloadKey, key);
+                if (!configuration.isSmallDownload()) {
+                  persistDatasetUsage(count, configuration.getDownloadKey(), key);
                 }
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
@@ -772,7 +764,7 @@ public class DwcaArchiveBuilder {
     }
   }
 
-  private String writeCitation(final Writer citationWriter, final Dataset dataset, final UUID constituentId)
+  private static String writeCitation(final Writer citationWriter, final Dataset dataset, final UUID constituentId)
     throws IOException {
     // citation
     String citationLink = null;
@@ -794,7 +786,7 @@ public class DwcaArchiveBuilder {
   /**
    * Write rights text.
    */
-  private void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
+  private static void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
     throws IOException {
     // write rights
     rightsWriter.write("\n\nDataset: " + dataset.getTitle());

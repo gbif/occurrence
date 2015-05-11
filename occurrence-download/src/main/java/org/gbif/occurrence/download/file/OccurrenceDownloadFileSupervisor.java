@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.wrangler.lock.Lock;
@@ -84,6 +83,8 @@ public class OccurrenceDownloadFileSupervisor {
 
   private final OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator;
 
+  private OccurrenceDownloadConfiguration configuration;
+
   /**
    * Default constructor.
    */
@@ -107,17 +108,14 @@ public class OccurrenceDownloadFileSupervisor {
    * Entry point. This method: creates the output files, runs the jobs (OccurrenceFileWriterJob) and then collect the
    * results. Individual files created by each job are deleted.
    */
-  public void run(String baseDataFileName, String query, DownloadFormat downloadFormat) {
+  public void run(OccurrenceDownloadConfiguration configuration) {
     try {
+      this.configuration = configuration;
       StopWatch stopwatch = new StopWatch();
       stopwatch.start();
       ExecutionContextExecutorService executionContext =
         ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(conf.nrOfWorkers));
-      occurrenceDownloadFileCoordinator.aggregateResults(Futures.sequence(runJobs(executionContext,
-                                                                        baseDataFileName,
-                                                                        query,
-                                                                        downloadFormat), executionContext),
-                                               baseDataFileName);
+      occurrenceDownloadFileCoordinator.aggregateResults(Futures.sequence(runJobs(executionContext), executionContext));
       stopwatch.stop();
       executionContext.shutdownNow();
       final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
@@ -158,8 +156,8 @@ public class OccurrenceDownloadFileSupervisor {
    * If the amount of records is not divisible by the nrOfWorkers the remaining records are assigned "evenly" among the
    * first jobs.
    */
-  private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext, String baseTableName, String query, DownloadFormat downloadFormat) {
-    final int recordCount = getSearchCount(query).intValue();
+  private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext) {
+    final int recordCount = getSearchCount(configuration.getSolrQuery()).intValue();
     if (recordCount <= 0) {
       return Lists.newArrayList();
     }
@@ -178,7 +176,7 @@ public class OccurrenceDownloadFileSupervisor {
     int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
 
     List<Future<Result>> futures = Lists.newArrayList();
-    occurrenceDownloadFileCoordinator.init(baseTableName, downloadFormat);
+    occurrenceDownloadFileCoordinator.init(configuration);
     int from;
     int to = 0;
     int additionalJobsCnt = 0;
@@ -194,7 +192,7 @@ public class OccurrenceDownloadFileSupervisor {
         remainingPerJob = 0;
       }
       FileJob file =
-        new FileJob(from, to, baseTableName, i, query);
+        new FileJob(from, to, configuration.getDownloadKey(), i, configuration.getSolrQuery());
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());

@@ -3,7 +3,7 @@
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
-    <name-node>${hdfs.namenode}</name-node>
+    <name-node>${sourceFs.namenode}</name-node>
     <configuration>
       <property>
         <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
@@ -47,8 +47,8 @@
       <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
       <arg>${download_format}</arg>
       <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
-      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>
+      <arg>${gbif_filter}</arg>
     </java>
 
     <ok to="end" />
@@ -57,7 +57,7 @@
 
   <action name="simple_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/download-workflow/simple-csv</app-path>
+      <app-path>${sourceFs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/download-workflow/simple-csv</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -85,7 +85,7 @@
 
   <action name="dwca_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
+      <app-path>${sourceFs.namenode}/occurrence-download-workflows-${occurrence.environment}-subworkflows/occurrence-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
       <propagate-configuration/>
       <configuration>
         <property>

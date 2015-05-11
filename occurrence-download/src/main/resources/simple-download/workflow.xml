@@ -3,7 +3,7 @@
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
-    <name-node>${hdfs.namenode}</name-node>
+    <name-node>${sourceFs.namenode}</name-node>
     <configuration>
       <property>
         <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
