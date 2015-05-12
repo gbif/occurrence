@@ -25,7 +25,7 @@ public class ArchiveDownloadAction {
     final String username = args[1];          // download user
     final String query = args[2];         // download query filter
     final boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
-    final String downloadTableName = args[3];    // download table/file name
+    final String downloadTableName = args[4];    // download table/file name
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
