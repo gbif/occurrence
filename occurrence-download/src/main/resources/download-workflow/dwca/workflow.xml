@@ -94,7 +94,7 @@
 
   <action name="copy_and_zip">
     <java>
-      <main-class>org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.dwca.oozie.ArchiveDownloadAction</main-class>
       <arg>${download_key}</arg>
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
