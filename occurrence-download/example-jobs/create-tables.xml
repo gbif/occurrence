@@ -6,7 +6,7 @@
   <!-- See the install-workflow.sh which declares this location during development -->
   <property>
     <name>oozie.wf.application.path</name>
-    <value>sourceFs://c1n1.gbif.org:8020/user/tim/create-download-tables</value>
+    <value>hdfs://c1n1.gbif.org:8020/user/tim/create-download-tables</value>
   </property>
 
   <!--
