@@ -53,8 +53,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +106,15 @@ public class DwcaArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaArchiveBuilder.class);
 
+  private static Properties properties;
+
+  public static Properties getProperties() throws IOException {
+    if(properties == null){
+      properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    }
+    return properties;
+  }
+
   /**
    * Simple, local representation for a constituent dataset.
    */
@@ -156,7 +163,6 @@ public class DwcaArchiveBuilder {
   private final Configuration conf;
   private final FileSystem sourceFs;
   private final FileSystem targetFs;
-  private final String sourcePath;
   private final String targetPath;
   private final URL downloadLink;
   private final OccurrenceDownloadConfiguration configuration;
@@ -187,7 +193,6 @@ public class DwcaArchiveBuilder {
     FileSystem sourceFs,
     FileSystem targetFs,
     File archiveDir,
-    String sourcePath,
     String targetPath,
     String downloadLink,
     TitleLookup titleLookup,
@@ -201,7 +206,6 @@ public class DwcaArchiveBuilder {
     this.sourceFs = sourceFs;
     this.targetFs = targetFs;
     this.archiveDir = archiveDir;
-    this.sourcePath = sourcePath;
     this.targetPath = targetPath;
     this.titleLookup = titleLookup;
     dataset = new Dataset();
@@ -226,6 +230,7 @@ public class DwcaArchiveBuilder {
                                                     .withFilter(query)
                                                     .withIsSmallDownload(isSmallDownload)
                                                     .withUser(username)
+                                                    .withSourceDir(getProperties().getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY))
                                                     .build();
 
     LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
@@ -233,7 +238,7 @@ public class DwcaArchiveBuilder {
   }
 
   public static void buildArchive(OccurrenceDownloadConfiguration configuration) throws IOException {
-    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    Properties properties = getProperties();
     final String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);      // same as namenode, like sourceFs://c1n2.gbif.org:8020
     final String registryWs = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);    // registry ws url
     final String tmpDir = properties.getProperty(DownloadWorkflowModule.DefaultSettings.TMP_DIR_KEY);    // registry ws url
@@ -254,16 +259,14 @@ public class DwcaArchiveBuilder {
     DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
-    // create drupal mybatis service
-    Properties p = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     // debug used properties in oozie logs
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
-    p.list(pw);
+    properties.list(pw);
     LOG.info("ArchiveBuilder uses properties:\n{}", sw);
 
     Injector inj =
-      Guice.createInjector(new DrupalMyBatisModule(p), new TitleLookupModule(true, p.getProperty("api.url")));
+      Guice.createInjector(new DrupalMyBatisModule(properties), new TitleLookupModule(true, properties.getProperty("api.url")));
     UserService userService = inj.getInstance(UserService.class);
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
 
@@ -277,7 +280,7 @@ public class DwcaArchiveBuilder {
     // build archive
     DwcaArchiveBuilder generator =
       new DwcaArchiveBuilder(datasetService, datasetUsageService, occurrenceDownloadService, userService, conf, sourceFs, targetFs,
-                             archiveDir, sourcePath, targetPath, downloadLinkWithId, titleLookup, configuration);
+                             archiveDir, targetPath, downloadLinkWithId, titleLookup, configuration);
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
@@ -576,15 +579,9 @@ public class DwcaArchiveBuilder {
    * Removes all temporary file system artifacts but the final zip archive.
    */
   private void cleanupFS() throws DownloadException {
-    try {
-      LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
-      if(configuration.isSmallDownload()) {
-        FileUtils.deleteDirectoryRecursively(archiveDir);
-      } else {
-        targetFs.delete(new Path(archiveDir.toURI()), true);
-      }
-    } catch (IOException e) {
-      throw new DownloadException(e);
+    LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
+    if(archiveDir.exists()) {
+      FileUtils.deleteDirectoryRecursively(archiveDir);
     }
   }
 

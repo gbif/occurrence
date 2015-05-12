@@ -57,23 +57,31 @@ public class OccurrenceDownloadConfiguration {
   }
 
   public String getInterpretedDataFileName(){
-    return getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME;
+    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME:
+                            getDownloadTempDir(Constants.INTERPRETED_SUFFIX);
   }
 
   public String getVerbatimDataFileName(){
-    return getDownloadTempDir()+ DwcDownloadsConstants.VERBATIM_FILENAME;
+    return isSmallDownload? getDownloadTempDir()+ DwcDownloadsConstants.VERBATIM_FILENAME:
+                            getDownloadTempDir(Constants.VERBATIM_SUFFIX);
   }
 
   public String getCitationDataFileName(){
-    return getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME;
+    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME :
+                            getDownloadTempDir(Constants.CITATION_SUFFIX);
   }
 
   public String getMultimediaDataFileName(){
-    return getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME :
+                            getDownloadTempDir(Constants.MULTIMEDIA_SUFFIX);
+  }
+
+  public String getDownloadTempDir(String suffix) {
+    return (sourceDir + Path.SEPARATOR + downloadKey + suffix + Path.SEPARATOR).toLowerCase();
   }
 
   public String getDownloadTempDir() {
-    return (sourceDir + Path.SEPARATOR + downloadKey + Path.SEPARATOR).toLowerCase();
+    return getDownloadTempDir("");
   }
 
   public String getSourceDir(){
