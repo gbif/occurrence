@@ -24,7 +24,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>sourceFs://c1n1.gbif.org:8020/hbase</value>
+    <value>${hdfs.namenode}</value>
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
