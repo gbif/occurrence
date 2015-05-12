@@ -9,7 +9,6 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.wrangler.lock.Lock;
 
@@ -28,7 +27,6 @@ import akka.util.Duration;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
-import com.google.inject.name.Named;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +71,7 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
 
   }
 
-  public void init(OccurrenceDownloadConfiguration configuration){
+  public void init(OccurrenceDownloadConfiguration configuration) {
     this.configuration = configuration;
     createFile(configuration.getInterpretedDataFileName());
     createFile(configuration.getVerbatimDataFileName());

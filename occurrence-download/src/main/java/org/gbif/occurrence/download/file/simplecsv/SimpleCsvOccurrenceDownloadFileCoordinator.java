@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.name.Named;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,20 +70,19 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
   }
 
 
-  private static String getOutputFileName(String baseDataFileName, String extension){
-    return getOutputFileName(baseDataFileName) + extension;
+  private static String getOutputFileName(OccurrenceDownloadConfiguration configuration, String extension){
+    return getOutputFileName(configuration) + extension;
   }
 
-  private static String getOutputFileName(String baseDataFileName){
-    return baseDataFileName + "/" + baseDataFileName;
+  private static String getOutputFileName(OccurrenceDownloadConfiguration configuration){
+    return configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey();
   }
 
   @Override
   public void init(OccurrenceDownloadConfiguration configuration){
     try {
       this.configuration = configuration;
-      Files.createDirectory(Paths.get(configuration.getDownloadKey()));
-      Files.createFile(Paths.get(getOutputFileName(configuration.getDownloadKey(),CSV_EXTENSION)));
+      Files.createFile(Paths.get(getOutputFileName(configuration,CSV_EXTENSION)));
     } catch (Throwable t){
       LOG.error("Error creating files",t);
       throw  Throwables.propagate(t);
@@ -102,11 +102,11 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
       FileSystem fileSystem = DownloadFileUtils.getHdfs(nameNode);
       SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          fileSystem,
-                                         configuration.getDownloadKey(),
+                                         configuration.getDownloadTempDir(),
                                          hdfsOutputPath,
                                          downloadKey,
                                          ModalZipOutputStream.MODE.DEFAULT);
-      FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadKey()).toFile());
+      FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     }
   }
 
@@ -115,14 +115,13 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
    */
   private void mergeResults(List<Result> results) throws IOException {
     try (FileOutputStream outputFileWriter =
-           new FileOutputStream(getOutputFileName(configuration.getDownloadKey(), CSV_EXTENSION), true)) {
+           new FileOutputStream(getOutputFileName(configuration, CSV_EXTENSION), true)) {
       // Results are sorted to respect the original ordering
       Collections.sort(results);
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
       for (Result result : results) {
         datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-        DownloadFileUtils.appendAndDelete(Paths.get(configuration.getDownloadKey(), result.getFileJob().getJobDataFileName())
-                                            .toString(), outputFileWriter);
+        DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName(), outputFileWriter);
       }
       persistUsages(datasetUsagesCollector);
     } catch (Exception e) {

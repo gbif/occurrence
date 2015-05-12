@@ -2,9 +2,13 @@ package org.gbif.occurrence.download.file;
 
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.hadoop.fs.Path;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -113,6 +118,11 @@ public class OccurrenceDownloadFileSupervisor {
       this.configuration = configuration;
       StopWatch stopwatch = new StopWatch();
       stopwatch.start();
+      File downloadTempDir = new File(configuration.getDownloadTempDir());
+      if(downloadTempDir.exists()) {
+        FileUtils.deleteDirectoryRecursively(downloadTempDir);
+      }
+      downloadTempDir.mkdirs();
       ExecutionContextExecutorService executionContext =
         ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(conf.nrOfWorkers));
       occurrenceDownloadFileCoordinator.aggregateResults(Futures.sequence(runJobs(executionContext), executionContext));
@@ -192,7 +202,7 @@ public class OccurrenceDownloadFileSupervisor {
         remainingPerJob = 0;
       }
       FileJob file =
-        new FileJob(from, to, configuration.getDownloadKey(), i, configuration.getSolrQuery());
+        new FileJob(from, to,configuration.getSourceDir() + Path.SEPARATOR +  configuration.getDownloadKey() + Path.SEPARATOR +  configuration.getDownloadKey(), i, configuration.getSolrQuery());
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());

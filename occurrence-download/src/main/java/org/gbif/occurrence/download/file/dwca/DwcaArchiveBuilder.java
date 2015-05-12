@@ -53,6 +53,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -271,7 +273,7 @@ public class DwcaArchiveBuilder {
     conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
 
     FileSystem sourceFs = configuration.isSmallDownload() ? FileSystem.getLocal(conf) : FileSystem.get(conf);
-    FileSystem targetFs = FileSystem.getLocal(conf);
+    FileSystem targetFs = FileSystem.get(conf);
 
     // build archive
     DwcaArchiveBuilder generator =
@@ -289,11 +291,16 @@ public class DwcaArchiveBuilder {
     LOG.info("Start building the archive {} ", zipFile.getPath());
 
     try {
-      // oozie might try several times to run this job, so make sure our filesystem is clean
-      cleanupFS();
+      if(zipFile.exists()) {
+        zipFile.delete();
+      }
+      if(!configuration.isSmallDownload()) {
+        // oozie might try several times to run this job, so make sure our filesystem is clean
+        cleanupFS();
 
-      // create the temp archive dir
-      archiveDir.mkdirs();
+        // create the temp archive dir
+        archiveDir.mkdirs();
+      }
 
       // metadata, citation and rights
       addConstituentMetadata();
@@ -304,17 +311,6 @@ public class DwcaArchiveBuilder {
       // meta.xml
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
-      // large downloads are compressed by hive and added later
-      if (configuration.isSmallDownload()) {
-        LOG.info("Copying the uncompressed occurrence files from HDFS");
-        addOccurrenceDataFile(configuration.getInterpretedDataFileName(), HeadersFileUtil.DEFAULT_INTERPRETED_FILE_NAME,
-          INTERPRETED_FILENAME);
-        addOccurrenceDataFile(configuration.getVerbatimDataFileName(), HeadersFileUtil.DEFAULT_VERBATIM_FILE_NAME, VERBATIM_FILENAME);
-        addOccurrenceDataFile(configuration.getMultimediaDataFileName(), HeadersFileUtil.DEFAULT_MULTIMEDIA_FILE_NAME, MULTIMEDIA_FILENAME);
-      } else {
-        LOG.info("Skipping the copy of occurrence files from HDFS as they are already compressed");
-      }
-
       // zip up
       LOG.info("Zipping archive {}", archiveDir.toString());
       CompressionUtil.zipDir(archiveDir, zipFile, true);
@@ -323,7 +319,8 @@ public class DwcaArchiveBuilder {
       if (!configuration.isSmallDownload()) {
         appendPreCompressedFiles(zipFile);
       }
-      targetFs.moveFromLocalFile(new Path(archiveDir.getPath()),new Path(targetPath));
+      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),new Path(targetPath,zipFile.getName()));
+
     } catch (IOException e) {
       throw new DownloadException(e);
 
@@ -508,9 +505,9 @@ public class DwcaArchiveBuilder {
   /**
    * Copies and merges the hive query results files into a single, local occurrence data file.
    */
-  private void addOccurrenceDataFile(String dataTable, String headerFileName, String destFileName) throws IOException {
-    LOG.info("Copy-merge occurrence data sourceFs file {} to local filesystem", dataTable);
-    final Path dataSrc = new Path(sourcePath + Path.SEPARATOR + dataTable);
+  private void addOccurrenceDataFile(String dataFile, String headerFileName, String destFileName) throws IOException {
+    LOG.info("Copy-merge occurrence data sourceFs file {} to local filesystem", dataFile);
+    final Path dataSrc = new Path(dataFile);
     boolean hasRecords = sourceFs.exists(dataSrc);
     if (!hasRecords) {
       sourceFs.create(dataSrc);
@@ -521,7 +518,7 @@ public class DwcaArchiveBuilder {
     }
     File rawDataResult = new File(archiveDir, destFileName);
     Path dataDest = new Path(rawDataResult.toURI());
-    FileUtil.copyMerge(sourceFs, dataSrc, targetFs, dataDest, false, conf, null);
+    FileUtil.copyMerge(sourceFs, dataSrc, targetFs, dataDest, configuration.isSmallDownload(), conf, null);
     // remove the CRC file created by copyMerge method
     removeDataCRCFile(destFileName);
   }
@@ -582,7 +579,11 @@ public class DwcaArchiveBuilder {
   private void cleanupFS() throws DownloadException {
     try {
       LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
-      targetFs.delete(new Path(archiveDir.toURI()), true);
+      if(configuration.isSmallDownload()) {
+        FileUtils.deleteDirectoryRecursively(archiveDir);
+      } else {
+        targetFs.delete(new Path(archiveDir.toURI()), true);
+      }
     } catch (IOException e) {
       throw new DownloadException(e);
     }

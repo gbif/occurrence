@@ -2,6 +2,7 @@ package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.file.dwca.Constants;
+import org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants;
 
 import org.apache.hadoop.fs.Path;
 
@@ -56,19 +57,27 @@ public class OccurrenceDownloadConfiguration {
   }
 
   public String getInterpretedDataFileName(){
-    return sourceDir + Path.SEPARATOR + downloadKey + Constants.INTERPRETED_SUFFIX;
+    return getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME;
   }
 
   public String getVerbatimDataFileName(){
-    return (sourceDir + Path.SEPARATOR + downloadKey + Constants.VERBATIM_SUFFIX).toLowerCase();
+    return getDownloadTempDir()+ DwcDownloadsConstants.VERBATIM_FILENAME;
   }
 
   public String getCitationDataFileName(){
-    return (sourceDir + Path.SEPARATOR + downloadKey + Constants.CITATION_SUFFIX).toLowerCase();
+    return getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME;
   }
 
   public String getMultimediaDataFileName(){
-    return (sourceDir + Path.SEPARATOR + downloadKey + Constants.MULTIMEDIA_SUFFIX).toLowerCase();
+    return getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+  }
+
+  public String getDownloadTempDir() {
+    return (sourceDir + Path.SEPARATOR + downloadKey + Path.SEPARATOR).toLowerCase();
+  }
+
+  public String getSourceDir(){
+    return sourceDir;
   }
 
   public static class Builder {

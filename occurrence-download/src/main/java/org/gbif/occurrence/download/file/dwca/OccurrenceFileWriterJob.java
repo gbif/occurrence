@@ -268,7 +268,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
-  private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
+  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
     Integer occurrenceKey)
     throws IOException {
     List<MediaObject> multimedias = OccurrenceBuilder.buildMedia(result);
@@ -283,7 +283,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
   /**
    * Creates a SolrQuery that contains the query parameter as the filter query value.
    */
-  private SolrQuery createSolrQuery(String query) {
+  private static SolrQuery createSolrQuery(String query) {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery(SolrConstants.DEFAULT_QUERY);
     if (!Strings.isNullOrEmpty(query)) {
