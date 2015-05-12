@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
@@ -16,11 +15,8 @@ public interface OccurrenceDownloadFileCoordinator {
 
   /**
    * Initialize the process, this method is invoked before distributing the work among the jobs.
-   * @param baseDataFileName output data file, it's a base name if multiple file are produced
-   * @param downloadFormat requested download format
-   * @param filter predicate filter
    */
-  void init(OccurrenceDownloadConfiguration configuration);
+  void init();
 
   /**
    * Collects/aggregates the results produced.

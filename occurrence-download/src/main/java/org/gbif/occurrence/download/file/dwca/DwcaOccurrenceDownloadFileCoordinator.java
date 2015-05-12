@@ -47,10 +47,12 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
   @Inject
   public DwcaOccurrenceDownloadFileCoordinator(
     DatasetOccurrenceDownloadUsageService datasetOccUsageService,
-    DatasetService datasetService
+    DatasetService datasetService,
+    OccurrenceDownloadConfiguration configuration
   ){
     this.datasetService = datasetService;
     this.datasetOccUsageService = datasetOccUsageService;
+    this.configuration = configuration;
   }
 
 
@@ -71,8 +73,8 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
 
   }
 
-  public void init(OccurrenceDownloadConfiguration configuration) {
-    this.configuration = configuration;
+  @Override
+  public void init() {
     createFile(configuration.getInterpretedDataFileName());
     createFile(configuration.getVerbatimDataFileName());
     createFile(configuration.getMultimediaDataFileName());

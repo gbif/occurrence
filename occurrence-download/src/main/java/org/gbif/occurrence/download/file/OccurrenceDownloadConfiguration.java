@@ -104,6 +104,7 @@ public class OccurrenceDownloadConfiguration {
 
     private String solrQuery;
 
+
     public Builder withDownloadKey(String downloadKey){
       this.downloadKey = downloadKey;
       return this;

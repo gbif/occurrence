@@ -1,9 +1,9 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.FileJob;
 import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
@@ -11,7 +11,6 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 
@@ -31,7 +30,6 @@ import akka.dispatch.Future;
 import akka.util.Duration;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.inject.name.Named;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -45,30 +43,8 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
 
   private static final String CSV_EXTENSION = ".csv";
 
-  private final String nameNode;
-
-  private final String hdfsOutputPath;
-
-  private final String registryWsUrl;
-
-  private final String downloadKey;
-
   private OccurrenceDownloadConfiguration configuration;
-
-
-  @Inject
-  public SimpleCsvOccurrenceDownloadFileCoordinator(
-    @Named(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY) String nameNode,
-    @Named(DownloadWorkflowModule.DefaultSettings.HDFS_OUPUT_PATH_KEY) String hdfsOutputPath,
-    @Named(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY) String registryWsUrl,
-    @Named(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY) String downloadKey
-  ){
-    this.hdfsOutputPath = hdfsOutputPath;
-    this.nameNode = nameNode;
-    this.registryWsUrl = registryWsUrl;
-    this.downloadKey = downloadKey;
-  }
-
+  private WorkflowConfiguration workflowConfiguration;
 
   private static String getOutputFileName(OccurrenceDownloadConfiguration configuration, String extension){
     return getOutputFileName(configuration) + extension;
@@ -78,10 +54,14 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
     return configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey();
   }
 
+  @Inject
+  public SimpleCsvOccurrenceDownloadFileCoordinator(OccurrenceDownloadConfiguration configuration, WorkflowConfiguration workflowConfiguration){
+    this.configuration = configuration;
+    this.workflowConfiguration = workflowConfiguration;
+  }
   @Override
-  public void init(OccurrenceDownloadConfiguration configuration){
+  public void init(){
     try {
-      this.configuration = configuration;
       Files.createFile(Paths.get(getOutputFileName(configuration,CSV_EXTENSION)));
     } catch (Throwable t){
       LOG.error("Error creating files",t);
@@ -99,12 +79,12 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
       Lists.newArrayList(Await.result(futures, Duration.Inf()));
     if (!results.isEmpty()) {
       mergeResults(results);
-      FileSystem fileSystem = DownloadFileUtils.getHdfs(nameNode);
+      FileSystem fileSystem = DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode());
       SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          fileSystem,
                                          configuration.getDownloadTempDir(),
-                                         hdfsOutputPath,
-                                         downloadKey,
+                                         workflowConfiguration.getHdfsOutputPath(),
+                                         configuration.getDownloadKey(),
                                          ModalZipOutputStream.MODE.DEFAULT);
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     }
@@ -134,12 +114,12 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
    * Persists the dataset usages collected in by the datasetUsagesCollector.
    */
   private void persistUsages(DatasetUsagesCollector datasetUsagesCollector) {
-    CitationsFileReader.PersistUsage persistUsage = new CitationsFileReader.PersistUsage(registryWsUrl);
+    CitationsFileReader.PersistUsage persistUsage = new CitationsFileReader.PersistUsage(workflowConfiguration.getRegistryWsUrl());
     for(Map.Entry<UUID,Long> usage :  datasetUsagesCollector.getDatasetUsages().entrySet()){
       DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
       datasetOccurrenceDownloadUsage.setNumberRecords(usage.getValue());
       datasetOccurrenceDownloadUsage.setDatasetKey(usage.getKey());
-      datasetOccurrenceDownloadUsage.setDownloadKey(downloadKey);
+      datasetOccurrenceDownloadUsage.setDownloadKey(configuration.getDownloadKey());
       persistUsage.apply(datasetOccurrenceDownloadUsage);
     }
   }

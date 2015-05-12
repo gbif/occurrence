@@ -21,9 +21,8 @@ import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
-import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanFilterBuilder;
@@ -32,7 +31,6 @@ import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -46,18 +44,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -65,10 +58,8 @@ import java.util.zip.ZipInputStream;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -77,12 +68,8 @@ import com.google.common.io.Closer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jersey.api.client.UniformInterfaceException;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
@@ -106,15 +93,6 @@ public class DwcaArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaArchiveBuilder.class);
 
-  private static Properties properties;
-
-  public static Properties getProperties() throws IOException {
-    if(properties == null){
-      properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    }
-    return properties;
-  }
-
   /**
    * Simple, local representation for a constituent dataset.
    */
@@ -129,10 +107,6 @@ public class DwcaArchiveBuilder {
     }
   }
 
-  // 0 is used for the headers filename because it will be the first file to be merged when creating the occurrence data
-  // file using the copyMerge function
-  private static final String HEADERS_FILENAME = "0";
-
   // The CRC is created by the function FileSystem.copyMerge function
   private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
@@ -145,12 +119,10 @@ public class DwcaArchiveBuilder {
     "Please cite this data as follows, and pay attention to the rights documented in the rights.txt:\n"
     + "Please respect the rights declared for each dataset in the download: ";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
-  private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
   private static final String RIGHTS =
     "The data included in this download are provided to the user under a Creative Commons BY-NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0) which means that you are free to use, share, and adapt the data provided that you give reasonable and appropriate credit (attribution) and that you do not use the material for commercial purposes (non-commercial).\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
+  private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
 
-  private static final List<ContactType> AUTHOR_TYPES =
-    ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
@@ -159,12 +131,9 @@ public class DwcaArchiveBuilder {
   private final TitleLookup titleLookup;
   private final Dataset dataset;
   private final File archiveDir;
-  // HDFS related
-  private final Configuration conf;
+  private final WorkflowConfiguration workflowConfiguration;
   private final FileSystem sourceFs;
   private final FileSystem targetFs;
-  private final String targetPath;
-  private final URL downloadLink;
   private final OccurrenceDownloadConfiguration configuration;
   private final List<Constituent> constituents = Lists.newArrayList();
 
@@ -176,111 +145,64 @@ public class DwcaArchiveBuilder {
         }
       });
 
-  /**
-   * @param archiveDir    local archive directory to copy into, e.g. /mnt/ftp/download/0000020-130108132303336
-   * @param citationTable like download_tmp_citation_1234
-   * @param sourcePath      like /user/hive/warehouse
-   *
-   * @throws java.io.IOException on any read or write problems
-   */
   @VisibleForTesting
   protected DwcaArchiveBuilder(
     DatasetService datasetService,
     DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
     UserService userService,
-    Configuration conf,
     FileSystem sourceFs,
     FileSystem targetFs,
     File archiveDir,
-    String targetPath,
-    String downloadLink,
     TitleLookup titleLookup,
-    OccurrenceDownloadConfiguration configuration
-  ) throws MalformedURLException {
+    OccurrenceDownloadConfiguration configuration,
+    WorkflowConfiguration workflowConfiguration
+  )  {
     this.datasetService = datasetService;
     this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.userService = userService;
-    this.conf = conf;
     this.sourceFs = sourceFs;
     this.targetFs = targetFs;
     this.archiveDir = archiveDir;
-    this.targetPath = targetPath;
     this.titleLookup = titleLookup;
     dataset = new Dataset();
-    this.downloadLink = new URL(downloadLink);
     this.configuration = configuration;
+    this.workflowConfiguration = workflowConfiguration;
   }
 
-  /**
-   * Entry point for assembling the dwc archive.
-   * The thrown exception is the only way of telling Oozie that this job has failed.
-   *
-   * @throws java.io.IOException if any read/write operation failed
-   */
-  public static void main(String[] args) throws IOException {
-    final String downloadKey = args[0];
-    final String username = args[1];          // download user
-    final String query = args[2];         // download query filter
-    final boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
-
-    OccurrenceDownloadConfiguration configuration = new OccurrenceDownloadConfiguration.Builder()
-                                                    .withDownloadKey(downloadKey)
-                                                    .withFilter(query)
-                                                    .withIsSmallDownload(isSmallDownload)
-                                                    .withUser(username)
-                                                    .withSourceDir(getProperties().getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY))
-                                                    .build();
-
-    LOG.info("ArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
-    buildArchive(configuration);
-  }
 
   public static void buildArchive(OccurrenceDownloadConfiguration configuration) throws IOException {
-    Properties properties = getProperties();
-    final String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);      // same as namenode, like sourceFs://c1n2.gbif.org:8020
-    final String registryWs = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);    // registry ws url
-    final String tmpDir = properties.getProperty(DownloadWorkflowModule.DefaultSettings.TMP_DIR_KEY);    // registry ws url
-    // download link needs to be constructed
-    final String downloadLinkWithId = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_LINK_KEY)
-                                      .replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, configuration.getDownloadKey());
-    final String targetPath = properties.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_OUPUT_PATH_KEY);
+    buildArchive(configuration,new WorkflowConfiguration());
+  }
 
-    final String sourcePath = configuration.isSmallDownload()? tmpDir :
-      properties.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
+  public static void buildArchive(OccurrenceDownloadConfiguration configuration,  WorkflowConfiguration workflowConfiguration) throws IOException {
+    String tmpDir =  workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
     File archiveDir = new File(tmpDir, configuration.getDownloadKey());
     RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
+    String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
     DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
-    // debug used properties in oozie logs
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    properties.list(pw);
-    LOG.info("ArchiveBuilder uses properties:\n{}", sw);
 
     Injector inj =
-      Guice.createInjector(new DrupalMyBatisModule(properties), new TitleLookupModule(true, properties.getProperty("api.url")));
+      Guice.createInjector(new DrupalMyBatisModule(workflowConfiguration.getDownloadSettings()), new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
     UserService userService = inj.getInstance(UserService.class);
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
 
-    // filesystem configs
-    Configuration conf = new Configuration();
-    conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
 
-    FileSystem sourceFs = configuration.isSmallDownload() ? FileSystem.getLocal(conf) : FileSystem.get(conf);
-    FileSystem targetFs = FileSystem.get(conf);
+    FileSystem sourceFs = configuration.isSmallDownload() ? FileSystem.getLocal(workflowConfiguration.getHadoopConf()) : FileSystem.get(workflowConfiguration.getHadoopConf());
+    FileSystem targetFs = FileSystem.get(workflowConfiguration.getHadoopConf());
 
     // build archive
     DwcaArchiveBuilder generator =
-      new DwcaArchiveBuilder(datasetService, datasetUsageService, occurrenceDownloadService, userService, conf, sourceFs, targetFs,
-                             archiveDir, targetPath, downloadLinkWithId, titleLookup, configuration);
+      new DwcaArchiveBuilder(datasetService, datasetUsageService, occurrenceDownloadService, userService, sourceFs, targetFs,
+                             archiveDir, titleLookup, configuration,workflowConfiguration);
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
@@ -321,7 +243,7 @@ public class DwcaArchiveBuilder {
       if (!configuration.isSmallDownload()) {
         appendPreCompressedFiles(zipFile);
       }
-      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),new Path(targetPath,zipFile.getName()));
+      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),new Path(workflowConfiguration.getHdfsOutputPath(),zipFile.getName()));
 
     } catch (IOException e) {
       throw new DownloadException(e);
@@ -490,7 +412,7 @@ public class DwcaArchiveBuilder {
         constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue()));
 
         // add original author as content provider to main dataset description
-        Contact provider = getContentProviderContact(srcDataset);
+        Contact provider = DwcaContactsUtil.getContentProviderContact(srcDataset);
         if (provider != null) {
           dataset.getContacts().add(provider);
         }
@@ -502,27 +424,6 @@ public class DwcaArchiveBuilder {
       }
     }
     closer.close();
-  }
-
-  /**
-   * Copies and merges the hive query results files into a single, local occurrence data file.
-   */
-  private void addOccurrenceDataFile(String dataFile, String headerFileName, String destFileName) throws IOException {
-    LOG.info("Copy-merge occurrence data sourceFs file {} to local filesystem", dataFile);
-    final Path dataSrc = new Path(dataFile);
-    boolean hasRecords = sourceFs.exists(dataSrc);
-    if (!hasRecords) {
-      sourceFs.create(dataSrc);
-    }
-    if (!configuration.isSmallDownload() && hasRecords) { // small downloads already include the headers
-      FileUtil.copy(new File(headerFileName),
-                    sourceFs, new Path(dataSrc + Path.SEPARATOR + HEADERS_FILENAME), false, conf);
-    }
-    File rawDataResult = new File(archiveDir, destFileName);
-    Path dataDest = new Path(rawDataResult.toURI());
-    FileUtil.copyMerge(sourceFs, dataSrc, targetFs, dataDest, configuration.isSmallDownload(), conf, null);
-    // remove the CRC file created by copyMerge method
-    removeDataCRCFile(destFileName);
   }
 
   /**
@@ -558,12 +459,20 @@ public class DwcaArchiveBuilder {
       //TODO: use new license field once available
       dataset.setRights(String.format(RIGHTS, userService.get(configuration.getUser()).getName(), dataset.getTitle()));
       dataset.getContacts()
-        .add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.ORIGINATOR, true));
+        .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
+                                            DOWNLOAD_CONTACT_EMAIL,
+                                            ContactType.ORIGINATOR,
+                                            true));
       dataset.getContacts().add(
-        createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.ADMINISTRATIVE_POINT_OF_CONTACT,
-          true));
+        DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
+                                       DOWNLOAD_CONTACT_EMAIL,
+                                       ContactType.ADMINISTRATIVE_POINT_OF_CONTACT,
+                                       true));
       dataset.getContacts()
-        .add(createContact(DOWNLOAD_CONTACT_SERVICE, DOWNLOAD_CONTACT_EMAIL, ContactType.METADATA_AUTHOR, true));
+        .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
+                                            DOWNLOAD_CONTACT_EMAIL,
+                                            ContactType.METADATA_AUTHOR,
+                                            true));
 
       File eml = new File(archiveDir, METADATA_FILENAME);
       Writer writer = FileUtils.startNewUtf8File(eml);
@@ -585,73 +494,7 @@ public class DwcaArchiveBuilder {
     }
   }
 
-  /**
-   * Utility method that creates a Contact with a limited number of fields.
-   */
-  private Contact createContact(String name, String email, ContactType type, boolean preferred) {
-    return createContact(null, name, email, type, preferred);
-  }
 
-  private static Contact createContact(String firstname, String lastname, String email, ContactType type, boolean preferred) {
-    Contact contact = new Contact();
-    contact.setEmail(Lists.newArrayList(email));
-    contact.setFirstName(firstname);
-    contact.setLastName(lastname);
-    contact.setType(type);
-    contact.setPrimary(preferred);
-    return contact;
-  }
-
-  private DataDescription createDataDescription() {
-    // link back to archive
-    DataDescription dataDescription = new DataDescription();
-    dataDescription.setFormat(DATA_DESC_FORMAT);
-    dataDescription.setCharset(Charsets.UTF_8.displayName());
-    try {
-      dataDescription.setUrl(downloadLink.toURI());
-    } catch (URISyntaxException e) {
-      LOG.error(String.format("Wrong url %s", downloadLink), e);
-    }
-    return dataDescription;
-  }
-
-  /**
-   * Checks the contacts of a dataset and finds the preferred contact that should be used as the main author
-   * of a dataset.
-   *
-   * @return preferred author contact or null
-   */
-  private static Contact getContentProviderContact(Dataset dataset) {
-    Contact author = null;
-    for (ContactType type : AUTHOR_TYPES) {
-      for (Contact c : dataset.getContacts()) {
-        if (type == c.getType()) {
-          if (author == null) {
-            author = c;
-          } else if (c.isPrimary()) {
-            author = c;
-          }
-        }
-      }
-      if (author != null) {
-        Contact provider = new Contact();
-        try {
-          PropertyUtils.copyProperties(provider, author);
-          provider.setKey(null);
-          provider.setType(ContactType.CONTENT_PROVIDER);
-          provider.setPrimary(false);
-          return provider;
-        } catch (IllegalAccessException e) {
-          LOG.error("Error setting provider contact", e);
-        } catch (InvocationTargetException e) {
-          LOG.error("Error setting provider contact", e);
-        } catch (NoSuchMethodException e) {
-          LOG.error("Error setting provider contact", e);
-        }
-      }
-    }
-    return null;
-  }
 
   /**
    * Creates the dataset description.
@@ -796,5 +639,18 @@ public class DwcaArchiveBuilder {
     } else {
       rightsWriter.write("Not supplied");
     }
+  }
+
+  protected DataDescription createDataDescription() {
+    // link back to archive
+    DataDescription dataDescription = new DataDescription();
+    dataDescription.setFormat(DATA_DESC_FORMAT);
+    dataDescription.setCharset(Charsets.UTF_8.displayName());
+    try {
+      dataDescription.setUrl(new URI(workflowConfiguration.getDownloadLink(configuration.getDownloadKey())));
+    } catch (URISyntaxException e) {
+      LOG.error(String.format("Wrong url %s", workflowConfiguration.getDownloadLink(configuration.getDownloadKey())), e);
+    }
+    return dataDescription;
   }
 }

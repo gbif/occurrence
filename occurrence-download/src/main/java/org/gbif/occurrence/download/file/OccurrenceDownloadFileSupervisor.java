@@ -7,8 +7,6 @@ import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -88,7 +86,7 @@ public class OccurrenceDownloadFileSupervisor {
 
   private final OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator;
 
-  private OccurrenceDownloadConfiguration configuration;
+  private OccurrenceDownloadConfiguration occurrenceDownloadConfiguration;
 
   /**
    * Default constructor.
@@ -99,9 +97,11 @@ public class OccurrenceDownloadFileSupervisor {
     Configuration configuration,
     SolrServer solrServer,
     OccurrenceMapReader occurrenceMapReader,
-    OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator
+    OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator,
+    OccurrenceDownloadConfiguration occurrenceDownloadConfiguration
   ) {
     conf = configuration;
+    this.occurrenceDownloadConfiguration = occurrenceDownloadConfiguration;
     this.lockFactory = lockFactory;
     this.solrServer = solrServer;
     this.occurrenceMapReader = occurrenceMapReader;
@@ -113,12 +113,11 @@ public class OccurrenceDownloadFileSupervisor {
    * Entry point. This method: creates the output files, runs the jobs (OccurrenceFileWriterJob) and then collect the
    * results. Individual files created by each job are deleted.
    */
-  public void run(OccurrenceDownloadConfiguration configuration) {
+  public void run() {
     try {
-      this.configuration = configuration;
       StopWatch stopwatch = new StopWatch();
       stopwatch.start();
-      File downloadTempDir = new File(configuration.getDownloadTempDir());
+      File downloadTempDir = new File(occurrenceDownloadConfiguration.getDownloadTempDir());
       if(downloadTempDir.exists()) {
         FileUtils.deleteDirectoryRecursively(downloadTempDir);
       }
@@ -167,7 +166,7 @@ public class OccurrenceDownloadFileSupervisor {
    * first jobs.
    */
   private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext) {
-    final int recordCount = getSearchCount(configuration.getSolrQuery()).intValue();
+    final int recordCount = getSearchCount(occurrenceDownloadConfiguration.getSolrQuery()).intValue();
     if (recordCount <= 0) {
       return Lists.newArrayList();
     }
@@ -186,7 +185,7 @@ public class OccurrenceDownloadFileSupervisor {
     int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
 
     List<Future<Result>> futures = Lists.newArrayList();
-    occurrenceDownloadFileCoordinator.init(configuration);
+    occurrenceDownloadFileCoordinator.init();
     int from;
     int to = 0;
     int additionalJobsCnt = 0;
@@ -202,7 +201,7 @@ public class OccurrenceDownloadFileSupervisor {
         remainingPerJob = 0;
       }
       FileJob file =
-        new FileJob(from, to,configuration.getSourceDir() + Path.SEPARATOR +  configuration.getDownloadKey() + Path.SEPARATOR +  configuration.getDownloadKey(), i, configuration.getSolrQuery());
+        new FileJob(from, to,occurrenceDownloadConfiguration.getSourceDir() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadKey() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadKey(), i, occurrenceDownloadConfiguration.getSolrQuery());
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());

@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.HiveQueryVisitor;
 import org.gbif.occurrence.download.query.QueryBuildingException;
@@ -97,7 +98,7 @@ public class DownloadPrepareStep {
    */
   private static Injector getInjector() {
     try {
-      return Guice.createInjector(new DownloadWorkflowModule());
+      return Guice.createInjector(new DownloadWorkflowModule(new WorkflowConfiguration()));
     } catch (IllegalArgumentException e) {
       LOG.error("Error creating Guice module", e);
       throw Throwables.propagate(e);
