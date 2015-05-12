@@ -95,16 +95,9 @@
   <action name="copy_and_zip">
     <java>
       <main-class>org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/</arg>
-      <arg>${download_table_name}_interpreted</arg>
-      <arg>${download_table_name}_verbatim</arg>
-      <arg>${download_table_name}_multimedia</arg>
-      <arg>${download_table_name}_citation</arg>
-      <arg>/mnt/auto/${occurrence.environment}/occurrence-download</arg>
       <arg>${download_key}</arg>
       <arg>${gbif_user}</arg>
       <arg>${gbif_filter}</arg>
-      <arg>${download_link}</arg>
       <arg>${is_small_download}</arg>
     </java>
 

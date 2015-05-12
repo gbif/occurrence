@@ -216,11 +216,10 @@ public class DwcaArchiveBuilder {
    * @throws java.io.IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
-    final String sourcePath = args[0];  // path on sourceFs of hive results
-    final String downloadKey = args[2];
-    final String username = args[3];          // download user
-    final String query = args[4];         // download query filter
-    final boolean isSmallDownload = Boolean.parseBoolean(args[5]);    // isSmallDownload
+    final String downloadKey = args[0];
+    final String username = args[1];          // download user
+    final String query = args[2];         // download query filter
+    final boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
 
     OccurrenceDownloadConfiguration configuration = new OccurrenceDownloadConfiguration.Builder()
                                                     .withDownloadKey(downloadKey)
