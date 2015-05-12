@@ -10,6 +10,8 @@ public class OccurrenceDownloadConfiguration {
 
   private final String downloadKey;
 
+  private final String downloadTableName;
+
   private final String filter;
 
   private final String user;
@@ -22,7 +24,7 @@ public class OccurrenceDownloadConfiguration {
 
   private final String solrQuery;
 
-  private OccurrenceDownloadConfiguration(String downloadKey, String filter, String user, DownloadFormat downloadFormat, boolean isSmallDownload, String sourceDir, String solrQuery) {
+  private OccurrenceDownloadConfiguration(String downloadKey, String downloadTableName, String filter, String user, DownloadFormat downloadFormat, boolean isSmallDownload, String sourceDir, String solrQuery) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -30,10 +32,15 @@ public class OccurrenceDownloadConfiguration {
     this.isSmallDownload = isSmallDownload;
     this.sourceDir = sourceDir;
     this.solrQuery = solrQuery;
+    this.downloadTableName = downloadTableName;
   }
 
   public String getDownloadKey() {
     return downloadKey;
+  }
+
+  public String getDownloadTableName() {
+    return downloadTableName;
   }
 
   public String getFilter() {
@@ -77,7 +84,7 @@ public class OccurrenceDownloadConfiguration {
   }
 
   public String getDownloadTempDir(String suffix) {
-    return (sourceDir + Path.SEPARATOR + downloadKey + suffix + Path.SEPARATOR).toLowerCase();
+    return (sourceDir + Path.SEPARATOR + downloadTableName + suffix + Path.SEPARATOR).toLowerCase();
   }
 
   public String getDownloadTempDir() {
@@ -91,6 +98,8 @@ public class OccurrenceDownloadConfiguration {
   public static class Builder {
 
     private String downloadKey;
+
+    private String downloadTableName;
 
     private String filter;
 
@@ -107,6 +116,11 @@ public class OccurrenceDownloadConfiguration {
 
     public Builder withDownloadKey(String downloadKey){
       this.downloadKey = downloadKey;
+      return this;
+    }
+
+    public Builder withDownloadTableName(String downloadTableName){
+      this.downloadTableName = downloadTableName;
       return this;
     }
 
@@ -142,7 +156,7 @@ public class OccurrenceDownloadConfiguration {
     }
 
     public OccurrenceDownloadConfiguration build(){
-      return new OccurrenceDownloadConfiguration(downloadKey, filter, user, downloadFormat, isSmallDownload,sourceDir,solrQuery);
+      return new OccurrenceDownloadConfiguration(downloadKey, downloadTableName, filter, user, downloadFormat, isSmallDownload,sourceDir,solrQuery);
     }
 
   }

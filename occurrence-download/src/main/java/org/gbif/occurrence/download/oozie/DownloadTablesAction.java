@@ -38,6 +38,7 @@ public class DownloadTablesAction {
       .withSolrQuery(args[1])
       .withDownloadKey(args[2])
       .withFilter(args[3])
+      .withDownloadTableName(args[4])
       .withSourceDir(workflowConfiguration.getTempDir())
       .withIsSmallDownload(true).build());
 

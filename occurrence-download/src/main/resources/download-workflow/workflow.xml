@@ -49,6 +49,7 @@
       <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>
       <arg>${gbif_filter}</arg>
+      <arg>${wf:actionData('download_prepare')['download_table_name']}</arg>
     </java>
 
     <ok to="end" />
