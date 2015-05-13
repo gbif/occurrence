@@ -34,7 +34,7 @@
   </property>
   <property>
     <name>gbif_filter</name>
-    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
+    <value>{"type":"equals","key":"COUNTRY","value":"CR"}</value>
   </property>
 
   <property>

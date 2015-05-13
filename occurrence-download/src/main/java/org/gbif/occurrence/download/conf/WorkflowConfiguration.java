@@ -18,6 +18,12 @@ public class WorkflowConfiguration {
   private final Properties settings;
   private final Configuration hadoopConf;
 
+  public WorkflowConfiguration(Properties settings) {
+    this.settings = settings;
+    hadoopConf = new Configuration();
+    hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
+  }
+
   public WorkflowConfiguration() {
     try {
       settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
