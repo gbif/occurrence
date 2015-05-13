@@ -63,7 +63,6 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
                                                .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.SimpleCsv.WORKFLOW_PATH_FMT,environment))
                                               .put(OozieClient.WORKFLOW_NOTIFICATION_URL, DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
                                               .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
-                                              .put(OozieClient.USE_SYSTEM_LIBPATH,Boolean.TRUE.toString())
                                               .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 }
