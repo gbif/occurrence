@@ -102,41 +102,10 @@
       <arg>${download_table_name}</arg>
     </java>
 
-    <ok to="copy_to_hdfs" />
-    <error to="failure_cleaning_decision" />
+    <ok to="drop_table" />
+    <error to="failure_drop_table" />
   </action>
 
-  <action name='copy_to_hdfs'>
-    <shell xmlns="uri:oozie:shell-action:0.3">
-      <exec>scripts/copy_to_hdfs.sh</exec>
-      <argument>${download_key}</argument>
-      <argument>/mnt/auto/${occurrence.environment}/occurrence-download</argument>
-      <argument>/occurrence-download/${occurrence.environment}-downloads</argument>
-      <file>scripts/copy_to_hdfs.sh</file>
-    </shell>
-    <ok to="cleaning_decision"/>
-    <error to="failure_cleaning_decision"/>
-  </action>
-
-  <decision name="cleaning_decision">
-    <switch>
-      <!-- it's a small download the delete the occurrence data and citations file -->
-      <case to="clean_hdfs_dirs">
-        ${is_small_download}
-      </case>
-      <default to="drop_table" />
-    </switch>
-  </decision>
-
-  <decision name="failure_cleaning_decision">
-    <switch>
-      <!-- it's a small download the delete the occurrence data and citations file -->
-      <case to="failure_clean_hdfs_dirs">
-        ${is_small_download}
-      </case>
-      <default to="failure_drop_table" />
-    </switch>
-  </decision>
 
   <action name="drop_table">
     <hive xmlns="uri:oozie:hive-action:0.4">
@@ -159,28 +128,6 @@
       <param>occurrenceTable=${download_table_name}</param>
     </hive>
 
-    <ok to="kill" />
-    <error to="kill" />
-  </action>
-
-  <action name="clean_hdfs_dirs">
-    <fs>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_interpreted'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_verbatim'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_multimedia'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_citation'/>
-    </fs>
-    <ok to="end" />
-    <error to="kill" />
-  </action>
-
-  <action name="failure_clean_hdfs_dirs">
-    <fs>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_interpreted'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_verbatim'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_multimedia'/>
-      <delete path='${hdfs.namenode}${occurrence.download.hive.hdfs.out}/${download_table_name}_citation'/>
-    </fs>
     <ok to="kill" />
     <error to="kill" />
   </action>
