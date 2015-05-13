@@ -201,7 +201,7 @@ public class OccurrenceDownloadFileSupervisor {
         remainingPerJob = 0;
       }
       FileJob file =
-        new FileJob(from, to,occurrenceDownloadConfiguration.getSourceDir() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadTableName() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadTableName(), i, occurrenceDownloadConfiguration.getSolrQuery());
+        new FileJob(from, to,occurrenceDownloadConfiguration.getSourceDir() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadKey() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadTableName(), i, occurrenceDownloadConfiguration.getSolrQuery());
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());
