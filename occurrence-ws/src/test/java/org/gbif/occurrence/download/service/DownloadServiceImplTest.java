@@ -69,7 +69,7 @@ public class DownloadServiceImplTest {
     downloadLimitsService = mock(DownloadLimitsService.class);
     when(downloadLimitsService.isInDownloadLimits(any(String.class))).thenReturn(true);
     requestService =
-      new DownloadRequestServiceImpl(oozieClient, props,props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
+      new DownloadRequestServiceImpl(oozieClient, props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
   }
 
 
