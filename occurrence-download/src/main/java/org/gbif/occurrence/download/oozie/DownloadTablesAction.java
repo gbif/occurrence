@@ -5,8 +5,10 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
@@ -23,7 +25,7 @@ public class DownloadTablesAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadTablesAction.class);
 
-  private static WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
+  private static WorkflowConfiguration workflowConfiguration;
   /**
    * Executes the download creation process.
    * All the arguments are required and expected in the following order:
@@ -33,6 +35,9 @@ public class DownloadTablesAction {
    *  3. downloadKey: occurrence download identifier.
    */
   public static void main(String[] args) throws Exception {
+    Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,args[0]);
+    workflowConfiguration = new WorkflowConfiguration(settings);
     run(new OccurrenceDownloadConfiguration.Builder()
       .withDownloadFormat(DownloadFormat.valueOf(args[0]))
       .withSolrQuery(args[1])
