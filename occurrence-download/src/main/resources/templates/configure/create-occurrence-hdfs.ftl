@@ -23,6 +23,8 @@ SET mapred.max.split.size=256000000;
 CREATE TEMPORARY FUNCTION collectMediaTypes AS 'org.gbif.occurrence.hive.udf.CollectMediaTypesUDF';
 CREATE TEMPORARY FUNCTION removeNulls AS 'org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF';
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
+CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
+CREATE TEMPORARY FUNCTION from_json AS 'brickhouse.udf.json.FromJsonUDF';
 
 -- create the HDFS view of the HBase table
 CREATE TABLE IF NOT EXISTS occurrence_hdfs (
@@ -38,3 +40,19 @@ SELECT
   ${field.initializer}<#if field_has_next>,</#if>
 </#list>
 FROM occurrence_hbase;
+
+--this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
+SET hive.auto.convert.join=false;
+
+CREATE TABLE IF NOT EXISTS occurrence_multimedia
+(gbifid INT,type STRING,format STRING,identifier STRING,references STRING,title STRING,description STRING,
+source STRING,audience STRING,created STRING,creator STRING,contributor STRING,
+publisher STRING,license STRING,rightsHolder STRING)
+STORED AS RCFILE TBLPROPERTIES ("serialization.null.format"="");
+
+INSERT OVERWRITE TABLE occurrence_multimedia
+SELECT gbifid,cleanDelimiters(mm_record['type']),cleanDelimiters(mm_record['format']),cleanDelimiters(mm_record['identifier']),cleanDelimiters(mm_record['references']),cleanDelimiters(mm_record['title']),cleanDelimiters(mm_record['description']),cleanDelimiters(mm_record['source']),cleanDelimiters(mm_record['audience']),toISO8601(mm_record['created']),cleanDelimiters(mm_record['creator']),cleanDelimiters(mm_record['contributor']),cleanDelimiters(mm_record['publisher']),cleanDelimiters(mm_record['license']),cleanDelimiters(mm_record['rightsHolder'])
+FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM occurrence_hdfs occ)
+occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
+
+SET hive.auto.convert.join=true;

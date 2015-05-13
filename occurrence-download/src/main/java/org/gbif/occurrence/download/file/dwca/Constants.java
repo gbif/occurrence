@@ -1,6 +1,6 @@
 package org.gbif.occurrence.download.file.dwca;
 
-class Constants {
+public class Constants {
   //Suffixes for table names
   public static final String INTERPRETED_SUFFIX = "_interpreted";
   public static final String VERBATIM_SUFFIX = "_verbatim";

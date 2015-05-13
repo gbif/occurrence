@@ -13,7 +13,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;

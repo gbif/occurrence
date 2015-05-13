@@ -1,6 +1,8 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -23,6 +25,7 @@ public class DownloadTablesAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadTablesAction.class);
 
+  private static WorkflowConfiguration workflowConfiguration;
   /**
    * Executes the download creation process.
    * All the arguments are required and expected in the following order:
@@ -31,23 +34,32 @@ public class DownloadTablesAction {
    *  2. hdfsOutputPath: path where the resulting file will be stored.
    *  3. downloadKey: occurrence download identifier.
    */
-  public static void main(String[] args) throws IOException {
-    run(DownloadFormat.valueOf(args[0]), //downloadFormat
-                             args[1], //solrQuery
-                             args[2], // hdfsOutputPath
-                             args[3]); //downlaodKey
+  public static void main(String[] args) throws Exception {
+    Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,args[0]);
+    workflowConfiguration = new WorkflowConfiguration(settings);
+    run(new OccurrenceDownloadConfiguration.Builder()
+      .withDownloadFormat(DownloadFormat.valueOf(args[0]))
+      .withSolrQuery(args[1])
+      .withDownloadKey(args[2])
+      .withFilter(args[3])
+      .withDownloadTableName(args[4])
+      .withSourceDir(workflowConfiguration.getTempDir())
+      .withIsSmallDownload(true).build());
+
   }
 
   /**
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
-  public static void run(DownloadFormat downloadFormat, String query,String hdfsOutputPath, String downloadKey)
+  public static void run(OccurrenceDownloadConfiguration configuration)
     throws IOException {
-    final Injector injector = createInjector(downloadKey, downloadFormat,hdfsOutputPath);
+    final Injector injector = createInjector(configuration);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
     final OccurrenceDownloadFileSupervisor
       downloadFileSupervisor = injector.getInstance(OccurrenceDownloadFileSupervisor.class);
-    downloadFileSupervisor.run(downloadKey, query, downloadFormat);
+
+    downloadFileSupervisor.run();
     curator.close();
   }
 
@@ -56,17 +68,10 @@ public class DownloadTablesAction {
   /**
    * Utility method that creates the Guice injector.
    */
-  private static Injector createInjector(String downloadKey, DownloadFormat downloadFormat, String hdfsOutputPath) {
+  private static Injector createInjector(OccurrenceDownloadConfiguration configuration) {
     try {
-      Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-      properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_KEY,downloadKey);
-      properties.put(DownloadWorkflowModule.DynamicSettings.HDFS_OUPUT_PATH_KEY,hdfsOutputPath);
-      properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,downloadFormat.name());
-      return Guice.createInjector(new DownloadWorkflowModule(properties));
+      return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration,configuration));
     } catch (IllegalArgumentException e) {
-      LOG.error("Error initializing injection module", e);
-      throw Throwables.propagate(e);
-    } catch (IOException e) {
       LOG.error("Error initializing injection module", e);
       throw Throwables.propagate(e);
     }

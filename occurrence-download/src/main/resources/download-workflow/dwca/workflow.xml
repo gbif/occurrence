@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
+
+  <start to="from_hive_download"/>
+
+  <!-- TODO: interpret the incoming query, and populate WF params for later -->
+
+  <!-- Execute the query using sequential approach -->
+  <action name="from_hive_download">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>verbatimTable=${download_table_name}_verbatim</param>
+      <param>interpretedTable=${download_table_name}_interpreted</param>
+      <param>citationTable=${download_table_name}_citation</param>
+      <param>multimediaTable=${download_table_name}_multimedia</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="copy_and_zip" />
+    <error to="failure_drop_table" />
+  </action>
+
+  <!--
+    Test what happens when we just run the brute force approach
+  -->
+  <fork name="queries">
+    <path start="query_verbatim" />
+    <path start="query_interpreted" />
+    <!--path start="query_citation" />
+    <path start="query_multimedia"/-->
+  </fork>
+
+  <action name="query_verbatim">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-verbatim-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>verbatimTable=${download_table_name}_verbatim</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="queries_finished" />
+    <error to="kill" />
+  </action>
+
+  <action name="query_interpreted">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-interpreted-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>interpretedTable=${download_table_name}_interpreted</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="queries_finished" />
+    <error to="kill" />
+  </action>
+
+  <action name="query_citation">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-citation-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>citationTable=${download_table_name}_citation</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="queries_finished" />
+    <error to="kill" />
+  </action>
+
+  <action name="query_multimedia">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-multimedia-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>multimediaTable=${download_table_name}_multimedia</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="queries_finished" />
+    <error to="kill" />
+  </action>
+
+  <join name="queries_finished" to="end"/>
+
+  <action name="copy_and_zip">
+    <java>
+      <main-class>org.gbif.occurrence.download.file.dwca.oozie.ArchiveDownloadAction</main-class>
+      <arg>${download_key}</arg>
+      <arg>${gbif_user}</arg>
+      <arg>${gbif_filter}</arg>
+      <arg>${is_small_download}</arg>
+      <arg>${download_table_name}</arg>
+    </java>
+
+    <ok to="drop_table" />
+    <error to="failure_drop_table" />
+  </action>
+
+
+  <action name="drop_table">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>occurrenceTable=${download_table_name}</param>
+    </hive>
+
+    <ok to="end" />
+    <error to="kill" />
+  </action>
+
+
+  <action name="failure_drop_table">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>occurrenceTable=${download_table_name}</param>
+    </hive>
+
+    <ok to="kill" />
+    <error to="kill" />
+  </action>
+
+
+  <kill name="kill">
+    <message>Occurrence download failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  </kill>
+
+  <end name="end" />
+
+</workflow-app>

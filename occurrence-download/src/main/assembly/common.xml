@@ -35,8 +35,10 @@
         <include>com.beust:jcommander:jar</include>
         <include>com.google.guava:guava:jar</include>
         <include>com.google.inject:guice:jar</include>
+        <include>com.google.inject.extensions:guice-multibindings:jar</include>
         <include>com.klout:brickhouse:jar</include>
         <include>com.sun.jersey.contribs:jersey-apache-client:jar</include>
+        <include>com.sun.jersey.contribs:jersey-apache-client4:jar</include>
         <include>com.sun.jersey:jersey-client:jar</include>
         <include>com.sun.jersey:jersey-core:jar</include>
         <include>com.typesafe.akka:akka-actor:jar</include>
@@ -46,9 +48,15 @@
         <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>
         <include>net.sf.supercsv:super-csv:jar</include>
         <include>joda-time:joda-time:jar</include>
+        <include>org.javassist:javassist:jar</include>
+        <include>org.freemarker:freemarker:jar</include>
         <include>log4j:log4j:jar</include>
         <include>org.apache.commons:commons-lang3:jar</include>
+        <include>org.mybatis:mybatis-guice:jar</include>
+        <include>com.zaxxer:HikariCP-java6:jar</include>
+        <include>mysql:mysql-connector-java:jar</include>
         <include>commons-logging:commons-logging:jar</include>
+        <include>javax.validation:validation-api</include>
         <include>org.apache.curator:curator-client:jar</include>
         <include>org.apache.curator:curator-framework:jar</include>
         <include>org.apache.curator:curator-recipes:jar</include>
@@ -58,12 +66,14 @@
         <include>org.apache.hbase:hbase-server:jar</include>
         <include>org.apache.hbase:hbase-protocol:jar</include>
         <include>org.apache.hive:hive-hbase-handler</include>
+        <include>org.apache.htrace:htrace-core:jar</include>
         <include>org.apache.httpcomponents:httpclient</include>
         <include>org.apache.httpcomponents:httpcore</include>
         <include>org.apache.httpcomponents:httpmime:jar</include>
         <include>org.apache.solr:solr-solrj:jar</include>
         <include>org.apache.solr:solr-core:jar</include>
-        <include>org.htrace:htrace-core:jar</include>
+        <include>org.mybatis:mybatis:jar</include>
+        <include>org.cloudera.htrace:htrace-core:jar</include>
         <include>org.codehaus.jackson:jackson-jaxrs:jar</include>
         <include>org.codehaus.jackson:jackson-mapper-asl:jar</include>
         <include>org.codehaus.jackson:jackson-core-asl:jar</include>
@@ -71,17 +81,24 @@
         <include>org.gbif:hbase-utils:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
+        <include>org.gbif.occurrence:download-query-tools:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>
         <include>org.gbif.occurrence:occurrence-persistence:jar</include>
         <include>org.gbif.occurrence:occurrence-search:jar</include>
         <include>org.gbif.registry:registry-ws-client:jar</include>
+        <include>org.gbif.registry:registry-metadata:jar</include>
         <include>org.gbif:dwc-api:jar</include>
+        <include>org.gbif:dwca-reader:jar</include>
+        <include>org.gbif:gbif-metadata-profile:jar</include>
         <include>org.gbif:gbif-api:jar</include>
+        <include>org.gbif:drupal-mybatis:jar</include>
         <include>org.gbif:gbif-common-search:jar</include>
         <include>org.gbif:gbif-common-service:jar</include>
         <include>org.gbif:gbif-common-ws:jar</include>
         <include>org.gbif:gbif-common:jar</include>
         <include>org.gbif:gbif-wrangler:jar</include>
+        <include>org.gbif:gbif-common-mybatis:jar</include>
+        <include>org.gbif:gbif-httputils:jar</include>
         <include>org.noggit:noggit:jar</include>
         <include>org.scala-lang:scala-library:jar</include>
       </includes>
@@ -96,4 +113,19 @@
       <outputDirectory>lib</outputDirectory>
     </file>
   </files>
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.outputDirectory}/download-workflow/</directory>
+      <outputDirectory>/download-workflow/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.outputDirectory}</directory>
+      <outputDirectory>/</outputDirectory>
+      <fileMode>0755</fileMode>
+      <includes>
+        <include>**/*.sh</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+
 </assembly>

@@ -11,12 +11,12 @@ CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UD
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
--- TODO: enable this when we're done testing the basics
+
 -- setup for our custom, combinable deflated compression
--- SET hive.exec.compress.output=true;
--- SET io.seqfile.compression.type=BLOCK;
--- SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
--- SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
+SET hive.exec.compress.output=true;
+SET io.seqfile.compression.type=BLOCK;
+SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
+SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${verbatimTable}"};
@@ -51,7 +51,7 @@ FROM occurrence_hdfs
   WHERE ${r"${whereClause}"}
   INSERT INTO TABLE ${r"${interpretedTable}"}
   SELECT
-<#list interpretedFields as field>
+<#list initializedInterpretedFields as field>
     ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"};
@@ -72,7 +72,9 @@ FROM
 --
 -- Creates the citation table
 -- At most this produces #datasets, so single reducer
---
+-- creates the citations table, citation table is not compressed since it is read later
+SET mapred.output.compress=false;
+SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 CREATE TABLE ${r"${citationTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'

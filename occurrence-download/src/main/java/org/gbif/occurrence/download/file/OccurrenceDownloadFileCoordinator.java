@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
@@ -16,18 +15,15 @@ public interface OccurrenceDownloadFileCoordinator {
 
   /**
    * Initialize the process, this method is invoked before distributing the work among the jobs.
-   * @param baseDataFileName output data file, it's a base name if multiple file are produced
-   * @param downloadFormat requested download format
    */
-  void init(String baseDataFileName, DownloadFormat downloadFormat);
+  void init();
 
   /**
    * Collects/aggregates the results produced.
    * @param futures list of future results produced by worker threads
-   * @param baseDataFileName output data file, it's a base name if multiple file are produced
    * @throws IOException in case files results can't be read/written
    */
-  void aggregateResults(Future<Iterable<Result>> futures, String baseDataFileName) throws Exception;
+  void aggregateResults(Future<Iterable<Result>> futures) throws Exception;
 
   /**
    * Factory method that creates a Job that reads data from Solr/Hbase and returns the result as a Future.

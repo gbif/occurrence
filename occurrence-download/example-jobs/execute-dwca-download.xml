@@ -6,7 +6,7 @@
   <!-- See the install-workflow.sh which declares this location during development -->
   <property>
     <name>oozie.wf.application.path</name>
-    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev_downloads/simple-download</value>
+    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev-subworkflows/occurrence-download-workflows-dev/download-workflow/</value>
   </property>
 
   <!--
@@ -18,20 +18,28 @@
   </property>
   <property>
     <name>hive_db</name>
-    <value>dev_downloads</value>
+    <value>dev</value>
+  </property>
+  <property>
+    <name>gbif_user</name>
+    <value>fmendez</value>
+  </property>
+  <property>
+    <name>download_link</name>
+    <value>http://api.gbif-dev.org/v1/occurrence/download/request/_DOWNLOAD_ID_.zip</value>
   </property>
   <property>
     <name>download_format</name>
-    <value>SIMPLE_CSV</value>
+    <value>DWCA</value>
   </property>
   <property>
     <name>gbif_filter</name>
-    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
+    <value>{"type":"equals","key":"COUNTRY","value":"CR"}</value>
   </property>
 
   <property>
     <name>oozie.libpath</name>
-    <value>/occurrence-download-workflows-dev_downloads/lib/</value>
+    <value>/occurrence-download-workflows-dev-subworkflows/occurrence-download-workflows-dev/lib/</value>
   </property>
   <property>
     <name>oozie.use.system.libpath</name>

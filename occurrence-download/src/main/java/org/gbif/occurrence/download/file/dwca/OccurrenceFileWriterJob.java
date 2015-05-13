@@ -225,13 +225,13 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
 
     try (
       ICsvMapWriter intCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getBaseDataFileName() + Constants.INTERPRETED_SUFFIX, Charsets.UTF_8),
+        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.INTERPRETED_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE);
       ICsvMapWriter verbCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getBaseDataFileName() + Constants.VERBATIM_SUFFIX, Charsets.UTF_8),
+        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.VERBATIM_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE);
       ICsvBeanWriter multimediaCsvWriter =
-        new CsvBeanWriter(new FileWriterWithEncoding(fileJob.getBaseDataFileName() + Constants.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
+        new CsvBeanWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE))
       {
         SolrQueryProcessor.processQuery(fileJob,solrServer, new Predicate<Integer>() {
@@ -268,7 +268,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
-  private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
+  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
     Integer occurrenceKey)
     throws IOException {
     List<MediaObject> multimedias = OccurrenceBuilder.buildMedia(result);
@@ -283,7 +283,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
   /**
    * Creates a SolrQuery that contains the query parameter as the filter query value.
    */
-  private SolrQuery createSolrQuery(String query) {
+  private static SolrQuery createSolrQuery(String query) {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery(SolrConstants.DEFAULT_QUERY);
     if (!Strings.isNullOrEmpty(query)) {

@@ -43,8 +43,8 @@ class Queries {
   /**
    * @return the select fields for the interpreted table in the simple download
    */
-  static List<InitializableField> selectInterpretedFields() {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS);
+  static List<InitializableField> selectInterpretedFields(boolean useInitializers) {
+    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers);
   }
 
 
@@ -52,14 +52,14 @@ class Queries {
    * @return the select fields for the table in the simple download
    */
   static List<InitializableField> selectSimpleDownloadFields() {
-    return selectDownloadFields(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS);
+    return selectDownloadFields(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS, true);
   }
 
 
   /**
    * @return the select fields for the interpreted table in the simple download
    */
-  private static List<InitializableField> selectDownloadFields(Set<Term> terms) {
+  private static List<InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     // always add the GBIF ID
     builder.add(new InitializableField(
@@ -71,7 +71,7 @@ class Queries {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }
-      if(TermUtils.isInterpretedDate(term)){
+      if(useInitializers && TermUtils.isInterpretedDate(term)){
         builder.add(new InitializableField(term, toISO8601Initializer(term), HiveDataTypes.TYPE_STRING));
       } else {
         builder.add(new InitializableField(term, HiveColumns.columnFor(term), HiveDataTypes.TYPE_STRING));

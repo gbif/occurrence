@@ -5,6 +5,8 @@ import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.search.inject.SolrModule;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
@@ -12,12 +14,10 @@ import org.gbif.occurrence.download.file.dwca.DwcaOccurrenceDownloadFileCoordina
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvOccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareStep;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
-import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 
 import akka.dispatch.ExecutionContextExecutorService;
@@ -48,10 +48,12 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
-  private final Properties properties;
+  private final OccurrenceDownloadConfiguration configuration;
+
+  private final WorkflowConfiguration workflowConfiguration;
 
   /**
-   * Utility class that contains constants and keys set each time the worklfow is executed.
+   * Utility class that contains constants and keys set each time the workflow is executed.
    */
   public static class DynamicSettings {
 
@@ -66,10 +68,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String WORKFLOW_PROPERTIES_PREFIX = PROPERTIES_PREFIX + "workflow.";
 
     public static final String DOWNLOAD_FORMAT_KEY = WORKFLOW_PROPERTIES_PREFIX + "format";
-
-    public static final String DOWNLOAD_KEY = WORKFLOW_PROPERTIES_PREFIX + "downloadKey";
-
-    public static final String HDFS_OUPUT_PATH_KEY = WORKFLOW_PROPERTIES_PREFIX + "hdfsOutputPath";
 
   }
 
@@ -87,6 +85,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
     public static final String NAME_NODE_KEY =  "hdfs.namenode";
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
+    public static final String API_URL_KEY = "api.url";
 
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
@@ -95,6 +94,10 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
     public static final String DOWNLOAD_USER_KEY = PROPERTIES_PREFIX + "ws.username";
     public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
+    public static final String DOWNLOAD_LINK_KEY = PROPERTIES_PREFIX + "link";
+    public static final String HDFS_OUTPUT_PATH_KEY = PROPERTIES_PREFIX + "hdfsOutputPath";
+    public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
+    public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.hdfs.out";
 
   }
 
@@ -102,43 +105,40 @@ public final class DownloadWorkflowModule extends AbstractModule {
    * Loads the default configuration file name and copies the additionalProperties into it.
    * @param additionalProperties configuration settings
    */
-  public DownloadWorkflowModule(Properties additionalProperties) {
-    try {
-      properties = PropertiesUtil.loadProperties(CONF_FILE);
-      properties.putAll(additionalProperties);
-    } catch(Throwable t) {
-      throw new IllegalStateException(t);
-    }
+  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, OccurrenceDownloadConfiguration configuration) {
+    this.configuration = configuration;
+    this.workflowConfiguration = workflowConfiguration;
   }
 
   /**
    * Loads the default configuration file name 'occurrence-download.properties'.
    */
-  public DownloadWorkflowModule() {
-    try {
-      properties = PropertiesUtil.loadProperties(CONF_FILE);
-    } catch(Throwable t) {
-      throw new IllegalStateException(t);
-    }
+  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration) {
+   this.workflowConfiguration = workflowConfiguration;
+   configuration = null;
   }
 
   @Override
   protected void configure() {
-    Names.bindProperties(binder(), properties);
+    Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
     install(new SolrModule());
     bind(OccurrenceMapReader.class);
     bind(DownloadPrepareStep.class);
+    bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
+    if(configuration != null){
+      bind(OccurrenceDownloadConfiguration.class).toInstance(configuration);
+    }
     bindDownloadFilesBuilding();
   }
 
   /**
    * Binds a DownloadFilesAggregator according to the DownloadFormat set using the key DOWNLOAD_FORMAT_KEY.
    */
-  private void bindDownloadFilesBuilding(){
-    if(properties.containsKey(DynamicSettings.DOWNLOAD_FORMAT_KEY)){
+  private void bindDownloadFilesBuilding() {
+    DownloadFormat downloadFormat = workflowConfiguration.getDownloadFormat();
+    if(downloadFormat != null){
       bind(OccurrenceDownloadFileSupervisor.Configuration.class);
       bind(OccurrenceDownloadFileSupervisor.class);
-      DownloadFormat downloadFormat = DownloadFormat.valueOf(properties.getProperty(DynamicSettings.DOWNLOAD_FORMAT_KEY));
       if (DownloadFormat.DWCA == downloadFormat) {
         bind(OccurrenceDownloadFileCoordinator.class).to(DwcaOccurrenceDownloadFileCoordinator.class);
       } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
@@ -168,21 +168,21 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Provides
   @Singleton
   DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(properties);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
     return registryClientUtil.setupDatasetUsageService(registryWsUri);
   }
 
   @Provides
   @Singleton
   DatasetService provideDatasetService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(properties);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
     return registryClientUtil.setupDatasetService(registryWsUri);
   }
 
   @Provides
   @Singleton
   OccurrenceDownloadService provideOccurrenceDownloadService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(properties);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
     return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
   }
 

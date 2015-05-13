@@ -80,7 +80,7 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
 
 
     try (ICsvMapWriter csvMapWriter =
-           new CsvMapWriter(new FileWriterWithEncoding(fileJob.getBaseDataFileName() + '/' + fileJob.getJobDataFileName(), Charsets.UTF_8),
+           new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName(), Charsets.UTF_8),
                             CsvPreference.TAB_PREFERENCE)) {
 
 
