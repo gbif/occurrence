@@ -49,7 +49,7 @@ public class DownloadTablesAction {
    */
   public static void run(OccurrenceDownloadConfiguration configuration)
     throws IOException {
-    final Injector injector = createInjector();
+    final Injector injector = createInjector(configuration);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
     final OccurrenceDownloadFileSupervisor
       downloadFileSupervisor = injector.getInstance(OccurrenceDownloadFileSupervisor.class);
@@ -63,9 +63,9 @@ public class DownloadTablesAction {
   /**
    * Utility method that creates the Guice injector.
    */
-  private static Injector createInjector() {
+  private static Injector createInjector(OccurrenceDownloadConfiguration configuration) {
     try {
-      return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration));
+      return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration,configuration));
     } catch (IllegalArgumentException e) {
       LOG.error("Error initializing injection module", e);
       throw Throwables.propagate(e);
