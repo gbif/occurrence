@@ -84,7 +84,7 @@ public class OccurrenceDownloadConfiguration {
   }
 
   public String getDownloadTempDir(String suffix) {
-    return (sourceDir + Path.SEPARATOR + downloadKey + suffix + Path.SEPARATOR).toLowerCase();
+    return (sourceDir + Path.SEPARATOR + (isSmallDownload? downloadKey : downloadTableName) + suffix + Path.SEPARATOR).toLowerCase();
   }
 
   public String getDownloadTempDir() {
