@@ -27,10 +27,9 @@ mvn --settings profiles.xml -P$P -DskipTests -Duser.timezone=UTC clean install p
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder dev  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
-hdfs dfs -rm -r /occurrence-download-workflows-$ENV-subworkflows/
-hdfs dfs -mkdir  /occurrence-download-workflows-$ENV-subworkflows/
-hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /occurrence-download-workflows-$ENV-subworkflows/
-echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV-subworklfows/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE"  > job.properties
+hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
+hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
+echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE"  > job.properties
 
-#oozie job --oozie $OOZIE -config job.properties -run
+oozie job --oozie $OOZIE -config job.properties -run
 

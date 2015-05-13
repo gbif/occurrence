@@ -89,12 +89,10 @@ public class DownloadWorkflowParametersBuilder {
   }
 
   private final Map<String, String> defaultProperties;
-  private final Map<String, String> simpleCSVDefaultProperties;
   private final String wsUrl;
 
-  public DownloadWorkflowParametersBuilder(Map<String, String> defaultProperties, Map<String, String> simpleCSVDefaultProperties, String wsUrl) {
+  public DownloadWorkflowParametersBuilder(Map<String, String> defaultProperties,String wsUrl) {
     this.defaultProperties = defaultProperties;
-    this.simpleCSVDefaultProperties = simpleCSVDefaultProperties;
     this.wsUrl = wsUrl;
   }
 
@@ -102,21 +100,8 @@ public class DownloadWorkflowParametersBuilder {
    * Use the request.format to build the workflow parameters.
    */
   public Properties buildWorkflowParameters(DownloadRequest request) {
-    if (DownloadFormat.DWCA == request.getFormat()) {
-      return buildDWCADownloadParameters(request);
-    } else if (DownloadFormat.SIMPLE_CSV == request.getFormat()){
-      return buildSimpleCSVParameters(request);
-    }
-    throw new IllegalStateException("Unsupported download format");
-  }
-
-  /**
-   * Builds the parameters required for the SimpleCSV download workflow.
-   */
-  private Properties buildSimpleCSVParameters(DownloadRequest request) {
-
     Properties properties = new Properties();
-    properties.putAll(simpleCSVDefaultProperties);
+    properties.putAll(defaultProperties);
     properties.put(DownloadWorkflowParameters.SimpleCsv.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
@@ -127,6 +112,7 @@ public class DownloadWorkflowParametersBuilder {
 
     return properties;
   }
+
 
   /**
    * Serializes a predicate filter into a json string.

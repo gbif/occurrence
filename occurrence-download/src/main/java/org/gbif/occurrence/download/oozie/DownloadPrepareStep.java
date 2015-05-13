@@ -70,6 +70,8 @@ public class DownloadPrepareStep {
 
   private final OccurrenceDownloadService occurrenceDownloadService;
 
+  private final WorkflowConfiguration workflowConfiguration;
+
   /**
    * Default/injectable constructor.
    */
@@ -77,11 +79,13 @@ public class DownloadPrepareStep {
   public DownloadPrepareStep(
     SolrServer solrServer,
     @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
-    OccurrenceDownloadService occurrenceDownloadService
+    OccurrenceDownloadService occurrenceDownloadService,
+    WorkflowConfiguration workflowConfiguration
   ) {
     this.solrServer = solrServer;
     this.smallDownloadLimit = smallDownloadLimit;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.workflowConfiguration = workflowConfiguration;
   }
 
   /**
@@ -149,7 +153,8 @@ public class DownloadPrepareStep {
         props.setProperty(SOLR_QUERY,solrQuery);
         props.setProperty(HIVE_QUERY,StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         props.setProperty(DOWNLOAD_KEY,downloadKey);
-        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_'));
+        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_')); // '-' is replaced by '_' because it's not allowed in hive table names
+        props.setProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY,workflowConfiguration.getHiveDb());
         props.store(os, "");
       } catch (FileNotFoundException e) {
         LOG.error("Error reading properties file", e);

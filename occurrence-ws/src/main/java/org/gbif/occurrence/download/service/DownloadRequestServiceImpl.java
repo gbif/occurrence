@@ -100,7 +100,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   @Inject
   public DownloadRequestServiceImpl(OozieClient client,
                                     @Named("oozie.default_properties") Map<String, String> defaultProperties,
-                                    @Named("oozie.default_simplecsv_properties") Map<String, String> simpleCSVDefaultProperties,
                                     @Named("ws.url") String wsUrl,
                                     @Named("ws.mount") String wsMountDir,
                                     OccurrenceDownloadService occurrenceDownloadService,
@@ -112,7 +111,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadEmailUtils = downloadEmailUtils;
-    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties,simpleCSVDefaultProperties,wsUrl);
+    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties,wsUrl);
     this.downloadLimitsService = downloadLimitsService;
   }
 

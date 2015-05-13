@@ -38,6 +38,11 @@ public class WorkflowConfiguration {
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
   }
 
+  public String getHiveDb(){
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY);
+  }
+
   public String getRegistryWsUrl() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
