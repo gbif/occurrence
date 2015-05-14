@@ -13,6 +13,8 @@ public class DownloadWorkflowParameters {
    */
   public static final String  WORKFLOWS_PATH_FMT = "/occurrence-download-workflows-%s/";
 
+  public static final String  DOWNLOAD_WORKFLOW_PATH_FMT = WORKFLOWS_PATH_FMT + "download-workflow";
+
   public static final String  WORKFLOWS_LIB_PATH_FMT = WORKFLOWS_PATH_FMT + "lib/";
 
   /**
