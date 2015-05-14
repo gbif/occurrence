@@ -21,34 +21,14 @@ public class DownloadWorkflowParameters {
   public static final ImmutableMap<String,String> CONSTANT_PARAMETERS = new ImmutableMap.Builder<String,String>()
                                                           .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
                                                           .put("mapreduce.job.user.classpath.first", "true").build();
-  /**
-   * Hidden constructor.
-   */
-   private DownloadWorkflowParameters(){
 
-   }
+  //Hive database.
+  public static final String HIVE_DB = "hive_db";
 
-  /**
-   * Parameters of the simple-csv occurrence download workflow.
-   */
-  public static class SimpleCsv {
+  //Download format.
+  public static final String DOWNLOAD_FORMAT = "download_format";
 
-    /**
-     * Hidden constructor.
-     */
-    private SimpleCsv() {
+  //Filter/Predicate.
+  public static final String GBIF_FILTER = "gbif_filter";
 
-    }
-     //Hive database.
-    public static final String HIVE_DB = "hive_db";
-
-    //Download format.
-    public static final String DOWNLOAD_FORMAT = "download_format";
-
-    //Filter/Predicate.
-    public static final String GBIF_FILTER = "gbif_filter";
-
-    public static final String  WORKFLOW_PATH_FMT = WORKFLOWS_PATH_FMT + "simple-download/";
-
-  }
 }
