@@ -55,6 +55,8 @@ public class DownloadPrepareStep {
 
   private static final String SOLR_QUERY = "solr_query";
 
+  private static final String HIVE_DB = "hive_db";
+
   private static final String HIVE_QUERY = "hive_query";
 
   private static final String DOWNLOAD_KEY = "download_key";
@@ -154,7 +156,7 @@ public class DownloadPrepareStep {
         props.setProperty(HIVE_QUERY,StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         props.setProperty(DOWNLOAD_KEY,downloadKey);
         props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_')); // '-' is replaced by '_' because it's not allowed in hive table names
-        props.setProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY,workflowConfiguration.getHiveDb());
+        props.setProperty(HIVE_DB,workflowConfiguration.getHiveDb());
         props.store(os, "");
       } catch (FileNotFoundException e) {
         LOG.error("Error reading properties file", e);
