@@ -39,7 +39,7 @@
 
   <property>
     <name>oozie.libpath</name>
-    <value>/occurrence-download-workflows-dev-subworkflows/occurrence-download-workflows-dev/lib/</value>
+    <value>/occurrence-download-workflows-dev/lib/</value>
   </property>
   <property>
     <name>oozie.use.system.libpath</name>
