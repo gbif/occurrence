@@ -21,10 +21,6 @@ public class DownloadWorkflowParameters {
   public static final ImmutableMap<String,String> CONSTANT_PARAMETERS = new ImmutableMap.Builder<String,String>()
                                                           .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
                                                           .put("mapreduce.job.user.classpath.first", "true").build();
-
-  //Hive database.
-  public static final String HIVE_DB = "hive_db";
-
   //Download format.
   public static final String DOWNLOAD_FORMAT = "download_format";
 
