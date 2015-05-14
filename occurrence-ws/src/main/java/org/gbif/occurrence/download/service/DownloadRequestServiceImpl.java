@@ -111,7 +111,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadEmailUtils = downloadEmailUtils;
-    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties,wsUrl);
+    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
     this.downloadLimitsService = downloadLimitsService;
   }
 
