@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.service.workflow;
 
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
@@ -40,6 +41,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.putAll(defaultProperties);
     properties.put(DownloadWorkflowParameters.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
+    properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name()) ;
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
     }

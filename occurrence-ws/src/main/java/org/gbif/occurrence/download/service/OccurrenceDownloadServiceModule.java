@@ -58,7 +58,6 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
                                                         @Named("ws.url") String wsUrl,
                                                         @Named("hdfs.namenode") String nameNode){
     return new ImmutableMap.Builder<String, String>()
-                                              .put(DownloadWorkflowParameters.DOWNLOAD_FORMAT, DownloadFormat.SIMPLE_CSV.name())
                                               .put(OozieClient.LIBPATH,String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,environment))
                                                .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,environment))
                                               .put(OozieClient.WORKFLOW_NOTIFICATION_URL, DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
