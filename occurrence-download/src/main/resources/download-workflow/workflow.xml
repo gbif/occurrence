@@ -90,7 +90,7 @@
 
   <action name="dwca_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/dwca</app-path>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
