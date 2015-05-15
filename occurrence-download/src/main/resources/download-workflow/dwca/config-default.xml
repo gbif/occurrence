@@ -26,7 +26,7 @@
   -->
   <property>
     <name>hiveDB</name>
-    <value>${occurrence.environment}-TODO-REMOVE-THIS-SUFFIX</value>
+    <value>${occurrence.environment}</value>
   </property>
 
   <!--
