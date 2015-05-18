@@ -9,6 +9,7 @@
 USE ${r"${hiveDB}"};
 
 -- create the HBase table view
+DROP TABLE IF EXISTS occurrence_hbase;
 CREATE EXTERNAL TABLE IF NOT EXISTS occurrence_hbase (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
