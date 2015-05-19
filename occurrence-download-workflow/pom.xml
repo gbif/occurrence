@@ -110,7 +110,7 @@
     </repository>
     <repository>
       <id>cloudera</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
