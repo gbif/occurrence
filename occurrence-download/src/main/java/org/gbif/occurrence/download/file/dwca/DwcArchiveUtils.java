@@ -32,6 +32,9 @@ public class DwcArchiveUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DwcArchiveUtils.class);
   private static final String DEFAULT_DELIMITER = ";";
 
+  /**
+   * Hidden constructor.
+   */
   private DwcArchiveUtils() {
     // private empty constructor
   }
@@ -41,7 +44,6 @@ public class DwcArchiveUtils {
    * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
    *
-   * @param columns iterable for column terms in the right order. Must include GbifTerm.gbifID
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
     ArchiveFile af = buildBaseArchive(filename, rowType.qualifiedName());
@@ -56,11 +58,11 @@ public class DwcArchiveUtils {
       af.addField(field);
       index++;
     }
-    ArchiveField coreid = af.getField(GbifTerm.gbifID);
-    if (coreid == null) {
+    ArchiveField coreId = af.getField(GbifTerm.gbifID);
+    if (coreId == null) {
       throw new IllegalArgumentException("Archive columns MUST include the gbif:gbifID term");
     }
-    af.setId(coreid);
+    af.setId(coreId);
     return af;
   }
 

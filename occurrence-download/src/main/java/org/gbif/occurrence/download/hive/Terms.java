@@ -28,7 +28,7 @@ import com.google.common.collect.Sets;
  * The code in this class is intended as a more intuitive replacement for {@link org.gbif.occurrence.common.TermUtils}
  * and should be merged into that class when ready.
  */
-public class Terms {
+public final class Terms {
 
   private Terms() {
     // empty constructor

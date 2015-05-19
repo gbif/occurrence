@@ -306,9 +306,9 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Searches any of the nub keys in hbase of any rank.
+   * Searches any of the nub keys in HBase of any rank.
    *
-   * @param taxonKey
+   * @param taxonKey to append as filter
    */
   private void appendTaxonKeyFilter(String taxonKey) {
     builder.append('(');
@@ -355,9 +355,9 @@ public class HiveQueryVisitor {
    * @param value the original query value
    * @return the converted value expected by HBase
    */
-  private String toHiveValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
+  private static String toHiveValue(OccurrenceSearchParameter param, String value) {
     if (Enum.class.isAssignableFrom(param.type())) {
-      // all enum parameters are uppercased
+      // all enum parameters are uppercase
       return '\'' + value.toUpperCase() + '\'';
     }
 

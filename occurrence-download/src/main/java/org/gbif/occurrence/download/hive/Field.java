@@ -13,9 +13,9 @@ import com.google.common.base.Objects;
 @Immutable
 public class Field {
 
-  protected final String hiveField;
-  protected final String hiveDataType;
-  protected final Term term;
+  private final String hiveField;
+  private final String hiveDataType;
+  private final Term term;
 
   public Field(Term term, String hiveField, String hiveDataType) {
     this.hiveField = hiveField;
@@ -42,11 +42,15 @@ public class Field {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
                   .add("hiveField", hiveField)
                   .add("hiveDataType", hiveDataType)
                   .add("term", term)
                   .toString();
+  }
+
+  protected Objects.ToStringHelper toStringHelper(){
+    return Objects.toStringHelper(this).omitNullValues();
   }
 
   public String getHiveField() {

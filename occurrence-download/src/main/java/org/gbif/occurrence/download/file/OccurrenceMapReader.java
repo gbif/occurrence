@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
@@ -26,7 +25,6 @@ import javax.annotation.Nullable;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.hadoop.hbase.client.Get;
@@ -71,9 +69,9 @@ public class OccurrenceMapReader {
           Integer value = ExtResultReader.getInteger(row, term);
           occurrence.put(term.simpleName(), value != null ? value.toString() : null);
         } else if (term == GbifTerm.issue) {
-          occurrence.put(term.simpleName(), extractOccurrenceIssues(row));
+          occurrence.put(GbifTerm.issue.simpleName(), extractOccurrenceIssues(row));
         } else if (term == GbifTerm.mediaType) {
-          occurrence.put(term.simpleName(), extractMediaTypes(row));
+          occurrence.put(GbifTerm.mediaType.simpleName(), extractMediaTypes(row));
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
@@ -81,8 +79,8 @@ public class OccurrenceMapReader {
       occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
       occurrence.put(
         GbifTerm.hasCoordinate.simpleName(),
-        Boolean.toString(occurrence.get(DwcTerm.decimalLatitude) != null
-          && occurrence.get(DwcTerm.decimalLongitude) != null));
+        Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
+          && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
       return occurrence;
     }
   }
@@ -108,16 +106,16 @@ public class OccurrenceMapReader {
           Integer value = ExtResultReader.getInteger(row, term);
           occurrence.put(term.simpleName(), value != null ? value.toString() : null);
         } else if (term == GbifTerm.issue) {
-          occurrence.put(term.simpleName(), extractOccurrenceIssues(row));
+          occurrence.put(GbifTerm.issue.simpleName(), extractOccurrenceIssues(row));
         } else if (term == GbifTerm.mediaType) {
-          occurrence.put(term.simpleName(), extractMediaTypes(row));
+          occurrence.put(GbifTerm.mediaType.simpleName(), extractMediaTypes(row));
         } else if (term == GbifTerm.hasGeospatialIssues) {
           occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
         } else if (term == GbifTerm.hasCoordinate) {
           occurrence.put(
             GbifTerm.hasCoordinate.simpleName(),
-            Boolean.toString(occurrence.get(DwcTerm.decimalLatitude) != null
-                             && occurrence.get(DwcTerm.decimalLongitude) != null));
+            Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
+                             && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
@@ -130,7 +128,7 @@ public class OccurrenceMapReader {
    * Extracts the media types from the hbase result.
    */
   private static String extractMediaTypes(Result result) {
-    final byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA)));
+    byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA)));
     return (val != null) ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val)) : "";
   }
 
@@ -150,7 +148,7 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Extracts the spatial issues from the hbase result.
+   * Extracts the spatial issues from the HBase result.
    */
   private static Boolean hasGeospatialIssues(Result result) {
     for (OccurrenceIssue issue : OccurrenceIssue.GEOSPATIAL_RULES) {
@@ -160,7 +158,6 @@ public class OccurrenceMapReader {
         return true;
       }
     }
-
     return false;
   }
 
@@ -203,10 +200,7 @@ public class OccurrenceMapReader {
    * Converts a date object into a String in IS0 8601 format.
    */
   public static String toISO8601Date(Date date) {
-    if (date != null) {
-      return new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format(date);
-    }
-    return null;
+    return date != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format(date) : null;
   }
 
 
@@ -215,18 +209,9 @@ public class OccurrenceMapReader {
    * The occurrence record
    */
   public Result get(@Nonnull Integer key) throws IOException {
-    Preconditions.checkNotNull(key, "Ocurrence key can't be null");
-    HTableInterface table = null;
-    Closer closer = Closer.create();
-    try {
-      table = tablePool.getTable(occurrenceTableName);
-      closer.register(table);
-      Get get = new Get(Bytes.toBytes(key));
-      return table.get(get);
-    } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      closer.close();
+    Preconditions.checkNotNull(key, "Occurrence key can't be null");
+    try (HTableInterface table = tablePool.getTable(occurrenceTableName) ) {
+      return table.get(new Get(Bytes.toBytes(key)));
     }
   }
 

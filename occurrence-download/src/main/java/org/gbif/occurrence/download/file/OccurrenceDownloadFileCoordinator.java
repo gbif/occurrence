@@ -31,7 +31,7 @@ public interface OccurrenceDownloadFileCoordinator {
    * @param lock ZK lock used to controlled the maximum number of jobs available
    * @param solrServer from where the data is loaded
    * @param occurrenceMapReader used to load the details of occurrence records
-   * @return
+   * @return a Callable that contains the result
    */
   Callable<Result> createJob(FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader);
 }

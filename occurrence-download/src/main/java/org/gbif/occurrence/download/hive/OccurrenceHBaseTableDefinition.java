@@ -115,7 +115,7 @@ public class OccurrenceHBaseTableDefinition {
                     GbifTerm.Multimedia,
                     HiveColumns.columnFor(e),
                     HiveDataTypes.TYPE_STRING, // always, as it has a custom serialization
-                    Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(e))
+                    Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(e))
       );
     }
     return builder.build();
@@ -156,7 +156,7 @@ public class OccurrenceHBaseTableDefinition {
     return new HBaseField(term,
                           HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(), // no escape needed, due to prefix
                           HiveDataTypes.typeForTerm(term, true), // verbatim context
-                          Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.verbatimColumn(term));
+                          Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.verbatimColumn(term));
   }
 
   /**
@@ -168,6 +168,13 @@ public class OccurrenceHBaseTableDefinition {
                           // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
                           // column uin HBase for us
                           HiveDataTypes.typeForTerm(term, false), // not verbatim context
-                          Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(term));
+                          Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(term));
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private OccurrenceHBaseTableDefinition() {
+    //empty constructor
   }
 }

@@ -19,7 +19,7 @@ public class WorkflowConfiguration {
   private final Configuration hadoopConf;
 
   public WorkflowConfiguration(Properties settings) {
-    this.settings = settings;
+    this.settings = new Properties(settings);
     hadoopConf = new Configuration();
     hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
   }

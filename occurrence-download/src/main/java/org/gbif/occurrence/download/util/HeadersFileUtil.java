@@ -47,7 +47,7 @@ public class HeadersFileUtil {
     generateHeadersFiles(String verbatimFileName, String interpretedFileName, String multimediaFileName)
       throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
-    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getIntepretedTableHeader());
+    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader());
     generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, getMultimediaTableHeader());
   }
 
@@ -81,7 +81,7 @@ public class HeadersFileUtil {
    * Appends the occurrence headers line to the output file.
    */
   public static void appendInterpretedHeaders(OutputStream fileWriter) throws IOException {
-    appendHeaders(fileWriter, getIntepretedTableHeader());
+    appendHeaders(fileWriter, getInterpretedTableHeader());
   }
 
   /**
@@ -123,7 +123,7 @@ public class HeadersFileUtil {
   /**
    * Returns the headers names of download columns.
    */
-  public static String getIntepretedTableHeader() {
+  public static String getInterpretedTableHeader() {
     return getTableHeader(TermUtils.interpretedTerms());
   }
 

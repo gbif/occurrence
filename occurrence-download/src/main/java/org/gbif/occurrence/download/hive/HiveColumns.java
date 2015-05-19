@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Utilities related to columns in Hive.
  */
-public class HiveColumns {
+public final class HiveColumns {
 
   // reserved hive words
   private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of(
@@ -48,13 +48,6 @@ public class HiveColumns {
    */
   public static String columnFor(Extension extension) {
     return escapeColumnName(EXTENSION_PREFIX + extension.name().toLowerCase());
-  }
-
-  /**
-   * Checks if the term is stored as an Hive array.
-   */
-  public static boolean isHiveArray(Term term) {
-    return GbifTerm.mediaType == term || GbifTerm.issue == term;
   }
 
   /**

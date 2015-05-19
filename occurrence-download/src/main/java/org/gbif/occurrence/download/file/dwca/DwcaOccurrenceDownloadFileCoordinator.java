@@ -2,8 +2,8 @@ package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.FileJob;
-import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
@@ -31,6 +31,9 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Manages the creation of DwcA downloads from Solr/HBase.
+ */
 public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownloadFileCoordinator {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaOccurrenceDownloadFileCoordinator.class);
@@ -41,15 +44,15 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
   //Dataset service
   private final DatasetService datasetService;
 
-  private OccurrenceDownloadConfiguration configuration;
+  private final DownloadJobConfiguration configuration;
 
 
   @Inject
   public DwcaOccurrenceDownloadFileCoordinator(
     DatasetOccurrenceDownloadUsageService datasetOccUsageService,
     DatasetService datasetService,
-    OccurrenceDownloadConfiguration configuration
-  ){
+    DownloadJobConfiguration configuration
+  ) {
     this.datasetService = datasetService;
     this.datasetOccUsageService = datasetOccUsageService;
     this.configuration = configuration;
@@ -85,19 +88,16 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
    */
   public void aggregateResults(Future<Iterable<Result>> futures)
     throws IOException {
-    Closer outFileCloser = Closer.create();
-    try {
+    try (FileOutputStream interpretedFileWriter = new FileOutputStream(configuration.getInterpretedDataFileName(), true);
+         FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
+         FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true)) {
+
+      //Awaits for all the jobs to finish.
       List<Result> results =
         Lists.newArrayList(Await.result(futures, Duration.Inf()));
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
         Collections.sort(results);
-        FileOutputStream interpretedFileWriter =
-          outFileCloser.register(new FileOutputStream(configuration.getInterpretedDataFileName(), true));
-        FileOutputStream verbatimFileWriter =
-          outFileCloser.register(new FileOutputStream(configuration.getVerbatimDataFileName(), true));
-        FileOutputStream multimediaFileWriter =
-          outFileCloser.register(new FileOutputStream(configuration.getMultimediaDataFileName(), true));
         HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
         HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
         HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
@@ -110,33 +110,30 @@ public class DwcaOccurrenceDownloadFileCoordinator implements OccurrenceDownload
                                                configuration.getCitationDataFileName(),
                                                datasetOccUsageService,
                                                datasetService, configuration.getDownloadKey());
-
+        //Creates the DwcA zip file
         DwcaArchiveBuilder.buildArchive(configuration);
       }
     } catch (Exception e) {
       throw Throwables.propagate(e);
-    } finally {
-      outFileCloser.close();
     }
   }
 
-  private void createArchive(){
-
-  }
-
+  /**
+   * Creates a new Callable capable of returning a Result.
+   */
   public Callable<Result> createJob(FileJob fileJob, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader){
     return new OccurrenceFileWriterJob(fileJob, lock, solrServer, occurrenceMapReader);
   }
 
   /**
-   * Appends a result file to the output file.
+   * Appends the result files to the output file.
    */
   private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
                             OutputStream multimediaFileWriter)
     throws IOException {
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.INTERPRETED_SUFFIX, interpretedFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.VERBATIM_SUFFIX, verbatimFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + Constants.MULTIMEDIA_SUFFIX, multimediaFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, verbatimFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getFileJob().getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
 }

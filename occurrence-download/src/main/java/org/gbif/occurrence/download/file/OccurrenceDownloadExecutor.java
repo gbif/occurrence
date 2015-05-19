@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
  * a OccurrenceDownloadFileCoordinator. The order of the records in the  final files is respected from the search
  * request by using the fileJob.startOffset reported by each job.
  */
-public class OccurrenceDownloadFileSupervisor {
+public class OccurrenceDownloadExecutor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDownloadFileSupervisor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDownloadExecutor.class);
 
   /**
-   * Utility class that holds the general settings of the OccurrenceFileWriter class.
+   * Utility class that holds the general execution settings.
    */
   public static class Configuration {
 
@@ -86,22 +86,22 @@ public class OccurrenceDownloadFileSupervisor {
 
   private final OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator;
 
-  private OccurrenceDownloadConfiguration occurrenceDownloadConfiguration;
+  private DownloadJobConfiguration downloadJobConfiguration;
 
   /**
    * Default constructor.
    */
   @Inject
-  public OccurrenceDownloadFileSupervisor(
+  public OccurrenceDownloadExecutor(
     LockFactory lockFactory,
     Configuration configuration,
     SolrServer solrServer,
     OccurrenceMapReader occurrenceMapReader,
     OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator,
-    OccurrenceDownloadConfiguration occurrenceDownloadConfiguration
+    DownloadJobConfiguration downloadJobConfiguration
   ) {
     conf = configuration;
-    this.occurrenceDownloadConfiguration = occurrenceDownloadConfiguration;
+    this.downloadJobConfiguration = downloadJobConfiguration;
     this.lockFactory = lockFactory;
     this.solrServer = solrServer;
     this.occurrenceMapReader = occurrenceMapReader;
@@ -110,14 +110,14 @@ public class OccurrenceDownloadFileSupervisor {
 
 
   /**
-   * Entry point. This method: creates the output files, runs the jobs (OccurrenceFileWriterJob) and then collect the
-   * results. Individual files created by each job are deleted.
+   * Entry point. This method: creates the output files, runs the jobs and then collects the results.
+   * Individual files created by each job are deleted.
    */
   public void run() {
     try {
       StopWatch stopwatch = new StopWatch();
       stopwatch.start();
-      File downloadTempDir = new File(occurrenceDownloadConfiguration.getDownloadTempDir());
+      File downloadTempDir = new File(downloadJobConfiguration.getDownloadTempDir());
       if(downloadTempDir.exists()) {
         FileUtils.deleteDirectoryRecursively(downloadTempDir);
       }
@@ -166,7 +166,7 @@ public class OccurrenceDownloadFileSupervisor {
    * first jobs.
    */
   private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext) {
-    final int recordCount = getSearchCount(occurrenceDownloadConfiguration.getSolrQuery()).intValue();
+    final int recordCount = getSearchCount(downloadJobConfiguration.getSolrQuery()).intValue();
     if (recordCount <= 0) {
       return Lists.newArrayList();
     }
@@ -201,7 +201,9 @@ public class OccurrenceDownloadFileSupervisor {
         remainingPerJob = 0;
       }
       FileJob file =
-        new FileJob(from, to,occurrenceDownloadConfiguration.getSourceDir() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadKey() + Path.SEPARATOR +  occurrenceDownloadConfiguration.getDownloadTableName(), i, occurrenceDownloadConfiguration.getSolrQuery());
+        new FileJob(from, to,
+                    downloadJobConfiguration.getSourceDir() + Path.SEPARATOR +  downloadJobConfiguration.getDownloadKey() + Path.SEPARATOR +  downloadJobConfiguration
+                      .getDownloadTableName(), i, downloadJobConfiguration.getSolrQuery());
       // Awaits for an available thread
       Lock lock = getLock();
       LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());

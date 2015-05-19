@@ -30,10 +30,7 @@ public class RegistryClientUtil {
 
   private static final int REGISTRY_CLIENT_TO = 600000; // registry client default timeout
 
-
-
   private final Injector injector;
-
 
   /**
    * Constructs an instance using properties class instance.
@@ -41,7 +38,6 @@ public class RegistryClientUtil {
   public RegistryClientUtil(Properties properties) {
     injector = Guice.createInjector(createAuthModuleInstance(properties));
   }
-
 
   /**
    * Constructs an instance using the default properties file.
@@ -83,8 +79,6 @@ public class RegistryClientUtil {
    * Sets up a DatasetOccurrenceDownloadUsageService client avoiding the use of guice as our gbif jackson libraries
    * clash with the hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
-   *
-   * @throws java.io.IOException
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService(final String uri) {
     return new DatasetOccurrenceDownloadUsageWsClient(createHttpClient().resource(uri),
@@ -96,8 +90,6 @@ public class RegistryClientUtil {
    * Sets up a OccurrenceDownloadService client avoiding the use of guice as our gbif jackson libraries
    * clash with the hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
-   *
-   * @throws java.io.IOException
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService(final String uri) {
     return new OccurrenceDownloadWsClient(createHttpClient().resource(uri),

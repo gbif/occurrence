@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.FileJob;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
@@ -31,7 +32,7 @@ import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
 /**
- * Job that creates a part of CSV file. The file is generated according to the fileJob field.
+ * Job that creates a part of the download CSV file. The file is generated according to the fileJob field.
  */
 class SimpleCsvFileWriterJob implements Callable<Result> {
 
@@ -42,7 +43,7 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private static final String[] COLUMNS = Collections2.transform(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
+  private static final String[] COLUMNS = Collections2.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
     @Nullable
     @Override
     public String apply(@Nullable Term input) {
@@ -83,15 +84,16 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
            new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName(), Charsets.UTF_8),
                             CsvPreference.TAB_PREFERENCE)) {
 
-
       SolrQueryProcessor.processQuery(fileJob,solrServer, new Predicate<Integer>() {
         @Override
         public boolean apply(@Nullable Integer occurrenceKey) {
           try {
             org.apache.hadoop.hbase.client.Result result = occurrenceMapReader.get(occurrenceKey);
-            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildOccurrenceMap(result, DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS);
+            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
             if (occurrenceRecordMap != null) {
-              datasetUsagesCollector.collectUsage(occurrenceRecordMap);
+              //collect usages
+              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
+              //write results
               csvMapWriter.write(occurrenceRecordMap, COLUMNS);
               return true;
             } else {
@@ -104,7 +106,7 @@ class SimpleCsvFileWriterJob implements Callable<Result> {
         }
       });
     } finally {
-      // Unlock the assigned lock.
+      // Release the lock
       lock.unlock();
       LOG.info("Lock released, job detail: {} ", fileJob.toString());
     }

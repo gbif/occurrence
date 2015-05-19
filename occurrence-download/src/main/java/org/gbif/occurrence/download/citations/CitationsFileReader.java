@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Reads a datasets citations file and optionally persists teh data usages and return the usages into a Map object.
  */
-public class CitationsFileReader {
+public final class CitationsFileReader {
 
   /**
    * Persists the dataset usage into the Registry data base.
@@ -42,7 +42,7 @@ public class CitationsFileReader {
 
     private final DatasetOccurrenceDownloadUsageService datasetUsageService;
 
-    public PersistUsage(String registryWsUrl){
+    public PersistUsage(String registryWsUrl) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
       datasetService = registryClientUtil.setupDatasetService(registryWsUrl);
       datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWsUrl);
@@ -77,8 +77,8 @@ public class CitationsFileReader {
   /**
    * Private constructor.
    */
-  public CitationsFileReader() {
-
+  private CitationsFileReader() {
+    //empty constructor
   }
 
   /**
@@ -94,18 +94,18 @@ public class CitationsFileReader {
     final FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
-        try(BufferedReader citationReader =
-              new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), Charsets.UTF_8));
-        ){
-          for(String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
+        try (BufferedReader citationReader =
+              new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), Charsets.UTF_8))
+        ) {
+          for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // catch all error to avoid breaking the loop
               try {
-                for(Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates){
+                for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
                   predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
                 }
-              } catch (Throwable e) {
-                LOG.info("Error processing citation line: {}", tsvLine);
+              } catch (Exception e) {
+                LOG.info(String.format("Error processing citation line: %s", tsvLine),e);
               }
             }
           }
@@ -117,8 +117,8 @@ public class CitationsFileReader {
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
-  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey){
-    final Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
+    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
     DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
     datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
     datasetUsage.setDownloadKey(downloadKey);

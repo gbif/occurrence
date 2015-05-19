@@ -20,7 +20,7 @@
 
   <action name="download_prepare">
     <java>
-      <main-class>org.gbif.occurrence.download.oozie.DownloadPrepareStep</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.DownloadPrepareAction</main-class>
       <arg>${gbif_filter}</arg>
       <arg>${wf:id()}</arg>
       <capture-output/>
@@ -48,7 +48,7 @@
 
   <action name="from_solr_download">
     <java>
-      <main-class>org.gbif.occurrence.download.oozie.DownloadTablesAction</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.FromSolrDownloadAction</main-class>
       <arg>${download_format}</arg>
       <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>

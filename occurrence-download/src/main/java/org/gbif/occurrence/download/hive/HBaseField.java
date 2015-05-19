@@ -22,16 +22,13 @@ public class HBaseField extends Field {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(hiveField, hbaseColumn, hiveDataType, term);
+    return Objects.hashCode(super.hashCode(), hbaseColumn);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-                  .add("hiveField", hiveField)
+    return super.toStringHelper()
                   .add("hbaseColumn", hbaseColumn)
-                  .add("hiveDataType", hiveDataType)
-                  .add("term", term)
                   .toString();
   }
 

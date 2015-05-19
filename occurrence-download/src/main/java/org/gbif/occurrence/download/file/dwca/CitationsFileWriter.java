@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.Closer;
+import com.google.common.base.Throwables;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,18 +24,18 @@ import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
 /**
- * Utility class that creates the citations file using a faceted Solr response.
+ * Utility class that creates a datset citations file from Map that contains the dataset usages (record count).
  * The output file contains a list of datasets keys/uuids and its counts of occurrence records.
  */
-public class CitationsFileWriter {
+public final class CitationsFileWriter {
 
   private static final Logger LOG = LoggerFactory.getLogger(CitationsFileWriter.class);
 
   // Java fields of class solr.FacetField.Count that are used to create the citations file.
-  private static final String[] HEADER = new String[] {"name", "count"};
+  private static final String[] HEADER = {"name", "count"};
 
-  // Processors for fields name and count of class solr.FacetField.Count
-  private static final CellProcessor[] PROCESSORS = new CellProcessor[] {new NotNull(), new ParseLong()};
+  // Processors used to create the citations file.
+  private static final CellProcessor[] PROCESSORS = {new NotNull(), new ParseLong()};
 
   /**
    * Private/default constructor.
@@ -51,31 +51,21 @@ public class CitationsFileWriter {
    * @param citationFileName output file name
    * @param datasetOccUsageService usage service
    * @param downloadKey download key
-   * @throws java.io.IOException if an error occurs while the citation file is being created
    */
   public static void createCitationFile(final Map<UUID, Long> datasetUsages, String citationFileName,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService, DatasetService datasetService,  String downloadKey) throws IOException {
+    DatasetOccurrenceDownloadUsageService datasetOccUsageService, DatasetService datasetService,  String downloadKey) {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
-      ICsvBeanWriter beanWriter = null;
-      Closer closer = Closer.create();
-      try {
-        beanWriter =
-          new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
-        closer.register(beanWriter);
+      try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE)) {
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {
             beanWriter.write(new Facet.Count(entry.getKey().toString(), entry.getValue()), HEADER, PROCESSORS);
             persistDatasetUsage(entry, downloadKey, datasetOccUsageService,datasetService);
           }
         }
+        beanWriter.flush();
       } catch (IOException e) {
         LOG.error("Error creating citations file", e);
-        closer.rethrow(e);
-      } finally {
-        if (beanWriter != null) {
-          beanWriter.flush();
-        }
-        closer.close();
+        throw Throwables.propagate(e);
       }
     }
   }

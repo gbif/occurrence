@@ -14,14 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility class used to manage contacts for the DwcA download file.
+ * Utility class used to manage contacts for DwcA download files.
  */
 public class DwcaContactsUtil {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaContactsUtil.class);
 
   private static final List<ContactType> AUTHOR_TYPES =
-    ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
+      ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
 
   /**
    * Hidden constructor.
@@ -37,6 +37,9 @@ public class DwcaContactsUtil {
     return createContact(null, name, email, type, preferred);
   }
 
+  /**
+   * Creates a contact using the parameters.
+   */
   protected static Contact createContact(String firstName, String lastName, String email, ContactType type, boolean preferred) {
     Contact contact = new Contact();
     contact.setEmail(Lists.newArrayList(email));
@@ -54,6 +57,26 @@ public class DwcaContactsUtil {
    * @return preferred author contact or null
    */
   protected static Contact getContentProviderContact(Dataset dataset) {
+    Contact author = findFirstAuthor(dataset);
+    if (author != null) {
+      Contact provider = new Contact();
+      try {
+        PropertyUtils.copyProperties(provider, author);
+        provider.setKey(null);
+        provider.setType(ContactType.CONTENT_PROVIDER);
+        provider.setPrimary(false);
+        return provider;
+      } catch (IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+        LOG.error("Error setting provider contact", e);
+      }
+    }
+    return author;
+  }
+
+  /**
+   * Iterates over the dataset contacts to find the first contact of author type.
+   */
+  private static Contact findFirstAuthor(Dataset dataset){
     Contact author = null;
     for (ContactType type : AUTHOR_TYPES) {
       for (Contact c : dataset.getContacts()) {
@@ -65,23 +88,7 @@ public class DwcaContactsUtil {
           }
         }
       }
-      if (author != null) {
-        Contact provider = new Contact();
-        try {
-          PropertyUtils.copyProperties(provider, author);
-          provider.setKey(null);
-          provider.setType(ContactType.CONTENT_PROVIDER);
-          provider.setPrimary(false);
-          return provider;
-        } catch (IllegalAccessException e) {
-          LOG.error("Error setting provider contact", e);
-        } catch (InvocationTargetException e) {
-          LOG.error("Error setting provider contact", e);
-        } catch (NoSuchMethodException e) {
-          LOG.error("Error setting provider contact", e);
-        }
-      }
     }
-    return null;
+    return author;
   }
 }

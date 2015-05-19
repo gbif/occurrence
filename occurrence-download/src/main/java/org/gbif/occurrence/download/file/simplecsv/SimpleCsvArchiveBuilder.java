@@ -60,7 +60,7 @@ public class SimpleCsvArchiveBuilder {
   private static final String HEADER_FILE_NAME = "0";
 
   //String that contains the file HEADER for the simple table format.
-  private static final String  HEADER = Joiner.on('\t').join(Iterables.transform(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS,
+  private static final String  HEADER = Joiner.on('\t').join(Iterables.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS,
                                                                                  new Function<Term, String>() {
                                                                                    @Nullable
                                                                                    @Override

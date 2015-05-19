@@ -76,7 +76,7 @@ public class OccurrenceHDFSTableDefinition {
     StringBuilder statement = new StringBuilder("(");
     for (int i=0; i<OccurrenceIssue.GEOSPATIAL_RULES.size(); i++) {
       OccurrenceIssue issue = OccurrenceIssue.GEOSPATIAL_RULES.get(i);
-      statement.append("COALESCE(" + HiveColumns.columnFor(issue) + ",0)");
+      statement.append("COALESCE(").append(HiveColumns.columnFor(issue)).append(",0)");
       if (i+1<OccurrenceIssue.GEOSPATIAL_RULES.size()) {
         statement.append(" + ");
       }
@@ -90,14 +90,12 @@ public class OccurrenceHDFSTableDefinition {
    * aid debugging.
    */
   private static String issueInitializer() {
-    StringBuilder statement = new StringBuilder(
-      "removeNulls(\n" +
-      "    array(\n");
+    StringBuilder statement = new StringBuilder("removeNulls(\n").append("    array(\n");
     for (int i=0; i<OccurrenceIssue.values().length; i++) {
       OccurrenceIssue issue = OccurrenceIssue.values()[i];
        // example:  "IF(zero_coordinate IS NOT NULL, 'ZERO_COORDINATE', NULL),"
-      statement.append("      IF(" + HiveColumns.columnFor(issue) + " IS NOT NULL, '" + issue.toString().toUpperCase()
-                       + "', NULL)");
+      statement.append("      IF(").append(HiveColumns.columnFor(issue)).append(" IS NOT NULL, '")
+        .append(issue.toString().toUpperCase()).append("', NULL)");
 
       if (i+1<OccurrenceIssue.values().length) {
         statement.append(",\n");
@@ -219,7 +217,7 @@ public class OccurrenceHDFSTableDefinition {
    * initializer.
    */
   private static InitializableField interpretedField(Term term) {
-    if(HiveDataTypes.TYPE_STRING == HiveDataTypes.typeForTerm(term,false)){
+    if(HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term,false))){
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
     }
     return interpretedField(term, null); // no initializer

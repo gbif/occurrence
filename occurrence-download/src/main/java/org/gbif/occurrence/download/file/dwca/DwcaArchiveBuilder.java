@@ -22,7 +22,7 @@ import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanFilterBuilder;
@@ -134,7 +134,7 @@ public class DwcaArchiveBuilder {
   private final WorkflowConfiguration workflowConfiguration;
   private final FileSystem sourceFs;
   private final FileSystem targetFs;
-  private final OccurrenceDownloadConfiguration configuration;
+  private final DownloadJobConfiguration configuration;
   private final List<Constituent> constituents = Lists.newArrayList();
 
   private final Ordering<Constituent> constituentsOrder =
@@ -155,7 +155,7 @@ public class DwcaArchiveBuilder {
     FileSystem targetFs,
     File archiveDir,
     TitleLookup titleLookup,
-    OccurrenceDownloadConfiguration configuration,
+    DownloadJobConfiguration configuration,
     WorkflowConfiguration workflowConfiguration
   )  {
     this.datasetService = datasetService;
@@ -172,11 +172,11 @@ public class DwcaArchiveBuilder {
   }
 
 
-  public static void buildArchive(OccurrenceDownloadConfiguration configuration) throws IOException {
+  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
     buildArchive(configuration,new WorkflowConfiguration());
   }
 
-  public static void buildArchive(OccurrenceDownloadConfiguration configuration,  WorkflowConfiguration workflowConfiguration) throws IOException {
+  public static void buildArchive(DownloadJobConfiguration configuration,  WorkflowConfiguration workflowConfiguration) throws IOException {
     String tmpDir =  workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
@@ -281,7 +281,7 @@ public class DwcaArchiveBuilder {
 
         // NOTE: hive lowercases all the paths
         appendPreCompressedFile(out, new Path(configuration.getInterpretedDataFileName()),
-          INTERPRETED_FILENAME, HeadersFileUtil.getIntepretedTableHeader());
+          INTERPRETED_FILENAME, HeadersFileUtil.getInterpretedTableHeader());
         appendPreCompressedFile(out, new Path(configuration.getVerbatimDataFileName()),
           VERBATIM_FILENAME, HeadersFileUtil.getVerbatimTableHeader());
         appendPreCompressedFile(out, new Path(configuration.getMultimediaDataFileName()),

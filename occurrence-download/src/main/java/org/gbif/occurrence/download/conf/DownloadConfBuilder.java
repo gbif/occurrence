@@ -13,6 +13,9 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+/**
+ * Creates properties files from a maven file that contains a profiles section.
+ */
 public class DownloadConfBuilder {
 
   private static final String XPATH_ENV_EXPR = "/*[name()=\"settings\"]/*[name()=\"profiles\"]/*[name()=\"profile\"][*[name()=\"id\" and text()=\"%s\"]]/*[name()=\"properties\"]";
@@ -38,6 +41,13 @@ public class DownloadConfBuilder {
       properties.store(fileOutputStream,null);
       fileOutputStream.flush();
     }
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private DownloadConfBuilder(){
+    //empty constructor
   }
 
 }

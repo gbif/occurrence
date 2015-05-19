@@ -52,7 +52,7 @@ class Queries {
    * @return the select fields for the table in the simple download
    */
   static List<InitializableField> selectSimpleDownloadFields() {
-    return selectDownloadFields(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS, true);
+    return selectDownloadFields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, true);
   }
 
 
@@ -80,8 +80,18 @@ class Queries {
     return builder.build();
   }
 
+  /**
+   * Transforms the term into toISO8601(hiveColumn) expression.
+   */
   private static String toISO8601Initializer(Term term){
     final String column = HiveColumns.columnFor(term);
     return "toISO8601(" + column + ") AS " + column;
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private Queries() {
+    //empty constructor
   }
 }

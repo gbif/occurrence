@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
  * whether it is used in the verbatim or interpreted context.  E.g. dwc:decimalLatitude may be a hive STRING when used
  * in verbatim, but a DOUBLE when interpreted.
  */
-class HiveDataTypes {
+final class HiveDataTypes {
 
   /**
    * Hidden constructor.

@@ -28,7 +28,7 @@ public class Result implements Comparable<Result> {
    */
   @Override
   public int compareTo(Result that) {
-    return this.fileJob.compareTo(that.fileJob);
+    return fileJob.compareTo(that.fileJob);
   }
 
   @Override
@@ -41,7 +41,7 @@ public class Result implements Comparable<Result> {
     }
 
     Result that = (Result) obj;
-    return Objects.equal(this.fileJob, that.fileJob);
+    return Objects.equal(fileJob, that.fileJob);
   }
 
   /**

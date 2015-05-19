@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.file.dwca;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.common.search.util.SolrConstants;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -60,7 +61,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private static Function<Term, String> SIMPLENAME_FUNC = new Function<Term, String>() {
+  private final static Function<Term, String> SIMPLE_NAME_FUNC = new Function<Term, String>() {
 
     @Nullable
     @Override
@@ -70,11 +71,11 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
   };
 
   private static final String[] INT_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()),
-    SIMPLENAME_FUNC).toArray(new String[0]);
+                                                              SIMPLE_NAME_FUNC).toArray(new String[0]);
   private static final String[] VERB_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()),
-    SIMPLENAME_FUNC).toArray(new String[0]);
+                                                               SIMPLE_NAME_FUNC).toArray(new String[0]);
   private static final String[] MULTIMEDIA_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()),
-    SIMPLENAME_FUNC).toArray(new String[0]);
+                                                                     SIMPLE_NAME_FUNC).toArray(new String[0]);
 
   /**
    * Inner class used to export data into multimedia.txt files.
@@ -106,9 +107,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
       try {
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
-      } catch (IllegalAccessException e) {
-        throw Throwables.propagate(e);
-      } catch (InvocationTargetException e) {
+      } catch (IllegalAccessException|InvocationTargetException e) {
         throw Throwables.propagate(e);
       }
     }
@@ -171,12 +170,12 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
 
     @Override
     public String execute(Object value, CsvContext context) {
-      return value != null ? (new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format((Date) value)).toString() : "";
+      return value != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format((Date) value) : "";
     }
 
   }
 
-  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = new CellProcessor[] {
+  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {
     new NotNull(), // coreid
     new MediaTypeProcessor(), // type
     new CleanStringProcessor(), // format
@@ -192,8 +191,6 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
     new CleanStringProcessor(), // source
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
-
-
   };
 
   private final FileJob fileJob;
@@ -225,13 +222,13 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
 
     try (
       ICsvMapWriter intCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.INTERPRETED_SUFFIX, Charsets.UTF_8),
+        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE);
       ICsvMapWriter verbCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.VERBATIM_SUFFIX, Charsets.UTF_8),
+        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE);
       ICsvBeanWriter multimediaCsvWriter =
-        new CsvBeanWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + Constants.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
+        new CsvBeanWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
           CsvPreference.TAB_PREFERENCE))
       {
         SolrQueryProcessor.processQuery(fileJob,solrServer, new Predicate<Integer>() {
@@ -243,7 +240,7 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
               Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
               Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
               if (occurrenceRecordMap != null) {
-                datasetUsagesCollector.collectUsage(occurrenceRecordMap);
+                datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
                 intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
                 verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
                 writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);

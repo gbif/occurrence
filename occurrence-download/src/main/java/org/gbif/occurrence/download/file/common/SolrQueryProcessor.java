@@ -4,7 +4,6 @@ import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.download.file.FileJob;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
-import java.io.IOException;
 import java.util.Iterator;
 
 import com.google.common.base.Predicate;
@@ -15,27 +14,27 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Job that creates a part of CSV file. The file is generated according to the fileJob field.
+ *  Executes a Solr query and applies a predicate to each result.
  */
 public class SolrQueryProcessor {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SolrQueryProcessor.class);
 
   // Default page size for Solr queries.
   private static final int LIMIT = 300;
 
 
   /**
-   * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
+   * Executes a query on the SolrServer parameter and applies the predicate to each result.
+   * @param fileJob  it's used to determine how to page through the results and the Solr query to be used
+   * @param solrServer that executes the query
+   * @param resultHandler predicate that process each result, receives as parameter the occurrence key
+   *
    */
-  public static void processQuery(FileJob fileJob, SolrServer solrServer, Predicate<Integer> resultHandler) throws IOException {
+  public static void processQuery(FileJob fileJob, SolrServer solrServer, Predicate<Integer> resultHandler) {
 
     // Calculates the amount of output records
-    final int nrOfOutputRecords = fileJob.getTo() - fileJob.getFrom();
+    int nrOfOutputRecords = fileJob.getTo() - fileJob.getFrom();
 
     // Creates a search request instance using the search request that comes in the fileJob
     SolrQuery solrQuery = createSolrQuery(fileJob.getQuery());
@@ -68,4 +67,10 @@ public class SolrQueryProcessor {
     return solrQuery;
   }
 
+  /**
+   * Hidden constructor.
+   */
+  private SolrQueryProcessor() {
+    //empty constructor
+  }
 }

@@ -2,10 +2,13 @@ package org.gbif.occurrence.download.file.dwca;
 
 
 /**
- * Common constants used to construct the Dwc download file.
+ * Common constants used to construct the DwcA download file.
  */
 public class DwcDownloadsConstants {
 
+  /**
+   * Hidden constructor.
+   */
   private DwcDownloadsConstants() {
     // default private constructor
   }

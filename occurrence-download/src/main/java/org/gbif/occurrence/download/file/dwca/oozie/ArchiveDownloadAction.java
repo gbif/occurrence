@@ -1,7 +1,7 @@
 package org.gbif.occurrence.download.file.dwca.oozie;
 
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 
 import java.io.IOException;
@@ -10,6 +10,10 @@ import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Oozie Java action that creates a DwcA from hive tables.
+ * This action is used for big DwcA downloads.
+ */
 public class ArchiveDownloadAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(ArchiveDownloadAction.class);
@@ -21,24 +25,31 @@ public class ArchiveDownloadAction {
    * @throws java.io.IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {
-    final String downloadKey = args[0];
-    final String username = args[1];          // download user
-    final String query = args[2];         // download query filter
-    final boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
-    final String downloadTableName = args[4];    // download table/file name
+    String downloadKey = args[0];
+    String username = args[1];          // download user
+    String query = args[2];         // download query filter
+    boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
+    String downloadTableName = args[4];    // download table/file name
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
-    OccurrenceDownloadConfiguration configuration = new OccurrenceDownloadConfiguration.Builder()
-      .withDownloadKey(downloadKey)
-      .withDownloadTableName(downloadTableName)
-      .withFilter(query)
-      .withIsSmallDownload(isSmallDownload)
-      .withUser(username)
-      .withSourceDir(workflowConfiguration.getHiveDBPath())
-      .build();
+    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder()
+        .withDownloadKey(downloadKey)
+        .withDownloadTableName(downloadTableName)
+        .withFilter(query)
+        .withIsSmallDownload(isSmallDownload)
+        .withUser(username)
+        .withSourceDir(workflowConfiguration.getHiveDBPath())
+        .build();
 
     LOG.info("DwcaArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
     DwcaArchiveBuilder.buildArchive(configuration,workflowConfiguration);
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private ArchiveDownloadAction() {
+    //empty constructor
   }
 }

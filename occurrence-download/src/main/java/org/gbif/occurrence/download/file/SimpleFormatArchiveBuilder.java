@@ -34,6 +34,9 @@ import org.apache.hadoop.fs.Path;
  */
 public class SimpleFormatArchiveBuilder {
 
+  private static final String ZIP_EXTENSION = ".zip";
+  private static final String TXT_EXTENSION = ".txt";
+
   /**
    * Private constructor.
    */
@@ -45,7 +48,7 @@ public class SimpleFormatArchiveBuilder {
   private static final String HEADER_FILE_NAME = "0";
 
   //String that contains the file HEADER for the simple table format.
-  private static final String  HEADER = Joiner.on('\t').join(Iterables.transform(DownloadTerms.SimpleDownload.SIMPLE_DOWNLOAD_TERMS,
+  private static final String  HEADER = Joiner.on('\t').join(Iterables.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS,
                                                                                  new Function<Term, String>() {
                                                                                    @Nullable
                                                                                    @Override
@@ -63,7 +66,7 @@ public class SimpleFormatArchiveBuilder {
    public static void mergeToZip(String nameNode, String hiveTableInputPath, String hdfsOutputPath, String workflowId) throws IOException {
      Configuration conf = new Configuration();
      conf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, nameNode);
-     Path outputPath = new Path(hdfsOutputPath, DownloadUtils.workflowToDownloadId(workflowId) + ".zip");
+     Path outputPath = new Path(hdfsOutputPath, DownloadUtils.workflowToDownloadId(workflowId) + ZIP_EXTENSION);
      try (
        FileSystem hdfs = FileSystem.get(conf);
        FSDataOutputStream zipped = hdfs.create(outputPath,true);
@@ -73,7 +76,7 @@ public class SimpleFormatArchiveBuilder {
        //appends the header file
        appendHeaderFile(hdfs,inputPath);
 
-       ZipEntry ze = new ZipEntry(Files.getNameWithoutExtension(outputPath.getName()) + ".txt");
+       ZipEntry ze = new ZipEntry(Files.getNameWithoutExtension(outputPath.getName()) + TXT_EXTENSION);
        zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
        //Get all the files inside the directory and creates a list of InputStreams.
        try (D2CombineInputStream in = new D2CombineInputStream(Lists.transform(Lists.newArrayList(hdfs.listStatus(inputPath)), new Function<FileStatus, InputStream>() {

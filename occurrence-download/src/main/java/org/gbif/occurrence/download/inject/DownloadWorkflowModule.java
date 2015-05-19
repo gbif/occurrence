@@ -6,18 +6,17 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.file.OccurrenceDownloadExecutor;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
-import org.gbif.occurrence.download.file.OccurrenceDownloadFileSupervisor;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.dwca.DwcaOccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvOccurrenceDownloadFileCoordinator;
-import org.gbif.occurrence.download.oozie.DownloadPrepareStep;
+import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import akka.dispatch.ExecutionContextExecutorService;
@@ -48,7 +47,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
-  private final OccurrenceDownloadConfiguration configuration;
+  private final DownloadJobConfiguration configuration;
 
   private final WorkflowConfiguration workflowConfiguration;
 
@@ -74,7 +73,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   /**
    * Utility class that contains configuration keys of common settings.
    */
-  public static class DefaultSettings {
+  public final static class DefaultSettings {
 
     /**
      * Hidden constructor.
@@ -104,9 +103,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   /**
    * Loads the default configuration file name and copies the additionalProperties into it.
-   * @param additionalProperties configuration settings
    */
-  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, OccurrenceDownloadConfiguration configuration) {
+  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
   }
@@ -124,10 +122,10 @@ public final class DownloadWorkflowModule extends AbstractModule {
     Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
     install(new SolrModule());
     bind(OccurrenceMapReader.class);
-    bind(DownloadPrepareStep.class);
+    bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
     if(configuration != null){
-      bind(OccurrenceDownloadConfiguration.class).toInstance(configuration);
+      bind(DownloadJobConfiguration.class).toInstance(configuration);
     }
     bindDownloadFilesBuilding();
   }
@@ -138,8 +136,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
   private void bindDownloadFilesBuilding() {
     DownloadFormat downloadFormat = workflowConfiguration.getDownloadFormat();
     if(downloadFormat != null){
-      bind(OccurrenceDownloadFileSupervisor.Configuration.class);
-      bind(OccurrenceDownloadFileSupervisor.class);
+      bind(OccurrenceDownloadExecutor.Configuration.class);
+      bind(OccurrenceDownloadExecutor.class);
       if (DownloadFormat.DWCA == downloadFormat) {
         bind(OccurrenceDownloadFileCoordinator.class).to(DwcaOccurrenceDownloadFileCoordinator.class);
       } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
@@ -155,8 +153,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   CuratorFramework provideCuratorFramework(@Named(PROPERTIES_PREFIX + "zookeeper.namespace") String zookeeperNamespace,
     @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
     @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries)
-    throws IOException {
+    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder()
       .namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))

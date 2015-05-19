@@ -37,9 +37,12 @@ public class FileJob implements Comparable<FileJob> {
     this.jobId = jobId;
   }
 
+  /**
+   * Instance are compared by its job.from field.
+   */
   @Override
   public int compareTo(FileJob that) {
-    return Ints.compare(this.getFrom(), that.getFrom());
+    return Ints.compare(getFrom(), that.getFrom());
   }
 
   @Override

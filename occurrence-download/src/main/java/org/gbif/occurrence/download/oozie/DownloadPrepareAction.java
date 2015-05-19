@@ -1,48 +1,53 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.download.query.HiveQueryVisitor;
-import org.gbif.occurrence.download.query.QueryBuildingException;
-import org.gbif.occurrence.download.query.SolrQueryVisitor;
+ import org.gbif.api.model.occurrence.predicate.Predicate;
+ import org.gbif.api.service.registry.OccurrenceDownloadService;
+ import org.gbif.occurrence.common.download.DownloadUtils;
+ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+ import org.gbif.occurrence.download.query.HiveQueryVisitor;
+ import org.gbif.occurrence.download.query.QueryBuildingException;
+ import org.gbif.occurrence.download.query.SolrQueryVisitor;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Properties;
+ import java.io.File;
+ import java.io.FileNotFoundException;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+ import java.io.OutputStream;
+ import java.util.Properties;
 
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.name.Named;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+ import com.google.common.base.Strings;
+ import com.google.common.base.Throwables;
+ import com.google.inject.Guice;
+ import com.google.inject.Inject;
+ import com.google.inject.Injector;
+ import com.google.inject.name.Named;
+ import org.apache.commons.lang3.StringEscapeUtils;
+ import org.apache.solr.client.solrj.SolrQuery;
+ import org.apache.solr.client.solrj.SolrServer;
+ import org.apache.solr.client.solrj.response.QueryResponse;
+ import org.codehaus.jackson.map.DeserializationConfig;
+ import org.codehaus.jackson.map.ObjectMapper;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkArgument;
+ import static com.google.common.base.Preconditions.checkArgument;
 
-/**
- * This class is being used at very first steps of the workflow to determine if the requested download is either "big"
- * or "small" download.
- * To calculate the download size contacts a SolrServer a executes a the Solr query that should be provided as jvm
- * argument.
+ /**
+ * This class sets the following parameters required by the download workflow:
+  *  - is_small_download: define if the occurrence download must be processed as a small(Solr) or a big (Hive) download.\
+  *                       This parameter is calculated by executing a Solr query that counts the number of records.
+  *  - solr_query: query to process small download, it's a translation of the predicate filter.
+  *  - hive_query: query to process big download, it's a translation of the predicate filter.
+  *  - hive_db: this parameter is read from a properties file.
+  *  - download_key: download primary key, it's generated from the Oozie workflow id.
+  *  - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
+  *                         it's replaced by '_'.
  */
-public class DownloadPrepareStep {
+public class DownloadPrepareAction {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareStep.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);
 
   // arbitrary record count that represents and error counting the records of the input query
   private static final int ERROR_COUNT = -1;
@@ -78,7 +83,7 @@ public class DownloadPrepareStep {
    * Default/injectable constructor.
    */
   @Inject
-  public DownloadPrepareStep(
+  public DownloadPrepareAction(
     SolrServer solrServer,
     @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
     OccurrenceDownloadService occurrenceDownloadService,
@@ -91,11 +96,11 @@ public class DownloadPrepareStep {
   }
 
   /**
-   * Entry point: receives as argument the Solr query.
+   * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The solr query argument hasn't been specified");
-    DownloadPrepareStep occurrenceCount = getInjector().getInstance(DownloadPrepareStep.class);
+    DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
     occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]));
   }
 
@@ -124,7 +129,7 @@ public class DownloadPrepareStep {
    * Executes the Solr query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.
    */
-  public long getRecordCount(String solrQuery) {
+  private long getRecordCount(String solrQuery) {
     try {
       QueryResponse response = solrServer.query(new SolrQuery(solrQuery));
       return response.getResults().getNumFound();
@@ -155,7 +160,8 @@ public class DownloadPrepareStep {
         props.setProperty(SOLR_QUERY,solrQuery);
         props.setProperty(HIVE_QUERY,StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         props.setProperty(DOWNLOAD_KEY,downloadKey);
-        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_')); // '-' is replaced by '_' because it's not allowed in hive table names
+        // '-' is replaced by '_' because it's not allowed in hive table names
+        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_'));
         props.setProperty(HIVE_DB,workflowConfiguration.getHiveDb());
         props.store(os, "");
       } catch (FileNotFoundException e) {
@@ -184,7 +190,7 @@ public class DownloadPrepareStep {
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      LOG.error(String.format("Error updating record count for download worflow %s, reported count is %,d",
+      LOG.error(String.format("Error updating record count for download workflow %s, reported count is %,d",
                               downloadKey, recordCount), ex);
     }
   }

@@ -4,8 +4,8 @@ import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.FileJob;
-import org.gbif.occurrence.download.file.OccurrenceDownloadConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
@@ -37,32 +37,30 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Manages the creation of the zip file that contains a CSV file with the occurrence data.
+ */
 public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDownloadFileCoordinator {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvOccurrenceDownloadFileCoordinator.class);
 
   private static final String CSV_EXTENSION = ".csv";
 
-  private OccurrenceDownloadConfiguration configuration;
-  private WorkflowConfiguration workflowConfiguration;
-
-  private static String getOutputFileName(OccurrenceDownloadConfiguration configuration, String extension){
-    return getOutputFileName(configuration) + extension;
-  }
-
-  private static String getOutputFileName(OccurrenceDownloadConfiguration configuration){
-    return configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey();
-  }
+  private final DownloadJobConfiguration configuration;
+  private final WorkflowConfiguration workflowConfiguration;
+  private final String outputFileName;
 
   @Inject
-  public SimpleCsvOccurrenceDownloadFileCoordinator(OccurrenceDownloadConfiguration configuration, WorkflowConfiguration workflowConfiguration){
+  public SimpleCsvOccurrenceDownloadFileCoordinator(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration){
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
+    outputFileName = configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
+
   }
   @Override
   public void init(){
     try {
-      Files.createFile(Paths.get(getOutputFileName(configuration,CSV_EXTENSION)));
+      Files.createFile(Paths.get(outputFileName));
     } catch (Throwable t){
       LOG.error("Error creating files",t);
       throw  Throwables.propagate(t);
@@ -86,6 +84,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
                                          workflowConfiguration.getHdfsOutputPath(),
                                          configuration.getDownloadKey(),
                                          ModalZipOutputStream.MODE.DEFAULT);
+      //Delete the temp directory
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     }
   }
@@ -95,7 +94,7 @@ public class SimpleCsvOccurrenceDownloadFileCoordinator implements OccurrenceDow
    */
   private void mergeResults(List<Result> results) throws IOException {
     try (FileOutputStream outputFileWriter =
-           new FileOutputStream(getOutputFileName(configuration, CSV_EXTENSION), true)) {
+           new FileOutputStream(outputFileName, true)) {
       // Results are sorted to respect the original ordering
       Collections.sort(results);
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
