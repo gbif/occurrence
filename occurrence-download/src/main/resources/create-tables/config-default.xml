@@ -31,6 +31,6 @@
 
   <property>
     <name>oozie.libpath</name>
-    <value>/user/hive/auxjars,/new-occurrence-download/lib</value>
+    <value>/occurrence-download-workflows-${occurrence.environment}/lib/</value>
   </property>
 </configuration>
