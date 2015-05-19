@@ -7,7 +7,18 @@
   under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
   OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
   the specific language governing permissions and ~ limitations under the License. -->
-<workflow-app name="${occurrence.environment}-create-tables" xmlns="uri:oozie:workflow:0.2">
+<workflow-app name="${occurrence.environment}-create-tables" xmlns="uri:oozie:workflow:0.4.5">
+
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
 
   <start to="create-hbase-table" />
 
@@ -15,9 +26,7 @@
     Create the table backed by HBase
   -->
   <action name="create-hbase-table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/create-occurrence-hbase.q</script>
       <param>hiveDB=${hiveDB}</param>
@@ -31,9 +40,7 @@
     Creates and populates an HDFS copy of the HBase table
   -->
   <action name="create-hdfs-table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${hadoop.jobtracker}</job-tracker>
-      <name-node>${hdfs.namenode}</name-node>
+    <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/create-occurrence-hdfs.q</script>
       <param>hiveDB=${hiveDB}</param>
