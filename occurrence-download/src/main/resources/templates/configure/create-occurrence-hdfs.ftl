@@ -14,7 +14,7 @@ SET mapred.output.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
 
 -- configure for reading HBase
-SET hbase.client.scanner.caching=1000;
+SET hbase.client.scanner.caching=100;
 SET hive.mapred.reduce.tasks.speculative.execution=false;
 SET hive.hadoop.supports.splittable.combineinputformat=true;
 SET mapred.max.split.size=256000000;

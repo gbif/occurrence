@@ -29,7 +29,7 @@ java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occur
 echo "Copy to hadoop"
 hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
 hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
-echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/\noozie.launcher.mapreduce.task.classpath.user.precedence=true"  > job.properties
+echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=occurrence-download"  > job.properties
 
 oozie job --oozie $OOZIE -config job.properties -run
 
