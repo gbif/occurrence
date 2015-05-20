@@ -7,13 +7,12 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.file.FileJob;
+import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
-import org.gbif.wrangler.lock.Lock;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -22,9 +21,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 
+import akka.actor.UntypedActor;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -37,7 +36,6 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.constraint.NotNull;
@@ -50,11 +48,11 @@ import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
 /**
- * Job that creates a part of CSV file. The file is generated according to the fileJob field.
+ * Actor that creates part files of for the DwcA download format.
  */
-public class OccurrenceFileWriterJob implements Callable<Result> {
+public class DownloadDwcaActor extends UntypedActor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceFileWriterJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadDwcaActor.class);
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -193,86 +191,66 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
     new CleanStringProcessor() // rightsHolder
   };
 
-  private final FileJob fileJob;
-
-  private final Lock lock;
-
-  private final SolrServer solrServer;
-
-  private final OccurrenceMapReader occurrenceMapReader;
-
-  /**
-   * Default constructor.
-   */
-  public OccurrenceFileWriterJob(FileJob fileJob, Lock lock, SolrServer solrServer,
-    OccurrenceMapReader occurrenceMapReader) {
-    this.fileJob = fileJob;
-    this.lock = lock;
-    this.solrServer = solrServer;
-    this.occurrenceMapReader = occurrenceMapReader;
-  }
-
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
    */
-  @Override
-  public Result call() throws IOException {
+  public void doWork(final DownloadFileWork work) throws IOException {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
     try (
       ICsvMapWriter intCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, Charsets.UTF_8),
-          CsvPreference.TAB_PREFERENCE);
+        new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, Charsets.UTF_8),
+                         CsvPreference.TAB_PREFERENCE);
       ICsvMapWriter verbCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, Charsets.UTF_8),
-          CsvPreference.TAB_PREFERENCE);
+        new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, Charsets.UTF_8),
+                         CsvPreference.TAB_PREFERENCE);
       ICsvBeanWriter multimediaCsvWriter =
-        new CsvBeanWriter(new FileWriterWithEncoding(fileJob.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
-          CsvPreference.TAB_PREFERENCE))
-      {
-        SolrQueryProcessor.processQuery(fileJob,solrServer, new Predicate<Integer>() {
-          @Override
-          public boolean apply(@Nullable Integer occurrenceKey) {
-            try {
-              // Writes the occurrence record obtained from HBase as Map<String,Object>.
-              org.apache.hadoop.hbase.client.Result result = occurrenceMapReader.get(occurrenceKey);
-              Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
-              Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
-              if (occurrenceRecordMap != null) {
-                datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
-                intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
-                verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
-                writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
-                return true;
-              } else {
-                LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
-              }
-            } catch (Exception e) {
-              throw Throwables.propagate(e);
+        new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
+                          CsvPreference.TAB_PREFERENCE))
+    {
+      SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
+        @Override
+        public boolean apply(@Nullable Integer occurrenceKey) {
+          try {
+            // Writes the occurrence record obtained from HBase as Map<String,Object>.
+            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
+            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
+            Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
+            if (occurrenceRecordMap != null) {
+              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
+              intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
+              verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
+              writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
+              return true;
+            } else {
+              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
             }
-            return false;
+          } catch (Exception e) {
+            throw Throwables.propagate(e);
           }
-        });
+          return false;
+        }
+      });
     } finally {
       // Unlock the assigned lock.
-      lock.unlock();
-      LOG.info("Lock released, job detail: {} ", fileJob.toString());
+      work.getLock().unlock();
+      LOG.info("Lock released, job detail: {} ", work.toString());
     }
-    return new Result(fileJob, datasetUsagesCollector.getDatasetUsages());
+    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()),getSelf());
   }
 
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
   private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
-    Integer occurrenceKey)
+                                        Integer occurrenceKey)
     throws IOException {
-    List<MediaObject> multimedias = OccurrenceBuilder.buildMedia(result);
-    if (multimedias != null) {
-      for (MediaObject mediaObject : multimedias) {
+    List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
+    if (multimedia != null) {
+      for (MediaObject mediaObject : multimedia) {
         multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey), MULTIMEDIA_COLUMNS,
-          MEDIA_CELL_PROCESSORS);
+                                  MEDIA_CELL_PROCESSORS);
       }
     }
   }
@@ -289,4 +267,12 @@ public class OccurrenceFileWriterJob implements Callable<Result> {
     return solrQuery;
   }
 
+  @Override
+  public void onReceive(Object message) throws Exception {
+    if(message instanceof DownloadFileWork) {
+      doWork((DownloadFileWork)message);
+    } else {
+      unhandled(message);
+    }
+  }
 }

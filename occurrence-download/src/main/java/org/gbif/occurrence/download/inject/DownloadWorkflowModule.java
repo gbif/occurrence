@@ -6,12 +6,12 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceDownloadExecutor;
-import org.gbif.occurrence.download.file.OccurrenceDownloadFileCoordinator;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
-import org.gbif.occurrence.download.file.dwca.DwcaOccurrenceDownloadFileCoordinator;
-import org.gbif.occurrence.download.file.simplecsv.SimpleCsvOccurrenceDownloadFileCoordinator;
+import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.wrangler.lock.LockFactory;
@@ -139,9 +139,9 @@ public final class DownloadWorkflowModule extends AbstractModule {
       bind(OccurrenceDownloadExecutor.Configuration.class);
       bind(OccurrenceDownloadExecutor.class);
       if (DownloadFormat.DWCA == downloadFormat) {
-        bind(OccurrenceDownloadFileCoordinator.class).to(DwcaOccurrenceDownloadFileCoordinator.class);
+        bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
       } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
-        bind(OccurrenceDownloadFileCoordinator.class).to(SimpleCsvOccurrenceDownloadFileCoordinator.class);
+        bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
       }
     }
   }

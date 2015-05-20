@@ -1,15 +1,18 @@
 package org.gbif.occurrence.download.oozie;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
-import org.gbif.occurrence.download.file.OccurrenceDownloadExecutor;
+import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
-import java.io.IOException;
 import java.util.Properties;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorFactory;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -39,27 +42,43 @@ public class FromSolrDownloadAction {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,args[0]);
     workflowConfiguration = new WorkflowConfiguration(settings);
-    run(new DownloadJobConfiguration.Builder()
-      .withSolrQuery(args[1])
-      .withDownloadKey(args[2])
-      .withFilter(args[3])
-      .withDownloadTableName(args[4])
-      .withSourceDir(workflowConfiguration.getTempDir())
-      .withIsSmallDownload(true).build());
+    run(new DownloadJobConfiguration.Builder().withSolrQuery(args[1])
+          .withDownloadKey(args[2])
+          .withFilter(args[3])
+          .withDownloadTableName(args[4])
+          .withSourceDir(workflowConfiguration.getTempDir())
+          .withIsSmallDownload(true)
+          .withDownloadFormat(workflowConfiguration.getDownloadFormat())
+          .build());
 
   }
 
   /**
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
-  public static void run(DownloadJobConfiguration configuration)
-    throws IOException {
+  public static void run(DownloadJobConfiguration configuration) {
     final Injector injector = createInjector(configuration);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
-    final OccurrenceDownloadExecutor
-      downloadFileSupervisor = injector.getInstance(OccurrenceDownloadExecutor.class);
 
-    downloadFileSupervisor.run();
+    // Create an Akka system
+    ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
+
+    // create the master
+    ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
+      public UntypedActor create() {
+        return injector.getInstance(DownloadMaster.class);
+      }
+    }), "DownloadMaster"+configuration.getDownloadKey());
+
+    // start the calculation
+    master.tell(new DownloadMaster.Start());
+    while(!master.isTerminated()){
+      try {
+        Thread.sleep(5000L);
+      } catch (InterruptedException ie){
+        LOG.error("Thread interrupted",ie);
+      }
+    }                                                         system.shutdown();
     curator.close();
   }
 
@@ -78,3 +97,4 @@ public class FromSolrDownloadAction {
   }
 
 }
+

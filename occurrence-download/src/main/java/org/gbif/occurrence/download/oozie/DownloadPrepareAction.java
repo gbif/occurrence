@@ -1,38 +1,38 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.Download;
- import org.gbif.api.model.occurrence.predicate.Predicate;
- import org.gbif.api.service.registry.OccurrenceDownloadService;
- import org.gbif.occurrence.common.download.DownloadUtils;
- import org.gbif.occurrence.download.conf.WorkflowConfiguration;
- import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
- import org.gbif.occurrence.download.query.HiveQueryVisitor;
- import org.gbif.occurrence.download.query.QueryBuildingException;
- import org.gbif.occurrence.download.query.SolrQueryVisitor;
+import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.query.HiveQueryVisitor;
+import org.gbif.occurrence.download.query.QueryBuildingException;
+import org.gbif.occurrence.download.query.SolrQueryVisitor;
 
- import java.io.File;
- import java.io.FileNotFoundException;
- import java.io.FileOutputStream;
- import java.io.IOException;
- import java.io.OutputStream;
- import java.util.Properties;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 
- import com.google.common.base.Strings;
- import com.google.common.base.Throwables;
- import com.google.inject.Guice;
- import com.google.inject.Inject;
- import com.google.inject.Injector;
- import com.google.inject.name.Named;
- import org.apache.commons.lang3.StringEscapeUtils;
- import org.apache.solr.client.solrj.SolrQuery;
- import org.apache.solr.client.solrj.SolrServer;
- import org.apache.solr.client.solrj.response.QueryResponse;
- import org.codehaus.jackson.map.DeserializationConfig;
- import org.codehaus.jackson.map.ObjectMapper;
- import org.slf4j.Logger;
- import org.slf4j.LoggerFactory;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.name.Named;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
- import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkArgument;
 
  /**
  * This class sets the following parameters required by the download workflow:

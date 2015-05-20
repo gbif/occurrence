@@ -1,6 +1,9 @@
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.common.search.util.SolrConstants;
+import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
@@ -8,15 +11,15 @@ import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import akka.dispatch.ExecutionContextExecutorService;
-import akka.dispatch.ExecutionContexts;
-import akka.dispatch.Future;
-import akka.dispatch.Futures;
+import akka.actor.Actor;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorFactory;
+import akka.routing.RoundRobinRouter;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -29,15 +32,32 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Coordinates the creation of occurrence download files.
- * Distributes the work among the jobs and coordinates the aggregation of result in a single output interacting with
- * a OccurrenceDownloadFileCoordinator. The order of the records in the  final files is respected from the search
- * request by using the fileJob.startOffset reported by each job.
- */
-public class OccurrenceDownloadExecutor {
+public class DownloadMaster extends UntypedActor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDownloadExecutor.class);
+  public static class Start{}
+
+  private static class DownloadActorsFactory implements UntypedActorFactory {
+
+    private final DownloadFormat downloadFormat;
+
+    public DownloadActorsFactory(DownloadFormat downloadFormat){
+      this.downloadFormat = downloadFormat;
+    }
+
+    @Override
+    public Actor create() throws Exception {
+      if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
+        return new SimpleCsvDownloadActor();
+      } else if (downloadFormat == DownloadFormat.DWCA) {
+        return new DownloadDwcaActor();
+      }
+      throw new IllegalStateException("Unsupported download format");
+    }
+  }
+
+  private List<Result> results = Lists.newArrayList();
+
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
 
   /**
    * Utility class that holds the general execution settings.
@@ -86,55 +106,40 @@ public class OccurrenceDownloadExecutor {
 
   private final OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator;
 
-  private DownloadJobConfiguration downloadJobConfiguration;
+  private final DownloadAggregator aggregator;
+
+  private final DownloadJobConfiguration jobConfiguration;
+
+  private ActorRef workerRouter;
+
+  private int calcNrOfWorkers;
+
+  private int nrOfResults;
+
+
 
   /**
    * Default constructor.
    */
   @Inject
-  public OccurrenceDownloadExecutor(
+  public DownloadMaster(
     LockFactory lockFactory,
     Configuration configuration,
     SolrServer solrServer,
     OccurrenceMapReader occurrenceMapReader,
     OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator,
-    DownloadJobConfiguration downloadJobConfiguration
+    DownloadJobConfiguration jobConfiguration,
+    DownloadAggregator aggregator
   ) {
     conf = configuration;
-    this.downloadJobConfiguration = downloadJobConfiguration;
+    this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
     this.solrServer = solrServer;
     this.occurrenceMapReader = occurrenceMapReader;
     this.occurrenceDownloadFileCoordinator = occurrenceDownloadFileCoordinator;
+    this.aggregator = aggregator;
+
   }
-
-
-  /**
-   * Entry point. This method: creates the output files, runs the jobs and then collects the results.
-   * Individual files created by each job are deleted.
-   */
-  public void run() {
-    try {
-      StopWatch stopwatch = new StopWatch();
-      stopwatch.start();
-      File downloadTempDir = new File(downloadJobConfiguration.getDownloadTempDir());
-      if(downloadTempDir.exists()) {
-        FileUtils.deleteDirectoryRecursively(downloadTempDir);
-      }
-      downloadTempDir.mkdirs();
-      ExecutionContextExecutorService executionContext =
-        ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(conf.nrOfWorkers));
-      occurrenceDownloadFileCoordinator.aggregateResults(Futures.sequence(runJobs(executionContext), executionContext));
-      stopwatch.stop();
-      executionContext.shutdownNow();
-      final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
-      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
-    } catch (Exception e) {
-      LOG.info("Error creating occurrence file", e);
-      throw Throwables.propagate(e);
-    }
-  }
-
 
   /**
    * Creates and gets a reference to a Lock.
@@ -160,20 +165,47 @@ public class OccurrenceDownloadExecutor {
     }
   }
 
+
+  @Override
+  public void onReceive(Object message) throws Exception {
+    if (message instanceof Start) {
+      runActors();
+    } else if (message instanceof Result) {
+      results.add((Result)message);
+      nrOfResults += 1;
+      if(nrOfResults == calcNrOfWorkers){
+        aggregator.aggregate(results);
+        getContext().stop(getSelf());
+      }
+    }
+  }
+
   /**
    * Run the list of jobs. The amount of records is assigned evenly among the worker threads.
-   * If the amount of records is not divisible by the nrOfWorkers the remaining records are assigned "evenly" among the
+   * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among the
    * first jobs.
    */
-  private List<Future<Result>> runJobs(ExecutionContextExecutorService executionContext) {
-    final int recordCount = getSearchCount(downloadJobConfiguration.getSolrQuery()).intValue();
+  private void runActors() {
+    StopWatch stopwatch = new StopWatch();
+    stopwatch.start();
+    File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
+    if(downloadTempDir.exists()) {
+      FileUtils.deleteDirectoryRecursively(downloadTempDir);
+    }
+    downloadTempDir.mkdirs();
+
+    final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
     if (recordCount <= 0) {
-      return Lists.newArrayList();
+
     }
     final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
     // Calculates the required workers.
-    int calcNrOfWorkers =
+    calcNrOfWorkers =
       conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
+
+
+    workerRouter = getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat()))
+                                          .withRouter(new RoundRobinRouter(calcNrOfWorkers)),"downloadWorkerRouter");
 
     // Number of records that will be assigned to each job
     final int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
@@ -184,7 +216,6 @@ public class OccurrenceDownloadExecutor {
     // How many of the remaining jobs will be assigned to one job
     int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
 
-    List<Future<Result>> futures = Lists.newArrayList();
     occurrenceDownloadFileCoordinator.init();
     int from;
     int to = 0;
@@ -202,19 +233,20 @@ public class OccurrenceDownloadExecutor {
       }
       // Awaits for an available thread
       Lock lock = getLock();
-      DownloadFileWork file =
+      DownloadFileWork work =
         new DownloadFileWork(from, to,
-                    downloadJobConfiguration.getSourceDir() + Path.SEPARATOR +  downloadJobConfiguration.getDownloadKey() + Path.SEPARATOR +  downloadJobConfiguration
-                      .getDownloadTableName(), i, downloadJobConfiguration.getSolrQuery(), lock, solrServer, occurrenceMapReader);
+                             jobConfiguration.getSourceDir() + Path.SEPARATOR +  jobConfiguration.getDownloadKey() + Path.SEPARATOR +  jobConfiguration
+                               .getDownloadTableName(), i, jobConfiguration.getSolrQuery(), lock, solrServer, occurrenceMapReader);
 
-      LOG.info("Requesting a lock for job {}, detail: {}", i, file.toString());
+      LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
       lock.lock();
-      LOG.info("Lock granted for job {}, detail: {}", i, file.toString());
+      LOG.info("Lock granted for job {}, detail: {}", i, work.toString());
       // Adds the Job to the list. The file name is the output file name + the sequence i
-      futures.add(Futures.future(occurrenceDownloadFileCoordinator.createJob(file),
-        executionContext));
+      workerRouter.tell(work, getSelf());
     }
-    return futures;
-  }
 
+    stopwatch.stop();
+    final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
+    LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
+  }
 }

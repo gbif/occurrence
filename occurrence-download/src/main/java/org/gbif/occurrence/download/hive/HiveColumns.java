@@ -2,7 +2,6 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import com.google.common.collect.ImmutableSet;

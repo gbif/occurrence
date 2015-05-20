@@ -1,17 +1,20 @@
 package org.gbif.occurrence.download.file;
 
+import org.gbif.wrangler.lock.Lock;
+
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
+import org.apache.solr.client.solrj.SolrServer;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Holds the job information used by each file writer job/thread.
+ * Holds the job information about the work that each file writer job/thread has to do.
  * Examples of instances of this class are:
  * - query:*:* from: 200, to: 500, dataFile:occurrence.txt3.
  * - query:collector_name:juan from: 1000, to: 5500, dataFile:occurrence.txt99.
  */
-public class FileJob implements Comparable<FileJob> {
+public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final String query;
 
@@ -23,25 +26,34 @@ public class FileJob implements Comparable<FileJob> {
 
   private final String baseDataFileName;
 
+  private final Lock lock;
+
+  private final SolrServer solrServer;
+
+  private final OccurrenceMapReader occurrenceMapReader;
+
 
 
   /**
    * Default constructor.
    */
-  public FileJob(int from, int to, String baseDataFileName, int jobId, String query) {
+  public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
     this.to = to;
     this.baseDataFileName = baseDataFileName;
     this.jobId = jobId;
+    this.lock = lock;
+    this.solrServer = solrServer;
+    this.occurrenceMapReader = occurrenceMapReader;
   }
 
   /**
    * Instance are compared by its job.from field.
    */
   @Override
-  public int compareTo(FileJob that) {
+  public int compareTo(DownloadFileWork that) {
     return Ints.compare(getFrom(), that.getFrom());
   }
 
@@ -50,11 +62,11 @@ public class FileJob implements Comparable<FileJob> {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof FileJob)) {
+    if (!(obj instanceof DownloadFileWork)) {
       return false;
     }
 
-    FileJob that = (FileJob) obj;
+    DownloadFileWork that = (DownloadFileWork) obj;
     return Objects.equal(this.baseDataFileName, that.baseDataFileName)
       && Objects.equal(this.jobId, that.jobId) && Objects.equal(this.query, that.query)
       && Objects.equal(this.from, that.from) && Objects.equal(this.to, that.to);
@@ -102,6 +114,36 @@ public class FileJob implements Comparable<FileJob> {
     return to;
   }
 
+  /**
+   * @return the job identifier
+   */
+  public int getJobId() {
+    return jobId;
+  }
+
+  /**
+   *
+   * @return zookeeper lock
+   */
+  public Lock getLock() {
+    return lock;
+  }
+
+  /**
+   *
+   * @return Solr server to run queries
+   */
+  public SolrServer getSolrServer() {
+    return solrServer;
+  }
+
+  /**
+   *
+   * @return reads Hbase results into HashMaps
+   */
+  public OccurrenceMapReader getOccurrenceMapReader() {
+    return occurrenceMapReader;
+  }
 
   @Override
   public int hashCode() {

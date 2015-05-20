@@ -40,6 +40,7 @@ public class ArchiveDownloadAction {
         .withIsSmallDownload(isSmallDownload)
         .withUser(username)
         .withSourceDir(workflowConfiguration.getHiveDBPath())
+        .withDownloadFormat(workflowConfiguration.getDownloadFormat())
         .build();
 
     LOG.info("DwcaArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));

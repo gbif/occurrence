@@ -11,15 +11,15 @@ import com.google.common.base.Objects;
 public class Result implements Comparable<Result> {
 
   // FileJob associated to this Result instance.
-  private final FileJob fileJob;
+  private final DownloadFileWork downloadFileWork;
 
   private final Map<UUID, Long> datasetUsages;
 
   /**
    * Default constructor.
    */
-  public Result(FileJob fileJob, Map<UUID, Long> datasetUsages) {
-    this.fileJob = fileJob;
+  public Result(DownloadFileWork downloadFileWork, Map<UUID, Long> datasetUsages) {
+    this.downloadFileWork = downloadFileWork;
     this.datasetUsages = datasetUsages;
   }
 
@@ -28,7 +28,7 @@ public class Result implements Comparable<Result> {
    */
   @Override
   public int compareTo(Result that) {
-    return fileJob.compareTo(that.fileJob);
+    return downloadFileWork.compareTo(that.downloadFileWork);
   }
 
   @Override
@@ -41,7 +41,7 @@ public class Result implements Comparable<Result> {
     }
 
     Result that = (Result) obj;
-    return Objects.equal(fileJob, that.fileJob);
+    return Objects.equal(downloadFileWork, that.downloadFileWork);
   }
 
   /**
@@ -54,12 +54,12 @@ public class Result implements Comparable<Result> {
   /**
    * @return the fileJob
    */
-  public FileJob getFileJob() {
-    return fileJob;
+  public DownloadFileWork getDownloadFileWork() {
+    return downloadFileWork;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(fileJob);
+    return Objects.hashCode(downloadFileWork);
   }
 }

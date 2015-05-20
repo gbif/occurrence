@@ -1,7 +1,8 @@
 package org.gbif.occurrence.download.file;
 
-import org.gbif.occurrence.download.file.dwca.TableSuffixes;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants;
+import org.gbif.occurrence.download.file.dwca.TableSuffixes;
 
 import org.apache.hadoop.fs.Path;
 
@@ -24,6 +25,8 @@ public class DownloadJobConfiguration {
 
   private final String solrQuery;
 
+  private final DownloadFormat downloadFormat;
+
   /**
    * Private constructor.
    * Instances must be created using the Builder class.
@@ -35,7 +38,8 @@ public class DownloadJobConfiguration {
     String user,
     boolean isSmallDownload,
     String sourceDir,
-    String solrQuery
+    String solrQuery,
+    DownloadFormat downloadFormat
   ) {
     this.downloadKey = downloadKey;
     this.filter = filter;
@@ -44,6 +48,7 @@ public class DownloadJobConfiguration {
     this.sourceDir = sourceDir;
     this.solrQuery = solrQuery;
     this.downloadTableName = downloadTableName;
+    this.downloadFormat = downloadFormat;
   }
 
   /**
@@ -93,6 +98,14 @@ public class DownloadJobConfiguration {
    */
   public String getSourceDir(){
     return sourceDir;
+  }
+
+  /**
+   *
+   * Requested download format.
+   */
+  public DownloadFormat getDownloadFormat(){
+    return downloadFormat;
   }
 
   /**
@@ -176,6 +189,8 @@ public class DownloadJobConfiguration {
 
     private String solrQuery;
 
+    private DownloadFormat downloadFormat;
+
 
     public Builder withDownloadKey(String downloadKey){
       this.downloadKey = downloadKey;
@@ -213,11 +228,16 @@ public class DownloadJobConfiguration {
       return this;
     }
 
+    public Builder withDownloadFormat(DownloadFormat downloadFormat) {
+      this.downloadFormat = downloadFormat;
+      return this;
+    }
+
     /**
      * Builds a new DownloadJobConfiguration instance.
      */
     public DownloadJobConfiguration build(){
-      return new DownloadJobConfiguration(downloadKey, downloadTableName, filter, user, isSmallDownload,sourceDir,solrQuery);
+      return new DownloadJobConfiguration(downloadKey, downloadTableName, filter, user, isSmallDownload,sourceDir,solrQuery,downloadFormat);
     }
 
   }
