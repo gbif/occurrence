@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.gbif.occurrence</groupId>
@@ -65,7 +65,7 @@
             <configuration>
               <mainClass>org.gbif.occurrence.download.hive.GenerateHQL</mainClass>
               <arguments>
-               <argument>${project.build.outputDirectory}</argument>
+                <argument>${project.build.outputDirectory}</argument>
               </arguments>
             </configuration>
           </execution>
@@ -122,14 +122,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <excludes>
-              <exclude>conf/</exclude>
-              <exclude>create-tables/config-default.xml</exclude>
-              <exclude>download/config-default.xml</exclude>
-              <exclude>hbase-site.xml</exclude>
-            </excludes>
-          </configuration>
+        <configuration>
+          <excludes>
+            <exclude>conf/</exclude>
+            <exclude>create-tables/config-default.xml</exclude>
+            <exclude>download/config-default.xml</exclude>
+            <exclude>hbase-site.xml</exclude>
+          </excludes>
+        </configuration>
       </plugin>
 
     </plugins>
@@ -146,7 +146,7 @@
     </repository>
     <repository>
       <id>cloudera</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>

@@ -42,6 +42,7 @@
         <include>com.sun.jersey:jersey-client:jar</include>
         <include>com.sun.jersey:jersey-core:jar</include>
         <include>com.typesafe.akka:akka-actor:jar</include>
+        <include>com.typesafe:config:jar</include>
         <include>com.vividsolutions:jts:jar</include>
         <include>commons-beanutils:commons-beanutils:jar</include>
         <include>commons-io:commons-io:jar</include>

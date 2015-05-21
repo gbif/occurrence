@@ -43,7 +43,6 @@ public class DownloadMaster extends UntypedActor {
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
   private List<Result> results = Lists.newArrayList();
-  private ActorRef workerRouter;
   private int calcNrOfWorkers;
   private int nrOfResults;
 
@@ -122,69 +121,74 @@ public class DownloadMaster extends UntypedActor {
     downloadTempDir.mkdirs();
 
     final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
-    if (recordCount <= 0) {
+    if (recordCount > 0) {
+      final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
+      // Calculates the required workers.
+      calcNrOfWorkers =
+        conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
-    }
-    final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
-    // Calculates the required workers.
-    calcNrOfWorkers =
-      conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
+      ActorRef workerRouter =
+        getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat())).withRouter(new RoundRobinRouter(
+          calcNrOfWorkers)), "downloadWorkerRouter");
 
-    workerRouter =
-      getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat())).withRouter(new RoundRobinRouter(
-        calcNrOfWorkers)), "downloadWorkerRouter");
+      // Number of records that will be assigned to each job
+      final int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
 
-    // Number of records that will be assigned to each job
-    final int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
+      // Remaining jobs, that are not assigned to a job yet
+      final int remaining = nrOfRecords - (sizeOfChunks * calcNrOfWorkers);
 
-    // Remaining jobs, that are not assigned to a job yet
-    final int remaining = nrOfRecords - (sizeOfChunks * calcNrOfWorkers);
+      // How many of the remaining jobs will be assigned to one job
+      int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
+      int from;
+      int to = 0;
+      int additionalJobsCnt = 0;
+      for (int i = 0; i < calcNrOfWorkers; i++) {
+        from = i == 0 ? 0 : to;
+        to = from + sizeOfChunks + remainingPerJob;
 
-    // How many of the remaining jobs will be assigned to one job
-    int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
-    int from;
-    int to = 0;
-    int additionalJobsCnt = 0;
-    for (int i = 0; i < calcNrOfWorkers; i++) {
-      from = i == 0 ? 0 : to;
-      to = from + sizeOfChunks + remainingPerJob;
+        // Calculates the remaining jobs that will be assigned to the new FileJob.
+        additionalJobsCnt += remainingPerJob;
+        if (remainingPerJob != 0 && additionalJobsCnt > remaining) {
+          remainingPerJob = additionalJobsCnt - remaining;
+        } else if (additionalJobsCnt == remaining) {
+          remainingPerJob = 0;
+        }
+        // Awaits for an available thread
+        Lock lock = getLock();
+        DownloadFileWork work = new DownloadFileWork(from,
+                                                     to,
+                                                     jobConfiguration.getSourceDir()
+                                                     + Path.SEPARATOR
+                                                     + jobConfiguration.getDownloadKey()
+                                                     + Path.SEPARATOR
+                                                     + jobConfiguration.getDownloadTableName(),
+                                                     i,
+                                                     jobConfiguration.getSolrQuery(),
+                                                     lock,
+                                                     solrServer,
+                                                     occurrenceMapReader);
 
-      // Calculates the remaining jobs that will be assigned to the new FileJob.
-      additionalJobsCnt += remainingPerJob;
-      if (remainingPerJob != 0 && additionalJobsCnt > remaining) {
-        remainingPerJob = additionalJobsCnt - remaining;
-      } else if (additionalJobsCnt == remaining) {
-        remainingPerJob = 0;
+        LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
+        lock.lock();
+        LOG.info("Lock granted for job {}, detail: {}", i, work.toString());
+        // Adds the Job to the list. The file name is the output file name + the sequence i
+        workerRouter.tell(work, getSelf());
       }
-      // Awaits for an available thread
-      Lock lock = getLock();
-      DownloadFileWork work = new DownloadFileWork(from,
-                                                   to,
-                                                   jobConfiguration.getSourceDir()
-                                                   + Path.SEPARATOR
-                                                   + jobConfiguration.getDownloadKey()
-                                                   + Path.SEPARATOR
-                                                   + jobConfiguration.getDownloadTableName(),
-                                                   i,
-                                                   jobConfiguration.getSolrQuery(),
-                                                   lock,
-                                                   solrServer,
-                                                   occurrenceMapReader);
 
-      LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
-      lock.lock();
-      LOG.info("Lock granted for job {}, detail: {}", i, work.toString());
-      // Adds the Job to the list. The file name is the output file name + the sequence i
-      workerRouter.tell(work, getSelf());
+      stopwatch.stop();
+      final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
+      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
     }
-
-    stopwatch.stop();
-    final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
-    LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
   }
 
+  /**
+   * Used as a command to start this master actor.
+   */
   public static class Start {}
 
+  /**
+   * Creates an instance of the download actor/job to be used.
+   */
   private static class DownloadActorsFactory implements UntypedActorFactory {
 
     private final DownloadFormat downloadFormat;
