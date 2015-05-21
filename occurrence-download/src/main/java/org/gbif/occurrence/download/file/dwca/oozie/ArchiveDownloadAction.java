@@ -33,18 +33,17 @@ public class ArchiveDownloadAction {
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
-    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder()
-        .withDownloadKey(downloadKey)
-        .withDownloadTableName(downloadTableName)
-        .withFilter(query)
-        .withIsSmallDownload(isSmallDownload)
-        .withUser(username)
-        .withSourceDir(workflowConfiguration.getHiveDBPath())
-        .withDownloadFormat(workflowConfiguration.getDownloadFormat())
-        .build();
+    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder().withDownloadKey(downloadKey)
+      .withDownloadTableName(downloadTableName)
+      .withFilter(query)
+      .withIsSmallDownload(isSmallDownload)
+      .withUser(username)
+      .withSourceDir(workflowConfiguration.getHiveDBPath())
+      .withDownloadFormat(workflowConfiguration.getDownloadFormat())
+      .build();
 
     LOG.info("DwcaArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
-    DwcaArchiveBuilder.buildArchive(configuration,workflowConfiguration);
+    DwcaArchiveBuilder.buildArchive(configuration, workflowConfiguration);
   }
 
   /**

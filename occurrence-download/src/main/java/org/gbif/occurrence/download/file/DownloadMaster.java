@@ -34,89 +34,18 @@ import org.slf4j.LoggerFactory;
 
 public class DownloadMaster extends UntypedActor {
 
-  public static class Start{}
-
-  private static class DownloadActorsFactory implements UntypedActorFactory {
-
-    private final DownloadFormat downloadFormat;
-
-    public DownloadActorsFactory(DownloadFormat downloadFormat){
-      this.downloadFormat = downloadFormat;
-    }
-
-    @Override
-    public Actor create() throws Exception {
-      if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
-        return new SimpleCsvDownloadActor();
-      } else if (downloadFormat == DownloadFormat.DWCA) {
-        return new DownloadDwcaActor();
-      }
-      throw new IllegalStateException("Unsupported download format");
-    }
-  }
-
-  private List<Result> results = Lists.newArrayList();
-
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
-
-  /**
-   * Utility class that holds the general execution settings.
-   */
-  public static class Configuration {
-
-    // Maximum number of workers
-    private final int nrOfWorkers;
-
-    // Minimum number of records per job
-    private final int minNrOfRecords;
-
-    // Limits the maximum number of records that can be processed.
-    // This parameters avoids use this class to create file with a size beyond a maximum.
-    private final int maximumNrOfRecords;
-
-    // Occurrence download lock/counter name
-    private final String lockName;
-
-
-    /**
-     * Default/full constructor.
-     */
-    @Inject
-    public Configuration(@Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
-                         @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName) {
-      this.nrOfWorkers = nrOfWorkers;
-      this.minNrOfRecords = minNrOfRecords;
-      this.maximumNrOfRecords = maximumNrOfRecords;
-      this.lockName = lockName;
-    }
-
-  }
-
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
-
   private final SolrServer solrServer;
-
   private final Configuration conf;
-
   private final LockFactory lockFactory;
-
   private final OccurrenceMapReader occurrenceMapReader;
-
-  private final OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator;
-
   private final DownloadAggregator aggregator;
-
   private final DownloadJobConfiguration jobConfiguration;
-
+  private List<Result> results = Lists.newArrayList();
   private ActorRef workerRouter;
-
   private int calcNrOfWorkers;
-
   private int nrOfResults;
-
-
 
   /**
    * Default constructor.
@@ -127,7 +56,6 @@ public class DownloadMaster extends UntypedActor {
     Configuration configuration,
     SolrServer solrServer,
     OccurrenceMapReader occurrenceMapReader,
-    OccurrenceDownloadFileCoordinator occurrenceDownloadFileCoordinator,
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator
   ) {
@@ -136,9 +64,22 @@ public class DownloadMaster extends UntypedActor {
     this.lockFactory = lockFactory;
     this.solrServer = solrServer;
     this.occurrenceMapReader = occurrenceMapReader;
-    this.occurrenceDownloadFileCoordinator = occurrenceDownloadFileCoordinator;
     this.aggregator = aggregator;
 
+  }
+
+  @Override
+  public void onReceive(Object message) throws Exception {
+    if (message instanceof Start) {
+      runActors();
+    } else if (message instanceof Result) {
+      results.add((Result) message);
+      nrOfResults += 1;
+      if (nrOfResults == calcNrOfWorkers) {
+        aggregator.aggregate(results);
+        getContext().stop(getSelf());
+      }
+    }
   }
 
   /**
@@ -165,31 +106,17 @@ public class DownloadMaster extends UntypedActor {
     }
   }
 
-
-  @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof Start) {
-      runActors();
-    } else if (message instanceof Result) {
-      results.add((Result)message);
-      nrOfResults += 1;
-      if(nrOfResults == calcNrOfWorkers){
-        aggregator.aggregate(results);
-        getContext().stop(getSelf());
-      }
-    }
-  }
-
   /**
    * Run the list of jobs. The amount of records is assigned evenly among the worker threads.
-   * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among the
+   * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among
+   * the
    * first jobs.
    */
   private void runActors() {
     StopWatch stopwatch = new StopWatch();
     stopwatch.start();
     File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
-    if(downloadTempDir.exists()) {
+    if (downloadTempDir.exists()) {
       FileUtils.deleteDirectoryRecursively(downloadTempDir);
     }
     downloadTempDir.mkdirs();
@@ -203,9 +130,9 @@ public class DownloadMaster extends UntypedActor {
     calcNrOfWorkers =
       conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
-
-    workerRouter = getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat()))
-                                          .withRouter(new RoundRobinRouter(calcNrOfWorkers)),"downloadWorkerRouter");
+    workerRouter =
+      getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat())).withRouter(new RoundRobinRouter(
+        calcNrOfWorkers)), "downloadWorkerRouter");
 
     // Number of records that will be assigned to each job
     final int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
@@ -215,8 +142,6 @@ public class DownloadMaster extends UntypedActor {
 
     // How many of the remaining jobs will be assigned to one job
     int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
-
-    occurrenceDownloadFileCoordinator.init();
     int from;
     int to = 0;
     int additionalJobsCnt = 0;
@@ -233,10 +158,18 @@ public class DownloadMaster extends UntypedActor {
       }
       // Awaits for an available thread
       Lock lock = getLock();
-      DownloadFileWork work =
-        new DownloadFileWork(from, to,
-                             jobConfiguration.getSourceDir() + Path.SEPARATOR +  jobConfiguration.getDownloadKey() + Path.SEPARATOR +  jobConfiguration
-                               .getDownloadTableName(), i, jobConfiguration.getSolrQuery(), lock, solrServer, occurrenceMapReader);
+      DownloadFileWork work = new DownloadFileWork(from,
+                                                   to,
+                                                   jobConfiguration.getSourceDir()
+                                                   + Path.SEPARATOR
+                                                   + jobConfiguration.getDownloadKey()
+                                                   + Path.SEPARATOR
+                                                   + jobConfiguration.getDownloadTableName(),
+                                                   i,
+                                                   jobConfiguration.getSolrQuery(),
+                                                   lock,
+                                                   solrServer,
+                                                   occurrenceMapReader);
 
       LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
       lock.lock();
@@ -248,5 +181,62 @@ public class DownloadMaster extends UntypedActor {
     stopwatch.stop();
     final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
     LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
+  }
+
+  public static class Start {}
+
+  private static class DownloadActorsFactory implements UntypedActorFactory {
+
+    private final DownloadFormat downloadFormat;
+
+    public DownloadActorsFactory(DownloadFormat downloadFormat) {
+      this.downloadFormat = downloadFormat;
+    }
+
+    @Override
+    public Actor create() throws Exception {
+      if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
+        return new SimpleCsvDownloadActor();
+      } else if (downloadFormat == DownloadFormat.DWCA) {
+        return new DownloadDwcaActor();
+      }
+      throw new IllegalStateException("Unsupported download format");
+    }
+  }
+
+  /**
+   * Utility class that holds the general execution settings.
+   */
+  public static class Configuration {
+
+    // Maximum number of workers
+    private final int nrOfWorkers;
+
+    // Minimum number of records per job
+    private final int minNrOfRecords;
+
+    // Limits the maximum number of records that can be processed.
+    // This parameters avoids use this class to create file with a size beyond a maximum.
+    private final int maximumNrOfRecords;
+
+    // Occurrence download lock/counter name
+    private final String lockName;
+
+    /**
+     * Default/full constructor.
+     */
+    @Inject
+    public Configuration(
+      @Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
+      @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
+      @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
+      @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName
+    ) {
+      this.nrOfWorkers = nrOfWorkers;
+      this.minNrOfRecords = minNrOfRecords;
+      this.maximumNrOfRecords = maximumNrOfRecords;
+      this.lockName = lockName;
+    }
+
   }
 }

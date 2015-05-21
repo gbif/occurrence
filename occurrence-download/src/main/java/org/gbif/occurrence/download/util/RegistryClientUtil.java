@@ -33,26 +33,6 @@ public class RegistryClientUtil {
   private final Injector injector;
 
   /**
-   * Constructs an instance using properties class instance.
-   */
-  public RegistryClientUtil(Properties properties) {
-    injector = Guice.createInjector(createAuthModuleInstance(properties));
-  }
-
-  /**
-   * Constructs an instance using the default properties file.
-   */
-  public RegistryClientUtil() {
-    try {
-      injector = Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE)));
-    } catch (IllegalArgumentException e) {
-      throw e;
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  /**
    * Creates an HTTP client.
    */
   private static ApacheHttpClient createHttpClient() {
@@ -65,11 +45,30 @@ public class RegistryClientUtil {
   }
 
   /**
+   * Constructs an instance using properties class instance.
+   */
+  public RegistryClientUtil(Properties properties) {
+    injector = Guice.createInjector(createAuthModuleInstance(properties));
+  }
+
+  /**
+   * Constructs an instance using the default properties file.
+   */
+  public RegistryClientUtil() {
+    try {
+      injector =
+        Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE)));
+    } catch (IllegalArgumentException e) {
+      throw e;
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
    * Sets up a registry DatasetService client avoiding the use of guice as our gbif jackson libraries clash with the
    * hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
-   *
-   * @throws java.io.IOException
    */
   public DatasetService setupDatasetService(final String uri) {
     return new DatasetWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
@@ -82,9 +81,8 @@ public class RegistryClientUtil {
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService(final String uri) {
     return new DatasetOccurrenceDownloadUsageWsClient(createHttpClient().resource(uri),
-      injector.getInstance(ClientFilter.class));
+                                                      injector.getInstance(ClientFilter.class));
   }
-
 
   /**
    * Sets up a OccurrenceDownloadService client avoiding the use of guice as our gbif jackson libraries
@@ -92,16 +90,14 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService(final String uri) {
-    return new OccurrenceDownloadWsClient(createHttpClient().resource(uri),
-      injector.getInstance(ClientFilter.class));
+    return new OccurrenceDownloadWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
   }
-
 
   /**
    * Creates a instance of the gbif authentication module.
    */
   private AbstractModule createAuthModuleInstance(Properties properties) {
     return new SingleUserAuthModule(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-      properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY));
+                                    properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY));
   }
 }

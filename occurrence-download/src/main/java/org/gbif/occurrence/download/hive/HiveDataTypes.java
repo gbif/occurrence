@@ -23,28 +23,15 @@ import com.google.common.collect.Maps;
  */
 final class HiveDataTypes {
 
-  /**
-   * Hidden constructor.
-   */
-  private HiveDataTypes(){
-    //empty default constructor.
-  }
-
   static final String TYPE_STRING = "STRING";
   static final String TYPE_BOOLEAN = "BOOLEAN";
   static final String TYPE_INT = "INT";
   static final String TYPE_DOUBLE = "DOUBLE";
   static final String TYPE_BIGINT = "BIGINT";
   static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
-
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
-
-  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.<Term>of(
-    GbifTerm.mediaType, GbifTerm.issue
-  );
-
-
+  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.<Term>of(GbifTerm.mediaType, GbifTerm.issue);
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.<Term>of(
     // dates are all stored as BigInt
     DwcTerm.eventDate,
@@ -53,51 +40,40 @@ final class HiveDataTypes {
     GbifTerm.lastParsed,
     GbifTerm.lastCrawled,
     DcTerm.modified,
-    GbifInternalTerm.fragmentCreated
-  );
-
-  private static final Set<Term> INT_TERMS = ImmutableSet.<Term>of(
-    GbifTerm.gbifID,
-    DwcTerm.year,
-    DwcTerm.month,
-    DwcTerm.day,
-    GbifTerm.taxonKey,
-    GbifTerm.kingdomKey,
-    GbifTerm.phylumKey,
-    GbifTerm.classKey,
-    GbifTerm.orderKey,
-    GbifTerm.familyKey,
-    GbifTerm.genusKey,
-    GbifTerm.subgenusKey,
-    GbifTerm.speciesKey,
-    GbifInternalTerm.crawlId,
-    GbifInternalTerm.identifierCount
-  );
-
-  private static final Set<Term> DOUBLE_TERMS = ImmutableSet.<Term>of(
-    DwcTerm.decimalLatitude,
-    DwcTerm.decimalLongitude,
-    GbifTerm.coordinateAccuracy,
-    GbifTerm.elevation,
-    GbifTerm.elevationAccuracy,
-    GbifTerm.depth,
-    GbifTerm.depthAccuracy
-  );
-
-  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.<Term>of(
-    GbifTerm.hasCoordinate,
-    GbifTerm.hasGeospatialIssues
-  );
-
+    GbifInternalTerm.fragmentCreated);
+  private static final Set<Term> INT_TERMS = ImmutableSet.<Term>of(GbifTerm.gbifID,
+                                                                   DwcTerm.year,
+                                                                   DwcTerm.month,
+                                                                   DwcTerm.day,
+                                                                   GbifTerm.taxonKey,
+                                                                   GbifTerm.kingdomKey,
+                                                                   GbifTerm.phylumKey,
+                                                                   GbifTerm.classKey,
+                                                                   GbifTerm.orderKey,
+                                                                   GbifTerm.familyKey,
+                                                                   GbifTerm.genusKey,
+                                                                   GbifTerm.subgenusKey,
+                                                                   GbifTerm.speciesKey,
+                                                                   GbifInternalTerm.crawlId,
+                                                                   GbifInternalTerm.identifierCount);
+  private static final Set<Term> DOUBLE_TERMS = ImmutableSet.<Term>of(DwcTerm.decimalLatitude,
+                                                                      DwcTerm.decimalLongitude,
+                                                                      GbifTerm.coordinateAccuracy,
+                                                                      GbifTerm.elevation,
+                                                                      GbifTerm.elevationAccuracy,
+                                                                      GbifTerm.depth,
+                                                                      GbifTerm.depthAccuracy);
+  private static final Set<Term> BOOLEAN_TERMS =
+    ImmutableSet.<Term>of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = ImmutableMap.<Term, String>builder()
-                              .putAll(Maps.asMap(INT_TERMS, Functions.constant(TYPE_INT)))
-                              .putAll(Maps.asMap(BIGINT_TERMS, Functions.constant(TYPE_BIGINT)))
-                              .putAll(Maps.asMap(DOUBLE_TERMS, Functions.constant(TYPE_DOUBLE)))
-                              .putAll(Maps.asMap(BOOLEAN_TERMS, Functions.constant(TYPE_BOOLEAN)))
-                              .putAll(Maps.asMap(ARRAY_STRING_TERMS, Functions.constant(TYPE_ARRAY_STRING)))
-                              .build();
+      .putAll(Maps.asMap(INT_TERMS, Functions.constant(TYPE_INT)))
+      .putAll(Maps.asMap(BIGINT_TERMS, Functions.constant(TYPE_BIGINT)))
+      .putAll(Maps.asMap(DOUBLE_TERMS, Functions.constant(TYPE_DOUBLE)))
+      .putAll(Maps.asMap(BOOLEAN_TERMS, Functions.constant(TYPE_BOOLEAN)))
+      .putAll(Maps.asMap(ARRAY_STRING_TERMS, Functions.constant(TYPE_ARRAY_STRING)))
+      .build();
   }
 
   /**
@@ -118,8 +94,17 @@ final class HiveDataTypes {
       return TYPE_STRING; // verbatim are always string
 
     } else {
-      return TYPED_TERMS.containsKey(term) ? TYPED_TERMS.get(term):TYPE_STRING; // interpreted term with a registered type
+      return TYPED_TERMS.containsKey(term)
+        ? TYPED_TERMS.get(term)
+        : TYPE_STRING; // interpreted term with a registered type
 
     }
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private HiveDataTypes() {
+    //empty default constructor.
   }
 }

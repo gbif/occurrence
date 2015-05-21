@@ -36,19 +36,6 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   private final DownloadJobConfiguration configuration;
 
-
-  @Inject
-  public DwcaDownloadAggregator(
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService,
-    DatasetService datasetService,
-    DownloadJobConfiguration configuration
-  ) {
-    this.datasetService = datasetService;
-    this.datasetOccUsageService = datasetOccUsageService;
-    this.configuration = configuration;
-  }
-
-
   /**
    * Utility method that creates a file, if the files exists it is deleted.
    */
@@ -66,21 +53,50 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   }
 
+  /**
+   * Appends the result files to the output file.
+   */
+  private static void appendResult(
+    Result result,
+    OutputStream interpretedFileWriter,
+    OutputStream verbatimFileWriter,
+    OutputStream multimediaFileWriter
+  ) throws IOException {
+    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
+                                      + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
+                                      verbatimFileWriter);
+    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
+                                      + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
+  }
+
+  @Inject
+  public DwcaDownloadAggregator(
+    DatasetOccurrenceDownloadUsageService datasetOccUsageService,
+    DatasetService datasetService,
+    DownloadJobConfiguration configuration
+  ) {
+    this.datasetService = datasetService;
+    this.datasetOccUsageService = datasetOccUsageService;
+    this.configuration = configuration;
+  }
 
   public void init() {
     createFile(configuration.getInterpretedDataFileName());
     createFile(configuration.getVerbatimDataFileName());
     createFile(configuration.getMultimediaDataFileName());
   }
+
   /**
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
   public void aggregate(List<Result> results) {
     init();
-    try (FileOutputStream interpretedFileWriter = new FileOutputStream(configuration.getInterpretedDataFileName(), true);
-         FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
-         FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true)) {
+    try (
+      FileOutputStream interpretedFileWriter = new FileOutputStream(configuration.getInterpretedDataFileName(), true);
+      FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
+      FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true)) {
 
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
@@ -96,24 +112,14 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
         CitationsFileWriter.createCitationFile(datasetUsagesCollector.getDatasetUsages(),
                                                configuration.getCitationDataFileName(),
                                                datasetOccUsageService,
-                                               datasetService, configuration.getDownloadKey());
+                                               datasetService,
+                                               configuration.getDownloadKey());
         //Creates the DwcA zip file
         DwcaArchiveBuilder.buildArchive(configuration);
       }
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * Appends the result files to the output file.
-   */
-  private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
-                            OutputStream multimediaFileWriter)
-    throws IOException {
-    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, verbatimFileWriter);
-    DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
 }

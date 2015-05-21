@@ -92,27 +92,13 @@ import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBA
 public class DwcaArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaArchiveBuilder.class);
-
-  /**
-   * Simple, local representation for a constituent dataset.
-   */
-  static class Constituent {
-
-    private final String title;
-    private final int records;
-
-    Constituent(String title, int records) {
-      this.title = title;
-      this.records = records;
-    }
-  }
-
   // The CRC is created by the function FileSystem.copyMerge function
   private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
   private static final String METADATA_DESC_HEADER_FMT =
-    "A dataset containing all occurrences available in GBIF matching the query:\n%s" +
+    "A dataset containing all occurrences available in GBIF matching the query:\n%s"
+    +
     "\nThe dataset includes records from the following constituent datasets. "
     + "The full metadata for each constituent is also included in this archive:\n";
   private static final String CITATION_HEADER =
@@ -122,7 +108,6 @@ public class DwcaArchiveBuilder {
   private static final String RIGHTS =
     "The data included in this download are provided to the user under a Creative Commons BY-NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0) which means that you are free to use, share, and adapt the data provided that you give reasonable and appropriate credit (attribution) and that you do not use the material for commercial purposes (non-commercial).\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
-
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
@@ -136,14 +121,92 @@ public class DwcaArchiveBuilder {
   private final FileSystem targetFs;
   private final DownloadJobConfiguration configuration;
   private final List<Constituent> constituents = Lists.newArrayList();
-
   private final Ordering<Constituent> constituentsOrder =
     Ordering.natural().onResultOf(new Function<Constituent, Integer>() {
 
-        public Integer apply(Constituent c) {
-          return c.records;
-        }
-      });
+      public Integer apply(Constituent c) {
+        return c.records;
+      }
+    });
+
+  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
+    buildArchive(configuration, new WorkflowConfiguration());
+  }
+
+  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
+    throws IOException {
+    String tmpDir = workflowConfiguration.getTempDir();
+
+    // create temporary, local, download specific directory
+    File archiveDir = new File(tmpDir, configuration.getDownloadKey());
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
+
+    String registryWs = workflowConfiguration.getRegistryWsUrl();
+    // create registry client and services
+    DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
+    DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
+
+    Injector inj = Guice.createInjector(new DrupalMyBatisModule(workflowConfiguration.getDownloadSettings()),
+                                        new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
+    UserService userService = inj.getInstance(UserService.class);
+    TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
+
+    FileSystem sourceFs = configuration.isSmallDownload()
+      ? FileSystem.getLocal(workflowConfiguration.getHadoopConf())
+      : FileSystem.get(workflowConfiguration.getHadoopConf());
+    FileSystem targetFs = FileSystem.get(workflowConfiguration.getHadoopConf());
+
+    // build archive
+    DwcaArchiveBuilder generator = new DwcaArchiveBuilder(datasetService,
+                                                          datasetUsageService,
+                                                          occurrenceDownloadService,
+                                                          userService,
+                                                          sourceFs,
+                                                          targetFs,
+                                                          archiveDir,
+                                                          titleLookup,
+                                                          configuration,
+                                                          workflowConfiguration);
+    generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
+  }
+
+  private static String writeCitation(final Writer citationWriter, final Dataset dataset, final UUID constituentId)
+    throws IOException {
+    // citation
+    String citationLink = null;
+    if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
+      citationWriter.write('\n' + dataset.getCitation().getText());
+      if (!Strings.isNullOrEmpty(dataset.getCitation().getIdentifier())) {
+        citationLink = ", " + dataset.getCitation().getIdentifier();
+        citationWriter.write(citationLink);
+      }
+    } else {
+      LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
+    }
+    if (dataset.getDoi() != null) {
+      citationWriter.write(" " + dataset.getDoi());
+    }
+    return citationLink;
+  }
+
+  /**
+   * Write rights text.
+   */
+  private static void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
+    throws IOException {
+    // write rights
+    rightsWriter.write("\n\nDataset: " + dataset.getTitle());
+    if (!Strings.isNullOrEmpty(citationLink)) {
+      rightsWriter.write(citationLink);
+    }
+    rightsWriter.write("\nRights as supplied: ");
+    if (!Strings.isNullOrEmpty(dataset.getRights())) {
+      rightsWriter.write(dataset.getRights());
+    } else {
+      rightsWriter.write("Not supplied");
+    }
+  }
 
   @VisibleForTesting
   protected DwcaArchiveBuilder(
@@ -157,7 +220,7 @@ public class DwcaArchiveBuilder {
     TitleLookup titleLookup,
     DownloadJobConfiguration configuration,
     WorkflowConfiguration workflowConfiguration
-  )  {
+  ) {
     this.datasetService = datasetService;
     this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
@@ -171,41 +234,6 @@ public class DwcaArchiveBuilder {
     this.workflowConfiguration = workflowConfiguration;
   }
 
-
-  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
-    buildArchive(configuration,new WorkflowConfiguration());
-  }
-
-  public static void buildArchive(DownloadJobConfiguration configuration,  WorkflowConfiguration workflowConfiguration) throws IOException {
-    String tmpDir =  workflowConfiguration.getTempDir();
-
-    // create temporary, local, download specific directory
-    File archiveDir = new File(tmpDir, configuration.getDownloadKey());
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
-
-    String registryWs = workflowConfiguration.getRegistryWsUrl();
-    // create registry client and services
-    DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-    DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
-
-
-    Injector inj =
-      Guice.createInjector(new DrupalMyBatisModule(workflowConfiguration.getDownloadSettings()), new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
-    UserService userService = inj.getInstance(UserService.class);
-    TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
-
-
-    FileSystem sourceFs = configuration.isSmallDownload() ? FileSystem.getLocal(workflowConfiguration.getHadoopConf()) : FileSystem.get(workflowConfiguration.getHadoopConf());
-    FileSystem targetFs = FileSystem.get(workflowConfiguration.getHadoopConf());
-
-    // build archive
-    DwcaArchiveBuilder generator =
-      new DwcaArchiveBuilder(datasetService, datasetUsageService, occurrenceDownloadService, userService, sourceFs, targetFs,
-                             archiveDir, titleLookup, configuration,workflowConfiguration);
-    generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
-  }
-
   /**
    * Main method to assemble the dwc archive and do all the work until we have a final zip file.
    *
@@ -215,10 +243,10 @@ public class DwcaArchiveBuilder {
     LOG.info("Start building the archive {} ", zipFile.getPath());
 
     try {
-      if(zipFile.exists()) {
+      if (zipFile.exists()) {
         zipFile.delete();
       }
-      if(!configuration.isSmallDownload()) {
+      if (!configuration.isSmallDownload()) {
         // oozie might try several times to run this job, so make sure our filesystem is clean
         cleanupFS();
 
@@ -243,7 +271,8 @@ public class DwcaArchiveBuilder {
       if (!configuration.isSmallDownload()) {
         appendPreCompressedFiles(zipFile);
       }
-      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),new Path(workflowConfiguration.getHdfsOutputPath(),zipFile.getName()));
+      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),
+                                 new Path(workflowConfiguration.getHdfsOutputPath(), zipFile.getName()));
 
     } catch (IOException e) {
       throw new DownloadException(e);
@@ -253,6 +282,66 @@ public class DwcaArchiveBuilder {
       cleanupFS();
     }
 
+  }
+
+  public void createEmlFile(final UUID constituentId, final File emlDir) throws IOException {
+    Closer closer = Closer.create();
+    try {
+      // store dataset EML as constituent metadata
+      InputStream in = closer.register(datasetService.getMetadataDocument(constituentId));
+      if (in != null) {
+        // copy into archive, reading stream from registry services
+        OutputStream out = closer.register(new FileOutputStream(new File(emlDir, constituentId + ".xml")));
+        ByteStreams.copy(in, out);
+      } else {
+        LOG.error("Found no EML for datasetId {}", constituentId);
+      }
+
+    } catch (FileNotFoundException ex) {
+      LOG.error("Error creating eml file", ex);
+    } catch (IOException ex) {
+      LOG.error("Error creating eml file", ex);
+    } finally {
+      closer.close();
+    }
+  }
+
+  /**
+   * Creates the dataset description.
+   */
+  @VisibleForTesting
+  protected String getDatasetDescription() {
+    StringBuilder description = new StringBuilder();
+    // transform json filter into predicate instance and then into human readable string
+    String humanQuery = configuration.getFilter();
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      Predicate p = mapper.readValue(configuration.getFilter(), Predicate.class);
+      humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
+    } catch (Exception e) {
+      LOG.error("Failed to transform JSON query into human query: {}", configuration.getFilter(), e);
+    }
+
+    description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
+    List<Constituent> byRecords = constituentsOrder.sortedCopy(constituents);
+    for (Constituent c : byRecords) {
+      description.append(c.records + " records from " + c.title + '\n');
+    }
+    return description.toString();
+  }
+
+  protected DataDescription createDataDescription() {
+    // link back to archive
+    DataDescription dataDescription = new DataDescription();
+    dataDescription.setFormat(DATA_DESC_FORMAT);
+    dataDescription.setCharset(Charsets.UTF_8.displayName());
+    try {
+      dataDescription.setUrl(new URI(workflowConfiguration.getDownloadLink(configuration.getDownloadKey())));
+    } catch (URISyntaxException e) {
+      LOG.error(String.format("Wrong url %s", workflowConfiguration.getDownloadLink(configuration.getDownloadKey())),
+                e);
+    }
+    return dataDescription;
   }
 
   /**
@@ -274,18 +363,24 @@ public class DwcaArchiveBuilder {
         ZipEntry entry = zin.getNextEntry();
         while (entry != null) {
           out.putNextEntry(new org.gbif.hadoop.compress.d2.zip.ZipEntry(entry.getName()),
-            ModalZipOutputStream.MODE.DEFAULT);
+                           ModalZipOutputStream.MODE.DEFAULT);
           ByteStreams.copy(zin, out);
           entry = zin.getNextEntry();
         }
 
         // NOTE: hive lowercases all the paths
-        appendPreCompressedFile(out, new Path(configuration.getInterpretedDataFileName()),
-          INTERPRETED_FILENAME, HeadersFileUtil.getInterpretedTableHeader());
-        appendPreCompressedFile(out, new Path(configuration.getVerbatimDataFileName()),
-          VERBATIM_FILENAME, HeadersFileUtil.getVerbatimTableHeader());
-        appendPreCompressedFile(out, new Path(configuration.getMultimediaDataFileName()),
-          MULTIMEDIA_FILENAME, HeadersFileUtil.getMultimediaTableHeader());
+        appendPreCompressedFile(out,
+                                new Path(configuration.getInterpretedDataFileName()),
+                                INTERPRETED_FILENAME,
+                                HeadersFileUtil.getInterpretedTableHeader());
+        appendPreCompressedFile(out,
+                                new Path(configuration.getVerbatimDataFileName()),
+                                VERBATIM_FILENAME,
+                                HeadersFileUtil.getVerbatimTableHeader());
+        appendPreCompressedFile(out,
+                                new Path(configuration.getMultimediaDataFileName()),
+                                MULTIMEDIA_FILENAME,
+                                HeadersFileUtil.getMultimediaTableHeader());
 
       } finally {
         // we've rewritten so remove the original
@@ -294,12 +389,10 @@ public class DwcaArchiveBuilder {
         }
       }
 
-
     } else {
       throw new IllegalStateException("Unable to rename existing zip, to allow appending occurrence data");
     }
   }
-
 
   /**
    * Appends the compressed files found within the directory to the zip stream as the named file
@@ -335,28 +428,6 @@ public class DwcaArchiveBuilder {
       ze.setCrc(in.getCrc32());
     } finally {
       out.closeEntry();
-    }
-  }
-
-  public void createEmlFile(final UUID constituentId, final File emlDir) throws IOException {
-    Closer closer = Closer.create();
-    try {
-      // store dataset EML as constituent metadata
-      InputStream in = closer.register(datasetService.getMetadataDocument(constituentId));
-      if (in != null) {
-        // copy into archive, reading stream from registry services
-        OutputStream out = closer.register(new FileOutputStream(new File(emlDir, constituentId + ".xml")));
-        ByteStreams.copy(in, out);
-      } else {
-        LOG.error("Found no EML for datasetId {}", constituentId);
-      }
-
-    } catch (FileNotFoundException ex) {
-      LOG.error("Error creating eml file", ex);
-    } catch (IOException ex) {
-      LOG.error("Error creating eml file", ex);
-    } finally {
-      closer.close();
     }
   }
 
@@ -417,8 +488,9 @@ public class DwcaArchiveBuilder {
           dataset.getContacts().add(provider);
         }
       } catch (UniformInterfaceException e) {
-        LOG.error(String.format("Registry client http exception: %d \n %s", e.getResponse().getStatus(),
-          e.getResponse().getEntity(String.class)), e);
+        LOG.error(String.format("Registry client http exception: %d \n %s",
+                                e.getResponse().getStatus(),
+                                e.getResponse().getEntity(String.class)), e);
       } catch (Exception e) {
         LOG.error("Error creating download file", e);
       }
@@ -463,11 +535,11 @@ public class DwcaArchiveBuilder {
                                             DOWNLOAD_CONTACT_EMAIL,
                                             ContactType.ORIGINATOR,
                                             true));
-      dataset.getContacts().add(
-        DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
-                                       DOWNLOAD_CONTACT_EMAIL,
-                                       ContactType.ADMINISTRATIVE_POINT_OF_CONTACT,
-                                       true));
+      dataset.getContacts()
+        .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
+                                            DOWNLOAD_CONTACT_EMAIL,
+                                            ContactType.ADMINISTRATIVE_POINT_OF_CONTACT,
+                                            true));
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
                                             DOWNLOAD_CONTACT_EMAIL,
@@ -483,41 +555,14 @@ public class DwcaArchiveBuilder {
     }
   }
 
-
   /**
    * Removes all temporary file system artifacts but the final zip archive.
    */
   private void cleanupFS() throws DownloadException {
     LOG.info("Cleaning up archive directory {}", archiveDir.getPath());
-    if(archiveDir.exists()) {
+    if (archiveDir.exists()) {
       FileUtils.deleteDirectoryRecursively(archiveDir);
     }
-  }
-
-
-
-  /**
-   * Creates the dataset description.
-   */
-  @VisibleForTesting
-  protected String getDatasetDescription() {
-    StringBuilder description = new StringBuilder();
-    // transform json filter into predicate instance and then into human readable string
-    String humanQuery = configuration.getFilter();
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      Predicate p = mapper.readValue(configuration.getFilter(), Predicate.class);
-      humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
-    } catch (Exception e) {
-      LOG.error("Failed to transform JSON query into human query: {}", configuration.getFilter(), e);
-    }
-
-    description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
-    List<Constituent> byRecords = constituentsOrder.sortedCopy(constituents);
-    for (Constituent c : byRecords) {
-      description.append(c.records + " records from " + c.title + '\n');
-    }
-    return description.toString();
   }
 
   /**
@@ -604,53 +649,17 @@ public class DwcaArchiveBuilder {
     }
   }
 
-  private static String writeCitation(final Writer citationWriter, final Dataset dataset, final UUID constituentId)
-    throws IOException {
-    // citation
-    String citationLink = null;
-    if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
-      citationWriter.write('\n' + dataset.getCitation().getText());
-      if (!Strings.isNullOrEmpty(dataset.getCitation().getIdentifier())) {
-        citationLink = ", " + dataset.getCitation().getIdentifier();
-        citationWriter.write(citationLink);
-      }
-    } else {
-      LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
-    }
-    if (dataset.getDoi() != null) {
-      citationWriter.write(" " + dataset.getDoi());
-    }
-    return citationLink;
-  }
-
   /**
-   * Write rights text.
+   * Simple, local representation for a constituent dataset.
    */
-  private static void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
-    throws IOException {
-    // write rights
-    rightsWriter.write("\n\nDataset: " + dataset.getTitle());
-    if (!Strings.isNullOrEmpty(citationLink)) {
-      rightsWriter.write(citationLink);
-    }
-    rightsWriter.write("\nRights as supplied: ");
-    if (!Strings.isNullOrEmpty(dataset.getRights())) {
-      rightsWriter.write(dataset.getRights());
-    } else {
-      rightsWriter.write("Not supplied");
-    }
-  }
+  static class Constituent {
 
-  protected DataDescription createDataDescription() {
-    // link back to archive
-    DataDescription dataDescription = new DataDescription();
-    dataDescription.setFormat(DATA_DESC_FORMAT);
-    dataDescription.setCharset(Charsets.UTF_8.displayName());
-    try {
-      dataDescription.setUrl(new URI(workflowConfiguration.getDownloadLink(configuration.getDownloadKey())));
-    } catch (URISyntaxException e) {
-      LOG.error(String.format("Wrong url %s", workflowConfiguration.getDownloadLink(configuration.getDownloadKey())), e);
+    private final String title;
+    private final int records;
+
+    Constituent(String title, int records) {
+      this.title = title;
+      this.records = records;
     }
-    return dataDescription;
   }
 }

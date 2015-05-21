@@ -26,10 +26,9 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are used in the verbatim context
    */
   private static List<HBaseField> verbatimFields() {
-    Set<Term> exclusions = ImmutableSet.<Term>of(
-      GbifTerm.gbifID,
-      GbifTerm.mediaType // stripped explicitly as it is handled as an array
-    );
+    Set<Term> exclusions =
+      ImmutableSet.<Term>of(GbifTerm.gbifID, GbifTerm.mediaType // stripped explicitly as it is handled as an array
+      );
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
     for (Term t : Terms.verbatimTerms()) {
@@ -47,10 +46,9 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are used in the interpreted context
    */
   private static List<HBaseField> interpretedFields() {
-    Set<Term> exclusions = ImmutableSet.<Term>of(
-      GbifTerm.gbifID, // treated as a special field (primary key)
-      GbifTerm.mediaType, // stripped explicitly as it is handled as an array
-      GbifTerm.issue // stripped explicitly as it is handled as an array
+    Set<Term> exclusions = ImmutableSet.<Term>of(GbifTerm.gbifID, // treated as a special field (primary key)
+                                                 GbifTerm.mediaType, // stripped explicitly as it is handled as an array
+                                                 GbifTerm.issue // stripped explicitly as it is handled as an array
     );
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
@@ -69,8 +67,7 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<HBaseField> internalFields() {
-    Set<GbifInternalTerm> exclusions = ImmutableSet.of(GbifInternalTerm.fragmentHash,
-                                                       GbifInternalTerm.fragment);
+    Set<GbifInternalTerm> exclusions = ImmutableSet.of(GbifInternalTerm.fragmentHash, GbifInternalTerm.fragment);
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
@@ -90,12 +87,9 @@ public class OccurrenceHBaseTableDefinition {
   private static List<HBaseField> issueFields() {
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
     for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      builder.add(new HBaseField(
-                    GbifTerm.issue, // repeated for all, as they become an array
-                    HiveColumns.columnFor(issue),
-                    HiveDataTypes.TYPE_INT, // always
-                    Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(issue))
-      );
+      builder.add(new HBaseField(GbifTerm.issue, // repeated for all, as they become an array
+                                 HiveColumns.columnFor(issue), HiveDataTypes.TYPE_INT, // always
+                                 Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(issue)));
     }
     return builder.build();
   }
@@ -111,12 +105,11 @@ public class OccurrenceHBaseTableDefinition {
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
-      builder.add(new HBaseField(
-                    GbifTerm.Multimedia,
-                    HiveColumns.columnFor(e),
-                    HiveDataTypes.TYPE_STRING, // always, as it has a custom serialization
-                    Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(e))
-      );
+      builder.add(new HBaseField(GbifTerm.Multimedia,
+                                 HiveColumns.columnFor(e),
+                                 HiveDataTypes.TYPE_STRING,
+                                 // always, as it has a custom serialization
+                                 Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(e)));
     }
     return builder.build();
   }
@@ -140,13 +133,13 @@ public class OccurrenceHBaseTableDefinition {
    */
   public static List<HBaseField> definition() {
     return ImmutableList.<HBaseField>builder()
-                        .add(keyField())
-                        .addAll(verbatimFields())
-                        .addAll(internalFields())
-                        .addAll(interpretedFields())
-                        .addAll(issueFields())
-                        .addAll(extensions())
-                        .build();
+      .add(keyField())
+      .addAll(verbatimFields())
+      .addAll(internalFields())
+      .addAll(interpretedFields())
+      .addAll(issueFields())
+      .addAll(extensions())
+      .build();
   }
 
   /**
@@ -154,8 +147,10 @@ public class OccurrenceHBaseTableDefinition {
    */
   private static HBaseField verbatimField(Term term) {
     return new HBaseField(term,
-                          HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(), // no escape needed, due to prefix
-                          HiveDataTypes.typeForTerm(term, true), // verbatim context
+                          HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(),
+                          // no escape needed, due to prefix
+                          HiveDataTypes.typeForTerm(term, true),
+                          // verbatim context
                           Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.verbatimColumn(term));
   }
 
@@ -163,8 +158,7 @@ public class OccurrenceHBaseTableDefinition {
    * Constructs a Field for the given term, when used in the interpreted context context.
    */
   private static HBaseField interpretedField(Term term) {
-    return new HBaseField(term,
-                          HiveColumns.columnFor(term),
+    return new HBaseField(term, HiveColumns.columnFor(term),
                           // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
                           // column uin HBase for us
                           HiveDataTypes.typeForTerm(term, false), // not verbatim context

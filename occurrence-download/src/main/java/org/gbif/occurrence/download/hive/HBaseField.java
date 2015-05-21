@@ -27,9 +27,7 @@ public class HBaseField extends Field {
 
   @Override
   public String toString() {
-    return super.toStringHelper()
-                  .add("hbaseColumn", hbaseColumn)
-                  .toString();
+    return super.toStringHelper().add("hbaseColumn", hbaseColumn).toString();
   }
 
   public String getHbaseColumn() {

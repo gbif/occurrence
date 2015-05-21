@@ -32,18 +32,6 @@ public class InitializableField extends Field {
     this.initializer = initializer == null ? getHiveField() : initializer; // for safety
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(super.hashCode(),initializer);
-  }
-
-  @Override
-  public String toString() {
-    return super.toStringHelper()
-                  .add("initializer", initializer)
-                  .toString();
-  }
-
   public String getInitializer() {
     return initializer;
   }
@@ -58,5 +46,15 @@ public class InitializableField extends Field {
            Objects.equal(this.getHiveField(), that.getHiveField()) &&
            Objects.equal(this.getHiveDataType(), that.getHiveDataType()) &&
            Objects.equal(this.getTerm(), that.getTerm());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(super.hashCode(), initializer);
+  }
+
+  @Override
+  public String toString() {
+    return super.toStringHelper().add("initializer", initializer).toString();
   }
 }

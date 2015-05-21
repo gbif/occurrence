@@ -31,12 +31,10 @@ public final class DownloadFileUtils {
     return FileSystem.get(conf);
   }
 
-
   /**
    * Appends a result file to the output file.
    */
-  public static void appendAndDelete(String inputFileName, OutputStream outputFileStreamWriter)
-    throws IOException {
+  public static void appendAndDelete(String inputFileName, OutputStream outputFileStreamWriter) throws IOException {
     File inputFile = new File(inputFileName);
     try (FileInputStream fileReader = new FileInputStream(inputFile)) {
       ByteStreams.copy(fileReader, outputFileStreamWriter);
@@ -51,7 +49,7 @@ public final class DownloadFileUtils {
   /**
    * Hidden constructor.
    */
-  private DownloadFileUtils(){
+  private DownloadFileUtils() {
     //empty constructor
   }
 }

@@ -34,16 +34,16 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
- /**
+/**
  * This class sets the following parameters required by the download workflow:
-  *  - is_small_download: define if the occurrence download must be processed as a small(Solr) or a big (Hive) download.\
-  *                       This parameter is calculated by executing a Solr query that counts the number of records.
-  *  - solr_query: query to process small download, it's a translation of the predicate filter.
-  *  - hive_query: query to process big download, it's a translation of the predicate filter.
-  *  - hive_db: this parameter is read from a properties file.
-  *  - download_key: download primary key, it's generated from the Oozie workflow id.
-  *  - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
-  *                         it's replaced by '_'.
+ * - is_small_download: define if the occurrence download must be processed as a small(Solr) or a big (Hive) download.\
+ * This parameter is calculated by executing a Solr query that counts the number of records.
+ * - solr_query: query to process small download, it's a translation of the predicate filter.
+ * - hive_query: query to process big download, it's a translation of the predicate filter.
+ * - hive_db: this parameter is read from a properties file.
+ * - download_key: download primary key, it's generated from the Oozie workflow id.
+ * - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
+ * it's replaced by '_'.
  */
 public class DownloadPrepareAction {
 
@@ -52,7 +52,8 @@ public class DownloadPrepareAction {
   // arbitrary record count that represents and error counting the records of the input query
   private static final int ERROR_COUNT = -1;
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper OBJECT_MAPPER =
+    new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
 
@@ -80,22 +81,6 @@ public class DownloadPrepareAction {
   private final WorkflowConfiguration workflowConfiguration;
 
   /**
-   * Default/injectable constructor.
-   */
-  @Inject
-  public DownloadPrepareAction(
-    SolrServer solrServer,
-    @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
-    OccurrenceDownloadService occurrenceDownloadService,
-    WorkflowConfiguration workflowConfiguration
-  ) {
-    this.solrServer = solrServer;
-    this.smallDownloadLimit = smallDownloadLimit;
-    this.occurrenceDownloadService = occurrenceDownloadService;
-    this.workflowConfiguration = workflowConfiguration;
-  }
-
-  /**
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
   public static void main(String[] args) throws Exception {
@@ -116,6 +101,21 @@ public class DownloadPrepareAction {
     }
   }
 
+  /**
+   * Default/injectable constructor.
+   */
+  @Inject
+  public DownloadPrepareAction(
+    SolrServer solrServer,
+    @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
+    OccurrenceDownloadService occurrenceDownloadService,
+    WorkflowConfiguration workflowConfiguration
+  ) {
+    this.solrServer = solrServer;
+    this.smallDownloadLimit = smallDownloadLimit;
+    this.occurrenceDownloadService = occurrenceDownloadService;
+    this.workflowConfiguration = workflowConfiguration;
+  }
 
   /**
    * Method that determines if the Solr Query produces a "small" download file.
@@ -124,6 +124,42 @@ public class DownloadPrepareAction {
     return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
   }
 
+  /**
+   * Update the oozie workflow data/parameters and persists the record of the occurrence download.
+   *
+   * @param rawPredicate to be executed
+   * @param downloadKey  workflow id
+   *
+   * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
+   */
+  public void updateDownloadData(String rawPredicate, String downloadKey) throws IOException, QueryBuildingException {
+    Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
+    String solrQuery = new SolrQueryVisitor().getQuery(predicate);
+    final long recordCount = getRecordCount(solrQuery);
+    String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
+    if (oozieProp != null) {
+      File propFile = new File(oozieProp);
+      Properties props = new Properties();
+      try (OutputStream os = new FileOutputStream(propFile)) {
+        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
+        props.setProperty(SOLR_QUERY, solrQuery);
+        props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
+        props.setProperty(DOWNLOAD_KEY, downloadKey);
+        // '-' is replaced by '_' because it's not allowed in hive table names
+        props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replace('-', '_'));
+        props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
+        props.store(os, "");
+      } catch (FileNotFoundException e) {
+        LOG.error("Error reading properties file", e);
+        throw Throwables.propagate(e);
+      }
+    } else {
+      throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
+    }
+    if (recordCount >= 0) {
+      updateTotalRecordsCount(downloadKey, recordCount);
+    }
+  }
 
   /**
    * Executes the Solr query and returns the number of records found.
@@ -136,43 +172,6 @@ public class DownloadPrepareAction {
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
       return ERROR_COUNT;
-    }
-  }
-
-
-  /**
-   * Update the oozie workflow data/parameters and persists the record of the occurrence download.
-   *
-   * @param rawPredicate to be executed
-   * @param downloadKey  workflow id
-   * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
-   */
-  public void updateDownloadData(String rawPredicate, String downloadKey) throws IOException, QueryBuildingException {
-    Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate,Predicate.class);
-    String solrQuery = new SolrQueryVisitor().getQuery(predicate);
-    final long recordCount = getRecordCount(solrQuery);
-    String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
-    if (oozieProp != null) {
-      File propFile = new File(oozieProp);
-      Properties props = new Properties();
-      try (OutputStream os = new FileOutputStream(propFile)) {
-        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-        props.setProperty(SOLR_QUERY,solrQuery);
-        props.setProperty(HIVE_QUERY,StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
-        props.setProperty(DOWNLOAD_KEY,downloadKey);
-        // '-' is replaced by '_' because it's not allowed in hive table names
-        props.setProperty(DOWNLOAD_TABLE_NAME,downloadKey.replace('-','_'));
-        props.setProperty(HIVE_DB,workflowConfiguration.getHiveDb());
-        props.store(os, "");
-      } catch (FileNotFoundException e) {
-        LOG.error("Error reading properties file", e);
-        throw Throwables.propagate(e);
-      }
-    } else {
-      throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
-    }
-    if (recordCount >= 0) {
-      updateTotalRecordsCount(downloadKey, recordCount);
     }
   }
 
@@ -191,7 +190,8 @@ public class DownloadPrepareAction {
       }
     } catch (Exception ex) {
       LOG.error(String.format("Error updating record count for download workflow %s, reported count is %,d",
-                              downloadKey, recordCount), ex);
+                              downloadKey,
+                              recordCount), ex);
     }
   }
 

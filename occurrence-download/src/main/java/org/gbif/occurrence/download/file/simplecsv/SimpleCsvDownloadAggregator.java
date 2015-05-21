@@ -43,23 +43,24 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
 
   @Inject
   public SimpleCsvDownloadAggregator(
-    DownloadJobConfiguration configuration,
-    WorkflowConfiguration workflowConfiguration
-  ){
+    DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration
+  ) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
-    outputFileName = configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
+    outputFileName =
+      configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
 
   }
 
-  public void init(){
+  public void init() {
     try {
       Files.createFile(Paths.get(outputFileName));
-    } catch (Throwable t){
-      LOG.error("Error creating files",t);
-      throw  Throwables.propagate(t);
+    } catch (Throwable t) {
+      LOG.error("Error creating files", t);
+      throw Throwables.propagate(t);
     }
   }
+
   /**
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
@@ -80,8 +81,8 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
         //Delete the temp directory
         FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
       }
-    } catch (IOException ex){
-      LOG.error("Error aggregating download files",ex);
+    } catch (IOException ex) {
+      LOG.error("Error aggregating download files", ex);
       throw Throwables.propagate(ex);
     }
   }
@@ -90,8 +91,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
    * Merges the files of each job into a single CSV file.
    */
   private void mergeResults(List<Result> results) {
-    try (FileOutputStream outputFileWriter =
-           new FileOutputStream(outputFileName, true)) {
+    try (FileOutputStream outputFileWriter = new FileOutputStream(outputFileName, true)) {
       // Results are sorted to respect the original ordering
       Collections.sort(results);
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
@@ -110,8 +110,9 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
    * Persists the dataset usages collected in by the datasetUsagesCollector.
    */
   private void persistUsages(DatasetUsagesCollector datasetUsagesCollector) {
-    CitationsFileReader.PersistUsage persistUsage = new CitationsFileReader.PersistUsage(workflowConfiguration.getRegistryWsUrl());
-    for(Map.Entry<UUID,Long> usage :  datasetUsagesCollector.getDatasetUsages().entrySet()){
+    CitationsFileReader.PersistUsage persistUsage =
+      new CitationsFileReader.PersistUsage(workflowConfiguration.getRegistryWsUrl());
+    for (Map.Entry<UUID, Long> usage : datasetUsagesCollector.getDatasetUsages().entrySet()) {
       DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
       datasetOccurrenceDownloadUsage.setNumberRecords(usage.getValue());
       datasetOccurrenceDownloadUsage.setDatasetKey(usage.getKey());

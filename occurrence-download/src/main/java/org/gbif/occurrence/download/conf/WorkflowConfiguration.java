@@ -29,16 +29,17 @@ public class WorkflowConfiguration {
       settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
       hadoopConf = new Configuration();
       hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
-    } catch (IOException ex){
+    } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
   }
-  public String getHdfsNameNode(){
+
+  public String getHdfsNameNode() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
   }
 
-  public String getHiveDb(){
+  public String getHiveDb() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY);
   }
@@ -48,13 +49,12 @@ public class WorkflowConfiguration {
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
   }
 
-  public String getTempDir(){
+  public String getTempDir() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.TMP_DIR_KEY);
   }
 
-
-  public String getDownloadLink(String downloadKey){
+  public String getDownloadLink(String downloadKey) {
     Preconditions.checkNotNull(settings);
     Preconditions.checkNotNull(downloadKey);
     // download link needs to be constructed
@@ -62,35 +62,35 @@ public class WorkflowConfiguration {
       .replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadKey);
   }
 
-  public String getHdfsOutputPath(){
+  public String getHdfsOutputPath() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_OUTPUT_PATH_KEY);
   }
 
-  public String getHiveDBPath(){
+  public String getHiveDBPath() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
   }
 
-  public DownloadFormat getDownloadFormat(){
+  public DownloadFormat getDownloadFormat() {
     Preconditions.checkNotNull(settings);
     String downloadFormat = settings.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY);
-    if(downloadFormat != null){
+    if (downloadFormat != null) {
       return DownloadFormat.valueOf(downloadFormat);
     }
     return null;
   }
 
-  public String getApiUrl(){
+  public String getApiUrl() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.API_URL_KEY);
   }
 
-  public Configuration getHadoopConf(){
+  public Configuration getHadoopConf() {
     return hadoopConf;
   }
 
-  public Properties getDownloadSettings(){
+  public Properties getDownloadSettings() {
     return settings;
   }
 }

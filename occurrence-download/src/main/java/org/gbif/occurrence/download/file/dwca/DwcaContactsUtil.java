@@ -21,14 +21,7 @@ public class DwcaContactsUtil {
   private static final Logger LOG = LoggerFactory.getLogger(DwcaContactsUtil.class);
 
   private static final List<ContactType> AUTHOR_TYPES =
-      ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
-
-  /**
-   * Hidden constructor.
-   */
-  private DwcaContactsUtil() {
-   //empty constructor
-  }
+    ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
 
   /**
    * Utility method that creates a Contact with a limited number of fields.
@@ -40,7 +33,13 @@ public class DwcaContactsUtil {
   /**
    * Creates a contact using the parameters.
    */
-  protected static Contact createContact(String firstName, String lastName, String email, ContactType type, boolean preferred) {
+  protected static Contact createContact(
+    String firstName,
+    String lastName,
+    String email,
+    ContactType type,
+    boolean preferred
+  ) {
     Contact contact = new Contact();
     contact.setEmail(Lists.newArrayList(email));
     contact.setFirstName(firstName);
@@ -66,7 +65,7 @@ public class DwcaContactsUtil {
         provider.setType(ContactType.CONTENT_PROVIDER);
         provider.setPrimary(false);
         return provider;
-      } catch (IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
         LOG.error("Error setting provider contact", e);
       }
     }
@@ -76,7 +75,7 @@ public class DwcaContactsUtil {
   /**
    * Iterates over the dataset contacts to find the first contact of author type.
    */
-  private static Contact findFirstAuthor(Dataset dataset){
+  private static Contact findFirstAuthor(Dataset dataset) {
     Contact author = null;
     for (ContactType type : AUTHOR_TYPES) {
       for (Contact c : dataset.getContacts()) {
@@ -90,5 +89,12 @@ public class DwcaContactsUtil {
       }
     }
     return author;
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private DwcaContactsUtil() {
+    //empty constructor
   }
 }

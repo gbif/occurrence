@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableSet;
  */
 public class OccurrenceHDFSTableDefinition {
 
-
   /**
    * Assemble the mapping for verbatim fields.
    *
@@ -40,7 +39,7 @@ public class OccurrenceHDFSTableDefinition {
   private static List<InitializableField> verbatimFields() {
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Term t : DownloadTerms.DOWNLOAD_VERBATIM_TERMS) {
-        builder.add(verbatimField(t));
+      builder.add(verbatimField(t));
     }
     return builder.build();
   }
@@ -57,11 +56,14 @@ public class OccurrenceHDFSTableDefinition {
    * @return a string for constructing the hasCoordinate field
    */
   private static String hasCoordinateInitializer() {
-    return "(" +  HiveColumns.columnFor(DwcTerm.decimalLatitude)
-           + " IS NOT NULL AND " + HiveColumns.columnFor(DwcTerm.decimalLongitude)+ " IS NOT NULL)";
+    return "("
+           + HiveColumns.columnFor(DwcTerm.decimalLatitude)
+           + " IS NOT NULL AND "
+           + HiveColumns.columnFor(DwcTerm.decimalLongitude)
+           + " IS NOT NULL)";
   }
 
-  private static String cleanDelimitersInitializer(String column){
+  private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
 
@@ -74,10 +76,10 @@ public class OccurrenceHDFSTableDefinition {
     //   (COALESCE(zero_coordinate,0) + COALESCE(country_coordinate_mismatch,0)) > 0
 
     StringBuilder statement = new StringBuilder("(");
-    for (int i=0; i<OccurrenceIssue.GEOSPATIAL_RULES.size(); i++) {
+    for (int i = 0; i < OccurrenceIssue.GEOSPATIAL_RULES.size(); i++) {
       OccurrenceIssue issue = OccurrenceIssue.GEOSPATIAL_RULES.get(i);
       statement.append("COALESCE(").append(HiveColumns.columnFor(issue)).append(",0)");
-      if (i+1<OccurrenceIssue.GEOSPATIAL_RULES.size()) {
+      if (i + 1 < OccurrenceIssue.GEOSPATIAL_RULES.size()) {
         statement.append(" + ");
       }
     }
@@ -91,13 +93,16 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static String issueInitializer() {
     StringBuilder statement = new StringBuilder("removeNulls(\n").append("    array(\n");
-    for (int i=0; i<OccurrenceIssue.values().length; i++) {
+    for (int i = 0; i < OccurrenceIssue.values().length; i++) {
       OccurrenceIssue issue = OccurrenceIssue.values()[i];
-       // example:  "IF(zero_coordinate IS NOT NULL, 'ZERO_COORDINATE', NULL),"
-      statement.append("      IF(").append(HiveColumns.columnFor(issue)).append(" IS NOT NULL, '")
-        .append(issue.toString().toUpperCase()).append("', NULL)");
+      // example:  "IF(zero_coordinate IS NOT NULL, 'ZERO_COORDINATE', NULL),"
+      statement.append("      IF(")
+        .append(HiveColumns.columnFor(issue))
+        .append(" IS NOT NULL, '")
+        .append(issue.toString().toUpperCase())
+        .append("', NULL)");
 
-      if (i+1<OccurrenceIssue.values().length) {
+      if (i + 1 < OccurrenceIssue.values().length) {
         statement.append(",\n");
       } else {
         statement.append("\n");
@@ -117,11 +122,12 @@ public class OccurrenceHDFSTableDefinition {
   private static List<InitializableField> interpretedFields() {
 
     // the following terms are manipulated when transposing from HBase to hive by using UDFs and custom HQL
-    Map<Term, String> initializers = ImmutableMap.<Term, String>of(
-      GbifTerm.hasGeospatialIssues, hasGeospatialIssuesInitializer(),
-      GbifTerm.hasCoordinate, hasCoordinateInitializer(),
-      GbifTerm.issue, issueInitializer()
-    );
+    Map<Term, String> initializers = ImmutableMap.<Term, String>of(GbifTerm.hasGeospatialIssues,
+                                                                   hasGeospatialIssuesInitializer(),
+                                                                   GbifTerm.hasCoordinate,
+                                                                   hasCoordinateInitializer(),
+                                                                   GbifTerm.issue,
+                                                                   issueInitializer());
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS) {
@@ -164,12 +170,11 @@ public class OccurrenceHDFSTableDefinition {
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     builder.add(interpretedField(GbifTerm.mediaType, mediaTypeInitializer()));
     for (Extension e : extensions) {
-      builder.add(new InitializableField(
-                    GbifTerm.Multimedia,
-                    HiveColumns.columnFor(e),
-                    HiveDataTypes.TYPE_STRING // always, as it has a custom serialization
-                  )
-      );
+      builder.add(new InitializableField(GbifTerm.Multimedia,
+                                         HiveColumns.columnFor(e),
+                                         HiveDataTypes.TYPE_STRING
+                                         // always, as it has a custom serialization
+                  ));
     }
     return builder.build();
   }
@@ -181,12 +186,12 @@ public class OccurrenceHDFSTableDefinition {
    */
   public static List<InitializableField> definition() {
     return ImmutableList.<InitializableField>builder()
-                        .add(keyField())
-                        .addAll(verbatimFields())
-                        .addAll(internalFields())
-                        .addAll(interpretedFields())
-                        .addAll(extensions())
-                        .build();
+      .add(keyField())
+      .addAll(verbatimFields())
+      .addAll(internalFields())
+      .addAll(interpretedFields())
+      .addAll(extensions())
+      .build();
   }
 
   /**
@@ -195,7 +200,8 @@ public class OccurrenceHDFSTableDefinition {
   private static InitializableField keyField() {
     return new InitializableField(GbifTerm.gbifID,
                                   HiveColumns.columnFor(GbifTerm.gbifID),
-                                  HiveDataTypes.typeForTerm(GbifTerm.gbifID, true) // verbatim context
+                                  HiveDataTypes.typeForTerm(GbifTerm.gbifID, true)
+                                  // verbatim context
     );
   }
 
@@ -204,8 +210,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static InitializableField verbatimField(Term term) {
     String column = HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase();
-    return new InitializableField(term,
-                                  column,
+    return new InitializableField(term, column,
                                   // no escape needed, due to prefix
                                   HiveDataTypes.typeForTerm(term, true), // verbatim context
                                   cleanDelimitersInitializer(column) //remove delimiters '\n', '\t', etc.
@@ -217,7 +222,7 @@ public class OccurrenceHDFSTableDefinition {
    * initializer.
    */
   private static InitializableField interpretedField(Term term) {
-    if(HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term,false))){
+    if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
     }
     return interpretedField(term, null); // no initializer

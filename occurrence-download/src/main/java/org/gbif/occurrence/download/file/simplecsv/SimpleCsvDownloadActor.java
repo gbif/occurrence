@@ -42,14 +42,23 @@ public class SimpleCsvDownloadActor extends UntypedActor {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private static final String[] COLUMNS = Collections2.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS,
-                                                                 new Function<Term, String>() {
-                                                                   @Nullable
-                                                                   @Override
-                                                                   public String apply(@Nullable Term input) {
-                                                                     return input.simpleName();
-                                                                   }
-                                                                 }).toArray(new String[DownloadTerms.SIMPLE_DOWNLOAD_TERMS.size()]);
+  private static final String[] COLUMNS =
+    Collections2.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
+                             @Nullable
+                             @Override
+                             public String apply(@Nullable Term input) {
+                               return input.simpleName();
+                             }
+                           }).toArray(new String[DownloadTerms.SIMPLE_DOWNLOAD_TERMS.size()]);
+
+  @Override
+  public void onReceive(Object message) throws Exception {
+    if (message instanceof DownloadFileWork) {
+      doWork((DownloadFileWork) message);
+    } else {
+      unhandled(message);
+    }
+  }
 
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
@@ -58,10 +67,9 @@ public class SimpleCsvDownloadActor extends UntypedActor {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
-
-    try (ICsvMapWriter csvMapWriter =
-           new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName(), Charsets.UTF_8),
-                            CsvPreference.TAB_PREFERENCE)) {
+    try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName(),
+                                                                                  Charsets.UTF_8),
+                                                       CsvPreference.TAB_PREFERENCE)) {
 
       SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
         @Override
@@ -89,18 +97,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work.toString());
     }
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()),getSelf());
+    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
   }
-
-  @Override
-  public void onReceive(Object message) throws Exception {
-    if(message instanceof DownloadFileWork){
-      doWork((DownloadFileWork)message);
-    } else {
-      unhandled(message);
-    }
-  }
-
-
 
 }

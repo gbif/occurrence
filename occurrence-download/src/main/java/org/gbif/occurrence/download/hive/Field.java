@@ -24,6 +24,11 @@ public class Field {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hashCode(hiveField, hiveDataType, term);
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -36,21 +41,8 @@ public class Field {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hashCode(hiveField, hiveDataType, term);
-  }
-
-  @Override
   public String toString() {
-    return toStringHelper()
-                  .add("hiveField", hiveField)
-                  .add("hiveDataType", hiveDataType)
-                  .add("term", term)
-                  .toString();
-  }
-
-  protected Objects.ToStringHelper toStringHelper(){
-    return Objects.toStringHelper(this).omitNullValues();
+    return toStringHelper().add("hiveField", hiveField).add("hiveDataType", hiveDataType).add("term", term).toString();
   }
 
   public String getHiveField() {
@@ -63,5 +55,9 @@ public class Field {
 
   public Term getTerm() {
     return term;
+  }
+
+  protected Objects.ToStringHelper toStringHelper() {
+    return Objects.toStringHelper(this).omitNullValues();
   }
 }

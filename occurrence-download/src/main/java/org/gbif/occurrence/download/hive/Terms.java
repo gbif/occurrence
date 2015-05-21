@@ -30,27 +30,20 @@ import com.google.common.collect.Sets;
  */
 public final class Terms {
 
-  private Terms() {
-    // empty constructor
-  }
-
   /**
    * The list of only the Dublin Core properties, excluding classes, such as Location.
    */
   private static final List<DcTerm> DC_PROPERTIES = dcPropertyTerms();
-
   /**
    * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
    * that are not relevant to occurrence records.
    */
   private static final List<DwcTerm> DwC_PROPERTIES = dwcPropertyTerms();
-
   /**
    * The list of GBIF properties applicable to occurrence records, excluding any classes and terms that are not
    * relevant to occurrence records.
    */
   private static final List<GbifTerm> GBIF_PROPERTIES = gbifPropertyTerms();
-
   /**
    * The list of terms that are subject to interpretation and <strong>may</strong> not be present in the
    * interpreted record.  For example, dwc:maximumDepthInMeters may be present on a verbatim record, and subject to
@@ -58,14 +51,12 @@ public final class Terms {
    * to the gbif:depth term.
    */
   private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION = termsSubjectToInterpretation();
-
   /**
    * The terms that are present only due to explicit interpretation.  These are often typed explicitly, such as Dates
    * or are the result of a routine that has analyzed various verbatim fields and interpreted them into new values,
    * such as the dwc:kingdom ... dwc:scientificName fields which are subject to a nub lookup.
    */
   private static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION = termsPopulatedByInterpretation();
-
   /**
    * The terms that are subject to interpretation but not present on the interpreted occurrence.
    */
@@ -78,14 +69,12 @@ public final class Terms {
    * @return the complete list of property terms of Dublin Core, excluding any "class" terms such as Location.
    */
   private static List<DcTerm> dcPropertyTerms() {
-    return ImmutableList.copyOf(
-      Iterables.<DcTerm>filter(
-        Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
-          @Override
-          public boolean apply(DcTerm t) {
-            return !t.isClass();
-          }
-        }));
+    return ImmutableList.copyOf(Iterables.<DcTerm>filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
+                                                           @Override
+                                                           public boolean apply(DcTerm t) {
+                                                             return !t.isClass();
+                                                           }
+                                                         }));
   }
 
   /**
@@ -96,37 +85,35 @@ public final class Terms {
    */
   private static List<GbifTerm> gbifPropertyTerms() {
     // the following have no place on occurrence
-    final Set<GbifTerm> exclusions = ImmutableSet.of(
-      GbifTerm.infraspecificMarker,
-      GbifTerm.isExtinct,
-      GbifTerm.isFreshwater,
-      GbifTerm.isHybrid,
-      GbifTerm.isMarine,
-      GbifTerm.isPlural,
-      GbifTerm.isPreferredName,
-      GbifTerm.isTerrestrial,
-      GbifTerm.livingPeriod,
-      GbifTerm.lifeForm,
-      GbifTerm.ageInDays,
-      GbifTerm.sizeInMillimeter,
-      GbifTerm.massInGram,
-      GbifTerm.organismPart,
-      GbifTerm.appendixCITES,
-      GbifTerm.typeDesignatedBy,
-      GbifTerm.typeDesignationType,
-      GbifTerm.canonicalName,
-      GbifTerm.nameType,
-      GbifTerm.verbatimLabel,
-      GbifTerm.infraspecificMarker);
+    final Set<GbifTerm> exclusions = ImmutableSet.of(GbifTerm.infraspecificMarker,
+                                                     GbifTerm.isExtinct,
+                                                     GbifTerm.isFreshwater,
+                                                     GbifTerm.isHybrid,
+                                                     GbifTerm.isMarine,
+                                                     GbifTerm.isPlural,
+                                                     GbifTerm.isPreferredName,
+                                                     GbifTerm.isTerrestrial,
+                                                     GbifTerm.livingPeriod,
+                                                     GbifTerm.lifeForm,
+                                                     GbifTerm.ageInDays,
+                                                     GbifTerm.sizeInMillimeter,
+                                                     GbifTerm.massInGram,
+                                                     GbifTerm.organismPart,
+                                                     GbifTerm.appendixCITES,
+                                                     GbifTerm.typeDesignatedBy,
+                                                     GbifTerm.typeDesignationType,
+                                                     GbifTerm.canonicalName,
+                                                     GbifTerm.nameType,
+                                                     GbifTerm.verbatimLabel,
+                                                     GbifTerm.infraspecificMarker);
 
-    return ImmutableList.copyOf(
-      Iterables.<GbifTerm>filter(
-        Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
-          @Override
-          public boolean apply(GbifTerm t) {
-            return !t.isClass() && !exclusions.contains(t);
-          }
-        }));
+    return ImmutableList.copyOf(Iterables.<GbifTerm>filter(Lists.newArrayList(GbifTerm.values()),
+                                                           new Predicate<GbifTerm>() {
+                                                             @Override
+                                                             public boolean apply(GbifTerm t) {
+                                                               return !t.isClass() && !exclusions.contains(t);
+                                                             }
+                                                           }));
   }
 
   /**
@@ -138,8 +125,7 @@ public final class Terms {
    */
   private static List<DwcTerm> dwcPropertyTerms() {
     // the following are only used in extensions
-    final Set<DwcTerm> exclusions = ImmutableSet
-      .<DwcTerm>builder()
+    final Set<DwcTerm> exclusions = ImmutableSet.<DwcTerm>builder()
       .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
       .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP))
       .build();
@@ -162,66 +148,64 @@ public final class Terms {
    * @return the terms with values that will only be populated following some interpretation
    */
   private static Set<Term> termsPopulatedByInterpretation() {
-    return ImmutableSet.<Term>of(
-      DwcTerm.decimalLatitude,
-      DwcTerm.decimalLongitude,
-      DwcTerm.continent,
-      DwcTerm.waterBody,
-      DwcTerm.stateProvince,
-      DwcTerm.countryCode,
-      DwcTerm.dateIdentified,
-      DwcTerm.eventDate,
-      DwcTerm.year,
-      DwcTerm.month,
-      DwcTerm.day,
-      DwcTerm.kingdom,
-      DwcTerm.phylum,
-      DwcTerm.class_,
-      DwcTerm.order,
-      DwcTerm.family,
-      DwcTerm.genus,
-      DwcTerm.subgenus,
-      GbifTerm.species,
-      DwcTerm.scientificName,
-      DwcTerm.taxonRank,
-      // DwcTerm.verbatimCoordinates,
-      GbifTerm.genericName,
-      DwcTerm.specificEpithet,
-      DwcTerm.infraspecificEpithet,
-      DwcTerm.basisOfRecord,
-      DwcTerm.individualCount,
-      DwcTerm.sex,
-      DwcTerm.lifeStage,
-      DwcTerm.establishmentMeans,
-      GbifTerm.taxonKey,
-      DwcTerm.typeStatus,
-      GbifTerm.typifiedName,
-      GbifTerm.kingdomKey,
-      GbifTerm.phylumKey,
-      GbifTerm.classKey,
-      GbifTerm.orderKey,
-      GbifTerm.familyKey,
-      GbifTerm.genusKey,
-      GbifTerm.subgenusKey,
-      GbifTerm.speciesKey,
-      GbifTerm.datasetKey,
-      GbifTerm.publishingCountry,
-      GbifTerm.lastInterpreted,
-      DcTerm.modified,
-      GbifTerm.coordinateAccuracy,
-      GbifTerm.elevation,
-      GbifTerm.elevationAccuracy,
-      GbifTerm.depth,
-      GbifTerm.depthAccuracy,
-      GbifInternalTerm.unitQualifier,
-      GbifTerm.issue,
-      DcTerm.references,
-      GbifTerm.datasetKey,
-      GbifTerm.publishingCountry,
-      GbifTerm.protocol,
-      GbifTerm.lastCrawled,
-      GbifTerm.lastParsed
-    );
+    return ImmutableSet.<Term>of(DwcTerm.decimalLatitude,
+                                 DwcTerm.decimalLongitude,
+                                 DwcTerm.continent,
+                                 DwcTerm.waterBody,
+                                 DwcTerm.stateProvince,
+                                 DwcTerm.countryCode,
+                                 DwcTerm.dateIdentified,
+                                 DwcTerm.eventDate,
+                                 DwcTerm.year,
+                                 DwcTerm.month,
+                                 DwcTerm.day,
+                                 DwcTerm.kingdom,
+                                 DwcTerm.phylum,
+                                 DwcTerm.class_,
+                                 DwcTerm.order,
+                                 DwcTerm.family,
+                                 DwcTerm.genus,
+                                 DwcTerm.subgenus,
+                                 GbifTerm.species,
+                                 DwcTerm.scientificName,
+                                 DwcTerm.taxonRank,
+                                 // DwcTerm.verbatimCoordinates,
+                                 GbifTerm.genericName,
+                                 DwcTerm.specificEpithet,
+                                 DwcTerm.infraspecificEpithet,
+                                 DwcTerm.basisOfRecord,
+                                 DwcTerm.individualCount,
+                                 DwcTerm.sex,
+                                 DwcTerm.lifeStage,
+                                 DwcTerm.establishmentMeans,
+                                 GbifTerm.taxonKey,
+                                 DwcTerm.typeStatus,
+                                 GbifTerm.typifiedName,
+                                 GbifTerm.kingdomKey,
+                                 GbifTerm.phylumKey,
+                                 GbifTerm.classKey,
+                                 GbifTerm.orderKey,
+                                 GbifTerm.familyKey,
+                                 GbifTerm.genusKey,
+                                 GbifTerm.subgenusKey,
+                                 GbifTerm.speciesKey,
+                                 GbifTerm.datasetKey,
+                                 GbifTerm.publishingCountry,
+                                 GbifTerm.lastInterpreted,
+                                 DcTerm.modified,
+                                 GbifTerm.coordinateAccuracy,
+                                 GbifTerm.elevation,
+                                 GbifTerm.elevationAccuracy,
+                                 GbifTerm.depth,
+                                 GbifTerm.depthAccuracy,
+                                 GbifInternalTerm.unitQualifier,
+                                 GbifTerm.issue,
+                                 DcTerm.references,
+                                 GbifTerm.datasetKey,
+                                 GbifTerm.publishingCountry,
+                                 GbifTerm.protocol,
+                                 GbifTerm.lastCrawled,
+                                 GbifTerm.lastParsed);
   }
 
   /**
@@ -234,45 +218,45 @@ public final class Terms {
     // any term that is populated by interpretation has to be subject to interpretation if present on the
     // verbatim record
     return ImmutableSet.<Term>builder()
-                       .addAll(termsPopulatedByInterpretation())
-                       .add(DwcTerm.decimalLatitude,
-                            DwcTerm.decimalLongitude,
-                            DwcTerm.verbatimLatitude,
-                            DwcTerm.verbatimLongitude,
-                            DwcTerm.verbatimCoordinates,
-                            DwcTerm.geodeticDatum,
-                            DwcTerm.coordinateUncertaintyInMeters,
-                            DwcTerm.coordinatePrecision,
-                            DwcTerm.continent,
-                            DwcTerm.waterBody,
-                            DwcTerm.stateProvince,
-                            DwcTerm.country,
-                            DwcTerm.countryCode,
-                            DwcTerm.scientificName,
-                            DwcTerm.scientificNameAuthorship,
-                            DwcTerm.taxonRank,
-                            DwcTerm.kingdom,
-                            DwcTerm.phylum,
-                            DwcTerm.class_,
-                            DwcTerm.order,
-                            DwcTerm.family,
-                            DwcTerm.genus,
-                            DwcTerm.subgenus,
-                            GbifTerm.genericName,
-                            DwcTerm.specificEpithet,
-                            DwcTerm.infraspecificEpithet,
-                            DcTerm.modified,
-                            DwcTerm.dateIdentified,
-                            DwcTerm.eventDate,
-                            DwcTerm.year,
-                            DwcTerm.month,
-                            DwcTerm.day,
-                            DwcTerm.minimumDepthInMeters,
-                            DwcTerm.maximumDepthInMeters,
-                            DwcTerm.minimumElevationInMeters,
-                            DwcTerm.maximumElevationInMeters,
-                            DwcTerm.associatedMedia)
-                       .build();
+      .addAll(termsPopulatedByInterpretation())
+      .add(DwcTerm.decimalLatitude,
+           DwcTerm.decimalLongitude,
+           DwcTerm.verbatimLatitude,
+           DwcTerm.verbatimLongitude,
+           DwcTerm.verbatimCoordinates,
+           DwcTerm.geodeticDatum,
+           DwcTerm.coordinateUncertaintyInMeters,
+           DwcTerm.coordinatePrecision,
+           DwcTerm.continent,
+           DwcTerm.waterBody,
+           DwcTerm.stateProvince,
+           DwcTerm.country,
+           DwcTerm.countryCode,
+           DwcTerm.scientificName,
+           DwcTerm.scientificNameAuthorship,
+           DwcTerm.taxonRank,
+           DwcTerm.kingdom,
+           DwcTerm.phylum,
+           DwcTerm.class_,
+           DwcTerm.order,
+           DwcTerm.family,
+           DwcTerm.genus,
+           DwcTerm.subgenus,
+           GbifTerm.genericName,
+           DwcTerm.specificEpithet,
+           DwcTerm.infraspecificEpithet,
+           DcTerm.modified,
+           DwcTerm.dateIdentified,
+           DwcTerm.eventDate,
+           DwcTerm.year,
+           DwcTerm.month,
+           DwcTerm.day,
+           DwcTerm.minimumDepthInMeters,
+           DwcTerm.maximumDepthInMeters,
+           DwcTerm.minimumElevationInMeters,
+           DwcTerm.maximumElevationInMeters,
+           DwcTerm.associatedMedia)
+      .build();
   }
 
   /**
@@ -284,11 +268,7 @@ public final class Terms {
    * </ul>
    */
   public static List<Term> verbatimTerms() {
-    return ImmutableList.<Term>builder()
-                        .add(GbifTerm.gbifID)
-                        .addAll(DC_PROPERTIES)
-                        .addAll(DwC_PROPERTIES)
-                        .build();
+    return ImmutableList.<Term>builder().add(GbifTerm.gbifID).addAll(DC_PROPERTIES).addAll(DwC_PROPERTIES).build();
   }
 
   /**
@@ -301,33 +281,32 @@ public final class Terms {
    * </ul>
    */
   public static List<Term> interpretedTerms() {
-    return ImmutableList.<Term>builder()
-                        .add(GbifTerm.gbifID)
-                        .addAll(
-                          // add all Dublin Core terms that are not stripped during interpretation
-                          Iterables.filter(DC_PROPERTIES, new Predicate<Term>() {
-                            @Override
-                            public boolean apply(@Nullable Term t) {
-                              return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t);
-                            }
-                          }))
-                        .addAll(
-                          // add all Darwin Core terms that are not stripped during interpretation
-                          Iterables.filter(DwC_PROPERTIES, new Predicate<Term>() {
-                            @Override
-                            public boolean apply(@Nullable Term t) {
-                              return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t);
-                            }
-                          }))
-                        .addAll(
-                          // add all GBIF terms that are not stripped during interpretation
-                          Iterables.filter(GBIF_PROPERTIES, new Predicate<Term>() {
-                            @Override
-                            public boolean apply(@Nullable Term t) {
-                              // strip the GBIF id as we've already added that
-                              return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t;
-                            }
-                          }))
-                        .build();
+    return ImmutableList.<Term>builder().add(GbifTerm.gbifID).addAll(
+      // add all Dublin Core terms that are not stripped during interpretation
+      Iterables.filter(DC_PROPERTIES, new Predicate<Term>() {
+        @Override
+        public boolean apply(@Nullable Term t) {
+          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t);
+        }
+      })).addAll(
+      // add all Darwin Core terms that are not stripped during interpretation
+      Iterables.filter(DwC_PROPERTIES, new Predicate<Term>() {
+        @Override
+        public boolean apply(@Nullable Term t) {
+          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t);
+        }
+      })).addAll(
+      // add all GBIF terms that are not stripped during interpretation
+      Iterables.filter(GBIF_PROPERTIES, new Predicate<Term>() {
+        @Override
+        public boolean apply(@Nullable Term t) {
+          // strip the GBIF id as we've already added that
+          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t;
+        }
+      })).build();
+  }
+
+  private Terms() {
+    // empty constructor
   }
 }

@@ -33,17 +33,8 @@ public class DwcArchiveUtils {
   private static final String DEFAULT_DELIMITER = ";";
 
   /**
-   * Hidden constructor.
-   */
-  private DwcArchiveUtils() {
-    // private empty constructor
-  }
-
-
-  /**
    * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
-   *
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
     ArchiveFile af = buildBaseArchive(filename, rowType.qualifiedName());
@@ -81,7 +72,6 @@ public class DwcArchiveUtils {
     return af;
   }
 
-
   /**
    * Creates an meta.xml descriptor file in the directory parameter.
    */
@@ -108,5 +98,12 @@ public class DwcArchiveUtils {
     } catch (IOException e) {
       LOG.error("Error creating meta.xml file", e);
     }
+  }
+
+  /**
+   * Hidden constructor.
+   */
+  private DwcArchiveUtils() {
+    // private empty constructor
   }
 }

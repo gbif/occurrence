@@ -31,19 +31,6 @@ public class Result implements Comparable<Result> {
     return downloadFileWork.compareTo(that.downloadFileWork);
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof Result)) {
-      return false;
-    }
-
-    Result that = (Result) obj;
-    return Objects.equal(downloadFileWork, that.downloadFileWork);
-  }
-
   /**
    * @return the datasetUsages map
    */
@@ -61,5 +48,18 @@ public class Result implements Comparable<Result> {
   @Override
   public int hashCode() {
     return Objects.hashCode(downloadFileWork);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Result)) {
+      return false;
+    }
+
+    Result that = (Result) obj;
+    return Objects.equal(downloadFileWork, that.downloadFileWork);
   }
 }

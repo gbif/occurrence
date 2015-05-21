@@ -15,20 +15,19 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 
 /**
- *  Executes a Solr query and applies a predicate to each result.
+ * Executes a Solr query and applies a predicate to each result.
  */
 public class SolrQueryProcessor {
 
   // Default page size for Solr queries.
   private static final int LIMIT = 300;
 
-
   /**
    * Executes a query on the SolrServer parameter and applies the predicate to each result.
-   * @param downloadFileWork  it's used to determine how to page through the results and the Solr query to be used
-   * @param solrServer that executes the query
-   * @param resultHandler predicate that process each result, receives as parameter the occurrence key
    *
+   * @param downloadFileWork it's used to determine how to page through the results and the Solr query to be used
+   * @param solrServer       that executes the query
+   * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
   public static void processQuery(final DownloadFileWork downloadFileWork, final Predicate<Integer> resultHandler) {
 

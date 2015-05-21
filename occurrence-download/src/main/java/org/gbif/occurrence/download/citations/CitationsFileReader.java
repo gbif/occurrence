@@ -33,6 +33,75 @@ import org.slf4j.LoggerFactory;
  */
 public final class CitationsFileReader {
 
+  private static final Logger LOG = LoggerFactory.getLogger(CitationsFileReader.class);
+  private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
+
+  /**
+   * Reads a dataset citations file with the form 'datasetkeyTABnumberOfRecords' and applies the listed predicates.
+   * Each line in read from the TSV file is transformed into a DatasetOccurrenceDownloadUsage.
+   *
+   * @param nameNode     Hadoop name node uri
+   * @param citationPath path to the directory that contains the citation table files
+   * @param downloadKey  occurrence download key
+   * @param predicates   list of predicates to apply while reading the file
+   */
+  public static void readCitations(
+    String nameNode,
+    String citationPath,
+    String downloadKey,
+    Predicate<DatasetOccurrenceDownloadUsage>... predicates
+  ) throws IOException {
+    final FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
+    for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
+      if (!fs.isDirectory()) {
+        try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
+                                                                                      Charsets.UTF_8))
+        ) {
+          for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
+            if (!Strings.isNullOrEmpty(tsvLine)) {
+              // catch all error to avoid breaking the loop
+              try {
+                for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
+                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
+                }
+              } catch (Exception e) {
+                LOG.info(String.format("Error processing citation line: %s", tsvLine), e);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
+   */
+  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
+    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+    DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
+    datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
+    datasetUsage.setDownloadKey(downloadKey);
+    datasetUsage.setNumberRecords(Long.parseLong(tsvLineIterator.next()));
+    return datasetUsage;
+  }
+
+  public static void main(String[] args) throws IOException {
+    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+
+    readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
+                  Preconditions.checkNotNull(args[0]),
+                  Preconditions.checkNotNull(args[1]),
+                  new PersistUsage(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+  }
+
+  /**
+   * Private constructor.
+   */
+  private CitationsFileReader() {
+    //empty constructor
+  }
+
   /**
    * Persists the dataset usage into the Registry data base.
    */
@@ -68,70 +137,5 @@ public final class CitationsFileReader {
       }
       return true;
     }
-  }
-
-  private static final Logger LOG = LoggerFactory.getLogger(CitationsFileReader.class);
-
-  private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
-
-  /**
-   * Private constructor.
-   */
-  private CitationsFileReader() {
-    //empty constructor
-  }
-
-  /**
-   * Reads a dataset citations file with the form 'datasetkeyTABnumberOfRecords' and applies the listed predicates.
-   * Each line in read from the TSV file is transformed into a DatasetOccurrenceDownloadUsage.
-   * @param nameNode Hadoop name node uri
-   * @param citationPath path to the directory that contains the citation table files
-   * @param downloadKey occurrence download key
-   * @param predicates list of predicates to apply while reading the file
-   * @throws IOException
-   */
-  public static void readCitations(String nameNode, String citationPath, String downloadKey, Predicate<DatasetOccurrenceDownloadUsage>...predicates) throws IOException {
-    final FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
-    for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
-      if (!fs.isDirectory()) {
-        try (BufferedReader citationReader =
-              new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), Charsets.UTF_8))
-        ) {
-          for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
-            if (!Strings.isNullOrEmpty(tsvLine)) {
-              // catch all error to avoid breaking the loop
-              try {
-                for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
-                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
-                }
-              } catch (Exception e) {
-                LOG.info(String.format("Error processing citation line: %s", tsvLine),e);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
-   */
-  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
-    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
-    DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-    datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
-    datasetUsage.setDownloadKey(downloadKey);
-    datasetUsage.setNumberRecords(Long.parseLong(tsvLineIterator.next()));
-    return datasetUsage;
-  }
-
-  public static void main(String[] args) throws IOException {
-    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-
-    readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
-                  Preconditions.checkNotNull(args[0]),
-                  Preconditions.checkNotNull(args[1]),
-                  new PersistUsage(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
 }

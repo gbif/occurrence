@@ -20,7 +20,7 @@
     </configuration>
   </global>
 
-  <start to="create-hbase-table" />
+  <start to="create-hbase-table"/>
 
   <!--
     Create the table backed by HBase
@@ -32,8 +32,8 @@
       <param>hiveDB=${hiveDB}</param>
       <param>occurrenceHBaseTable=${occurrenceHBaseTable}</param>
     </hive>
-    <ok to="create-hdfs-table" />
-    <error to="kill" />
+    <ok to="create-hdfs-table"/>
+    <error to="kill"/>
   </action>
 
   <!--
@@ -45,14 +45,14 @@
       <script>hive-scripts/create-occurrence-hdfs.q</script>
       <param>hiveDB=${hiveDB}</param>
     </hive>
-    <ok to="end" />
-    <error to="kill" />
+    <ok to="end"/>
+    <error to="kill"/>
   </action>
 
   <kill name="kill">
     <message>Failed to create tables for occurrence downloads:[${wf:errorMessage(wf:lastErrorNode())}]</message>
   </kill>
 
-  <end name="end" />
+  <end name="end"/>
 
 </workflow-app>

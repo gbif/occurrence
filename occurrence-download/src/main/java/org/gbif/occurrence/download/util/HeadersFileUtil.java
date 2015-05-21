@@ -31,21 +31,16 @@ public class HeadersFileUtil {
   private static final Joiner TAB_JOINER = Joiner.on('\t').skipNulls();
 
   /**
-   * Empty private constructor.
-   */
-  private HeadersFileUtil() {
-    // empty constructor
-  }
-
-  /**
    * Creates the headers file.
    * The output file name can be specified as argument.
    * If the file names are not specified the files are generated in
    * the current directory with the name "verbatim_headers.txt" and "verbatim_headers.txt".
    */
-  public static void
-    generateHeadersFiles(String verbatimFileName, String interpretedFileName, String multimediaFileName)
-      throws IOException {
+  public static void generateHeadersFiles(
+    String verbatimFileName,
+    String interpretedFileName,
+    String multimediaFileName
+  ) throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
     generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader());
     generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, getMultimediaTableHeader());
@@ -56,8 +51,7 @@ public class HeadersFileUtil {
    */
   private static void generateFileHeader(String fileName, String defaultName, String header) throws IOException {
     Closer closer = Closer.create();
-    final String outFileName =
-      Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
+    final String outFileName = Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
     try {
       FileWriter fileWriter = closer.register(new FileWriter(new File(outFileName)));
       fileWriter.write(header);
@@ -98,15 +92,13 @@ public class HeadersFileUtil {
     appendHeaders(fileWriter, getMultimediaTableHeader());
   }
 
-
   /**
    * Appends the headers line to the output file.
    */
   private static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
     Closer resultCloser = Closer.create();
     try {
-      InputStream headerInputStream =
-        resultCloser.register(new ByteArrayInputStream(headers.getBytes()));
+      InputStream headerInputStream = resultCloser.register(new ByteArrayInputStream(headers.getBytes()));
       ByteStreams.copy(headerInputStream, fileWriter);
     } finally {
       resultCloser.close();
@@ -140,6 +132,13 @@ public class HeadersFileUtil {
         "3 Parameters are required: verbatim, interpreted and multimedia header file names");
     }
     generateHeadersFiles(args[0], args[1], args[2]);
+  }
+
+  /**
+   * Empty private constructor.
+   */
+  private HeadersFileUtil() {
+    // empty constructor
   }
 
 }

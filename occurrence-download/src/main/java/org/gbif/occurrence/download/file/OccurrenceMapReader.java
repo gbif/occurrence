@@ -38,16 +38,9 @@ import org.apache.hadoop.hbase.util.Bytes;
  */
 public class OccurrenceMapReader {
 
+  private static final Joiner SEMICOLON_JOINER = Joiner.on(';').skipNulls();
   private final String occurrenceTableName;
   private final HTablePool tablePool;
-  private static final Joiner SEMICOLON_JOINER = Joiner.on(';').skipNulls();
-
-  @Inject
-  public OccurrenceMapReader(@Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String occurrenceTableName, HTablePool tablePool) {
-    this.occurrenceTableName = occurrenceTableName;
-    this.tablePool = tablePool;
-  }
-
 
   /**
    * Utility to build an API Occurrence record as a Map<String,Object> from an HBase row.
@@ -77,14 +70,12 @@ public class OccurrenceMapReader {
         }
       }
       occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
-      occurrence.put(
-        GbifTerm.hasCoordinate.simpleName(),
-        Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
-          && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
+      occurrence.put(GbifTerm.hasCoordinate.simpleName(),
+                     Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
+                                      && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
       return occurrence;
     }
   }
-
 
   /**
    * Utility to build an API Occurrence record as a Map<String,Object> from an HBase row.
@@ -112,10 +103,9 @@ public class OccurrenceMapReader {
         } else if (term == GbifTerm.hasGeospatialIssues) {
           occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
         } else if (term == GbifTerm.hasCoordinate) {
-          occurrence.put(
-            GbifTerm.hasCoordinate.simpleName(),
-            Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
-                             && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
+          occurrence.put(GbifTerm.hasCoordinate.simpleName(),
+                         Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
+                                          && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
@@ -161,7 +151,6 @@ public class OccurrenceMapReader {
     return false;
   }
 
-
   /**
    * Utility to build an API Occurrence from an HBase row.
    *
@@ -203,6 +192,13 @@ public class OccurrenceMapReader {
     return date != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format(date) : null;
   }
 
+  @Inject
+  public OccurrenceMapReader(
+    @Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String occurrenceTableName, HTablePool tablePool
+  ) {
+    this.occurrenceTableName = occurrenceTableName;
+    this.tablePool = tablePool;
+  }
 
   /**
    * Reads an occurrence record from HBase into Map.
@@ -210,7 +206,7 @@ public class OccurrenceMapReader {
    */
   public Result get(@Nonnull Integer key) throws IOException {
     Preconditions.checkNotNull(key, "Occurrence key can't be null");
-    try (HTableInterface table = tablePool.getTable(occurrenceTableName) ) {
+    try (HTableInterface table = tablePool.getTable(occurrenceTableName)) {
       return table.get(new Get(Bytes.toBytes(key)));
     }
   }

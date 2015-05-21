@@ -23,6 +23,7 @@ import freemarker.template.TemplateException;
  * generation of HBase table columns themselves.
  */
 public class GenerateHQL {
+
   private static final String CREATE_TABLES_DIR = "create-tables/hive-scripts";
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
@@ -73,13 +74,10 @@ public class GenerateHQL {
   /**
    * Generates HQL which create a Hive table on the HBase table.
    */
-  private static void generateHBaseTableHQL(Configuration cfg, File outDir)
-    throws IOException, TemplateException {
+  private static void generateHBaseTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hbase.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-hbase.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "fields", OccurrenceHBaseTableDefinition.definition()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", OccurrenceHBaseTableDefinition.definition());
       template.process(data, out);
     }
   }
@@ -87,18 +85,14 @@ public class GenerateHQL {
   /**
    * Generates HQL which is used to take snapshots of the HBase table, and creates an HDFS equivalent.
    */
-  private static void generateOccurrenceTableHQL(Configuration cfg, File outDir)
-    throws IOException, TemplateException {
+  private static void generateOccurrenceTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hdfs.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-hdfs.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "fields", OccurrenceHDFSTableDefinition.definition()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", OccurrenceHDFSTableDefinition.definition());
       template.process(data, out);
     }
   }
-
 
   /**
    * Generates the Hive query file used for DwAc downloads.
@@ -106,11 +100,12 @@ public class GenerateHQL {
   private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
       Template template = cfg.getTemplate("download/execute-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "verbatimFields", Queries.selectVerbatimFields(),
-        "interpretedFields", Queries.selectInterpretedFields(false),
-        "initializedInterpretedFields", Queries.selectInterpretedFields(true)
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>of("verbatimFields",
+                                                                 Queries.selectVerbatimFields(),
+                                                                 "interpretedFields",
+                                                                 Queries.selectInterpretedFields(false),
+                                                                 "initializedInterpretedFields",
+                                                                 Queries.selectInterpretedFields(true));
       template.process(data, out);
     }
   }
@@ -121,9 +116,7 @@ public class GenerateHQL {
   private static void generateVerbatimQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-verbatim-query.q"))) {
       Template template = cfg.getTemplate("download/execute-verbatim-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "verbatimFields", Queries.selectVerbatimFields()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>of("verbatimFields", Queries.selectVerbatimFields());
       template.process(data, out);
     }
   }
@@ -131,12 +124,12 @@ public class GenerateHQL {
   /**
    * Generates the Hive interpreted query file used for DwAc downloads.
    */
-  private static void generateInterpretedQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  private static void generateInterpretedQueryHQL(Configuration cfg, File outDir)
+    throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-interpreted-query.q"))) {
       Template template = cfg.getTemplate("download/execute-interpreted-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "interpretedFields", Queries.selectInterpretedFields(true)
-      );
+      Map<String, Object> data =
+        ImmutableMap.<String, Object>of("interpretedFields", Queries.selectInterpretedFields(true));
       template.process(data, out);
     }
   }
@@ -167,9 +160,7 @@ public class GenerateHQL {
   private static void generateSimpleQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-query.q"))) {
       Template template = cfg.getTemplate("simple-download/execute-simple-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(
-        "fields", Queries.selectSimpleDownloadFields()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
   }

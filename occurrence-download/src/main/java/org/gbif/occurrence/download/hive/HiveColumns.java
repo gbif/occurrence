@@ -11,22 +11,12 @@ import com.google.common.collect.ImmutableSet;
  */
 public final class HiveColumns {
 
-  // reserved hive words
-  private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of(
-    "date",
-    "order",
-    "format",
-    "group");
-
   // prefix for extension columns
   static final String EXTENSION_PREFIX = "ext_";
-
   // prefix for extension columns
   static final String VERBATIM_COL_PREFIX = "v_";
-
-  private HiveColumns() {
-    // empty constructor
-  }
+  // reserved hive words
+  private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
 
   /**
    * Gets the Hive column name of the term parameter.
@@ -54,5 +44,9 @@ public final class HiveColumns {
    */
   public static String columnFor(OccurrenceIssue issue) {
     return escapeColumnName(issue.name().toLowerCase());
+  }
+
+  private HiveColumns() {
+    // empty constructor
   }
 }

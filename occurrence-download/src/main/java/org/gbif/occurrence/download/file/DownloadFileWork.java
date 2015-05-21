@@ -32,12 +32,19 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final OccurrenceMapReader occurrenceMapReader;
 
-
-
   /**
    * Default constructor.
    */
-  public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock, SolrServer solrServer, OccurrenceMapReader occurrenceMapReader) {
+  public DownloadFileWork(
+    int from,
+    int to,
+    String baseDataFileName,
+    int jobId,
+    String query,
+    Lock lock,
+    SolrServer solrServer,
+    OccurrenceMapReader occurrenceMapReader
+  ) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -57,21 +64,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     return Ints.compare(getFrom(), that.getFrom());
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof DownloadFileWork)) {
-      return false;
-    }
-
-    DownloadFileWork that = (DownloadFileWork) obj;
-    return Objects.equal(this.baseDataFileName, that.baseDataFileName)
-      && Objects.equal(this.jobId, that.jobId) && Objects.equal(this.query, that.query)
-      && Objects.equal(this.from, that.from) && Objects.equal(this.to, that.to);
-  }
-
   /**
    * Gets the base table name.
    */
@@ -80,10 +72,9 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   *
    * @return baseDataFileName + jobId.
    */
-  public String getJobDataFileName(){
+  public String getJobDataFileName() {
     return baseDataFileName + jobId;
   }
 
@@ -122,7 +113,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   *
    * @return zookeeper lock
    */
   public Lock getLock() {
@@ -130,7 +120,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   *
    * @return Solr server to run queries
    */
   public SolrServer getSolrServer() {
@@ -138,7 +127,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   *
    * @return reads Hbase results into HashMaps
    */
   public OccurrenceMapReader getOccurrenceMapReader() {
@@ -151,9 +139,31 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof DownloadFileWork)) {
+      return false;
+    }
+
+    DownloadFileWork that = (DownloadFileWork) obj;
+    return Objects.equal(this.baseDataFileName, that.baseDataFileName)
+           && Objects.equal(this.jobId, that.jobId)
+           && Objects.equal(this.query, that.query)
+           && Objects.equal(this.from, that.from)
+           && Objects.equal(this.to, that.to);
+  }
+
+  @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("from", from).add("to", to)
-      .add("baseDataFileName", baseDataFileName).add("jobId", jobId).add("query", query).toString();
+    return Objects.toStringHelper(this)
+      .add("from", from)
+      .add("to", to)
+      .add("baseDataFileName", baseDataFileName)
+      .add("jobId", jobId)
+      .add("query", query)
+      .toString();
   }
 
 }

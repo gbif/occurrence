@@ -13,7 +13,8 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
- * Provider that initializes the {@link org.codehaus.jackson.map.ObjectMapper} to ignore {@code null} fields and unknown properties.
+ * Provider that initializes the {@link org.codehaus.jackson.map.ObjectMapper} to ignore {@code null} fields and unknown
+ * properties.
  * Copied and modified from gbif-common-ws to be compatible with jackson 1.8.8 used in the cdh4 environment.
  */
 @Provider

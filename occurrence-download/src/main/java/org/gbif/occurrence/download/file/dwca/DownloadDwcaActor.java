@@ -68,24 +68,122 @@ public class DownloadDwcaActor extends UntypedActor {
     }
   };
 
-  private static final String[] INT_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()),
-                                                              SIMPLE_NAME_FUNC).toArray(new String[0]);
-  private static final String[] VERB_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()),
-                                                               SIMPLE_NAME_FUNC).toArray(new String[0]);
-  private static final String[] MULTIMEDIA_COLUMNS = Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()),
-                                                                     SIMPLE_NAME_FUNC).toArray(new String[0]);
+  private static final String[] INT_COLUMNS =
+    Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+  private static final String[] VERB_COLUMNS =
+    Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+  private static final String[] MULTIMEDIA_COLUMNS =
+    Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {new NotNull(), // coreid
+    new MediaTypeProcessor(), // type
+    new CleanStringProcessor(), // format
+    new URIProcessor(), // identifier
+    new URIProcessor(), // references
+    new CleanStringProcessor(), // title
+    new CleanStringProcessor(), // description
+    new DateProcessor(), // created
+    new CleanStringProcessor(), // creator
+    new CleanStringProcessor(), // contributor
+    new CleanStringProcessor(), // publisher
+    new CleanStringProcessor(), // audience
+    new CleanStringProcessor(), // source
+    new CleanStringProcessor(), // license
+    new CleanStringProcessor() // rightsHolder
+  };
+
+  /**
+   * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
+   */
+  private static void writeMediaObjects(
+    ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result, Integer occurrenceKey
+  ) throws IOException {
+    List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
+    if (multimedia != null) {
+      for (MediaObject mediaObject : multimedia) {
+        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey),
+                                  MULTIMEDIA_COLUMNS,
+                                  MEDIA_CELL_PROCESSORS);
+      }
+    }
+  }
+
+  /**
+   * Creates a SolrQuery that contains the query parameter as the filter query value.
+   */
+  private static SolrQuery createSolrQuery(String query) {
+    SolrQuery solrQuery = new SolrQuery();
+    solrQuery.setQuery(SolrConstants.DEFAULT_QUERY);
+    if (!Strings.isNullOrEmpty(query)) {
+      solrQuery.addFilterQuery(query);
+    }
+    return solrQuery;
+  }
+
+  /**
+   * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
+   */
+  public void doWork(final DownloadFileWork work) throws IOException {
+
+    final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
+
+    try (
+      ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
+                                                                               + TableSuffixes.INTERPRETED_SUFFIX,
+                                                                               Charsets.UTF_8),
+                                                    CsvPreference.TAB_PREFERENCE);
+      ICsvMapWriter verbCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
+                                                                                + TableSuffixes.VERBATIM_SUFFIX,
+                                                                                Charsets.UTF_8),
+                                                     CsvPreference.TAB_PREFERENCE);
+      ICsvBeanWriter multimediaCsvWriter = new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName()
+                                                                                        + TableSuffixes.MULTIMEDIA_SUFFIX,
+                                                                                        Charsets.UTF_8),
+                                                             CsvPreference.TAB_PREFERENCE)) {
+      SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
+        @Override
+        public boolean apply(@Nullable Integer occurrenceKey) {
+          try {
+            // Writes the occurrence record obtained from HBase as Map<String,Object>.
+            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
+            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
+            Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
+            if (occurrenceRecordMap != null) {
+              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
+              intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
+              verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
+              writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
+              return true;
+            } else {
+              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
+            }
+          } catch (Exception e) {
+            throw Throwables.propagate(e);
+          }
+          return false;
+        }
+      });
+    } finally {
+      // Unlock the assigned lock.
+      work.getLock().unlock();
+      LOG.info("Lock released, job detail: {} ", work.toString());
+    }
+    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
+  }
+
+  @Override
+  public void onReceive(Object message) throws Exception {
+    if (message instanceof DownloadFileWork) {
+      doWork((DownloadFileWork) message);
+    } else {
+      unhandled(message);
+    }
+  }
 
   /**
    * Inner class used to export data into multimedia.txt files.
    * The structure must match the headers defined in MULTIMEDIA_COLUMNS.
    */
   public static class InnerMediaObject extends MediaObject {
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this).addValue(super.toString()).add("gbifID", gbifID).toString();
-    }
-
 
     private Integer gbifID;
 
@@ -105,9 +203,14 @@ public class DownloadDwcaActor extends UntypedActor {
       try {
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
-      } catch (IllegalAccessException|InvocationTargetException e) {
+      } catch (IllegalAccessException | InvocationTargetException e) {
         throw Throwables.propagate(e);
       }
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).addValue(super.toString()).add("gbifID", gbifID).toString();
     }
 
     /**
@@ -116,7 +219,6 @@ public class DownloadDwcaActor extends UntypedActor {
     public Integer getGbifID() {
       return gbifID;
     }
-
 
     public void setGbifID(Integer gbifID) {
       this.gbifID = gbifID;
@@ -171,108 +273,5 @@ public class DownloadDwcaActor extends UntypedActor {
       return value != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format((Date) value) : "";
     }
 
-  }
-
-  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {
-    new NotNull(), // coreid
-    new MediaTypeProcessor(), // type
-    new CleanStringProcessor(), // format
-    new URIProcessor(), // identifier
-    new URIProcessor(), // references
-    new CleanStringProcessor(), // title
-    new CleanStringProcessor(), // description
-    new DateProcessor(), // created
-    new CleanStringProcessor(), // creator
-    new CleanStringProcessor(), // contributor
-    new CleanStringProcessor(), // publisher
-    new CleanStringProcessor(), // audience
-    new CleanStringProcessor(), // source
-    new CleanStringProcessor(), // license
-    new CleanStringProcessor() // rightsHolder
-  };
-
-  /**
-   * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
-   */
-  public void doWork(final DownloadFileWork work) throws IOException {
-
-    final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-
-    try (
-      ICsvMapWriter intCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX, Charsets.UTF_8),
-                         CsvPreference.TAB_PREFERENCE);
-      ICsvMapWriter verbCsvWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX, Charsets.UTF_8),
-                         CsvPreference.TAB_PREFERENCE);
-      ICsvBeanWriter multimediaCsvWriter =
-        new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX, Charsets.UTF_8),
-                          CsvPreference.TAB_PREFERENCE))
-    {
-      SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
-        @Override
-        public boolean apply(@Nullable Integer occurrenceKey) {
-          try {
-            // Writes the occurrence record obtained from HBase as Map<String,Object>.
-            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
-            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
-            Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
-            if (occurrenceRecordMap != null) {
-              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
-              intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
-              verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
-              writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
-              return true;
-            } else {
-              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
-            }
-          } catch (Exception e) {
-            throw Throwables.propagate(e);
-          }
-          return false;
-        }
-      });
-    } finally {
-      // Unlock the assigned lock.
-      work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work.toString());
-    }
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()),getSelf());
-  }
-
-  /**
-   * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
-   */
-  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result,
-                                        Integer occurrenceKey)
-    throws IOException {
-    List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
-    if (multimedia != null) {
-      for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey), MULTIMEDIA_COLUMNS,
-                                  MEDIA_CELL_PROCESSORS);
-      }
-    }
-  }
-
-  /**
-   * Creates a SolrQuery that contains the query parameter as the filter query value.
-   */
-  private static SolrQuery createSolrQuery(String query) {
-    SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setQuery(SolrConstants.DEFAULT_QUERY);
-    if (!Strings.isNullOrEmpty(query)) {
-      solrQuery.addFilterQuery(query);
-    }
-    return solrQuery;
-  }
-
-  @Override
-  public void onReceive(Object message) throws Exception {
-    if(message instanceof DownloadFileWork) {
-      doWork((DownloadFileWork)message);
-    } else {
-      unhandled(message);
-    }
   }
 }

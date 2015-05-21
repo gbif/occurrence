@@ -16,7 +16,7 @@
     </configuration>
   </global>
 
-  <start to="download_prepare" />
+  <start to="download_prepare"/>
 
   <action name="download_prepare">
     <java>
@@ -26,8 +26,8 @@
       <capture-output/>
     </java>
 
-    <ok to="download_size_decision" />
-    <error to="kill" />
+    <ok to="download_size_decision"/>
+    <error to="kill"/>
   </action>
 
   <decision name="download_size_decision">
@@ -42,7 +42,7 @@
       <case to="dwca_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'DWCA')}
       </case>
-      <default to="kill" />
+      <default to="kill"/>
     </switch>
   </decision>
 
@@ -56,8 +56,8 @@
       <arg>${wf:actionData('download_prepare')['download_table_name']}</arg>
     </java>
 
-    <ok to="end" />
-    <error to="kill" />
+    <ok to="end"/>
+    <error to="kill"/>
   </action>
 
   <action name="simple_download">
@@ -127,6 +127,6 @@
     <message>Occurrence download failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
   </kill>
 
-  <end name="end" />
+  <end name="end"/>
 
 </workflow-app>

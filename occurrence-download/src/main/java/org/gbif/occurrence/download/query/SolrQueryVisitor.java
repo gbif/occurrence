@@ -55,7 +55,8 @@ import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FI
  * </p>
  * This is not thread-safe but one instance can be reused. It is package-local and should usually be accessed through
  * {@link DownloadRequestServiceImpl}. All {@code visit} methods have to be public for the
- * {@link Class#getMethod(String, Class[])} call to work. This is the primary reason for this class being package-local.
+ * {@link Class#getMethod(String, Class[])} call to work. This is the primary reason for this class being
+ * package-local.
  * </p>
  * The only entry point into this class is the {@code getQuery} method!
  */
@@ -76,7 +77,6 @@ public class SolrQueryVisitor {
 
   private StringBuilder builder;
 
-
   /**
    * Parses a geometry parameter in WKT format.
    * If the parsed geometry is a polygon the produced query will be in INTERSECTS(wkt parameter) format.
@@ -88,8 +88,9 @@ public class SolrQueryVisitor {
       Geometry geometry = new WKTReader().read(wkt);
       if (geometry.isRectangle()) {
         Envelope bbox = geometry.getEnvelopeInternal();
-        return String
-          .format(RANGE_FORMAT, bbox.getMinY() + "," + bbox.getMinX(), bbox.getMaxY() + "," + bbox.getMaxX());
+        return String.format(RANGE_FORMAT,
+                             bbox.getMinY() + "," + bbox.getMinX(),
+                             bbox.getMaxY() + "," + bbox.getMaxX());
       }
       return String.format(GEO_INTERSECTS_QUERY_FMT, wkt);
     } catch (ParseException e) {
@@ -97,12 +98,12 @@ public class SolrQueryVisitor {
     }
   }
 
-
   /**
    * Translates a valid {@link org.gbif.api.model.occurrence.Download} object and translates it into a
    * strings that can be used as the <em>WHERE</em> clause for a Hive download.
    *
    * @param predicate to translate
+   *
    * @return WHERE clause
    */
   public String getQuery(Predicate predicate) throws QueryBuildingException {
@@ -131,8 +132,6 @@ public class SolrQueryVisitor {
 
   /**
    * Supports all parameters incl taxonKey expansion for higher taxa.
-   *
-   * @param predicate
    */
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
     visitSimplePredicate(predicate, EQUALS_OPERATOR);
@@ -185,7 +184,7 @@ public class SolrQueryVisitor {
 
   public void visit(WithinPredicate within) {
     builder.append(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
-      parseGeometryParam(within.getGeometry())));
+                                      parseGeometryParam(within.getGeometry())));
   }
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
@@ -196,7 +195,7 @@ public class SolrQueryVisitor {
   /**
    * Builds a list of predicates joined by 'op' statements.
    * The final statement will look like this:
-   *
+   * <p/>
    * <pre>
    * ((predicate) op (predicate) ... op (predicate))
    * </pre>
@@ -216,13 +215,11 @@ public class SolrQueryVisitor {
     builder.append(')');
   }
 
-
   public void visitRangePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
     builder.append(toSolrField(predicate.getKey()));
     builder.append(EQUALS_OPERATOR);
     builder.append(String.format(op, toSolrValue(predicate.getKey(), predicate.getValue())));
   }
-
 
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
     builder.append(toSolrField(predicate.getKey()));
@@ -244,6 +241,7 @@ public class SolrQueryVisitor {
    *
    * @param param the type of parameter defining the expected type
    * @param value the original query value
+   *
    * @return the converted value expected by HBase
    */
   private String toSolrValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
@@ -261,24 +259,20 @@ public class SolrQueryVisitor {
     }
   }
 
-
   private void visit(Object object) throws QueryBuildingException {
     Method method = null;
     try {
       method = getClass().getMethod("visit", new Class[] {object.getClass()});
     } catch (NoSuchMethodException e) {
-      LOG
-        .warn(
-          "Visit method could not be found. That means a Predicate has been passed in that is unknown to this "
-            + "class",
-          e);
+      LOG.warn("Visit method could not be found. That means a Predicate has been passed in that is unknown to this "
+               + "class", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
       LOG.error("This should never happen as all our methods are public and missing methods should have been caught "
-        + "before. Probably a programming error", e);
+                + "before. Probably a programming error", e);
       throw new RuntimeException("Programming error", e);
     } catch (InvocationTargetException e) {
       LOG.info("Exception thrown while building the Hive Download", e);

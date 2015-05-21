@@ -18,10 +18,11 @@ import org.w3c.dom.Node;
  */
 public class DownloadConfBuilder {
 
-  private static final String XPATH_ENV_EXPR = "/*[name()=\"settings\"]/*[name()=\"profiles\"]/*[name()=\"profile\"][*[name()=\"id\" and text()=\"%s\"]]/*[name()=\"properties\"]";
+  private static final String XPATH_ENV_EXPR =
+    "/*[name()=\"settings\"]/*[name()=\"profiles\"]/*[name()=\"profile\"][*[name()=\"id\" and text()=\"%s\"]]/*[name()=\"properties\"]";
 
   public static void main(String[] args) throws Exception {
-    try(FileOutputStream fileOutputStream = new FileOutputStream(args[1])) {
+    try (FileOutputStream fileOutputStream = new FileOutputStream(args[1])) {
 
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -38,7 +39,7 @@ public class DownloadConfBuilder {
         }
       }
       System.out.println(properties);
-      properties.store(fileOutputStream,null);
+      properties.store(fileOutputStream, null);
       fileOutputStream.flush();
     }
   }
@@ -46,7 +47,7 @@ public class DownloadConfBuilder {
   /**
    * Hidden constructor.
    */
-  private DownloadConfBuilder(){
+  private DownloadConfBuilder() {
     //empty constructor
   }
 

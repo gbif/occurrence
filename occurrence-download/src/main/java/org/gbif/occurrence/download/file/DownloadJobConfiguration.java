@@ -96,60 +96,63 @@ public class DownloadJobConfiguration {
   /**
    * Directory where the data files are stored, it can be either a local or a hdfs path.
    */
-  public String getSourceDir(){
+  public String getSourceDir() {
     return sourceDir;
   }
 
   /**
-   *
    * Requested download format.
    */
-  public DownloadFormat getDownloadFormat(){
+  public DownloadFormat getDownloadFormat() {
     return downloadFormat;
   }
 
   /**
    * Interpreted table/file name.
    * This is used for DwcA downloads only, it varies if it's a small or big download.
-   *  - big downloads format: sourceDir/downloadTableName_interpreted/
-   *  - small downloads format: sourceDir/downloadKey/interpreted
+   * - big downloads format: sourceDir/downloadTableName_interpreted/
+   * - small downloads format: sourceDir/downloadKey/interpreted
    */
-  public String getInterpretedDataFileName(){
-    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME:
-                            getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
+  public String getInterpretedDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME
+      : getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
   }
 
   /**
    * Verbatim table/file name.
    * This is used for DwcA downloads only, it varies if it's a small or big download.
-   *  - big downloads format: sourceDir/downloadTableName_verbatim/
-   *  - small downloads format: sourceDir/downloadKey/verbatim
+   * - big downloads format: sourceDir/downloadTableName_verbatim/
+   * - small downloads format: sourceDir/downloadKey/verbatim
    */
-  public String getVerbatimDataFileName(){
-    return isSmallDownload? getDownloadTempDir()+ DwcDownloadsConstants.VERBATIM_FILENAME:
-                            getDownloadTempDir(TableSuffixes.VERBATIM_SUFFIX);
+  public String getVerbatimDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.VERBATIM_FILENAME
+      : getDownloadTempDir(TableSuffixes.VERBATIM_SUFFIX);
   }
 
   /**
    * Citation table/file name.
    * This is used for DwcA downloads only, it varies if it's a small or big download.
-   *  - big downloads format: sourceDir/downloadTableName_citation/
-   *  - small downloads format: sourceDir/downloadKey/citation
+   * - big downloads format: sourceDir/downloadTableName_citation/
+   * - small downloads format: sourceDir/downloadKey/citation
    */
-  public String getCitationDataFileName(){
-    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME :
-                            getDownloadTempDir(TableSuffixes.CITATION_SUFFIX);
+  public String getCitationDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME
+      : getDownloadTempDir(TableSuffixes.CITATION_SUFFIX);
   }
 
   /**
    * Multimedia table/file name.
    * This is used for DwcA downloads only, it varies if it's a small or big download.
-   *  - big downloads format: sourceDir/downloadTableName_multimedia/
-   *  - small downloads format: sourceDir/downloadKey/multimedia
+   * - big downloads format: sourceDir/downloadTableName_multimedia/
+   * - small downloads format: sourceDir/downloadKey/multimedia
    */
-  public String getMultimediaDataFileName(){
-    return isSmallDownload? getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME :
-                            getDownloadTempDir(TableSuffixes.MULTIMEDIA_SUFFIX);
+  public String getMultimediaDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME
+      : getDownloadTempDir(TableSuffixes.MULTIMEDIA_SUFFIX);
   }
 
   /**
@@ -158,7 +161,11 @@ public class DownloadJobConfiguration {
    * - big downloads: sourceDir/downloadTableName(suffix)/
    */
   public String getDownloadTempDir(String suffix) {
-    return (sourceDir + Path.SEPARATOR + (isSmallDownload? downloadKey : downloadTableName) + suffix + Path.SEPARATOR).toLowerCase();
+    return (sourceDir
+            + Path.SEPARATOR
+            + (isSmallDownload ? downloadKey : downloadTableName)
+            + suffix
+            + Path.SEPARATOR).toLowerCase();
   }
 
   /**
@@ -191,23 +198,22 @@ public class DownloadJobConfiguration {
 
     private DownloadFormat downloadFormat;
 
-
-    public Builder withDownloadKey(String downloadKey){
+    public Builder withDownloadKey(String downloadKey) {
       this.downloadKey = downloadKey;
       return this;
     }
 
-    public Builder withDownloadTableName(String downloadTableName){
+    public Builder withDownloadTableName(String downloadTableName) {
       this.downloadTableName = downloadTableName;
       return this;
     }
 
-    public Builder withFilter(String filter){
+    public Builder withFilter(String filter) {
       this.filter = filter;
       return this;
     }
 
-    public Builder withUser(String user){
+    public Builder withUser(String user) {
       this.user = user;
       return this;
     }
@@ -216,7 +222,6 @@ public class DownloadJobConfiguration {
       this.isSmallDownload = isSmallDownload;
       return this;
     }
-
 
     public Builder withSourceDir(String sourceDir) {
       this.sourceDir = sourceDir;
@@ -236,8 +241,15 @@ public class DownloadJobConfiguration {
     /**
      * Builds a new DownloadJobConfiguration instance.
      */
-    public DownloadJobConfiguration build(){
-      return new DownloadJobConfiguration(downloadKey, downloadTableName, filter, user, isSmallDownload,sourceDir,solrQuery,downloadFormat);
+    public DownloadJobConfiguration build() {
+      return new DownloadJobConfiguration(downloadKey,
+                                          downloadTableName,
+                                          filter,
+                                          user,
+                                          isSmallDownload,
+                                          sourceDir,
+                                          solrQuery,
+                                          downloadFormat);
     }
 
   }
