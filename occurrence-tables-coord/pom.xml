@@ -18,6 +18,7 @@
       file -->
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
     <timestamp>${maven.build.timestamp}</timestamp>
+    <hive.version>1.1.0-cdh5.4.2</hive.version>
   </properties>
 
   <build>
