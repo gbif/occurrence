@@ -59,7 +59,7 @@ public class SimpleCsvArchiveBuilder {
                                                public String apply(
                                                  @Nullable Term input
                                                ) {
-                                                 return HiveColumns.columnFor(input);
+                                                 return HiveColumns.columnFor(input).replaceAll("_", "");
                                                }
                                              })) + '\n';
 
