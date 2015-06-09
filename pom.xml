@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>20</version>
+    <version>23-SNAPSHOT</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -42,7 +42,7 @@
   </modules>
 
   <properties>
-    <jdkLevel>1.7</jdkLevel>
+    <jdkLevel>1.8</jdkLevel>
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
     <postalservice.threadcount>10</postalservice.threadcount>
