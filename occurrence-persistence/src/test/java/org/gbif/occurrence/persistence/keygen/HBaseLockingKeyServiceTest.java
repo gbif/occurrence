@@ -197,8 +197,8 @@ public class HBaseLockingKeyServiceTest {
     // test: gen id for one occ with both lookupkeys
     exception.expect(RuntimeException.class);
     exception.expectMessage(
-      "Found inconsistent occurrence keys in looking up unique identifiers:[" + datasetKey + "|ABCD]=[1][" + datasetKey
-      + "|EFGH]=[2]");
+      "Found inconsistent occurrence keys in looking up unique identifiers:[" + datasetKey + "|EFGH]=[2][" + datasetKey
+      + "|ABCD]=[1]");
     keyService.generateKey(ImmutableSet.of("ABCD", "EFGH"), datasetKey);
   }
 
