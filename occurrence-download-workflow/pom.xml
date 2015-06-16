@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.31</version>
+    <version>0.31.1</version>
   </parent>
 
   <artifactId>occurrence-download-workflow</artifactId>
@@ -452,4 +452,8 @@
     </dependency>
 
   </dependencies>
+
+  <scm>
+    <tag>occurrence-0.31.1</tag>
+  </scm>
 </project>
