@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.31.1</version>
+    <version>0.31.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-tables-coord</artifactId>
@@ -201,9 +201,4 @@
       <scope>runtime</scope>
     </dependency>
   </dependencies>
-
-
-  <scm>
-    <tag>occurrence-0.31.1</tag>
-  </scm>
 </project>
