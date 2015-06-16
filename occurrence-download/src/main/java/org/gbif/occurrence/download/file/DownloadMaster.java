@@ -121,7 +121,9 @@ public class DownloadMaster extends UntypedActor {
     downloadTempDir.mkdirs();
 
     final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
-    if (recordCount > 0) {
+    if( recordCount <= 0) { //now work to do: shutdown the system
+      getContext().stop(getSelf());
+    } else  {
       final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
       // Calculates the required workers.
       calcNrOfWorkers =
