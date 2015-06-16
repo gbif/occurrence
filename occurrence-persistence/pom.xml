@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.31.2-SNAPSHOT</version>
+    <version>0.31</version>
   </parent>
 
   <artifactId>occurrence-persistence</artifactId>
@@ -197,4 +197,5 @@
     <!--</dependency>-->
 
   </dependencies>
+
 </project>
