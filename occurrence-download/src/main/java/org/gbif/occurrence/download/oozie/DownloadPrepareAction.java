@@ -146,7 +146,7 @@ public class DownloadPrepareAction {
         props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         props.setProperty(DOWNLOAD_KEY, downloadKey);
         // '-' is replaced by '_' because it's not allowed in hive table names
-        props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replace('-', '_'));
+        props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
         props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
         props.store(os, "");
       } catch (FileNotFoundException e) {

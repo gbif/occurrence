@@ -98,12 +98,12 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
       FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true)) {
 
+      HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
+      HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
+      HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
         Collections.sort(results);
-        HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
-        HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
-        HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
         DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
         for (Result result : results) {
           datasetUsagesCollector.sumUsages(result.getDatasetUsages());
@@ -114,9 +114,9 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                datasetOccUsageService,
                                                datasetService,
                                                configuration.getDownloadKey());
-        //Creates the DwcA zip file
-        DwcaArchiveBuilder.buildArchive(configuration);
       }
+      //Creates the DwcA zip file
+      DwcaArchiveBuilder.buildArchive(configuration);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
