@@ -71,16 +71,15 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     try {
       if (!results.isEmpty()) {
         mergeResults(results);
-        FileSystem fileSystem = DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode());
-        SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
-                                           fileSystem,
-                                           configuration.getDownloadTempDir(),
-                                           workflowConfiguration.getHdfsOutputPath(),
-                                           configuration.getDownloadKey(),
-                                           ModalZipOutputStream.MODE.DEFAULT);
-        //Delete the temp directory
-        FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
       }
+      SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
+                                         DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
+                                         configuration.getDownloadTempDir(),
+                                         workflowConfiguration.getHdfsOutputPath(),
+                                         configuration.getDownloadKey(),
+                                         ModalZipOutputStream.MODE.DEFAULT);
+      //Delete the temp directory
+      FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
       LOG.error("Error aggregating download files", ex);
       throw Throwables.propagate(ex);
