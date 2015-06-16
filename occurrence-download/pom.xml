@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.31</version>
+    <version>0.31.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -448,4 +448,8 @@
     </dependency>
   </dependencies>
   <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
+
+  <scm>
+    <tag>occurrence-0.31.1</tag>
+  </scm>
 </project>
