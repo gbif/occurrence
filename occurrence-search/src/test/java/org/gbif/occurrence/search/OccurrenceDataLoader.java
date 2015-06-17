@@ -15,6 +15,7 @@ import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -310,7 +311,11 @@ public class OccurrenceDataLoader {
     } catch (Exception e) {
       LOG.error(String.format("Error parsing occurrence object from file %d", line), e);
     } finally {
-      Closeables.closeQuietly(reader);
+      try {
+        Closeables.close(reader, false);
+      } catch (IOException io) {
+        LOG.warn("Failed to close reader", io);
+      }
     }
   }
 

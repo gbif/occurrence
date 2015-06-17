@@ -38,12 +38,17 @@
     </repository>
   </repositories>
 
+  <properties>
+    <guava.version>14.0.1</guava.version>
+  </properties>
+
   <build>
     <plugins>
+      <!-- shade everything that uses old guava (ie anything touching the cluster) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
+        <version>2.4</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -54,12 +59,32 @@
               <artifactSet>
                 <includes>
                   <include>com.google.guava:guava</include>
+                  <include>org.apache.curator:curator-client</include>
+                  <include>org.apache.curator:curator-framework</include>
+                  <include>org.apache.curator:curator-recipes</include>
+                  <include>org.apache.hadoop:hadoop-annotations</include>
+                  <include>org.apache.hadoop:hadoop-auth</include>
+                  <include>org.apache.hadoop:hadoop-common</include>
+                  <include>org.apache.hadoop:hadoop-core</include>
+                  <include>org.apache.hadoop:hadoop-client</include>
+                  <include>org.apache.hadoop:hadoop-protocol</include>
+                  <include>org.apache.hbase:hbase-annotations</include>
+                  <include>org.apache.hbase:hbase-client</include>
+                  <include>org.apache.hbase:hbase-common</include>
+                  <include>org.apache.hbase:hbase-hadoop-compat</include>
+                  <include>org.apache.hbase:hbase-hadoop2-compat</include>
+                  <include>org.apache.hbase:hbase-protocol</include>
+                  <include>org.apache.hbase:hbase-server</include>
+                  <include>org.apache.hbase:hbase-testing-util</include>
+                  <include>org.apache.hive:hive-hbase-handler</include>
+                  <include>org.apache.zookeeper:zookeeper</include>
+                  <include>org.gbif:hbase-utils</include>
                 </includes>
               </artifactSet>
               <relocations>
                 <relocation>
                   <pattern>com.google.common</pattern>
-                  <shadedPattern>com.shaded.google.common</shadedPattern>
+                  <shadedPattern>g14.com.google.common</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -178,6 +203,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
 
     <!-- we need all of these inspite of what mvn:dep says -->

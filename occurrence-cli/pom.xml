@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -13,10 +14,11 @@
   <name>Occurrence CLI</name>
 
   <properties>
-    <gbif-cli.version>0.8</gbif-cli.version>
+    <gbif-cli.version>0.10-SNAPSHOT</gbif-cli.version>
 
     <!-- have to match gbif-cli version -->
-    <guava.version>14.0.1</guava.version>
+    <guava.version>17.0</guava.version>
+
     <!-- specific versions for solr -->
     <httpclient.version>4.2.3</httpclient.version>
     <httpcore.version>4.2.2</httpcore.version>
@@ -25,9 +27,7 @@
     <jackson.version>1.9.11</jackson.version>
     <jackson-annotations.version>2.4.2</jackson-annotations.version>
     <jackson-datatype-guava.version>1.9.1</jackson-datatype-guava.version>
-    <metainf-services.version>1.4</metainf-services.version>
-    <!-- Fixed to the version Curator uses, problems otherwise -->
-    <zookeeper.version>3.4.5</zookeeper.version>
+    <metainf-services.version>1.5</metainf-services.version>
   </properties>
 
   <build>
@@ -80,7 +80,7 @@
                   </manifestEntries>
                 </transformer>
                 <!-- This bit merges the various GeoTools META-INF/services files         -->
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
             </configuration>
           </execution>
@@ -153,18 +153,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-server</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-client</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
     </dependency>
@@ -209,33 +197,13 @@
       <artifactId>validation-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>${zookeeper.version}</version>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>log4j</artifactId>
-          <groupId>log4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>netty</artifactId>
-          <groupId>org.jboss.netty</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>dwc-api</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.gbif</groupId>-->
+      <!--<artifactId>dwc-api</artifactId>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-cli</artifactId>
@@ -267,6 +235,27 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-registry-sync</artifactId>
+      <!-- these conflict with the versions solr needs -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpcore</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- false positive from mvn dep:analyze -->
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-common</artifactId>
+    </dependency>
+    <!-- false positive from mvn dep:analyze -->
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
       <exclusions>
         <exclusion>
@@ -284,6 +273,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-processor</artifactId>
@@ -298,19 +288,19 @@
         </exclusion>
       </exclusions>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
-       <exclusions>
-         <exclusion>
-           <artifactId>commons-logging</artifactId>
-           <groupId>commons-logging</groupId>
-         </exclusion>
-         <exclusion>
-           <artifactId>slf4j-log4j12</artifactId>
-           <groupId>org.slf4j</groupId>
-         </exclusion>
-       </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-logging</artifactId>
+          <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -322,14 +312,14 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-ws</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.registry</groupId>
-      <artifactId>registry-ws-client</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.gbif</groupId>-->
+      <!--<artifactId>gbif-common-ws</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.gbif.registry</groupId>-->
+      <!--<artifactId>registry-ws-client</artifactId>-->
+    <!--</dependency>-->
     <!-- false positive from maven dep:analyze -->
     <dependency>
       <groupId>org.kohsuke.metainf-services</groupId>
@@ -377,42 +367,29 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-parser</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-parsers</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.sun.jersey.contribs</groupId>
-      <artifactId>jersey-apache-client</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-      <version>${jersey.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.gbif</groupId>-->
+      <!--<artifactId>gbif-parsers</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.codehaus.jackson</groupId>-->
+      <!--<artifactId>jackson-jaxrs</artifactId>-->
+    <!--</dependency>-->
+    <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>com.google.code.findbugs</groupId>-->
+      <!--<artifactId>jsr305</artifactId>-->
+    <!--</dependency>-->
+    <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>com.yammer.metrics</groupId>
       <artifactId>metrics-core</artifactId>
     </dependency>
+    <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>com.yammer.metrics</groupId>
       <artifactId>metrics-ganglia</artifactId>

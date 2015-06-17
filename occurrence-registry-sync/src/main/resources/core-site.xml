@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>${hdfs.namenode}</value>
+  </property>
+
+  <property>
+    <name>io.file.buffer.size</name>
+    <value>65536</value>
+  </property>
+
+  <!-- avoids the java.io.IOException: No FileSystem for scheme: hdfs  as per
+  http://grokbase.com/t/cloudera/scm-users/1288xszz7r/no-filesystem-for-scheme-hdfs -->
+  <!--<property>-->
+    <!--<name>fs.hdfs.impl</name>-->
+    <!--<value>org.apache.hadoop.hdfs.DistributedFileSystem</value>-->
+    <!--<description>The FileSystem for hdfs: uris.</description>-->
+  <!--</property>-->
+
+</configuration>
