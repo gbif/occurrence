@@ -979,6 +979,40 @@
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+          <configuration>
+            <failOnError>false</failOnError>
+            <docfilessubdirs>true</docfilessubdirs>
+            <quiet>true</quiet>
+            <linksource>true</linksource>
+            <links>
+              <link>http://freemarker.org/docs/api</link>
+              <link>http://docs.guava-libraries.googlecode.com/git/javadoc</link>
+              <link>http://findbugs.sourceforge.net/api</link>
+            </links>
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+                <goal>test-jar</goal>
+              </goals>
+              <configuration>
+                <additionalparam>-Xdoclint:none</additionalparam>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   <profiles>
 
     <profile>
