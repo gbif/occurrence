@@ -14,7 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -47,6 +48,68 @@
     </repository>
   </repositories>
 
+  <properties>
+    <guava.version>14.0.1</guava.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <!-- shade everything that uses old guava (ie anything touching the cluster) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.google.guava:guava</include>
+                  <include>org.apache.curator:curator-client</include>
+                  <include>org.apache.curator:curator-framework</include>
+                  <include>org.apache.curator:curator-recipes</include>
+                  <include>org.apache.hadoop:hadoop-annotations</include>
+                  <include>org.apache.hadoop:hadoop-auth</include>
+                  <include>org.apache.hadoop:hadoop-common</include>
+                  <include>org.apache.hadoop:hadoop-core</include>
+                  <include>org.apache.hadoop:hadoop-client</include>
+                  <include>org.apache.hadoop:hadoop-protocol</include>
+                  <include>org.apache.hbase:hbase-annotations</include>
+                  <include>org.apache.hbase:hbase-client</include>
+                  <include>org.apache.hbase:hbase-common</include>
+                  <include>org.apache.hbase:hbase-hadoop-compat</include>
+                  <include>org.apache.hbase:hbase-hadoop2-compat</include>
+                  <include>org.apache.hbase:hbase-protocol</include>
+                  <include>org.apache.hbase:hbase-server</include>
+                  <include>org.apache.hbase:hbase-testing-util</include>
+                  <include>org.apache.hive:hive-hbase-handler</include>
+                  <include>org.apache.zookeeper:zookeeper</include>
+                  <include>org.gbif:hbase-utils</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>g14.com.google.common</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -59,6 +122,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -179,21 +243,21 @@
       <scope>test</scope>
     </dependency>
     <!--<dependency>-->
-      <!--<groupId>ch.qos.logback</groupId>-->
-      <!--<artifactId>logback-classic</artifactId>-->
-      <!--<scope>test</scope>-->
+    <!--<groupId>ch.qos.logback</groupId>-->
+    <!--<artifactId>logback-classic</artifactId>-->
+    <!--<scope>test</scope>-->
     <!--</dependency>-->
     <!--<dependency>-->
-      <!--<groupId>log4j</groupId>-->
-      <!--<artifactId>log4j</artifactId>-->
-      <!--<version>1.2.17</version>-->
-      <!--<scope>test</scope>-->
+    <!--<groupId>log4j</groupId>-->
+    <!--<artifactId>log4j</artifactId>-->
+    <!--<version>1.2.17</version>-->
+    <!--<scope>test</scope>-->
     <!--</dependency>-->
     <!--<dependency>-->
-      <!--<groupId>org.slf4j</groupId>-->
-      <!--<artifactId>slf4j-log4j12</artifactId>-->
-      <!--<version>1.7.10</version>-->
-      <!--<scope>test</scope>-->
+    <!--<groupId>org.slf4j</groupId>-->
+    <!--<artifactId>slf4j-log4j12</artifactId>-->
+    <!--<version>1.7.10</version>-->
+    <!--<scope>test</scope>-->
     <!--</dependency>-->
 
   </dependencies>

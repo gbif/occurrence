@@ -16,7 +16,7 @@ import com.google.inject.Injector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class RegistryChangeService extends AbstractIdleService {
+public class  RegistryChangeService extends AbstractIdleService {
 
   private final RegistryChangeConfiguration configuration;
   private MessageListener listener;
