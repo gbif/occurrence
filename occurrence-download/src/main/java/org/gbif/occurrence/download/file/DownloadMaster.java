@@ -67,6 +67,14 @@ public class DownloadMaster extends UntypedActor {
 
   }
 
+  /**
+   * Aggregates the result and shutdown the system of actors
+   */
+  private void aggregateAndShutdown() {
+    aggregator.aggregate(results);
+    getContext().stop(getSelf());
+  }
+
   @Override
   public void onReceive(Object message) throws Exception {
     if (message instanceof Start) {
@@ -75,8 +83,7 @@ public class DownloadMaster extends UntypedActor {
       results.add((Result) message);
       nrOfResults += 1;
       if (nrOfResults == calcNrOfWorkers) {
-        aggregator.aggregate(results);
-        getContext().stop(getSelf());
+        aggregateAndShutdown();
       }
     }
   }
@@ -121,7 +128,9 @@ public class DownloadMaster extends UntypedActor {
     downloadTempDir.mkdirs();
 
     final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
-    if (recordCount > 0) {
+    if( recordCount <= 0) { //now work to do: shutdown the system
+      aggregateAndShutdown();
+    } else  {
       final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
       // Calculates the required workers.
       calcNrOfWorkers =
