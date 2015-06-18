@@ -433,7 +433,6 @@
         <artifactId>httpclient</artifactId>
         <version>${httpclient.version}</version>
         <type>jar</type>
-        <scope>runtime</scope>
         <exclusions>
           <exclusion>
             <groupId>commons-logging</groupId>
@@ -446,14 +445,12 @@
         <artifactId>httpcore</artifactId>
         <version>${httpcore.version}</version>
         <type>jar</type>
-        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpmime</artifactId>
         <version>${httpclient.version}</version>
         <type>jar</type>
-        <scope>runtime</scope>
         <exclusions>
           <exclusion>
             <groupId>commons-logging</groupId>
