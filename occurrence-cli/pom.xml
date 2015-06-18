@@ -19,10 +19,6 @@
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>
 
-    <!-- specific versions for solr -->
-    <httpclient.version>4.2.3</httpclient.version>
-    <httpcore.version>4.2.2</httpcore.version>
-    <httpmime.version>4.2.3</httpmime.version>
     <!-- cli specific jackson versions in order to use yaml configs -->
     <jackson.version>1.9.11</jackson.version>
     <jackson-annotations.version>2.4.2</jackson-annotations.version>
@@ -200,10 +196,6 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>org.gbif</groupId>-->
-      <!--<artifactId>dwc-api</artifactId>-->
-    <!--</dependency>-->
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-cli</artifactId>
@@ -312,14 +304,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>org.gbif</groupId>-->
-      <!--<artifactId>gbif-common-ws</artifactId>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.gbif.registry</groupId>-->
-      <!--<artifactId>registry-ws-client</artifactId>-->
-    <!--</dependency>-->
     <!-- false positive from maven dep:analyze -->
     <dependency>
       <groupId>org.kohsuke.metainf-services</groupId>
@@ -333,8 +317,6 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
-      <type>jar</type>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
@@ -346,15 +328,11 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${httpcore.version}</version>
-      <type>jar</type>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
-      <version>${httpclient.version}</version>
-      <type>jar</type>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
@@ -363,27 +341,16 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-parser</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>org.gbif</groupId>-->
-      <!--<artifactId>gbif-parsers</artifactId>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.codehaus.jackson</groupId>-->
-      <!--<artifactId>jackson-jaxrs</artifactId>-->
-    <!--</dependency>-->
     <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>com.google.code.findbugs</groupId>-->
-      <!--<artifactId>jsr305</artifactId>-->
-    <!--</dependency>-->
     <!-- false positive from mvn dep:analyze -->
     <dependency>
       <groupId>com.yammer.metrics</groupId>

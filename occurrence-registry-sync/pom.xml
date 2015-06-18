@@ -47,14 +47,16 @@
             </goals>
             <configuration>
               <relocations>
+                <!-- need this to keep cdh pieces happy -->
                 <relocation>
                   <pattern>com.google.common</pattern>
                   <shadedPattern>g14.com.google.common</shadedPattern>
                 </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>ht41.org.apache.http</shadedPattern>
-                </relocation>
+
+                <!--<relocation>-->
+                <!--<pattern>org.apache.http</pattern>-->
+                <!--<shadedPattern>ht41.org.apache.http</shadedPattern>-->
+                <!--</relocation>-->
               </relocations>
             </configuration>
           </execution>
@@ -87,14 +89,58 @@
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
     </dependency>
+    <!-- These needed to guarantee the version solr wants -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-server</artifactId>
+      <!-- we need those from our motherpom to keep solr happy -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-common</artifactId>
+      <!-- we need those from our motherpom to keep solr happy -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpcore</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>

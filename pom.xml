@@ -71,6 +71,12 @@
     <guava.version>17.0</guava.version>
     <guice.version>3.0</guice.version>
     <hamcrest.version>1.3</hamcrest.version>
+
+    <!-- specific versions for solr -->
+    <httpclient.version>4.2.3</httpclient.version>
+    <httpcore.version>4.2.2</httpcore.version>
+    <httpmime.version>4.2.3</httpmime.version>
+
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <!-- Normally one ties Jackson versions to Jersey versions, but we need 1.9.5+ of Jackson
      because of http://jira.codehaus.org/browse/JACKSON-757
@@ -125,7 +131,7 @@
     <gbif-common-ws.version>0.23-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
-    <gbif-httputils.version>0.6</gbif-httputils.version>
+    <gbif-httputils.version>0.7-SNAPSHOT</gbif-httputils.version>
     <gbif-parsers.version>0.12</gbif-parsers.version>
     <gbif-postal-service.version>0.13</gbif-postal-service.version>
     <gbif-registry.version>2.30-SNAPSHOT</gbif-registry.version>
@@ -328,12 +334,12 @@
         <classifier>tests</classifier>
         <version>${gbif-common-test.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.gbif.checklistbank</groupId>
         <artifactId>checklistbank-ws-client</artifactId>
         <version>${checklistbank-ws-client.version}</version>
       </dependency>
+
       <!-- Other -->
       <dependency>
         <groupId>xml-apis</groupId>
@@ -390,6 +396,7 @@
         <artifactId>freemarker</artifactId>
         <version>${freemarker.version}</version>
       </dependency>
+
       <!-- these runtimes to avoid version mismatch dependency hell -->
       <dependency>
         <groupId>org.codehaus.jackson</groupId>
@@ -420,6 +427,41 @@
         <version>${slf4j.version}</version>
         <scope>runtime</scope>
       </dependency>
+      <!-- These needed to guarantee the version solr wants -->
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>${httpclient.version}</version>
+        <type>jar</type>
+        <scope>runtime</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>${httpcore.version}</version>
+        <type>jar</type>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpmime</artifactId>
+        <version>${httpclient.version}</version>
+        <type>jar</type>
+        <scope>runtime</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
       <!-- Ships Guice logging to SLF -->
       <dependency>
         <groupId>org.slf4j</groupId>
