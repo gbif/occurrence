@@ -11,6 +11,8 @@ CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UD
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
+-- don't run joins locally, else risk running out of memory
+SET hive.auto.convert.join=false;
 
 -- setup for our custom, combinable deflated compression
 SET hive.exec.compress.output=true;
