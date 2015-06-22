@@ -50,11 +50,6 @@
                   <pattern>com.google.common</pattern>
                   <shadedPattern>g14.com.google.common</shadedPattern>
                 </relocation>
-
-                <!--<relocation>-->
-                <!--<pattern>org.apache.http</pattern>-->
-                <!--<shadedPattern>ht41.org.apache.http</shadedPattern>-->
-                <!--</relocation>-->
               </relocations>
             </configuration>
           </execution>
