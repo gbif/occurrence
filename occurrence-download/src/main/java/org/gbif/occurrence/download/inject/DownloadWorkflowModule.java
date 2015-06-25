@@ -39,7 +39,7 @@ import org.apache.hadoop.hbase.client.HTablePool;
  */
 public final class DownloadWorkflowModule extends AbstractModule {
 
-  public static final String CONF_FILE = "occurrence-download.properties";
+  public static final String CONF_FILE = "occurrence_uat.properties";
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
