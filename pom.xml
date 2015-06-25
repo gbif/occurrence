@@ -124,7 +124,7 @@
     <download-query-tools.version>1.4-SNAPSHOT</download-query-tools.version>
     <drupal-mybatis.version>0.16-SNAPSHOT</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
-    <dwca-reader.version>1.19</dwca-reader.version>
+    <dwca-io.version>1.24-SNAPSHOT</dwca-io.version>
     <gbif-api.version>0.23-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.18-SNAPSHOT</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
@@ -180,8 +180,8 @@
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
-        <artifactId>dwca-reader</artifactId>
-        <version>${dwca-reader.version}</version>
+        <artifactId>dwca-io</artifactId>
+        <version>${dwca-io.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>

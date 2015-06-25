@@ -15,7 +15,7 @@
  */
 package org.gbif.occurrence.model;
 
-import org.gbif.dwc.record.DarwinCoreRecord;
+import org.gbif.dwca.record.DarwinCoreRecord;
 
 import java.io.Serializable;
 import java.util.ArrayList;

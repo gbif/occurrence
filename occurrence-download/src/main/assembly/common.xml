@@ -90,7 +90,7 @@
         <include>org.gbif.registry:registry-ws-client:jar</include>
         <include>org.gbif.registry:registry-metadata:jar</include>
         <include>org.gbif:dwc-api:jar</include>
-        <include>org.gbif:dwca-reader:jar</include>
+        <include>org.gbif:dwca-io:jar</include>
         <include>org.gbif:gbif-metadata-profile:jar</include>
         <include>org.gbif:gbif-api:jar</include>
         <include>org.gbif:drupal-mybatis:jar</include>
