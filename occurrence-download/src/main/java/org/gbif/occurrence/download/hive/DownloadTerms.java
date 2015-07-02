@@ -20,8 +20,10 @@ public class DownloadTerms {
                                                                    // returned multiple times, so excluded and treated by adding once at the beginning
                                                                    GbifInternalTerm.fragmentHash,
                                                                    // omitted entirely
-                                                                   GbifInternalTerm.fragment
+                                                                   GbifInternalTerm.fragment,
                                                                    // omitted entirely
+                                                                   GbifTerm.mediaType
+                                                                   //handled as extension
   );
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
