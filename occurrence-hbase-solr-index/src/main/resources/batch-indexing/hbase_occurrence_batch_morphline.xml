@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<indexer table="${occurrence.environment}_occurrence"
+         mapper="com.ngdata.hbaseindexer.morphline.MorphlineResultToSolrMapper"
+         unique-key-field="key"
+         unique-key-formatter="org.gbif.occurrence.hbaseindexer.IntKeyFormatter">
+
+   <param name="morphlineFile" value="hbase_occurrence_batch_morphline.conf"/>
+
+</indexer>

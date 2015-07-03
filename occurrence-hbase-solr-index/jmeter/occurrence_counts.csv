@@ -1,0 +1,2 @@
+*:*,basis_of_record,,
+*:*,basis_of_record,(taxon_key:0 OR taxon_key:1 OR taxon_key:2 OR taxon_key:3 OR taxon_key:4 OR taxon_key:5 OR taxon_key:6 OR taxon_key:7 OR taxon_key:8),

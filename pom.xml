@@ -30,6 +30,7 @@
     <module>occurrence-common</module>
     <module>occurrence-deleter</module>
     <module>occurrence-index-builder-workflow</module>
+    <module>occurrence-hbase-solr-index</module>
     <module>occurrence-persistence</module>
     <module>occurrence-parser</module>
     <module>occurrence-processor</module>

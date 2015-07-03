@@ -38,10 +38,6 @@
                   <pattern>com.google.common</pattern>
                   <shadedPattern>g14.com.google.common</shadedPattern>
                 </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>ht41.org.apache.http</shadedPattern>
-                </relocation>
               </relocations>
             </configuration>
           </execution>
@@ -86,7 +82,6 @@
   </dependencies>
   <properties>
     <guava.version>14.0.1</guava.version>
-    <jdkVersion>1.8</jdkVersion>
   </properties>
 </project>
 
