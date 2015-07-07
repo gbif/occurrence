@@ -14,7 +14,7 @@
   <name>Occurrence CLI</name>
 
   <properties>
-    <gbif-cli.version>0.10-SNAPSHOT</gbif-cli.version>
+    <gbif-cli.version>0.10</gbif-cli.version>
 
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>

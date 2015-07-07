@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>23-SNAPSHOT</version>
+    <version>23</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -121,25 +121,25 @@
     <zookeeper.version>3.4.5-cdh5.4.2</zookeeper.version>
 
     <!-- GBIF VERSIONS -->
-    <hbase-utils.version>0.11-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.4-SNAPSHOT</download-query-tools.version>
-    <drupal-mybatis.version>0.16-SNAPSHOT</drupal-mybatis.version>
+    <hbase-utils.version>0.11</hbase-utils.version>
+    <download-query-tools.version>1.4</download-query-tools.version>
+    <drupal-mybatis.version>0.16</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
-    <dwca-io.version>1.24-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>0.24-SNAPSHOT</gbif-api.version>
-    <gbif-common.version>0.18-SNAPSHOT</gbif-common.version>
+    <dwca-io.version>1.24</dwca-io.version>
+    <gbif-api.version>0.24</gbif-api.version>
+    <gbif-common.version>0.18</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.21</gbif-common-search.version>
-    <gbif-common-service.version>0.13-SNAPSHOT</gbif-common-service.version>
-    <gbif-common-ws.version>0.23-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-service.version>0.13</gbif-common-service.version>
+    <gbif-common-ws.version>0.23</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
     <geotools.version>12.1</geotools.version>
-    <gbif-httputils.version>0.7-SNAPSHOT</gbif-httputils.version>
-    <gbif-parsers.version>0.13-SNAPSHOT</gbif-parsers.version>
-    <gbif-postal-service.version>0.14-SNAPSHOT</gbif-postal-service.version>
-    <gbif-registry.version>2.30-SNAPSHOT</gbif-registry.version>
+    <gbif-httputils.version>0.7</gbif-httputils.version>
+    <gbif-parsers.version>0.15</gbif-parsers.version>
+    <gbif-postal-service.version>0.15</gbif-postal-service.version>
+    <gbif-registry.version>2.30</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.16-SNAPSHOT</checklistbank-ws-client.version>
+    <checklistbank-ws-client.version>2.17</checklistbank-ws-client.version>
     <name-parser.version>2.6</name-parser.version>
   </properties>
 
