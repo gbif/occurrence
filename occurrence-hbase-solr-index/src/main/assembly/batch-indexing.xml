@@ -39,6 +39,7 @@
         <include>org.gbif:gbif-parsers:jar</include>
         <include>com.vividsolutions:jts:jar</include>
         <include>com.spatial4j:spatial4j:jar</include>
+        <include>com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>

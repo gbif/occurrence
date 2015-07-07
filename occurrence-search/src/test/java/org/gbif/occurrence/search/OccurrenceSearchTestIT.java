@@ -457,7 +457,7 @@ public class OccurrenceSearchTestIT {
   public void testSearchByPolygon() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest
-      .addGeometryFilter("POLYGON ((-127.265 28.304,-76.640 55.776,94.218 -38.822,-86.484 -50.289,-127.265 28.304))");
+      .addGeometryFilter("POLYGON((-113.554 43.274,-85.429 47.469,-70.664 25.736,-100.898 16.568,-113.554 43.274))");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);
