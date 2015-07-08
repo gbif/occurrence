@@ -16,18 +16,26 @@ import com.google.common.collect.Sets;
  */
 public class DownloadTerms {
 
-  public static final Set<Term> EXCLUSIONS = ImmutableSet.<Term>of(GbifTerm.gbifID,
+  //This list of exclusion is used for the download query only
+  public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.<Term>of(GbifTerm.gbifID,
                                                                    // returned multiple times, so excluded and treated by adding once at the beginning
                                                                    GbifInternalTerm.fragmentHash,
                                                                    // omitted entirely
-                                                                   GbifInternalTerm.fragment,
+                                                                   GbifInternalTerm.fragment
                                                                    // omitted entirely
-                                                                   GbifTerm.mediaType
-                                                                   //handled as extension
   );
 
-  public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
+  //This set is used fot the HDFS table definition
+  //GbifTerm.mediaType handled as extension
+  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder().addAll(EXCLUSIONS_INTERPRETED).add(GbifTerm.mediaType).build();
+
+
+
+  public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
     Sets.difference(ImmutableSet.<Term>copyOf(Terms.interpretedTerms()), EXCLUSIONS).immutableCopy();
+
+  public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
+    Sets.difference(ImmutableSet.<Term>copyOf(Terms.interpretedTerms()), EXCLUSIONS_INTERPRETED).immutableCopy();
 
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
     Sets.difference(ImmutableSet.<Term>copyOf(Terms.verbatimTerms()), EXCLUSIONS).immutableCopy();

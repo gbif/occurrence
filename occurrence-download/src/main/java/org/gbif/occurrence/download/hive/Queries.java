@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableList;
  */
 class Queries {
 
-  private static final String JOIN_ARRAY_FMT = "if(%1$s IS NULL,'',join_array(%1$s,';')) AS %1$s";
+  private static final String JOIN_ARRAY_FMT = "if(%1$s IS NULL,'',joinArray(%1$s,'\\\\;')) AS %1$s";
 
   /**
    * @return the select fields for the verbatim table in the simple download

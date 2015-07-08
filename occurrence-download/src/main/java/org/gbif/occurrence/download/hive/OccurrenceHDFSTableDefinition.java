@@ -130,7 +130,7 @@ public class OccurrenceHDFSTableDefinition {
                                                                    issueInitializer());
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS) {
+    for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
       // if there is custom handling registered for the term, use it
       if (initializers.containsKey(t)) {
         builder.add(interpretedField(t, initializers.get(t)));
