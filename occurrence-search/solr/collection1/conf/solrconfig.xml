@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
-  <luceneMatchVersion>4.10.3</luceneMatchVersion>
+  <luceneMatchVersion>LUCENE_41</luceneMatchVersion>
 
   <dataDir>${solr.data.dir:}</dataDir>
 
