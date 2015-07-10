@@ -7,12 +7,15 @@ import java.util.Collection;
 import com.google.common.collect.ImmutableList;
 import com.ngdata.hbaseindexer.parse.ByteArrayValueMapper;
 
+/**
+ * Extracts a list of  media types from a  media object.
+ */
 public class MediaTypeByteArrayMapper implements ByteArrayValueMapper {
 
   @Override
-  public Collection<Object> map(byte[] input) {
+  public Collection<String> map(byte[] input) {
     try {
-      return ImmutableList.of((Object) MediaSerDeserUtils.extractMediaTypes(input));
+      return ImmutableList.copyOf(MediaSerDeserUtils.extractMediaTypes(input));
     } catch (IllegalArgumentException e) {
       return ImmutableList.of();
     }
