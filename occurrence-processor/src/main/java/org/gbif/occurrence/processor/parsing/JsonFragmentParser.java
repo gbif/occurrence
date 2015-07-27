@@ -77,8 +77,8 @@ public class JsonFragmentParser {
 
         Map<String, Object> extensions = (Map<String, Object>) jsonMap.get("extensions");
         for (String rowType : extensions.keySet()) {
-            // first pare into a term cause the extension lookup by rowType is very strict
-            Term rowTypeTerm = termFactory.findTerm(rowType);
+          // first pare into a term cause the extension lookup by rowType is very strict
+          Term rowTypeTerm = termFactory.findTerm(rowType);
           Extension ext = Extension.fromRowType(rowTypeTerm.qualifiedName());
           if (ext == null) {
             LOG.debug("Ignore unknown extension {}", rowType);
