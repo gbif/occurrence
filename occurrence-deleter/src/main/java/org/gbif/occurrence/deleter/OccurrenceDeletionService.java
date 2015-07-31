@@ -4,12 +4,15 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
+import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
@@ -50,7 +53,9 @@ public class OccurrenceDeletionService {
       return null;
     }
 
-    UniqueIdentifier triplet = null;
+    Set<UniqueIdentifier> lookupsToDelete = Sets.newHashSet();
+
+    // add the 'holy triplet' if any exist
     try {
       if (verbatim.getDatasetKey() != null) {
         final String instCode = verbatim.getVerbatimField(DwcTerm.institutionCode);
@@ -58,15 +63,22 @@ public class OccurrenceDeletionService {
         final String catNum= verbatim.getVerbatimField(DwcTerm.catalogNumber);
         //TODO: retrieve it from somewhere via the persistence layer!
         final String unitQualifier = null;
-        triplet = new HolyTriplet(verbatim.getDatasetKey(), instCode, collCode, catNum, unitQualifier);
+        lookupsToDelete.add(new HolyTriplet(verbatim.getDatasetKey(), instCode, collCode, catNum, unitQualifier));
       }
     } catch (IllegalArgumentException e) {
       LOG.debug("No valid triplet for occurrenceKey [{}]", occurrenceKey, e);
     }
-    if (triplet == null) {
-      LOG.info("No valid triplet for occurrenceKey [{}] therefore can't delete triplet lookup", occurrenceKey);
+
+    // add the occurrenceID if it exists
+    String occurrenceID = verbatim.getVerbatimField(DwcTerm.occurrenceID);
+    if (!Strings.isNullOrEmpty(occurrenceID)) {
+      lookupsToDelete.add(new PublisherProvidedUniqueIdentifier(verbatim.getDatasetKey(), occurrenceID));
+    }
+
+    if (lookupsToDelete.isEmpty()) {
+      LOG.info("No triplet or occurrenceID found for occurrence [{}] therefore can't delete lookups", occurrenceKey);
     } else {
-      occurrenceKeyService.deleteKeyByUniqueIdentifiers(Sets.newHashSet(triplet));
+      occurrenceKeyService.deleteKeyByUniqueIdentifiers(lookupsToDelete);
     }
 
     // return the deleted occurrence
