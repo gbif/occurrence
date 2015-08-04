@@ -178,6 +178,9 @@ public class FragmentProcessor {
     final TimerContext fetchContext = findTimer.time();
     try {
       keyResult = occurrenceKeyPersister.findKey(uniqueIds);
+    } catch (IllegalDataStateException e) {
+      failForDataStateException(datasetKey, e);
+      return;
     } catch (ServiceUnavailableException e) {
       failForServiceUnavailable(datasetKey, e);
       return;
