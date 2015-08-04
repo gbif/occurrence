@@ -52,8 +52,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
 
   @Override
   public KeyLookupResult generateKey(Set<String> uniqueStrings, String scope) {
-    Map<String, KeyStatus> statusMap = Maps.newHashMap();
-    Map<String, Integer> existingKeyMap = Maps.newHashMap();
+    Map<String, KeyStatus> statusMap = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
+    Map<String, Integer> existingKeyMap = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
     byte[] lockId = Bytes.toBytes(UUID.randomUUID().toString());
 
     // lookupTable schema: lookupKey | status | lock | key
