@@ -11,6 +11,7 @@ import org.gbif.common.messaging.api.messages.FragmentPersistedMessage;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.parsing.xml.IdentifierExtractionResult;
 import org.gbif.occurrence.parsing.xml.XmlFragmentParser;
+import org.gbif.occurrence.persistence.IllegalDataStateException;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentCreationResult;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
@@ -299,6 +300,8 @@ public class FragmentProcessor {
     } catch (ServiceUnavailableException e) {
       failForServiceUnavailable(datasetKey, e);
       return;
+    } catch (IllegalDataStateException e) {
+      failForDataStateException(datasetKey, e);
     } finally {
       context.stop();
     }
@@ -334,6 +337,12 @@ public class FragmentProcessor {
 
   private void failForServiceUnavailable(UUID datasetKey, Throwable e) {
     LOG.warn("Caught service unavailable from HBase: this fragment for dataset [{}] won't be processed", datasetKey, e);
+    updateZookeeper(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_ERROR);
+  }
+
+  private void failForDataStateException(UUID datasetKey, Throwable e) {
+    LOG.warn("Data inconsistency prevents this fragment being processed for dataset [{}]: {}", datasetKey,
+             e.getMessage(), e);
     updateZookeeper(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_ERROR);
   }
 

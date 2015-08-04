@@ -4,6 +4,7 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.OccurrenceKeyHelper;
+import org.gbif.occurrence.persistence.IllegalDataStateException;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.HBaseStore;
@@ -73,7 +74,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     }
 
     Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
-    Map<String, Integer> foundOccurrenceKeys = Maps.newHashMap();
+    Map<String, Integer> foundOccurrenceKeys = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
 
     // get the occurrenceKey for each lookupKey, and set a flag if we find any null
     boolean gotNulls = false;
@@ -241,7 +242,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     for (Map.Entry<String, Integer> entry : conflictingKeys.entrySet()) {
       sb.append("[").append(entry.getKey()).append("]=[").append(entry.getValue()).append("]");
     }
-    throw new RuntimeException(sb.toString());
+    throw new IllegalDataStateException(sb.toString());
   }
 
 

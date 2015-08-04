@@ -1,6 +1,7 @@
 package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
+import org.gbif.occurrence.persistence.IllegalDataStateException;
 import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
@@ -195,10 +196,10 @@ public class HBaseLockingKeyServiceTest {
     lookupTable.close();
 
     // test: gen id for one occ with both lookupkeys
-    exception.expect(RuntimeException.class);
+    exception.expect(IllegalDataStateException.class);
     exception.expectMessage(
-      "Found inconsistent occurrence keys in looking up unique identifiers:[" + datasetKey + "|EFGH]=[2][" + datasetKey
-      + "|ABCD]=[1]");
+      "Found inconsistent occurrence keys in looking up unique identifiers:[" + datasetKey + "|ABCD]=[1]["
+        + datasetKey + "|EFGH]=[2]");
     keyService.generateKey(ImmutableSet.of("ABCD", "EFGH"), datasetKey);
   }
 
