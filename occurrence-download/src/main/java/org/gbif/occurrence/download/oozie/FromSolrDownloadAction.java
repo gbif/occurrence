@@ -50,6 +50,7 @@ public class FromSolrDownloadAction {
           .withSourceDir(workflowConfiguration.getTempDir())
           .withIsSmallDownload(true)
           .withDownloadFormat(workflowConfiguration.getDownloadFormat())
+          .withUser(args[5])
           .build());
 
   }
