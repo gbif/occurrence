@@ -529,15 +529,6 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      if (userService == null) {
-        System.err.println("userService is null");
-      }
-      if (configuration.getUser() == null) {
-        System.err.println("configuration.getUser() is null");
-      }
-      if (userService.get(configuration.getUser()).getName() == null) {
-        System.err.println("userService.get(configuration.getUser()).getName() is null");
-      }
       dataset.setRights(String.format(RIGHTS, userService.get(configuration.getUser()).getName(), dataset.getTitle()));
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
