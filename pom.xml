@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.34.1</version>
+  <version>0.34.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -21,7 +21,7 @@
     <connection>scm:git:git@github.com:gbif/occurrence.git</connection>
     <url>https://github.com/gbif/occurrence</url>
     <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
-    <tag>occurrence-motherpom-0.34.1</tag>
+    <tag>occurrence-motherpom-0.34</tag>
   </scm>
 
   <modules>
