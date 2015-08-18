@@ -47,6 +47,7 @@ public class FromSolrDownloadAction {
           .withDownloadKey(args[2])
           .withFilter(args[3])
           .withDownloadTableName(args[4])
+          .withUser(args[5])
           .withSourceDir(workflowConfiguration.getTempDir())
           .withIsSmallDownload(true)
           .withDownloadFormat(workflowConfiguration.getDownloadFormat())
