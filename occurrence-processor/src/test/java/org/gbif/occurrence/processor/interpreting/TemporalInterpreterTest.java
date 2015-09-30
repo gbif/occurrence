@@ -11,7 +11,12 @@ import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
+import com.google.common.collect.Range;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -19,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TemporalInterpreterTest {
 
@@ -259,6 +265,30 @@ public class TemporalInterpreterTest {
     assertResult(null, null, 23, null, result);
   }
 
+  /**
+   * Tests that a date representing 'now' is interpreted with CONFIDENCE.DEFINITE even after TemporalInterpreter
+   * was instantiated. See POR-2860.
+   */
+  @Test
+  public void testNow() {
+
+    // Makes sure the static content is loaded
+    ParseResult<DateYearMonthDay> result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(Calendar.getInstance()));
+    assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
+
+    // Sorry for this Thread.sleep, we need to run the TemporalInterpreter at least 1 second later until
+    // we refactor to inject a Calendar of we move to new Java 8 Date/Time API
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      fail(e.getMessage());
+    }
+
+    Calendar cal = Calendar.getInstance();
+    result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(cal.getTime()));
+    assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
+  }
+
   @Test
   public void testAllNulls() {
     ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, null);
@@ -339,6 +369,13 @@ public class TemporalInterpreterTest {
     v.setVerbatimField(DwcTerm.year, y);
     v.setVerbatimField(DwcTerm.month, m);
     v.setVerbatimField(DwcTerm.day, d);
+    v.setVerbatimField(DwcTerm.eventDate, date);
+
+    return TemporalInterpreter.interpretRecordedDate(v);
+  }
+
+  private ParseResult<DateYearMonthDay> interpretEventDate(String date) {
+    VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.eventDate, date);
 
     return TemporalInterpreter.interpretRecordedDate(v);

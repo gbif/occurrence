@@ -32,15 +32,14 @@ public class TemporalInterpreter {
   // we accept 13h difference between dates due to timezone trouble
   private static final long MAX_DIFFERENCE = 13 * 1000 * 60 * 60;
 
-  public static final Range<Date> VALID_RECORDED_DATE_RANGE =
-    Range.closed(new GregorianCalendar(1600, 0, 1).getTime(), new Date());
+  static final Date MIN_VALID_RECORDED_DATE = new GregorianCalendar(1600, 0, 1).getTime();
+
+  // modified date for a record can't be before unix time
+  static final Date MIN_VALID_MODIFIED_DATE = new Date(0);
 
   @VisibleForTesting
   protected static final Range<Integer> VALID_RECORDED_YEAR_RANGE = Range.closed(1600, Calendar.getInstance().get(Calendar.YEAR));
 
-  // modified date for a record cant be before unix time
-  @VisibleForTesting
-  protected static final Range<Date> VALID_MODIFIED_DATE_RANGE = Range.closed(new Date(0), new Date());
 
   private TemporalInterpreter() {
   }
@@ -56,15 +55,17 @@ public class TemporalInterpreter {
     occ.getIssues().addAll(eventResult.getIssues());
 
     if (verbatim.hasVerbatimField(DcTerm.modified)) {
+      Range<Date> validModifiedDateRange = Range.closed(MIN_VALID_MODIFIED_DATE, new Date());
       OccurrenceParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DcTerm.modified),
-                                               VALID_MODIFIED_DATE_RANGE, OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
+              validModifiedDateRange, OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
       occ.setModified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
 
     if (verbatim.hasVerbatimField(DwcTerm.dateIdentified)) {
+      Range<Date> validRecordedDateRange = Range.closed(MIN_VALID_RECORDED_DATE, new Date());
       OccurrenceParseResult<Date> parsed = interpretDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
-                                               VALID_RECORDED_DATE_RANGE, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
+              validRecordedDateRange, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
       occ.setDateIdentified(parsed.getPayload());
       occ.getIssues().addAll(parsed.getIssues());
     }
@@ -146,7 +147,8 @@ public class TemporalInterpreter {
     // stringDate will be null if not matching with YMD
     if (stringDate != null) {
       // verify we've got a sensible date
-      if (VALID_RECORDED_DATE_RANGE.contains(stringDate)) {
+      Range<Date> validRecordedDateRange = Range.closed(MIN_VALID_RECORDED_DATE, new Date());
+      if (validRecordedDateRange.contains(stringDate)) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(stringDate);
         result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE,

@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +71,9 @@ public class MultiMediaInterpreter {
           m.setCreator(rec.get(DcTerm.creator));
           m.setFormat(mediaParser.parseMimeType(rec.get(DcTerm.format)));
           if (rec.containsKey(DcTerm.created)) {
+            Range<Date> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_VALID_RECORDED_DATE, new Date());
             OccurrenceParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
-                                          TemporalInterpreter.VALID_RECORDED_DATE_RANGE,
-                                          OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
+                                          validRecordedDateRange, OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
             m.setCreated(parsed.getPayload());
             occ.getIssues().addAll(parsed.getIssues());
           }
