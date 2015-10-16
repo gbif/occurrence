@@ -1074,6 +1074,7 @@
         <checklistbank.ws.url>http://api.gbif-uat.org/v1/</checklistbank.ws.url>
         <registry.ws.url>http://api.gbif-uat.org/v1/</registry.ws.url>
         <geocode.ws.url>http://api.gbif-uat.org/v1/geocode/reverse</geocode.ws.url>
+        <api.url>http://api.gbif-uat.org/v1/</api.url>
         <!-- security -->
         <drupal.db.host>my1.gbif-uat.org</drupal.db.host>
         <drupal.db.url>jdbc:mysql://my1.gbif-uat.org:3306/drupal_uat?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
@@ -1133,6 +1134,7 @@
         <checklistbank.ws.url>http://api.gbif-dev.org/v1/</checklistbank.ws.url>
         <registry.ws.url>http://api.gbif-dev.org/v1/</registry.ws.url>
         <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
+        <api.url>http://api.gbif-dev.org/v1/</api.url>
         <!-- security -->
         <drupal.db.host>my1.gbif-dev.org</drupal.db.host>
         <drupal.db.url>jdbc:mysql://my1.gbif-dev.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
@@ -1193,6 +1195,7 @@
         <checklistbank.ws.url>http://api.gbif.org/v1/</checklistbank.ws.url>
         <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
         <registry.ws.url>http://api.gbif.org/v1/</registry.ws.url>
+        <api.url>http://api.gbif.org/v1/</api.url>
         <!-- security -->
         <drupal.db.url>jdbc:mysql://my1.gbif.org:3306/drupal_live?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
         <drupal.db.username>drupal_live</drupal.db.username>
