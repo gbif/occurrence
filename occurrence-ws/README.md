@@ -1,9 +1,12 @@
 occurrence-ws
 ======================
 
-# Brief information about the featured occurrences (dot's on homepage):
+## Run with jetty:run
+To run this project using `mvn jetty:run` you need to use the correct profile and a valid `hbase-site.xml` file.
 
-Create an hbase table which is named by the propery in the pom and should be populated with something like this:
+## Brief information about the featured occurrences (dot's on homepage):
+
+Create an hbase table which is named by the property in the pom and should be populated with something like this:
 
 ```
 SELECT cell, collect_set(occId)
@@ -27,7 +30,6 @@ FROM
 ) t1
 GROUP BY cell;
 ```
-
 
 ## Downloads
 This is the webservice that orchestrates occurrence downloads by accepting a json download string, translating it
