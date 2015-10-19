@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dwc:Occurrence xmlns:dwc="http://rs.tdwg.org/dwc/terms/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:gbif="http://rs.gbif.org/terms/1.0/">
+    <dwc:verbatimLocality>mad</dwc:verbatimLocality>
+</dwc:Occurrence>

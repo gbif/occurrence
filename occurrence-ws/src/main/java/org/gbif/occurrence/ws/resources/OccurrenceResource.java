@@ -49,6 +49,7 @@ public class OccurrenceResource {
   @GET
   @Path("/{id}")
   @NullToNotFound
+  @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML})
   public Occurrence get(@PathParam("id") Integer key) {
     LOG.debug("Request Occurrence [{}]:", key);
     return occurrenceService.get(key);
@@ -78,6 +79,7 @@ public class OccurrenceResource {
   @GET
   @Path("/{key}/" + VERBATIM_PATH)
   @NullToNotFound
+  @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML})
   public VerbatimOccurrence getVerbatim(@PathParam("key") Integer key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
     return occurrenceService.getVerbatim(key);
