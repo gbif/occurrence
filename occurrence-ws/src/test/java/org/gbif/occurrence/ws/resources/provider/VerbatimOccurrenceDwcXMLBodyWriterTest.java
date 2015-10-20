@@ -23,7 +23,6 @@ import static junit.framework.TestCase.assertEquals;
 /**
  * Test for {@link OccurrenceVerbatimDwcXMLBodyWriter} behavior.
  *
- * @author cgendreau
  */
 public class VerbatimOccurrenceDwcXMLBodyWriterTest {
 

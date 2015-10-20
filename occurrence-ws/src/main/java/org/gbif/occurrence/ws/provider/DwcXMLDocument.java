@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
+import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,7 +19,6 @@ import org.w3c.dom.Element;
  * Simple wrapper around {@link Document} to generate DarwinCore XML file.
  * This class is a candidate to be moved to the dwca-io project.
  *
- * @author cgendreau
  */
 public class DwcXMLDocument {
 
@@ -26,6 +26,10 @@ public class DwcXMLDocument {
   private static final String NS_URI = "http://www.w3.org/2000/xmlns/";
   private static final String NS_PREFIX = "xmlns:";
 
+  /**
+   * Currently private but could be exposed if needed elsewhere.
+   * Could also be refactor if the Term interface expose a getPrefix and getNamespace methods.
+   */
   private enum DwcXmlNamespace{
 
     DWC(DwcTerm.class, DwcTerm.PREFIX, DwcTerm.NS),
@@ -46,16 +50,15 @@ public class DwcXMLDocument {
      * Get a DwcXmlNamespace from {@Term}.
      *
      * @param term
-     * @return
-     * @throws IllegalArgumentException
+     * @return corresponding DwcXmlNamespace of Optional.empty() if the provided term is not supported
      */
-    public static DwcXmlNamespace fromTerm(Term term){
+    public static Optional<DwcXmlNamespace> fromTerm(Term term){
       for(DwcXmlNamespace dwcXmlNamespace : DwcXmlNamespace.values()){
         if(dwcXmlNamespace.termClass.equals(term.getClass())){
-          return dwcXmlNamespace;
+          return Optional.of(dwcXmlNamespace);
         }
       }
-      throw new IllegalArgumentException();
+      return Optional.empty();
     }
   }
 
@@ -82,8 +85,7 @@ public class DwcXMLDocument {
    */
   public static DwcXMLDocument newInstance(DwcTerm rootElementTerm) throws ParserConfigurationException {
     DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder icBuilder;
-    icBuilder = icFactory.newDocumentBuilder();
+    DocumentBuilder icBuilder = icFactory.newDocumentBuilder();
     return new DwcXMLDocument(icBuilder.newDocument(), rootElementTerm);
   }
 
@@ -127,19 +129,18 @@ public class DwcXMLDocument {
    * @return appended to the document or not
    */
   public boolean tryAppend(Term term, String value) {
-    try {
-      DwcXmlNamespace dwcXmlNamespace = DwcXmlNamespace.fromTerm(term);
-      append(currentElement, dwcXmlNamespace, term, value);
+    Optional<DwcXmlNamespace> dwcXmlNamespace = DwcXmlNamespace.fromTerm(term);
+    if(dwcXmlNamespace.isPresent()){
+      append(currentElement, dwcXmlNamespace.get(), term, value);
     }
-    catch (IllegalArgumentException e){
+    else{
       return false;
     }
     return true;
   }
 
   /**
-   * Append the term,value to the document under the parentElement with dwcXmlNamespace. null values are simply ignored.
-   *
+   * Appends the term,value to the document under the parentElement with dwcXmlNamespace. null values are simply ignored.
    *
    * @param parentElement
    * @param dwcXmlNamespace
