@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
  *
  * Test for {@link DwcXMLDocument} behavior.
  *
- * @author cgendreau
  */
 public class DwcXMLDocumentTest {
 

@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
  * Custom {@link MessageBodyWriter} to serialize {@link VerbatimOccurrence} in DarwinCore XML.
  * We do not use JAXB annotations to keep it easy to manage dynamic properties like verbatim fields map.
  *
- * @author cgendreau
  */
 @Provider
 @Produces(MediaType.APPLICATION_XML)
@@ -40,13 +39,13 @@ public class OccurrenceVerbatimDwcXMLBodyWriter implements MessageBodyWriter<Ver
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceVerbatimDwcXMLBodyWriter.class);
 
   /**
-   * Transform a {@link VerbatimOccurrence} object into a byte[] representing a XML document.
+   * Transforms a {@link VerbatimOccurrence} object into a byte[] representing a XML document.
    *
    * @param occurrence
-   * @return the {@link VerbatimOccurrence} as {@linkByteArrayOutputStream} or an empty one if an error occurred.
+   * @return the {@link VerbatimOccurrence} as byte[]
    * @throws WebApplicationException if something went wrong while generating the XML document
    */
-  private ByteArrayOutputStream verbatimOccurrenceXMLAsByteArray(VerbatimOccurrence occurrence) throws WebApplicationException {
+  private byte[] verbatimOccurrenceXMLAsByteArray(VerbatimOccurrence occurrence) throws WebApplicationException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
     try {
@@ -61,14 +60,10 @@ public class OccurrenceVerbatimDwcXMLBodyWriter implements MessageBodyWriter<Ver
       StreamResult result = new StreamResult(baos);
       transformer.transform(source, result);
     } catch (ParserConfigurationException | TransformerException e) {
-      String uuid = "";
-      if(occurrence != null){
-        uuid = occurrence.getKey().toString();
-      }
-      LOG.error("Can't generate Dwc XML for VerbatimOccurrence [{}]", uuid);
+      LOG.error("Can't generate Dwc XML for VerbatimOccurrence [{}]", occurrence);
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
-    return baos;
+    return baos.toByteArray();
   }
 
   @Override
@@ -84,8 +79,7 @@ public class OccurrenceVerbatimDwcXMLBodyWriter implements MessageBodyWriter<Ver
 
   @Override
   public void writeTo(VerbatimOccurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-    entityStream.write(verbatimOccurrenceXMLAsByteArray(occurrence).toByteArray());
-    //Closing a <tt>ByteArrayOutputStream</tt> has no effect
+    entityStream.write(verbatimOccurrenceXMLAsByteArray(occurrence));
   }
 
 }

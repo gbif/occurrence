@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
  * We do not use JAXB annotations to keep the distinction between the model and its XML representation.
  * It is also easier to manage properties like Country, List, Map.
  *
- * @author cgendreau
  */
 @Provider
 @Produces(MediaType.APPLICATION_XML)
@@ -50,17 +49,19 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
   private static final FastDateFormat FDF = DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT;
 
   /**
-   * Transform a {@link Occurrence} object into a  byte[] representing a XML document.
+   * Transforms an {@link Occurrence} object into a byte[] representing a XML document.
    *
    * @param occurrence
-   * @return the {@link Occurrence} as {@link ByteArrayOutputStream}
+   * @return the {@link Occurrence} as byte[]
    * @throws WebApplicationException if something went wrong while generating the XML document
    */
-  private ByteArrayOutputStream occurrenceXMLAsByteArray(Occurrence occurrence) throws WebApplicationException {
+  private byte[] occurrenceXMLAsByteArray(Occurrence occurrence) throws WebApplicationException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
     try {
       DwcXMLDocument dwcXMLDocument = DwcXMLDocument.newInstance(DwcTerm.Occurrence);
+
+      appendIfNotNull(dwcXMLDocument, GbifTerm.gbifID, occurrence.getKey());
 
       //this may be not the most compact way to serialize an Occurrence (e.g. reflection) but
       //it gives more freedom to handle things like date and country fields
@@ -121,7 +122,6 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
       dwcXMLDocument.append(GbifTerm.lastInterpreted, toISODateTime(occurrence.getLastInterpreted()));
       appendIfNotNull(dwcXMLDocument, DcTerm.references, occurrence.getReferences());
 
-      appendIfNotNull(dwcXMLDocument, GbifTerm.gbifID, occurrence.getKey());
       appendIfNotNull(dwcXMLDocument, GbifTerm.datasetKey, occurrence.getDatasetKey());
       //append(dwcXMLDocument, GbifTerm., occurrence.getPublishingOrgKey());
 
@@ -144,14 +144,10 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
       StreamResult result = new StreamResult(baos);
       transformer.transform(source, result);
     } catch (ParserConfigurationException | TransformerException e) {
-      String uuid = "";
-      if(occurrence != null){
-        uuid = occurrence.getKey().toString();
-      }
-      LOG.error("Can't generate Dwc XML for Occurrence [{}]", uuid);
+      LOG.error("Can't generate Dwc XML for Occurrence [{}]", occurrence);
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
-    return baos;
+    return baos.toByteArray();
   }
 
   @Override
@@ -167,8 +163,7 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
 
   @Override
   public void writeTo(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-    entityStream.write(occurrenceXMLAsByteArray(occurrence).toByteArray());
-    //Closing a <tt>ByteArrayOutputStream</tt> has no effect
+    entityStream.write(occurrenceXMLAsByteArray(occurrence));
   }
 
   private void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value){
@@ -179,6 +174,13 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
     dwcXMLDocument.append(DwcTerm.country, value.getTitle());
   }
 
+  /**
+   * Specific appendIfNotNull for the supported {@link Term} implementation {@link DwcTerm}.
+   *
+   * @param dwcXMLDocument
+   * @param term
+   * @param value nulls accepted and skipped
+   */
   private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DwcTerm term, Object value){
     if(value == null){
       return;
@@ -186,6 +188,13 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
     dwcXMLDocument.append(term, value.toString());
   }
 
+  /**
+   * Specific appendIfNotNull for the supported {@link Term} implementation {@link DcTerm}.
+   *
+   * @param dwcXMLDocument
+   * @param term
+   * @param value nulls accepted and skipped
+   */
   private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DcTerm term, Object value){
     if(value == null){
       return;
@@ -193,6 +202,13 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
     dwcXMLDocument.append(term, value.toString());
   }
 
+  /**
+   * Specific appendIfNotNull for the supported {@link Term} implementation {@link GbifTerm}.
+   *
+   * @param dwcXMLDocument
+   * @param term
+   * @param value nulls accepted and skipped
+   */
   private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, GbifTerm term, Object value){
     if(value == null){
       return;

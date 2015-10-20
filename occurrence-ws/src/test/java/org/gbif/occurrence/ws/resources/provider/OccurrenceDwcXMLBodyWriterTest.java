@@ -25,7 +25,6 @@ import static junit.framework.TestCase.assertEquals;
 /**
  * Test for {@link OccurrenceDwcXMLBodyWriter} behavior.
  *
- * @author cgendreau
  */
 public class OccurrenceDwcXMLBodyWriterTest {
 
