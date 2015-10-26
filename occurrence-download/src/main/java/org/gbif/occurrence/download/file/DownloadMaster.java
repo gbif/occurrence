@@ -10,6 +10,7 @@ import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -106,7 +107,7 @@ public class DownloadMaster extends UntypedActor {
       }
       QueryResponse queryResponse = solrServer.query(solrQuery);
       return queryResponse.getResults().getNumFound();
-    } catch (SolrServerException e) {
+    } catch (SolrServerException | IOException e) {
       LOG.error("Error executing Solr query", e);
       return 0L;
     }

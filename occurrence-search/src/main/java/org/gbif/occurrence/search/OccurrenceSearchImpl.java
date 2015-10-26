@@ -15,6 +15,7 @@ import org.gbif.common.search.exception.SearchException;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.TermsResponse;
@@ -63,16 +64,16 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     SORT_ORDER.put(OccurrenceSolrField.MONTH.getFieldName(), SolrQuery.ORDER.asc);
   }
 
-  private final SolrServer solrServer;
+  private final SolrClient solrClient;
 
   private final OccurrenceSearchRequestBuilder occurrenceSearchRequestBuilder;
   private final NameUsageMatchingService nameUsageMatchingService;
 
   @Inject
-  public OccurrenceSearchImpl(SolrServer solrServer, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
+  public OccurrenceSearchImpl(SolrClient solrClient, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
     OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
     @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
-    this.solrServer = solrServer;
+    this.solrClient = solrClient;
     occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset,maxLimit);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
@@ -115,12 +116,12 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     try {
       if (replaceScientificNames(request)) {
         SolrQuery solrQuery = occurrenceSearchRequestBuilder.build(request);
-        QueryResponse queryResponse = solrServer.query(solrQuery);
+        QueryResponse queryResponse = solrClient.query(solrQuery);
         return buildResponse(queryResponse, request);
       } else {
         return new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
       }
-    } catch (SolrServerException e) {
+    } catch (SolrServerException | IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
@@ -171,14 +172,14 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
       SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField, Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
-      QueryResponse queryResponse = solrServer.query(solrQuery);
+      QueryResponse queryResponse = solrClient.query(solrQuery);
       TermsResponse termsResponse = queryResponse.getTermsResponse();
       List<Term> terms = termsResponse.getTerms(solrField);
       for (Term term : terms) {
         suggestions.add(term.getTerm());
       }
       return suggestions;
-    } catch (SolrServerException e) {
+    } catch (SolrServerException | IOException e) {
       LOG.error("Error executing/building the request", e);
       throw new SearchException(e);
     }

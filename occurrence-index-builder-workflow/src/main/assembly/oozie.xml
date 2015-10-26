@@ -45,13 +45,13 @@
 
   <files>
     <file>
-      <source>${project.build.outputDirectory}/conf/hive-config.xml</source>
-      <outputDirectory>lib</outputDirectory>
-    </file>
-     <file>
-      <source>${project.build.outputDirectory}/conf/solr_occurrence_morphline.conf</source>
+      <source>${project.build.outputDirectory}/conf/avro_solr_occurrence_morphline.conf</source>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
+    </file>
+    <file>
+      <source>${project.build.outputDirectory}/conf/log4j.properties</source>
+      <outputDirectory>lib</outputDirectory>
     </file>
   </files>
 

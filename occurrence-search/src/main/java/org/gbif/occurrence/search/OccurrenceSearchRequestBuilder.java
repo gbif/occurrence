@@ -139,7 +139,7 @@ public class OccurrenceSearchRequestBuilder {
   /**
    * Adds an occurrence date parameter: DATE or MODIFIED.
    */
-  private void addDateQuery(Multimap<OccurrenceSearchParameter, String> params,
+  private static void addDateQuery(Multimap<OccurrenceSearchParameter, String> params,
     OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField, List<String> filterQueries) {
     if (params.containsKey(dateParam)) {
       List<String> dateParams = new ArrayList<String>();
@@ -154,7 +154,7 @@ public class OccurrenceSearchRequestBuilder {
    * Add the occurrence bounding box and polygon parameters.
    * Those 2 parameters are returned in 1 filter expression because both refer to same Solr field: coordinate.
    */
-  private void addLocationQuery(Multimap<OccurrenceSearchParameter, String> params, List<String> filterQueries) {
+  private static void addLocationQuery(Multimap<OccurrenceSearchParameter, String> params, List<String> filterQueries) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
       List<String> locationParams = new ArrayList<String>();
       for (String value : params.get(OccurrenceSearchParameter.GEOMETRY)) {
@@ -170,7 +170,7 @@ public class OccurrenceSearchRequestBuilder {
    * Creates a conjunction of disjunctions: disjunctions(ORs) are created for the filter applied to the same field;
    * The those disjunctions are joint in a big conjunction.
    */
-  private void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
+  private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
     if (params != null && !params.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();

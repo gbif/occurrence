@@ -7,7 +7,7 @@
  *   http://www.opensource.org/licenses/mit-license.php
  *   http://www.gnu.org/licenses/gpl.html
  *
- * Revision: $Id: jquery.autocomplete.js 5785 2008-07-12 10:37:33Z joern.zaefferer $
+ * Revision: Id: jquery.autocomplete.js 5785 2008-07-12 10:37:33Z joern.zaefferer $
  *
  */
 
@@ -146,7 +146,7 @@ $.Autocompleter = function(input, options) {
 				select.hide();
 				break;
 				
-			default:				
+			default:
 				clearTimeout(timeout);
 				timeout = setTimeout(onChange, options.delay);
 				break;

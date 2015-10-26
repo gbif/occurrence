@@ -33,7 +33,7 @@ import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -83,8 +83,8 @@ public class OccurrenceSearchTestIT {
       bind(NameUsageMatchingService.class).toInstance(Mockito.mock(NameUsageMatchingService.class));
       bind(OccurrenceSearchService.class).to(OccurrenceSearchImpl.class);
       expose(OccurrenceSearchService.class);
-      // Exposes the SolrServer because it is required to create the index.
-      expose(SolrServer.class);
+      // Exposes the SolrClient because it is required to create the index.
+      expose(SolrClient.class);
     }
 
   }
@@ -112,7 +112,7 @@ public class OccurrenceSearchTestIT {
 
 
   // Solr server
-  private static SolrServer solrServer;
+  private static SolrClient solrClient;
 
 
   // Search service
@@ -123,7 +123,7 @@ public class OccurrenceSearchTestIT {
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
-    solrServer.shutdown();
+    solrClient.close();
   }
 
   @BeforeClass
@@ -132,9 +132,9 @@ public class OccurrenceSearchTestIT {
     TEST_UTIL.createTable(OCCURRENCE_TABLE, CF);
     hTablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
     occurrenceSearchService = injector.getInstance(OccurrenceSearchService.class);
-    solrServer = injector.getInstance(SolrServer.class);
+    solrClient = injector.getInstance(SolrClient.class);
     // deletes all previous data
-    solrServer.deleteByQuery("*:*");
+    solrClient.deleteByQuery("*:*");
     loadOccurrences();
   }
 
@@ -145,7 +145,7 @@ public class OccurrenceSearchTestIT {
    */
   private static void commitToSolrQuietly() {
     try {
-      solrServer.commit();
+      solrClient.commit();
     } catch (SolrServerException e) {
       LOG.error("Solr error commiting on Solr server", e);
     } catch (IOException e) {
@@ -178,7 +178,7 @@ public class OccurrenceSearchTestIT {
     final HTableInterface hTable = hTablePool.getTable(OCCURRENCE_TABLE);
     try {
       OccurrenceDataLoader.processOccurrences(CSV_TEST_FILE, new HBasePredicateWriter(hTable),
-        new SolrPredicateWriter(new SolrOccurrenceWriter(solrServer)));
+        new SolrPredicateWriter(new SolrOccurrenceWriter(solrClient)));
     } catch (Exception e) {
       LOG.error("Error processing occurrence objects from file", e);
     } finally {
@@ -457,7 +457,7 @@ public class OccurrenceSearchTestIT {
   public void testSearchByPolygon() {
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest
-      .addGeometryFilter("POLYGON((-113.554 43.274,-85.429 47.469,-70.664 25.736,-100.898 16.568,-113.554 43.274))");
+      .addGeometryFilter("POLYGON((-109.336 -49.465,-124.804 -29.074,-118.476 57.409,126.913 57.409,138.163 -38.918,119.882 -49.4655,-108.633 -49.4655,-109.336 -49.465))");
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() > 0);

@@ -156,7 +156,7 @@ public class TaxonomyInterpreter {
 
       // parse name into pieces - we dont get them from the nub lookup
       try {
-        ParsedName pn = parser.parse(match.getScientificName());
+        ParsedName pn = parser.parse(match.getScientificName(), Rank.SPECIES);
         occ.setGenericName(pn.getGenusOrAbove());
         occ.setSpecificEpithet(pn.getSpecificEpithet());
         occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());

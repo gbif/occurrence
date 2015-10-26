@@ -14,7 +14,7 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -65,24 +65,24 @@ public class SolrOccurrenceWriter {
   private static final Range<Double> LNG_RANGE = Range.closed(-180.0, 180.0);
 
   // SolrServer that stores the occurrence records
-  private final SolrServer solrServer;
+  private final SolrClient solrClient;
 
   private final int commitWithinMs;
 
   /**
    * Default constructor.
    */
-  public SolrOccurrenceWriter(SolrServer solrServer, int commitWithinMs) {
-    this.solrServer = solrServer;
+  public SolrOccurrenceWriter(SolrClient solrClient, int commitWithinMs) {
+    this.solrClient = solrClient;
     this.commitWithinMs = commitWithinMs;
   }
 
   /**
    * Default constructor.
    */
-  public SolrOccurrenceWriter(SolrServer solrServer) {
-    this.solrServer = solrServer;
-    this.commitWithinMs = -1;
+  public SolrOccurrenceWriter(SolrClient solrClient) {
+    this.solrClient = solrClient;
+    commitWithinMs = -1;
   }
 
 
@@ -99,14 +99,14 @@ public class SolrOccurrenceWriter {
 
 
   public void delete(Occurrence input) throws IOException, SolrServerException {
-    solrServer.deleteById(input.getKey().toString(), commitWithinMs);
+    solrClient.deleteById(input.getKey().toString(), commitWithinMs);
   }
 
   /**
    * Processes the occurrence object.
    */
   public void update(Occurrence input) throws IOException, SolrServerException {
-    solrServer.add(buildOccSolrDocument(input), commitWithinMs);
+    solrClient.add(buildOccSolrDocument(input), commitWithinMs);
   }
 
   /**

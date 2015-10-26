@@ -1,122 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~ 
-  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may 
-  not use this file except in compliance with the License. ~ You may obtain 
-  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ 
-  ~ Unless required by applicable law or agreed to in writing, software ~ distributed 
-  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES 
-  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for 
+<!-- ~ Copyright 2012 Global Biodiversity Information Facility (GBIF) ~ ~
+  Licensed under the Apache License, Version 2.0 (the "License"); ~ you may
+  not use this file except in compliance with the License. ~ You may obtain
+  a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~
+  ~ Unless required by applicable law or agreed to in writing, software ~ distributed
+  under the License is distributed on an "AS IS" BASIS, ~ WITHOUT WARRANTIES
+  OR CONDITIONS OF ANY KIND, either express or implied. ~ See the License for
   the specific language governing permissions and ~ limitations under the License. -->
-<workflow-app xmlns="uri:oozie:workflow:0.4" name="occurrence-index-builder">
+<workflow-app xmlns="uri:oozie:workflow:0.4.5" name="occurrence-index-builder-${occurrence.environment}">
 
-  <start to="create-workflow-directory" />
-  
-  <action name="create-workflow-directory">
-    <fs>        
-      <mkdir path='${nameNode}/${oozieWfDestination}'/>        
-    </fs>
-    <ok to="create-avro-table" />
-    <error to="kill" />
-  </action>
-  
+  <global>
+    <job-tracker>${wf:conf("hadoop.jobtracker")}</job-tracker>
+    <name-node>${wf:conf("hdfs.namenode")}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+      <property>
+        <name>oozie.launcher.mapred.job.queue.name</name>
+        <value>${wf:conf("hadoop.queuename")}</value>
+      </property>
+    </configuration>
+  </global>
+
+  <start to="create-avro-table" />
+
   <action name="create-avro-table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobTracker}</job-tracker>
-      <name-node>${nameNode}</name-node>      
-      <job-xml>conf/hive-default.xml</job-xml>
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-config.xml</job-xml>
       <script>hive-scripts/create_occurrence_avro_table.q</script>
-      
-      <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_tmp_avro</param>
+      <param>avroTable=${wf:conf("hive.db")}.occurrence_avro</param>
     </hive>
 
     <ok to="import_hive_to_avro" />
-    <error to="failure_drop_table" />
+    <error to="kill" />
   </action>
 
   <action name="import_hive_to_avro">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobTracker}</job-tracker>
-      <name-node>${nameNode}</name-node>      
-      <job-xml>conf/hive-default.xml</job-xml>
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-config.xml</job-xml>
       <script>hive-scripts/import_hive_to_avro.q</script>
-
-      <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_tmp_avro</param>
-      <param>sourceOccurrenceTable=${hiveDB}.${sourceOccurrenceTable}</param>            
+      <param>sourceOccurrenceTable=${wf:conf("hive.db")}.occurrence_hdfs</param>
+      <param>avroTable=${wf:conf("hive.db")}.occurrence_avro</param>
     </hive>
-    
-    <ok to="prepare_cloud_index" />
-    <error to="failure_drop_table" />
+
+    <ok to="build_index" />
+    <error to="kill" />
   </action>
-  
-  <action name='prepare_cloud_index'>
-      <shell xmlns="uri:oozie:shell-action:0.1">
-          <job-tracker>${jobTracker}</job-tracker>
-          <name-node>${nameNode}</name-node>
-          <configuration>
-              <property>
-                <name>mapred.job.queue.name</name>
-                <value>${queueName}</value>
-              </property>
-          </configuration>
-          <exec>scripts/prepare_index.sh</exec>          
-          <argument>${solrCollection}</argument>
-          <argument>${solrCloudDistOpts}</argument>
-          <file>scripts/prepare_index.sh</file>
+
+
+  <action name='build_index'>
+      <shell xmlns="uri:oozie:shell-action:0.3">
+          <exec>scripts/build_solr_idx.sh</exec>
+          <argument>${wf:conf("solr.home")}</argument>
+          <argument>${wf:conf("hdfs.namenode")}/user/hive/warehouse/${wf:conf("hive.db")}.db/occurrence_avro/</argument>
+          <argument>${wf:conf("solr.zk")}</argument>
+          <argument>${wf:conf("hdfs.out.dir")}</argument>
+          <argument>${wf:conf("solr.collection")}</argument>
+          <argument>${wf:conf("solr.collection.opts")}</argument>
+          <argument>${wf:conf("hadoop.client.opts")}</argument>
+          <argument>${wf:conf("mapred.opts")}</argument>
+          <argument>${wf:conf("solr.http.url")}</argument>
+          <file>scripts/build_solr_idx.sh</file>
           <archive>solr.zip#solr</archive>
       </shell>
-      <ok to="build_index" />
-      <error to="failure_drop_table" />
-  </action>
-  
-  
-  <action name='build_index'>
-      <shell xmlns="uri:oozie:shell-action:0.1">
-          <job-tracker>${jobTracker}</job-tracker>
-          <name-node>${nameNode}</name-node>
-          <configuration>
-              <property>
-                <name>mapred.job.queue.name</name>
-                <value>${queueName}</value>
-              </property>
-          </configuration>
-          <exec>scripts/run_mapr_indexer.sh</exec>
-          <argument>${nameNode}/${oozieWfDestination}/output/</argument>
-          <argument>${zkHost}</argument>          
-          <argument>${solrCollection}</argument>                    
-          <argument>${nameNode}/user/hive/warehouse/${hiveDB == 'default' ? '' :  hiveDB}${hiveDB == 'default' ? '' : '.db/'}${sourceOccurrenceTable}_tmp_avro/</argument>                 
-          <file>scripts/run_mapr_indexer.sh</file>          
-      </shell>
-      <ok to="drop_table" />
-      <error to="failure_drop_table" />
+      <ok to="end" />
+      <error to="kill" />
   </action>
 
-  <action name="drop_table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobTracker}</job-tracker>
-      <name-node>${nameNode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/drop_hive_avro_table.q</script>
-      
-      <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_tmp_avro</param>
-    </hive>
-
-    <ok to="end" />
-    <error to="kill" />
-  </action>
-  
-  <action name="failure_drop_table">
-    <hive xmlns="uri:oozie:hive-action:0.2">
-      <job-tracker>${jobTracker}</job-tracker>
-      <name-node>${nameNode}</name-node>
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/drop_hive_avro_table.q</script>
-      
-      <param>tempAvroTable=${hiveDB}.${sourceOccurrenceTable}_tmp_avro</param>
-    </hive>
-
-    <ok to="kill" />
-    <error to="kill" />
-  </action>
 
   <kill name="kill">
     <message>Occurrence index building failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>

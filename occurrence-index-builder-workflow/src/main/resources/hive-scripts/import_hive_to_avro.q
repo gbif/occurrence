@@ -1,4 +1,4 @@
-INSERT OVERWRITE TABLE ${tempAvroTable}
+INSERT OVERWRITE TABLE ${avroTable}
 SELECT
   gbifid,
   COALESCE(datasetkey,""),
@@ -27,5 +27,6 @@ SELECT
   COALESCE(establishmentmeans,""),
   COALESCE(occurrenceid,""),
   COALESCE(mediatype,array()),
-  COALESCE(issue,array())
+  COALESCE(issue,array()),
+  COALESCE(scientificname,"")
 FROM ${sourceOccurrenceTable} occ;

@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS ${tempAvroTable};
-CREATE TABLE ${tempAvroTable}
+DROP TABLE IF EXISTS ${avroTable};
+CREATE TABLE ${avroTable}
 ROW FORMAT SERDE
 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT
@@ -39,5 +39,6 @@ TBLPROPERTIES (
     {"name":"establishment_means","type":"string"},
     {"name":"occurrence_id","type":"string"},
     {"name":"media_type","type":{"type":"array", "items":"string"}},
-    {"name":"issue","type":{"type":"array", "items":"string"}}]
+    {"name":"issue","type":{"type":"array", "items":"string"}},
+    {"name":"scientific_name","type":"string"}]
 }');

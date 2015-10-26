@@ -21,7 +21,8 @@
     <brickhouse.version>0.6.0</brickhouse.version>
     <super-csv.version>2.0.1</super-csv.version>
     <akka-actor.version>2.0.5</akka-actor.version>
-    <gbif-common-mybatis.version>0.16</gbif-common-mybatis.version>
+    <gbif-common-mybatis.version>0.18</gbif-common-mybatis.version>
+    <commons-beanutils-core>1.8.3</commons-beanutils-core>
     <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
@@ -257,6 +258,11 @@
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils-core</artifactId>
+      <version>${commons-beanutils-core}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.jersey</groupId>

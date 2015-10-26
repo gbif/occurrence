@@ -7,8 +7,8 @@ import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.AbstractIdleService;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 
 /**
  * A base class for services that will insert/update occurrences in the Occurrence Index.
@@ -42,10 +42,10 @@ class IndexUpdaterService extends AbstractIdleService {
   /**
    * Creates a Solr server instance according to the parameters defined in the configuration object.
    */
-  private SolrServer buildSolrServer(IndexingConfiguration configuration) {
+  private SolrClient buildSolrServer(IndexingConfiguration configuration) {
     if (Strings.isNullOrEmpty(configuration.solrServerType)
       || SolrServerType.HTTP.name().equalsIgnoreCase(configuration.solrServerType)) {
-      return new HttpSolrServer(configuration.solrServer);
+      return new HttpSolrClient(configuration.solrServer);
     } else if (SolrServerType.CLOUD.name().equalsIgnoreCase(configuration.solrServerType)) {
       CloudSolrServerBuilder cloudSolrServerBuilder = new CloudSolrServerBuilder();
       cloudSolrServerBuilder.withDefaultCollection(configuration.solrCollection).withZkHost(configuration.solrServer);

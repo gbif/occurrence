@@ -4,6 +4,7 @@ import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import com.google.common.base.Predicate;
@@ -26,7 +27,6 @@ public class SolrQueryProcessor {
    * Executes a query on the SolrServer parameter and applies the predicate to each result.
    *
    * @param downloadFileWork it's used to determine how to page through the results and the Solr query to be used
-   * @param solrServer       that executes the query
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
   public static void processQuery(final DownloadFileWork downloadFileWork, final Predicate<Integer> resultHandler) {
@@ -48,7 +48,7 @@ public class SolrQueryProcessor {
           resultHandler.apply((Integer) itResults.next().getFieldValue(OccurrenceSolrField.KEY.getFieldName()));
         }
       }
-    } catch (SolrServerException e) {
+    } catch (SolrServerException | IOException e) {
       throw Throwables.propagate(e);
     }
   }
