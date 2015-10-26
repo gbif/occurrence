@@ -18,7 +18,7 @@ mvn -Psolr,$P package assembly:single
 
 if hdfs dfs -test -d /occurrence-index-builder-$P/; then
    echo "Removing content of current Oozie workflow directory"
-   hdfs dfs -rm -r /occurrence-index-builder-$P/*
+   hdfs dfs -rm -r -f /occurrence-index-builder-$P/*
 else
    echo "Creating workflow directory"
    hdfs dfs -mkdir /occurrence-index-builder-$P/
