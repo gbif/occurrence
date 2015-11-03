@@ -7,7 +7,6 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +14,11 @@ import org.slf4j.LoggerFactory;
 public class SyncCommon {
 
   private static final Logger LOG = LoggerFactory.getLogger(SyncCommon.class);
-  private static final String PROPS_FILE = "registry-sync.properties";
 
   public static final String OCC_TABLE_PROPS_KEY = "occurrence.db.table_name";
   public static final String REG_WS_PROPS_KEY = "registry.ws.url";
+  public static final String PROPS_FILE = "registry-sync.properties";
+  public static final String PROPS_FILE_PATH_KEY = "sync.hdfs_config_path";
   public static final byte[] OCC_CF = Columns.CF;
   public static final byte[] DK_COL = Bytes.toBytes(Columns.column(GbifTerm.datasetKey));
   public static final byte[] OOK_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey));
@@ -34,16 +34,5 @@ public class SyncCommon {
     }
 
     return props;
-  }
-
-  public static Path findProperties() {
-    try {
-      return new Path(SyncCommon.class.getClassLoader().getResource(PROPS_FILE).toURI());
-    } catch (Exception e) {
-      LOG.error("Unable to find registry-sync.properties file - RegistrySync is not initialized", e);
-    }
-
-    // we are dead - fail fast
-    return null;
   }
 }
