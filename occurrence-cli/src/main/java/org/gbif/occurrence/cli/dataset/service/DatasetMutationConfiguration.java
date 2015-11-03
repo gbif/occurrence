@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.base.Objects;
 
 public class DatasetMutationConfiguration {
 
@@ -44,4 +45,11 @@ public class DatasetMutationConfiguration {
   @NotNull
   public String parseDatasetQueueName;
 
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("messaging", messaging).add("ganglia", ganglia).add("hbase", hbase)
+      .add("msgPoolSize", msgPoolSize).add("deleteDatasetQueueName", deleteDatasetQueueName)
+      .add("interpretDatasetQueueName", interpretDatasetQueueName).add("parseDatasetQueueName", parseDatasetQueueName)
+      .toString();
+  }
 }

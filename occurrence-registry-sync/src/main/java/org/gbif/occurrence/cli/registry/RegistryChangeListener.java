@@ -17,18 +17,20 @@ import org.gbif.common.messaging.api.messages.StartCrawlMessage;
 import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
+import com.beust.jcommander.internal.Maps;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
@@ -40,6 +42,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Listens for any registry changes of interest to occurrences: namely organization and dataset updates or deletions.
@@ -66,10 +70,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
+  private final Map<String, String> syncProperties = Maps.newHashMap();
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, Properties syncProperties) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
+    syncProperties.putAll(this.syncProperties);
   }
 
   @Override
@@ -193,11 +199,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private static void runMrSync(@Nullable UUID datasetKey) {
-    Configuration conf = HBaseConfiguration.create();
-    conf.set("hbase.client.scanner.timeout.period", "600000");
-    conf.set("hbase.rpc.timeout", "600000");
-
+  private void runMrSync(@Nullable UUID datasetKey) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -211,8 +213,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         Bytes.toBytes(rawDatasetKey)));
     }
 
-    Properties props = SyncCommon.loadProperties();
-    String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
+    String targetTable = syncProperties.get(SyncCommon.OCC_TABLE_PROPS_KEY);
 
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     if (rawDatasetKey != null) {
@@ -220,7 +221,25 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
 
     try {
-      Job job = Job.getInstance(conf, jobTitle);
+      // try to add each of the important files to our configuration (because we have no configs on the classpath)
+      File coreConfig = new File(syncProperties.get(SyncCommon.CLUSTER_CORE_SITE));
+      checkArgument(coreConfig.exists() && coreConfig.isFile(), "core-site.xml does not exist");
+      File hbaseConfig = new File(syncProperties.get(SyncCommon.CLUSTER_HBASE_SITE));
+      checkArgument(hbaseConfig.exists() && hbaseConfig.isFile(), "hbase-site.xml does not exist");
+      File mapredConfig = new File(syncProperties.get(SyncCommon.CLUSTER_MAPRED_SITE));
+      checkArgument(mapredConfig.exists() && mapredConfig.isFile(), "mapred-site.xml does not exist");
+      File yarnConfig = new File(syncProperties.get(SyncCommon.CLUSTER_YARN_SITE));
+      checkArgument(yarnConfig.exists() && yarnConfig.isFile(), "yarn-site.xml does not exist");
+
+      Configuration hadoopConfiguration = new Configuration();
+      hadoopConfiguration.addResource(coreConfig.toURI().toURL());
+      hadoopConfiguration.addResource(hbaseConfig.toURI().toURL());
+      hadoopConfiguration.addResource(mapredConfig.toURI().toURL());
+      hadoopConfiguration.addResource(yarnConfig.toURI().toURL());
+      hadoopConfiguration.set("hbase.client.scanner.timeout.period", "600000");
+      hadoopConfiguration.set("hbase.rpc.timeout", "600000");
+
+      Job job = Job.getInstance(hadoopConfiguration, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
@@ -229,6 +248,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
+
+      // TODO: set all the configs from the properties file and hadoop configs
 
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");

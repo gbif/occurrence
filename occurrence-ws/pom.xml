@@ -86,8 +86,6 @@
                   <excludes>
                     <exclude>occurrence.properties</exclude>
                     <exclude>hbase-site.xml</exclude>
-                    <exclude>registry.properties</exclude>
-                    <exclude>checklistbank.properties</exclude>
                   </excludes>
                 </filter>
               </filters>

@@ -6,6 +6,8 @@ import org.gbif.occurrence.persistence.api.DatasetDeletionService;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
 
+import java.net.URISyntaxException;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.junit.Test;
@@ -17,11 +19,12 @@ public class OccurrencePersistenceModuleTest {
 
   // ensure that the guice module is currrent - if you change this, change the README to match!
   @Test
-  public void testModule() {
+  public void testModule() throws URISyntaxException {
     OccHBaseConfiguration cfg = new OccHBaseConfiguration();
     cfg.setEnvironment("");
     cfg.hbasePoolSize=1;
     cfg.zkConnectionString="localhost:2181";
+    cfg.hbaseConfig = getClass().getResource("/hbase-site.xml").toURI().getPath();
 
     Injector injector = Guice.createInjector(new OccurrencePersistenceModule(cfg));
     OccurrenceService occService = injector.getInstance(OccurrenceService.class);

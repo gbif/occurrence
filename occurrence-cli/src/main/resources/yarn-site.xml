@@ -12,31 +12,31 @@
   </property>
   <property>
     <name>yarn.resourcemanager.hostname</name>
-    <value>c1n2.gbif.org</value>
+    <value>${resourcemanager.server}</value>
   </property>
   <property>
     <name>yarn.resourcemanager.address</name>
-    <value>c1n2.gbif.org:8032</value>
+    <value>${resourcemanager.server}:8032</value>
   </property>
   <property>
     <name>yarn.resourcemanager.admin.address</name>
-    <value>c1n2.gbif.org:8033</value>
+    <value>${resourcemanager.server}:8033</value>
   </property>
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
-    <value>c1n2.gbif.org:8030</value>
+    <value>${resourcemanager.server}:8030</value>
   </property>
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
-    <value>c1n2.gbif.org:8031</value>
+    <value>${resourcemanager.server}:8031</value>
   </property>
   <property>
     <name>yarn.resourcemanager.webapp.address</name>
-    <value>c1n2.gbif.org:8088</value>
+    <value>${resourcemanager.server}:8088</value>
   </property>
   <property>
     <name>yarn.resourcemanager.webapp.https.address</name>
-    <value>c1n2.gbif.org:8090</value>
+    <value>${resourcemanager.server}:8090</value>
   </property>
   <property>
     <name>yarn.resourcemanager.client.thread-count</name>

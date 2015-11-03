@@ -53,6 +53,12 @@
                 <exclude>META-INF/*.SF</exclude>
                 <exclude>META-INF/*.DSA</exclude>
                 <exclude>META-INF/*.RSA</exclude>
+                <exclude>core-site.xml</exclude>
+                <exclude>hbase-site.xml</exclude>
+                <exclude>mapred-site.xml</exclude>
+                <exclude>yarn-site.xml</exclude>
+                <exclude>registry-sync.properties</exclude>
+                <exclude>*logback.xml</exclude>
               </excludes>
             </filter>
           </filters>

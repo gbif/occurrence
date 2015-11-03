@@ -4,7 +4,6 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -17,6 +16,10 @@ public class SyncCommon {
   private static final Logger LOG = LoggerFactory.getLogger(SyncCommon.class);
   private static final String PROPS_FILE = "registry-sync.properties";
 
+  public static final String CLUSTER_HBASE_SITE = "occurrence.db.core_site_xml";
+  public static final String CLUSTER_CORE_SITE = "occurrence.db.hbase_site_xml";
+  public static final String CLUSTER_MAPRED_SITE = "occurrence.db.mapred_site_xml";
+  public static final String CLUSTER_YARN_SITE = "occurrence.db.yarn_site_xml";
   public static final String OCC_TABLE_PROPS_KEY = "occurrence.db.table_name";
   public static final String REG_WS_PROPS_KEY = "registry.ws.url";
   public static final byte[] OCC_CF = Columns.CF;
@@ -27,20 +30,10 @@ public class SyncCommon {
 
   public static Properties loadProperties() {
     Properties props = new Properties();
-    InputStream in = null;
-    try {
-      in = SyncCommon.class.getClassLoader().getResourceAsStream(PROPS_FILE);
+    try (InputStream in = SyncCommon.class.getClassLoader().getResourceAsStream(PROPS_FILE)) {
       props.load(in);
     } catch (Exception e) {
       LOG.error("Unable to open registry-sync.properties file - RegistrySync is not initialized", e);
-    } finally {
-      if (in != null) {
-        try {
-          in.close();
-        } catch (IOException e) {
-          LOG.info("Failed to close input stream for registry-sync.properties file - continuing anyway.", e);
-        }
-      }
     }
 
     return props;

@@ -22,4 +22,8 @@ public class RegistryChangeConfiguration {
   @Parameter(names = "--registry-change-queue-name")
   @NotNull
   public String registryChangeQueueName;
+
+  @Parameter(names = "--registry-sync-properties", description = "Specify the location of the registry-sync.properties file")
+  @NotNull
+  public String registrySyncProperties;
 }
