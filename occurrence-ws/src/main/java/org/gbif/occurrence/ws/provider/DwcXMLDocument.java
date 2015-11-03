@@ -5,11 +5,11 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
-import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -40,7 +40,7 @@ public class DwcXMLDocument {
     private String prefix;
     private String namespace;
 
-    private DwcXmlNamespace(Class<? extends Term> termClass, String prefix, String namespace){
+    DwcXmlNamespace(Class<? extends Term> termClass, String prefix, String namespace){
       this.termClass = termClass;
       this.prefix = prefix;
       this.namespace = namespace;
@@ -58,7 +58,7 @@ public class DwcXMLDocument {
           return Optional.of(dwcXmlNamespace);
         }
       }
-      return Optional.empty();
+      return Optional.absent();
     }
   }
 
