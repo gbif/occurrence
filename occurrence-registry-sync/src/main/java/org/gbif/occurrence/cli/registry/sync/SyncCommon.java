@@ -7,6 +7,7 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,5 +34,16 @@ public class SyncCommon {
     }
 
     return props;
+  }
+
+  public static Path findProperties() {
+    try {
+      return new Path(SyncCommon.class.getClassLoader().getResource(PROPS_FILE).toURI());
+    } catch (Exception e) {
+      LOG.error("Unable to find registry-sync.properties file - RegistrySync is not initialized", e);
+    }
+
+    // we are dead - fail fast
+    return null;
   }
 }

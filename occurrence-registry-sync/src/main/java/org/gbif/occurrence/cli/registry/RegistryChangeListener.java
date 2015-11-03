@@ -27,6 +27,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -66,11 +67,13 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
   private final String targetTable;
+  private final Path configFile;
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, String hbaseTable) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, String hbaseTable, Path configFile) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
     this.targetTable = hbaseTable;
+    this.configFile = configFile;
   }
 
   @Override
@@ -111,7 +114,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           } else {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
             try {
-              runMrSync(newDataset.getKey(), this.targetTable);
+              runMrSync(newDataset.getKey(), this.targetTable, this.configFile);
             } catch (Exception e) {
               LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
             }
@@ -182,7 +185,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             DatasetVisitor visitor = new DatasetVisitor() {
               @Override
               public void visit(UUID datasetKey) {
-                runMrSync(datasetKey, targetTable);
+                runMrSync(datasetKey, targetTable, configFile);
               }
             };
             visitOwnedDatasets(newOrg.getKey(), visitor);
@@ -194,7 +197,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private static void runMrSync(@Nullable UUID datasetKey, String targetTable) {
+  private static void runMrSync(@Nullable UUID datasetKey, String targetTable, Path configFile) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -220,6 +223,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
       Job job = Job.getInstance(hadoopConfiguration, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
+      job.addFileToClassPath(configFile);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
       job.getConfiguration().set("mapreduce.map.speculative", "false");

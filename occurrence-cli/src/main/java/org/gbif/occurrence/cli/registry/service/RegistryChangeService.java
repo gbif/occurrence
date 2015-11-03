@@ -37,6 +37,7 @@ public class RegistryChangeService extends AbstractIdleService {
 
     Properties syncProperties = SyncCommon.loadProperties();
     String hbaseTable = syncProperties.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
+    System.out.println("Got hbasetable [" + hbaseTable + "]");
 
     // we have to create our own object mapper in order to set FAIL_ON_UNKNOWN, without which we can't deser reg objects
     ObjectMapper objectMapper = new ObjectMapper();
@@ -45,7 +46,7 @@ public class RegistryChangeService extends AbstractIdleService {
       objectMapper);
     listener.listen(configuration.registryChangeQueueName, 1,
       new RegistryChangeListener(new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
-        orgClient, hbaseTable));
+        orgClient, hbaseTable, SyncCommon.findProperties()));
   }
 
   @Override
