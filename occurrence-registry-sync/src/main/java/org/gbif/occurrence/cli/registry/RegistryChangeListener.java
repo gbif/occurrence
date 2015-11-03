@@ -72,10 +72,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private final OrganizationService orgService;
   private final Map<String, String> syncProperties = Maps.newHashMap();
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, Properties syncProperties) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
-    syncProperties.putAll(this.syncProperties);
   }
 
   @Override
@@ -199,7 +198,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private void runMrSync(@Nullable UUID datasetKey) {
+  private static void runMrSync(@Nullable UUID datasetKey) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -213,7 +212,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         Bytes.toBytes(rawDatasetKey)));
     }
 
-    String targetTable = syncProperties.get(SyncCommon.OCC_TABLE_PROPS_KEY);
+    Properties syncProperties = SyncCommon.loadProperties();
+    String targetTable = syncProperties.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
 
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     if (rawDatasetKey != null) {
@@ -222,13 +222,13 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
     try {
       // try to add each of the important files to our configuration (because we have no configs on the classpath)
-      File coreConfig = new File(syncProperties.get(SyncCommon.CLUSTER_CORE_SITE));
+      File coreConfig = new File(syncProperties.getProperty(SyncCommon.CLUSTER_CORE_SITE));
       checkArgument(coreConfig.exists() && coreConfig.isFile(), "core-site.xml does not exist");
-      File hbaseConfig = new File(syncProperties.get(SyncCommon.CLUSTER_HBASE_SITE));
+      File hbaseConfig = new File(syncProperties.getProperty(SyncCommon.CLUSTER_HBASE_SITE));
       checkArgument(hbaseConfig.exists() && hbaseConfig.isFile(), "hbase-site.xml does not exist");
-      File mapredConfig = new File(syncProperties.get(SyncCommon.CLUSTER_MAPRED_SITE));
+      File mapredConfig = new File(syncProperties.getProperty(SyncCommon.CLUSTER_MAPRED_SITE));
       checkArgument(mapredConfig.exists() && mapredConfig.isFile(), "mapred-site.xml does not exist");
-      File yarnConfig = new File(syncProperties.get(SyncCommon.CLUSTER_YARN_SITE));
+      File yarnConfig = new File(syncProperties.getProperty(SyncCommon.CLUSTER_YARN_SITE));
       checkArgument(yarnConfig.exists() && yarnConfig.isFile(), "yarn-site.xml does not exist");
 
       Configuration hadoopConfiguration = new Configuration();

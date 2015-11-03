@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.base.Objects;
 
 public class RegistryChangeConfiguration {
 
@@ -23,7 +24,9 @@ public class RegistryChangeConfiguration {
   @NotNull
   public String registryChangeQueueName;
 
-  @Parameter(names = "--registry-sync-properties", description = "Specify the location of the registry-sync.properties file")
-  @NotNull
-  public String registrySyncProperties;
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("messaging", messaging).add("registryWsUrl", registryWsUrl)
+      .add("registryChangeQueueName", registryChangeQueueName).toString();
+  }
 }
