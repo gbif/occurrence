@@ -18,14 +18,11 @@ import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
@@ -68,11 +65,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
-  private final Map<String, String> syncProperties = Maps.newHashMap();
+  private final String targetTable;
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, String hbaseTable) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
+    this.targetTable = hbaseTable;
   }
 
   @Override
@@ -113,7 +111,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           } else {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
             try {
-              runMrSync(newDataset.getKey());
+              runMrSync(newDataset.getKey(), this.targetTable);
             } catch (Exception e) {
               LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
             }
@@ -184,7 +182,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             DatasetVisitor visitor = new DatasetVisitor() {
               @Override
               public void visit(UUID datasetKey) {
-                runMrSync(datasetKey);
+                runMrSync(datasetKey, targetTable);
               }
             };
             visitOwnedDatasets(newOrg.getKey(), visitor);
@@ -196,7 +194,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private static void runMrSync(@Nullable UUID datasetKey) {
+  private static void runMrSync(@Nullable UUID datasetKey, String targetTable) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -209,9 +207,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF, SyncCommon.DK_COL, CompareFilter.CompareOp.EQUAL,
         Bytes.toBytes(rawDatasetKey)));
     }
-
-    Properties syncProperties = SyncCommon.loadProperties();
-    String targetTable = syncProperties.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
 
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     if (rawDatasetKey != null) {
