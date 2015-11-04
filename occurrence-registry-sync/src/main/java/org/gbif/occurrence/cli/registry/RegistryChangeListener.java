@@ -193,11 +193,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private void runMrSync(@Nullable UUID datasetKey) {
-    Configuration conf = HBaseConfiguration.create();
-    conf.set("hbase.client.scanner.timeout.period", "600000");
-    conf.set("hbase.rpc.timeout", "600000");
-
+  private static void runMrSync(@Nullable UUID datasetKey) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -220,11 +216,11 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
 
     try {
-      Configuration hadoopConfiguration = new Configuration();
-      hadoopConfiguration.set("hbase.client.scanner.timeout.period", "600000");
-      hadoopConfiguration.set("hbase.rpc.timeout", "600000");
+      Configuration conf = HBaseConfiguration.create();
+      conf.set("hbase.client.scanner.timeout.period", "600000");
+      conf.set("hbase.rpc.timeout", "600000");
 
-      Job job = Job.getInstance(hadoopConfiguration, jobTitle);
+      Job job = Job.getInstance(conf, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
