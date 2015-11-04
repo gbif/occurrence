@@ -8,8 +8,6 @@ import org.gbif.occurrence.cli.registry.RegistryChangeListener;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.ws.client.guice.AnonymousAuthModule;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Properties;
 
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -17,8 +15,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 public class RegistryChangeService extends AbstractIdleService {
 
@@ -37,13 +33,6 @@ public class RegistryChangeService extends AbstractIdleService {
 
     Injector injector = Guice.createInjector(new RegistryWsClientModule(properties), new AnonymousAuthModule());
     OrganizationService orgClient = injector.getInstance(OrganizationService.class);
-
-    // Read the registry-sync.properties file and pass to the listener
-    File registrySyncProperties = new File(configuration.registrySyncProperties);
-    checkArgument(registrySyncProperties.exists() && registrySyncProperties.isFile(),
-      "registry-sync.properties does not exist");
-    Properties syncProperties = new Properties();
-    syncProperties.load(new FileInputStream(registrySyncProperties));
 
     // we have to create our own object mapper in order to set FAIL_ON_UNKNOWN, without which we can't deser reg objects
     ObjectMapper objectMapper = new ObjectMapper();
