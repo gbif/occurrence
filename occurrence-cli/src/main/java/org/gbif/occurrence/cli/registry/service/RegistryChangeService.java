@@ -52,7 +52,7 @@ public class RegistryChangeService extends AbstractIdleService {
       objectMapper);
     listener.listen(configuration.registryChangeQueueName, 1,
       new RegistryChangeListener(new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
-        orgClient, syncProperties));
+        orgClient));
   }
 
   @Override
