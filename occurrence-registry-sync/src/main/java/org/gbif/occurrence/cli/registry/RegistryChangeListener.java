@@ -194,12 +194,26 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   }
 
   private static void runMrSync(@Nullable UUID datasetKey) {
+    Configuration conf = HBaseConfiguration.create();
+    conf.set("hbase.client.scanner.timeout.period", "600000");
+    conf.set("hbase.rpc.timeout", "600000");
+
+    Properties props = SyncCommon.loadProperties();
+    // add all props to job context for use by the OccurrenceScanMapper when it no longer has access to our classpath
+    for (Object key : props.keySet()) {
+      String stringKey = (String)key;
+      conf.set(stringKey, props.getProperty(stringKey));
+    }
+
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.OOK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.CI_COL);
     scan.setCaching(200);
+
+    String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
+    String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     String rawDatasetKey = null;
     if (datasetKey != null) {
       rawDatasetKey = datasetKey.toString();
@@ -207,19 +221,11 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         Bytes.toBytes(rawDatasetKey)));
     }
 
-    Properties props = SyncCommon.loadProperties();
-    String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
-
-    String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     if (rawDatasetKey != null) {
       jobTitle = jobTitle + " for dataset " + rawDatasetKey;
     }
 
     try {
-      Configuration conf = HBaseConfiguration.create();
-      conf.set("hbase.client.scanner.timeout.period", "600000");
-      conf.set("hbase.rpc.timeout", "600000");
-
       Job job = Job.getInstance(conf, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
