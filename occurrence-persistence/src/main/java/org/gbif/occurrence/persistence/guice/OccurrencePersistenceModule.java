@@ -60,7 +60,6 @@ public class OccurrencePersistenceModule extends PrivateModule {
       cfg.lookupTable = props.getProperty("occurrence.db.id_lookup_table_name");
       cfg.hbasePoolSize = Integer.valueOf(props.getProperty("occurrence.db.max_connection_pool"));
       cfg.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
-      cfg.hbaseConfig = props.getProperty("occurrence.db.hbase_site_xml");
     } catch (RuntimeException e) {
       LOG.error("Occurrence persistence property configs invalid", e);
       Throwables.propagate(e);

@@ -27,10 +27,6 @@ public class OccHBaseConfiguration {
   @NotNull
   public String lookupTable;
 
-  @Parameter(names = "--hbase-conf", description = "Specify the location of the hbase-site.xml file")
-  @NotNull
-  public String hbaseConfig;
-
   /**
    * The zookeeper connection being used to create a lock provider
    */
@@ -56,7 +52,6 @@ public class OccHBaseConfiguration {
       .add("counterTable", counterTable)
       .add("lookupTable", lookupTable)
       .add("zkConnectionString", zkConnectionString)
-      .add("hbaseConfig", hbaseConfig)
       .toString();
   }
 
