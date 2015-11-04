@@ -14,8 +14,6 @@ import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
 
-import java.io.File;
-import java.net.MalformedURLException;
 import java.util.Properties;
 
 import com.google.common.base.Throwables;
@@ -26,12 +24,10 @@ import com.google.inject.TypeLiteral;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A convenience module to include the OccurrencePersistenceServiceImpl via Guice. See the README for needed
@@ -92,15 +88,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
 
   @Provides
   public HTablePool provideHTablePool() {
-    File hbaseConfig = new File(cfg.hbaseConfig);
-    checkArgument(hbaseConfig.exists() && hbaseConfig.isFile(), "hbase-site.xml does not exist");
-    Configuration hadoopConfiguration = new Configuration();
-    try {
-      hadoopConfiguration.addResource(hbaseConfig.toURI().toURL());
-    } catch (MalformedURLException e) {
-      LOG.error("Unable to load hbase-site.xml from [{}] - configuration is broken.", hbaseConfig, e);
-    }
-    return new HTablePool(hadoopConfiguration, cfg.hbasePoolSize);
+    return new HTablePool(HBaseConfiguration.create(), cfg.hbasePoolSize);
   }
 
   @Provides

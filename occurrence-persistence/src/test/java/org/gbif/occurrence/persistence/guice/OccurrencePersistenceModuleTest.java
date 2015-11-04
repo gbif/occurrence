@@ -24,7 +24,6 @@ public class OccurrencePersistenceModuleTest {
     cfg.setEnvironment("");
     cfg.hbasePoolSize=1;
     cfg.zkConnectionString="localhost:2181";
-    cfg.hbaseConfig = getClass().getResource("/hbase-site.xml").toURI().getPath();
 
     Injector injector = Guice.createInjector(new OccurrencePersistenceModule(cfg));
     OccurrenceService occService = injector.getInstance(OccurrenceService.class);
