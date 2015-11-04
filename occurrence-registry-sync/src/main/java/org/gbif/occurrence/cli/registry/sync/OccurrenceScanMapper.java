@@ -65,7 +65,6 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
 
   static {
     Properties props = SyncCommon.loadProperties();
-    LOG.info("Props from synccommon: [" + props.toString() + "]");
     ClientConfig cc = new DefaultClientConfig();
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getClasses().add(RegistryObjectMapperContextResolver.class);

@@ -18,6 +18,7 @@ import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +28,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -66,14 +66,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
-  private final String targetTable;
-  private final Path configFile;
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService, String hbaseTable, Path configFile) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
-    this.targetTable = hbaseTable;
-    this.configFile = configFile;
   }
 
   @Override
@@ -114,7 +110,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           } else {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
             try {
-              runMrSync(newDataset.getKey(), this.targetTable, this.configFile);
+              runMrSync(newDataset.getKey());
             } catch (Exception e) {
               LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
             }
@@ -185,7 +181,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             DatasetVisitor visitor = new DatasetVisitor() {
               @Override
               public void visit(UUID datasetKey) {
-                runMrSync(datasetKey, targetTable, configFile);
+                runMrSync(datasetKey);
               }
             };
             visitOwnedDatasets(newOrg.getKey(), visitor);
@@ -197,7 +193,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
-  private static void runMrSync(@Nullable UUID datasetKey, String targetTable, Path configFile) {
+  private static void runMrSync(@Nullable UUID datasetKey) {
     Scan scan = new Scan();
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
@@ -211,6 +207,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         Bytes.toBytes(rawDatasetKey)));
     }
 
+    Properties props = SyncCommon.loadProperties();
+    String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
+
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     if (rawDatasetKey != null) {
       jobTitle = jobTitle + " for dataset " + rawDatasetKey;
@@ -223,7 +222,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
       Job job = Job.getInstance(hadoopConfiguration, jobTitle);
       job.setJarByClass(OccurrenceScanMapper.class);
-      job.addFileToClassPath(configFile);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
       job.getConfiguration().set("mapreduce.map.speculative", "false");
