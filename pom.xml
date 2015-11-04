@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>23</version>
+    <version>25.1</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -126,10 +126,10 @@
     <drupal-mybatis.version>0.17</drupal-mybatis.version>
     <dwc-api.version>1.13</dwc-api.version>
     <dwca-io.version>1.24</dwca-io.version>
-    <gbif-api.version>0.30-SNAPSHOT</gbif-api.version>
-    <gbif-common.version>0.19</gbif-common.version>
+    <gbif-api.version>0.30</gbif-api.version>
+    <gbif-common.version>0.20</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.24-SNAPSHOT</gbif-common-search.version>
+    <gbif-common-search.version>0.24</gbif-common-search.version>
     <gbif-common-service.version>0.14</gbif-common-service.version>
     <gbif-common-ws.version>0.25</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
