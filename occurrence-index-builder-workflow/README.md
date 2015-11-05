@@ -1,5 +1,5 @@
-occurrence-index-builder-workflow
----------------------------------
+# GBIF Occurrence Index Builder Workflow
+
 This project contains the oozie workflow that builds and deploy and Occurrence Solr Index from scratch. The assembled
 project needs to be copied to hdfs so that each of the task trackers can find the workflow definition and supporting
 files. 
