@@ -56,28 +56,34 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
   private static final Set<UUID> UNCHANGED_DATASETS = Sets.newHashSet();
   private static final Map<UUID, Organization> DATASET_TO_OWNING_ORG = Maps.newHashMap();
 
-  private static final DatasetService DATASET_SERVICE;
-  private static final OrganizationService ORG_SERVICE;
-  private static final OccurrencePersistenceService OCCURRENCE_PERSISTENCE_SERVICE;
-  private static final MessagePublisher MESSAGE_PUBLISHER;
+  private DatasetService datasetService;
+  private OrganizationService orgService;
+  private OccurrencePersistenceService occurrencePersistenceService;
+  private MessagePublisher messagePublisher;
 
   private int numRecords = 0;
 
-  static {
-    Properties props = SyncCommon.loadProperties();
+  @Override
+  protected void setup(Context context) throws IOException, InterruptedException {
+    super.setup(context);
+    Properties props = new Properties();
+    // extract the config properties from the job context
+    for (Map.Entry<String, String> entry : context.getConfiguration()) {
+      props.setProperty(entry.getKey(), entry.getValue());
+    }
     ClientConfig cc = new DefaultClientConfig();
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getClasses().add(RegistryObjectMapperContextResolver.class);
     cc.getFeatures().put(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES.toString(), false);
     Client httpClient = ApacheHttpClient.create(cc);
     WebResource regResource = httpClient.resource(props.getProperty(SyncCommon.REG_WS_PROPS_KEY));
-    DATASET_SERVICE = new DatasetWsClient(regResource, null);
-    ORG_SERVICE = new OrganizationWsClient(regResource, null);
+    datasetService = new DatasetWsClient(regResource, null);
+    orgService = new OrganizationWsClient(regResource, null);
 
     Injector injector =
       Guice.createInjector(new PostalServiceModule("sync", props), new OccurrencePersistenceModule(props));
-    OCCURRENCE_PERSISTENCE_SERVICE = injector.getInstance(OccurrencePersistenceService.class);
-    MESSAGE_PUBLISHER = injector.getInstance(MessagePublisher.class);
+    occurrencePersistenceService = injector.getInstance(OccurrencePersistenceService.class);
+    messagePublisher = injector.getInstance(MessagePublisher.class);
   }
 
   @Override
@@ -87,13 +93,12 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       return;
     }
 
-    Dataset dataset = DATASET_SERVICE.get(datasetKey);
+    Dataset dataset = datasetService.get(datasetKey);
     if (dataset.getDeleted() != null) {
       DEAD_DATASETS.add(datasetKey);
       try {
         LOG.info("Sending delete dataset message for dataset [{}]", datasetKey);
-        MESSAGE_PUBLISHER
-          .send(new DeleteDatasetOccurrencesMessage(datasetKey, OccurrenceDeletionReason.DATASET_MANUAL));
+        messagePublisher.send(new DeleteDatasetOccurrencesMessage(datasetKey, OccurrenceDeletionReason.DATASET_MANUAL));
       } catch (IOException e) {
         LOG.warn("Failed to send update message", e);
       }
@@ -110,7 +115,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       needsUpdate = true;
     } else {
       UUID newPublishingOrgKey = dataset.getPublishingOrganizationKey();
-      publishingOrg = ORG_SERVICE.get(newPublishingOrgKey);
+      publishingOrg = orgService.get(newPublishingOrgKey);
       String rawPublishingOrgKey = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.OOK_COL));
       UUID publishingOrgKey = rawPublishingOrgKey == null ? null : UUID.fromString(rawPublishingOrgKey);
       String rawHostCountry = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.HC_COL));
@@ -126,22 +131,23 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     }
 
     if (needsUpdate) {
-      Occurrence origOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
+      Occurrence origOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
       // we have no clone or other easy copy method
-      Occurrence updatedOcc = OCCURRENCE_PERSISTENCE_SERVICE.get(Bytes.toInt(row.get()));
+      Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
       updatedOcc.setPublishingOrgKey(publishingOrg.getKey());
       updatedOcc.setPublishingCountry(publishingOrg.getCountry());
-      OCCURRENCE_PERSISTENCE_SERVICE.update(updatedOcc);
+      occurrencePersistenceService.update(updatedOcc);
 
       int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));
       OccurrenceMutatedMessage msg =
         OccurrenceMutatedMessage.buildUpdateMessage(datasetKey, origOcc, updatedOcc, crawlId);
 
       try {
-        LOG.info("Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
+        LOG.info(
+          "Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
           datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
           updatedOcc.getPublishingCountry());
-        MESSAGE_PUBLISHER.send(msg);
+        messagePublisher.send(msg);
       } catch (IOException e) {
         LOG.warn("Failed to send update message", e);
       }

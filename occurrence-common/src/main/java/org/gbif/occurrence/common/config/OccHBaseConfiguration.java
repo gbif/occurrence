@@ -15,10 +15,6 @@ public class OccHBaseConfiguration {
   @Min(1)
   public int hbasePoolSize = 5;
 
-  @Parameter(names = "--hbase-config")
-  @NotNull
-  public String hbaseConfig;
-
   @Parameter(names = "--occ-table")
   @NotNull
   public String occTable;
@@ -52,7 +48,6 @@ public class OccHBaseConfiguration {
   public String toString() {
     return Objects.toStringHelper(this)
       .add("hbasePoolSize", hbasePoolSize)
-      .add("hbaseConfig", hbaseConfig)
       .add("occTable", occTable)
       .add("counterTable", counterTable)
       .add("lookupTable", lookupTable)

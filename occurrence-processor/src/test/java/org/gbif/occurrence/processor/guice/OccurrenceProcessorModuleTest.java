@@ -31,7 +31,6 @@ public class OccurrenceProcessorModuleTest {
     cfg.hbase.setEnvironment("test");
     cfg.hbase.hbasePoolSize = 10;
     cfg.hbase.zkConnectionString = "localhost";
-    cfg.hbase.hbaseConfig = getClass().getResource("/hbase-site.xml").toURI().getPath();
 
     cfg.zooKeeper.connectionString = "localhost";
 
@@ -58,7 +57,6 @@ public class OccurrenceProcessorModuleTest {
     cfg.hbase.setEnvironment("dev");
     cfg.hbase.hbasePoolSize = 10;
     cfg.hbase.zkConnectionString = "c1n1.gbif.org";
-    cfg.hbase.hbaseConfig = getClass().getResource("/hbase-site.xml").toURI().getPath();
 
     cfg.zooKeeper.connectionString = "c1n1.gbif.org";
 
