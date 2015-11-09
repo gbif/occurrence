@@ -16,7 +16,7 @@ SELECT
   publishingcountry,
   decimallatitude,
   decimallongitude,
-  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),"") AS coordinate, --coordinate
+  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),NULL) AS coordinate, --coordinate
   year,
   month,
   IF(eventdate IS NOT NULL, from_unixtime(eventdate,'yyyy-MM-dd\'T\'00:00:00\'Z\''),NULL) AS eventdate,
