@@ -9,18 +9,18 @@ SELECT
   catalognumber,
   recordedby,
   recordnumber,
-  IF(lastinterpreted IS NOT NULL, from_unixtime(lastinterpreted,'yyyy-MM-dd\'T\'00:00:00\'Z\''),NULL),
-  removeNulls(array(kingdomkey,phylumkey,classkey,orderkey,familykey,genuskey,subgenuskey,specieskey,taxonkey)), --taxon_key
+  IF(lastinterpreted IS NOT NULL, from_unixtime(lastinterpreted,'yyyy-MM-dd\'T\'00:00:00\'Z\''),NULL) AS lastinterpreted,
+  removeNulls(array(kingdomkey,phylumkey,classkey,orderkey,familykey,genuskey,subgenuskey,specieskey,taxonkey)) AS taxonkey, --taxon_key
   countrycode,
   continent,
   publishingcountry,
   decimallatitude,
   decimallongitude,
-  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),""), --coordinate
+  if(COALESCE(decimallatitude,-1000) BETWEEN -90.0 AND 90.0 AND COALESCE(decimallongitude,-1000) BETWEEN -180.0 AND 180.0,concat(CAST(decimallatitude AS STRING),',',CAST(decimallongitude AS STRING)),"") AS coordinate, --coordinate
   year,
   month,
-  IF(eventdate IS NOT NULL, from_unixtime(eventdate,'yyyy-MM-dd\'T\'00:00:00\'Z\''),NULL),
-  COALESCE(basisofrecord,"UNKNOWN"),
+  IF(eventdate IS NOT NULL, from_unixtime(eventdate,'yyyy-MM-dd\'T\'00:00:00\'Z\''),NULL) AS eventdate,
+  COALESCE(basisofrecord,"UNKNOWN") AS basisofrecord,
   typestatus,
   hasgeospatialissues, --geospatial_issue
   hascoordinate, --hascoordinate
