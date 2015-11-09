@@ -8,10 +8,11 @@ To produce the artifact that will be deployed just run `mvn clean package`. This
 provide configs that match your destination environment (i.e. dev, uat, or prod - get the configs from gbif-configuration).
 
 ## Usage
-For local development and testing you can run this project using `mvn jetty:run`. The default configs will connect you to the
-dev cluster and dev api services. You need to provide a maven profile that contains these two parameters:
+For local development and testing you can run this project using `mvn -Pdev jetty:run`. You will need to configure a local dev profile like the following, and you need to provide a maven profile that contains these two parameters:
   1. occurrence.download.ws.password
   2. drupal.db.password
+
+The dev profile from http://github.com/gbif/gbif-configuration/maven/settings.xml should do the job.
   
 Then test it with `http://localhost:8080/occurrence/12345`
 
