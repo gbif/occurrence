@@ -3,6 +3,7 @@ package org.gbif.occurrence.ws.client;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.ws.client.mock.OccurrenceWsTestModule;
+import org.gbif.occurrence.ws.resources.OccurrenceResource;
 import org.gbif.ws.client.BaseResourceTest;
 import org.gbif.ws.paths.OccurrencePaths;
 
@@ -23,11 +24,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-//@Ignore("Grizzly modules don't load properly http://dev.gbif.org/issues/browse/OCC-104")
 public class OccurrenceWsClientIT extends BaseResourceTest {
 
   private OccurrenceService client;
@@ -66,15 +65,16 @@ public class OccurrenceWsClientIT extends BaseResourceTest {
   }
 
   /**
-   * Ensure XML is return when the 'Accept' header is set accordingly
+   * The Annosys methods are implemented specifically to support Annosys and are not advertised or
+   * documented in the public API. <em>They may be removed at any time without notice</em>.
    */
   @Test
-  public void testGetAcceptXml() {
+  public void testAnnosysXml() {
     Client client = Client.create();
-    WebResource webResource = client.resource(wsBaseUrl).path(OccurrencePaths.OCCURRENCE_PATH).path("10");
-    ClientResponse response = webResource.accept(MediaType.APPLICATION_XML)
-            .get(ClientResponse.class);
+    WebResource webResource = client.resource(wsBaseUrl).path(OccurrencePaths.OCCURRENCE_PATH)
+            .path(OccurrenceResource.ANNOSYS_PATH).path("10");
 
+    ClientResponse response = webResource.get(ClientResponse.class);
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     assertEquals(MediaType.APPLICATION_XML_TYPE, response.getType());
     assertTrue(response.getLength() > 0);
@@ -82,23 +82,20 @@ public class OccurrenceWsClientIT extends BaseResourceTest {
   }
 
   /**
-   * Ensure JSON is returned when no 'Accept' header is provided.
+   * The Annosys methods are implemented specifically to support Annosys and are not advertised or
+   * documented in the public API. <em>They may be removed at any time without notice</em>.
    */
   @Test
-  public void testGetDefaulContentType() {
+  public void testAnnosysVerbatimXml() {
     Client client = Client.create();
-    WebResource webResource = client.resource(wsBaseUrl).path(OccurrencePaths.OCCURRENCE_PATH).path("10");
+    WebResource webResource = client.resource(wsBaseUrl).path(OccurrencePaths.OCCURRENCE_PATH)
+            .path(OccurrenceResource.ANNOSYS_PATH).path("10").path(OccurrencePaths.VERBATIM_PATH);
+
     ClientResponse response = webResource.get(ClientResponse.class);
-
     assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getType());
-
-    //this throws a NPE, "Content-Length" header is not returned by design:
-    //https://github.com/FasterXML/jackson-jaxrs-json-provider/blob/master/src/main/java/com/fasterxml/jackson/jaxrs/json/JacksonJsonProvider.java#L465
-    //assertTrue(response.getLength() > 0);
-
-    String output = response.getEntity(String.class);
-    assertFalse(output.isEmpty());
+    assertEquals(MediaType.APPLICATION_XML_TYPE, response.getType());
+    assertTrue(response.getLength() > 0);
     client.destroy();
   }
+
 }
