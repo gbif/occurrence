@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS occurrence_hdfs (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
 </#list>
-) STORED AS RCFILE;
+) STORED AS RCFILE TBLPROPERTIES ("serialization.null.format"="");
 
 -- populate the HDFS view
 INSERT OVERWRITE TABLE occurrence_hdfs
