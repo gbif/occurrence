@@ -26,8 +26,8 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.fs.Path;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class DownloadMaster extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
-  private final SolrServer solrServer;
+  private final SolrClient solrClient;
   private final Configuration conf;
   private final LockFactory lockFactory;
   private final OccurrenceMapReader occurrenceMapReader;
@@ -54,7 +54,7 @@ public class DownloadMaster extends UntypedActor {
   public DownloadMaster(
     LockFactory lockFactory,
     Configuration configuration,
-    SolrServer solrServer,
+    SolrClient solrClient,
     OccurrenceMapReader occurrenceMapReader,
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator
@@ -62,7 +62,7 @@ public class DownloadMaster extends UntypedActor {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
-    this.solrServer = solrServer;
+    this.solrClient = solrClient;
     this.occurrenceMapReader = occurrenceMapReader;
     this.aggregator = aggregator;
 
@@ -105,7 +105,7 @@ public class DownloadMaster extends UntypedActor {
       if (!Strings.isNullOrEmpty(query)) {
         solrQuery.addFilterQuery(query);
       }
-      QueryResponse queryResponse = solrServer.query(solrQuery);
+      QueryResponse queryResponse = solrClient.query(solrQuery);
       return queryResponse.getResults().getNumFound();
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing Solr query", e);
@@ -175,7 +175,7 @@ public class DownloadMaster extends UntypedActor {
                                                      i,
                                                      jobConfiguration.getSolrQuery(),
                                                      lock,
-                                                     solrServer,
+                                                     solrClient,
                                                      occurrenceMapReader);
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
@@ -186,7 +186,7 @@ public class DownloadMaster extends UntypedActor {
       }
 
       stopwatch.stop();
-      final long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
+      long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
       LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
     }
   }

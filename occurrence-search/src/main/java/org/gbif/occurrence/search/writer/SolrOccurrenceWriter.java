@@ -64,7 +64,7 @@ public class SolrOccurrenceWriter {
   // Allowed longitude range
   private static final Range<Double> LNG_RANGE = Range.closed(-180.0, 180.0);
 
-  // SolrServer that stores the occurrence records
+  // SolrClient that stores the occurrence records
   private final SolrClient solrClient;
 
   private final int commitWithinMs;

@@ -43,7 +43,7 @@ public class SolrQueryProcessor {
         solrQuery.setStart(downloadFileWork.getFrom() + recordCount);
         // Limit can't be greater than the maximum number of records assigned to this job
         solrQuery.setRows(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
-        final QueryResponse response = downloadFileWork.getSolrServer().query(solrQuery);
+        final QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
         for (Iterator<SolrDocument> itResults = response.getResults().iterator(); itResults.hasNext(); recordCount++) {
           resultHandler.apply((Integer) itResults.next().getFieldValue(OccurrenceSolrField.KEY.getFieldName()));
         }

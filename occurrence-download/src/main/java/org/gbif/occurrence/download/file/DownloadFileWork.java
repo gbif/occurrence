@@ -4,7 +4,7 @@ import org.gbif.wrangler.lock.Lock;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -28,7 +28,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final Lock lock;
 
-  private final SolrServer solrServer;
+  private final SolrClient solrClient;
 
   private final OccurrenceMapReader occurrenceMapReader;
 
@@ -42,7 +42,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     int jobId,
     String query,
     Lock lock,
-    SolrServer solrServer,
+    SolrClient solrClient,
     OccurrenceMapReader occurrenceMapReader
   ) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
@@ -52,7 +52,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.baseDataFileName = baseDataFileName;
     this.jobId = jobId;
     this.lock = lock;
-    this.solrServer = solrServer;
+    this.solrClient = solrClient;
     this.occurrenceMapReader = occurrenceMapReader;
   }
 
@@ -120,10 +120,10 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   * @return Solr server to run queries
+   * @return Solr client to run queries
    */
-  public SolrServer getSolrServer() {
-    return solrServer;
+  public SolrClient getSolrClient() {
+    return solrClient;
   }
 
   /**

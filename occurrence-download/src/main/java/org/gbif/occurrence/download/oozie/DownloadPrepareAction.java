@@ -24,8 +24,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -71,7 +71,7 @@ public class DownloadPrepareAction {
   // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
   private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
 
-  private final SolrServer solrServer;
+  private final SolrClient solrClient;
 
   // Holds the value of the maximum number of records that a small download can have.
   private final int smallDownloadLimit;
@@ -106,12 +106,12 @@ public class DownloadPrepareAction {
    */
   @Inject
   public DownloadPrepareAction(
-    SolrServer solrServer,
+    SolrClient solrClient,
     @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
     OccurrenceDownloadService occurrenceDownloadService,
     WorkflowConfiguration workflowConfiguration
   ) {
-    this.solrServer = solrServer;
+    this.solrClient = solrClient;
     this.smallDownloadLimit = smallDownloadLimit;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.workflowConfiguration = workflowConfiguration;
@@ -167,7 +167,7 @@ public class DownloadPrepareAction {
    */
   private long getRecordCount(String solrQuery) {
     try {
-      QueryResponse response = solrServer.query(new SolrQuery(solrQuery));
+      QueryResponse response = solrClient.query(new SolrQuery(solrQuery));
       return response.getResults().getNumFound();
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
