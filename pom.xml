@@ -129,7 +129,7 @@
     <gbif-api.version>0.30</gbif-api.version>
     <gbif-common.version>0.20</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.24</gbif-common-search.version>
+    <gbif-common-search.version>0.25-SNAPSHOT</gbif-common-search.version>
     <gbif-common-service.version>0.14</gbif-common-service.version>
     <gbif-common-ws.version>0.25</gbif-common-ws.version>
     <geocode.version>0.6</geocode.version>
