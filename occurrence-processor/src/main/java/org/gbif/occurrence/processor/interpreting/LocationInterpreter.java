@@ -160,7 +160,10 @@ public class LocationInterpreter {
     if (parsedCoord.isSuccessful() && parsedCoord.getPayload() != null) {
       occ.setDecimalLatitude(parsedCoord.getPayload().getLatitude());
       occ.setDecimalLongitude(parsedCoord.getPayload().getLongitude());
-      if (country == null) {
+
+      // C.G., 2015/11/17 urgent patch, allow country overwrites if record is indicated as coming from IRELAND but
+      // coordinateInterpreter says UNITED_KINGDOM
+      if (country == null || (country == Country.IRELAND && parsedCoord.getPayload().getCountry() == Country.UNITED_KINGDOM )) {
         occ.setCountry(parsedCoord.getPayload().getCountry());
       }
       //TODO: interpret also coordinateUncertaintyInMeters
