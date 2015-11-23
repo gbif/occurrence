@@ -3,6 +3,7 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.base.Preconditions;
@@ -54,6 +56,9 @@ public class CoordinateInterpreter {
   private static final Map<OccurrenceIssue, Integer[]> TRANSFORMS =
     new EnumMap<OccurrenceIssue, Integer[]>(OccurrenceIssue.class);
 
+
+  // Antarctica: "Territories south of 60° south latitude"
+  private static final double ANTARCTICA_LATITUDE = -60;
 
   /*
    Some countries are commonly mislabeled and are close to correct, so we want to accommodate them, e.g. Northern
@@ -168,6 +173,9 @@ public class CoordinateInterpreter {
     Country lookupCountry = null;
     if (!latLngCountries.isEmpty()) {
       lookupCountry = latLngCountries.get(0);
+    } //if no country is returned from the geocode, check Antarctica to suggest it according to ISO
+    else if(isAntarctica(parsedLatLon.getPayload().getLat(), null)){
+      lookupCountry = Country.ANTARCTICA;
     }
 
     if (country == null) {
@@ -176,14 +184,12 @@ public class CoordinateInterpreter {
         finalCountry = lookupCountry;
         issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
-
     } else if (matchCountry(country, latLngCountries)) {
       // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
       if (country != latLngCountries.get(0)) {
         issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
       finalCountry = latLngCountries.get(0);
-
     } else {
       // countries don't match, try to swap lat/lon to see if any falls into the given country
       parsedLatLon = tryCoordTransformations(parsedLatLon.getPayload(), country);
@@ -200,8 +206,22 @@ public class CoordinateInterpreter {
                                new CoordinateResult(parsedLatLon.getPayload(), finalCountry),  issues);
   }
 
+  /**
+   * Try different transformations on coordinates to see if the resulting lookup would match the specified country.
+   * The only exception is Antarctica where nothing will be attempt if {@link #isAntarctica} returns true.
+   *
+   * @param coord
+   * @param country
+   * @return
+   */
   private OccurrenceParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
     Preconditions.checkNotNull(country);
+
+    // Do not try transformations for Antarctica
+    if(isAntarctica(coord.getLat(), country)){
+      return OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, coord);
+    }
+
     for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
       Integer[] transform = geospatialIssueEntry.getValue();
       LatLng tCoord = new LatLng(coord.getLat() * transform[0], coord.getLng() * transform[1]);
@@ -237,6 +257,26 @@ public class CoordinateInterpreter {
       }
     }
     return false;
+  }
+
+  /**
+   * Checks if the country and latitude belongs to Antarctica.
+   * Rule: country must be Country.ANTARCTICA or null and
+   * latitude must be less than (south of) {@link #ANTARCTICA_LATITUDE}
+   *
+   * @param latitude
+   * @param country null allowed
+   * @return
+   */
+  private static boolean isAntarctica(Double latitude, @Nullable Country country){
+    if(latitude == null){
+      return false;
+    }
+
+    if(country == null){
+      return latitude < ANTARCTICA_LATITUDE;
+    }
+    return (country == Country.ANTARCTICA) && (latitude < ANTARCTICA_LATITUDE);
   }
 
   /**
