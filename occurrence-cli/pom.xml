@@ -12,6 +12,13 @@
 
   <name>Occurrence CLI</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <gbif-cli.version>0.10</gbif-cli.version>
 

@@ -10,6 +10,13 @@
   <artifactId>occurrence-hbase-solr-index</artifactId>
   <packaging>jar</packaging>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <hbase-indexer-engine.version>1.5-cdh5.4.2</hbase-indexer-engine.version>
     <spatial4j.version>0.3</spatial4j.version>

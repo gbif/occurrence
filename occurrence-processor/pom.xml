@@ -16,6 +16,13 @@
     Takes xml/json occurrence fragments and persists them to HBase, then processes and interprets them.
   </description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-all</id>

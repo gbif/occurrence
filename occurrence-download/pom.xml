@@ -10,6 +10,13 @@
   <artifactId>occurrence-download</artifactId>
   <name>Occurrence Download</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <!-- has to match cluster version -->
     <guava.version>14.0.1</guava.version>

@@ -13,6 +13,13 @@
 
   <name>Occurrence Index Builder Oozie workflow</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <profiles>
     <profile>
       <id>oozie</id>
