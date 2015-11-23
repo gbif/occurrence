@@ -13,6 +13,13 @@
   <name>Occurrence Hive</name>
   <description>Occurrence utilities for Hive</description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <build>
     <plugins>
       <plugin>

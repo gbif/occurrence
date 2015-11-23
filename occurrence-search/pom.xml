@@ -11,6 +11,13 @@
   <artifactId>occurrence-search</artifactId>
   <packaging>jar</packaging>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
     <guava.version>14.0.1</guava.version>

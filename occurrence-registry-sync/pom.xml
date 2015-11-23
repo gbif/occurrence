@@ -12,6 +12,13 @@
 
   <name>Occurrence Registry Synchronizer</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <!-- have to match hbase version, and shade later -->
     <guava.version>14.0.1</guava.version>

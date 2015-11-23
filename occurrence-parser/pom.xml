@@ -16,6 +16,13 @@
     In XML, using any of these schemas: DWC 1.0, DWC 1.4, ABCD 1.2, ABCD 2.06. It also handles DwCA
   </description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-all</id>

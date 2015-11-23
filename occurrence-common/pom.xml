@@ -29,6 +29,13 @@
   <name>Occurrence Common</name>
   <description>Common objects for the Occurrence module that don't belong in the API</description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-all</id>

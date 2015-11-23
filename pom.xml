@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>25.1</version>
+    <version>29</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -23,6 +23,13 @@
     <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
+
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/</url>
+    </site>
+  </distributionManagement>
 
   <modules>
     <module>occurrence-cli</module>
