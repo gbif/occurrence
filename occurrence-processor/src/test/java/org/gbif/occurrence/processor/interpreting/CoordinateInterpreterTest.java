@@ -8,7 +8,9 @@ import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import java.net.URI;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -19,10 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("requires live geo lookup webservice")
+@Ignore("Shouldn't be run by Jenkins, it uses an external service")
 public class CoordinateInterpreterTest {
 
-  static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
+  static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final CoordinateInterpreter interpreter;
   static {
     cfg.url = URI.create("http://api.gbif-uat.org/v1/");
@@ -121,7 +123,7 @@ public class CoordinateInterpreterTest {
 
     System.out.println(result.getIssues());
 
-    assertCoordinate(result, lat, -1*lng);
+    assertCoordinate(result, lat, -1 * lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
   }
@@ -205,10 +207,28 @@ public class CoordinateInterpreterTest {
     Double lat = 54.597;
     Double lng = -5.93;
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(),
-                                                                                     lng.toString(),
-                                                                                     null,
-                                                                                     null);
+            lng.toString(),
+            null,
+            null);
     assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
+
+  @Test
+  public void testAntarctica() {
+    // points to Southern Ocean
+    Double lat = -61.21833;
+    Double lng = 60.02833;
+    Country country = Country.ANTARCTICA;
+
+    OccurrenceParseResult<CoordinateResult> result =
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
+    // ensure coordinates are not changed
+    assertCoordinate(result, -61.21833, 60.02833);
+
+    // try the same point but without the country
+    result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, null);
+    assertEquals(Country.ANTARCTICA, result.getPayload().getCountry());
+  }
+  
 }
