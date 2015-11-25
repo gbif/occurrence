@@ -44,11 +44,11 @@ public class IdentifierStrategy {
   }
 
   /**
-   * For XML datasets occurrenceIds are ignored. For DwC-A datasets occurrenceIds are valid if each record has a unique
+   * For XML datasets occurrenceIds are always ok. For DwC-A datasets occurrenceIds are valid if each record has a unique
    * occurrenceId.
    */
   private static boolean occurrenceIdsValid(OccurrenceSchemaType schemaType, DwcaValidationReport validationReport) {
-    boolean valid = false;
+    boolean valid = true;
     if (schemaType == OccurrenceSchemaType.DWCA) {
       OccurrenceValidationReport report = validationReport.getOccurrenceReport();
       valid = report.getCheckedRecords() > 0 && report.getUniqueOccurrenceIds() == report.getCheckedRecords();
