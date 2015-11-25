@@ -22,7 +22,8 @@ public class IdentifierStrategy {
     checkNotNull(schemaType, "schemaType can't be null");
     if (schemaType == OccurrenceSchemaType.DWCA) {
       checkNotNull(validationReport, "validationReport can't be null if schema is DWCA");
-      checkNotNull(validationReport.getOccurrenceReport(), "validation.occurrenceReport can't be null if schema is DWCA");
+      checkNotNull(validationReport.getOccurrenceReport(),
+        "validation.occurrenceReport can't be null if schema is DWCA");
     }
     tripletsValid = tripletsValid(schemaType, validationReport);
     occurrenceIdsValid = occurrenceIdsValid(schemaType, validationReport);
@@ -36,19 +37,20 @@ public class IdentifierStrategy {
     boolean valid = true;
     if (schemaType == OccurrenceSchemaType.DWCA) {
       OccurrenceValidationReport report = validationReport.getOccurrenceReport();
-      valid = report.getUniqueTriplets() > 0
-              && report.getCheckedRecords() - report.getRecordsWithInvalidTriplets() == report.getUniqueTriplets();
+      valid =
+        report.getUniqueTriplets() > 0 && report.getCheckedRecords() - report.getRecordsWithInvalidTriplets() == report
+          .getUniqueTriplets();
     }
 
     return valid;
   }
 
   /**
-   * For XML datasets occurrenceIds are ignored. For DwC-A datasets occurrenceIds are valid if each record has a unique
-   * occurrenceId.
+   * For XML datasets occurrenceIds are always accepted. For DwC-A datasets occurrenceIds are valid if each record has a
+   * unique occurrenceId.
    */
   private static boolean occurrenceIdsValid(OccurrenceSchemaType schemaType, DwcaValidationReport validationReport) {
-    boolean valid = false;
+    boolean valid = true;
     if (schemaType == OccurrenceSchemaType.DWCA) {
       OccurrenceValidationReport report = validationReport.getOccurrenceReport();
       valid = report.getCheckedRecords() > 0 && report.getUniqueOccurrenceIds() == report.getCheckedRecords();
