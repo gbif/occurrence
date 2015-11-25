@@ -50,7 +50,7 @@ public class IdentifierStrategyTest {
   public void testNonDwca() {
     IdentifierStrategy strategy = new IdentifierStrategy(OccurrenceSchemaType.ABCD_2_0_6, null);
     assertTrue(strategy.isTripletsValid());
-    assertFalse(strategy.isOccurrenceIdsValid());
+    assertTrue(strategy.isOccurrenceIdsValid());
   }
 
   @Test
