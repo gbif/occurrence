@@ -129,7 +129,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.11</hbase-utils.version>
-    <download-query-tools.version>1.6</download-query-tools.version>
+    <download-query-tools.version>1.8</download-query-tools.version>
     <drupal-mybatis.version>0.17</drupal-mybatis.version>
     <dwc-api.version>1.9</dwc-api.version>
     <dwca-io.version>1.24</dwca-io.version>
