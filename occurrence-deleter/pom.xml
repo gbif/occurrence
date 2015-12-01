@@ -32,6 +32,13 @@
     Takes messages requesting deletion of single occurrence or entire datasets and acts on them.
   </description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-all</id>

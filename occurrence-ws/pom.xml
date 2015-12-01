@@ -13,6 +13,13 @@
 
   <name>Occurrence Web service</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <maven-shade-plugin.version>2.4</maven-shade-plugin.version>
     <gbif-microservice.version>0.3</gbif-microservice.version>

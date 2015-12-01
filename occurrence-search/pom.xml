@@ -22,6 +22,13 @@
 
   <name>Occurrence Search service</name>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <build>
     <testResources>
       <testResource>

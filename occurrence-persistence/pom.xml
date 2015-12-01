@@ -30,6 +30,13 @@
   <name>Occurrence Persistence</name>
   <description>Persistence pieces for the Occurrence project</description>
 
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-all</id>
