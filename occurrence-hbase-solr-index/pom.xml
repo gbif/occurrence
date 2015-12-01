@@ -3,12 +3,12 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.35.4</version>
+    <version>0.35.4-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-hbase-solr-index</artifactId>
-  <version>0.35.4</version>
+  <version>0.35.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
