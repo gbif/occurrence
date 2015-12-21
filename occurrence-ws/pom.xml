@@ -4,11 +4,11 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>occurrence-0.35.5-SNAPSHOT</version>
+    <version>0.35.5</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
-  <version>occurrence-0.35.5-SNAPSHOT</version>
+  <version>0.35.5</version>
   <packaging>jar</packaging>
 
   <name>Occurrence Web service</name>
