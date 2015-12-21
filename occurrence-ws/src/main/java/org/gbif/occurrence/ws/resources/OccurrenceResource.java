@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
@@ -29,6 +30,9 @@ import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 @Path(OCCURRENCE_PATH)
 @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
 public class OccurrenceResource {
+
+  @VisibleForTesting
+  public static final String ANNOSYS_PATH = "annosys";
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
   private final OccurrenceService occurrenceService;
@@ -49,7 +53,6 @@ public class OccurrenceResource {
   @GET
   @Path("/{id}")
   @NullToNotFound
-  @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML})
   public Occurrence get(@PathParam("id") Integer key) {
     LOG.debug("Request Occurrence [{}]:", key);
     return occurrenceService.get(key);
@@ -79,7 +82,6 @@ public class OccurrenceResource {
   @GET
   @Path("/{key}/" + VERBATIM_PATH)
   @NullToNotFound
-  @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML})
   public VerbatimOccurrence getVerbatim(@PathParam("key") Integer key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
     return occurrenceService.getVerbatim(key);
@@ -98,5 +100,37 @@ public class OccurrenceResource {
       LOG.error("Unable to read featured occurrences", e);
       return Lists.newArrayList();
     }
+  }
+
+  /**
+   * This method is implemented specifically to support Annosys and is not advertised or
+   * documented in the public API.  <em>It may be removed at any time without notice</em>.
+   *
+   * @param key
+   * @return
+   */
+  @GET
+  @Path(ANNOSYS_PATH + "/{key}")
+  @NullToNotFound
+  @Produces(MediaType.APPLICATION_XML)
+  public Occurrence getAnnosysOccurrence(@PathParam("key") Integer key) {
+    LOG.debug("Request Annosys occurrence [{}]:", key);
+    return occurrenceService.get(key);
+  }
+
+  /**
+   * This method is implemented specifically to support Annosys and is not advertised or
+   * documented in the public API.  <em>It may be removed at any time without notice</em>.
+   *
+   * @param key
+   * @return
+   */
+  @GET
+  @Path(ANNOSYS_PATH + "/{key}/" + VERBATIM_PATH)
+  @NullToNotFound
+  @Produces(MediaType.APPLICATION_XML)
+  public VerbatimOccurrence getAnnosysVerbatim(@PathParam("key") Integer key) {
+    LOG.debug("Request Annosys verbatim occurrence [{}]:", key);
+    return occurrenceService.getVerbatim(key);
   }
 }
