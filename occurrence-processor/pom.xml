@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.35.5</version>
+    <version>0.36-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-processor</artifactId>
-  <version>0.35.5</version>
+  <version>0.36-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Occurrence Processor</name>
