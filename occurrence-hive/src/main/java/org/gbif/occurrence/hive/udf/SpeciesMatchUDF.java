@@ -23,7 +23,6 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A UDF to run a backbone species match against the GBIF API.
  * The UDF is lazily initialized with the base URL of the API to be used.
@@ -86,33 +85,50 @@ public class SpeciesMatchUDF extends GenericUDF {
     String sp = clean(arguments[8].get());
     String ssp = clean(arguments[9].get());
 
-    List<Object> result = Lists.newArrayList(20);
-    ParseResult<NameUsageMatch> response = getInterpreter(api).match(k, p, c, o, f, g, s, sp, ssp);
+    List<Object> result = Lists.newArrayList(21);
 
-    if (response != null && response.getPayload() != null) {
-      NameUsageMatch lookup = response.getPayload();
-      result.add(lookup.getUsageKey());
-      result.add(lookup.getScientificName());
-      result.add(lookup.getRank());
-      result.add(lookup.getStatus());
-      result.add(lookup.getMatchType());
-      result.add(lookup.getConfidence());
+    final String sciname = getInterpreter(api).buildScientificName(s, null, g, sp, ssp);
+    ParseResult<NameUsageMatch> response = getInterpreter(api).match(
+            ClassificationUtils.clean(k),
+            ClassificationUtils.clean(p),
+            ClassificationUtils.clean(c),
+            ClassificationUtils.clean(o),
+            ClassificationUtils.clean(f),
+            ClassificationUtils.clean(g),
+            sciname,
+            ClassificationUtils.cleanAuthor(sp),
+            ClassificationUtils.cleanAuthor(ssp));
 
-      result.add(lookup.getKingdomKey());
-      result.add(lookup.getPhylumKey());
-      result.add(lookup.getClassKey());
-      result.add(lookup.getOrderKey());
-      result.add(lookup.getFamilyKey());
-      result.add(lookup.getGenusKey());
-      result.add(lookup.getSpeciesKey());
+    if (response != null) {
+      result.add(response.getStatus());
+      if (response.getPayload() != null) {
+        NameUsageMatch lookup = response.getPayload();
+        result.add(lookup.getUsageKey());
+        result.add(lookup.getScientificName());
+        result.add(lookup.getRank());
+        result.add(lookup.getStatus());
+        result.add(lookup.getMatchType());
+        result.add(lookup.getConfidence());
 
-      result.add(lookup.getKingdom());
-      result.add(lookup.getPhylum());
-      result.add(lookup.getClazz());
-      result.add(lookup.getOrder());
-      result.add(lookup.getFamily());
-      result.add(lookup.getGenus());
-      result.add(lookup.getSpecies());
+        result.add(lookup.getKingdomKey());
+        result.add(lookup.getPhylumKey());
+        result.add(lookup.getClassKey());
+        result.add(lookup.getOrderKey());
+        result.add(lookup.getFamilyKey());
+        result.add(lookup.getGenusKey());
+        result.add(lookup.getSpeciesKey());
+
+        result.add(lookup.getKingdom());
+        result.add(lookup.getPhylum());
+        result.add(lookup.getClazz());
+        result.add(lookup.getOrder());
+        result.add(lookup.getFamily());
+        result.add(lookup.getGenus());
+        result.add(lookup.getSpecies());
+      }
+      else if (response.getError() != null) {
+        LOG.error("Error finding species match", response.getError());
+      }
     }
 
     return result;
@@ -131,10 +147,12 @@ public class SpeciesMatchUDF extends GenericUDF {
     }
 
     return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays
-      .asList("taxonKey", "scientificName", "rank", "status", "matchType", "confidence",
+      .asList("status", "taxonKey", "scientificName", "rank", "status", "matchType", "confidence",
         "kingdomKey", "phylumKey", "classKey", "orderKey", "familyKey", "genusKey", "speciesKey",
         "kingdom", "phylum", "class_", "order_", "family", "genus", "species"),
       Arrays.<ObjectInspector>asList(
+        PrimitiveObjectInspectorFactory.javaStringObjectInspector,
+
         PrimitiveObjectInspectorFactory.javaIntObjectInspector,
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
