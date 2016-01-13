@@ -3,7 +3,6 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
-import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
@@ -15,18 +14,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
@@ -39,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Attempts to parse given String lat and long into Doubles, and compares the given country (if any) to a reverse
+ * Attempts to parse given string latitude and longitude into doubles, and compares the given country (if any) to a reverse
  * lookup of the parsed coordinates. If no country was given and the lookup produced something, that looked up result
  * is returned. If the lookup result and passed in country don't match, a "GeospatialIssue" is noted.
  */
@@ -48,14 +47,13 @@ public class CoordinateInterpreter {
   private static final Logger LOG = LoggerFactory.getLogger(CoordinateInterpreter.class);
 
   // if the WS is not responding, we drop into a retry count
-  private static final int NUM_RETRIES = 5;
+  private static final int NUM_RETRIES = 15;
   private static final int RETRY_PERIOD_MSEC = 2000;
 
-  private static final String FUZZY_COUNTRY_FILE = "fuzzy-country-pairs.txt";
+  private static final String CONFUSED_COUNTRY_FILE = "confused-country-pairs.txt";
 
-  private static final Map<OccurrenceIssue, Integer[]> TRANSFORMS =
-    new EnumMap<OccurrenceIssue, Integer[]>(OccurrenceIssue.class);
-
+  // Coordinate transformations to attempt in case of a mismatch
+  private static final Map<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> TRANSFORMS = new HashMap<>();
 
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
@@ -63,17 +61,19 @@ public class CoordinateInterpreter {
   /*
    Some countries are commonly mislabeled and are close to correct, so we want to accommodate them, e.g. Northern
    Ireland mislabeled as Ireland (should be GB). Add comma separated pairs of acceptable country swaps in the
-   fuzzy_country_pairs.txt file. Entries will be made in both directions (e.g. IE->GB, GB->IE). Multiple entries per
-   country are allowed (e.g. AB,CD and AB,EF). This is only for setting of geospatial flags.
+   confused_country_pairs.txt file. Entries will be made in both directions (e.g. IE->GB, GB->IE). Multiple entries per
+   country are allowed (e.g. AB,CD and AB,EF).
+   This *overrides* the provided country, and includes an issue.
   */
-  private static final Map<Country, Set<Country>> FUZZY_COUNTRIES = Maps.newHashMap();
+  private static final Map<Country, Set<Country>> CONFUSED_COUNTRIES = Maps.newHashMap();
 
   static {
-    TRANSFORMS.put(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, new Integer[] {-1, 1});
-    TRANSFORMS.put(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, new Integer[] {1, -1});
-    TRANSFORMS.put(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, new Integer[] {-1, -1});
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), (lat, lng) -> new LatLng(-1 * lat, lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(lat, -1 * lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(-1 * lat, -1 * lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), (lat, lng) -> new LatLng(lng, lat));
 
-    InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(FUZZY_COUNTRY_FILE);
+    InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(CONFUSED_COUNTRY_FILE);
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     try {
       String nextLine;
@@ -82,13 +82,13 @@ public class CoordinateInterpreter {
           String[] countries = nextLine.split(",");
           String countryA = countries[0].trim().toUpperCase();
           String countryB = countries[1].trim().toUpperCase();
-          LOG.info("Adding [{}][{}] pair to fuzzy country matches.", countryA, countryB);
-          addFuzzyCountry(countryA, countryB);
-          addFuzzyCountry(countryB, countryA);
+          LOG.info("Adding [{}][{}] pair to confused country matches.", countryA, countryB);
+          addConfusedCountry(countryA, countryB);
+          addConfusedCountry(countryB, countryA);
         }
       }
     } catch (IOException e) {
-      throw new RuntimeException("Can't read [" + FUZZY_COUNTRY_FILE + "] - aborting", e);
+      throw new RuntimeException("Can't read [" + CONFUSED_COUNTRY_FILE + "] - aborting", e);
     } finally {
       try {
         reader.close();
@@ -96,26 +96,26 @@ public class CoordinateInterpreter {
           in.close();
         }
       } catch (IOException e) {
-        LOG.warn("Couldn't close [{}] - continuing anyway", FUZZY_COUNTRY_FILE, e);
+        LOG.warn("Couldn't close [{}] - continuing anyway", CONFUSED_COUNTRY_FILE, e);
       }
     }
   }
 
-  private static void addFuzzyCountry(String countryA, String countryB) {
+  private static void addConfusedCountry(String countryA, String countryB) {
     Country cA = Country.fromIsoCode(countryA);
-    if (!FUZZY_COUNTRIES.containsKey(cA)) {
-      FUZZY_COUNTRIES.put(cA, Sets.<Country>newHashSet());
+    if (!CONFUSED_COUNTRIES.containsKey(cA)) {
+      CONFUSED_COUNTRIES.put(cA, Sets.<Country>newHashSet());
     }
 
-    Set<Country> fuzzy = FUZZY_COUNTRIES.get(cA);
-    fuzzy.add(cA);
-    fuzzy.add(Country.fromIsoCode(countryB));
+    Set<Country> confused = CONFUSED_COUNTRIES.get(cA);
+    confused.add(cA);
+    confused.add(Country.fromIsoCode(countryB));
   }
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private LoadingCache<WebResource, Location[]> CACHE =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
-      .build(RetryingWebserviceClient.newInstance(Location[].class, 10, 2000));
+    CacheBuilder.newBuilder().maximumSize(10000).expireAfterAccess(10, TimeUnit.MINUTES)
+      .build(RetryingWebserviceClient.newInstance(Location[].class, NUM_RETRIES, RETRY_PERIOD_MSEC));
 
   private final WebResource GEOCODE_WS;
 
@@ -151,7 +151,7 @@ public class CoordinateInterpreter {
     return verifyLatLon(CoordinateParseUtils.parseVerbatimCoordinates(latLon), datum, country);
   }
 
-  private OccurrenceParseResult<CoordinateResult> verifyLatLon(OccurrenceParseResult<LatLng> parsedLatLon, String datum, final Country country) {
+  private OccurrenceParseResult<CoordinateResult> verifyLatLon(OccurrenceParseResult<LatLng> parsedLatLon, final String datum, final Country country) {
     // use original as default
     Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
@@ -167,38 +167,52 @@ public class CoordinateInterpreter {
       .reproject(parsedLatLon.getPayload().getLat(), parsedLatLon.getPayload().getLng(), datum);
     issues.addAll(parsedLatLon.getIssues());
 
-    // the utils do a basic sanity check - even if it suggests success, we have to check that the lat/long
-    // actually falls in the country given in the record. If it doesn't, try common mistakes and note the issue
+    // Find the country/ies that this point is located in.  This can be more than one close to borders.
     List<Country> latLngCountries = getCountryForLatLng(parsedLatLon.getPayload());
-    Country lookupCountry = null;
-    if (!latLngCountries.isEmpty()) {
-      lookupCountry = latLngCountries.get(0);
-    } //if no country is returned from the geocode, check Antarctica to suggest it according to ISO
-    else if(isAntarctica(parsedLatLon.getPayload().getLat(), null)){
-      lookupCountry = Country.ANTARCTICA;
-    }
 
     if (country == null) {
-      if (lookupCountry != null) {
-        // use the coordinate derived country instead of nothing
-        finalCountry = lookupCountry;
+      if (!latLngCountries.isEmpty()) {
+        // use the first coordinate derived country instead of nothing
+        finalCountry = latLngCountries.get(0);
         issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
       }
-    } else if (matchCountry(country, latLngCountries)) {
-      // in cases where fuzzy match we want to use the lookup value, not the fuzzy one
-      if (country != latLngCountries.get(0)) {
-        issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-      }
-      finalCountry = latLngCountries.get(0);
     } else {
-      // countries don't match, try to swap lat/lon to see if any falls into the given country
-      parsedLatLon = tryCoordTransformations(parsedLatLon.getPayload(), country);
-      issues.addAll(parsedLatLon.getIssues());
+
+      // Check for provided country being in the set of possible countries
+      Country matchCountry = matchCountry(country, latLngCountries, issues);
+
+      if (matchCountry != null) {
+        // Take the returned country, in case we had a confused match.
+        finalCountry = matchCountry;
+      } else {
+        // Try different transformations on coordinates to see if the resulting lookup would match the specified country.
+        LatLng coord = parsedLatLon.getPayload();
+
+        parsedLatLon = null;
+        for (Map.Entry<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> geospatialIssueEntry : TRANSFORMS.entrySet()) {
+          BiFunction<Double, Double, LatLng> transform = geospatialIssueEntry.getValue();
+          LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
+          matchCountry = matchCountry(country, getCountryForLatLng(tCoord), issues);
+          if (matchCountry != null) {
+            // transformation worked and matches given country!
+            // use the changed coords!
+            // but don't return the country, we are just showing corrected coordinates and an issue.
+            parsedLatLon = OccurrenceParseResult.fail(tCoord, geospatialIssueEntry.getKey());
+            break;
+          }
+        }
+        if (parsedLatLon == null) {
+          // Transformations failed
+          parsedLatLon = OccurrenceParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+        }
+
+        issues.addAll(parsedLatLon.getIssues());
+      }
     }
 
     if (parsedLatLon.getPayload() == null) {
       // something has gone very wrong
-      LOG.info("Supposed coord interp success produced no latlng", parsedLatLon);
+      LOG.warn("Supposed coordinate interpretation success produced no latlng", parsedLatLon);
       return OccurrenceParseResult.fail(issues);
     }
 
@@ -207,81 +221,50 @@ public class CoordinateInterpreter {
   }
 
   /**
-   * Try different transformations on coordinates to see if the resulting lookup would match the specified country.
-   * The only exception is Antarctica where nothing will be attempt if {@link #isAntarctica} returns true.
-   *
-   * @param coord
-   * @param country
-   * @return
+   * @return true if the given country (or its close confused neighbours) is one of the potential countries given
    */
-  private OccurrenceParseResult<LatLng> tryCoordTransformations(LatLng coord, Country country) {
-    Preconditions.checkNotNull(country);
-
-    // Do not try transformations for Antarctica
-    if(isAntarctica(coord.getLat(), country)){
-      return OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, coord);
+  private static Country matchCountry(Country country, Collection<Country> potentialCountries, Set<OccurrenceIssue> issues) {
+    // First check for the country in the potential countries
+    if (potentialCountries.contains(country)) {
+      return country;
     }
 
-    for (Map.Entry<OccurrenceIssue, Integer[]> geospatialIssueEntry : TRANSFORMS.entrySet()) {
-      Integer[] transform = geospatialIssueEntry.getValue();
-      LatLng tCoord = new LatLng(coord.getLat() * transform[0], coord.getLng() * transform[1]);
-      if (matchCountry(country, getCountryForLatLng(tCoord))) {
-        // transformation worked and matches given country!
-        // use the changed coords!
-        return OccurrenceParseResult.fail(tCoord, geospatialIssueEntry.getKey());
+    // Then also check with commonly confused neighbours
+    Set<Country> confusedCountries = CONFUSED_COUNTRIES.get(country);
+    if (confusedCountries != null) {
+      for (Country pCountry : potentialCountries) {
+        if (confusedCountries.contains(pCountry)) {
+          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+          return pCountry;
+        }
       }
     }
-    return OccurrenceParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
-  }
-
-  /**
-   * returns a set of countries that are close and could be validly be confused.
-   *
-   * @return the set of countries always including the original, never null
-   */
-  private static Set<Country> getFuzzyCountries(Country country) {
-    if (!FUZZY_COUNTRIES.containsKey(country)) {
-      FUZZY_COUNTRIES.put(country, Sets.newHashSet(country));
-    }
-    return FUZZY_COUNTRIES.get(country);
-  }
-
-  /**
-   * @return true if the given country (or its close fuzzy neighbours) fall into one of the potential countries given
-   */
-  private static boolean matchCountry(Country country, Collection<Country> potentialCountries) {
-    Set<Country> fuzzyCountries = getFuzzyCountries(country);
-    for (Country pCountry : potentialCountries) {
-      if (fuzzyCountries.contains(pCountry)) {
-        return true;
-      }
-    }
-    return false;
+    return null;
   }
 
   /**
    * Checks if the country and latitude belongs to Antarctica.
    * Rule: country must be Country.ANTARCTICA or null and
    * latitude must be less than (south of) {@link #ANTARCTICA_LATITUDE}
+   * but not less than -90°.
    *
    * @param latitude
    * @param country null allowed
    * @return
    */
   private static boolean isAntarctica(Double latitude, @Nullable Country country){
-    if(latitude == null){
+    if (latitude == null) {
       return false;
     }
 
-    if(country == null){
-      return latitude < ANTARCTICA_LATITUDE;
-    }
-    return (country == Country.ANTARCTICA) && (latitude < ANTARCTICA_LATITUDE);
+    return (country == null || country == Country.ANTARCTICA) && (latitude >= -90 && latitude < ANTARCTICA_LATITUDE);
   }
 
   /**
    * It's theoretically possible that the webservice could respond with more than one country, though it's not
    * known under what conditions that might happen.
+   *
+   * It happens when we are within 100m of a border, then both countries are returned.
    */
   private List<Country> getCountryForLatLng(LatLng coord) {
     List<Country> countries = Lists.newArrayList();
@@ -290,43 +273,29 @@ public class CoordinateInterpreter {
     queryParams.add("lat", coord.getLat().toString());
     queryParams.add("lng", coord.getLng().toString());
 
-    for (int i = 0; i < NUM_RETRIES; i++) {
-      LOG.debug("Attempt [{}] to lookup coord {}", i, coord);
-      try {
-        WebResource res = GEOCODE_WS.queryParams(queryParams);
-        Location[] lookups = CACHE.get(res);
-        if (lookups != null && lookups.length > 0) {
-          LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
-          for (Location loc : lookups) {
-            if (loc.getIsoCountryCode2Digit() != null) {
-              countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
-            }
+    LOG.debug("Attempt to lookup coord {}", coord);
+    WebResource res = null;
+    try {
+      res = GEOCODE_WS.queryParams(queryParams);
+      Location[] lookups = CACHE.get(res);
+      if (lookups != null && lookups.length > 0) {
+        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
+        for (Location loc : lookups) {
+          if (loc.getIsoCountryCode2Digit() != null) {
+            countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
           }
         }
-        break; // from retry loop
-      } catch (ExecutionException e) {
-        // Log the error
-        StringBuilder sb = new StringBuilder("Failed WS call with: ");
-        for (Map.Entry<String, List<String>> en : queryParams.entrySet()) {
-          sb.append(en.getKey()).append('=');
-          for (String s : en.getValue()) {
-            sb.append(s);
-          }
-          sb.append('&');
-        }
-        LOG.error(sb.toString(), e);
-
-        // have we exhausted our attempts?
-        if (i >= NUM_RETRIES) {
-          throw new RuntimeException(e);
-        }
-
-        try {
-          Thread.sleep(RETRY_PERIOD_MSEC);
-        } catch (InterruptedException e1) {
-        }
+        LOG.debug("Countries are {}", countries);
       }
-    } // retry loop
+      else if (lookups.length == 0 && isAntarctica(coord.getLat(), null)) {
+        // If no country is returned from the geocode, add Antarctica if we're sufficiently far south
+        countries.add(Country.ANTARCTICA);
+      }
+    } catch (Exception e) {
+      // Log the error
+      LOG.error("Failed WS call with: {}", res.getURI());
+      throw new RuntimeException(e);
+    }
 
     return countries;
   }
