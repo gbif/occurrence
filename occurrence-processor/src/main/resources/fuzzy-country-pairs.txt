@@ -1,5 +1,0 @@
-# pairs of countries that shouldn't cause country vs lat,lng mismatch errors
-IE,GB
-IM,GB
-AX,FI
-GF,FR

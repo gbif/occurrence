@@ -114,18 +114,56 @@ public class CoordinateInterpreterTest {
   }
 
   @Test
-  public void testLookupLatLngReversed() {
+  public void testLookupLatReversed() {
+    Double lat = -43.65;
+    Double lng = -79.40;
+    Country country = Country.CANADA;
+    OccurrenceParseResult<CoordinateResult> result =
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, -1 * lat, lng);
+    assertEquals(country, result.getPayload().getCountry());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE));
+  }
+
+  @Test
+  public void testLookupLngReversed() {
     Double lat = 43.65;
     Double lng = 79.40;
     Country country = Country.CANADA;
     OccurrenceParseResult<CoordinateResult> result =
-      interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
-
-    System.out.println(result.getIssues());
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
 
     assertCoordinate(result, lat, -1 * lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
+  }
+
+  @Test
+  public void testLookupLatLngReversed() {
+    Double lat = -43.65;
+    Double lng = 79.40;
+    Country country = Country.CANADA;
+    OccurrenceParseResult<CoordinateResult> result =
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, -1 * lat, -1 * lng);
+    assertEquals(country, result.getPayload().getCountry());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
+  }
+
+  @Test
+  public void testLookupLatLngSwapped() {
+    Double lat = 6.17;
+    Double lng = 49.75;
+    Country country = Country.LUXEMBOURG;
+    OccurrenceParseResult<CoordinateResult> result =
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, lng, lat);
+    assertEquals(country, result.getPayload().getCountry());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE));
   }
 
   @Test
@@ -230,5 +268,17 @@ public class CoordinateInterpreterTest {
     result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, null);
     assertEquals(Country.ANTARCTICA, result.getPayload().getCountry());
   }
-  
+
+  @Test
+  public void testLookupLatLngSwappedInAntarctica() {
+    Double lat = -10.0;
+    Double lng = -85.0;
+    Country country = Country.ANTARCTICA;
+    OccurrenceParseResult<CoordinateResult> result =
+            interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
+
+    assertCoordinate(result, lng, lat);
+    assertEquals(country, result.getPayload().getCountry());
+    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE));
+  }
 }

@@ -18,13 +18,14 @@
   <property name="defaultPattern" value="%-5level [%date{'yyyy-MM-dd HH:mm:ss,SSSZ'}] [%thread] %logger: %msg%n%xEx"/>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <layout class="ch.qos.logback.classic.PatternLayout">
+    <encoder>
       <pattern>${defaultPattern}</pattern>
-    </layout>
+    </encoder>
   </appender>
 
   <logger name="org.apache.commons.digester" level="WARN"/>
   <logger name="org.apache.hadoop" level="WARN"/>
+  <logger name="org.apache.http" level="WARN"/>
   <logger name="org.apache.zookeeper" level="WARN"/>
   <!--<logger name="org.gbif.occurrence.parsing" level="WARN"/>-->
   <!--<logger name="org.gbif.occurrence.model" level="WARN"/>-->

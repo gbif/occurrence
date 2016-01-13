@@ -1,0 +1,6 @@
+# Commonly confused pairs of countries.  If the coordinates are in X, but the
+# provider says Y, then we use X and add an issue.
+IE,GB
+IM,GB
+AX,FI
+GF,FR
