@@ -125,6 +125,8 @@ public class SpeciesMatchUDF extends GenericUDF {
         result.add(lookup.getFamily());
         result.add(lookup.getGenus());
         result.add(lookup.getSpecies());
+
+        result.add(lookup.getStatus());
       }
       else if (response.getError() != null) {
         LOG.error("Error finding species match", response.getError());
@@ -147,9 +149,9 @@ public class SpeciesMatchUDF extends GenericUDF {
     }
 
     return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays
-      .asList("status", "taxonKey", "scientificName", "rank", "status", "matchType", "confidence",
+      .asList("queryStatus", "taxonKey", "scientificName", "rank", "status", "matchType", "confidence",
         "kingdomKey", "phylumKey", "classKey", "orderKey", "familyKey", "genusKey", "speciesKey",
-        "kingdom", "phylum", "class_", "order_", "family", "genus", "species"),
+        "kingdom", "phylum", "class_", "order_", "family", "genus", "species", "taxonomicStatus"),
       Arrays.<ObjectInspector>asList(
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
 
@@ -174,6 +176,8 @@ public class SpeciesMatchUDF extends GenericUDF {
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
         PrimitiveObjectInspectorFactory.javaStringObjectInspector,
+        PrimitiveObjectInspectorFactory.javaStringObjectInspector,
+
         PrimitiveObjectInspectorFactory.javaStringObjectInspector
       )
     );
