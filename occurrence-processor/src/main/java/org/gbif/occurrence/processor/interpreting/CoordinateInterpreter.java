@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -53,7 +52,8 @@ public class CoordinateInterpreter {
   private static final String CONFUSED_COUNTRY_FILE = "confused-country-pairs.txt";
 
   // Coordinate transformations to attempt in case of a mismatch
-  private static final Map<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> TRANSFORMS = new HashMap<>();
+  private static final Map<List<OccurrenceIssue>, Lambda> TRANSFORMS = new HashMap<>();
+  interface Lambda { LatLng apply(Double lat, Double lng); } // Revert the commit introducing this line once we are on Java 8.
 
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
@@ -68,10 +68,11 @@ public class CoordinateInterpreter {
   private static final Map<Country, Set<Country>> CONFUSED_COUNTRIES = Maps.newHashMap();
 
   static {
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), (lat, lng) -> new LatLng(-1 * lat, lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(lat, -1 * lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(-1 * lat, -1 * lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), (lat, lng) -> new LatLng(lng, lat));
+    // These can use neater Java 8 lambda expressions once we've upgraded.
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, lng); }});
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, -1 * lng); }});
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, -1 * lng); }});
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lng, lat); }});
 
     InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(CONFUSED_COUNTRY_FILE);
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -189,8 +190,8 @@ public class CoordinateInterpreter {
         LatLng coord = parsedLatLon.getPayload();
 
         parsedLatLon = null;
-        for (Map.Entry<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> geospatialIssueEntry : TRANSFORMS.entrySet()) {
-          BiFunction<Double, Double, LatLng> transform = geospatialIssueEntry.getValue();
+        for (Map.Entry<List<OccurrenceIssue>, Lambda> geospatialIssueEntry : TRANSFORMS.entrySet()) {
+          Lambda transform = geospatialIssueEntry.getValue();
           LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
           matchCountry = matchCountry(country, getCountryForLatLng(tCoord), issues);
           if (matchCountry != null) {
