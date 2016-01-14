@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -269,6 +270,15 @@ public class CoordinateInterpreter {
    */
   private List<Country> getCountryForLatLng(LatLng coord) {
     List<Country> countries = Lists.newArrayList();
+
+    Double latitude = coord.getLat();
+    Double longitude = coord.getLng();
+    if (latitude == null || longitude == null
+            || latitude < -90 || latitude > 90
+            || longitude < -180 || longitude > 180) {
+      // Don't bother sending the request.
+      return Collections.emptyList();
+    }
 
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("lat", coord.getLat().toString());
