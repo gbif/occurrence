@@ -8,9 +8,9 @@ import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Arrays;
 
-import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -216,40 +216,21 @@ public class CoordinateInterpreterTest {
   }
 
   @Test
-  public void testFuzzyCountry() {
+  public void testConfusedCountry() {
     // Belfast is UK not IE
-    Double lat = 54.597;
-    Double lng = -5.93;
-    Country country = Country.IRELAND;
-    OccurrenceParseResult<CoordinateResult> result =
-      interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
-    assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
-    assertEquals(2, result.getIssues().size());
-    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
-    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertCountry(54.597, -5.93, Country.IRELAND, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
 
     // Isle of Man is IM not UK
-    lat = 54.25;
-    lng = -4.5;
-    country = Country.UNITED_KINGDOM;
-    result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
-    assertEquals(Country.ISLE_OF_MAN, result.getPayload().getCountry());
-    assertEquals(2, result.getIssues().size());
-    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
-    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertCountry(54.25, -4.5, Country.UNITED_KINGDOM, Country.ISLE_OF_MAN, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+
+    // Dublin is IE not UK
+    assertCountry(53.35, -6.26, Country.UNITED_KINGDOM, Country.IRELAND, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
   }
 
   @Test
   public void testCountryLoopedupIssue() {
     // Belfast is UK
-    Double lat = 54.597;
-    Double lng = -5.93;
-    OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(),
-            lng.toString(),
-            null,
-            null);
-    assertEquals(Country.UNITED_KINGDOM, result.getPayload().getCountry());
-    assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertCountry(54.597, -5.93, null, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
   }
 
   @Test
@@ -276,9 +257,31 @@ public class CoordinateInterpreterTest {
     Country country = Country.ANTARCTICA;
     OccurrenceParseResult<CoordinateResult> result =
             interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
-
-    assertCoordinate(result, lng, lat);
-    assertEquals(country, result.getPayload().getCountry());
-    assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE));
   }
+
+  @Test
+  public void testAmbiguousIsoCodeCountries() {
+    // Where commonly confused codes exist, accept either and flag an issue.
+    // *Except* don't flag an issue if GBIF usage of that ISO code / country differs from the standard.
+
+    // (See the confused-country-pairs.txt file for full details.)
+
+    // Data from Norfolk Island is often labelled Australia
+    assertCountry(-29.03, 167.95, Country.AUSTRALIA, Country.NORFOLK_ISLAND, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+
+    // Data from French Polynesia is sometimes labelled as France
+    assertCountry(-17.65, -149.46, Country.FRANCE, Country.FRENCH_POLYNESIA, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    // We label data from Réunion with the ISO code for France, which is not strictly what the ISO standard says.
+    // Data submitted with Réunion will be changed to France without complaint.
+    assertCountry(-21.1144, 55.5325, Country.RÉUNION, Country.FRANCE);
+  }
+
+  private void assertCountry(Double lat, Double lng, Country providedCountry, Country expectedCountry, OccurrenceIssue... expectedIssues) {
+    OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), "EPSG:4326", providedCountry);
+    assertCoordinate(result, lat, lng);
+    assertEquals(expectedCountry, result.getPayload().getCountry());
+    assertTrue("Expecting "+expectedIssues+" for "+result.getIssues(), CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()));
+    assertEquals(expectedIssues.length, result.getIssues().size());
+  }
+  // NEED TO REMOVE SOME ISO COUNTRIES FROM THE PORTAL.
 }

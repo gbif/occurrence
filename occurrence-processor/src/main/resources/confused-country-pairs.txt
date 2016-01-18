@@ -1,6 +1,135 @@
-# Commonly confused pairs of countries.  If the coordinates are in X, but the
-# provider says Y, then we use X and add an issue.
-IE,GB
-IM,GB
-AX,FI
-GF,FR
+# If the coordinates are in XX, but the provider says YY, then we change the country to XX and
+# (usually) add an issue.  Or, the other way around.
+#
+# If GBIF's usage of the ISO code / country varies from the standard, we don't add the issue.
+# For example, this is the case for France and its overseas departments.
+#
+# Record counts are approximate, from January 2016.
+#
+# XX,YY,add_issue
+#
+
+# Northern Ireland is often marked as Ireland.
+IE,GB,true
+
+# Australia
+# Heard and McDonald Islands, 5000 records.
+HM,AU,true
+# Norfolk Island, 21,000 records!
+NF,AU,true
+# (Indian Ocean Territories, Coral Sea Islands, Ashmore and Cartier Islands have no ISO code.)
+
+# China — if we were asked to include Hong Kong and Macao.
+# HK,CN,false
+# MO,CN,false
+
+# Denmark
+# Faroe Islands, just 19 records.
+# FO,DK,true
+# Greenland, 2000 records
+GD,DK,true
+
+# Finland and Åland, 5000 records.
+AX,FI,true
+
+# French overseas departments: Guadeloupe, French Guiana, Martinique, Réunion, Mayotte
+# Either code is accepted, since we collect all these (and Metropolitain France itself) under FR.
+GP,FR,false
+GF,FR,false
+MQ,FR,false
+RE,FR,false
+YT,FR,false
+
+# French overseas collectivites: French Polynesia, Saint Pierre and Miquelon, Wallis and Futuna, Saint Martin, Saint Barthélemy.
+# (All included for consistency, but with an issue, since we are using these the ISO way.)
+# French Polynesia, 307.
+PF,FR,true
+# Saint Pierre and Miquelon, 26.
+PM,FR,true
+# Wallis and Futuna, 4000 records
+WF,FR,true
+# Saint Martin, 53 records
+MF,FR,true
+# Saint Barthélemy, 2 records
+BL,FR,true
+
+# French special collectivity: New Caledonia. 7,600 records.
+NC,FR,true
+
+# French overseas territory: French Southern and Antarctic Lands. 60 records.
+TF,FR,true
+# (NB this includes the Scattered Islands in the Indian Ocean: https://en.wikipedia.org/wiki/Scattered_Islands_in_the_Indian_Ocean )
+
+# Isreal and Palestine
+# Difficult to count, probably around 15,000-20,000
+IL,PS,true
+
+# Morocco
+# Western Sahara, 571 records.  Either ISO code accepted.
+EH,MA,false
+
+# Netherlands
+# Aruba, 103 records.
+# AW,NL,true
+# Curaçao, 360 records.
+# CW,NL,true
+# Sint Maarten, 12 records.
+# SX,NL,true
+
+# New Zealand
+# Niue, < 10, but included for consistency with Cook Islands.
+NU,NZ,true
+# Cook Islands, 4500 records
+CK,NZ,true
+
+# Norway.  Svalbard and San Mayan is part of the kingdom, and possibly should
+# be treated like the French overseas departments.  Bouvet Island is a territory.
+# Svalbard and San Mayan, over 200,000 records.
+SJ,NO,true
+# Bouvet Island, 116 records.
+# BV,NO,true
+
+# United Kingdom
+# Isle of Man, 2000 records
+IM,GB,true
+# Jersey and Guernsey, 1300 records
+JE,GB,true
+GG,GB,true
+# Anguilla, 13
+# AI,GB,true
+# Bermuda, 1430
+# BM,GB,true
+# Cayman Islands, 205
+# KY,GB,true
+# Falkland Islands, 206
+# FK,GB,true
+# [Falklands vs. Argentina, over 1000]
+# [FK,AG,true]
+# Gibraltar, 55
+# GI,GB,true
+# Indian Ocean Territory, 19
+# IO,GB,true
+# British Virgin Islands, 94
+# VG,GB,true
+# Turks and Caicos Islands, 124
+# TC,GB,true
+# Montserrat, 75
+# MS,GB,true
+# Pitcairn, 100
+# PN,GB,true
+# Saint Helena, Ascension and Tristan da Cunha, 1100
+# SH,GB,true
+# South Georgia and the South Sandwich Islands, 580
+# GS,GB,true
+
+# United States of America
+# Virgin Islands plus Puerto Rico, 10,000
+VI,US,true
+PR,US,true
+# American Samoa, 150-ish, included for consistency.
+AS,US,true
+# Northern Mariana Islands, 25,000
+MP,US,true
+# United States Minor Outlying Islands plus Guam, 4300
+UM,US,true
+GU,US,true

@@ -67,6 +67,8 @@ public class CoordinateInterpreter {
    This *overrides* the provided country, and includes an issue.
   */
   private static final Map<Country, Set<Country>> CONFUSED_COUNTRIES = Maps.newHashMap();
+  // And this is the same, but without the issue — we aren't exactly following ISO, but we accept it.
+  private static final Map<Country, Set<Country>> EQUIVALENT_COUNTRIES = Maps.newHashMap();
 
   static {
     // These can use neater Java 8 lambda expressions once we've upgraded.
@@ -80,13 +82,14 @@ public class CoordinateInterpreter {
     try {
       String nextLine;
       while ((nextLine = reader.readLine()) != null) {
-        if (!nextLine.startsWith("#")) {
+        if (!nextLine.isEmpty() && !nextLine.startsWith("#")) {
           String[] countries = nextLine.split(",");
           String countryA = countries[0].trim().toUpperCase();
           String countryB = countries[1].trim().toUpperCase();
-          LOG.info("Adding [{}][{}] pair to confused country matches.", countryA, countryB);
-          addConfusedCountry(countryA, countryB);
-          addConfusedCountry(countryB, countryA);
+          boolean addIssue = Boolean.parseBoolean(countries[2].trim());
+          LOG.info("Adding [{}][{}] ({}) pair to confused country matches.", countryA, countryB, addIssue ? "with issue" : "without issue");
+          addConfusedCountry(countryA, countryB, addIssue);
+          addConfusedCountry(countryB, countryA, addIssue);
         }
       }
     } catch (IOException e) {
@@ -103,13 +106,15 @@ public class CoordinateInterpreter {
     }
   }
 
-  private static void addConfusedCountry(String countryA, String countryB) {
+  private static void addConfusedCountry(String countryA, String countryB, boolean withIssue) {
+    Map<Country, Set<Country>> map = withIssue ? CONFUSED_COUNTRIES : EQUIVALENT_COUNTRIES;
+
     Country cA = Country.fromIsoCode(countryA);
-    if (!CONFUSED_COUNTRIES.containsKey(cA)) {
-      CONFUSED_COUNTRIES.put(cA, Sets.<Country>newHashSet());
+    if (!map.containsKey(cA)) {
+      map.put(cA, Sets.<Country>newHashSet());
     }
 
-    Set<Country> confused = CONFUSED_COUNTRIES.get(cA);
+    Set<Country> confused = map.get(cA);
     confused.add(cA);
     confused.add(Country.fromIsoCode(countryB));
   }
@@ -231,7 +236,17 @@ public class CoordinateInterpreter {
       return country;
     }
 
-    // Then also check with commonly confused neighbours
+    // Then check with acceptable equivalent countries — no issue is added.
+    Set<Country> equivalentCountries = EQUIVALENT_COUNTRIES.get(country);
+    if (equivalentCountries != null) {
+      for (Country pCountry : potentialCountries) {
+        if (equivalentCountries.contains(pCountry)) {
+          return pCountry;
+        }
+      }
+    }
+
+    // Then also check with commonly confused neighbours — an issue is added.
     Set<Country> confusedCountries = CONFUSED_COUNTRIES.get(country);
     if (confusedCountries != null) {
       for (Country pCountry : potentialCountries) {
