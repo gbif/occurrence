@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Ignore("Requires live webservices")
@@ -115,6 +116,38 @@ public class LocationInterpreterTest {
     assertEquals(1, occ.getIssues().size());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
     assertEquals(Country.PARAGUAY, occ.getCountry());
+  }
+
+  @Test
+  public void testDeriveFromOnlyCountry() {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "Guyana");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertNull(occ.getDecimalLatitude());
+    assertNull(occ.getDecimalLongitude());
+    assertEquals(0, occ.getIssues().size());
+    assertEquals(Country.GUYANA, occ.getCountry());
+  }
+
+  @Test
+  public void testDeriveFromOnlyCountry2() {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "French Guiana");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertNull(occ.getDecimalLatitude());
+    assertNull(occ.getDecimalLongitude());
+    assertEquals(0, occ.getIssues().size());
+    assertEquals(Country.FRENCH_GUIANA, occ.getCountry());
   }
 
   @Test
