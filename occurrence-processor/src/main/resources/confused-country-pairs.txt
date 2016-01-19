@@ -13,15 +13,19 @@
 IE,GB,true
 
 # Australia
+# Christmas Island, 10000+ records
+CX,AU,true
+# Cocos (Keeling) Islands, 4500 records
+CC,AU,true
 # Heard and McDonald Islands, 5000 records.
 HM,AU,true
 # Norfolk Island, 21,000 records!
 NF,AU,true
 # (Indian Ocean Territories, Coral Sea Islands, Ashmore and Cartier Islands have no ISO code.)
 
-# China — if we were asked to include Hong Kong and Macao.
-# HK,CN,false
-# MO,CN,false
+# China
+HK,CN,false
+MO,CN,false
 
 # Denmark
 # Faroe Islands, just 19 records.
@@ -77,10 +81,12 @@ EH,MA,false
 # SX,NL,true
 
 # New Zealand
-# Niue, < 10, but included for consistency with Cook Islands.
-NU,NZ,true
 # Cook Islands, 4500 records
 CK,NZ,true
+# Niue, < 10, but included for consistency with Cook Islands.
+NU,NZ,true
+# Tokelau, 16
+TK,NZ,true
 
 # Norway.  Svalbard and San Mayan is part of the kingdom, and possibly should
 # be treated like the French overseas departments.  Bouvet Island is a territory.
