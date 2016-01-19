@@ -21,7 +21,6 @@
     <connection>scm:git:git@github.com:gbif/occurrence.git</connection>
     <url>https://github.com/gbif/occurrence</url>
     <developerConnection>scm:git:git@github.com:gbif/occurrence.git</developerConnection>
-    <tag>occurrence-0.35.4</tag>
   </scm>
 
   <distributionManagement>
@@ -246,22 +245,22 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-search</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-persistence</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-registry-sync</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-hive</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
@@ -279,34 +278,34 @@
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-ws</artifactId>
         <classifier>classes</classifier>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-processor</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-deleter</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-common</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-ws</artifactId>
         <classifier>tests</classifier>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-parser</artifactId>
-        <version>0.35.3</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>
