@@ -13,6 +13,7 @@ import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
+import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
@@ -42,9 +43,9 @@ public class LocationInterpreter {
     Country country = interpretCountry(verbatim, occ);
     interpretCoordinates(verbatim, occ, country);
 
-    interpretContinent(verbatim, occ, country);
+    interpretContinent(verbatim, occ);
     interpretWaterBody(verbatim, occ);
-    interpretState(verbatim, occ, country);
+    interpretState(verbatim, occ);
 
     interpretElevation(verbatim, occ);
     interpretDepth(verbatim, occ);
@@ -105,14 +106,14 @@ public class LocationInterpreter {
     return result;
   }
 
-  private void interpretState(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
+  private void interpretState(VerbatimOccurrence verbatim, Occurrence occ) {
     if (verbatim.hasVerbatimField(DwcTerm.stateProvince)) {
       occ.setStateProvince(cleanName(verbatim.getVerbatimField(DwcTerm.stateProvince)));
     }
     // TODO: verify against country?
   }
 
-  private void interpretContinent(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
+  private void interpretContinent(VerbatimOccurrence verbatim, Occurrence occ) {
     if (verbatim.hasVerbatimField(DwcTerm.continent)) {
       ParseResult<Continent> inter = ContinentParser.getInstance().parse(verbatim.getVerbatimField(DwcTerm.continent));
       occ.setContinent(inter.getPayload());
@@ -131,7 +132,7 @@ public class LocationInterpreter {
     OccurrenceParseResult<Country>
       inter = interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode),
       verbatim.getVerbatimField(DwcTerm.country));
-    occ.setCountry(inter.getPayload());
+    occ.setCountry(CountryMaps.preferred(inter.getPayload()));
     occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
   }
@@ -161,11 +162,12 @@ public class LocationInterpreter {
       occ.setDecimalLatitude(parsedCoord.getPayload().getLatitude());
       occ.setDecimalLongitude(parsedCoord.getPayload().getLongitude());
 
-      // C.G., 2015/11/17 urgent patch, allow country overwrites if record is indicated as coming from IRELAND but
-      // coordinateInterpreter says UNITED_KINGDOM
-      if (country == null || (country == Country.IRELAND && parsedCoord.getPayload().getCountry() == Country.UNITED_KINGDOM )) {
+      // If the country returned by the co-ordinate interpreter is different, then it's an acceptable
+      // swap (e.g. Réunion→France).
+      if (country == null || (country != parsedCoord.getPayload().getCountry())) {
         occ.setCountry(parsedCoord.getPayload().getCountry());
       }
+
       //TODO: interpret also coordinateUncertaintyInMeters
       if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
         // accept negative precisions and mirror
@@ -174,7 +176,7 @@ public class LocationInterpreter {
           // accuracy equals the precision in the case of decimal lat / lon
           if (prec > 10) {
             // add issue for unlikely coordinatePrecision
-            // TODO: this happens alot - maybe not so unlikely?
+            // TODO: this happens a lot - maybe not so unlikely?
             LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
           } else {
             occ.setCoordinateAccuracy(prec);

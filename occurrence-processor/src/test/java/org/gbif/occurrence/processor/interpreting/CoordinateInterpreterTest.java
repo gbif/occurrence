@@ -274,6 +274,9 @@ public class CoordinateInterpreterTest {
     // We label data from Réunion with the ISO code for France, which is not strictly what the ISO standard says.
     // Data submitted with Réunion will be changed to France without complaint.
     assertCountry(-21.1144, 55.5325, Country.RÉUNION, Country.FRANCE);
+
+    // Data from Palestine is sometimes labelled Israel
+    assertCountry(32.0, 35.0, Country.ISRAEL, Country.PALESTINIAN_TERRITORY, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
   }
 
   private void assertCountry(Double lat, Double lng, Country providedCountry, Country expectedCountry, OccurrenceIssue... expectedIssues) {
@@ -283,5 +286,4 @@ public class CoordinateInterpreterTest {
     assertTrue("Expecting "+expectedIssues+" for "+result.getIssues(), CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()));
     assertEquals(expectedIssues.length, result.getIssues().size());
   }
-  // NEED TO REMOVE SOME ISO COUNTRIES FROM THE PORTAL.
 }

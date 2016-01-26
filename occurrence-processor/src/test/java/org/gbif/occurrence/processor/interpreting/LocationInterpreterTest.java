@@ -135,7 +135,7 @@ public class LocationInterpreterTest {
   }
 
   @Test
-  public void testDeriveFromOnlyCountry2() {
+  public void testDeriveFromOnlyMappedCountry() {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
@@ -147,7 +147,7 @@ public class LocationInterpreterTest {
     assertNull(occ.getDecimalLatitude());
     assertNull(occ.getDecimalLongitude());
     assertEquals(0, occ.getIssues().size());
-    assertEquals(Country.FRENCH_GUIANA, occ.getCountry());
+    assertEquals(Country.FRANCE, occ.getCountry());
   }
 
   @Test
@@ -159,5 +159,44 @@ public class LocationInterpreterTest {
 
     interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
+  }
+
+  @Test
+  public void testDeriveFromEquivalentMappedCountry() throws InterruptedException {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "Martinique");
+    verb.setVerbatimField(DwcTerm.decimalLatitude, "14.72");
+    verb.setVerbatimField(DwcTerm.decimalLongitude, "-61.06");
+    verb.setVerbatimField(DwcTerm.geodeticDatum, "EPSG:4326");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertEquals(14.72, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(-61.06, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(Country.FRANCE, occ.getCountry());
+    assertEquals(0, occ.getIssues().size());
+  }
+
+  @Test
+  public void testDeriveFromNotEquivalentMappedCountry() throws InterruptedException {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "France");
+    verb.setVerbatimField(DwcTerm.decimalLatitude, "-17.65");
+    verb.setVerbatimField(DwcTerm.decimalLongitude, "-149.46");
+    verb.setVerbatimField(DwcTerm.geodeticDatum, "EPSG:4326");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertEquals(-17.65, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(-149.46, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(Country.FRENCH_POLYNESIA, occ.getCountry());
+    assertEquals(1, occ.getIssues().size());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
 }
