@@ -31,7 +31,7 @@ MO,CN,false
 # Faroe Islands, just 19 records.
 # FO,DK,true
 # Greenland, 2000 records
-GD,DK,true
+GL,DK,true
 
 # Finland and Åland, 5000 records.
 AX,FI,true
