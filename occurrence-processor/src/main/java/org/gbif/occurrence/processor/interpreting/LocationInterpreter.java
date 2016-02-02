@@ -194,7 +194,7 @@ public class LocationInterpreter {
         // TODO: this happens alot - maybe not so unlikely or value is in meters instead?
         if (prec > 10) {
           // add issue for unlikely coordinatePrecision
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
           LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
         } else {
           occ.setCoordinateAccuracy(prec);
@@ -210,7 +210,7 @@ public class LocationInterpreter {
         if (accurracy > 0) {
           // do we have an accurracy already and do they match up?
           if (accurracy > 10) {
-            occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
+            occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
             LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
 
           } else if (occ.getCoordinateAccuracy() != null) {
@@ -224,10 +224,10 @@ public class LocationInterpreter {
           }
 
         } else {
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
         }
       } else {
-        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
+        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
       }
     }
   }
