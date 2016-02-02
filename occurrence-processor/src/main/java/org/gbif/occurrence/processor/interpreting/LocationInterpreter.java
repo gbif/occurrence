@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.LengthUtils;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -14,7 +15,6 @@ import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +34,7 @@ public class LocationInterpreter {
 
   private final CoordinateInterpreter coordinateInterpreter;
   // taken from https://en.wikipedia.org/wiki/Geographic_coordinate_system#Expressing_latitude_and_longitude_as_linear_units
-  private static final int LAT_DEGREE_IN_METER = 110600;
+  private static final int LAT_DEGREE_IN_METER = 110580;
 
   @Inject
   public LocationInterpreter(CoordinateInterpreter coordinateInterpreter) {
@@ -191,10 +191,10 @@ public class LocationInterpreter {
       double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
       if (prec != 0) {
         // accuracy equals the precision in the case of decimal lat / lon
-        // TODO: this happens alot - maybe not so unlikely or value means meters instead?
+        // TODO: this happens alot - maybe not so unlikely or value is in meters instead?
         if (prec > 10) {
           // add issue for unlikely coordinatePrecision
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_SUSPICIOUS);
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
           LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
         } else {
           occ.setCoordinateAccuracy(prec);
@@ -206,36 +206,30 @@ public class LocationInterpreter {
       // accept negative precisions and mirror
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
       if (meters.isSuccessful()) {
-        double accurracy = convertMetersToLatDegree(meters.getPayload());
-        if (accurracy != 0) {
+        double accurracy = LengthUtils.metersToLatDegree(meters.getPayload());
+        if (accurracy > 0) {
           // do we have an accurracy already and do they match up?
-          if (occ.getCoordinateAccuracy() != null) {
-            if (Math.abs(occ.getCoordinateAccuracy() - accurracy) > 0.1) {
-              occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_SUSPICIOUS);
+          if (accurracy > 10) {
+            occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
+            LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
+
+          } else if (occ.getCoordinateAccuracy() != null) {
+            if (Math.abs(occ.getCoordinateAccuracy() - accurracy) > 0.01) {
+              occ.getIssues().add(OccurrenceIssue.COORDINATE_PRECISION_UNCERTAINTY_MISMATCH);
               LOG.debug("coordinateAccurracy derived from precision {} is different from uncertaintyInMeters {}", occ.getCoordinateAccuracy(), accurracy);
             }
+
           } else {
-            if (accurracy > 10) {
-              LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
-            } else {
-              occ.setCoordinateAccuracy(accurracy);
-            }
+            occ.setCoordinateAccuracy(accurracy);
           }
+
+        } else {
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
         }
       } else {
-        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_SUSPICIOUS);
+        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURRACY_INVALID);
       }
     }
-  }
-
-  /**
-   * Latitude degrees are roughly linear to meters on the earth spheroid.
-   * Just the longitudinal degree changes considerably with distance to the equator
-   */
-  @VisibleForTesting
-  protected static double convertMetersToLatDegree(double meter) {
-    // http://gis.stackexchange.com/questions/14449/java-vividsolutions-jts-wgs-84-distance-to-meters
-    return Math.round(meter/ LAT_DEGREE_IN_METER * 100000.0) / 100000.0;
   }
 
   private void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
