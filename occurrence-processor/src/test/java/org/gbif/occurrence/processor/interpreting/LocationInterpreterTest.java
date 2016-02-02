@@ -160,4 +160,13 @@ public class LocationInterpreterTest {
     interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
   }
+
+  @Test
+  public void testMeterToDegreeConversion() {
+    assertEquals(0.00904, LocationInterpreter.convertMetersToLatDegree(1000), 0.000001);
+    assertEquals(0.0009, LocationInterpreter.convertMetersToLatDegree(100), 0.000001);
+    assertEquals(0.00009, LocationInterpreter.convertMetersToLatDegree(10), 0.000001);
+    assertEquals(0.00005, LocationInterpreter.convertMetersToLatDegree(5), 0.000001);
+    assertEquals(0.00001, LocationInterpreter.convertMetersToLatDegree(1), 0.000001);
+  }
 }
