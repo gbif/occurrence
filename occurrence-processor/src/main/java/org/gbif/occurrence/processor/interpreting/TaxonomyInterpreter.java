@@ -6,6 +6,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
+import org.gbif.common.parsers.RankParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
@@ -36,7 +37,7 @@ public class TaxonomyInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
   private static final NameParser parser = new NameParser();
-
+  private static final RankParser RANK_PARSER = RankParser.getInstance();
   private static final String MATCH_PATH = "species/match";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
@@ -66,7 +67,7 @@ public class TaxonomyInterpreter {
    * @param specificEpithet see DwcTerm.specificEpithet
    * @param infraspecificEpithet see DwcTerm.infraspecificEpithet
    */
-  public String buildScientificName(String scientificName, String genericName, String genus, String specificEpithet, String infraspecificEpithet) {
+  public static String buildScientificName(String scientificName, String genericName, String genus, String specificEpithet, String infraspecificEpithet) {
     String sciname = ClassificationUtils.clean(scientificName);
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
@@ -87,7 +88,6 @@ public class TaxonomyInterpreter {
     String family, String genus, String scientificName, String specificEpithet, String infraspecificEpithet) {
 
     final String sciname = buildScientificName(scientificName, null, genus, specificEpithet, infraspecificEpithet);
-
     OccurrenceParseResult<NameUsageMatch> result;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("kingdom", kingdom);
@@ -129,8 +129,9 @@ public class TaxonomyInterpreter {
 
   public void interpretTaxonomy(VerbatimOccurrence verbatim, Occurrence occ) {
     final String sciname = buildScientificName(verbatim.getVerbatimField(DwcTerm.scientificName),
-      verbatim.getVerbatimField(GbifTerm.genericName), verbatim.getVerbatimField(DwcTerm.genus),
-      verbatim.getVerbatimField(DwcTerm.specificEpithet), verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
+        verbatim.getVerbatimField(GbifTerm.genericName), verbatim.getVerbatimField(DwcTerm.genus),
+        verbatim.getVerbatimField(DwcTerm.specificEpithet), verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
+
     OccurrenceParseResult<NameUsageMatch> matchPR = match(
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.kingdom)),
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.phylum)),
@@ -156,7 +157,15 @@ public class TaxonomyInterpreter {
 
       // parse name into pieces - we dont get them from the nub lookup
       try {
-        ParsedName pn = parser.parse(match.getScientificName(), Rank.SPECIES);
+        Rank rank = null;
+        if (verbatim.hasVerbatimField(DwcTerm.taxonRank)) {
+          rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.taxonRank)).getPayload();
+        }
+        // try again with verbatim if it exists
+        if (rank == null && verbatim.hasVerbatimField(DwcTerm.verbatimTaxonRank)) {
+          rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.verbatimTaxonRank)).getPayload();
+        }
+        ParsedName pn = parser.parse(match.getScientificName(), rank);
         occ.setGenericName(pn.getGenusOrAbove());
         occ.setSpecificEpithet(pn.getSpecificEpithet());
         occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());

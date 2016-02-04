@@ -2,6 +2,7 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.LengthUtils;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -32,6 +33,8 @@ public class LocationInterpreter {
   private static final CountryParser PARSER = CountryParser.getInstance();
 
   private final CoordinateInterpreter coordinateInterpreter;
+  // taken from https://en.wikipedia.org/wiki/Geographic_coordinate_system#Expressing_latitude_and_longitude_as_linear_units
+  private static final int LAT_DEGREE_IN_METER = 110580;
 
   @Inject
   public LocationInterpreter(CoordinateInterpreter coordinateInterpreter) {
@@ -166,27 +169,67 @@ public class LocationInterpreter {
       if (country == null || (country == Country.IRELAND && parsedCoord.getPayload().getCountry() == Country.UNITED_KINGDOM )) {
         occ.setCountry(parsedCoord.getPayload().getCountry());
       }
-      //TODO: interpret also coordinateUncertaintyInMeters
-      if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
-        // accept negative precisions and mirror
-        double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
-        if (prec != 0) {
-          // accuracy equals the precision in the case of decimal lat / lon
-          if (prec > 10) {
-            // add issue for unlikely coordinatePrecision
-            // TODO: this happens alot - maybe not so unlikely?
-            LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
-          } else {
-            occ.setCoordinateAccuracy(prec);
-          }
-        }
-      }
-      LOG.debug("Got lat [{}] lng [{}]", parsedCoord.getPayload().getLatitude(),
-        parsedCoord.getPayload().getLongitude());
+
+      // interpret coordinateAccurracy
+      interpretCoordAccurracy(occ, verbatim);
+
+      LOG.debug("Got lat [{}] lng [{}] accurracy={}", occ.getDecimalLatitude(), occ.getDecimalLongitude(), occ.getCoordinateAccuracy());
     }
 
     LOG.debug("Adding coord issues to occ [{}]", parsedCoord.getIssues());
     occ.getIssues().addAll(parsedCoord.getIssues());
+  }
+
+  /**
+   * http://dev.gbif.org/issues/browse/POR-1804
+   * @param occ
+   * @param verbatim
+   */
+  private void interpretCoordAccurracy(Occurrence occ, VerbatimOccurrence verbatim) {
+    if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
+      // accept negative precisions and mirror
+      double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
+      if (prec != 0) {
+        // accuracy equals the precision in the case of decimal lat / lon
+        // TODO: this happens alot - maybe not so unlikely or value is in meters instead?
+        if (prec > 10) {
+          // add issue for unlikely coordinatePrecision
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+          LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
+        } else {
+          occ.setCoordinateAccuracy(prec);
+        }
+      }
+    }
+
+    if (verbatim.hasVerbatimField(DwcTerm.coordinateUncertaintyInMeters)) {
+      // accept negative precisions and mirror
+      ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
+      if (meters.isSuccessful()) {
+        double accurracy = LengthUtils.metersToLatDegree(meters.getPayload());
+        if (accurracy > 0) {
+          // do we have an accurracy already and do they match up?
+          if (accurracy > 10) {
+            occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+            LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
+
+          } else if (occ.getCoordinateAccuracy() != null) {
+            if (Math.abs(occ.getCoordinateAccuracy() - accurracy) > 0.01) {
+              occ.getIssues().add(OccurrenceIssue.COORDINATE_PRECISION_UNCERTAINTY_MISMATCH);
+              LOG.debug("coordinateAccurracy derived from precision {} is different from uncertaintyInMeters {}", occ.getCoordinateAccuracy(), accurracy);
+            }
+
+          } else {
+            occ.setCoordinateAccuracy(accurracy);
+          }
+
+        } else {
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+        }
+      } else {
+        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+      }
+    }
   }
 
   private void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
