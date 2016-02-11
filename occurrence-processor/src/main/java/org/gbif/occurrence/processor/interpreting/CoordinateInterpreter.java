@@ -7,6 +7,7 @@ import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.model.Location;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
+import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 
@@ -50,8 +51,6 @@ public class CoordinateInterpreter {
   private static final int NUM_RETRIES = 15;
   private static final int RETRY_PERIOD_MSEC = 2000;
 
-  private static final String CONFUSED_COUNTRY_FILE = "confused-country-pairs.txt";
-
   // Coordinate transformations to attempt in case of a mismatch
   private static final Map<List<OccurrenceIssue>, Lambda> TRANSFORMS = new HashMap<>();
   interface Lambda { LatLng apply(Double lat, Double lng); } // Revert the commit introducing this line once we are on Java 8.
@@ -59,64 +58,12 @@ public class CoordinateInterpreter {
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
 
-  /*
-   Some countries are commonly mislabeled and are close to correct, so we want to accommodate them, e.g. Northern
-   Ireland mislabeled as Ireland (should be GB). Add comma separated pairs of acceptable country swaps in the
-   confused_country_pairs.txt file. Entries will be made in both directions (e.g. IE->GB, GB->IE). Multiple entries per
-   country are allowed (e.g. AB,CD and AB,EF).
-   This *overrides* the provided country, and includes an issue.
-  */
-  private static final Map<Country, Set<Country>> CONFUSED_COUNTRIES = Maps.newHashMap();
-  // And this is the same, but without the issue — we aren't exactly following ISO, but we accept it.
-  private static final Map<Country, Set<Country>> EQUIVALENT_COUNTRIES = Maps.newHashMap();
-
   static {
     // These can use neater Java 8 lambda expressions once we've upgraded.
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, -1 * lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, -1 * lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lng, lat); }});
-
-    InputStream in = CoordinateInterpreter.class.getClassLoader().getResourceAsStream(CONFUSED_COUNTRY_FILE);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-    try {
-      String nextLine;
-      while ((nextLine = reader.readLine()) != null) {
-        if (!nextLine.isEmpty() && !nextLine.startsWith("#")) {
-          String[] countries = nextLine.split(",");
-          String countryA = countries[0].trim().toUpperCase();
-          String countryB = countries[1].trim().toUpperCase();
-          boolean addIssue = Boolean.parseBoolean(countries[2].trim());
-          LOG.info("Adding [{}][{}] ({}) pair to confused country matches.", countryA, countryB, addIssue ? "with issue" : "without issue");
-          addConfusedCountry(countryA, countryB, addIssue);
-          addConfusedCountry(countryB, countryA, addIssue);
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Can't read [" + CONFUSED_COUNTRY_FILE + "] - aborting", e);
-    } finally {
-      try {
-        reader.close();
-        if (in != null) {
-          in.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't close [{}] - continuing anyway", CONFUSED_COUNTRY_FILE, e);
-      }
-    }
-  }
-
-  private static void addConfusedCountry(String countryA, String countryB, boolean withIssue) {
-    Map<Country, Set<Country>> map = withIssue ? CONFUSED_COUNTRIES : EQUIVALENT_COUNTRIES;
-
-    Country cA = Country.fromIsoCode(countryA);
-    if (!map.containsKey(cA)) {
-      map.put(cA, Sets.<Country>newHashSet());
-    }
-
-    Set<Country> confused = map.get(cA);
-    confused.add(cA);
-    confused.add(Country.fromIsoCode(countryB));
   }
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
@@ -237,7 +184,7 @@ public class CoordinateInterpreter {
     }
 
     // Then check with acceptable equivalent countries — no issue is added.
-    Set<Country> equivalentCountries = EQUIVALENT_COUNTRIES.get(country);
+    Set<Country> equivalentCountries = CountryMaps.equivalent(country);
     if (equivalentCountries != null) {
       for (Country pCountry : potentialCountries) {
         if (equivalentCountries.contains(pCountry)) {
@@ -247,7 +194,7 @@ public class CoordinateInterpreter {
     }
 
     // Then also check with commonly confused neighbours — an issue is added.
-    Set<Country> confusedCountries = CONFUSED_COUNTRIES.get(country);
+    Set<Country> confusedCountries = CountryMaps.confused(country);
     if (confusedCountries != null) {
       for (Country pCountry : potentialCountries) {
         if (confusedCountries.contains(pCountry)) {

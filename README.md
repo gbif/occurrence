@@ -17,5 +17,3 @@ Run unit and integration tests:
 ```bash
 mvn -Pdev clean verify
 ```
-
-
