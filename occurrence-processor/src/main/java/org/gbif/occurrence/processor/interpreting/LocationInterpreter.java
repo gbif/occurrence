@@ -174,7 +174,7 @@ public class LocationInterpreter {
       // interpret coordinateAccuracy
       interpretCoordAccuracy(occ, verbatim);
 
-      LOG.debug("Got lat [{}] lng [{}] accuracy={}", occ.getDecimalLatitude(), occ.getDecimalLongitude(), occ.getCoordinateAccuracy());
+      LOG.debug("Got lat [{}] lng [{}] accuracy={} [{}]", occ.getDecimalLatitude(), occ.getDecimalLongitude(), occ.getCoordinateAccuracy(), occ.getCountry());
     }
 
     LOG.debug("Adding coord issues to occ [{}]", parsedCoord.getIssues());

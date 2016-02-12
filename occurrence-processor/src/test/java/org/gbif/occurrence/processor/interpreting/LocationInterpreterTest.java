@@ -75,9 +75,9 @@ public class LocationInterpreterTest {
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
     assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
-    assertEquals(2, occ.getIssues().size());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, occ.getIssues().size());
   }
 
   @Test

@@ -45,6 +45,8 @@ public class CoordinateInterpreterTest {
 
     assertCoordinate(result, lat, lng);
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -60,7 +62,6 @@ public class CoordinateInterpreterTest {
     result = interpreter.interpretCoordinate("10.123", "40.567", null, null);
     assertNotNull(result);
     assertEquals(ParseResult.STATUS.SUCCESS, result.getStatus());
-
     assertCoordinate(result, 10.123, 40.567);
   }
 
@@ -74,8 +75,8 @@ public class CoordinateInterpreterTest {
 
     assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
-    assertEquals(1, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(1, result.getIssues().size());
   }
 
   @Test
@@ -87,11 +88,13 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, lat, lng);
     assertEquals(Country.AUSTRALIA, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
   public void testLookupCountryMisMatch() {
-    Double lat = 55.68;
+    Double lat = 55.68; // This is Denmark.
     Double lng = 12.57;
     Country country = Country.SWEDEN;
     OccurrenceParseResult<CoordinateResult> result =
@@ -99,6 +102,8 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, lat, lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -111,6 +116,7 @@ public class CoordinateInterpreterTest {
     assertNull(result.getPayload());
     assertFalse(result.isSuccessful());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATE_OUT_OF_RANGE));
+    assertEquals(1, result.getIssues().size());
   }
 
   @Test
@@ -124,6 +130,8 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, -1 * lat, lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -137,6 +145,8 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, lat, -1 * lng);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -151,6 +161,8 @@ public class CoordinateInterpreterTest {
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE));
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(3, result.getIssues().size());
   }
 
   @Test
@@ -164,6 +176,8 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, lng, lat);
     assertEquals(country, result.getPayload().getCountry());
     assertTrue(result.getIssues().contains(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE));
+    assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -204,9 +218,9 @@ public class CoordinateInterpreterTest {
     assertCoordinate(result, roundedLat, roundedLng);
     assertEquals(country, result.getPayload().getCountry());
 
-    assertEquals(2, result.getIssues().size());
     assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATE_ROUNDED));
     assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+    assertEquals(2, result.getIssues().size());
   }
 
   @Test
@@ -228,9 +242,14 @@ public class CoordinateInterpreterTest {
   }
 
   @Test
-  public void testCountryLoopedupIssue() {
+  public void testConfusedCountryWithBadCoordinates() {
     // Belfast is UK
-    assertCountry(54.597, -5.93, null, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    assertCountry(54.597, -5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    // "Belfast" with negated/swapped coordinates is still the UK.
+    assertCountry(-54.597, -5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LATITUDE);
+    assertCountry(54.597, 5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE);
+    assertCountry(-54.597, 5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE);
+    assertCountry(-5.93, 54.597, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE);
   }
 
   @Test
@@ -279,9 +298,20 @@ public class CoordinateInterpreterTest {
     assertCountry(32.0, 35.0, Country.ISRAEL, Country.PALESTINIAN_TERRITORY, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
   }
 
+  @Test
+  public void testInTheOcean() {
+    assertCountry(0.01, 0.01, null, null);
+    // The incorrect country isn't removed, but an issue is added.
+    assertCountry(0.01, 0.01, Country.SAO_TOME_PRINCIPE, Country.SAO_TOME_PRINCIPE, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+  }
+
   private void assertCountry(Double lat, Double lng, Country providedCountry, Country expectedCountry, OccurrenceIssue... expectedIssues) {
+    assertCountry(lat, lng, providedCountry, lat, lng, expectedCountry, expectedIssues);
+  }
+
+  private void assertCountry(Double lat, Double lng, Country providedCountry, Double expectedLat, Double expectedLng, Country expectedCountry, OccurrenceIssue... expectedIssues) {
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), "EPSG:4326", providedCountry);
-    assertCoordinate(result, lat, lng);
+    assertCoordinate(result, expectedLat, expectedLng);
     assertEquals(expectedCountry, result.getPayload().getCountry());
     assertTrue("Expecting "+expectedIssues+" for "+result.getIssues(), CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()));
     assertEquals(expectedIssues.length, result.getIssues().size());
