@@ -11,12 +11,7 @@ import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -30,8 +25,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -60,6 +53,7 @@ public class CoordinateInterpreter {
 
   static {
     // These can use neater Java 8 lambda expressions once we've upgraded.
+    TRANSFORMS.put(Collections.<OccurrenceIssue>emptyList(), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, -1 * lng); }});
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, -1 * lng); }});
@@ -105,7 +99,7 @@ public class CoordinateInterpreter {
     return verifyLatLon(CoordinateParseUtils.parseVerbatimCoordinates(latLon), datum, country);
   }
 
-  private OccurrenceParseResult<CoordinateResult> verifyLatLon(OccurrenceParseResult<LatLng> parsedLatLon, final String datum, final Country country) {
+  private OccurrenceParseResult<CoordinateResult> verifyLatLon(final OccurrenceParseResult<LatLng> parsedLatLon, final String datum, final Country country) {
     // use original as default
     Country finalCountry = country;
     final Set<OccurrenceIssue> issues = EnumSet.noneOf(OccurrenceIssue.class);
@@ -117,67 +111,64 @@ public class CoordinateInterpreter {
 
     // interpret geodetic datum and reproject if needed
     // the reprojection will keep the original values even if it failed with issues
-    parsedLatLon = Wgs84Projection
-      .reproject(parsedLatLon.getPayload().getLat(), parsedLatLon.getPayload().getLng(), datum);
-    issues.addAll(parsedLatLon.getIssues());
+    OccurrenceParseResult<LatLng> projectedLatLon = Wgs84Projection.reproject(parsedLatLon.getPayload().getLat(), parsedLatLon.getPayload().getLng(), datum);
+    issues.addAll(projectedLatLon.getIssues());
 
-    // Find the country/ies that this point is located in.  This can be more than one close to borders.
-    List<Country> latLngCountries = getCountryForLatLng(parsedLatLon.getPayload());
+    LatLng coord = projectedLatLon.getPayload();
 
-    if (country == null) {
-      if (!latLngCountries.isEmpty()) {
-        // use the first coordinate derived country instead of nothing
-        finalCountry = latLngCountries.get(0);
-        issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-      }
-    } else {
+    // Try each possible way of transforming the co-ordinates; the first is the identity transform.
+    OccurrenceParseResult<LatLng> interpretedLatLon = null;
+    for (Map.Entry<List<OccurrenceIssue>, Lambda> geospatialTransform : TRANSFORMS.entrySet()) {
+      Lambda transform = geospatialTransform.getValue();
+      List<OccurrenceIssue> transformIssues = geospatialTransform.getKey();
 
-      // Check for provided country being in the set of possible countries
+      LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
+      List<Country> latLngCountries = getCountryForLatLng(tCoord);
       Country matchCountry = matchCountry(country, latLngCountries, issues);
+      if (country == null || matchCountry != null) {
+        // Either we don't have a country, in which case we don't want to try anything other than
+        // the initial identity transform, or we have a match from this transform.
 
-      if (matchCountry != null) {
-        // Take the returned country, in case we had a confused match.
-        finalCountry = matchCountry;
-      } else {
-        // Try different transformations on coordinates to see if the resulting lookup would match the specified country.
-        LatLng coord = parsedLatLon.getPayload();
-
-        parsedLatLon = null;
-        for (Map.Entry<List<OccurrenceIssue>, Lambda> geospatialIssueEntry : TRANSFORMS.entrySet()) {
-          Lambda transform = geospatialIssueEntry.getValue();
-          LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
-          matchCountry = matchCountry(country, getCountryForLatLng(tCoord), issues);
-          if (matchCountry != null) {
-            // transformation worked and matches given country!
-            // use the changed coords!
-            // but don't return the country, we are just showing corrected coordinates and an issue.
-            parsedLatLon = OccurrenceParseResult.fail(tCoord, geospatialIssueEntry.getKey());
-            break;
-          }
-        }
-        if (parsedLatLon == null) {
-          // Transformations failed
-          parsedLatLon = OccurrenceParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+        if (country == null && latLngCountries.size() > 0) {
+          finalCountry = latLngCountries.get(0);
+          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+        } else {
+          // Take the returned country, in case we had a confused match.
+          finalCountry = matchCountry;
         }
 
-        issues.addAll(parsedLatLon.getIssues());
+        // Use the changed co-ordinates
+        interpretedLatLon = OccurrenceParseResult.fail(tCoord, transformIssues);
+        break;
       }
     }
 
-    if (parsedLatLon.getPayload() == null) {
+    if (interpretedLatLon == null) {
+      // Transformations failed
+      interpretedLatLon = OccurrenceParseResult.fail(coord, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+    }
+
+    issues.addAll(interpretedLatLon.getIssues());
+
+    if (interpretedLatLon.getPayload() == null) {
       // something has gone very wrong
-      LOG.warn("Supposed coordinate interpretation success produced no latlng", parsedLatLon);
+      LOG.warn("Supposed coordinate interpretation success produced no latlng", interpretedLatLon);
       return OccurrenceParseResult.fail(issues);
     }
 
-    return OccurrenceParseResult.success(parsedLatLon.getConfidence(),
-                               new CoordinateResult(parsedLatLon.getPayload(), finalCountry),  issues);
+    return OccurrenceParseResult.success(interpretedLatLon.getConfidence(),
+                               new CoordinateResult(interpretedLatLon.getPayload(), finalCountry),  issues);
   }
 
   /**
-   * @return true if the given country (or its close confused neighbours) is one of the potential countries given
+   * @return true if the given country (or its oft-confused neighbours) is one of the potential countries given
    */
-  private static Country matchCountry(Country country, Collection<Country> potentialCountries, Set<OccurrenceIssue> issues) {
+  private static Country matchCountry(Country country, List<Country> potentialCountries, Set<OccurrenceIssue> issues) {
+    // If we don't have a supplied country, just return the first
+    if (country == null && potentialCountries.size() > 0) {
+      return potentialCountries.get(0);
+    }
+
     // First check for the country in the potential countries
     if (potentialCountries.contains(country)) {
       return country;
