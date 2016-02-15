@@ -12,6 +12,7 @@ import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.parsers.BasisOfRecordParser;
 import org.gbif.common.parsers.EstablishmentMeansParser;
 import org.gbif.common.parsers.LifeStageParser;
+import org.gbif.common.parsers.NumberParser;
 import org.gbif.common.parsers.SexParser;
 import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
@@ -148,6 +149,12 @@ public class VerbatimOccurrenceInterpreter {
       LOG.warn("Caught a runtime exception during basis of record interpretation", e);
       occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
+    try {
+      interpretIndividualCount(verbatim, occ);
+    } catch (Exception e) {
+      LOG.warn("Caught a runtime exception during individualCount interpretation", e);
+      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
+    }
 
     occ.setLastInterpreted(new Date());
 
@@ -232,6 +239,16 @@ public class VerbatimOccurrenceInterpreter {
       occ.setLifeStage(parsed.getPayload());
     } else {
       LOG.debug("Unknown lifeStage [{}]", verbatim.getVerbatimField(DwcTerm.lifeStage));
+    }
+  }
+
+  private static void interpretIndividualCount(VerbatimOccurrence verbatim, Occurrence occ) {
+    if (verbatim.hasVerbatimField(DwcTerm.individualCount)) {
+      occ.setIndividualCount(NumberParser.parseInteger(verbatim.getVerbatimField(DwcTerm.individualCount)));
+      if (occ.getIndividualCount() == null && !verbatim.getVerbatimField(DwcTerm.individualCount).isEmpty()) {
+        //TODO: raise issue (needs a new API entry)
+        LOG.debug("Invalid individualCount {}", verbatim.getVerbatimField(DwcTerm.individualCount));
+      }
     }
   }
 }
