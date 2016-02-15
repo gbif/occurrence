@@ -34,6 +34,7 @@ public class Abcd206RecordParserTest extends ParserTestCase {
     assertEquals("50", ror.getLatLongPrecision());
     assertEquals("GDA94", ror.getGeodeticDatum());
     assertEquals("0123456789ABCD", ror.getId());
+    assertEquals("19870413whk1", ror.getCollectorsFieldNumber());
   }
 
   @Test

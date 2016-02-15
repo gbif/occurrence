@@ -76,6 +76,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
   private String stateOrProvince;
   private String county;
   private String collectorName;
+  private String collectorsFieldNumber;
   private String locality;
   private String basisOfRecord;
   private String identifierName;
@@ -172,6 +173,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
     bareBones.setCatalogueNumber(catalogueNumber);
     bareBones.setCollectionCode(collectionCode);
     bareBones.setCollectorName(collectorName);
+    bareBones.setCollectorsFieldNumber(collectorsFieldNumber);
     bareBones.setContinentOrOcean(continentOrOcean);
     bareBones.setCountry(country);
     bareBones.setCounty(county);
@@ -699,4 +701,11 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
     this.dayIdentified = dayIdentified;
   }
 
+  public String getCollectorsFieldNumber() {
+    return collectorsFieldNumber;
+  }
+
+  public void setCollectorsFieldNumber(String collectorsFieldNumber) {
+    this.collectorsFieldNumber = collectorsFieldNumber;
+  }
 }

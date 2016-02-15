@@ -68,6 +68,7 @@ public class RawOccurrenceRecord implements Serializable {
   protected String stateOrProvince;
   protected String county;
   protected String collectorName;
+  protected String collectorsFieldNumber;
   protected String locality;
   protected String year;
   protected String month;
@@ -125,6 +126,7 @@ public class RawOccurrenceRecord implements Serializable {
     this.order = dwcr.getOrder();
     this.phylum = dwcr.getPhylum();
     this.occurrenceDate = dwcr.getYear() + '-' + dwcr.getMonth() + '-' + dwcr.getDay();
+    this.collectorsFieldNumber = dwcr.getRecordNumber();
   }
 
   public String getAltitudePrecision() {
@@ -535,6 +537,14 @@ public class RawOccurrenceRecord implements Serializable {
     this.occurrenceDate = occurrenceDate;
   }
 
+  public String getCollectorsFieldNumber() {
+    return collectorsFieldNumber;
+  }
+
+  public void setCollectorsFieldNumber(String collectorsFieldNumber) {
+    this.collectorsFieldNumber = collectorsFieldNumber;
+  }
+
   public String debugDump() {
     return "RawOccurrenceRecord [\n id=" + id + ",\n dataProviderId=" + dataProviderId + ",\n dataResourceId=" +
            dataResourceId + ",\n resourceAccessPointId=" + resourceAccessPointId + ",\n institutionCode=" +
@@ -547,8 +557,8 @@ public class RawOccurrenceRecord implements Serializable {
            minAltitude + ",\n maxAltitude=" + maxAltitude + ",\n altitudePrecision=" + altitudePrecision +
            ",\n minDepth=" + minDepth + ",\n maxDepth=" + maxDepth + ",\n depthPrecision=" + depthPrecision +
            ",\n continentOrOcean=" + continentOrOcean + ",\n country=" + country + ",\n stateOrProvince=" +
-           stateOrProvince + ",\n county=" + county + ",\n collectorName=" + collectorName + ",\n locality=" +
-           locality + ",\n occurrenceDate=" + occurrenceDate + ",\n basisOfRecord=" + basisOfRecord +
+           stateOrProvince + ",\n county=" + county + ",\n collectorName=" + collectorName + ",\n collectorsFieldNumber=" + collectorsFieldNumber +
+           ",\n locality=" +  locality + ",\n occurrenceDate=" + occurrenceDate + ",\n basisOfRecord=" + basisOfRecord +
            ",\n identifierName=" + identifierName + ",\n dateIdentified=" + dateIdentified + ",\n unitQualifier=" +
            unitQualifier + "]";
   }

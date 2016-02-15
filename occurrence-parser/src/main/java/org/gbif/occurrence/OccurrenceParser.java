@@ -65,64 +65,6 @@ public class OccurrenceParser {
   }
 
   /**
-   * This parses a stream of uncompressed ABCD or DwC Occurrences into {@link RawXmlOccurrence}s.
-   *
-   * No care is taken to handle wrong encodings or character sets in general. This might be changed later on.
-   *
-   * @param is stream to parse
-   * @return list of parsed occurrences
-   * @throws ParsingException if there were any problems during parsing the stream
-   */
-  // TODO: Optionally handle compressed streams
-  public List<RawXmlOccurrence> parseStream(InputStream is) throws ParsingException {
-    checkNotNull(is, "is can't be null");
-    try {
-      ParsedSearchResponse responseBody = new ParsedSearchResponse();
-      InputSource inputSource = new InputSource(is);
-
-      Digester digester = new Digester();
-      digester.setNamespaceAware(true);
-      digester.setValidating(false);
-      digester.push(responseBody);
-
-      NodeCreateRule rawAbcd = new NodeCreateRule();
-      digester.addRule(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, rawAbcd);
-      digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, "addRecordAsXml");
-
-      NodeCreateRule rawAbcd1Header = new NodeCreateRule();
-      digester.addRule(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, rawAbcd1Header);
-      digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, "setAbcd1Header");
-
-      NodeCreateRule rawDwc1_0 = new NodeCreateRule();
-      digester.addRule(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, rawDwc1_0);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, "addRecordAsXml");
-
-      NodeCreateRule rawDwc1_4 = new NodeCreateRule();
-      digester.addRule(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, rawDwc1_4);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, "addRecordAsXml");
-
-//      NodeCreateRule rawDwcManis = new NodeCreateRule();
-//      digester.addRule(ExtractionSimpleXPaths.DWC_MANIS_RECORD_XPATH, rawDwcManis);
-//      digester.addSetNext(ExtractionSimpleXPaths.DWC_MANIS_RECORD_XPATH, "addRecordAsXml");
-
-      NodeCreateRule rawDwc2009 = new NodeCreateRule();
-      digester.addRule(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, rawDwc2009);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, "addRecordAsXml");
-
-      digester.parse(inputSource);
-      return responseBody.getRecords();
-    } catch (ParserConfigurationException e) {
-      throw new ServiceUnavailableException("Error setting up Commons Digester", e);
-    } catch (SAXException e) {
-      throw new ParsingException("Parsing failed", e);
-    } catch (IOException e) {
-      throw new ParsingException("Parsing failed", e);
-    } catch (TransformerException e) {
-      throw new ServiceUnavailableException("Error setting up Commons Digester", e);
-    }
-  }
-
-  /**
    * Parses a single response gzipFile and returns a List of the contained RawXmlOccurrences.
    */
   public List<RawXmlOccurrence> parseResponseFileToRawXml(File gzipFile) {

@@ -24,6 +24,7 @@ public class Abcd206RuleSet extends AbstractRuleSet {
 
   @Override
   public String getNamespaceURI() {
+    //TODO: should this be the real xml namespace and not just a flat string?
     return OccurrenceSchemaType.ABCD_2_0_6.toString();
   }
 
@@ -46,6 +47,9 @@ public class Abcd206RuleSet extends AbstractRuleSet {
 
     addNonNullMethod(digester, "geodeticDatum", "setGeodeticDatum", 1);
     addNonNullParam(digester, "geodeticDatum", 0);
+
+    addNonNullMethod(digester, "collectorsFieldNumber", "setCollectorsFieldNumber", 1);
+    addNonNullParam(digester, "collectorsFieldNumber", 0);
 
     addNonNullPrioritizedProperty(digester, "country", PrioritizedPropertyNameEnum.COUNTRY, 3);
     addNonNullPrioritizedProperty(digester, "collectorName", PrioritizedPropertyNameEnum.COLLECTOR_NAME, 3);
