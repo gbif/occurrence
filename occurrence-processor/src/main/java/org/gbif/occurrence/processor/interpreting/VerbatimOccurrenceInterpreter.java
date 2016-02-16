@@ -210,6 +210,7 @@ public class VerbatimOccurrenceInterpreter {
     if (parsed.isSuccessful()) {
       occ.setBasisOfRecord(parsed.getPayload());
     } else {
+      //TODO: flag value invalid issue (new API enum value to be created)
       LOG.debug("Unknown basisOfRecord [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
       occ.setBasisOfRecord(BasisOfRecord.UNKNOWN);
     }
@@ -220,6 +221,7 @@ public class VerbatimOccurrenceInterpreter {
     if (parsed.isSuccessful()) {
       occ.setSex(parsed.getPayload());
     } else {
+      //TODO: flag value invalid issue (new API enum value to be created)
       LOG.debug("Unknown sex [{}]", verbatim.getVerbatimField(DwcTerm.sex));
     }
   }
@@ -229,6 +231,7 @@ public class VerbatimOccurrenceInterpreter {
     if (parsed.isSuccessful()) {
       occ.setEstablishmentMeans(parsed.getPayload());
     } else {
+      //TODO: flag value invalid issue (new API enum value to be created)
       LOG.debug("Unknown establishmentMeans [{}]", verbatim.getVerbatimField(DwcTerm.establishmentMeans));
     }
   }
@@ -246,7 +249,7 @@ public class VerbatimOccurrenceInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.individualCount)) {
       occ.setIndividualCount(NumberParser.parseInteger(verbatim.getVerbatimField(DwcTerm.individualCount)));
       if (occ.getIndividualCount() == null && !verbatim.getVerbatimField(DwcTerm.individualCount).isEmpty()) {
-        //TODO: raise issue (needs a new API entry)
+        occ.getIssues().add(OccurrenceIssue.INDIVIDUAL_COUNT_INVALID);
         LOG.debug("Invalid individualCount {}", verbatim.getVerbatimField(DwcTerm.individualCount));
       }
     }

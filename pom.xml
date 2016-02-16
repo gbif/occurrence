@@ -130,11 +130,11 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.11</hbase-utils.version>
-    <download-query-tools.version>1.8</download-query-tools.version>
+    <download-query-tools.version>1.10</download-query-tools.version>
     <drupal-mybatis.version>0.17</drupal-mybatis.version>
     <dwc-api.version>1.13</dwc-api.version>
     <dwca-io.version>1.25</dwca-io.version>
-    <gbif-api.version>0.34-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.36</gbif-api.version>
     <gbif-common.version>0.22</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.27-SNAPSHOT</gbif-common-search.version>
