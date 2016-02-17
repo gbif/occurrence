@@ -65,7 +65,6 @@ public class OccurrenceParser {
   }
 
   /**
-   * /**
    * This parses a stream of uncompressed ABCD or DwC Occurrences into {@link RawXmlOccurrence}s.
    * No care is taken to handle wrong encodings or character sets in general. This might be changed later on.
    *
