@@ -65,6 +65,65 @@ public class OccurrenceParser {
   }
 
   /**
+   * This parses a stream of uncompressed ABCD or DwC Occurrences into {@link RawXmlOccurrence}s.
+   * No care is taken to handle wrong encodings or character sets in general. This might be changed later on.
+   *
+   * @param is stream to parse
+   *
+   * @return list of parsed occurrences
+   *
+   * @throws ParsingException if there were any problems during parsing the stream
+   */
+  // TODO: Optionally handle compressed streams
+  public List<RawXmlOccurrence> parseStream(InputStream is) throws ParsingException {
+    checkNotNull(is, "is can't be null");
+    try {
+      ParsedSearchResponse responseBody = new ParsedSearchResponse();
+      InputSource inputSource = new InputSource(is);
+
+      Digester digester = new Digester();
+      digester.setNamespaceAware(true);
+      digester.setValidating(false);
+      digester.push(responseBody);
+
+      NodeCreateRule rawAbcd = new NodeCreateRule();
+      digester.addRule(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, rawAbcd);
+      digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, "addRecordAsXml");
+
+      NodeCreateRule rawAbcd1Header = new NodeCreateRule();
+      digester.addRule(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, rawAbcd1Header);
+      digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, "setAbcd1Header");
+
+      NodeCreateRule rawDwc1_0 = new NodeCreateRule();
+      digester.addRule(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, rawDwc1_0);
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, "addRecordAsXml");
+
+      NodeCreateRule rawDwc1_4 = new NodeCreateRule();
+      digester.addRule(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, rawDwc1_4);
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, "addRecordAsXml");
+
+      //      NodeCreateRule rawDwcManis = new NodeCreateRule();
+      //      digester.addRule(ExtractionSimpleXPaths.DWC_MANIS_RECORD_XPATH, rawDwcManis);
+      //      digester.addSetNext(ExtractionSimpleXPaths.DWC_MANIS_RECORD_XPATH, "addRecordAsXml");
+
+      NodeCreateRule rawDwc2009 = new NodeCreateRule();
+      digester.addRule(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, rawDwc2009);
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, "addRecordAsXml");
+
+      digester.parse(inputSource);
+      return responseBody.getRecords();
+    } catch (ParserConfigurationException e) {
+      throw new ServiceUnavailableException("Error setting up Commons Digester", e);
+    } catch (SAXException e) {
+      throw new ParsingException("Parsing failed", e);
+    } catch (IOException e) {
+      throw new ParsingException("Parsing failed", e);
+    } catch (TransformerException e) {
+      throw new ServiceUnavailableException("Error setting up Commons Digester", e);
+    }
+  }
+
+  /**
    * Parses a single response gzipFile and returns a List of the contained RawXmlOccurrences.
    */
   public List<RawXmlOccurrence> parseResponseFileToRawXml(File gzipFile) {
@@ -95,7 +154,7 @@ public class OccurrenceParser {
       inputStreamReader = new InputStreamReader(inputStream);
       bufferedReader = new BufferedReader(inputStreamReader);
       boolean gotEncoding = false;
-      String encoding = "";
+      String encoding;
       int lineCount = 0;
       while (bufferedReader.ready() && !gotEncoding && lineCount < 5) {
         String line = bufferedReader.readLine();
@@ -112,8 +171,8 @@ public class OccurrenceParser {
             charsets.add(encoding);
           } catch (Exception e) {
             LOG.debug(
-              "Could not find supported charset matching detected encoding of [{}] - trying other guesses instead",
-              encoding);
+                "Could not find supported charset matching detected encoding of [{}] - trying other guesses instead",
+                encoding);
           }
           gotEncoding = true;
         }
@@ -132,7 +191,7 @@ public class OccurrenceParser {
           inputStream = new GZIPInputStream(fis);
 
           BufferedReader inputReader =
-            new BufferedReader(new XmlSanitizingReader(new InputStreamReader(inputStream, charsetName)));
+              new BufferedReader(new XmlSanitizingReader(new InputStreamReader(inputStream, charsetName)));
           InputSource inputSource = new InputSource(inputReader);
 
           Digester digester = new Digester();
@@ -169,7 +228,7 @@ public class OccurrenceParser {
           break;
         } catch (SAXException e) {
           String msg = "SAX exception when parsing parsing from response gzipFile [" + gzipFile.getAbsolutePath()
-                       + "] using encoding [" + charsetName + "] - trying another charset";
+              + "] using encoding [" + charsetName + "] - trying another charset";
           LOG.debug(msg, e);
         } catch (IOException e) {
           if (e instanceof MalformedByteSequenceException) {
@@ -182,8 +241,8 @@ public class OccurrenceParser {
       if (goodCharset == null) {
         if (encodingError) {
           LOG.warn(
-            "Could not parse gzipFile - none of the encoding attempts worked (failed with malformed utf8) - skipping gzipFile [{}]",
-            gzipFile.getAbsolutePath());
+              "Could not parse gzipFile - none of the encoding attempts worked (failed with malformed utf8) - skipping gzipFile [{}]",
+              gzipFile.getAbsolutePath());
         } else {
           LOG.warn("Could not parse gzipFile (malformed parsing) - skipping gzipFile [{}]", gzipFile.getAbsolutePath());
         }
