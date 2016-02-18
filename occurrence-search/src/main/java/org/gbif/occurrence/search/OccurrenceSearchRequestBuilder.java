@@ -111,7 +111,7 @@ public class OccurrenceSearchRequestBuilder {
         return String
           .format(RANGE_FORMAT, bbox.getMinY() + "," + bbox.getMinX(), bbox.getMaxY() + "," + bbox.getMaxX());
       }
-      return String.format(GEO_INTERSECTS_QUERY_FMT, wkt);
+      return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
