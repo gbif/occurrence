@@ -52,10 +52,6 @@ public class GenerateHQL {
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
       generateQueryHQL(cfg, downloadDir);
-      generateVerbatimQueryHQL(cfg, downloadDir);
-      generateInterpretedQueryHQL(cfg, downloadDir);
-      generateCitationQueryHQL(cfg, downloadDir);
-      generateMultimediaQueryHQL(cfg, downloadDir);
       generateSimpleQueryHQL(cfg, simpleDownloadDir);
 
     } catch (Exception e) {
@@ -107,50 +103,6 @@ public class GenerateHQL {
                                                                  "initializedInterpretedFields",
                                                                  Queries.selectInterpretedFields(true));
       template.process(data, out);
-    }
-  }
-
-  /**
-   * Generates the Hive verbatim query file used for DwAc downloads.
-   */
-  private static void generateVerbatimQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-verbatim-query.q"))) {
-      Template template = cfg.getTemplate("download/execute-verbatim-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("verbatimFields", Queries.selectVerbatimFields());
-      template.process(data, out);
-    }
-  }
-
-  /**
-   * Generates the Hive interpreted query file used for DwAc downloads.
-   */
-  private static void generateInterpretedQueryHQL(Configuration cfg, File outDir)
-    throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-interpreted-query.q"))) {
-      Template template = cfg.getTemplate("download/execute-interpreted-query.ftl");
-      Map<String, Object> data =
-        ImmutableMap.<String, Object>of("interpretedFields", Queries.selectInterpretedFields(true));
-      template.process(data, out);
-    }
-  }
-
-  /**
-   * Generates the Hive citations query file used for DwAc downloads.
-   */
-  private static void generateCitationQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-citation-query.q"))) {
-      Template template = cfg.getTemplate("download/execute-citation-query.ftl");
-      template.process(ImmutableMap.<String, Object>of(), out);
-    }
-  }
-
-  /**
-   * Generates the Hive multimedia query file used for DwAc downloads.
-   */
-  private static void generateMultimediaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-multimedia-query.q"))) {
-      Template template = cfg.getTemplate("download/execute-multimedia-query.ftl");
-      template.process(ImmutableMap.<String, Object>of(), out);
     }
   }
 
