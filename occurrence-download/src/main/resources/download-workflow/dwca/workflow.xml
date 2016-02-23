@@ -32,66 +32,6 @@
     <error to="failure_drop_table"/>
   </action>
 
-  <!--
-    Test what happens when we just run the brute force approach
-  -->
-  <fork name="queries">
-    <path start="query_verbatim"/>
-    <path start="query_interpreted"/>
-    <!--path start="query_citation" />
-    <path start="query_multimedia"/-->
-  </fork>
-
-  <action name="query_verbatim">
-    <hive xmlns="uri:oozie:hive-action:0.4">
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-verbatim-query.q</script>
-      <param>hiveDB=${hive_db}</param>
-      <param>verbatimTable=${download_table_name}_verbatim</param>
-      <param>whereClause=${hive_query}</param>
-    </hive>
-    <ok to="queries_finished"/>
-    <error to="kill"/>
-  </action>
-
-  <action name="query_interpreted">
-    <hive xmlns="uri:oozie:hive-action:0.4">
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-interpreted-query.q</script>
-      <param>hiveDB=${hive_db}</param>
-      <param>interpretedTable=${download_table_name}_interpreted</param>
-      <param>whereClause=${hive_query}</param>
-    </hive>
-    <ok to="queries_finished"/>
-    <error to="kill"/>
-  </action>
-
-  <action name="query_citation">
-    <hive xmlns="uri:oozie:hive-action:0.4">
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-citation-query.q</script>
-      <param>hiveDB=${hive_db}</param>
-      <param>citationTable=${download_table_name}_citation</param>
-      <param>whereClause=${hive_query}</param>
-    </hive>
-    <ok to="queries_finished"/>
-    <error to="kill"/>
-  </action>
-
-  <action name="query_multimedia">
-    <hive xmlns="uri:oozie:hive-action:0.4">
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-multimedia-query.q</script>
-      <param>hiveDB=${hive_db}</param>
-      <param>multimediaTable=${download_table_name}_multimedia</param>
-      <param>whereClause=${hive_query}</param>
-    </hive>
-    <ok to="queries_finished"/>
-    <error to="kill"/>
-  </action>
-
-  <join name="queries_finished" to="end"/>
-
   <action name="copy_and_zip">
     <java>
       <main-class>org.gbif.occurrence.download.file.dwca.oozie.ArchiveDownloadAction</main-class>
