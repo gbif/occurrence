@@ -181,6 +181,14 @@ public class CoordinateInterpreterTest {
   }
 
   @Test
+  public void testLookupTransformerOrderSwapped() {
+    // -0.97 is still in France, and -0.50 is still in DR Congo, but we want the correct order.
+    assertCountry(49.43, 0.97, Country.FRANCE, Country.FRANCE);
+    assertCountry(0.50, 24.1, Country.CONGO_DEMOCRATIC_REPUBLIC, Country.CONGO_DEMOCRATIC_REPUBLIC);
+    // (Unfortunately, this test can still pass by accident if the ordering of the transformers is correct by chance.)
+  }
+
+  @Test
   public void testLookupNulls() {
     String lat = null;
     String lng = null;

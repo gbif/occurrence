@@ -14,7 +14,7 @@ import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +44,8 @@ public class CoordinateInterpreter {
   private static final int NUM_RETRIES = 15;
   private static final int RETRY_PERIOD_MSEC = 2000;
 
-  // Coordinate transformations to attempt in case of a mismatch
-  private static final Map<List<OccurrenceIssue>, Lambda> TRANSFORMS = new HashMap<>();
+  // Coordinate transformations to attempt in order
+  private static final Map<List<OccurrenceIssue>, Lambda> TRANSFORMS = new LinkedHashMap<>();
   interface Lambda { LatLng apply(Double lat, Double lng); } // Revert the commit introducing this line once we are on Java 8.
 
   // Antarctica: "Territories south of 60° south latitude"
