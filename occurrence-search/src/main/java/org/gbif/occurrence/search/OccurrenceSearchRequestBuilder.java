@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -72,6 +73,9 @@ public class OccurrenceSearchRequestBuilder {
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
 
+  //Full text search Solr field
+  private static final String FULL_TEXT_FIELD = "full_text:";
+
   // Holds the value used for an optional sort order applied to a search via param "sort"
   private final Map<String, SolrQuery.ORDER> sortOrder;
 
@@ -123,7 +127,11 @@ public class OccurrenceSearchRequestBuilder {
 
     SolrQuery solrQuery = new SolrQuery();
     // q param
-    solrQuery.setQuery(DEFAULT_QUERY);
+    if(Strings.isNullOrEmpty(request.getQ())) {
+      solrQuery.setQuery(DEFAULT_QUERY);
+    } else {
+      solrQuery.setQuery(FULL_TEXT_FIELD + request.getQ());
+    }
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
