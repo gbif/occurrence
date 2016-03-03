@@ -95,7 +95,7 @@
       <field name="establishment_means" type="string" indexed="true" stored="false" docValues="true"/>
       <field name="occurrence_id" type="string" indexed="true" stored="false"/>
       <field name="scientific_name" type="string" indexed="true" stored="false" />
-      <field name="full_text" type="text_general" indexed="true" stored="true" multiValued="true"/>
+      <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
       <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
 	<!-- Field to use to determine and enforce document uniqueness. Unless this
