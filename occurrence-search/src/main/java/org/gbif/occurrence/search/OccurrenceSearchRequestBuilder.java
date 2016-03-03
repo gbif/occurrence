@@ -3,6 +3,7 @@ package org.gbif.occurrence.search;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.common.search.util.QueryUtils;
+import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.util.ArrayList;
@@ -130,7 +131,7 @@ public class OccurrenceSearchRequestBuilder {
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
     } else {
-      solrQuery.setQuery(FULL_TEXT_FIELD + request.getQ());
+      solrQuery.setQuery(FULL_TEXT_FIELD + request.getQ() + SolrConstants.FUZZY_OPERATOR);
     }
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
