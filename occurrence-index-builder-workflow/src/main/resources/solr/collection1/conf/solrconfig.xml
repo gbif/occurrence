@@ -472,6 +472,26 @@
 
   </requestHandler>
 
+  <requestHandler name="/search" class="solr.SearchHandler">
+    <!-- default values for query parameters can be specified, these
+         will be overridden by parameters in the request
+      -->
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <int name="rows">20</int>
+      <str name="df">full_text</str>
+      <str name="defType">edismax</str>
+      <str name="q.alt">*:*</str>
+      <str name="q.op">OR</str>
+      <str name="fl">*</str>
+      <str name="qf">full_text</str>
+      <int name="qs">100</int>
+      <int name="ps">100</int>
+      <int name="mm">1</int>
+    </lst>
+
+  </requestHandler>
+
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
     <lst name="defaults">
@@ -496,6 +516,13 @@
     <arr name="components">
       <str>query</str>
     </arr>
+  </requestHandler>
+
+  <requestHandler name="/stream" class="solr.StreamHandler">
+    <lst name="invariants">
+      <str name="wt">json</str>
+      <str name="distrib">false</str>
+    </lst>
   </requestHandler>
 
 

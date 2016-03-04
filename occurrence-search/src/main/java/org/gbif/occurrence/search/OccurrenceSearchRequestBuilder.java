@@ -13,6 +13,7 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -23,6 +24,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.util.SolrPluginUtils;
 
 import static org.gbif.common.search.util.QueryUtils.PARAMS_AND_JOINER;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
@@ -40,6 +42,60 @@ import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
  * Utility class for building Solr queries from supported parameters for occurrences search.
  */
 public class OccurrenceSearchRequestBuilder {
+
+  /**
+   * Utility class to generates full text queries.
+   */
+  private static final class OccurrenceFullTextQueryBuilder {
+
+    private String q;
+
+    private Double fuzzyDistance = 0.7;
+
+    private static final String TERM_PATTERN = "%1$s^%2$s %1$s~%3$s^%4$s";
+
+    private static final Integer MAX_SCORE = 100;
+
+    private static final Integer SCORE_DECREMENT = 20;
+
+    /**
+     * Query parameter.
+     */
+    private OccurrenceFullTextQueryBuilder withQ(String q){
+      this.q = q;
+      return this;
+    }
+
+    /**
+     * Fuzzy edit distance.
+     */
+    private OccurrenceFullTextQueryBuilder withFuzzyDistance(Double fuzzyDistance){
+      this.fuzzyDistance = fuzzyDistance;
+      return this;
+    }
+
+    /**
+     * Builds a Solr expression query with the form: "term1 ..termN" term1^100 term1~0.7^50 ... termN^20 termN~0.7^10.
+     * Each boosting parameter is calculated using the formula:  MAX_SCORE - SCORE_DECREMENT * i. Where 'i' is the
+     * position of the term in the query.
+     */
+    public String build(){
+      String[] qs = q.split(" ");
+      if(qs.length > 1){
+        StringBuilder ftQ = new StringBuilder();
+        ftQ.append(QueryUtils.toPhraseQuery(q) +  ' ');
+        for(int i = 0; i < qs.length; i++) {
+          int termScore = Math.max(MAX_SCORE - SCORE_DECREMENT * i, SCORE_DECREMENT);
+          ftQ.append(String.format(TERM_PATTERN,qs[i],termScore,fuzzyDistance,termScore/2));
+          if (i < qs.length-1) {
+            ftQ.append(' ');
+          }
+        }
+        return ftQ.toString();
+      }
+      return String.format(TERM_PATTERN,q,MAX_SCORE,fuzzyDistance,MAX_SCORE/2);
+    }
+  }
 
   // This is a placeholder to map from the JSON definition ID to the query field
   public static final ImmutableMap<OccurrenceSearchParameter, OccurrenceSolrField> QUERY_FIELD_MAPPING =
@@ -74,8 +130,8 @@ public class OccurrenceSearchRequestBuilder {
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
 
-  //Full text search Solr field
-  private static final String FULL_TEXT_FIELD = "full_text:";
+  // Solr full text search handle
+  private static final String FULL_TEXT_HANDLER = "/search";
 
   // Holds the value used for an optional sort order applied to a search via param "sort"
   private final Map<String, SolrQuery.ORDER> sortOrder;
@@ -131,8 +187,11 @@ public class OccurrenceSearchRequestBuilder {
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
     } else {
-      solrQuery.setQuery(FULL_TEXT_FIELD + request.getQ() + SolrConstants.FUZZY_OPERATOR);
+      OccurrenceFullTextQueryBuilder occurrenceFullTextQueryBuilder = new OccurrenceFullTextQueryBuilder();
+      occurrenceFullTextQueryBuilder.withQ(request.getQ());
+      solrQuery.setQuery(occurrenceFullTextQueryBuilder.build());
     }
+    solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
