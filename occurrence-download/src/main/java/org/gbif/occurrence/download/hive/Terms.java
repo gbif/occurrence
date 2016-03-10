@@ -105,7 +105,8 @@ public final class Terms {
                                                      GbifTerm.canonicalName,
                                                      GbifTerm.nameType,
                                                      GbifTerm.verbatimLabel,
-                                                     GbifTerm.infraspecificMarker);
+                                                     GbifTerm.infraspecificMarker,
+                                                     GbifTerm.coordinateAccuracy);
 
     return ImmutableList.copyOf(Iterables.<GbifTerm>filter(Lists.newArrayList(GbifTerm.values()),
                                                            new Predicate<GbifTerm>() {

@@ -488,8 +488,19 @@
       <int name="qs">100</int>
       <int name="ps">100</int>
       <int name="mm">1</int>
+      <str name="spellcheck.dictionary">default</str>
+      <str name="spellcheck">on</str>
+      <str name="spellcheck.extendedResults">true</str>
+      <str name="spellcheck.count">10</str>
+      <str name="spellcheck.maxResultsForSuggest">5</str>
+      <str name="spellcheck.collate">true</str>
+      <str name="spellcheck.collateExtendedResults">true</str>
+      <str name="spellcheck.maxCollationTries">10</str>
+      <str name="spellcheck.maxCollations">5</str>
     </lst>
-
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
   </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
@@ -524,6 +535,43 @@
       <str name="distrib">false</str>
     </lst>
   </requestHandler>
+
+  <requestHandler name="/spell" class="solr.SearchHandler" startup="lazy">
+    <lst name="defaults">
+      <str name="df">full_text</str>
+      <str name="spellcheck.dictionary">default</str>
+      <str name="spellcheck">on</str>
+      <str name="spellcheck.extendedResults">true</str>
+      <str name="spellcheck.count">10</str>
+      <str name="spellcheck.maxResultsForSuggest">5</str>
+      <str name="spellcheck.collate">true</str>
+      <str name="spellcheck.collateExtendedResults">true</str>
+      <str name="spellcheck.maxCollationTries">10</str>
+      <str name="spellcheck.maxCollations">5</str>
+    </lst>
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
+  </requestHandler>
+
+  <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+    <str name="queryAnalyzerFieldType">string</str> <!-- Replace with Field Type of your schema -->
+    <lst name="spellchecker">
+      <str name="name">default</str>
+      <str name="field">full_text</str> <!-- Replace with field name as per your scheme -->
+      <str name="spellcheckIndexDir">./spellchecker</str>
+      <str name="buildOnOptimize">true</str>
+      <str name="buildOnCommit">true</str>
+    </lst>
+
+    <!-- a spellchecker that uses a different distance measure -->
+    <lst name="spellchecker">
+      <str name="name">jarowinkler</str>
+      <str name="field">spell</str>
+      <str name="distanceMeasure">org.apache.lucene.search.spell.JaroWinklerDistance</str>
+      <str name="spellcheckIndexDir">./spellchecker2</str>
+    </lst>
+  </searchComponent>
 
 
   <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell">
