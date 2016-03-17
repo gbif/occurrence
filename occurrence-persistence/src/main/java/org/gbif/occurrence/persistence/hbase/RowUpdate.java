@@ -5,6 +5,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
@@ -173,6 +174,14 @@ public class RowUpdate {
     setField(Columns.column(term), nullSafeBytes(value));
   }
 
+  public void setVerbatimField(Term term, @Nullable BigDecimal value) throws IOException {
+    setField(Columns.verbatimColumn(term), nullSafeBytes(value));
+  }
+
+  public void setInterpretedField(Term term, @Nullable BigDecimal value) throws IOException {
+    setField(Columns.column(term), nullSafeBytes(value));
+  }
+
   public void setInterpretedExtension(Extension extension, @Nullable String value) throws IOException {
     setField(Columns.column(extension), nullSafeBytes(value));
   }
@@ -215,5 +224,9 @@ public class RowUpdate {
 
   private static byte[] nullSafeBytes(URI value) {
     return value == null ? null : Bytes.toBytes(value.toString());
+  }
+
+  private static byte[] nullSafeBytes(BigDecimal value) {
+    return value == null ? null : Bytes.toBytes(value);
   }
 }

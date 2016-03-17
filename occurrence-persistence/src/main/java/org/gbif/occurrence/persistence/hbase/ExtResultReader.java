@@ -4,6 +4,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
@@ -140,6 +141,14 @@ public class ExtResultReader {
     try {
       return uri == null ? null : URI.create(uri);
     } catch (Exception e) {
+    }
+    return null;
+  }
+
+  public static BigDecimal getBigDecimal(Result row, Term column) {
+    byte[] content = getBytes(row, column);
+    if(content != null) {
+      return Bytes.toBigDecimal(content);
     }
     return null;
   }
