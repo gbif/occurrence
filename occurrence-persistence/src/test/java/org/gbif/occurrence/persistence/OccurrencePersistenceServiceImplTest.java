@@ -27,6 +27,7 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Date;
@@ -104,7 +105,7 @@ public class OccurrencePersistenceServiceImplTest {
 
   // newer fields from occurrence widening
   private static final Double ELEV_ACC = 10d;
-  private static final Double COORD_ACC = 10.0;
+  private static final BigDecimal UNCERTAINTY_METERS = new BigDecimal("50.5");
   private static final Continent CONTINENT = Continent.AFRICA;
   private static final Country COUNTRY = Country.TANZANIA;
   private static final Date DATE_IDENTIFIED = new Date();
@@ -226,8 +227,8 @@ public class OccurrencePersistenceServiceImplTest {
     // new for occurrence widening
     put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevationAccuracy)),
       Bytes.toBytes(ELEV_ACC));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.coordinateAccuracy)),
-      Bytes.toBytes(COORD_ACC));
+    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.coordinateUncertaintyInMeters)),
+            Bytes.toBytes(UNCERTAINTY_METERS));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.continent)),
       Bytes.toBytes(CONTINENT.toString()));
     put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.countryCode)),
@@ -374,6 +375,7 @@ public class OccurrencePersistenceServiceImplTest {
     // update everything but unique identifier pieces
     Occurrence update = occurrenceService.get(KEY);
 
+    BigDecimal coordinateUncertaintyInMeters = new BigDecimal("50.55");
     Date origLastParsed = update.getLastParsed();
     double alt = 1234.2;
     BasisOfRecord bor = BasisOfRecord.OBSERVATION;
@@ -424,6 +426,7 @@ public class OccurrencePersistenceServiceImplTest {
     update.setLastInterpreted(lastInterpreted);
     update.setDecimalLatitude(lat);
     update.setDecimalLongitude(lng);
+    update.setCoordinateUncertaintyInMeters(coordinateUncertaintyInMeters);
     update.setModified(mod);
     update.setMonth(month);
     update.setTaxonKey(nubId);
@@ -489,6 +492,8 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(lastInterpreted, occ.getLastInterpreted());
     assertEquals(lat, occ.getDecimalLatitude(), 0.0001);
     assertEquals(lng, occ.getDecimalLongitude(), 0.0001);
+    //we should only store 1 decimal
+    assertEquals(coordinateUncertaintyInMeters.setScale(1, BigDecimal.ROUND_HALF_UP), occ.getCoordinateUncertaintyInMeters());
     assertEquals(mod, occ.getModified());
     assertEquals(month, (int) occ.getMonth());
     assertEquals(nubId, (int) occ.getTaxonKey());
@@ -837,7 +842,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals((Double) ELEV, occ.getElevation());
     assertEquals(ELEV_ACC, occ.getElevationAccuracy());
     assertEquals(BOR, occ.getBasisOfRecord());
-    assertEquals(COORD_ACC, occ.getCoordinateAccuracy());
+    assertEquals(UNCERTAINTY_METERS, occ.getCoordinateUncertaintyInMeters());
     assertEquals(CONTINENT, occ.getContinent());
     assertEquals(COUNTRY, occ.getCountry());
     assertEquals(DATASET_KEY, occ.getDatasetKey());

@@ -23,6 +23,7 @@ import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -417,6 +418,14 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!nullSafeEquals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
       upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
     }
+    //we only store one digit for coordinateUncertaintyInMeters
+    if (!nullSafeEquals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
+      upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, nullSafeRoundHalfUp(occ.getCoordinateUncertaintyInMeters(), 1));
+    }
+    if (!nullSafeEquals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
+      upd.setInterpretedField(DwcTerm.coordinatePrecision, occ.getCoordinatePrecision());
+    }
+    // should we remove it ?
     if (!nullSafeEquals(oldOcc.getCoordinateAccuracy(), occ.getCoordinateAccuracy())) {
       upd.setInterpretedField(GbifTerm.coordinateAccuracy, occ.getCoordinateAccuracy());
     }
@@ -479,6 +488,19 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
     upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
     upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
+  }
+
+  /**
+   * Used to round (with half up) a BigDecimal to only keep a certain number of digit(s).
+   * @param value
+   * @param scale
+   * @return
+   */
+  private BigDecimal nullSafeRoundHalfUp(BigDecimal value, int scale){
+    if(value == null){
+      return null;
+    }
+    return value.setScale(scale, BigDecimal.ROUND_HALF_UP);
   }
 
   private void closeTable(HTableInterface table) {
