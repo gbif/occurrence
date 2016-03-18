@@ -14,7 +14,7 @@ SET mapred.output.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
 
 -- configure for reading HBase
-SET hbase.client.scanner.caching=100;
+SET hbase.client.scanner.caching=400;
 SET hive.mapred.reduce.tasks.speculative.execution=false;
 SET hive.hadoop.supports.splittable.combineinputformat=true;
 SET mapred.max.split.size=256000000;
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS occurrence_hdfs (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
 </#list>
-) STORED AS RCFILE TBLPROPERTIES ("serialization.null.format"="");
+) STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 -- populate the HDFS view
 INSERT OVERWRITE TABLE occurrence_hdfs
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS occurrence_multimedia
 (gbifid INT,type STRING,format STRING,identifier STRING,references STRING,title STRING,description STRING,
 source STRING,audience STRING,created STRING,creator STRING,contributor STRING,
 publisher STRING,license STRING,rightsHolder STRING)
-STORED AS RCFILE TBLPROPERTIES ("serialization.null.format"="");
+STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 INSERT OVERWRITE TABLE occurrence_multimedia
 SELECT gbifid,cleanDelimiters(mm_record['type']),cleanDelimiters(mm_record['format']),cleanDelimiters(mm_record['identifier']),cleanDelimiters(mm_record['references']),cleanDelimiters(mm_record['title']),cleanDelimiters(mm_record['description']),cleanDelimiters(mm_record['source']),cleanDelimiters(mm_record['audience']),toISO8601(mm_record['created']),cleanDelimiters(mm_record['creator']),cleanDelimiters(mm_record['contributor']),cleanDelimiters(mm_record['publisher']),cleanDelimiters(mm_record['license']),cleanDelimiters(mm_record['rightsHolder'])
