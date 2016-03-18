@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.util;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,6 +48,10 @@ public class ComparisonUtil {
   }
 
   public static boolean nullSafeEquals(URI first, URI second) {
+    return first == null && second == null || first != null && second != null && first.equals(second);
+  }
+
+  public static boolean nullSafeEquals(BigDecimal first, BigDecimal second) {
     return first == null && second == null || first != null && second != null && first.equals(second);
   }
 }

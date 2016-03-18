@@ -74,10 +74,10 @@ public class TermUtils {
       DwcTerm.establishmentMeans, GbifTerm.taxonKey, DwcTerm.typeStatus, GbifTerm.typifiedName, GbifTerm.kingdomKey,
       GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey, GbifTerm.genusKey,
       GbifTerm.subgenusKey, GbifTerm.speciesKey, GbifTerm.datasetKey, GbifTerm.publishingCountry,
-      GbifTerm.lastInterpreted, DcTerm.modified, GbifTerm.coordinateAccuracy, GbifTerm.elevation,
-      GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy, GbifInternalTerm.unitQualifier,
-      GbifTerm.issue, DcTerm.references, GbifTerm.datasetKey, GbifTerm.publishingCountry, GbifTerm.protocol,
-      GbifTerm.lastCrawled, GbifTerm.lastParsed);
+      GbifTerm.lastInterpreted, DcTerm.modified, DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
+      GbifTerm.coordinateAccuracy, GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth,
+      GbifTerm.depthAccuracy, GbifInternalTerm.unitQualifier, GbifTerm.issue, DcTerm.references, GbifTerm.datasetKey,
+      GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed);
 
 
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
