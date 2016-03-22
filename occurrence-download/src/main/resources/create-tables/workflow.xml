@@ -33,7 +33,7 @@
       <param>occurrenceHBaseTable=${occurrenceHBaseTable}</param>
     </hive>
     <ok to="create-hdfs-table"/>
-    <error to="kill"/>
+    <error to="notify-error"/>
   </action>
 
   <!--
@@ -46,6 +46,16 @@
       <param>hiveDB=${hiveDB}</param>
     </hive>
     <ok to="end"/>
+    <error to="notify-error"/>
+  </action>
+
+  <action name="notify-error">
+    <email xmlns="uri:oozie:email-action:0.2">
+      <to>informatics@gbif.org</to>
+      <subject>Email notifications for ${wf:id()}</subject>
+      <body>The wf ${wf:id()} failed with error: [${wf:errorMessage(wf:lastErrorNode())}]</body>
+    </email>
+    <ok to="kill"/>
     <error to="kill"/>
   </action>
 
