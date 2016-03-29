@@ -8,17 +8,13 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.ws.client.BaseWsSearchClient;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
-import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Multimap;
+import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
@@ -26,7 +22,7 @@ import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
@@ -36,6 +32,8 @@ import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
  */
 public class OccurrenceWsSearchClient extends
   BaseWsSearchClient<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest> implements OccurrenceSearchService {
+
+  private static String SEARCH_PATH ="search/";
 
   // Response type.
   private static final GenericType<SearchResponse<Occurrence, OccurrenceSearchParameter>> GENERIC_TYPE =
@@ -52,28 +50,7 @@ public class OccurrenceWsSearchClient extends
    */
   @Inject
   protected OccurrenceWsSearchClient(WebResource resource) {
-    super(resource.path(OCC_SEARCH_PATH), GENERIC_TYPE);
-  }
-
-  /**
-   * Converts a {@link Multimap} into a {@link MultivaluedMap}.
-   * If the parameter is null an empty multivaluedmap is returned.
-   */
-  private static MultivaluedMap<String, String> toOccurrenceMultivaluedMap(
-    Multimap<OccurrenceSearchParameter, String> multimap) {
-    MultivaluedMap<String, String> multivaluedMap = new MultivaluedMapImpl();
-    if (multimap != null) {
-      for (Entry<OccurrenceSearchParameter, String> entry : multimap.entries()) {
-        multivaluedMap.add(entry.getKey().name(), entry.getValue());
-      }
-    }
-    return multivaluedMap;
-  }
-
-
-  @Override
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(@Nullable OccurrenceSearchRequest request) {
-    return getResource(request).queryParams(toOccurrenceMultivaluedMap(request.getParameters())).get(GENERIC_TYPE);
+    super(resource.path(OCCURRENCE_PATH), GENERIC_TYPE);
   }
 
   @Override
@@ -110,8 +87,8 @@ public class OccurrenceWsSearchClient extends
    * Utility function that execute a search term query.
    */
   private List<String> suggestTerms(String resourceName, String prefix, @Nullable Integer limit) {
-    String limitParam = Integer.toString(Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
-    return getResource(resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
+    String limitParam = Integer.toString(MoreObjects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+    return getResource(SEARCH_PATH + resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
       .get(LIST_OF_STRING);
   }
 }

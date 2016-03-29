@@ -52,7 +52,7 @@
   <action name="notify-error">
     <email xmlns="uri:oozie:email-action:0.2">
       <to>informatics@gbif.org</to>
-      <subject>Email notifications for ${wf:id()}</subject>
+      <subject>Occurrence HDFS Build failed  ${wf:id()}</subject>
       <body>The wf ${wf:id()} failed with error: [${wf:errorMessage(wf:lastErrorNode())}]</body>
     </email>
     <ok to="kill"/>

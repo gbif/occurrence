@@ -74,7 +74,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
     @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
     this.solrClient = solrClient;
-    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset,maxLimit);
+    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset, maxLimit);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
@@ -171,7 +171,8 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     List<String> suggestions = Lists.newArrayList();
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
-      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField, Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField,
+                                           Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       QueryResponse queryResponse = solrClient.query(solrQuery);
       TermsResponse termsResponse = queryResponse.getTermsResponse();
       List<Term> terms = termsResponse.getTerms(solrField);
