@@ -8,6 +8,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.UUID;
 
@@ -67,17 +68,59 @@ public class LocationInterpreterTest {
     verb.setVerbatimField(DwcTerm.decimalLongitude, "66.666");
     verb.setVerbatimField(DwcTerm.verbatimLatitude, "10.123");
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "55.678");
-    verb.setVerbatimField(DwcTerm.coordinatePrecision, "1.2345");
+    verb.setVerbatimField(DwcTerm.coordinatePrecision, "0.2345");
+    verb.setVerbatimField(DwcTerm.coordinateUncertaintyInMeters, "500");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
-    assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
+    //assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
+    assertEquals(new BigDecimal(500), occ.getCoordinateUncertaintyInMeters());
+    assertEquals("0.2345", occ.getCoordinatePrecision().toString());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
     assertEquals(2, occ.getIssues().size());
+  }
+
+  @Test
+  public void testInterpretCoordinateUncertaintyAndPrecision(){
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+
+    verb.setVerbatimField(DwcTerm.coordinatePrecision, "n/a");
+    verb.setVerbatimField(DwcTerm.coordinateUncertaintyInMeters, "500 m.");
+
+    occ = new Occurrence(verb);
+
+    interpreter.interpretCoordinateUncertaintyAndPrecision(occ, verb);
+
+    assertEquals(new BigDecimal(500), occ.getCoordinateUncertaintyInMeters());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COORDINATE_PRECISION_INVALID));
+    assertNull(occ.getCoordinatePrecision());
+    assertEquals(1, occ.getIssues().size());
+  }
+
+  @Test
+  public void testCoordinatesUncertaintyIssues() throws InterruptedException {
+    verb = new VerbatimOccurrence();
+
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "CANADA");
+    verb.setVerbatimField(DwcTerm.verbatimLatitude, "45.5088400");
+    verb.setVerbatimField(DwcTerm.verbatimLongitude, "-73.5878100");
+    verb.setVerbatimField(DwcTerm.coordinateUncertaintyInMeters, "abc");
+    verb.setVerbatimField(DwcTerm.geodeticDatum, "WSG84");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+
+    assertNull(occ.getCoordinateUncertaintyInMeters());
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID));
+    assertEquals(1, occ.getIssues().size());
   }
 
   @Test

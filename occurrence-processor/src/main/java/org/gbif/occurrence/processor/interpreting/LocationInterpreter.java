@@ -2,7 +2,6 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.util.LengthUtils;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -15,11 +14,14 @@ import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
+import org.gbif.utils.number.BigDecimalUtils;
 
+import java.math.BigDecimal;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,8 +144,8 @@ public class LocationInterpreter {
 
   private void interpretCoordinates(VerbatimOccurrence verbatim, Occurrence occ, Country country) {
     OccurrenceParseResult<CoordinateResult> parsedCoord = coordinateInterpreter.interpretCoordinate(
-          verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
-          verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
+            verbatim.getVerbatimField(DwcTerm.decimalLatitude), verbatim.getVerbatimField(DwcTerm.decimalLongitude),
+            verbatim.getVerbatimField(DwcTerm.geodeticDatum), country);
 
     if (!parsedCoord.isSuccessful() && verbatim.hasVerbatimField(DwcTerm.verbatimLatitude)
         && verbatim.hasVerbatimField(DwcTerm.verbatimLongitude)) {
@@ -171,10 +173,8 @@ public class LocationInterpreter {
         occ.setCountry(parsedCoord.getPayload().getCountry());
       }
 
-      // interpret coordinateAccuracy
-      interpretCoordAccuracy(occ, verbatim);
-
-      LOG.debug("Got lat [{}] lng [{}] accuracy={} [{}]", occ.getDecimalLatitude(), occ.getDecimalLongitude(), occ.getCoordinateAccuracy(), occ.getCountry());
+      // interpret coordinateUncertaintyInMeters and coordinatePrecision
+      interpretCoordinateUncertaintyAndPrecision(occ, verbatim);
     }
 
     LOG.debug("Adding coord issues to occ [{}]", parsedCoord.getIssues());
@@ -186,20 +186,25 @@ public class LocationInterpreter {
    * @param occ
    * @param verbatim
    */
-  private void interpretCoordAccuracy(Occurrence occ, VerbatimOccurrence verbatim) {
+  @VisibleForTesting
+  protected void interpretCoordinateUncertaintyAndPrecision(Occurrence occ, VerbatimOccurrence verbatim) {
     if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
-      // accept negative precisions and mirror
-      double prec = Math.abs(NumberUtils.toDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()));
-      if (prec != 0) {
-        // accuracy equals the precision in the case of decimal lat / lon
-        // TODO: this happens alot - maybe not so unlikely or value is in meters instead?
-        if (prec > 10) {
-          // add issue for unlikely coordinatePrecision
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
-          LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
-        } else {
-          occ.setCoordinateAccuracy(prec);
-        }
+      BigDecimal coordinatePrecision = null;
+      try {
+        // accept negative precisions and mirror
+        coordinatePrecision = new BigDecimal(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()).abs();
+      } catch (final NumberFormatException ignore) {}
+
+      // accepted values are 0, greater than or equal to 1. Since "1.0" means nearest degree, not sure what a value
+      // greater than 1 means.
+      if (coordinatePrecision != null && coordinatePrecision.doubleValue() >= 0 &&
+              coordinatePrecision.doubleValue() <= 1) {
+        //it is safer to build a BigDecimal from a String than a Double
+        occ.setCoordinatePrecision(coordinatePrecision);
+      }
+      else{
+        occ.getIssues().add(OccurrenceIssue.COORDINATE_PRECISION_INVALID);
+        LOG.debug("Ignoring coordinatePrecision, value invalid or highly unlikely");
       }
     }
 
@@ -207,28 +212,24 @@ public class LocationInterpreter {
       // accept negative precisions and mirror
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
       if (meters.isSuccessful()) {
-        double accuracy = LengthUtils.metersToLatDegree(meters.getPayload());
-        if (accuracy > 0) {
-          // do we have an accuracy already and do they match up?
-          if (accuracy > 10) {
-            occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
-            LOG.debug("Ignoring coordinatePrecision > 10 as highly unlikely");
+        if (meters.getPayload() != 0 && meters.getPayload() > 10) {
+          BigDecimal bd = BigDecimalUtils.fromDouble(meters.getPayload(), true);
 
-          } else if (occ.getCoordinateAccuracy() != null) {
-            if (Math.abs(occ.getCoordinateAccuracy() - accuracy) > 0.01) {
-              occ.getIssues().add(OccurrenceIssue.COORDINATE_PRECISION_UNCERTAINTY_MISMATCH);
-              LOG.debug("coordinateAccuracy derived from precision {} is different from uncertaintyInMeters {}", occ.getCoordinateAccuracy(), accuracy);
-            }
-
-          } else {
-            occ.setCoordinateAccuracy(accuracy);
+          // the goal here is to remove the decimal part if
+          if(bd.divideAndRemainder(BigDecimal.ONE)[1].intValue() == 0){
+            occ.setCoordinateUncertaintyInMeters(new BigDecimal(new Double(meters.getPayload()).intValue()));
+          }
+          else{
+            //it is safer to build a BigDecimal from a String than a Double
+            occ.setCoordinateUncertaintyInMeters(bd);
           }
 
         } else {
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+          LOG.debug("Ignoring coordinateUncertaintyInMeters, value invalid or highly unlikely");
+          occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);
         }
       } else {
-        occ.getIssues().add(OccurrenceIssue.COORDINATE_ACCURACY_INVALID);
+        occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);
       }
     }
   }
