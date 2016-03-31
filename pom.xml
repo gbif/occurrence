@@ -46,6 +46,7 @@
     <module>occurrence-ws-client</module>
     <module>occurrence-hive</module>
     <module>occurrence-download</module>
+    <module>occurrence-hdfs-table</module>
   </modules>
 
   <properties>
@@ -295,6 +296,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-hdfs-table</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

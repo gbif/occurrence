@@ -30,5 +30,9 @@ SELECT
   occurrenceid,
   mediatype,
   issue,
-  scientificname
+  scientificname,
+  removeNulls(array(
+  <#list fields as field>
+    ${field.initializer}<#if field_has_next>,</#if>
+  </#list>))
 FROM ${sourceOccurrenceTable} occ;
