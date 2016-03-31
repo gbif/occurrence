@@ -29,7 +29,6 @@ final class HiveDataTypes {
   static final String TYPE_DOUBLE = "DOUBLE";
   static final String TYPE_BIGINT = "BIGINT";
   static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
-  static final String TYPE_DECIMAL = "DECIMAL";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.<Term>of(GbifTerm.mediaType, GbifTerm.issue);
@@ -66,8 +65,6 @@ final class HiveDataTypes {
                                                                       GbifTerm.depthAccuracy);
   private static final Set<Term> BOOLEAN_TERMS =
     ImmutableSet.<Term>of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
-  private static final Set<Term> DECIMAL_TERMS = ImmutableSet.<Term>of(DwcTerm.coordinateUncertaintyInMeters,
-          DwcTerm.coordinatePrecision);
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = ImmutableMap.<Term, String>builder()
@@ -76,8 +73,7 @@ final class HiveDataTypes {
       .putAll(Maps.asMap(DOUBLE_TERMS, Functions.constant(TYPE_DOUBLE)))
       .putAll(Maps.asMap(BOOLEAN_TERMS, Functions.constant(TYPE_BOOLEAN)))
       .putAll(Maps.asMap(ARRAY_STRING_TERMS, Functions.constant(TYPE_ARRAY_STRING)))
-      .putAll(Maps.asMap(DECIMAL_TERMS, Functions.constant(TYPE_DECIMAL)))
-            .build();
+      .build();
   }
 
   /**
