@@ -61,6 +61,8 @@ public class DownloadTerms {
                                                                               GbifInternalTerm.publishingOrgKey,
                                                                               DwcTerm.decimalLatitude,
                                                                               DwcTerm.decimalLongitude,
+                                                                              DwcTerm.coordinateUncertaintyInMeters,
+                                                                              DwcTerm.coordinatePrecision,
                                                                               GbifTerm.elevation,
                                                                               GbifTerm.elevationAccuracy,
                                                                               GbifTerm.depth,

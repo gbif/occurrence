@@ -194,6 +194,9 @@ public final class Terms {
                                  GbifTerm.publishingCountry,
                                  GbifTerm.lastInterpreted,
                                  DcTerm.modified,
+                                 DwcTerm.coordinateUncertaintyInMeters,
+                                 DwcTerm.coordinatePrecision,
+                                 //coordinateAccuracy is deprecated, see POR-3061
                                  GbifTerm.coordinateAccuracy,
                                  GbifTerm.elevation,
                                  GbifTerm.elevationAccuracy,
