@@ -58,6 +58,8 @@ final class HiveDataTypes {
                                                                    GbifInternalTerm.identifierCount);
   private static final Set<Term> DOUBLE_TERMS = ImmutableSet.<Term>of(DwcTerm.decimalLatitude,
                                                                       DwcTerm.decimalLongitude,
+                                                                      DwcTerm.coordinateUncertaintyInMeters,
+                                                                      DwcTerm.coordinatePrecision,
                                                                       GbifTerm.coordinateAccuracy,
                                                                       GbifTerm.elevation,
                                                                       GbifTerm.elevationAccuracy,

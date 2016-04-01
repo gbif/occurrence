@@ -420,7 +420,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     //we only store one digit for coordinateUncertaintyInMeters
     if (!nullSafeEquals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
-      upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, nullSafeRoundHalfUp(occ.getCoordinateUncertaintyInMeters(), 1));
+      upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
     }
     if (!nullSafeEquals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
       upd.setInterpretedField(DwcTerm.coordinatePrecision, occ.getCoordinatePrecision());

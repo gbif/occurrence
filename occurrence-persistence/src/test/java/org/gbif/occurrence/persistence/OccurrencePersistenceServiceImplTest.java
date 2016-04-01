@@ -375,7 +375,7 @@ public class OccurrencePersistenceServiceImplTest {
     // update everything but unique identifier pieces
     Occurrence update = occurrenceService.get(KEY);
 
-    BigDecimal coordinateUncertaintyInMeters = new BigDecimal("50.55");
+    Double coordinateUncertaintyInMeters = 50.55d;
     Date origLastParsed = update.getLastParsed();
     double alt = 1234.2;
     BasisOfRecord bor = BasisOfRecord.OBSERVATION;
@@ -492,8 +492,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(lastInterpreted, occ.getLastInterpreted());
     assertEquals(lat, occ.getDecimalLatitude(), 0.0001);
     assertEquals(lng, occ.getDecimalLongitude(), 0.0001);
-    //we should only store 1 decimal
-    assertEquals(coordinateUncertaintyInMeters.setScale(1, BigDecimal.ROUND_HALF_UP), occ.getCoordinateUncertaintyInMeters());
+    assertEquals(coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
     assertEquals(mod, occ.getModified());
     assertEquals(month, (int) occ.getMonth());
     assertEquals(nubId, (int) occ.getTaxonKey());

@@ -96,7 +96,7 @@ public class LocationInterpreterTest {
 
     interpreter.interpretCoordinateUncertaintyAndPrecision(occ, verb);
 
-    assertEquals(new BigDecimal(500), occ.getCoordinateUncertaintyInMeters());
+    assertEquals(new Double(500), occ.getCoordinateUncertaintyInMeters());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COORDINATE_PRECISION_INVALID));
     assertNull(occ.getCoordinatePrecision());
     assertEquals(1, occ.getIssues().size());
