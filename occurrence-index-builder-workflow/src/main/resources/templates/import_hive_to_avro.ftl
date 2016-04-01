@@ -1,6 +1,6 @@
 CREATE TEMPORARY FUNCTION removeNulls AS 'org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF';
 
-INSERT OVERWRITE TABLE ${avroTable}
+INSERT OVERWRITE TABLE ${r"${avroTable}"}
 SELECT
   gbifid,
   datasetkey,
@@ -33,6 +33,6 @@ SELECT
   scientificname,
   removeNulls(array(
   <#list fields as field>
-    ${field.initializer}<#if field_has_next>,</#if>
+    ${field}<#if field_has_next>,</#if>
   </#list>))
-FROM ${sourceOccurrenceTable} occ;
+FROM ${r"${sourceOccurrenceTable}"} occ;

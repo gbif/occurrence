@@ -40,5 +40,6 @@ TBLPROPERTIES (
     {"name":"occurrence_id","type":["string", "null"]},
     {"name":"media_type","type":["null",{"type":"array", "items":"string"}],"default":null},
     {"name":"issue","type":["null",{"type":"array", "items":"string"}],"default":null},
-    {"name":"scientific_name","type":["string", "null"]}]
+    {"name":"scientific_name","type":["string", "null"]},
+    {"name":"full_text","type":["null",{"type":"array", "items":"string"}],"default":null}]
 }');
