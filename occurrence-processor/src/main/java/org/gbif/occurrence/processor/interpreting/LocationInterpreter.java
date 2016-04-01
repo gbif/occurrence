@@ -7,6 +7,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.ContinentParser;
 import org.gbif.common.parsers.CountryParser;
+import org.gbif.common.parsers.NumberParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.DoubleAccuracy;
@@ -14,9 +15,6 @@ import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
-import org.gbif.utils.number.BigDecimalUtils;
-
-import java.math.BigDecimal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -189,17 +187,15 @@ public class LocationInterpreter {
   @VisibleForTesting
   protected void interpretCoordinateUncertaintyAndPrecision(Occurrence occ, VerbatimOccurrence verbatim) {
     if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
-      BigDecimal coordinatePrecision = null;
-      try {
-        // accept negative precisions and mirror
-        coordinatePrecision = new BigDecimal(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim()).abs();
-      } catch (final NumberFormatException ignore) {}
+      Double coordinatePrecision = NumberParser.parseDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim());
+      if(coordinatePrecision != null){
+        coordinatePrecision = Math.abs(coordinatePrecision);
+      }
 
       // accepted values are 0, greater than or equal to 1. Since "1.0" means nearest degree, not sure what a value
       // greater than 1 means.
       if (coordinatePrecision != null && coordinatePrecision.doubleValue() >= 0 &&
               coordinatePrecision.doubleValue() <= 1) {
-        //it is safer to build a BigDecimal from a String than a Double
         occ.setCoordinatePrecision(coordinatePrecision);
       }
       else{
@@ -209,25 +205,11 @@ public class LocationInterpreter {
     }
 
     if (verbatim.hasVerbatimField(DwcTerm.coordinateUncertaintyInMeters)) {
-      // accept negative precisions and mirror
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
-      if (meters.isSuccessful()) {
-        if (meters.getPayload() != 0 && meters.getPayload() > 10) {
-          BigDecimal bd = BigDecimalUtils.fromDouble(meters.getPayload(), true);
-
-          // the goal here is to remove the decimal part if
-          if(bd.divideAndRemainder(BigDecimal.ONE)[1].intValue() == 0){
-            occ.setCoordinateUncertaintyInMeters(new BigDecimal(new Double(meters.getPayload()).intValue()));
-          }
-          else{
-            //it is safer to build a BigDecimal from a String than a Double
-            occ.setCoordinateUncertaintyInMeters(bd);
-          }
-
-        } else {
-          LOG.debug("Ignoring coordinateUncertaintyInMeters, value invalid or highly unlikely");
-          occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);
-        }
+      Double coordinateUncertaintyInMeters = meters.isSuccessful() ? Math.abs(meters.getPayload()) : null;
+      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters != 0 &&
+              coordinateUncertaintyInMeters > 10) {
+        occ.setCoordinateUncertaintyInMeters(coordinateUncertaintyInMeters);
       } else {
         occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);
       }

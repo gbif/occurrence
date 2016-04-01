@@ -185,8 +185,8 @@ public class OccurrenceBuilder {
       occ.setDecimalLatitude(ExtResultReader.getDouble(row, DwcTerm.decimalLatitude));
       occ.setDecimalLongitude(ExtResultReader.getDouble(row, DwcTerm.decimalLongitude));
       occ.setCoordinateAccuracy(ExtResultReader.getDouble(row, GbifTerm.coordinateAccuracy));
-      occ.setCoordinatePrecision(ExtResultReader.getBigDecimal(row, DwcTerm.coordinatePrecision));
-      occ.setCoordinateUncertaintyInMeters(ExtResultReader.getBigDecimal(row, DwcTerm.coordinateUncertaintyInMeters));
+      occ.setCoordinatePrecision(ExtResultReader.getDouble(row, DwcTerm.coordinatePrecision));
+      occ.setCoordinateUncertaintyInMeters(ExtResultReader.getDouble(row, DwcTerm.coordinateUncertaintyInMeters));
       occ.setCountry(Country.fromIsoCode(ExtResultReader.getString(row, DwcTerm.countryCode)));
       occ.setStateProvince(ExtResultReader.getString(row, DwcTerm.stateProvince));
       occ.setContinent(ExtResultReader.getEnum(row, DwcTerm.continent, Continent.class));
