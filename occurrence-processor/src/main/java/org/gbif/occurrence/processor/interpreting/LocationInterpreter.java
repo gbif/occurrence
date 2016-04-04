@@ -41,7 +41,6 @@ public class LocationInterpreter {
   private static final double COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND = 5000000;
 
   private static final double COORDINATE_PRECISION_LOWER_BOUND = 0;
-  // maybe too restrictive
   private static final double COORDINATE_PRECISION_UPPER_BOUND = 1;
 
   @Inject
