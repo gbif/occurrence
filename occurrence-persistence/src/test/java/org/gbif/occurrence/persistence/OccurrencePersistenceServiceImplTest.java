@@ -27,7 +27,6 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Date;
@@ -105,7 +104,7 @@ public class OccurrencePersistenceServiceImplTest {
 
   // newer fields from occurrence widening
   private static final Double ELEV_ACC = 10d;
-  private static final BigDecimal UNCERTAINTY_METERS = new BigDecimal("50.5");
+  private static final Double UNCERTAINTY_METERS = new Double(50.5);
   private static final Continent CONTINENT = Continent.AFRICA;
   private static final Country COUNTRY = Country.TANZANIA;
   private static final Date DATE_IDENTIFIED = new Date();
