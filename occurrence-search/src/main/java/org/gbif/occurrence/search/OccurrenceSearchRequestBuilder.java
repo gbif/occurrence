@@ -3,20 +3,21 @@ package org.gbif.occurrence.search;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.common.search.util.QueryUtils;
-import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.Envelope;
@@ -24,7 +25,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.util.SolrPluginUtils;
 
 import static org.gbif.common.search.util.QueryUtils.PARAMS_AND_JOINER;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
@@ -54,9 +54,20 @@ public class OccurrenceSearchRequestBuilder {
 
     private static final String TERM_PATTERN = "%1$s^%2$s %1$s~%3$s^%4$s";
 
+    private static final String NON_TOKENIZED_QUERY_PATTERN = ":%1$s^1000";
+
+    private static final Set<String> NON_TOKENIZABLE_FIELDS =
+      ImmutableSet.<String>of(OccurrenceSolrField.CATALOG_NUMBER.getFieldName() + NON_TOKENIZED_QUERY_PATTERN,
+                              OccurrenceSolrField.OCCURRENCE_ID.getFieldName() + NON_TOKENIZED_QUERY_PATTERN);
+
+
+    private static final String NON_TOKENIZED_QUERY = QueryUtils.PARAMS_OR_JOINER.join(NON_TOKENIZABLE_FIELDS);
+
     private static final Integer MAX_SCORE = 100;
 
     private static final Integer SCORE_DECREMENT = 20;
+
+
 
     /**
      * Query parameter.
@@ -66,21 +77,15 @@ public class OccurrenceSearchRequestBuilder {
       return this;
     }
 
-    /**
-     * Fuzzy edit distance.
-     */
-    private OccurrenceFullTextQueryBuilder withFuzzyDistance(Double fuzzyDistance){
-      this.fuzzyDistance = fuzzyDistance;
-      return this;
-    }
 
     /**
      * Builds a Solr expression query with the form: "term1 ..termN" term1^100 term1~0.7^50 ... termN^20 termN~0.7^10.
      * Each boosting parameter is calculated using the formula:  MAX_SCORE - SCORE_DECREMENT * i. Where 'i' is the
      * position of the term in the query.
      */
-    public String build(){
+    public String build() {
       String[] qs = q.split(" ");
+      String unTokenizedFieldsQuery = String.format(NON_TOKENIZED_QUERY,q);
       if(qs.length > 1){
         StringBuilder ftQ = new StringBuilder();
         ftQ.append(QueryUtils.toPhraseQuery(q) +  ' ');
@@ -91,9 +96,10 @@ public class OccurrenceSearchRequestBuilder {
             ftQ.append(' ');
           }
         }
-        return ftQ.toString();
+        return QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery,ftQ.toString());
       }
-      return String.format(TERM_PATTERN,q,MAX_SCORE,fuzzyDistance,MAX_SCORE/2);
+      return  QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery,
+                                               String.format(TERM_PATTERN,q,MAX_SCORE,fuzzyDistance,MAX_SCORE/2));
     }
   }
 
@@ -143,8 +149,8 @@ public class OccurrenceSearchRequestBuilder {
 
   private final int maxLimit;
 
-  public final static int MAX_OFFSET = 1000000;
-  public final static int MAX_PAGE_SIZE = 300;
+  public static final int MAX_OFFSET = 1000000;
+  public static final int MAX_PAGE_SIZE = 300;
 
   /**
    * Default constructor.
@@ -179,8 +185,8 @@ public class OccurrenceSearchRequestBuilder {
   }
 
   public SolrQuery build(@Nullable OccurrenceSearchRequest request) {
-    final int maxOffset = this.maxOffset - request.getLimit();
-    Preconditions.checkArgument(request.getOffset() <= maxOffset, "maximum offset allowed is %s", this.maxOffset);
+    Preconditions.checkArgument(request.getOffset() <= maxOffset - request.getLimit(),
+                                "maximum offset allowed is %s", this.maxOffset);
 
     SolrQuery solrQuery = new SolrQuery();
     // q param
@@ -210,7 +216,7 @@ public class OccurrenceSearchRequestBuilder {
   private static void addDateQuery(Multimap<OccurrenceSearchParameter, String> params,
     OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField, List<String> filterQueries) {
     if (params.containsKey(dateParam)) {
-      List<String> dateParams = new ArrayList<String>();
+      Collection<String> dateParams = new ArrayList<String>();
       for (String value : params.get(dateParam)) {
         dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
       }
@@ -222,9 +228,10 @@ public class OccurrenceSearchRequestBuilder {
    * Add the occurrence bounding box and polygon parameters.
    * Those 2 parameters are returned in 1 filter expression because both refer to same Solr field: coordinate.
    */
-  private static void addLocationQuery(Multimap<OccurrenceSearchParameter, String> params, List<String> filterQueries) {
+  private static void addLocationQuery(Multimap<OccurrenceSearchParameter,String> params,
+                                       Collection<String> filterQueries) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      List<String> locationParams = new ArrayList<String>();
+      Collection<String> locationParams = new ArrayList<String>();
       for (String value : params.get(OccurrenceSearchParameter.GEOMETRY)) {
         locationParams
           .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));

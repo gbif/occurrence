@@ -1,7 +1,15 @@
 package org.gbif.occurrence.search;
 
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.occurrence.search.solr.OccurrenceSolrField;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKTReader;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -10,6 +18,13 @@ import static org.junit.Assert.assertEquals;
  *
  */
 public class OccurrenceSearchRequestBuilderTest {
+
+  private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<String, SolrQuery.ORDER>();
+
+  static {
+    SORT_ORDER.put(OccurrenceSolrField.YEAR.getFieldName(), SolrQuery.ORDER.desc);
+    SORT_ORDER.put(OccurrenceSolrField.MONTH.getFieldName(), SolrQuery.ORDER.asc);
+  }
 
   @Test
   public void testParseGeometryParam() throws Exception {
@@ -21,5 +36,14 @@ public class OccurrenceSearchRequestBuilderTest {
     Geometry geometry = wktReader.read(dagWkt);
     System.out.println("Geometry valid " + geometry.isValid());
     System.out.println(OccurrenceSearchRequestBuilder.parseGeometryParam(dagWkt));
+  }
+
+  @Test
+  public void fullTextQueryTest(){
+    OccurrenceSearchRequestBuilder requestBuilder = new OccurrenceSearchRequestBuilder("search",SORT_ORDER,10000,20);
+    OccurrenceSearchRequest request = new OccurrenceSearchRequest();
+    request.setQ("cat");
+    SolrQuery query  = requestBuilder.build(request);
+    Assert.assertEquals(query.get("q"),"catalog_number:cat^1000 OR occurrence_id:cat^1000 OR cat^100 cat~0.7^50");
   }
 }
