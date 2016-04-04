@@ -418,16 +418,11 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!nullSafeEquals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
       upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
     }
-    //we only store one digit for coordinateUncertaintyInMeters
     if (!nullSafeEquals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
       upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
     }
     if (!nullSafeEquals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
       upd.setInterpretedField(DwcTerm.coordinatePrecision, occ.getCoordinatePrecision());
-    }
-    // should we remove it ?
-    if (!nullSafeEquals(oldOcc.getCoordinateAccuracy(), occ.getCoordinateAccuracy())) {
-      upd.setInterpretedField(GbifTerm.coordinateAccuracy, occ.getCoordinateAccuracy());
     }
     if (!nullSafeEquals(oldOcc.getContinent(), occ.getContinent())) {
       upd.setInterpretedField(DwcTerm.continent, occ.getContinent());

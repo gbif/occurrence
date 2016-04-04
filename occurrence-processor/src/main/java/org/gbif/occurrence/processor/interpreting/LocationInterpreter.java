@@ -34,8 +34,15 @@ public class LocationInterpreter {
   private static final CountryParser PARSER = CountryParser.getInstance();
 
   private final CoordinateInterpreter coordinateInterpreter;
-  // taken from https://en.wikipedia.org/wiki/Geographic_coordinate_system#Expressing_latitude_and_longitude_as_linear_units
-  private static final int LAT_DEGREE_IN_METER = 110580;
+
+  // COORDINATE_UNCERTAINTY_METERS bounds are exclusive bounds
+  private static final double COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND = 0;
+  // 5000 km seems safe
+  private static final double COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND = 5000000;
+
+  private static final double COORDINATE_PRECISION_LOWER_BOUND = 0;
+  // maybe too restrictive
+  private static final double COORDINATE_PRECISION_UPPER_BOUND = 1;
 
   @Inject
   public LocationInterpreter(CoordinateInterpreter coordinateInterpreter) {
@@ -192,10 +199,8 @@ public class LocationInterpreter {
         coordinatePrecision = Math.abs(coordinatePrecision);
       }
 
-      // accepted values are 0, greater than or equal to 1. Since "1.0" means nearest degree, not sure what a value
-      // greater than 1 means.
-      if (coordinatePrecision != null && coordinatePrecision.doubleValue() >= 0 &&
-              coordinatePrecision.doubleValue() <= 1) {
+      if (coordinatePrecision != null && coordinatePrecision.doubleValue() >= COORDINATE_PRECISION_LOWER_BOUND &&
+              coordinatePrecision.doubleValue() <= COORDINATE_PRECISION_UPPER_BOUND) {
         occ.setCoordinatePrecision(coordinatePrecision);
       }
       else{
@@ -207,8 +212,8 @@ public class LocationInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.coordinateUncertaintyInMeters)) {
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
       Double coordinateUncertaintyInMeters = meters.isSuccessful() ? Math.abs(meters.getPayload()) : null;
-      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters != 0 &&
-              coordinateUncertaintyInMeters > 10) {
+      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters > COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND &&
+              coordinateUncertaintyInMeters < COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND) {
         occ.setCoordinateUncertaintyInMeters(coordinateUncertaintyInMeters);
       } else {
         occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 @Ignore("Requires live webservices")
 public class LocationInterpreterTest {
-  static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
+  static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final LocationInterpreter interpreter;
   static {
     cfg.url = URI.create("http://api.gbif-uat.org/v1/");
