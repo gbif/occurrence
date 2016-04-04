@@ -35,7 +35,8 @@ public class LocationInterpreter {
 
   private final CoordinateInterpreter coordinateInterpreter;
 
-  private static final double COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND = 10;
+  // COORDINATE_UNCERTAINTY_METERS bounds are exclusive bounds
+  private static final double COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND = 0;
   // 5000 km seems safe
   private static final double COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND = 5000000;
 
@@ -211,8 +212,8 @@ public class LocationInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.coordinateUncertaintyInMeters)) {
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
       Double coordinateUncertaintyInMeters = meters.isSuccessful() ? Math.abs(meters.getPayload()) : null;
-      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters >= COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND &&
-              coordinateUncertaintyInMeters <= COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND) {
+      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters > COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND &&
+              coordinateUncertaintyInMeters < COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND) {
         occ.setCoordinateUncertaintyInMeters(coordinateUncertaintyInMeters);
       } else {
         occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);
