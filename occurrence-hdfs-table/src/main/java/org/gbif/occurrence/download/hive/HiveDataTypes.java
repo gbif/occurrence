@@ -21,14 +21,14 @@ import com.google.common.collect.Maps;
  * whether it is used in the verbatim or interpreted context.  E.g. dwc:decimalLatitude may be a hive STRING when used
  * in verbatim, but a DOUBLE when interpreted.
  */
-final class HiveDataTypes {
+public final class HiveDataTypes {
 
-  static final String TYPE_STRING = "STRING";
-  static final String TYPE_BOOLEAN = "BOOLEAN";
-  static final String TYPE_INT = "INT";
-  static final String TYPE_DOUBLE = "DOUBLE";
-  static final String TYPE_BIGINT = "BIGINT";
-  static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
+  public static final String TYPE_STRING = "STRING";
+  public static final String TYPE_BOOLEAN = "BOOLEAN";
+  public static final String TYPE_INT = "INT";
+  public static final String TYPE_DOUBLE = "DOUBLE";
+  public static final String TYPE_BIGINT = "BIGINT";
+  public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.<Term>of(GbifTerm.mediaType, GbifTerm.issue);
