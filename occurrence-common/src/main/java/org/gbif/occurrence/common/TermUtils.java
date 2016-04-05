@@ -51,7 +51,8 @@ public class TermUtils {
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet
     .of(DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, GbifTerm.coordinateAccuracy, GbifTerm.elevation,
-      GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy);
+      GbifTerm.elevationAccuracy, GbifTerm.depth, GbifTerm.depthAccuracy,
+        DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision);
 
   private static final Set<? extends Term> NON_OCCURRENCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(Iterables
     .concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
