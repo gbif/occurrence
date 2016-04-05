@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.HiveColumns;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
+import org.gbif.occurrence.search.writer.FullTextFieldBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -49,6 +50,7 @@ public class OccurrenceSearchFieldsDefinition {
                                                                                        HiveDataTypes.TYPE_BOOLEAN);
 
   private static final Set<Term> TEMPORAL_FIELDS = ImmutableSet.<Term>of(DwcTerm.year, DwcTerm.month, DwcTerm.day);
+
   private static final Predicate<Term> NON_SEARCHABLE_TYPES = new Predicate<Term>() {
     @Override
     public boolean apply(@Nullable Term input) {
@@ -58,10 +60,8 @@ public class OccurrenceSearchFieldsDefinition {
     }
   };
 
-  private static final Set<Term> NON_TOKENIZABLE_FIELDS = ImmutableSet.<Term>of(DwcTerm.catalogNumber,
-                                                                                DwcTerm.occurrenceID);
-
-  private static final Set<Term> SEARCH_FIELDS = Sets.difference(Sets.filter(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS,NON_SEARCHABLE_TYPES), NON_TOKENIZABLE_FIELDS);
+  private static final Set<Term> SEARCH_FIELDS = Sets.difference(Sets.filter(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS,NON_SEARCHABLE_TYPES),
+                                                                 FullTextFieldBuilder.NON_FULL_TEXT_TERMS);
 
   private static final String HIVE_OUT_DIR = "hive-scripts/";
 

@@ -33,26 +33,26 @@ class IndexUpdaterService extends AbstractIdleService {
   protected void startUp() throws Exception {
     configuration.ganglia.start();
 
-    SolrOccurrenceWriter solrOccurrenceWriter =
-      new SolrOccurrenceWriter(buildSolrServer(configuration), configuration.commitWithinMs);
+    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
+                                                                         configuration.commitWithinMs);
     listener = new MessageListener(configuration.messaging.getConnectionParameters());
     listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter));
   }
 
   /**
-   * Creates a Solr server instance according to the parameters defined in the configuration object.
+   * Creates a Solr server instance according to the parameters defined in the idxConfiguration object.
    */
-  private SolrClient buildSolrServer(IndexingConfiguration configuration) {
-    if (Strings.isNullOrEmpty(configuration.solrServerType)
-      || SolrServerType.HTTP.name().equalsIgnoreCase(configuration.solrServerType)) {
-      return new HttpSolrClient(configuration.solrServer);
-    } else if (SolrServerType.CLOUD.name().equalsIgnoreCase(configuration.solrServerType)) {
+  private static SolrClient buildSolrServer(IndexingConfiguration idxConfiguration) {
+    if (Strings.isNullOrEmpty(idxConfiguration.solrServerType) ||
+        SolrServerType.HTTP.name().equalsIgnoreCase(idxConfiguration.solrServerType)) {
+      return new HttpSolrClient(idxConfiguration.solrServer);
+    } else if (SolrServerType.CLOUD.name().equalsIgnoreCase(idxConfiguration.solrServerType)) {
       CloudSolrServerBuilder cloudSolrServerBuilder = new CloudSolrServerBuilder();
-      cloudSolrServerBuilder.withDefaultCollection(configuration.solrCollection).withZkHost(configuration.solrServer);
+      cloudSolrServerBuilder.withDefaultCollection(idxConfiguration.solrCollection).withZkHost(idxConfiguration.solrServer);
       return cloudSolrServerBuilder.build();
     } else {
       throw new IllegalArgumentException(String.format("Solr server type %s not supported",
-        configuration.solrServerType));
+        idxConfiguration.solrServerType));
     }
   }
 }

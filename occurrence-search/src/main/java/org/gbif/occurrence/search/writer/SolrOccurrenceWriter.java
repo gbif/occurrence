@@ -6,17 +6,27 @@ package org.gbif.occurrence.search.writer;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
@@ -47,13 +57,13 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ESTABLISHMENT_MEANS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.OCCURRENCE_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField. FULL_TEXT;
 
 
 /**
  * Utility class that stores an Occurrence record into a Solr index.
  */
 public class SolrOccurrenceWriter {
-
 
   // Joins coordinates with ','
   private static final Joiner COORD_JOINER = Joiner.on(',').useForNull("");
@@ -68,6 +78,7 @@ public class SolrOccurrenceWriter {
   private final SolrClient solrClient;
 
   private final int commitWithinMs;
+
 
   /**
    * Default constructor.
@@ -114,8 +125,8 @@ public class SolrOccurrenceWriter {
    */
   private SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
-    final Double latitude = occurrence.getDecimalLatitude();
-    final Double longitude = occurrence.getDecimalLongitude();
+    Double latitude = occurrence.getDecimalLatitude();
+    Double longitude = occurrence.getDecimalLongitude();
 
     doc.setField(KEY.getFieldName(), occurrence.getKey());
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
@@ -161,6 +172,7 @@ public class SolrOccurrenceWriter {
     doc.setField(ESTABLISHMENT_MEANS.getFieldName(),
       occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
+    doc.setField(FULL_TEXT.getFieldName(),FullTextFieldBuilder.buildFullTextField(occurrence));
     return doc;
   }
 
@@ -168,7 +180,7 @@ public class SolrOccurrenceWriter {
   /**
    * Returns a nullable set of String that contains the media types present in the occurrence object.
    */
-  private Set<String> buildMediaType(Occurrence occurrence) {
+  private static Set<String> buildMediaType(Occurrence occurrence) {
     Set<String> mediaTypes = null;
     if (occurrence.getMedia() != null && !occurrence.getMedia().isEmpty()) {
       mediaTypes = Sets.newHashSet();
@@ -184,7 +196,7 @@ public class SolrOccurrenceWriter {
   /**
    * Return a set of integer that contains the taxon key values.
    */
-  private Set<Integer> buildTaxonKey(Occurrence occurrence) {
+  private static Set<Integer> buildTaxonKey(Occurrence occurrence) {
 
     Set<Integer> taxonKey = new HashSet<Integer>();
 

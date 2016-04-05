@@ -356,7 +356,6 @@
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>

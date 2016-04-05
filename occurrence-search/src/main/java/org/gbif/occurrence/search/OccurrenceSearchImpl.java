@@ -11,6 +11,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.common.search.builder.SpellCheckResponseBuilder;
 import org.gbif.common.search.exception.SearchException;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
@@ -90,6 +91,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
     SolrDocumentList results = queryResponse.getResults();
+
     // set total count
     response.setCount(results.getNumFound());
     // Populates the results
@@ -106,6 +108,9 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     }
     if (request.getLimit() > OccurrenceSearchRequestBuilder.MAX_PAGE_SIZE) {
       response.setLimit(OccurrenceSearchRequestBuilder.MAX_PAGE_SIZE);
+    }
+    if (queryResponse.getSpellCheckResponse() != null) {
+      response.setSpellCheckResponse(SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
     }
     response.setResults(occurrences);
     return response;

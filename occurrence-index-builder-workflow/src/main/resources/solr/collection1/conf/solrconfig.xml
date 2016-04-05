@@ -495,8 +495,8 @@
       <str name="spellcheck.maxResultsForSuggest">5</str>
       <str name="spellcheck.collate">true</str>
       <str name="spellcheck.collateExtendedResults">true</str>
-      <str name="spellcheck.maxCollationTries">10</str>
-      <str name="spellcheck.maxCollations">5</str>
+      <str name="spellcheck.maxCollationTries">3</str>
+      <str name="spellcheck.maxCollations">3</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
