@@ -60,13 +60,19 @@ public class FullTextFieldBuilder {
       }
 
       for(Map.Entry<Term,String> verbatimField : occurrence.getVerbatimFields().entrySet()){
-        if(!NON_FULL_TEXT_TERMS.contains(verbatimField.getKey())) {
+        if(verbatimField.getValue() != null && !NON_FULL_TEXT_TERMS.contains(verbatimField.getKey())) {
           fullTextField.add(verbatimField.getValue());
         }
       }
-      fullTextField.add(occurrence.getYear().toString());
-      fullTextField.add(occurrence.getMonth().toString());
-      fullTextField.add(occurrence.getDay().toString());
+      if(occurrence.getYear() != null) {
+        fullTextField.add(occurrence.getYear().toString());
+      }
+      if(occurrence.getMonth() != null) {
+        fullTextField.add(occurrence.getMonth().toString());
+      }
+      if(occurrence.getDay() != null) {
+        fullTextField.add(occurrence.getDay().toString());
+      }
     } catch (Exception ex) {
       LOG.error("Error extracting values for the full_text field", ex);
     }

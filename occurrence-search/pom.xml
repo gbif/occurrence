@@ -105,11 +105,6 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils-core</artifactId>
-      <version>${commons-beanutils-core.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -132,6 +127,10 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
     </dependency>
 
     <!-- Test scope -->
