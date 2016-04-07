@@ -99,9 +99,7 @@ public class PublishingOrgInterpreter {
       if (dataset != null && dataset.getPublishingOrganizationKey() != null) {
         org = orgCache.get(dataset.getPublishingOrganizationKey());
       }
-    } catch (UncheckedExecutionException e) {
-      LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);
-    } catch (ExecutionException e) {
+    } catch (UncheckedExecutionException | ExecutionException e) {
       LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);
     }
 
@@ -122,9 +120,7 @@ public class PublishingOrgInterpreter {
     Organization org = null;
     try {
       org = orgCache.get(organizationKey);
-    } catch (UncheckedExecutionException e) {
-      LOG.warn("WS failure while looking up country for org [{}]", organizationKey, e);
-    } catch (ExecutionException e) {
+    } catch (UncheckedExecutionException | ExecutionException e) {
       LOG.warn("WS failure while looking up country for org [{}]", organizationKey, e);
     }
 

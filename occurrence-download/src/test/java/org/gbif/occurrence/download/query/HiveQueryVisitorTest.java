@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.service;
+package org.gbif.occurrence.download.query;
 
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;

@@ -35,7 +35,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.apache.solr.client.solrj.SolrQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.constraint.NotNull;
@@ -46,6 +45,8 @@ import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
  * Actor that creates part files of for the DwcA download format.
@@ -94,9 +95,9 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
-  private static void writeMediaObjects(
-    ICsvBeanWriter multimediaCsvWriter, org.apache.hadoop.hbase.client.Result result, Integer occurrenceKey
-  ) throws IOException {
+  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter,
+                                        org.apache.hadoop.hbase.client.Result result,
+                                        Integer occurrenceKey) throws IOException {
     List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
@@ -105,18 +106,6 @@ public class DownloadDwcaActor extends UntypedActor {
                                   MEDIA_CELL_PROCESSORS);
       }
     }
-  }
-
-  /**
-   * Creates a SolrQuery that contains the query parameter as the filter query value.
-   */
-  private static SolrQuery createSolrQuery(String query) {
-    SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setQuery(SolrConstants.DEFAULT_QUERY);
-    if (!Strings.isNullOrEmpty(query)) {
-      solrQuery.addFilterQuery(query);
-    }
-    return solrQuery;
   }
 
   /**
@@ -246,7 +235,7 @@ public class DownloadDwcaActor extends UntypedActor {
 
     @Override
     public String execute(Object value, CsvContext context) {
-      return value != null ? ((String) value).replaceAll(DownloadUtils.DELIMETERS_MATCH, " ") : "";
+      return value != null ? DELIMETERS_MATCH_PATTERN.matcher((String) value).replaceAll(" ") : "";
     }
 
   }

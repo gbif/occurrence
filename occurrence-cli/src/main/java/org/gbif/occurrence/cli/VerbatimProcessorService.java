@@ -20,7 +20,6 @@ import org.apache.hadoop.hbase.client.HTablePool;
 public class VerbatimProcessorService extends AbstractIdleService {
 
   private final ProcessorCliConfiguration cfg;
-  private CuratorFramework curator;
   private final Set<MessageListener> listeners = Sets.newHashSet();
   private final Collection<HTablePool> tablePools = Lists.newArrayList();
 
@@ -36,12 +35,12 @@ public class VerbatimProcessorService extends AbstractIdleService {
 
     MessageListener listener = new MessageListener(cfg.messaging.getConnectionParameters());
     listener.listen(cfg.primaryQueueName, cfg.msgPoolSize,
-      new FragmentPersistedListener(inj.getInstance(VerbatimProcessor.class)));
+                    new FragmentPersistedListener(inj.getInstance(VerbatimProcessor.class)));
     listeners.add(listener);
 
     listener = new MessageListener(cfg.messaging.getConnectionParameters());
     listener.listen(cfg.secondaryQueueName, cfg.msgPoolSize,
-      new ParseFragmentListener(inj.getInstance(VerbatimProcessor.class)));
+                    new ParseFragmentListener(inj.getInstance(VerbatimProcessor.class)));
     listeners.add(listener);
   }
 
@@ -51,9 +50,6 @@ public class VerbatimProcessorService extends AbstractIdleService {
       if (listener != null) {
         listener.close();
       }
-    }
-    if (curator != null) {
-      curator.close();
     }
     for (HTablePool pool : tablePools) {
       if (pool != null) {

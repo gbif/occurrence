@@ -129,12 +129,12 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
       dwcXMLDocument.append(GbifTerm.lastCrawled, toISODateTime(occurrence.getLastCrawled()));
       dwcXMLDocument.append(GbifTerm.lastParsed, toISODateTime(occurrence.getLastParsed()));
 
-      for (OccurrenceIssue issue : occurrence.getIssues()){
+      for (OccurrenceIssue issue : occurrence.getIssues()) {
         dwcXMLDocument.append(GbifTerm.issue, issue.toString());
       }
 
       // handle verbatim values
-      for(Term term : occurrence.getVerbatimFields().keySet()){
+      for (Term term : occurrence.getVerbatimFields().keySet()) {
         dwcXMLDocument.tryAppend(term, occurrence.getVerbatimField(term));
       }
 
@@ -166,8 +166,8 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
     entityStream.write(occurrenceXMLAsByteArray(occurrence));
   }
 
-  private void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value){
-    if(value == null){
+  private void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value) {
+    if (value == null) {
       return;
     }
     dwcXMLDocument.append(DwcTerm.countryCode, value.getIso2LetterCode());
@@ -181,8 +181,8 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DwcTerm term, Object value){
-    if(value == null){
+  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DwcTerm term, Object value) {
+    if (value == null) {
       return;
     }
     dwcXMLDocument.append(term, value.toString());
@@ -195,8 +195,8 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DcTerm term, Object value){
-    if(value == null){
+  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DcTerm term, Object value) {
+    if (value == null) {
       return;
     }
     dwcXMLDocument.append(term, value.toString());
@@ -209,15 +209,15 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, GbifTerm term, Object value){
-    if(value == null){
+  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, GbifTerm term, Object value) {
+    if (value == null) {
       return;
     }
     dwcXMLDocument.append(term, value.toString());
   }
 
-  private static String toISODateTime(Date d){
-    if( d == null){
+  private static String toISODateTime(Date d) {
+    if (d == null) {
       return null;
     }
     return FDF.format(d);

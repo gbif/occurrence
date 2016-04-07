@@ -17,7 +17,7 @@ public enum OccurrenceSolrField {
   private final String fieldName;
 
 
-  private OccurrenceSolrField(String fieldName) {
+  OccurrenceSolrField(String fieldName) {
     this.fieldName = fieldName;
   }
 

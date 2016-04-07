@@ -161,14 +161,13 @@ public class TemporalInterpreter {
     }
 
     if (result == null) {
-      if (!ymd.representsNull()) {
-        // try to use partial dates from YMD as last resort
-        if ((ymd.getIntegerYear() != null && VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear()))
-            || (ymd.getIntegerYear() == null && !issues.contains(OccurrenceIssue.RECORDED_DATE_UNLIKELY))) {
+      if (!ymd.representsNull() &&  ((ymd.getIntegerYear() != null &&
+                                       VALID_RECORDED_YEAR_RANGE.contains(ymd.getIntegerYear())) ||
+                                      (ymd.getIntegerYear() == null &&
+                                       !issues.contains(OccurrenceIssue.RECORDED_DATE_UNLIKELY)))) {
           result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE,
             new DateYearMonthDay(ymd.getIntegerYear(), ymd.getIntegerMonth(), ymd.getIntegerDay(), null, ymdDate));
         }
-      }
     }
 
     // if its still null then its a fail
@@ -195,12 +194,10 @@ public class TemporalInterpreter {
     OccurrenceIssue unlikelyIssue) {
     if (!Strings.isNullOrEmpty(dateString)) {
       OccurrenceParseResult<Date> result = new OccurrenceParseResult(DateParseUtils.parse(dateString));
-      if (result.isSuccessful()) {
-        // check year makes sense
-        if (!likelyRange.contains(result.getPayload())) {
+      // check year makes sense
+      if (result.isSuccessful() && !likelyRange.contains(result.getPayload())) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           result.addIssue(unlikelyIssue);
-        }
       }
       return result;
     }

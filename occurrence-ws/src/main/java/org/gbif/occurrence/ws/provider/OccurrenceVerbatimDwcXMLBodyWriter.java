@@ -50,7 +50,7 @@ public class OccurrenceVerbatimDwcXMLBodyWriter implements MessageBodyWriter<Ver
 
     try {
       DwcXMLDocument dwcXMLDocument = DwcXMLDocument.newInstance(DwcTerm.Occurrence);
-      for(Term term : occurrence.getVerbatimFields().keySet()){
+      for (Term term : occurrence.getVerbatimFields().keySet()) {
         dwcXMLDocument.tryAppend(term, occurrence.getVerbatimField(term));
       }
 

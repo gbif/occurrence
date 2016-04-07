@@ -22,7 +22,7 @@ public class InterpretDatasetListener extends AbstractMessageCallback<InterpretD
   private final MessagePublisher messagePublisher;
 
   public InterpretDatasetListener(OccurrenceKeyPersistenceService occurrenceKeyService,
-    MessagePublisher messagePublisher) {
+                                  MessagePublisher messagePublisher) {
     this.occurrenceKeyService = checkNotNull(occurrenceKeyService, "occurrenceKeyService can't be null");
     this.messagePublisher = checkNotNull(messagePublisher, "messagePublisher can't be null");
   }
@@ -37,7 +37,7 @@ public class InterpretDatasetListener extends AbstractMessageCallback<InterpretD
         messagePublisher.send(new InterpretVerbatimMessage(key));
       } catch (IOException e) {
         LOG.warn("Could not send InterpretVerbatimMessage for key [{}] while interpreting dataset [{}]", key,
-          message.getDatasetUuid(), e);
+                 message.getDatasetUuid(), e);
       }
     }
   }

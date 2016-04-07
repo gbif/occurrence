@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DeleteOccurrenceListener extends AbstractMessageCallback<DeleteOccurrenceMessage> {
 
-  private final Logger LOG = LoggerFactory.getLogger(DeleteOccurrenceListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DeleteOccurrenceListener.class);
 
   private final OccurrenceDeletionService occurrenceDeletionService;
   private final MessagePublisher messagePublisher;

@@ -56,7 +56,7 @@ public class DeleteDatasetListener extends AbstractMessageCallback<DeleteDataset
           messagePublisher.send(new DeleteOccurrenceMessage(key, message.getDeletionReason(), null, null));
         } catch (IOException e) {
           LOG.warn("Could not send DeleteOccurrenceMessage for key [{}] while deleting dataset [{}]", key,
-            message.getDatasetUuid(), e);
+                   message.getDatasetUuid(), e);
         }
       }
     } finally {

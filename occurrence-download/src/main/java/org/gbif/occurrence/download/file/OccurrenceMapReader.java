@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -32,6 +33,8 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
  * Reads a occurrence record from HBase and return it in a Map<String,Object>.
@@ -118,8 +121,8 @@ public class OccurrenceMapReader {
    * Extracts the media types from the hbase result.
    */
   private static String extractMediaTypes(Result result) {
-    byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA)));
-    return (val != null) ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val)) : "";
+    Optional<byte[]> val = Optional.of(result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
+    return val.isPresent() ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val.get())) : "";
   }
 
   /**
@@ -172,8 +175,7 @@ public class OccurrenceMapReader {
    * Removes tabs, line breaks and new lines.
    */
   public static String getCleanString(Result row, Term term) {
-    String value = ExtResultReader.getString(row, term);
-    return value != null ? value.replaceAll(DownloadUtils.DELIMETERS_MATCH, " ") : value;
+    return cleanString(Optional.of(ExtResultReader.getString(row, term)));
   }
 
   /**
@@ -181,8 +183,11 @@ public class OccurrenceMapReader {
    * Removes tabs, line breaks and new lines.
    */
   public static String getCleanVerbatimString(Result row, Term term) {
-    String value = ExtResultReader.getString(row, Columns.verbatimColumn(term));
-    return value != null ? value.replaceAll(DownloadUtils.DELIMETERS_MATCH, " ") : value;
+    return cleanString(Optional.of(ExtResultReader.getString(row, Columns.verbatimColumn(term))));
+  }
+
+  private static String cleanString(Optional<String> value) {
+    return value.isPresent() ? DELIMETERS_MATCH_PATTERN.matcher(value.get()).replaceAll(" ") : value.orNull();
   }
 
   /**

@@ -27,7 +27,7 @@ public class HiveColumnsUtils {
    * Gets the Hive column name of the term parameter.
    */
   public static String getHiveColumn(Term term) {
-    final String columnName = term.simpleName().toLowerCase();
+    String columnName = term.simpleName().toLowerCase();
     if (HIVE_RESERVED_WORDS.contains(columnName)) {
       return columnName + '_';
     }

@@ -70,7 +70,7 @@ public class RegistryClientUtil {
    * hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
    */
-  public DatasetService setupDatasetService(final String uri) {
+  public DatasetService setupDatasetService(String uri) {
     return new DatasetWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
   }
 
@@ -79,7 +79,7 @@ public class RegistryClientUtil {
    * clash with the hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
    */
-  public DatasetOccurrenceDownloadUsageService setupDatasetUsageService(final String uri) {
+  public DatasetOccurrenceDownloadUsageService setupDatasetUsageService(String uri) {
     return new DatasetOccurrenceDownloadUsageWsClient(createHttpClient().resource(uri),
                                                       injector.getInstance(ClientFilter.class));
   }
@@ -89,7 +89,7 @@ public class RegistryClientUtil {
    * clash with the hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
    */
-  public OccurrenceDownloadService setupOccurrenceDownloadService(final String uri) {
+  public OccurrenceDownloadService setupOccurrenceDownloadService(String uri) {
     return new OccurrenceDownloadWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
   }
 

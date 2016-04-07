@@ -11,14 +11,14 @@ public class DownloadLimits {
   /**
    * Amount of downloads that an user can execute simultaneously under certain amount of global downloads.
    */
-  public static class  Limit {
+  public static class Limit {
 
     private final int maxUserDownloads;
 
     private final int globalExecutingDownloads;
 
-    public Limit(int maxUserDownloads, int globalExecutingDownloads){
-      this.globalExecutingDownloads =globalExecutingDownloads;
+    public Limit(int maxUserDownloads, int globalExecutingDownloads) {
+      this.globalExecutingDownloads = globalExecutingDownloads;
       this.maxUserDownloads = maxUserDownloads;
     }
 
@@ -30,7 +30,7 @@ public class DownloadLimits {
       return globalExecutingDownloads;
     }
 
-    public boolean violatesLimit(int userDownloads, int globalDownloads){
+    public boolean violatesLimit(int userDownloads, int globalDownloads) {
       return globalDownloads >= globalExecutingDownloads && userDownloads >= maxUserDownloads;
     }
   }
@@ -49,11 +49,12 @@ public class DownloadLimits {
   }
 
   @Inject
-  public DownloadLimits(@Named("max_user_downloads") int maxUserDownloads, @Named("downloads_soft_limit") String softLimit,
+  public DownloadLimits(@Named("max_user_downloads") int maxUserDownloads,
+                        @Named("downloads_soft_limit") String softLimit,
                         @Named("downloads_hard_limit") String hardLimit) {
 
-    final Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
-    final Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
+    Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
+    Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = new Limit(Integer.parseInt(softLimits.next()),Integer.parseInt(softLimits.next()));
     this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()),Integer.parseInt(hardLimits.next()));
@@ -71,7 +72,7 @@ public class DownloadLimits {
     return hardLimit;
   }
 
-  public boolean violatesLimits(int userDownloads, int globalDownloads){
+  public boolean violatesLimits(int userDownloads, int globalDownloads) {
     return getSoftLimit().violatesLimit(userDownloads,globalDownloads) &&
            getHardLimit().violatesLimit(userDownloads,globalDownloads);
   }

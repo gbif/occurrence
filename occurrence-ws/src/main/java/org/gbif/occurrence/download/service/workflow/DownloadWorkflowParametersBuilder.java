@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.service.workflow;
 
 import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
@@ -55,9 +54,9 @@ public class DownloadWorkflowParametersBuilder {
   /**
    * Serializes a predicate filter into a json string.
    */
-  private static String getJsonStringPredicate(final Predicate predicate){
-    StringWriter writer = new StringWriter();
+  private static String getJsonStringPredicate(Predicate predicate) {
     try {
+      StringWriter writer = new StringWriter();
       JSON_MAPPER.writeValue(writer, predicate);
       writer.flush();
       return writer.toString();

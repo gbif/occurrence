@@ -48,12 +48,12 @@ public class InterpretedProcessorService extends AbstractIdleService {
 
     MessageListener listener = new MessageListener(cfg.messaging.getConnectionParameters());
     listener.listen(cfg.primaryQueueName, cfg.msgPoolSize,
-      new VerbatimPersistedListener(inj.getInstance(InterpretedProcessor.class)));
+                    new VerbatimPersistedListener(inj.getInstance(InterpretedProcessor.class)));
     listeners.add(listener);
 
     listener = new MessageListener(cfg.messaging.getConnectionParameters());
     listener.listen(cfg.secondaryQueueName, cfg.msgPoolSize,
-      new InterpretVerbatimListener(inj.getInstance(InterpretedProcessor.class)));
+                    new InterpretVerbatimListener(inj.getInstance(InterpretedProcessor.class)));
     listeners.add(listener);
   }
 

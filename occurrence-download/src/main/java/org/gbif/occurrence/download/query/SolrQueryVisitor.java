@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 
+import com.google.common.base.Throwables;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -54,7 +55,7 @@ import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FI
  * This class builds clause for a Hive query from a {@link org.gbif.api.model.occurrence.predicate.Predicate} object.
  * </p>
  * This is not thread-safe but one instance can be reused. It is package-local and should usually be accessed through
- * {@link DownloadRequestServiceImpl}. All {@code visit} methods have to be public for the
+ * {@link org.gbif.api.service.occurrence.DownloadRequestService}. All {@code visit} methods have to be public for the
  * {@link Class#getMethod(String, Class[])} call to work. This is the primary reason for this class being
  * package-local.
  * </p>
@@ -244,7 +245,7 @@ public class SolrQueryVisitor {
    *
    * @return the converted value expected by HBase
    */
-  private String toSolrValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
+  private static String toSolrValue(OccurrenceSearchParameter param, String value) throws QueryBuildingException {
     if (Enum.class.isAssignableFrom(param.type())) { // All enums params are uppercased
       return value.toUpperCase();
     }
@@ -264,18 +265,16 @@ public class SolrQueryVisitor {
     try {
       method = getClass().getMethod("visit", new Class[] {object.getClass()});
     } catch (NoSuchMethodException e) {
-      LOG.warn("Visit method could not be found. That means a Predicate has been passed in that is unknown to this "
-               + "class", e);
+      LOG.warn("Visit method could not be found. That means a unknown Predicate has been passed", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This should never happen as all our methods are public and missing methods should have been caught "
-                + "before. Probably a programming error", e);
-      throw new RuntimeException("Programming error", e);
+      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      Throwables.propagate(e);
     } catch (InvocationTargetException e) {
-      LOG.info("Exception thrown while building the Hive Download", e);
+      LOG.info("Exception thrown while building the query", e);
       throw new QueryBuildingException(e);
     }
   }

@@ -32,12 +32,12 @@ public class DatasetUsagesCollector {
    */
   public void sumUsages(Map<UUID, Long> fromDatasetUsages) {
     Map<UUID, Long> result = Maps.newHashMap();
-    for (Map.Entry<UUID, Long> entry1 : datasetUsages.entrySet()) {
-      Long valueIn2 = fromDatasetUsages.get(entry1.getKey());
+    for (Map.Entry<UUID, Long> entry : datasetUsages.entrySet()) {
+      Long valueIn2 = fromDatasetUsages.get(entry.getKey());
       if (valueIn2 == null) {
-        result.put(entry1.getKey(), entry1.getValue());
+        result.put(entry.getKey(), entry.getValue());
       } else {
-        result.put(entry1.getKey(), entry1.getValue() + valueIn2);
+        result.put(entry.getKey(), entry.getValue() + valueIn2);
       }
     }
     result.putAll(Maps.difference(datasetUsages, fromDatasetUsages).entriesOnlyOnRight());

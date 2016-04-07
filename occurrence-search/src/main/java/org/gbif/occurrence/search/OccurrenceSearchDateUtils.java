@@ -66,7 +66,8 @@ public class OccurrenceSearchDateUtils {
       // Generated query: [yyyy-01-01T00:00:00Z TO yyyy-'LAST_DATE_OF_THE_YEAR'T00:00:00Z]
       String upperDayeStr = toDateQueryFormat(toLastDayOfYear(lowerDate));
       return String.format(RANGE_FORMAT, lowerDateStr, upperDayeStr);
+    } else {
+      return toPhraseQuery(lowerDateStr);
     }
-    return toPhraseQuery(lowerDateStr);
   }
 }

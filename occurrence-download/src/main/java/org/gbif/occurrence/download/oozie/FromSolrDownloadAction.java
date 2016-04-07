@@ -28,7 +28,14 @@ public class FromSolrDownloadAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(FromSolrDownloadAction.class);
 
-  private static WorkflowConfiguration workflowConfiguration;
+  private static final long SLEEP_TIME_BEFORE_TERMINATION = 5000L;
+
+  /**
+   * Private constructor.
+   */
+  private FromSolrDownloadAction(){
+    //Instances of this class are not allowed
+  }
 
   /**
    * Executes the download creation process.
@@ -42,8 +49,8 @@ public class FromSolrDownloadAction {
   public static void main(String[] args) throws Exception {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
-    workflowConfiguration = new WorkflowConfiguration(settings);
-    run(new DownloadJobConfiguration.Builder().withSolrQuery(args[1])
+    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
+    run(workflowConfiguration, new DownloadJobConfiguration.Builder().withSolrQuery(args[1])
           .withDownloadKey(args[2])
           .withFilter(args[3])
           .withDownloadTableName(args[4])
@@ -58,8 +65,8 @@ public class FromSolrDownloadAction {
   /**
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
-  public static void run(DownloadJobConfiguration configuration) {
-    final Injector injector = createInjector(configuration);
+  public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
+    final Injector injector = createInjector(workflowConfiguration, configuration);
     CuratorFramework curator = injector.getInstance(CuratorFramework.class);
 
     // Create an Akka system
@@ -76,7 +83,7 @@ public class FromSolrDownloadAction {
     master.tell(new DownloadMaster.Start());
     while (!master.isTerminated()) {
       try {
-        Thread.sleep(5000L);
+        Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
       } catch (InterruptedException ie) {
         LOG.error("Thread interrupted", ie);
       }
@@ -88,7 +95,7 @@ public class FromSolrDownloadAction {
   /**
    * Utility method that creates the Guice injector.
    */
-  private static Injector createInjector(DownloadJobConfiguration configuration) {
+  private static Injector createInjector(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     try {
       return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration, configuration));
     } catch (IllegalArgumentException e) {

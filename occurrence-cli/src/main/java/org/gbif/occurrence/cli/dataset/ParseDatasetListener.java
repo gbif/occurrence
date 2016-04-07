@@ -22,7 +22,7 @@ public class ParseDatasetListener extends AbstractMessageCallback<ParseDatasetMe
   private final MessagePublisher messagePublisher;
 
   public ParseDatasetListener(OccurrenceKeyPersistenceService occurrenceKeyService,
-    MessagePublisher messagePublisher) {
+                              MessagePublisher messagePublisher) {
     this.occurrenceKeyService = checkNotNull(occurrenceKeyService, "occurrenceKeyService can't be null");
     this.messagePublisher = checkNotNull(messagePublisher, "messagePublisher can't be null");
   }
@@ -37,7 +37,7 @@ public class ParseDatasetListener extends AbstractMessageCallback<ParseDatasetMe
         messagePublisher.send(new ParseFragmentMessage(key));
       } catch (IOException e) {
         LOG.warn("Could not send ParseFragmentMessage for key [{}] while parsing dataset [{}]", key,
-          message.getDatasetUuid(), e);
+                 message.getDatasetUuid(), e);
       }
     }
   }

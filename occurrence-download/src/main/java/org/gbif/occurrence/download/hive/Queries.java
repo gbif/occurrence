@@ -34,7 +34,6 @@ class Queries {
         continue; // for safety, we code defensively as it may be added
       }
 
-      // TODO: add UDFs
       builder.add(new InitializableField(term,
                                          HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(),
                                          // no escape needed due to prefix

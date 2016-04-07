@@ -58,7 +58,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
 
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
-                                                                             Download.Status.RUNNING, Download.Status.SUSPENDED);
+                                                                             Download.Status.RUNNING,
+                                                                             Download.Status.SUSPENDED);
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -119,7 +120,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public void cancel(String downloadKey) {
     try {
       Download download = occurrenceDownloadService.get(downloadKey);
-        if (download != null) {
+      if (download != null) {
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
           client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
@@ -138,10 +139,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     try {
-      if(!downloadLimitsService.isInDownloadLimits(request.getCreator())){
+      if (!downloadLimitsService.isInDownloadLimits(request.getCreator())){
         throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
       }
-      final String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
+      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
       LOG.debug("oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
@@ -178,10 +179,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   /**
    * Processes a callback from Oozie which update the download status.
    */
+  @Override
   public void processCallback(String jobId, String status) {
     Preconditions.checkNotNull(Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
     Preconditions.checkNotNull(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
-    final Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
+    Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 
@@ -202,6 +204,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           CANCELLED_DOWNLOADS.inc();
           return;
         }
+        break;
+
       case FAILED:
         LOG.error(NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
         updateDownloadStatus(download, newStatus);

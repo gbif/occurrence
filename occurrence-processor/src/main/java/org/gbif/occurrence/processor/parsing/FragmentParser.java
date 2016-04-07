@@ -31,9 +31,9 @@ import com.yammer.metrics.core.TimerContext;
  */
 public class FragmentParser {
 
-  private static final Timer xmlParsingTimer =
+  private static final Timer XML_PARSING_TIMER =
     Metrics.newTimer(FragmentParser.class, "verb xml parse time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-  private static final Timer jsonParsingTimer =
+  private static final Timer JSON_PARSING_TIMER =
     Metrics.newTimer(FragmentParser.class, "verb json parse time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
 
   // should not be instantiated
@@ -54,7 +54,7 @@ public class FragmentParser {
 
     switch (fragment.getFragmentType()) {
       case XML:
-        final TimerContext xmlContext = xmlParsingTimer.time();
+        final TimerContext xmlContext = XML_PARSING_TIMER.time();
         try {
           RawOccurrenceRecord ror =
             XmlFragmentParser.parseRecord(fragment.getData(), fragment.getXmlSchema(), fragment.getUnitQualifier());
@@ -64,7 +64,7 @@ public class FragmentParser {
         }
         break;
       case JSON:
-        final TimerContext jsonContext = jsonParsingTimer.time();
+        final TimerContext jsonContext = JSON_PARSING_TIMER.time();
         try {
           verbatim = JsonFragmentParser.parseRecord(fragment);
         } finally {

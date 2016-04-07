@@ -22,7 +22,7 @@ public class CleanDelimiterCharsUDF extends UDF {
     if (field == null) {
       text.set("");
     } else {
-      text.set(field.toString().replaceAll(DownloadUtils.DELIMETERS_MATCH, " "));
+      text.set(DownloadUtils.DELIMETERS_MATCH_PATTERN.matcher(field.toString()).replaceAll(" "));
     }
     return text;
   }

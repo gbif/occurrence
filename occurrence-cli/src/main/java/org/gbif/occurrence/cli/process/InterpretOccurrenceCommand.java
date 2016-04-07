@@ -64,7 +64,7 @@ public class InterpretOccurrenceCommand extends BaseCommand {
     }
   }
 
-  private void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
+  private static void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
     publisher.send(new InterpretVerbatimMessage(occurrenceKey));
   }
 }

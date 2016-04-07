@@ -26,7 +26,7 @@ public class FragmentProcessorService extends AbstractIdleService {
 
     listener = new MessageListener(cfg.messaging.getConnectionParameters());
     listener.listen(cfg.primaryQueueName, cfg.msgPoolSize,
-      new OccurrenceFragmentedListener(inj.getInstance(FragmentProcessor.class)));
+                    new OccurrenceFragmentedListener(inj.getInstance(FragmentProcessor.class)));
   }
 
   @Override

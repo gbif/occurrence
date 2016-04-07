@@ -26,7 +26,7 @@ public final class DownloadFileUtils {
    */
   public static FileSystem getHdfs(String nameNode) throws IOException {
     // filesystem configs
-    final Configuration conf = new Configuration();
+    Configuration conf = new Configuration();
     conf.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY, nameNode);
     return FileSystem.get(conf);
   }

@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
@@ -55,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * object.
  * </p>
  * This is not thread-safe but one instance can be reused. It is package-local and should usually be accessed through
- * {@link DownloadRequestServiceImpl}. All {@code visit} methods have to be public for the
+ * {@link org.gbif.api.service.occurrence.DownloadRequestService}. All {@code visit} methods have to be public for the
  * {@link Class#getMethod(String, Class[])} call to work. This is the primary reason for this class being
  * package-local.
  * </p>
@@ -81,10 +82,10 @@ public class HiveQueryVisitor {
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
 
-  private static final String MEDIATYPE_CONTAINS_FMT =
-    "array_contains(" + HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
-  private static final String ISSUE_CONTAINS_FMT =
-    "array_contains(" + HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
+  private static final String MEDIATYPE_CONTAINS_FMT = "array_contains(" +
+                                                       HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
+  private static final String ISSUE_CONTAINS_FMT = "array_contains(" +
+                                                   HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -357,19 +358,16 @@ public class HiveQueryVisitor {
    * field >= firstDateOfYear/Month(value) and field <= lastDateOfYear/Month(value).
    * If the value is a range it is translated to: field >= range.lower AND field <= range.upper.
    */
-  private CompoundPredicate toDatePredicateQuery(
-    OccurrenceSearchParameter key,
-    String value,
-    IsoDateFormat dateFormat
-  ) {
-    final Date lowerDate = IsoDateParsingUtils.parseDate(value);
+  private static CompoundPredicate toDatePredicateQuery(OccurrenceSearchParameter key, String value,
+                                                 IsoDateFormat dateFormat) {
+    Date lowerDate = IsoDateParsingUtils.parseDate(value);
     return toDateRangePredicate(Range.closed(lowerDate, IsoDateParsingUtils.toLastDayOf(lowerDate, dateFormat)), key);
   }
 
   /**
    * Converts date range into a conjunction predicate with the form: field >= range.lower AND field <= range.upper.
    */
-  private CompoundPredicate toDateRangePredicate(Range<Date> range, OccurrenceSearchParameter key) {
+  private static CompoundPredicate toDateRangePredicate(Range<Date> range, OccurrenceSearchParameter key) {
     ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>().add(new GreaterThanOrEqualsPredicate(
       key,
       IsoDateFormat.FULL.getDateFormat().format(range.lowerEndpoint().getTime())))
@@ -383,19 +381,16 @@ public class HiveQueryVisitor {
     try {
       method = getClass().getMethod("visit", new Class[] {object.getClass()});
     } catch (NoSuchMethodException e) {
-      LOG.warn(
-        "Visit method could not be found. That means a Predicate has been passed in that is unknown to this class",
-        e);
+      LOG.warn("Visit method could not be found. That means a unknown Predicate has been passed", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This should never happen as all our methods are public and missing methods should have been caught "
-                + "before. Probably a programming error", e);
-      throw new RuntimeException("Programming error", e);
+      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      Throwables.propagate(e);
     } catch (InvocationTargetException e) {
-      LOG.info("Exception thrown while building the Hive Download", e);
+      LOG.info("Exception thrown while building the query", e);
       throw new QueryBuildingException(e);
     }
   }

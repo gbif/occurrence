@@ -111,8 +111,8 @@ public class DownloadEmailUtils {
    */
   private List<Address> getNotificationAddresses(Download download) {
     List<Address> emails = Lists.newArrayList();
-    if (download.getRequest().getNotificationAddresses() == null
-      || download.getRequest().getNotificationAddresses().isEmpty()) {
+    if (download.getRequest().getNotificationAddresses() == null ||
+        download.getRequest().getNotificationAddresses().isEmpty()) {
       User user = userService.get(download.getRequest().getCreator());
       if (user != null) {
         try {
@@ -159,7 +159,7 @@ public class DownloadEmailUtils {
   /**
    * Transforms a iterable of string into a list of email addresses.
    */
-  private List<Address> toInternetAddresses(Iterable<String> strEmails) {
+  private static List<Address> toInternetAddresses(Iterable<String> strEmails) {
     List<Address> emails = Lists.newArrayList();
     for (String address : strEmails) {
       try {

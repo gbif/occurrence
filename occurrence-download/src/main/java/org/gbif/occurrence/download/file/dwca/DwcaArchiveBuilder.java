@@ -171,7 +171,7 @@ public class DwcaArchiveBuilder {
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
-  private static String writeCitation(final Writer citationWriter, final Dataset dataset, final UUID constituentId)
+  private static String writeCitation(Writer citationWriter, Dataset dataset, UUID constituentId)
     throws IOException {
     // citation
     String citationLink = null;
@@ -193,7 +193,7 @@ public class DwcaArchiveBuilder {
   /**
    * Write rights text.
    */
-  private static void writeRights(final Writer rightsWriter, final Dataset dataset, final String citationLink)
+  private static void writeRights(Writer rightsWriter, Dataset dataset, String citationLink)
     throws IOException {
     // write rights
     rightsWriter.write("\n\nDataset: " + dataset.getTitle());
@@ -284,7 +284,7 @@ public class DwcaArchiveBuilder {
 
   }
 
-  public void createEmlFile(final UUID constituentId, final File emlDir) throws IOException {
+  public void createEmlFile(UUID constituentId, File emlDir) throws IOException {
     Closer closer = Closer.create();
     try {
       // store dataset EML as constituent metadata
@@ -440,7 +440,7 @@ public class DwcaArchiveBuilder {
 
     Path citationSrc = new Path(configuration.getCitationDataFileName());
 
-    LOG.info("Adding constituent dataset metadata to archive, based on: " + citationSrc);
+    LOG.info("Adding constituent dataset metadata to archive, based on: {}", citationSrc);
 
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
@@ -449,7 +449,7 @@ public class DwcaArchiveBuilder {
       return;
     }
 
-    final Map<UUID, Integer> srcDatasets = readDatasetCounts(citationSrc);
+    Map<UUID, Integer> srcDatasets = readDatasetCounts(citationSrc);
 
     File emlDir = new File(archiveDir, "dataset");
     if (!srcDatasets.isEmpty()) {
@@ -466,7 +466,7 @@ public class DwcaArchiveBuilder {
     // now iterate over constituent UUIDs
 
     for (Entry<UUID, Integer> dsEntry : srcDatasets.entrySet()) {
-      final UUID constituentId = dsEntry.getKey();
+      UUID constituentId = dsEntry.getKey();
       LOG.info("Processing constituent dataset: {}", constituentId);
       // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
       try {

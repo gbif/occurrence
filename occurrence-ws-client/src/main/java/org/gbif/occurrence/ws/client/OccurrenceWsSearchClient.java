@@ -33,7 +33,7 @@ import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
 public class OccurrenceWsSearchClient extends
   BaseWsSearchClient<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest> implements OccurrenceSearchService {
 
-  private static String SEARCH_PATH ="search/";
+  private static final String SEARCH_PATH ="search/";
 
   // Response type.
   private static final GenericType<SearchResponse<Occurrence, OccurrenceSearchParameter>> GENERIC_TYPE =
@@ -41,7 +41,7 @@ public class OccurrenceWsSearchClient extends
     };
 
   // List<String> type
-  private static final GenericType<List<String>> LIST_OF_STRING =
+  private static final GenericType<List<String>> LIST_OF_STRINGS_TYPE =
     new GenericType<List<String>>() {
     };
 
@@ -89,6 +89,6 @@ public class OccurrenceWsSearchClient extends
   private List<String> suggestTerms(String resourceName, String prefix, @Nullable Integer limit) {
     String limitParam = Integer.toString(MoreObjects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
     return getResource(SEARCH_PATH + resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
-      .get(LIST_OF_STRING);
+      .get(LIST_OF_STRINGS_TYPE);
   }
 }

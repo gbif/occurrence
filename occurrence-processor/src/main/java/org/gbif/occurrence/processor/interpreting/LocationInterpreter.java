@@ -194,15 +194,14 @@ public class LocationInterpreter {
   protected void interpretCoordinateUncertaintyAndPrecision(Occurrence occ, VerbatimOccurrence verbatim) {
     if (verbatim.hasVerbatimField(DwcTerm.coordinatePrecision)) {
       Double coordinatePrecision = NumberParser.parseDouble(verbatim.getVerbatimField(DwcTerm.coordinatePrecision).trim());
-      if(coordinatePrecision != null){
+      if (coordinatePrecision != null) {
         coordinatePrecision = Math.abs(coordinatePrecision);
       }
 
       if (coordinatePrecision != null && coordinatePrecision.doubleValue() >= COORDINATE_PRECISION_LOWER_BOUND &&
               coordinatePrecision.doubleValue() <= COORDINATE_PRECISION_UPPER_BOUND) {
         occ.setCoordinatePrecision(coordinatePrecision);
-      }
-      else{
+      } else {
         occ.getIssues().add(OccurrenceIssue.COORDINATE_PRECISION_INVALID);
         LOG.debug("Ignoring coordinatePrecision, value invalid or highly unlikely");
       }
@@ -211,8 +210,9 @@ public class LocationInterpreter {
     if (verbatim.hasVerbatimField(DwcTerm.coordinateUncertaintyInMeters)) {
       ParseResult<Double> meters = MeterRangeParser.parseMeters(verbatim.getVerbatimField(DwcTerm.coordinateUncertaintyInMeters).trim());
       Double coordinateUncertaintyInMeters = meters.isSuccessful() ? Math.abs(meters.getPayload()) : null;
-      if (coordinateUncertaintyInMeters != null && coordinateUncertaintyInMeters > COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND &&
-              coordinateUncertaintyInMeters < COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND) {
+      if (coordinateUncertaintyInMeters != null &&
+          coordinateUncertaintyInMeters > COORDINATE_UNCERTAINTY_METERS_LOWER_BOUND &&
+          coordinateUncertaintyInMeters < COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND) {
         occ.setCoordinateUncertaintyInMeters(coordinateUncertaintyInMeters);
       } else {
         occ.getIssues().add(OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID);

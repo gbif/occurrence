@@ -48,9 +48,8 @@ public class OccurrenceSearchResource {
 
   @GET
   public PagingResponse<Occurrence> search(@Context OccurrenceSearchRequest request) {
-    LOG.debug(
-      "Exceuting query, parameters {}, limit {}, offset {}",
-      new Object[] {request.getParameters(), request.getLimit(), request.getOffset()});
+    LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
+      request.getOffset());
     return searchService.search(request);
   }
 

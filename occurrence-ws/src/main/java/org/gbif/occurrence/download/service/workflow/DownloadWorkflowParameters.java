@@ -29,4 +29,11 @@ public class DownloadWorkflowParameters {
   //Filter/Predicate.
   public static final String GBIF_FILTER = "gbif_filter";
 
+  /**
+   * Private default constructor.
+   */
+  private DownloadWorkflowParameters(){
+    //hidden constructor
+  }
+
 }

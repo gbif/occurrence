@@ -40,7 +40,7 @@ public class NiceDateTemplateMethodModel implements TemplateMethodModelEx {
     return dateFormat.format(date.getTime());
   }
 
-  private static String getDayOfMonthSuffix(final int n) {
+  private static String getDayOfMonthSuffix(int n) {
     Preconditions.checkArgument(n >= 1 && n <= 31, "illegal day of month: " + n);
     if (n >= 11 && n <= 13) {
       return "th";

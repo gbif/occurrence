@@ -53,7 +53,7 @@ public class OccurrenceSearchRequestBuilder {
 
     private String q;
 
-    private Double fuzzyDistance = 0.7;
+    private static final Double FUZZY_DISTANCE = 0.7;
 
     private static final String TERM_PATTERN = "%1$s^%2$s %1$s~%3$s^%4$s";
 
@@ -88,21 +88,21 @@ public class OccurrenceSearchRequestBuilder {
      */
     public String build() {
       String[] qs = q.split(" ");
-      String unTokenizedFieldsQuery = String.format(NON_TOKENIZED_QUERY,q);
+      String unTokenizedFieldsQuery = String.format(NON_TOKENIZED_QUERY, q);
       if(qs.length > 1){
         StringBuilder ftQ = new StringBuilder();
         ftQ.append(QueryUtils.toPhraseQuery(q) +  ' ');
         for(int i = 0; i < qs.length; i++) {
           int termScore = Math.max(MAX_SCORE - SCORE_DECREMENT * i, SCORE_DECREMENT);
-          ftQ.append(String.format(TERM_PATTERN,qs[i],termScore,fuzzyDistance,termScore/2));
-          if (i < qs.length-1) {
+          ftQ.append(String.format(TERM_PATTERN, qs[i], termScore, FUZZY_DISTANCE, termScore / 2));
+          if (i < qs.length - 1) {
             ftQ.append(' ');
           }
         }
-        return QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery,ftQ.toString());
+        return QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery, ftQ.toString());
       }
       return  QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery,
-                                               String.format(TERM_PATTERN,q,MAX_SCORE,fuzzyDistance,MAX_SCORE/2));
+                                               String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
     }
   }
 

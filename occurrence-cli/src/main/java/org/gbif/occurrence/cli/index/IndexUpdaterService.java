@@ -43,8 +43,8 @@ class IndexUpdaterService extends AbstractIdleService {
    * Creates a Solr server instance according to the parameters defined in the idxConfiguration object.
    */
   private static SolrClient buildSolrServer(IndexingConfiguration idxConfiguration) {
-    if (Strings.isNullOrEmpty(idxConfiguration.solrServerType) ||
-        SolrServerType.HTTP.name().equalsIgnoreCase(idxConfiguration.solrServerType)) {
+    if (Strings.isNullOrEmpty(idxConfiguration.solrServerType)
+        || SolrServerType.HTTP.name().equalsIgnoreCase(idxConfiguration.solrServerType)) {
       return new HttpSolrClient(idxConfiguration.solrServer);
     } else if (SolrServerType.CLOUD.name().equalsIgnoreCase(idxConfiguration.solrServerType)) {
       CloudSolrServerBuilder cloudSolrServerBuilder = new CloudSolrServerBuilder();

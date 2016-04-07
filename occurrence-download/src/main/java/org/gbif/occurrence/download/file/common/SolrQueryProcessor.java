@@ -29,7 +29,7 @@ public class SolrQueryProcessor {
    * @param downloadFileWork it's used to determine how to page through the results and the Solr query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
-  public static void processQuery(final DownloadFileWork downloadFileWork, final Predicate<Integer> resultHandler) {
+  public static void processQuery(DownloadFileWork downloadFileWork, Predicate<Integer> resultHandler) {
 
     // Calculates the amount of output records
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
@@ -43,9 +43,10 @@ public class SolrQueryProcessor {
         solrQuery.setStart(downloadFileWork.getFrom() + recordCount);
         // Limit can't be greater than the maximum number of records assigned to this job
         solrQuery.setRows(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
-        final QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
-        for (Iterator<SolrDocument> itResults = response.getResults().iterator(); itResults.hasNext(); recordCount++) {
-          resultHandler.apply((Integer) itResults.next().getFieldValue(OccurrenceSolrField.KEY.getFieldName()));
+        QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
+        for (SolrDocument solrDocument : response.getResults()) {
+          resultHandler.apply((Integer) solrDocument.getFieldValue(OccurrenceSolrField.KEY.getFieldName()));
+          recordCount+=1;
         }
       }
     } catch (SolrServerException | IOException e) {

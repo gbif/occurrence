@@ -33,7 +33,8 @@ public class ArchiveDownloadAction {
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
-    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder().withDownloadKey(downloadKey)
+    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder()
+      .withDownloadKey(downloadKey)
       .withDownloadTableName(downloadTableName)
       .withFilter(query)
       .withIsSmallDownload(isSmallDownload)

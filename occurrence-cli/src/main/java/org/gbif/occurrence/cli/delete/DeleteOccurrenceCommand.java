@@ -55,7 +55,7 @@ public class DeleteOccurrenceCommand extends BaseCommand {
     }
   }
 
-  private void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
+  private static void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
     publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.OCCURRENCE_MANUAL, null, null));
     LOG.info("Sent message to delete occurrence [{}]", occurrenceKey);
   }

@@ -45,13 +45,9 @@ public final class CitationsFileWriter {
    * @param datasetOccUsageService usage service
    * @param downloadKey            download key
    */
-  public static void createCitationFile(
-    final Map<UUID, Long> datasetUsages,
-    String citationFileName,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService,
-    DatasetService datasetService,
-    String downloadKey
-  ) {
+  public static void createCitationFile(Map<UUID, Long> datasetUsages, String citationFileName,
+                                        DatasetOccurrenceDownloadUsageService datasetOccUsageService,
+                                        DatasetService datasetService, String downloadKey) {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
       try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8),
                                                          CsvPreference.TAB_PREFERENCE)) {
@@ -72,12 +68,9 @@ public final class CitationsFileWriter {
   /**
    * Persists the dataset usage information and swallows any exception to avoid an error during the file building.
    */
-  private static void persistDatasetUsage(
-    Entry<UUID, Long> usage,
-    String downloadKey,
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService,
-    DatasetService datasetService
-  ) {
+  private static void persistDatasetUsage(Entry<UUID, Long> usage, String downloadKey,
+                                          DatasetOccurrenceDownloadUsageService datasetOccUsageService,
+                                          DatasetService datasetService) {
     try {
       Dataset dataset = datasetService.get(usage.getKey());
       if (dataset != null) { //the dataset still exists

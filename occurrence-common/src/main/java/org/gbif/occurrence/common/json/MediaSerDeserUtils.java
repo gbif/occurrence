@@ -9,10 +9,7 @@ import java.util.Set;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -20,7 +17,9 @@ import org.codehaus.jackson.map.type.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * Utility class to serialize and deserialize MediaObject instances from/to JSON.
+ */
 public class MediaSerDeserUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(MediaSerDeserUtils.class);
@@ -51,10 +50,6 @@ public class MediaSerDeserUtils {
       if (media != null && !media.isEmpty()) {
         return MAPPER.writeValueAsString(media);
       }
-    } catch (JsonGenerationException e) {
-      logAndRethrow(SER_ERROR_MSG, e);
-    } catch (JsonMappingException e) {
-      logAndRethrow(SER_ERROR_MSG, e);
     } catch (IOException e) {
       logAndRethrow(SER_ERROR_MSG, e);
     }
@@ -67,10 +62,6 @@ public class MediaSerDeserUtils {
   public static List<MediaObject> fromJson(String mediaJson) {
     try {
       return MAPPER.readValue(mediaJson, LIST_MEDIA_TYPE);
-    } catch (JsonParseException e) {
-      logAndRethrow(DESER_ERROR_MSG, e);
-    } catch (JsonMappingException e) {
-      logAndRethrow(DESER_ERROR_MSG, e);
     } catch (IOException e) {
       logAndRethrow(DESER_ERROR_MSG, e);
     }

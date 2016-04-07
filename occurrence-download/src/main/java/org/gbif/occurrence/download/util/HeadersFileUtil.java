@@ -15,7 +15,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
@@ -50,13 +49,9 @@ public class HeadersFileUtil {
    * Utility method that generates a file that contains the header string.
    */
   private static void generateFileHeader(String fileName, String defaultName, String header) throws IOException {
-    Closer closer = Closer.create();
-    final String outFileName = Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
-    try {
-      FileWriter fileWriter = closer.register(new FileWriter(new File(outFileName)));
+    String outFileName = Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
+    try (FileWriter fileWriter = new FileWriter(new File(outFileName))) {
       fileWriter.write(header);
-    } finally {
-      closer.close();
     }
   }
 
@@ -96,12 +91,8 @@ public class HeadersFileUtil {
    * Appends the headers line to the output file.
    */
   private static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
-    Closer resultCloser = Closer.create();
-    try {
-      InputStream headerInputStream = resultCloser.register(new ByteArrayInputStream(headers.getBytes()));
+    try (InputStream headerInputStream = new ByteArrayInputStream(headers.getBytes())) {
       ByteStreams.copy(headerInputStream, fileWriter);
-    } finally {
-      resultCloser.close();
     }
   }
 

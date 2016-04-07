@@ -54,23 +54,23 @@ public class FullTextFieldBuilder {
     try {
       for (Map.Entry<String, Object> properties : PropertyUtils.describe(occurrence).entrySet()) {
         Object value = properties.getValue();
-        if(value != null && !nonFullTextTypes(value) ) {
+        if (value != null && !nonFullTextTypes(value)) {
           fullTextField.add(value.toString());
         }
       }
 
-      for(Map.Entry<Term,String> verbatimField : occurrence.getVerbatimFields().entrySet()){
-        if(verbatimField.getValue() != null && !NON_FULL_TEXT_TERMS.contains(verbatimField.getKey())) {
+      for (Map.Entry<Term,String> verbatimField : occurrence.getVerbatimFields().entrySet()) {
+        if (verbatimField.getValue() != null && !NON_FULL_TEXT_TERMS.contains(verbatimField.getKey())) {
           fullTextField.add(verbatimField.getValue());
         }
       }
-      if(occurrence.getYear() != null) {
+      if (occurrence.getYear() != null) {
         fullTextField.add(occurrence.getYear().toString());
       }
-      if(occurrence.getMonth() != null) {
+      if (occurrence.getMonth() != null) {
         fullTextField.add(occurrence.getMonth().toString());
       }
-      if(occurrence.getDay() != null) {
+      if (occurrence.getDay() != null) {
         fullTextField.add(occurrence.getDay().toString());
       }
     } catch (Exception ex) {
@@ -82,15 +82,15 @@ public class FullTextFieldBuilder {
   /**
    *  Utility function to filter out unsupported types in full text searches.
    */
-  private static boolean nonFullTextTypes(Object value){
+  private static boolean nonFullTextTypes(Object value) {
     Class<?> type = value.getClass();
-    return type.isAssignableFrom(Boolean.class) ||
-           type.isAssignableFrom(Integer.class) ||
-           type.isAssignableFrom(Date.class) ||
-           type.isAssignableFrom(UUID.class) ||
-           type.isArray() ||
-           value instanceof Map ||
-           value instanceof Collection ||
-           value instanceof EnumSet;
+    return type.isAssignableFrom(Boolean.class)
+           || type.isAssignableFrom(Integer.class)
+           || type.isAssignableFrom(Date.class)
+           || type.isAssignableFrom(UUID.class)
+           || type.isArray()
+           || value instanceof Map
+           || value instanceof Collection
+           || value instanceof EnumSet;
   }
 }

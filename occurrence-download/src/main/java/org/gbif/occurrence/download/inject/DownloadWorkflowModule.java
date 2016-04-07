@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 
 import akka.dispatch.ExecutionContextExecutorService;
 import akka.dispatch.ExecutionContexts;
+import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -46,7 +47,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
-  private final DownloadJobConfiguration configuration;
+  private final Optional<DownloadJobConfiguration> configuration;
 
   private final WorkflowConfiguration workflowConfiguration;
 
@@ -54,7 +55,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
    * Loads the default configuration file name and copies the additionalProperties into it.
    */
   public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    this.configuration = configuration;
+    this.configuration = Optional.of(configuration);
     this.workflowConfiguration = workflowConfiguration;
   }
 
@@ -63,7 +64,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
    */
   public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration) {
     this.workflowConfiguration = workflowConfiguration;
-    configuration = null;
+    configuration = Optional.absent();
   }
 
   @Override
@@ -73,8 +74,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
     bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
-    if (configuration != null) {
-      bind(DownloadJobConfiguration.class).toInstance(configuration);
+    if (configuration.isPresent()) {
+      bind(DownloadJobConfiguration.class).toInstance(configuration.get());
     }
     bindDownloadFilesBuilding();
   }

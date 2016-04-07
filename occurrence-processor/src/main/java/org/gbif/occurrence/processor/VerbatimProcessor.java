@@ -88,7 +88,7 @@ public class VerbatimProcessor {
 
     int localAttemptId = fromCrawl ? attemptId : fragment.getCrawlId();
     LOG.debug("Fragment for key [{}] and UUID [{}] crawl [{}] is [{}]", occurrenceKey, fragment.getDatasetKey(),
-      localAttemptId, status);
+              localAttemptId, status);
 
     VerbatimOccurrence verbatim = FragmentParser.parse(fragment);
     if (verbatim == null) {

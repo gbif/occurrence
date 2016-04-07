@@ -31,9 +31,7 @@ public class HueCsvReader {
    */
   public static List<String> readKeys(String keyFileName) {
     List<String> keys = Lists.newArrayList();
-    BufferedReader br = null;
-    try {
-        br = new BufferedReader(new FileReader(keyFileName));
+    try (BufferedReader br = new BufferedReader(new FileReader(keyFileName))) {
         String line;
         while ((line = br.readLine()) != null) {
           String key = line.replaceAll("\"", "");
@@ -45,14 +43,6 @@ public class HueCsvReader {
       LOG.error("Could not find csv key file [{}]. Exiting", keyFileName, e);
     } catch (IOException e) {
       LOG.error("Error while reading csv key file [{}]. Exiting", keyFileName, e);
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't close key file. Attempting to continue anyway.", e);
-        }
-      }
     }
 
     return keys;
@@ -60,9 +50,7 @@ public class HueCsvReader {
 
   public static List<Integer> readIntKeys(String keyFileName) {
     List<Integer> keys = Lists.newArrayList();
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new FileReader(keyFileName));
+    try (BufferedReader br = new BufferedReader(new FileReader(keyFileName))) {
       String line;
       while ((line = br.readLine()) != null) {
         try {
@@ -76,14 +64,6 @@ public class HueCsvReader {
       LOG.error("Could not find csv key file [{}]. Exiting", keyFileName, e);
     } catch (IOException e) {
       LOG.error("Error while reading csv key file [{}]. Exiting", keyFileName, e);
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't close key file. Attempting to continue anyway.", e);
-        }
-      }
     }
 
     return keys;

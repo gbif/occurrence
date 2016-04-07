@@ -19,18 +19,19 @@ import java.util.Map;
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Range;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Interprets multi media extension records.
  */
 public class MultiMediaInterpreter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MultiMediaInterpreter.class);
-  private static final MediaParser mediaParser = MediaParser.getInstance();
+  private static final MediaParser MEDIA_PARSER = MediaParser.getInstance();
 
+  /**
+   * Private constructor.
+   */
   private MultiMediaInterpreter() {
+    //hidden constructor
   }
 
   public static void interpretMedia(VerbatimOccurrence verbatim, Occurrence occ) {
@@ -43,14 +44,15 @@ public class MultiMediaInterpreter {
         } else {
           MediaObject m = new MediaObject();
           m.setIdentifier(uri);
-          mediaParser.detectType(m);
+          MEDIA_PARSER.detectType(m);
           occ.getMedia().add(m);
         }
       }
     }
 
     // simple image or multimedia extension which are nearly identical
-    if (verbatim.getExtensions().containsKey(Extension.IMAGE) || verbatim.getExtensions().containsKey(Extension.MULTIMEDIA)) {
+    if (verbatim.getExtensions().containsKey(Extension.IMAGE) ||
+        verbatim.getExtensions().containsKey(Extension.MULTIMEDIA)) {
       final Extension mediaExt = verbatim.getExtensions().containsKey(Extension.IMAGE) ? Extension.IMAGE : Extension.MULTIMEDIA;
       for (Map<Term, String> rec : verbatim.getExtensions().get(mediaExt)) {
         URI uri = UrlParser.parse(rec.get(DcTerm.identifier));
@@ -69,7 +71,7 @@ public class MultiMediaInterpreter {
           m.setAudience(rec.get(DcTerm.audience));
           m.setRightsHolder(rec.get(DcTerm.rightsHolder));
           m.setCreator(rec.get(DcTerm.creator));
-          m.setFormat(mediaParser.parseMimeType(rec.get(DcTerm.format)));
+          m.setFormat(MEDIA_PARSER.parseMimeType(rec.get(DcTerm.format)));
           if (rec.containsKey(DcTerm.created)) {
             Range<Date> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_VALID_RECORDED_DATE, new Date());
             OccurrenceParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
@@ -78,7 +80,7 @@ public class MultiMediaInterpreter {
             occ.getIssues().addAll(parsed.getIssues());
           }
 
-          mediaParser.detectType(m);
+          MEDIA_PARSER.detectType(m);
           occ.getMedia().add(m);
 
         } else {
@@ -102,11 +104,9 @@ public class MultiMediaInterpreter {
       URI uri = m.getIdentifier() != null ? m.getIdentifier() : m.getReferences();
       if (uri != null) {
         String url = uri.toString();
-        if (media.containsKey(url)) {
-          // merge infos about the same image?
-        } else {
+        if (!media.containsKey(url)) {
           media.put(url, m);
-        }
+        } //else --> // merge infos about the same image?
       }
     }
     occ.setMedia(Lists.newArrayList(media.values()));

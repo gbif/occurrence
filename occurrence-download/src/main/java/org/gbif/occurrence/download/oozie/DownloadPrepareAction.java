@@ -135,7 +135,7 @@ public class DownloadPrepareAction {
   public void updateDownloadData(String rawPredicate, String downloadKey) throws IOException, QueryBuildingException {
     Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
     String solrQuery = new SolrQueryVisitor().getQuery(predicate);
-    final long recordCount = getRecordCount(solrQuery);
+    long recordCount = getRecordCount(solrQuery);
     String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
     if (oozieProp != null) {
       File propFile = new File(oozieProp);

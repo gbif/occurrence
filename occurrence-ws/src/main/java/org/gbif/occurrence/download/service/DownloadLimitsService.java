@@ -35,7 +35,8 @@ public class DownloadLimitsService {
     } else {
       PagingResponse<Download> executingDownloads = occurrenceDownloadService.list(new PagingRequest(0, 0),
                                                                                     Download.Status.EXECUTING_STATUSES);
-      return !downloadLimits.violatesLimits(userDownloads.getCount().intValue(),executingDownloads.getCount().intValue());
+      return !downloadLimits.violatesLimits(userDownloads.getCount().intValue(),
+                                            executingDownloads.getCount().intValue());
     }
   }
 }

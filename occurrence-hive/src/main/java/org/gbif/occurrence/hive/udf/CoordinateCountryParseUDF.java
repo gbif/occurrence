@@ -56,8 +56,8 @@ public class CoordinateCountryParseUDF extends GenericUDF {
   }
 
   private void init(URI apiWs) {
-    if(locInterpreter == null) {
-      synchronized(lock) {    // while we were waiting for the lock, another thread may have instantiated the object
+    if (locInterpreter == null) {
+      synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
           ApiClientConfiguration cfg = new ApiClientConfiguration();

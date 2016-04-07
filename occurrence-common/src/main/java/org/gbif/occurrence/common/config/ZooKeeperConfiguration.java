@@ -4,7 +4,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * A configuration class which can be used to get all the details needed to create a connection to ZooKeeper needed by
@@ -39,7 +39,7 @@ public class ZooKeeperConfiguration {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("connectionString", connectionString).add("namespace", namespace)
+    return MoreObjects.toStringHelper(this).add("connectionString", connectionString).add("namespace", namespace)
       .add("baseSleepTime", baseSleepTime).add("maxRetries", maxRetries).toString();
 
   }

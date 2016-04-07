@@ -51,7 +51,7 @@ public class ContainsUDF extends UDF {
       isContained.set(geom.contains(point));
 
     } catch (ParseException e) {
-      LOG.error("Invalid geometry received: " + geometryAsWKT.toString(), e);
+      LOG.error("Invalid geometry received: {}", geometryAsWKT.toString(), e);
     } catch (Exception e) {
       LOG.error("Error applying UDF", e);
     }

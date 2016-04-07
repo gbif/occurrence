@@ -65,6 +65,12 @@ public class OccurrenceSearchFieldsDefinition {
 
   private static final String HIVE_OUT_DIR = "hive-scripts/";
 
+  /**
+   * Private constructor.
+   */
+  private OccurrenceSearchFieldsDefinition(){
+    //hidden constructor
+  }
 
   /**
    * Generates the conceptual definition for the occurrence tables when used in hive.

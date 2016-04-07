@@ -15,9 +15,9 @@ import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 
 public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> implements OccurrenceService {
 
-  private final static GenericType<VerbatimOccurrence> GT_VERBATIM_OCCURRENCE = new GenericType<VerbatimOccurrence>() {
+  private static final GenericType<VerbatimOccurrence> GT_VERBATIM_OCCURRENCE = new GenericType<VerbatimOccurrence>() {
   };
-  private final static GenericType<String> GT_FRAGMENT = new GenericType<String>() {
+  private static final GenericType<String> GT_FRAGMENT = new GenericType<String>() {
   };
 
 

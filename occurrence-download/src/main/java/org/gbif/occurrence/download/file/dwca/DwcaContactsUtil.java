@@ -7,7 +7,11 @@ import org.gbif.api.vocabulary.ContactType;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
@@ -22,6 +26,13 @@ public class DwcaContactsUtil {
 
   private static final List<ContactType> AUTHOR_TYPES =
     ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
+
+  private static final Predicate<Contact> IS_AUTHOR_PREDICATE = new Predicate<Contact>() {
+    @Override
+    public boolean apply(@Nullable Contact input) {
+      return AUTHOR_TYPES.contains(input.getType()) || input.isPrimary();
+    }
+  };
 
   /**
    * Utility method that creates a Contact with a limited number of fields.
@@ -76,19 +87,7 @@ public class DwcaContactsUtil {
    * Iterates over the dataset contacts to find the first contact of author type.
    */
   private static Contact findFirstAuthor(Dataset dataset) {
-    Contact author = null;
-    for (ContactType type : AUTHOR_TYPES) {
-      for (Contact c : dataset.getContacts()) {
-        if (type == c.getType()) {
-          if (author == null) {
-            author = c;
-          } else if (c.isPrimary()) {
-            author = c;
-          }
-        }
-      }
-    }
-    return author;
+     return Iterables.tryFind(dataset.getContacts(),IS_AUTHOR_PREDICATE).orNull();
   }
 
   /**

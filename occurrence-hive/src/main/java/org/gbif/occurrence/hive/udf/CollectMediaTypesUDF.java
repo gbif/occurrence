@@ -27,7 +27,7 @@ public class CollectMediaTypesUDF extends UDF {
   /**
    * Deserialize and extract the media types.
    */
-  private List<String> selectMediaTypes(String jsonMedias) {
+  private static List<String> selectMediaTypes(String jsonMedias) {
     List<String> result = Lists.newArrayList(MediaSerDeserUtils.extractMediaTypes(jsonMedias));
     return result.isEmpty() ? null : result;
   }

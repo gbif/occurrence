@@ -42,8 +42,8 @@ public class SpeciesMatchUDF extends GenericUDF {
 
   public TaxonomyInterpreter getInterpreter(URI apiWs) {
     TaxonomyInterpreter ti = taxonomyInterpreter;
-    if(ti == null) {
-      synchronized(lock) {    // while we were waiting for the lock, another thread may have instantiated the object
+    if (ti == null) {
+      synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         ti = taxonomyInterpreter;
         if (ti == null) {
           LOG.info("Create new species match client using API at {}", apiWs);
@@ -87,7 +87,7 @@ public class SpeciesMatchUDF extends GenericUDF {
 
     List<Object> result = Lists.newArrayList(21);
 
-    final String sciname = getInterpreter(api).buildScientificName(s, null, g, sp, ssp);
+    String sciname = getInterpreter(api).buildScientificName(s, null, g, sp, ssp);
     ParseResult<NameUsageMatch> response = getInterpreter(api).match(
             ClassificationUtils.clean(k),
             ClassificationUtils.clean(p),
@@ -145,7 +145,7 @@ public class SpeciesMatchUDF extends GenericUDF {
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
     if (arguments.length != argLength) {
-      throw new UDFArgumentException("nubLookup takes "+ argLength +" arguments");
+      throw new UDFArgumentException("nubLookup takes " + argLength + " arguments");
     }
 
     return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays

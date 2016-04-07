@@ -147,7 +147,7 @@ public class ExtResultReader {
 
   public static BigDecimal getBigDecimal(Result row, Term column) {
     byte[] content = getBytes(row, column);
-    if(content != null) {
+    if (content != null) {
       return Bytes.toBigDecimal(content);
     }
     return null;

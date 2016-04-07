@@ -36,8 +36,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class JsonFragmentParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(JsonFragmentParser.class);
-  private static final TermFactory termFactory = TermFactory.instance();
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final TermFactory TERM_FACTORY = TermFactory.instance();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   // should not be instantiated
   private JsonFragmentParser() {
@@ -63,7 +63,7 @@ public class JsonFragmentParser {
 
     // jackson untyped bind of data to object
     try {
-      Map<String, Object> jsonMap = mapper.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
+      Map<String, Object> jsonMap = MAPPER.readValue(new ByteArrayInputStream(fragment.getData()), Map.class);
 
       // core terms
       for (Map.Entry<Term, String> entry : parseTermMap(jsonMap).entrySet()) {
@@ -78,7 +78,7 @@ public class JsonFragmentParser {
         Map<String, Object> extensions = (Map<String, Object>) jsonMap.get("extensions");
         for (String rowType : extensions.keySet()) {
           // first pare into a term cause the extension lookup by rowType is very strict
-          Term rowTypeTerm = termFactory.findTerm(rowType);
+          Term rowTypeTerm = TERM_FACTORY.findTerm(rowType);
           Extension ext = Extension.fromRowType(rowTypeTerm.qualifiedName());
           if (ext == null) {
             LOG.debug("Ignore unknown extension {}", rowType);
@@ -116,7 +116,7 @@ public class JsonFragmentParser {
 
       Object value = entry.getValue();
       if (value != null) {
-        Term term = termFactory.findTerm(simpleTermName);
+        Term term = TERM_FACTORY.findTerm(simpleTermName);
         terms.put(term, value.toString());
       }
     }

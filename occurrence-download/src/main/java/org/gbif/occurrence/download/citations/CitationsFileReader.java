@@ -37,6 +37,18 @@ public final class CitationsFileReader {
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
 
   /**
+   * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
+   */
+  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
+    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+    DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
+    datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
+    datasetUsage.setDownloadKey(downloadKey);
+    datasetUsage.setNumberRecords(Long.parseLong(tsvLineIterator.next()));
+    return datasetUsage;
+  }
+
+  /**
    * Reads a dataset citations file with the form 'datasetkeyTABnumberOfRecords' and applies the listed predicates.
    * Each line in read from the TSV file is transformed into a DatasetOccurrenceDownloadUsage.
    *
@@ -45,18 +57,13 @@ public final class CitationsFileReader {
    * @param downloadKey  occurrence download key
    * @param predicates   list of predicates to apply while reading the file
    */
-  public static void readCitations(
-    String nameNode,
-    String citationPath,
-    String downloadKey,
-    Predicate<DatasetOccurrenceDownloadUsage>... predicates
-  ) throws IOException {
-    final FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
+  public static void readCitations(String nameNode, String citationPath, String downloadKey,
+                                   Predicate<DatasetOccurrenceDownloadUsage>... predicates) throws IOException {
+    FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
         try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
-                                                                                      Charsets.UTF_8))
-        ) {
+                                                                                      Charsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // catch all error to avoid breaking the loop
@@ -72,18 +79,6 @@ public final class CitationsFileReader {
         }
       }
     }
-  }
-
-  /**
-   * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
-   */
-  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
-    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
-    DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-    datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
-    datasetUsage.setDownloadKey(downloadKey);
-    datasetUsage.setNumberRecords(Long.parseLong(tsvLineIterator.next()));
-    return datasetUsage;
   }
 
   public static void main(String[] args) throws IOException {
@@ -118,9 +113,7 @@ public final class CitationsFileReader {
     }
 
     @Override
-    public boolean apply(
-      @Nullable DatasetOccurrenceDownloadUsage input
-    ) {
+    public boolean apply(@Nullable DatasetOccurrenceDownloadUsage input) {
       try {
         Dataset dataset = datasetService.get(input.getDatasetKey());
         if (dataset != null) { //the dataset still exists

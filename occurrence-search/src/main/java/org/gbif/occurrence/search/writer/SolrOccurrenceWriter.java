@@ -6,27 +6,17 @@ package org.gbif.occurrence.search.writer;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
@@ -102,10 +92,7 @@ public class SolrOccurrenceWriter {
    * longitude[-180.0,180.0].
    */
   private static boolean isValidCoordinate(Double latitude, Double longitude) {
-    if (latitude != null && longitude != null) {
-      return LAT_RANGE.contains(latitude) && LNG_RANGE.contains(longitude);
-    }
-    return false;
+    return latitude != null && longitude != null && LAT_RANGE.contains(latitude) && LNG_RANGE.contains(longitude);
   }
 
 

@@ -56,9 +56,7 @@ public class SimpleCsvArchiveBuilder {
     Joiner.on('\t').join(Iterables.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
                                                @Nullable
                                                @Override
-                                               public String apply(
-                                                 @Nullable Term input
-                                               ) {
+                                               public String apply(@Nullable Term input) {
                                                  return HiveColumns.columnFor(input).replaceAll("_", "");
                                                }
                                              })) + '\n';

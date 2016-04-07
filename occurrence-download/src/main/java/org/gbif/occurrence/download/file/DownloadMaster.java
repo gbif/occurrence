@@ -33,6 +33,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Actor that controls the multi-threaded creation of occurrence downloads.
+ */
 public class DownloadMaster extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
@@ -142,10 +145,10 @@ public class DownloadMaster extends UntypedActor {
           calcNrOfWorkers)), "downloadWorkerRouter");
 
       // Number of records that will be assigned to each job
-      final int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
+      int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
 
       // Remaining jobs, that are not assigned to a job yet
-      final int remaining = nrOfRecords - (sizeOfChunks * calcNrOfWorkers);
+      int remaining = nrOfRecords - (sizeOfChunks * calcNrOfWorkers);
 
       // How many of the remaining jobs will be assigned to one job
       int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
@@ -194,7 +197,7 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Used as a command to start this master actor.
    */
-  public static class Start {}
+  public static class Start { }
 
   /**
    * Creates an instance of the download actor/job to be used.
@@ -203,7 +206,7 @@ public class DownloadMaster extends UntypedActor {
 
     private final DownloadFormat downloadFormat;
 
-    public DownloadActorsFactory(DownloadFormat downloadFormat) {
+    DownloadActorsFactory(DownloadFormat downloadFormat) {
       this.downloadFormat = downloadFormat;
     }
 

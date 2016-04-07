@@ -10,12 +10,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.base.Throwables;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
@@ -96,13 +93,7 @@ public class ExtensionSerDeserUtils {
   public static String toJson(List<Map<Term, String>> extensionValues) {
     try {
       return MAPPER.writeValueAsString(extensionValues);
-    } catch (JsonGenerationException e) {
-      LOG.error(DEFAULT_ERROR_MSG, e);
-      Throwables.propagate(e);
-    } catch (JsonMappingException e) {
-      LOG.error(DEFAULT_ERROR_MSG, e);
-      Throwables.propagate(e);
-    } catch (IOException e) {
+    } catch (IOException  e) {
       LOG.error(DEFAULT_ERROR_MSG, e);
       Throwables.propagate(e);
     }
@@ -114,20 +105,11 @@ public class ExtensionSerDeserUtils {
    * Deserializes a List<Map<Term, String>> from a Json String.
    */
   public static List<Map<Term, String>> fromJson(String json) {
-    StringReader stringReader = new StringReader(json);
-    try {
+    try (StringReader stringReader = new StringReader(json)) {
       return MAPPER.readValue(stringReader, LIST_MAP_TERMS_TYPE);
-    } catch (JsonParseException e) {
-      LOG.error(DEFAULT_ERROR_MSG, e);
-      Throwables.propagate(e);
-    } catch (JsonMappingException e) {
-      LOG.error(DEFAULT_ERROR_MSG, e);
-      Throwables.propagate(e);
     } catch (IOException e) {
       LOG.error(DEFAULT_ERROR_MSG, e);
       Throwables.propagate(e);
-    } finally {
-      stringReader.close();
     }
     return null;
   }

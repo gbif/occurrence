@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
@@ -36,8 +35,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
 
   @Provides
   @Singleton
-  Session providesMailSession(@Named("mail.smtp") String smtpServer,
-    @Named("mail.from") String fromAddress) {
+  Session providesMailSession(@Named("mail.smtp") String smtpServer, @Named("mail.from") String fromAddress) {
     Properties props = new Properties();
     props.setProperty("mail.smtp.host", smtpServer);
     props.setProperty("mail.from", fromAddress);
@@ -56,7 +54,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Named("oozie.default_properties")
   Map<String,String> providesDefaultParameters(@Named("environment") String environment,
                                                         @Named("ws.url") String wsUrl,
-                                                        @Named("hdfs.namenode") String nameNode){
+                                                        @Named("hdfs.namenode") String nameNode) {
     return new ImmutableMap.Builder<String, String>()
                                               .put(OozieClient.LIBPATH,String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,environment))
                                                .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,environment))

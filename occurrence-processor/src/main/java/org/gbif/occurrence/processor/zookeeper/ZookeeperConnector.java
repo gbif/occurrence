@@ -128,7 +128,7 @@ public class ZookeeperConnector {
 
     private final String path;
 
-    private CounterName(String path) {
+    CounterName(String path) {
       this.path = path;
     }
 
