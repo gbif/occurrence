@@ -204,7 +204,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           CANCELLED_DOWNLOADS.inc();
           return;
         }
-        break;
 
       case FAILED:
         LOG.error(NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
