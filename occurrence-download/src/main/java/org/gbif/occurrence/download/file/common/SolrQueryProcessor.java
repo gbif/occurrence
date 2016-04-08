@@ -5,7 +5,6 @@ import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;

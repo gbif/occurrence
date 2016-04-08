@@ -66,7 +66,7 @@ public class DwcaContactsUtil {
    *
    * @return preferred author contact or null
    */
-  protected static Contact getContentProviderContact(Dataset dataset) {
+  public static Contact getContentProviderContact(Dataset dataset) {
     Contact author = findFirstAuthor(dataset);
     if (author != null) {
       Contact provider = new Contact();
@@ -87,7 +87,7 @@ public class DwcaContactsUtil {
    * Iterates over the dataset contacts to find the first contact of author type.
    */
   private static Contact findFirstAuthor(Dataset dataset) {
-     return Iterables.tryFind(dataset.getContacts(),IS_AUTHOR_PREDICATE).orNull();
+     return Iterables.tryFind(dataset.getContacts(), IS_AUTHOR_PREDICATE).orNull();
   }
 
   /**

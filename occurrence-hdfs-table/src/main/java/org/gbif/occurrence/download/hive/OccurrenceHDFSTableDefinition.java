@@ -32,6 +32,13 @@ import com.google.common.collect.ImmutableSet;
 public class OccurrenceHDFSTableDefinition {
 
   /**
+   * Private constructor.
+   */
+  private OccurrenceHDFSTableDefinition() {
+    //hidden constructor
+  }
+
+  /**
    * Assemble the mapping for verbatim fields.
    *
    * @return the list of fields that are used in the verbatim context

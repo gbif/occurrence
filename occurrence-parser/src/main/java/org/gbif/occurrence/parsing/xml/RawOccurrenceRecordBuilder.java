@@ -252,11 +252,15 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
   }
 
   public void addImage(ImageRecord image) {
-    if (image != null && !image.isEmpty()) images.add(image);
+    if (image != null && !image.isEmpty()) {
+      images.add(image);
+    }
   }
 
   public void addLink(LinkRecord link) {
-    if (link != null && !link.isEmpty()) links.add(link);
+    if (link != null && !link.isEmpty()) {
+      links.add(link);
+    }
   }
 
   /**
@@ -266,7 +270,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
   @Override
   public void resolvePriorities() {
     for (Map.Entry<PrioritizedPropertyNameEnum,Set<PrioritizedProperty>> property : prioritizedProps.entrySet()) {
-      String result = findHighestPriority(prioritizedProps.get(property.getValue()));
+      String result = findHighestPriority(property.getValue());
       switch (property.getKey()) {
         case CATALOGUE_NUMBER:
           this.catalogueNumber = result;

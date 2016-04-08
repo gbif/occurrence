@@ -2,7 +2,6 @@ package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.MediaType;
-import org.gbif.common.search.util.SolrConstants;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
@@ -28,7 +27,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.BeanUtils;

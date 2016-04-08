@@ -14,7 +14,6 @@ import com.beust.jcommander.internal.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.HTablePool;
 
 public class VerbatimProcessorService extends AbstractIdleService {
