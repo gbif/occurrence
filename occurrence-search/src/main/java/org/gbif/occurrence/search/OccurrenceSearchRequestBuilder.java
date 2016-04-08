@@ -45,6 +45,7 @@ public class OccurrenceSearchRequestBuilder {
 
   private static final String SOLR_SPELLCHECK = "spellcheck";
   private static final String SOLR_SPELLCHECK_COUNT = "spellcheck.count";
+  private static final Integer DEFAULT_SPELL_CHECK_COUNT = 4;
 
   /**
    * Utility class to generates full text queries.
@@ -195,7 +196,8 @@ public class OccurrenceSearchRequestBuilder {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellCheck());
     if(request.isSpellCheck()){
-      solrQuery.setParam(SOLR_SPELLCHECK_COUNT,Integer.toString(request.getSpellCheckCount()));
+      solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
+                         request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT.toString() : Integer.toString(request.getSpellCheckCount()));
     }
     // q param
     if(Strings.isNullOrEmpty(request.getQ())) {
