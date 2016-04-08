@@ -44,6 +44,7 @@ import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
 public class OccurrenceSearchRequestBuilder {
 
   private static final String SOLR_SPELLCHECK = "spellcheck";
+  private static final String SOLR_SPELLCHECK_COUNT = "spellcheck.count";
 
   /**
    * Utility class to generates full text queries.
@@ -192,7 +193,10 @@ public class OccurrenceSearchRequestBuilder {
                                 "maximum offset allowed is %s", this.maxOffset);
 
     SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellcheck());
+    solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellCheck());
+    if(request.isSpellCheck()){
+      solrQuery.setParam(SOLR_SPELLCHECK_COUNT,Integer.toString(request.getSpellCheckCount()));
+    }
     // q param
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
