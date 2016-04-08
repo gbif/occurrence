@@ -25,6 +25,8 @@ import org.gbif.occurrence.model.RawOccurrenceRecord;
 import org.gbif.occurrence.model.TypificationRecord;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.beust.jcommander.internal.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -153,7 +155,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
     return records;
   }
 
-  private String reconcileDate(String reconciledDate, String year, String month, String day) {
+  private static String reconcileDate(String reconciledDate, String year, String month, String day) {
     if (StringUtils.isEmpty(reconciledDate) && !StringUtils.isEmpty(year)) {
       reconciledDate = year;
       if (!StringUtils.isEmpty(month)) {
@@ -232,7 +234,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
     if (typRec.isEmpty()) {
       LOG.debug("Got all nulls for new type - ignoring");
     } else {
-      LOG.debug("Got new typRec:\n" + typRec.debugDump());
+      LOG.debug("Got new typRec:\n {}",typRec.debugDump());
       typificationRecords.add(typRec);
     }
 
@@ -263,9 +265,9 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
    */
   @Override
   public void resolvePriorities() {
-    for (PrioritizedPropertyNameEnum name : prioritizedProps.keySet()) {
-      String result = findHighestPriority(prioritizedProps.get(name));
-      switch (name) {
+    for (Map.Entry<PrioritizedPropertyNameEnum,Set<PrioritizedProperty>> property : prioritizedProps.entrySet()) {
+      String result = findHighestPriority(prioritizedProps.get(property.getValue()));
+      switch (property.getKey()) {
         case CATALOGUE_NUMBER:
           this.catalogueNumber = result;
           break;
@@ -288,7 +290,7 @@ public class RawOccurrenceRecordBuilder extends PropertyPrioritizer {
           this.longitude = result;
           break;
         default:
-          LOG.warn("Fell through priority resolution for [{}]", name);
+          LOG.warn("Fell through priority resolution for [{}]", property.getKey());
       }
     }
 

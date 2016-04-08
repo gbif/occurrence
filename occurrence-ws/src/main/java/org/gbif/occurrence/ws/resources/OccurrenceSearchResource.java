@@ -2,7 +2,9 @@ package org.gbif.occurrence.ws.resources;
 
 
 import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.ws.util.ExtraMediaTypes;
@@ -47,7 +49,7 @@ public class OccurrenceSearchResource {
   }
 
   @GET
-  public PagingResponse<Occurrence> search(@Context OccurrenceSearchRequest request) {
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@Context OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
       request.getOffset());
     return searchService.search(request);
