@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class SpeciesMatchUDF extends GenericUDF {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesMatchUDF.class);
 
-  private static final int argLength = 10;
-  private static final Joiner joinComma = Joiner.on(",").useForNull("-");
+  private static final int ARG_LENGTH = 11;
+  private static final Joiner JOIN_COMMA = Joiner.on(",").useForNull("-");
   private static final RankParser RANK_PARSER = RankParser.getInstance();
 
   private TaxonomyInterpreter taxonomyInterpreter;
@@ -74,7 +74,7 @@ public class SpeciesMatchUDF extends GenericUDF {
 
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
-    assert arguments.length == argLength;
+    assert arguments.length == ARG_LENGTH;
 
     URI api = URI.create(arguments[0].get().toString());
 
@@ -147,14 +147,14 @@ public class SpeciesMatchUDF extends GenericUDF {
 
   @Override
   public String getDisplayString(String[] strings) {
-    assert strings.length == argLength;
-    return "match(" + joinComma.join(strings) + ')';
+    assert strings.length == ARG_LENGTH;
+    return "match(" + JOIN_COMMA.join(strings) + ')';
   }
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-    if (arguments.length != argLength) {
-      throw new UDFArgumentException("nubLookup takes " + argLength + " arguments");
+    if (arguments.length != ARG_LENGTH) {
+      throw new UDFArgumentException("nubLookup takes " + ARG_LENGTH + " arguments");
     }
 
     return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays
