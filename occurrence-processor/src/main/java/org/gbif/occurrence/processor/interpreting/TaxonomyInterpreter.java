@@ -85,7 +85,7 @@ public class TaxonomyInterpreter {
   }
 
   public OccurrenceParseResult<NameUsageMatch> match(String kingdom, String phylum, String clazz, String order,
-    String family, String genus, String scientificName, String specificEpithet, String infraspecificEpithet) {
+    String family, String genus, String scientificName, String specificEpithet, String infraspecificEpithet, Rank rank) {
 
     final String sciname = buildScientificName(scientificName, null, genus, specificEpithet, infraspecificEpithet);
     OccurrenceParseResult<NameUsageMatch> result;
@@ -97,10 +97,13 @@ public class TaxonomyInterpreter {
     queryParams.add("family", family);
     queryParams.add("genus", genus);
     queryParams.add("name", sciname);
+    if (rank != null) {
+      queryParams.add("rank", rank.name());
+    }
 
     LOG.debug("Attempt to match name [{}]", sciname);
     WebResource res = MATCHING_WS.queryParams(queryParams);
-    LOG.info("WS call with: {}", res.getURI());
+    LOG.debug("WS call with: {}", res.getURI());
     try {
       NameUsageMatch lookup = CACHE.get(res);
       result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
@@ -132,6 +135,8 @@ public class TaxonomyInterpreter {
         verbatim.getVerbatimField(GbifTerm.genericName), verbatim.getVerbatimField(DwcTerm.genus),
         verbatim.getVerbatimField(DwcTerm.specificEpithet), verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
 
+    Rank rank = interpretRank(verbatim);
+
     OccurrenceParseResult<NameUsageMatch> matchPR = match(
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.kingdom)),
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.phylum)),
@@ -140,7 +145,8 @@ public class TaxonomyInterpreter {
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.family)),
         ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.genus)), sciname,
         ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.specificEpithet)),
-        ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet)));
+        ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet)),
+        rank);
 
     if (!matchPR.isSuccessful()) {
       LOG.debug("Unsuccessful backbone match for occurrence {} with name {}", occ.getKey(), sciname);
@@ -157,14 +163,6 @@ public class TaxonomyInterpreter {
 
       // parse name into pieces - we dont get them from the nub lookup
       try {
-        Rank rank = null;
-        if (verbatim.hasVerbatimField(DwcTerm.taxonRank)) {
-          rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.taxonRank)).getPayload();
-        }
-        // try again with verbatim if it exists
-        if (rank == null && verbatim.hasVerbatimField(DwcTerm.verbatimTaxonRank)) {
-          rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.verbatimTaxonRank)).getPayload();
-        }
         ParsedName pn = parser.parse(match.getScientificName(), rank);
         occ.setGenericName(pn.getGenusOrAbove());
         occ.setSpecificEpithet(pn.getSpecificEpithet());
@@ -179,5 +177,29 @@ public class TaxonomyInterpreter {
       }
       LOG.debug("Occurrence {} matched to nub {}", occ.getKey(), occ.getScientificName());
     }
+  }
+
+  private Rank interpretRank(VerbatimOccurrence verbatim){
+    Rank rank = null;
+    if (verbatim.hasVerbatimField(DwcTerm.taxonRank)) {
+      rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.taxonRank)).getPayload();
+    }
+    // try again with verbatim if it exists
+    if (rank == null && verbatim.hasVerbatimField(DwcTerm.verbatimTaxonRank)) {
+      rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.verbatimTaxonRank)).getPayload();
+    }
+    // derive from atomized fields
+    if (rank == null && verbatim.hasVerbatimField(DwcTerm.genus)) {
+      if (verbatim.hasVerbatimField(DwcTerm.specificEpithet)) {
+        if (verbatim.hasVerbatimField(DwcTerm.infraspecificEpithet)) {
+          rank = Rank.INFRASPECIFIC_NAME;
+        } else {
+          rank = Rank.SPECIES;
+        }
+      } else {
+        rank = Rank.GENUS;
+      }
+    }
+    return rank;
   }
 }

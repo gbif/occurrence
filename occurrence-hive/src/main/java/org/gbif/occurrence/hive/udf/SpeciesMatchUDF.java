@@ -1,6 +1,8 @@
 package org.gbif.occurrence.hive.udf;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.common.parsers.RankParser;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
@@ -30,12 +32,13 @@ import org.slf4j.LoggerFactory;
  */
 @Description(
   name = "match",
-  value = "_FUNC_(apiUrl, kingdom, phylum, class, order, family, genus, scientificName, specificEpithet, infraspecificEpithet)")
+  value = "_FUNC_(apiUrl, kingdom, phylum, class, order, family, genus, scientificName, specificEpithet, infraspecificEpithet, rank)")
 public class SpeciesMatchUDF extends GenericUDF {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesMatchUDF.class);
 
   private static final int argLength = 10;
   private static final Joiner joinComma = Joiner.on(",").useForNull("-");
+  private static final RankParser RANK_PARSER = RankParser.getInstance();
 
   private TaxonomyInterpreter taxonomyInterpreter;
   private Object lock = new Object();
@@ -84,6 +87,11 @@ public class SpeciesMatchUDF extends GenericUDF {
     String s = clean(arguments[7].get());
     String sp = clean(arguments[8].get());
     String ssp = clean(arguments[9].get());
+    Rank rank = null;
+    Object rankInput = arguments[10].get();
+    if (rankInput != null) {
+      rank = RANK_PARSER.parse(rankInput.toString()).getPayload();
+    }
 
     List<Object> result = Lists.newArrayList(21);
 
@@ -97,7 +105,8 @@ public class SpeciesMatchUDF extends GenericUDF {
             ClassificationUtils.clean(g),
             sciname,
             ClassificationUtils.cleanAuthor(sp),
-            ClassificationUtils.cleanAuthor(ssp));
+            ClassificationUtils.cleanAuthor(ssp),
+            rank);
 
     if (response != null) {
       result.add(response.getStatus());
