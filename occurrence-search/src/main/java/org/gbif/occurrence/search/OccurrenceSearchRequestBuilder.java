@@ -45,6 +45,7 @@ public class OccurrenceSearchRequestBuilder {
 
   private static final String SOLR_SPELLCHECK = "spellcheck";
   private static final String SOLR_SPELLCHECK_COUNT = "spellcheck.count";
+  private static final String SOLR_SPELLCHECK_Q = "spellcheck.q";
   private static final Integer DEFAULT_SPELL_CHECK_COUNT = 4;
 
   /**
@@ -202,10 +203,12 @@ public class OccurrenceSearchRequestBuilder {
     // q param
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
+      solrQuery.setParam(SOLR_SPELLCHECK, Boolean.FALSE);
     } else {
       OccurrenceFullTextQueryBuilder occurrenceFullTextQueryBuilder = new OccurrenceFullTextQueryBuilder();
       occurrenceFullTextQueryBuilder.withQ(request.getQ());
       solrQuery.setQuery(occurrenceFullTextQueryBuilder.build());
+      solrQuery.setParam(SOLR_SPELLCHECK_Q,request.getQ());
     }
     solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     // paging
