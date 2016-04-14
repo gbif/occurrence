@@ -58,8 +58,13 @@ public class CountryMaps {
           addConfusedCountry(countryB, countryA, addIssue);
 
           if (!addIssue) {
-            LOG.info("Adding [{}][{}] to preferred country map.", countryA, countryB);
-            PREFERRED_COUNTRIES.put(countryA, countryB);
+            if (PREFERRED_COUNTRIES.containsKey(countryA)) {
+              LOG.info("Multiple preferred mappings from country [{}] (this time [{}]), disabling preference.", countryA, countryB);
+              PREFERRED_COUNTRIES.put(countryA, countryA);
+            } else {
+              LOG.info("Adding [{}][{}] to preferred country map.", countryA, countryB);
+              PREFERRED_COUNTRIES.put(countryA, countryB);
+            }
           }
         }
       }

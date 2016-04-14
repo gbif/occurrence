@@ -166,7 +166,7 @@ public class LocationInterpreterTest {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
-    verb.setVerbatimField(DwcTerm.country, "Guyana");
+    verb.setVerbatimField(DwcTerm.country, "Western Sahara");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
@@ -174,15 +174,31 @@ public class LocationInterpreterTest {
     assertNull(occ.getDecimalLatitude());
     assertNull(occ.getDecimalLongitude());
     assertEquals(0, occ.getIssues().size());
-    assertEquals(Country.GUYANA, occ.getCountry());
+    assertEquals(Country.MOROCCO, occ.getCountry());
   }
 
   @Test
-  public void testDeriveFromOnlyMappedCountry() {
+  public void testDeriveFromMultipleMappedCountry1() {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "French Guiana");
+    occ = new Occurrence(verb);
+
+    interpreter.interpretLocation(verb, occ);
+    assertNotNull(occ);
+    assertNull(occ.getDecimalLatitude());
+    assertNull(occ.getDecimalLongitude());
+    assertEquals(0, occ.getIssues().size());
+    assertEquals(Country.FRENCH_GUIANA, occ.getCountry());
+  }
+
+  @Test
+  public void testDeriveFromMultipleMappedCountry2() {
+    verb = new VerbatimOccurrence();
+    verb.setKey(1);
+    verb.setDatasetKey(UUID.randomUUID());
+    verb.setVerbatimField(DwcTerm.country, "France");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
@@ -209,17 +225,17 @@ public class LocationInterpreterTest {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
-    verb.setVerbatimField(DwcTerm.country, "Martinique");
-    verb.setVerbatimField(DwcTerm.decimalLatitude, "14.72");
-    verb.setVerbatimField(DwcTerm.decimalLongitude, "-61.06");
+    verb.setVerbatimField(DwcTerm.country, "Western Sahara");
+    verb.setVerbatimField(DwcTerm.decimalLatitude, "27.15");
+    verb.setVerbatimField(DwcTerm.decimalLongitude, "-13.20");
     verb.setVerbatimField(DwcTerm.geodeticDatum, "EPSG:4326");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
-    assertEquals(14.72, occ.getDecimalLatitude(), 0.0001);
-    assertEquals(-61.06, occ.getDecimalLongitude(), 0.0001);
-    assertEquals(Country.FRANCE, occ.getCountry());
+    assertEquals(27.15, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(-13.20, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(Country.MOROCCO, occ.getCountry());
     assertEquals(0, occ.getIssues().size());
   }
 

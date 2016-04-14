@@ -2,7 +2,10 @@
 # (usually) add an issue.  Or, the other way around.
 #
 # If GBIF's usage of the ISO code / country varies from the standard, we don't add the issue.
-# For example, this is the case for France and its overseas departments.
+# At present, this is only done for Western Sahara.
+# This change is also done for occurrences without co-ordinates.
+# If the ISO standard includes regions at more than one level, in some cases we don't add the issue.
+# At present, this is done for the French overseas departments (GP=FR-GP, etc).
 #
 # Record counts are approximate, from January 2016.
 #
@@ -24,8 +27,8 @@ NF,AU,true
 # (Indian Ocean Territories, Coral Sea Islands, Ashmore and Cartier Islands have no ISO code.)
 
 # China
-HK,CN,false
-MO,CN,false
+HK,CN,true
+MO,CN,true
 
 # Denmark
 # Faroe Islands, just 19 records.
@@ -37,12 +40,12 @@ GL,DK,true
 AX,FI,true
 
 # French overseas departments: Guadeloupe, French Guiana, Martinique, Réunion, Mayotte
-# Either code is accepted, since we collect all these (and Metropolitain France itself) under FR.
-GP,FR,false
-GF,FR,false
-MQ,FR,false
-RE,FR,false
-YT,FR,false
+# Accept either code, since ISO 3166-2:FR also includes codes for these places (FR-GP, FR-GF etc).
+FR,GP,false
+FR,GF,false
+FR,MQ,false
+FR,RE,false
+FR,YT,false
 
 # French overseas collectivites: French Polynesia, Saint Pierre and Miquelon, Wallis and Futuna, Saint Martin, Saint Barthélemy.
 # (All included for consistency, but with an issue, since we are using these the ISO way.)
