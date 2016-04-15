@@ -72,8 +72,8 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   @Inject
   public OccurrenceSearchImpl(SolrClient solrClient, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
-    OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
-    @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
+                              OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
+                              @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
     this.solrClient = solrClient;
     occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset, maxLimit);
     this.occurrenceService = occurrenceService;
@@ -86,7 +86,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    * @return a new instance of a SearchResponse.
    */
   public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(QueryResponse queryResponse,
-    Pageable request) {
+                                                                             Pageable request) {
     // Create response
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
       new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);

@@ -91,10 +91,10 @@ public class OccurrenceSearchRequestBuilder {
      */
     public String build() {
       String[] qs = q.split(" ");
-      String unTokenizedFieldsQuery = String.format(NON_TOKENIZED_QUERY, q);
       if(qs.length > 1){
         StringBuilder ftQ = new StringBuilder();
-        ftQ.append(QueryUtils.toPhraseQuery(q) +  ' ');
+        String phraseQ = QueryUtils.toPhraseQuery(q);
+        ftQ.append(phraseQ +  ' ');
         for(int i = 0; i < qs.length; i++) {
           if (qs[i].length() > 1) { //ignore tokens of single letters
             int termScore = Math.max(MAX_SCORE - (SCORE_DECREMENT * i), SCORE_DECREMENT);
@@ -104,9 +104,9 @@ public class OccurrenceSearchRequestBuilder {
             }
           }
         }
-        return QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery, ftQ.toString());
+        return QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY,phraseQ), ftQ.toString());
       }
-      return  QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery,
+      return  QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, q),
                                                String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
     }
   }
@@ -206,6 +206,8 @@ public class OccurrenceSearchRequestBuilder {
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
       solrQuery.setParam(SOLR_SPELLCHECK, Boolean.FALSE);
+      // sorting is set only when the q parameter is empty, otherwise the score value es used
+      setSortOrder(solrQuery, sortOrder);
     } else {
       OccurrenceFullTextQueryBuilder occurrenceFullTextQueryBuilder = new OccurrenceFullTextQueryBuilder();
       occurrenceFullTextQueryBuilder.withQ(request.getQ());
@@ -217,8 +219,6 @@ public class OccurrenceSearchRequestBuilder {
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
     setFilterParameters(request, solrQuery);
-    // sorting
-    setSortOrder(solrQuery, sortOrder);
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
