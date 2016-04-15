@@ -206,6 +206,8 @@ public class OccurrenceSearchRequestBuilder {
     if(Strings.isNullOrEmpty(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
       solrQuery.setParam(SOLR_SPELLCHECK, Boolean.FALSE);
+      // sorting is set only when the q parameter is empty, otherwise the score value es used
+      setSortOrder(solrQuery, sortOrder);
     } else {
       OccurrenceFullTextQueryBuilder occurrenceFullTextQueryBuilder = new OccurrenceFullTextQueryBuilder();
       occurrenceFullTextQueryBuilder.withQ(request.getQ());
@@ -217,8 +219,6 @@ public class OccurrenceSearchRequestBuilder {
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
     setFilterParameters(request, solrQuery);
-    // sorting
-    setSortOrder(solrQuery, sortOrder);
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
