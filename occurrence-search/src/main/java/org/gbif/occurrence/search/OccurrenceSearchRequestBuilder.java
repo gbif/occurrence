@@ -96,10 +96,12 @@ public class OccurrenceSearchRequestBuilder {
         StringBuilder ftQ = new StringBuilder();
         ftQ.append(QueryUtils.toPhraseQuery(q) +  ' ');
         for(int i = 0; i < qs.length; i++) {
-          int termScore = Math.max(MAX_SCORE - SCORE_DECREMENT * i, SCORE_DECREMENT);
-          ftQ.append(String.format(TERM_PATTERN, qs[i], termScore, FUZZY_DISTANCE, termScore / 2));
-          if (i < qs.length - 1) {
-            ftQ.append(' ');
+          if (qs[i].length() > 1) { //ignore tokens of single letters
+            int termScore = Math.max(MAX_SCORE - (SCORE_DECREMENT * i), SCORE_DECREMENT);
+            ftQ.append(String.format(TERM_PATTERN, qs[i], termScore, FUZZY_DISTANCE, termScore / 2));
+            if (i < (qs.length - 1)) {
+              ftQ.append(' ');
+            }
           }
         }
         return QueryUtils.PARAMS_OR_JOINER.join(unTokenizedFieldsQuery, ftQ.toString());
