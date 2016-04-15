@@ -91,9 +91,9 @@ public class OccurrenceSearchRequestBuilder {
      */
     public String build() {
       String[] qs = q.split(" ");
+      String phraseQ = QueryUtils.toPhraseQuery(q);
       if(qs.length > 1){
         StringBuilder ftQ = new StringBuilder();
-        String phraseQ = QueryUtils.toPhraseQuery(q);
         ftQ.append(phraseQ +  ' ');
         for(int i = 0; i < qs.length; i++) {
           if (qs[i].length() > 1) { //ignore tokens of single letters
@@ -106,7 +106,7 @@ public class OccurrenceSearchRequestBuilder {
         }
         return QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY,phraseQ), ftQ.toString());
       }
-      return  QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, q),
+      return  QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, phraseQ),
                                                String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
     }
   }
