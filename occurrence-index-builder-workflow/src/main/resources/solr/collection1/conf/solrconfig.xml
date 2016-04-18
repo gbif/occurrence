@@ -489,7 +489,7 @@
       <int name="ps">100</int>
       <int name="mm">1</int>
       <str name="spellcheck.dictionary">default</str>
-      <str name="spellcheck.dictionary">spell_sc</str>
+      <str name="spellcheck.dictionary">spell_sn</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -541,7 +541,7 @@
     <lst name="defaults">
       <str name="df">full_text</str>
       <str name="spellcheck.dictionary">default</str>
-      <str name="spellcheck.dictionary">spell_sc</str>
+      <str name="spellcheck.dictionary">spell_sn</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -568,9 +568,11 @@
 
     <!-- a spellchecker for scientific name -->
     <lst name="spellchecker">
-      <str name="name">spell_sc</str>
+      <str name="name">spell_sn</str>
       <str name="field">scientific_name</str>
       <str name="spellcheckIndexDir">./spellchecker_sn</str>
+      <str name="buildOnOptimize">true</str>
+      <str name="buildOnCommit">true</str>
     </lst>
   </searchComponent>
 
