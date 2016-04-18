@@ -489,6 +489,7 @@
       <int name="ps">100</int>
       <int name="mm">1</int>
       <str name="spellcheck.dictionary">default</str>
+      <str name="spellcheck.dictionary">spell_sc</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -540,6 +541,7 @@
     <lst name="defaults">
       <str name="df">full_text</str>
       <str name="spellcheck.dictionary">default</str>
+      <str name="spellcheck.dictionary">spell_sc</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -555,7 +557,7 @@
   </requestHandler>
 
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
-    <str name="queryAnalyzerFieldType">string</str> <!-- Replace with Field Type of your schema -->
+    <str name="queryAnalyzerFieldType">text_general</str> <!-- Replace with Field Type of your schema -->
     <lst name="spellchecker">
       <str name="name">default</str>
       <str name="field">full_text</str> <!-- Replace with field name as per your scheme -->
@@ -564,12 +566,11 @@
       <str name="buildOnCommit">true</str>
     </lst>
 
-    <!-- a spellchecker that uses a different distance measure -->
+    <!-- a spellchecker for scientific name -->
     <lst name="spellchecker">
-      <str name="name">jarowinkler</str>
-      <str name="field">spell</str>
-      <str name="distanceMeasure">org.apache.lucene.search.spell.JaroWinklerDistance</str>
-      <str name="spellcheckIndexDir">./spellchecker2</str>
+      <str name="name">spell_sc</str>
+      <str name="field">scientific_name</str>
+      <str name="spellcheckIndexDir">./spellchecker_sn</str>
     </lst>
   </searchComponent>
 

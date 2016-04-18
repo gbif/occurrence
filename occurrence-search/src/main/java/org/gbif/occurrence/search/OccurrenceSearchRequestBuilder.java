@@ -64,7 +64,8 @@ public class OccurrenceSearchRequestBuilder {
 
     private static final Set<String> NON_TOKENIZABLE_FIELDS =
       ImmutableSet.<String>of(OccurrenceSolrField.CATALOG_NUMBER.getFieldName() + NON_TOKENIZED_QUERY_PATTERN,
-                              OccurrenceSolrField.OCCURRENCE_ID.getFieldName() + NON_TOKENIZED_QUERY_PATTERN);
+                              OccurrenceSolrField.OCCURRENCE_ID.getFieldName() + NON_TOKENIZED_QUERY_PATTERN,
+                              OccurrenceSolrField.SCIENTIFIC_NAME.getFieldName() + NON_TOKENIZED_QUERY_PATTERN);
 
 
     private static final String NON_TOKENIZED_QUERY = QueryUtils.PARAMS_OR_JOINER.join(NON_TOKENIZABLE_FIELDS);
