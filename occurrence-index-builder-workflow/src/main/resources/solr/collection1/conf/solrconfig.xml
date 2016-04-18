@@ -557,7 +557,7 @@
   </requestHandler>
 
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
-    <str name="queryAnalyzerFieldType">text_general</str> <!-- Replace with Field Type of your schema -->
+    <str name="queryAnalyzerFieldType">string</str> <!-- Replace with Field Type of your schema -->
     <lst name="spellchecker">
       <str name="name">default</str>
       <str name="field">full_text</str> <!-- Replace with field name as per your scheme -->
