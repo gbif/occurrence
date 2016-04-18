@@ -95,7 +95,7 @@
       <field name="issue" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
       <field name="establishment_means" type="string" indexed="true" stored="false" docValues="true"/>
       <field name="occurrence_id" type="string" indexed="true" stored="false"/>
-      <field name="scientific_name" type="string" indexed="true" stored="false" />
+      <field name="scientific_name" type="text_general" indexed="true" stored="false" />
       <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
       <field name="_version_" type="long" indexed="true" stored="true"/>
 	</fields>
