@@ -70,7 +70,7 @@ public class OccurrenceSearchRequestBuilder {
                               OccurrenceSolrField.SCIENTIFIC_NAME.getFieldName() + NON_TOKENIZED_QUERY_PATTERN);
 
 
-    private static final String NON_TOKENIZED_QUERY = QueryUtils.PARAMS_OR_JOINER.join(NON_TOKENIZABLE_FIELDS);
+    private static final String NON_TOKENIZED_QUERY = PARAMS_OR_JOINER.join(NON_TOKENIZABLE_FIELDS);
 
     private static final Integer MAX_SCORE = 100;
 
@@ -110,9 +110,9 @@ public class OccurrenceSearchRequestBuilder {
             }
           }
         }
-        return QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY,phraseQ), ftQ.toString());
+        return PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, phraseQ), ftQ.toString());
       }
-      return  QueryUtils.PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, q),
+      return  PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, q),
                                                String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
     }
   }
@@ -169,13 +169,14 @@ public class OccurrenceSearchRequestBuilder {
   /**
    * Default constructor.
    */
-  public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset, int maxLimit) {
+  public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset,
+                                        int maxLimit) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset can't less than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit can't less than zero");
     this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
-    this.maxOffset = Math.min(maxOffset,MAX_OFFSET);
-    this.maxLimit = Math.min(maxLimit,MAX_PAGE_SIZE);
+    this.maxOffset = Math.min(maxOffset, MAX_OFFSET);
+    this.maxLimit = Math.min(maxLimit, MAX_PAGE_SIZE);
   }
 
   /**
@@ -204,7 +205,7 @@ public class OccurrenceSearchRequestBuilder {
 
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellCheck());
-    if(request.isSpellCheck()){
+    if (request.isSpellCheck()) {
       solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
                          request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT.toString() : Integer.toString(request.getSpellCheckCount()));
     }
@@ -218,7 +219,7 @@ public class OccurrenceSearchRequestBuilder {
       OccurrenceFullTextQueryBuilder occurrenceFullTextQueryBuilder = new OccurrenceFullTextQueryBuilder();
       occurrenceFullTextQueryBuilder.withQ(request.getQ());
       solrQuery.setQuery(occurrenceFullTextQueryBuilder.build());
-      solrQuery.setParam(SOLR_SPELLCHECK_Q,request.getQ());
+      solrQuery.setParam(SOLR_SPELLCHECK_Q, request.getQ());
     }
     solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     // paging
@@ -292,7 +293,7 @@ public class OccurrenceSearchRequestBuilder {
       addLocationQuery(params, filterQueries);
       addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, filterQueries);
       addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
-        filterQueries);
+                   filterQueries);
 
       if (!filterQueries.isEmpty()) {
         solrQuery.addFilterQuery(PARAMS_AND_JOINER.join(filterQueries));

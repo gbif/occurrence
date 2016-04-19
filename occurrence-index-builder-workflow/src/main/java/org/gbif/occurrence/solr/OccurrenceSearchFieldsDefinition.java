@@ -54,13 +54,13 @@ public class OccurrenceSearchFieldsDefinition {
   private static final Predicate<Term> NON_SEARCHABLE_TYPES = new Predicate<Term>() {
     @Override
     public boolean apply(@Nullable Term input) {
-      return !NON_SEARCHABLE_HIVE_TYPES.contains(HiveDataTypes.typeForTerm(input,false)) ||
+      return !NON_SEARCHABLE_HIVE_TYPES.contains(HiveDataTypes.typeForTerm(input, false))
              //don't discard temporal INT fields: year, month and day
-             (HiveDataTypes.typeForTerm(input,false) == HiveDataTypes.TYPE_INT && TEMPORAL_FIELDS.contains(input));
+             || (HiveDataTypes.typeForTerm(input, false) == HiveDataTypes.TYPE_INT && TEMPORAL_FIELDS.contains(input));
     }
   };
 
-  private static final Set<Term> SEARCH_FIELDS = Sets.difference(Sets.filter(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS,NON_SEARCHABLE_TYPES),
+  private static final Set<Term> SEARCH_FIELDS = Sets.difference(Sets.filter(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS, NON_SEARCHABLE_TYPES),
                                                                  FullTextFieldBuilder.NON_FULL_TEXT_TERMS);
 
   private static final String HIVE_OUT_DIR = "hive-scripts/";

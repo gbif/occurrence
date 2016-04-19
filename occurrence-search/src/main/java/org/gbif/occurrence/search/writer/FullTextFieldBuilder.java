@@ -25,9 +25,7 @@ public class FullTextFieldBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(FullTextFieldBuilder.class);
 
-  public static final Set<Term> NON_FULL_TEXT_TERMS = new ImmutableSet.Builder<Term>().add(DwcTerm.occurrenceID,
-                                                                                           DwcTerm.catalogNumber,
-                                                                                           DwcTerm.verbatimEventDate,
+  public static final Set<Term> NON_FULL_TEXT_TERMS = new ImmutableSet.Builder<Term>().add(DwcTerm.verbatimEventDate,
                                                                                            DwcTerm.verbatimCoordinates,
                                                                                            DwcTerm.verbatimCoordinateSystem,
                                                                                            DwcTerm.verbatimDepth,
