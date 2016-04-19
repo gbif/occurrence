@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -47,6 +48,7 @@ public class OccurrenceSearchRequestBuilder {
   private static final String SOLR_SPELLCHECK_COUNT = "spellcheck.count";
   private static final String SOLR_SPELLCHECK_Q = "spellcheck.q";
   private static final Integer DEFAULT_SPELL_CHECK_COUNT = 4;
+  private static final Pattern COMMON_REPLACER = Pattern.compile(",", Pattern.LITERAL);
 
   /**
    * Utility class to generates full text queries.
@@ -56,7 +58,7 @@ public class OccurrenceSearchRequestBuilder {
 
     private String q;
 
-    private static final Double FUZZY_DISTANCE = 0.7;
+    private static final Double FUZZY_DISTANCE = 0.8;
 
     private static final String TERM_PATTERN = "%1$s^%2$s %1$s~%3$s^%4$s";
 
@@ -76,6 +78,8 @@ public class OccurrenceSearchRequestBuilder {
 
 
 
+
+
     /**
      * Query parameter.
      */
@@ -92,11 +96,12 @@ public class OccurrenceSearchRequestBuilder {
      */
     public String build() {
       String[] qs = q.split(" ");
-      if(qs.length > 1){
-        StringBuilder ftQ = new StringBuilder();
+      if(qs.length > 1) {
+        StringBuilder ftQ = new StringBuilder(qs.length);
         String phraseQ = QueryUtils.toPhraseQuery(q);
-        ftQ.append(phraseQ +  ' ');
-        for(int i = 0; i < qs.length; i++) {
+        ftQ.append(phraseQ);
+        ftQ.append(' ');
+        for (int i = 0; i < qs.length; i++) {
           if (qs[i].length() > 1) { //ignore tokens of single letters
             int termScore = Math.max(MAX_SCORE - (SCORE_DECREMENT * i), SCORE_DECREMENT);
             ftQ.append(String.format(TERM_PATTERN, qs[i], termScore, FUZZY_DISTANCE, termScore / 2));
@@ -263,7 +268,7 @@ public class OccurrenceSearchRequestBuilder {
    */
   private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
-    if (params != null && !params.isEmpty()) {
+    if (params != null && !pcdarams.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
         List<String> aFieldParameters = Lists.newArrayList();
@@ -272,7 +277,7 @@ public class OccurrenceSearchRequestBuilder {
           if (solrField != null && param.type() != Date.class) {
             String parsedValue = QueryUtils.parseQueryValue(value);
             if (QueryUtils.isRangeQuery(parsedValue)) {
-              parsedValue = parsedValue.replace(",", " TO ");
+              parsedValue = COMMON_REPLACER.matcher(parsedValue).replaceAll(" TO ");
             }
             if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
               parsedValue = parsedValue.toUpperCase();
