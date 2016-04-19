@@ -11,7 +11,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
@@ -87,7 +87,7 @@ public class OccurrenceWsSearchClient extends
    * Utility function that execute a search term query.
    */
   private List<String> suggestTerms(String resourceName, String prefix, @Nullable Integer limit) {
-    String limitParam = Integer.toString(MoreObjects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+    String limitParam = Integer.toString(Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
     return getResource(SEARCH_PATH + resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
       .get(LIST_OF_STRINGS_TYPE);
   }

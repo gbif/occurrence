@@ -4,7 +4,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 /**
  * Configs needed to connect to the occurrence HBase db.
@@ -46,7 +46,7 @@ public class OccHBaseConfiguration {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    return Objects.toStringHelper(this)
       .add("hbasePoolSize", hbasePoolSize)
       .add("occTable", occTable)
       .add("counterTable", counterTable)
