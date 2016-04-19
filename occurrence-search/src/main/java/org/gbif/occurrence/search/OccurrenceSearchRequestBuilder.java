@@ -268,7 +268,7 @@ public class OccurrenceSearchRequestBuilder {
    */
   private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
-    if (params != null && !pcdarams.isEmpty()) {
+    if (params != null && !params.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
         List<String> aFieldParameters = Lists.newArrayList();
