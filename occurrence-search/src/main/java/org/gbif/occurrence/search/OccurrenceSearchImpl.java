@@ -56,7 +56,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchImpl.class);
 
   // Default order of results
-  private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<String, SolrQuery.ORDER>();
+  private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<String, SolrQuery.ORDER>(2);
 
   private final OccurrenceService occurrenceService;
 
