@@ -209,6 +209,7 @@ public class OccurrenceSearchRequestBuilder {
     if (request.isSpellCheck()) {
       solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
                          request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT.toString() : Integer.toString(request.getSpellCheckCount()));
+      solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     }
     // q param
     if(Strings.isNullOrEmpty(request.getQ())) {
@@ -222,7 +223,6 @@ public class OccurrenceSearchRequestBuilder {
       solrQuery.setQuery(occurrenceFullTextQueryBuilder.build());
       solrQuery.setParam(SOLR_SPELLCHECK_Q, request.getQ());
     }
-    solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
