@@ -44,6 +44,6 @@ public class OccurrenceSearchRequestBuilderTest {
     OccurrenceSearchRequest request = new OccurrenceSearchRequest();
     request.setQ("cat");
     SolrQuery query  = requestBuilder.build(request);
-    Assert.assertEquals(query.get("q"),"catalog_number:cat^1000 OR occurrence_id:cat^1000 OR scientific_name:cat^1000 OR cat^100 cat~0.8^50");
+    Assert.assertEquals(query.get("q"),"catalog_number:cat^1000 OR occurrence_id:cat^1000 OR scientific_name:cat^1000 OR key:cat^1000 OR cat^100 cat~0.8^50");
   }
 }
