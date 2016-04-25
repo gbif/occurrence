@@ -55,7 +55,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
    * Loads the default configuration file name and copies the additionalProperties into it.
    */
   public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    this.configuration = Optional.of(configuration);
+    this.configuration = Optional.fromNullable(configuration);
     this.workflowConfiguration = workflowConfiguration;
   }
 

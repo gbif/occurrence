@@ -121,7 +121,7 @@ public class OccurrenceMapReader {
    * Extracts the media types from the hbase result.
    */
   private static String extractMediaTypes(Result result) {
-    Optional<byte[]> val = Optional.of(result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
+    Optional<byte[]> val = Optional.fromNullable(result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
     return val.isPresent() ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val.get())) : "";
   }
 
@@ -175,7 +175,7 @@ public class OccurrenceMapReader {
    * Removes tabs, line breaks and new lines.
    */
   public static String getCleanString(Result row, Term term) {
-    return cleanString(Optional.of(ExtResultReader.getString(row, term)));
+    return cleanString(Optional.fromNullable(ExtResultReader.getString(row, term)));
   }
 
   /**
@@ -183,7 +183,7 @@ public class OccurrenceMapReader {
    * Removes tabs, line breaks and new lines.
    */
   public static String getCleanVerbatimString(Result row, Term term) {
-    return cleanString(Optional.of(ExtResultReader.getString(row, Columns.verbatimColumn(term))));
+    return cleanString(Optional.fromNullable(ExtResultReader.getString(row, Columns.verbatimColumn(term))));
   }
 
   private static String cleanString(Optional<String> value) {
