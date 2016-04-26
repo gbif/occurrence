@@ -39,11 +39,11 @@ public class OccurrenceSearchRequestBuilderTest {
   }
 
   @Test
-  public void fullTextQueryTest(){
+  public void fullTextQueryTest() {
     OccurrenceSearchRequestBuilder requestBuilder = new OccurrenceSearchRequestBuilder("search",SORT_ORDER,10000,20);
     OccurrenceSearchRequest request = new OccurrenceSearchRequest();
     request.setQ("cat");
     SolrQuery query  = requestBuilder.build(request);
-    Assert.assertEquals(query.get("q"),"catalog_number:cat^1000 OR occurrence_id:cat^1000 OR scientific_name:cat^1000 OR key:cat^1000 OR cat^100 cat~0.8^50");
+    Assert.assertEquals(query.get("q"),"catalog_number:cat^1000 OR occurrence_id:cat^1000 OR scientific_name:cat^1000 OR cat^100 cat~0.8^50");
   }
 }
