@@ -302,7 +302,9 @@ public final class Terms {
         @Override
         public boolean apply(@Nullable Term t) {
           // strip the GBIF id as we've already added that
-          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t;
+          // Do not include GbifTerm.coordinateAccuracy (POR-3061)
+          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
+                  && GbifTerm.coordinateAccuracy !=t;
         }
       })).build();
   }

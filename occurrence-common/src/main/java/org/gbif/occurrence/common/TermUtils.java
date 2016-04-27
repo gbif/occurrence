@@ -156,7 +156,8 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable GbifTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t;
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t
+                  && GbifTerm.coordinateAccuracy !=t;
         }
       }));
   }
