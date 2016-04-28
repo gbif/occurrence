@@ -84,8 +84,13 @@ public class TaxonomyInterpreter {
       }
       pn.setSpecificEpithet(specificEpithet);
       pn.setInfraSpecificEpithet(infraspecificEpithet);
-      sciname = pn.canonicalName();
+      pn.setAuthorship(authorship);
+      sciname = pn.canonicalNameComplete();
+
+    } else if (!Strings.isNullOrEmpty(authorship) && !sciname.toLowerCase().contains(authorship.toLowerCase())) {
+      sciname = sciname + " " + authorship;
     }
+
     return sciname;
   }
 
@@ -114,6 +119,7 @@ public class TaxonomyInterpreter {
     genericName = ClassificationUtils.clean(genericName);
     specificEpithet = ClassificationUtils.cleanAuthor(specificEpithet);
     infraspecificEpithet = ClassificationUtils.cleanAuthor(infraspecificEpithet);
+    authorship = ClassificationUtils.cleanAuthor(authorship);
 
     final String sciname = buildScientificName(scientificName, authorship, genericName, genus, specificEpithet, infraspecificEpithet);
 
