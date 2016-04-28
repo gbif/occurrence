@@ -291,7 +291,7 @@ public class OccurrencePersistenceServiceImplTest {
       }
     }
     for (GbifTerm term : GbifTerm.values()) {
-      if (term != GbifTerm.lastParsed && !term.isClass()) {
+      if (term != GbifTerm.lastParsed && !term.isClass() && term != GbifTerm.coordinateAccuracy) {
         put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
       }
     }
