@@ -76,11 +76,13 @@ public class TermUtils {
       GbifTerm.phylumKey, GbifTerm.classKey, GbifTerm.orderKey, GbifTerm.familyKey, GbifTerm.genusKey,
       GbifTerm.subgenusKey, GbifTerm.speciesKey, GbifTerm.datasetKey, GbifTerm.publishingCountry,
       GbifTerm.lastInterpreted, DcTerm.modified, DwcTerm.coordinateUncertaintyInMeters, DwcTerm.coordinatePrecision,
-      GbifTerm.coordinateAccuracy, GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth,
+      GbifTerm.elevation, GbifTerm.elevationAccuracy, GbifTerm.depth,
       GbifTerm.depthAccuracy, GbifInternalTerm.unitQualifier, GbifTerm.issue, DcTerm.references, GbifTerm.datasetKey,
       GbifTerm.publishingCountry, GbifTerm.protocol, GbifTerm.lastCrawled, GbifTerm.lastParsed);
 
-
+  /**
+   * TODO: is this correct? -> Terms used during interpretation and superseded by an interpreted property
+   */
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS = (Set<? extends Term>) ImmutableSet.copyOf(
     Iterables.concat(JAVA_PROPERTY_TERMS, Lists
         .newArrayList(DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.verbatimLatitude,
@@ -154,7 +156,8 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable GbifTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t;
+          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t
+                  && GbifTerm.coordinateAccuracy !=t;
         }
       }));
   }

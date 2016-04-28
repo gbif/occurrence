@@ -41,7 +41,8 @@ public class LocationInterpreter {
   private static final double COORDINATE_UNCERTAINTY_METERS_UPPER_BOUND = 5000000;
 
   private static final double COORDINATE_PRECISION_LOWER_BOUND = 0;
-  private static final double COORDINATE_PRECISION_UPPER_BOUND = 1;
+  // 45 close to 5000 km
+  private static final double COORDINATE_PRECISION_UPPER_BOUND = 45;
 
   @Inject
   public LocationInterpreter(CoordinateInterpreter coordinateInterpreter) {

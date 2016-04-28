@@ -121,7 +121,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * Assemble the mapping for interpreted fields, taking note that in reality, many are mounted onto the vebatim
+   * Assemble the mapping for interpreted fields, taking note that in reality, many are mounted onto the verbatim
    * HBase columns.
    *
    * @return the list of fields that are used in the interpreted context

@@ -105,8 +105,7 @@ public final class Terms {
                                                      GbifTerm.canonicalName,
                                                      GbifTerm.nameType,
                                                      GbifTerm.verbatimLabel,
-                                                     GbifTerm.infraspecificMarker,
-                                                     GbifTerm.coordinateAccuracy);
+                                                     GbifTerm.infraspecificMarker);
 
     return ImmutableList.copyOf(Iterables.<GbifTerm>filter(Lists.newArrayList(GbifTerm.values()),
                                                            new Predicate<GbifTerm>() {
@@ -196,8 +195,6 @@ public final class Terms {
                                  DcTerm.modified,
                                  DwcTerm.coordinateUncertaintyInMeters,
                                  DwcTerm.coordinatePrecision,
-                                 //coordinateAccuracy is deprecated, see POR-3061
-                                 GbifTerm.coordinateAccuracy,
                                  GbifTerm.elevation,
                                  GbifTerm.elevationAccuracy,
                                  GbifTerm.depth,
@@ -305,7 +302,9 @@ public final class Terms {
         @Override
         public boolean apply(@Nullable Term t) {
           // strip the GBIF id as we've already added that
-          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t;
+          // Do not include GbifTerm.coordinateAccuracy (POR-3061)
+          return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
+                  && GbifTerm.coordinateAccuracy !=t;
         }
       })).build();
   }

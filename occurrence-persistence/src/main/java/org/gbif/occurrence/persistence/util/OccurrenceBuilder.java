@@ -184,6 +184,7 @@ public class OccurrenceBuilder {
 
       occ.setDecimalLatitude(ExtResultReader.getDouble(row, DwcTerm.decimalLatitude));
       occ.setDecimalLongitude(ExtResultReader.getDouble(row, DwcTerm.decimalLongitude));
+      // TODO removed after complete reintepretation 2016-04-27
       occ.setCoordinateAccuracy(ExtResultReader.getDouble(row, GbifTerm.coordinateAccuracy));
       occ.setCoordinatePrecision(ExtResultReader.getDouble(row, DwcTerm.coordinatePrecision));
       occ.setCoordinateUncertaintyInMeters(ExtResultReader.getDouble(row, DwcTerm.coordinateUncertaintyInMeters));
