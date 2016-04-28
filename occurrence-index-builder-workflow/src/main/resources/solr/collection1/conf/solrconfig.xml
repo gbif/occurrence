@@ -541,7 +541,6 @@
     <lst name="defaults">
       <str name="df">full_text</str>
       <str name="spellcheck.dictionary">default</str>
-      <str name="spellcheck.dictionary">spell_sn</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -562,20 +561,6 @@
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <str name="name">default</str>
       <str name="field">full_text</str> <!-- Replace with field name as per your scheme -->
-      <str name="distanceMeasure">internal</str>
-      <float name="accuracy">0.7</float>
-      <int name="maxEdits">2</int>
-      <int name="minPrefix">1</int>
-      <int name="maxInspections">4</int>
-      <int name="minQueryLength">3</int>
-      <float name="maxQueryFrequency">0.01</float>
-    </lst>
-
-    <!-- a spellchecker for scientific name -->
-    <lst name="spellchecker">
-      <str name="classname">solr.DirectSolrSpellChecker</str>
-      <str name="name">spell_sn</str>
-      <str name="field">scientific_name</str>
       <str name="distanceMeasure">internal</str>
       <float name="accuracy">0.7</float>
       <int name="maxEdits">2</int>

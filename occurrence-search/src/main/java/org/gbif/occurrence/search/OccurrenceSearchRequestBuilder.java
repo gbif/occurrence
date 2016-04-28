@@ -3,6 +3,7 @@ package org.gbif.occurrence.search;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.common.search.util.QueryUtils;
+import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.util.ArrayList;
@@ -208,10 +209,9 @@ public class OccurrenceSearchRequestBuilder {
     if (request.isSpellCheck()) {
       solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
                          request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT.toString() : Integer.toString(request.getSpellCheckCount()));
-      solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     }
     // q param
-    if(Strings.isNullOrEmpty(request.getQ())) {
+    if (Strings.isNullOrEmpty(request.getQ()) || SolrConstants.DEFAULT_FILTER_QUERY.equals(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
       solrQuery.setParam(SOLR_SPELLCHECK, Boolean.FALSE);
       // sorting is set only when the q parameter is empty, otherwise the score value es used
@@ -221,6 +221,7 @@ public class OccurrenceSearchRequestBuilder {
       occurrenceFullTextQueryBuilder.withQ(request.getQ());
       solrQuery.setQuery(occurrenceFullTextQueryBuilder.build());
       solrQuery.setParam(SOLR_SPELLCHECK_Q, request.getQ());
+      solrQuery.setRequestHandler(FULL_TEXT_HANDLER);
     }
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
