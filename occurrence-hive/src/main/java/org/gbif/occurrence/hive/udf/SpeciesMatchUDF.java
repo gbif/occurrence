@@ -78,15 +78,15 @@ public class SpeciesMatchUDF extends GenericUDF {
 
     URI api = URI.create(arguments[0].get().toString());
 
-    String k = clean(arguments[1].get());
-    String p = clean(arguments[2].get());
-    String c = clean(arguments[3].get());
-    String o = clean(arguments[4].get());
-    String f = clean(arguments[5].get());
-    String g = clean(arguments[6].get());
-    String s = clean(arguments[7].get());
-    String sp = clean(arguments[8].get());
-    String ssp = clean(arguments[9].get());
+    String k    = clean(arguments[1].get());
+    String p    = clean(arguments[2].get());
+    String c    = clean(arguments[3].get());
+    String o    = clean(arguments[4].get());
+    String f    = clean(arguments[5].get());
+    String g    = clean(arguments[6].get());
+    String name = clean(arguments[7].get());
+    String sp   = clean(arguments[8].get());
+    String ssp  = clean(arguments[9].get());
     Rank rank = null;
     Object rankInput = arguments[10].get();
     if (rankInput != null) {
@@ -95,18 +95,7 @@ public class SpeciesMatchUDF extends GenericUDF {
 
     List<Object> result = Lists.newArrayList(21);
 
-    String sciname = getInterpreter(api).buildScientificName(s, null, g, sp, ssp);
-    ParseResult<NameUsageMatch> response = getInterpreter(api).match(
-            ClassificationUtils.clean(k),
-            ClassificationUtils.clean(p),
-            ClassificationUtils.clean(c),
-            ClassificationUtils.clean(o),
-            ClassificationUtils.clean(f),
-            ClassificationUtils.clean(g),
-            sciname,
-            ClassificationUtils.cleanAuthor(sp),
-            ClassificationUtils.cleanAuthor(ssp),
-            rank);
+    ParseResult<NameUsageMatch> response = getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
     if (response != null) {
       result.add(response.getStatus());
