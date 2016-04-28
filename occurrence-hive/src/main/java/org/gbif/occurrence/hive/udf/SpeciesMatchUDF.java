@@ -95,6 +95,7 @@ public class SpeciesMatchUDF extends GenericUDF {
 
     List<Object> result = Lists.newArrayList(21);
 
+    //TODO: add authorship as a standalone parameter
     ParseResult<NameUsageMatch> response = getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
     if (response != null) {
