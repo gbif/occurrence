@@ -52,6 +52,7 @@
   <properties>
     <!-- needs to stay < 1.8 until cluster is at java 8 -->
     <jdkLevel>1.7</jdkLevel>
+    <release.tagNameBase>occurrence</release.tagNameBase>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
