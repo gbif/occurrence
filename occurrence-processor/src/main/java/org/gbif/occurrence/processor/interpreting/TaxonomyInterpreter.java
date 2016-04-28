@@ -4,6 +4,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.RankParser;
@@ -12,14 +13,18 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Inject;
@@ -67,7 +72,7 @@ public class TaxonomyInterpreter {
    * @param specificEpithet see DwcTerm.specificEpithet
    * @param infraspecificEpithet see DwcTerm.infraspecificEpithet
    */
-  public static String buildScientificName(String scientificName, String genericName, String genus, String specificEpithet, String infraspecificEpithet) {
+  public static String buildScientificName(String scientificName, String authorship, String genericName, String genus, String specificEpithet, String infraspecificEpithet) {
     String sciname = ClassificationUtils.clean(scientificName);
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
@@ -84,19 +89,43 @@ public class TaxonomyInterpreter {
     return sciname;
   }
 
-  public OccurrenceParseResult<NameUsageMatch> match(String kingdom, String phylum, String clazz, String order,
-    String family, String genus, String scientificName, String specificEpithet, String infraspecificEpithet, Rank rank) {
+  private OccurrenceParseResult<NameUsageMatch> match(Map<Term, String> terms) {
+    Rank rank = interpretRank(terms);
+    return match(
+        value(terms, DwcTerm.kingdom),
+        value(terms, DwcTerm.phylum),
+        value(terms, DwcTerm.class_),
+        value(terms, DwcTerm.order),
+        value(terms, DwcTerm.family),
+        value(terms, DwcTerm.genus),
+        value(terms, DwcTerm.scientificName),
+        value(terms, DwcTerm.scientificNameAuthorship),
+        value(terms, GbifTerm.genericName),
+        value(terms, DwcTerm.specificEpithet),
+        value(terms, DwcTerm.infraspecificEpithet),
+        rank);
+  }
 
-    final String sciname = buildScientificName(scientificName, null, genus, specificEpithet, infraspecificEpithet);
+  public OccurrenceParseResult<NameUsageMatch> match(String kingdom, String phylum, String clazz, String order, String family, String genus,
+                                                     String scientificName, String authorship,
+                                                     String genericName, String specificEpithet, String infraspecificEpithet, Rank rank) {
+
+    genus = ClassificationUtils.clean(genus);
+    genericName = ClassificationUtils.clean(genericName);
+    specificEpithet = ClassificationUtils.cleanAuthor(specificEpithet);
+    infraspecificEpithet = ClassificationUtils.cleanAuthor(infraspecificEpithet);
+
+    final String sciname = buildScientificName(scientificName, authorship, genericName, genus, specificEpithet, infraspecificEpithet);
+
     OccurrenceParseResult<NameUsageMatch> result;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    queryParams.add("kingdom", kingdom);
-    queryParams.add("phylum", phylum);
-    queryParams.add("class", clazz);
-    queryParams.add("order", order);
-    queryParams.add("family", family);
-    queryParams.add("genus", genus);
-    queryParams.add("name", sciname);
+    queryParams.add("kingdom", ClassificationUtils.clean(kingdom));
+    queryParams.add("phylum",  ClassificationUtils.clean(phylum));
+    queryParams.add("class",   ClassificationUtils.clean(clazz));
+    queryParams.add("order",   ClassificationUtils.clean(order));
+    queryParams.add("family",  ClassificationUtils.clean(family));
+    queryParams.add("genus",  genus);
+    queryParams.add("name",   sciname);
     if (rank != null) {
       queryParams.add("rank", rank.name());
     }
@@ -130,68 +159,92 @@ public class TaxonomyInterpreter {
     return result;
   }
 
+  private void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
+    occ.setTaxonKey(match.getUsageKey());
+    occ.setScientificName(match.getScientificName());
+    occ.setTaxonRank(match.getRank());
+
+    // copy issues
+    occ.getIssues().addAll(issues);
+
+    // parse name into pieces - we dont get them from the nub lookup
+    try {
+      ParsedName pn = parser.parse(match.getScientificName(), match.getRank());
+      occ.setGenericName(pn.getGenusOrAbove());
+      occ.setSpecificEpithet(pn.getSpecificEpithet());
+      occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());
+    } catch (UnparsableException e) {
+      if (e.type.isParsable()) {
+        LOG.warn("Fail to parse backbone {} name for occurrence {}: {}", e.type, occ.getKey(), e.name);
+      }
+    }
+
+    for (Rank r : Rank.DWC_RANKS) {
+      org.gbif.api.util.ClassificationUtils.setHigherRank(occ, r, match.getHigherRank(r));
+      org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
+    }
+    LOG.debug("Occurrence {} matched to nub {} [{}]", occ.getKey(), occ.getScientificName(), occ.getTaxonKey());
+  }
+
+  private static String value(Map<Term, String> terms, Term term) {
+    return terms.get(term);
+  }
+  private static boolean hasTerm(Map<Term, String> terms, Term term) {
+    return !Strings.isNullOrEmpty(value(terms, term));
+  }
+
   public void interpretTaxonomy(VerbatimOccurrence verbatim, Occurrence occ) {
-    final String sciname = buildScientificName(verbatim.getVerbatimField(DwcTerm.scientificName),
-        verbatim.getVerbatimField(GbifTerm.genericName), verbatim.getVerbatimField(DwcTerm.genus),
-        verbatim.getVerbatimField(DwcTerm.specificEpithet), verbatim.getVerbatimField(DwcTerm.infraspecificEpithet));
 
-    Rank rank = interpretRank(verbatim);
+    // try core taxon fields first
+    OccurrenceParseResult<NameUsageMatch> matchPR = match(verbatim.getVerbatimFields());
 
-    OccurrenceParseResult<NameUsageMatch> matchPR = match(
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.kingdom)),
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.phylum)),
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.class_)),
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.order)),
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.family)),
-        ClassificationUtils.clean(verbatim.getVerbatimField(DwcTerm.genus)), sciname,
-        ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.specificEpithet)),
-        ClassificationUtils.cleanAuthor(verbatim.getVerbatimField(DwcTerm.infraspecificEpithet)),
-        rank);
+    // try the identification extension if no core match
+    if (!matchPR.isSuccessful() && verbatim.getExtensions().containsKey(Extension.IDENTIFICATION)) {
+      // there may be many identifications but we only want the latest, current one
+      //TODO: use latest identification only sorting records by their dwc:dateIdentified
+      for (Map<Term, String> rec : verbatim.getExtensions().get(Extension.IDENTIFICATION)) {
+        matchPR = match(rec);
+        if (matchPR.isSuccessful()) {
+          // TODO: copy other identification terms to core???
+          // identifiedBy
+          // dateIdentified
+          // identificationReferences
+          // identificationRemarks
+          // identificationQualifier
+          // identificationVerificationStatus
+          // typeStatus
+          // taxonID
+          // taxonConceptID
+          // nameAccordingTo
+          // nameAccordingToID
+          // taxonRemarks
+          break;
+        }
+      }
+    }
 
-    if (!matchPR.isSuccessful()) {
-      LOG.debug("Unsuccessful backbone match for occurrence {} with name {}", occ.getKey(), sciname);
-      occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
-      occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
-
+    // apply taxonomy if we got a match
+    if (matchPR.isSuccessful()) {
+      applyMatch(occ, matchPR.getPayload(), matchPR.getIssues());
     } else {
-      NameUsageMatch match = matchPR.getPayload();
-      occ.setTaxonKey(match.getUsageKey());
-      occ.setScientificName(match.getScientificName());
-      occ.setTaxonRank(match.getRank());
-      // copy issues
-      occ.getIssues().addAll(matchPR.getIssues());
-
-      // parse name into pieces - we dont get them from the nub lookup
-      try {
-        ParsedName pn = parser.parse(match.getScientificName(), rank);
-        occ.setGenericName(pn.getGenusOrAbove());
-        occ.setSpecificEpithet(pn.getSpecificEpithet());
-        occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());
-      } catch (UnparsableException e) {
-        LOG.warn("Fail to parse backbone name {} for occurrence {}: {}", e.name, occ.getKey(), e.type);
-      }
-
-      for (Rank r : Rank.DWC_RANKS) {
-        org.gbif.api.util.ClassificationUtils.setHigherRank(occ, r, match.getHigherRank(r));
-        org.gbif.api.util.ClassificationUtils.setHigherRankKey(occ, r, match.getHigherRankKey(r));
-      }
-      LOG.debug("Occurrence {} matched to nub {}", occ.getKey(), occ.getScientificName());
+      LOG.debug("No backbone match for occurrence {}", occ.getKey());
+      occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
     }
   }
 
-  private Rank interpretRank(VerbatimOccurrence verbatim){
+  private Rank interpretRank(Map<Term, String> terms){
     Rank rank = null;
-    if (verbatim.hasVerbatimField(DwcTerm.taxonRank)) {
-      rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.taxonRank)).getPayload();
+    if (hasTerm(terms, DwcTerm.taxonRank)) {
+      rank = RANK_PARSER.parse(value(terms, DwcTerm.taxonRank)).getPayload();
     }
     // try again with verbatim if it exists
-    if (rank == null && verbatim.hasVerbatimField(DwcTerm.verbatimTaxonRank)) {
-      rank = RANK_PARSER.parse(verbatim.getVerbatimField(DwcTerm.verbatimTaxonRank)).getPayload();
+    if (rank == null && hasTerm(terms, DwcTerm.verbatimTaxonRank)) {
+      rank = RANK_PARSER.parse(value(terms, DwcTerm.verbatimTaxonRank)).getPayload();
     }
     // derive from atomized fields
-    if (rank == null && verbatim.hasVerbatimField(DwcTerm.genus)) {
-      if (verbatim.hasVerbatimField(DwcTerm.specificEpithet)) {
-        if (verbatim.hasVerbatimField(DwcTerm.infraspecificEpithet)) {
+    if (rank == null && hasTerm(terms, DwcTerm.genus)) {
+      if (hasTerm(terms, DwcTerm.specificEpithet)) {
+        if (hasTerm(terms, DwcTerm.infraspecificEpithet)) {
           rank = Rank.INFRASPECIFIC_NAME;
         } else {
           rank = Rank.SPECIES;
