@@ -26,7 +26,7 @@ public class TaxonomyInterpreterTest {
   @Test
   public void testNubLookupGood() {
     ParseResult<NameUsageMatch> result =
-      interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", null, null, Rank.SPECIES);
+      interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", null, null, null, null, Rank.SPECIES);
     assertEquals(2435099, result.getPayload().getUsageKey().intValue());
     assertEquals(1, result.getPayload().getKingdomKey().intValue());
     assertEquals("Chordata", result.getPayload().getPhylum());
@@ -35,7 +35,7 @@ public class TaxonomyInterpreterTest {
   @Test
   public void testNubLookupAllNulls() {
     ParseResult<NameUsageMatch> result =
-      interpreter.match(null, null, null, null, null, null, null, null, null, null);
+      interpreter.match(null, null, null, null, null, null, null, null, null, null, null, null);
     assertNotNull(result);
     assertNotNull(result.getPayload());
     assertNull(result.getPayload().getScientificName());
@@ -43,7 +43,7 @@ public class TaxonomyInterpreterTest {
 
   @Test
   public void testNubLookupEmptyStrings() {
-    ParseResult<NameUsageMatch> result = interpreter.match("", "", "", "", "", "", "", "", "", Rank.UNRANKED);
+    ParseResult<NameUsageMatch> result = interpreter.match("", "", "", "", "", "", "", "", "", "", "", Rank.UNRANKED);
     assertNotNull(result);
     assertNotNull(result.getPayload());
     assertNull(result.getPayload().getScientificName());
