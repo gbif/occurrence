@@ -424,10 +424,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!nullSafeEquals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
       upd.setInterpretedField(DwcTerm.coordinatePrecision, occ.getCoordinatePrecision());
     }
-    //TODO removed this after reinterpretation
-    if (oldOcc.getCoordinateAccuracy() != null) {
-      upd.deleteInterpretedField(GbifTerm.coordinateAccuracy);
-    }
     if (!nullSafeEquals(oldOcc.getContinent(), occ.getContinent())) {
       upd.setInterpretedField(DwcTerm.continent, occ.getContinent());
     }
