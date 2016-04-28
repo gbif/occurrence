@@ -24,9 +24,44 @@ public class TaxonomyInterpreterTest {
   }
 
   @Test
+  public void testAssembledAuthor() {
+    ParseResult<NameUsageMatch> result = interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", "", null, null, null, Rank.SPECIES);
+    assertEquals(2435099, result.getPayload().getUsageKey().intValue());
+    assertEquals(1, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Chordata", result.getPayload().getPhylum());
+
+    result = interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor (Linnaeus, 1771)", null, null, null, null, Rank.SPECIES);
+    assertEquals(2435099, result.getPayload().getUsageKey().intValue());
+    assertEquals(1, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Chordata", result.getPayload().getPhylum());
+
+    result = interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", "(Linnaeus, 1771)", null, null, null, Rank.SPECIES);
+    assertEquals(2435099, result.getPayload().getUsageKey().intValue());
+    assertEquals(1, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Chordata", result.getPayload().getPhylum());
+  }
+
+  @Test
+  public void testOenanthe() {
+    ParseResult<NameUsageMatch> result = interpreter.match("Plantae", null, null, null, null, null, "Oenanthe", "", null, null, null, Rank.GENUS);
+    assertEquals(3034893, result.getPayload().getUsageKey().intValue());
+    assertEquals(6, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Oenanthe L.", result.getPayload().getScientificName());
+
+    result = interpreter.match("Plantae", null, null, null, null, null, "Oenanthe", "L.", null, null, null, Rank.GENUS);
+    assertEquals(3034893, result.getPayload().getUsageKey().intValue());
+    assertEquals(6, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Oenanthe L.", result.getPayload().getScientificName());
+
+    result = interpreter.match("Animalia", null, null, null, null, null, "Oenanthe", "Vieillot, 1816", null, null, null, Rank.GENUS);
+    assertEquals(2492483, result.getPayload().getUsageKey().intValue());
+    assertEquals(1, result.getPayload().getKingdomKey().intValue());
+    assertEquals("Oenanthe Vieillot, 1816", result.getPayload().getScientificName());
+  }
+
+  @Test
   public void testNubLookupGood() {
-    ParseResult<NameUsageMatch> result =
-      interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", null, null, null, null, Rank.SPECIES);
+    ParseResult<NameUsageMatch> result = interpreter.match("Animalia", null, null, null, null, "Puma", "Puma concolor", null, null, null, null, Rank.SPECIES);
     assertEquals(2435099, result.getPayload().getUsageKey().intValue());
     assertEquals(1, result.getPayload().getKingdomKey().intValue());
     assertEquals("Chordata", result.getPayload().getPhylum());
