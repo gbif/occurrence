@@ -107,6 +107,7 @@ public final class Terms {
                                                      GbifTerm.verbatimLabel,
                                                      GbifTerm.infraspecificMarker);
 
+    //We should handle deprecated terms here. Waiting for GBIF-132
     return ImmutableList.copyOf(Iterables.<GbifTerm>filter(Lists.newArrayList(GbifTerm.values()),
                                                            new Predicate<GbifTerm>() {
                                                              @Override
@@ -278,7 +279,7 @@ public final class Terms {
    * <li>The GBIF ID</li>
    * <li>DC terms that are not removed during interpretation</li>
    * <li>DwC terms that are not removed during interpretation</li>
-   * <li>The remaining GBIF terms not removed during interpretation</li>
+   * <li>The remaining GBIF terms not removed during interpretation and not deprecated</li>
    * </ul>
    */
   public static List<Term> interpretedTerms() {
@@ -302,7 +303,7 @@ public final class Terms {
         @Override
         public boolean apply(@Nullable Term t) {
           // strip the GBIF id as we've already added that
-          // Do not include GbifTerm.coordinateAccuracy (POR-3061)
+          // Do not include GbifTerm.coordinateAccuracy since it is deprecated (POR-3061)
           return !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
                   && GbifTerm.coordinateAccuracy !=t;
         }

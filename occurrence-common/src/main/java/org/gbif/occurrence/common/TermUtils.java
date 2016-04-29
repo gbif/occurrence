@@ -22,6 +22,9 @@ import com.google.common.collect.Sets;
 
 /**
  * Static utils class to deal with Term enumeration for occurrences.
+ * Note to developers:
+ * If you modify this class, make sure to have a look at org.gbif.occurrence.download.hive.Terms (occurrence-hdfs-table module)
+ *
  */
 public class TermUtils {
 
@@ -156,6 +159,7 @@ public class TermUtils {
 
         @Override
         public boolean apply(@Nullable GbifTerm t) {
+          // GbifTerm.coordinateAccuracy is deprecated
           return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t
                   && GbifTerm.coordinateAccuracy !=t;
         }
