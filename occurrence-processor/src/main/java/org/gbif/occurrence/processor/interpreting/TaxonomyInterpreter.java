@@ -144,7 +144,7 @@ public class TaxonomyInterpreter {
       result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
       switch (lookup.getMatchType()) {
         case NONE:
-          result.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
+          result = OccurrenceParseResult.fail(lookup, OccurrenceIssue.TAXON_MATCH_NONE);
           LOG.info("match for [{}] returned no match. Lookup note: [{}]", scientificName, lookup.getNote());
           break;
         case FUZZY:
