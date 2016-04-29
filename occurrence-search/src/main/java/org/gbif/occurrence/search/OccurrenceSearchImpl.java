@@ -11,12 +11,14 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.common.search.builder.SolrQueryUtils;
 import org.gbif.common.search.builder.SpellCheckResponseBuilder;
 import org.gbif.common.search.exception.SearchException;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,14 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    */
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchImpl.class);
+
+  private static final Map<String, OccurrenceSearchParameter> FIELD_PARAMETER_MAPPING = new HashMap();
+
+  static {
+    for(Map.Entry<OccurrenceSearchParameter,OccurrenceSolrField> paramField : QUERY_FIELD_MAPPING.entrySet()) {
+      FIELD_PARAMETER_MAPPING.put(paramField.getValue().getFieldName(),paramField.getKey());
+    }
+  }
 
   // Default order of results
   private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<String, SolrQuery.ORDER>(2);
@@ -113,6 +123,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       response.setSpellCheckResponse(SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
     }
     response.setResults(occurrences);
+    response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse,FIELD_PARAMETER_MAPPING));
     return response;
   }
 

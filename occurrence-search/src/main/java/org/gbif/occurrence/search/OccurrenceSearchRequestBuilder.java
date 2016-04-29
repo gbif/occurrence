@@ -2,6 +2,9 @@ package org.gbif.occurrence.search;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.common.search.builder.SolrQueryUtils;
+import org.gbif.common.search.model.FacetField;
+import org.gbif.common.search.model.configuration.FacetFieldConfiguration;
 import org.gbif.common.search.util.QueryUtils;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
@@ -9,9 +12,11 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -21,7 +26,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -51,6 +58,7 @@ public class OccurrenceSearchRequestBuilder {
   private static final Integer DEFAULT_SPELL_CHECK_COUNT = 4;
   private static final Pattern COMMON_REPLACER = Pattern.compile(",", Pattern.LITERAL);
 
+
   /**
    * Utility class to generates full text queries.
    */
@@ -76,8 +84,6 @@ public class OccurrenceSearchRequestBuilder {
     private static final Integer MAX_SCORE = 100;
 
     private static final Integer SCORE_DECREMENT = 20;
-
-
 
 
 
@@ -167,6 +173,8 @@ public class OccurrenceSearchRequestBuilder {
   public static final int MAX_OFFSET = 1000000;
   public static final int MAX_PAGE_SIZE = 300;
 
+  private static final Map<OccurrenceSearchParameter,FacetFieldConfiguration> FACET_FIELD_CONFIGURATION_MAP = getFacetsConfiguration();
+
   /**
    * Default constructor.
    */
@@ -194,7 +202,7 @@ public class OccurrenceSearchRequestBuilder {
         return String
           .format(RANGE_FORMAT, bbox.getMinY() + "," + bbox.getMinX(), bbox.getMaxY() + "," + bbox.getMaxX());
       }
-      return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
+      return SolrQueryUtils.taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) + String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
@@ -230,7 +238,35 @@ public class OccurrenceSearchRequestBuilder {
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
+    SolrQueryUtils.applyFacetSettings(request,solrQuery,FACET_FIELD_CONFIGURATION_MAP);
+    solrQuery.setFacetMissing(false);
     return solrQuery;
+  }
+
+  private final static Map<OccurrenceSearchParameter,FacetFieldConfiguration> getFacetsConfiguration() {
+    return ImmutableMap.<OccurrenceSearchParameter,FacetFieldConfiguration>builder()
+      .put(OccurrenceSearchParameter.BASIS_OF_RECORD,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.BASIS_OF_RECORD).getFieldName(),
+                                       OccurrenceSearchParameter.BASIS_OF_RECORD,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.TYPE_STATUS,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TYPE_STATUS).getFieldName(),
+                                       OccurrenceSearchParameter.TYPE_STATUS,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.DATASET_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.DATASET_KEY,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false))
+    .put(OccurrenceSearchParameter.TAXON_KEY,
+         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
+                                     OccurrenceSearchParameter.TAXON_KEY,FacetField.Method.ENUM,
+                                     FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.COUNTRY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COUNTRY).getFieldName(),
+                                       OccurrenceSearchParameter.COUNTRY,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false)).build();
+
+
   }
 
   /**
@@ -243,7 +279,7 @@ public class OccurrenceSearchRequestBuilder {
       for (String value : params.get(dateParam)) {
         dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
       }
-      filterQueries.add(toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
+      filterQueries.add(SolrQueryUtils.taggedField(solrField.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
     }
   }
 
@@ -259,7 +295,7 @@ public class OccurrenceSearchRequestBuilder {
         locationParams
           .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
       }
-      filterQueries.add(toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
+      filterQueries.add(SolrQueryUtils.taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
     }
   }
 
@@ -273,9 +309,10 @@ public class OccurrenceSearchRequestBuilder {
     if (params != null && !params.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
+        OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
         List<String> aFieldParameters = Lists.newArrayList();
         for (String value : params.get(param)) {
-          OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
+
           if (solrField != null && param.type() != Date.class) {
             String parsedValue = QueryUtils.parseQueryValue(value);
             if (QueryUtils.isRangeQuery(parsedValue)) {
@@ -288,7 +325,7 @@ public class OccurrenceSearchRequestBuilder {
           }
         }
         if (!aFieldParameters.isEmpty()) {
-          filterQueries.add(toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
+          filterQueries.add(SolrQueryUtils.taggedField(solrField.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
         }
       }
       addLocationQuery(params, filterQueries);
