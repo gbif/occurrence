@@ -305,7 +305,7 @@ public class OccurrenceSearchRequestBuilder {
    */
   private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
-    boolean isFacetedSearch = request.getFacets() != null || !request.getFacets().isEmpty();
+    boolean isFacetedSearch = request.getFacets() != null && !request.getFacets().isEmpty();
     if (params != null && !params.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
