@@ -261,6 +261,14 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.COUNTRY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COUNTRY).getFieldName(),
                                        OccurrenceSearchParameter.COUNTRY,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.MONTH,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.MONTH).getFieldName(),
+                                       OccurrenceSearchParameter.MONTH,FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.YEAR,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.YEAR).getFieldName(),
+                                       OccurrenceSearchParameter.YEAR,FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT,false)).build();
 
 
