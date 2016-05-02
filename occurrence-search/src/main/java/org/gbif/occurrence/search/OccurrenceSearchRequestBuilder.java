@@ -12,11 +12,9 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -26,16 +24,14 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
 
-import static org.gbif.common.search.util.QueryUtils.PARAMS_AND_JOINER;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_OR_JOINER;
 import static org.gbif.common.search.util.QueryUtils.setQueryPaging;
@@ -45,6 +41,7 @@ import static org.gbif.common.search.util.QueryUtils.toParenthesesQuery;
 import static org.gbif.common.search.util.SolrConstants.DEFAULT_QUERY;
 import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
 import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
+import static org.gbif.common.search.builder.SolrQueryUtils.taggedField;
 
 
 /**
@@ -273,13 +270,14 @@ public class OccurrenceSearchRequestBuilder {
    * Adds an occurrence date parameter: DATE or MODIFIED.
    */
   private static void addDateQuery(Multimap<OccurrenceSearchParameter, String> params,
-    OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField, List<String> filterQueries) {
+    OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField, List<String> filterQueries, boolean isFacetedSearch) {
     if (params.containsKey(dateParam)) {
       Collection<String> dateParams = new ArrayList<String>();
       for (String value : params.get(dateParam)) {
         dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
       }
-      filterQueries.add(SolrQueryUtils.taggedField(solrField.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
+      filterQueries.add((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "") +
+                        toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
     }
   }
 
@@ -288,14 +286,15 @@ public class OccurrenceSearchRequestBuilder {
    * Those 2 parameters are returned in 1 filter expression because both refer to same Solr field: coordinate.
    */
   private static void addLocationQuery(Multimap<OccurrenceSearchParameter,String> params,
-                                       Collection<String> filterQueries) {
+                                       Collection<String> filterQueries, boolean isFacetedSearch) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
       Collection<String> locationParams = new ArrayList<String>();
       for (String value : params.get(OccurrenceSearchParameter.GEOMETRY)) {
         locationParams
           .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
       }
-      filterQueries.add(SolrQueryUtils.taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
+      filterQueries.add((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "") +
+                        toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
     }
   }
 
@@ -306,6 +305,7 @@ public class OccurrenceSearchRequestBuilder {
    */
   private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
+    boolean isFacetedSearch = request.getFacets() != null || !request.getFacets().isEmpty();
     if (params != null && !params.isEmpty()) {
       List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
@@ -325,17 +325,21 @@ public class OccurrenceSearchRequestBuilder {
           }
         }
         if (!aFieldParameters.isEmpty()) {
-          filterQueries.add(SolrQueryUtils.taggedField(solrField.getFieldName()) + toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
+          if(isFacetedSearch) {
+            filterQueries.add( (isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
+                               toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
+          }
         }
       }
-      addLocationQuery(params, filterQueries);
-      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, filterQueries);
+      addLocationQuery(params, filterQueries, isFacetedSearch);
+      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, filterQueries, isFacetedSearch);
       addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
-                   filterQueries);
+                   filterQueries,isFacetedSearch);
 
-      if (!filterQueries.isEmpty()) {
-        solrQuery.addFilterQuery(PARAMS_AND_JOINER.join(filterQueries));
+      for(String filterQuery : filterQueries) {
+        solrQuery.addFilterQuery(filterQuery);
       }
+
     }
   }
 }
