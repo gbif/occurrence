@@ -325,10 +325,9 @@ public class OccurrenceSearchRequestBuilder {
           }
         }
         if (!aFieldParameters.isEmpty()) {
-          if(isFacetedSearch) {
-            filterQueries.add( (isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
+          filterQueries.add( (isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
                                toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
-          }
+
         }
       }
       addLocationQuery(params, filterQueries, isFacetedSearch);
