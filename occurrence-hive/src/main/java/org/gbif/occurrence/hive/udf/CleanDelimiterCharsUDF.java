@@ -22,6 +22,6 @@ public class CleanDelimiterCharsUDF extends UDF {
     if (field != null) {
       text.set(DownloadUtils.DELIMETERS_MATCH_PATTERN.matcher(field.toString()).replaceAll(" "));
     }
-    return null;
+    return field;
   }
 }
