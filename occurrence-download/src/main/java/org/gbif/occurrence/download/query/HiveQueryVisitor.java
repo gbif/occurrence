@@ -129,6 +129,14 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, GbifTerm.hasGeospatialIssues)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, GbifTerm.mediaType)
       .put(OccurrenceSearchParameter.ISSUE, GbifTerm.issue)
+      .put(OccurrenceSearchParameter.KINGDOM_KEY, GbifTerm.kingdomKey)
+      .put(OccurrenceSearchParameter.PHYLUM_KEY, GbifTerm.phylumKey)
+      .put(OccurrenceSearchParameter.CLASS_KEY, GbifTerm.classKey)
+      .put(OccurrenceSearchParameter.ORDER_KEY, GbifTerm.orderKey)
+      .put(OccurrenceSearchParameter.FAMILY_KEY, GbifTerm.familyKey)
+      .put(OccurrenceSearchParameter.GENUS_KEY, GbifTerm.genusKey)
+      .put(OccurrenceSearchParameter.SUBGENUS_KEY, GbifTerm.subgenusKey)
+      .put(OccurrenceSearchParameter.SPECIES_KEY, GbifTerm.speciesKey)
       .build();
 
   private StringBuilder builder;
