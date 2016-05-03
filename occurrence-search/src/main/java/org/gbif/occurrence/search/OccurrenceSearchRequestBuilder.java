@@ -269,7 +269,40 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.YEAR,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.YEAR).getFieldName(),
                                        OccurrenceSearchParameter.YEAR,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false)).build();
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.KINGDOM_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.KINGDOM_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.KINGDOM_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.PHYLUM_KEY,
+         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PHYLUM_KEY).getFieldName(),
+                                     OccurrenceSearchParameter.PHYLUM_KEY,FacetField.Method.FIELD_CACHE,
+                                     FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.CLASS_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CLASS_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.CLASS_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.ORDER_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ORDER_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.ORDER_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.FAMILY_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.FAMILY_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.FAMILY_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.GENUS_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.GENUS_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.GENUS_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.SUBGENUS_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SUBGENUS_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.SUBGENUS_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .put(OccurrenceSearchParameter.SPECIES_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SPECIES_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.SPECIES_KEY,FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT,false))
+      .build();
 
 
   }
