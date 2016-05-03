@@ -71,6 +71,14 @@
       <field name="key" type="int" indexed="true" stored="true" required="true" docValues="true"/>
       <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/>
       <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
+      <field name="kingdom_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="phylum_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="class_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="order_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="family_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="genus_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="subgenus_key" type="int" indexed="true" stored="false" docValues="true"/>
+      <field name="species_key" type="int" indexed="true" stored="false" docValues="true"/>
       <field name="basis_of_record" type="string" indexed="true" stored="false" docValues="true"/>
       <field name="year" type="int" indexed="true" stored="false" docValues="true"/>
       <field name="month" type="int" indexed="true" stored="false" docValues="true"/>
