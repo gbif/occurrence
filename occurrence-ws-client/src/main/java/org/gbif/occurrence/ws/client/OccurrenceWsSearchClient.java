@@ -5,13 +5,13 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.ws.client.BaseWsSearchClient;
+import org.gbif.ws.client.BaseWsFacetedSearchClient;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
@@ -30,8 +30,8 @@ import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
 /**
  * Ws client for {@link OccurrenceSearchService}.
  */
-public class OccurrenceWsSearchClient extends
-  BaseWsSearchClient<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest> implements OccurrenceSearchService {
+public class OccurrenceWsSearchClient extends BaseWsFacetedSearchClient<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest>
+  implements OccurrenceSearchService {
 
   private static final String SEARCH_PATH ="search/";
 
@@ -87,7 +87,7 @@ public class OccurrenceWsSearchClient extends
    * Utility function that execute a search term query.
    */
   private List<String> suggestTerms(String resourceName, String prefix, @Nullable Integer limit) {
-    String limitParam = Integer.toString(Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+    String limitParam = Integer.toString(MoreObjects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
     return getResource(SEARCH_PATH + resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
       .get(LIST_OF_STRINGS_TYPE);
   }
