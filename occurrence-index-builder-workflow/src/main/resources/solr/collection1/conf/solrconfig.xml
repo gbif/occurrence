@@ -488,8 +488,7 @@
       <int name="qs">100</int>
       <int name="ps">100</int>
       <int name="mm">1</int>
-      <str name="spellcheck.dictionary">default</str>
-      <str name="spellcheck.dictionary">spell_sn</str>
+      <str name="spellcheck.dictionary">full_text_spellcheck</str>
       <str name="spellcheck">on</str>
       <str name="spellcheck.extendedResults">true</str>
       <str name="spellcheck.count">10</str>
@@ -559,7 +558,7 @@
     <str name="queryAnalyzerFieldType">text_general</str> <!-- Replace with Field Type of your schema -->
     <lst name="spellchecker">
       <str name="classname">solr.DirectSolrSpellChecker</str>
-      <str name="name">default</str>
+      <str name="name">full_text_spellcheck</str>
       <str name="field">full_text</str> <!-- Replace with field name as per your scheme -->
       <str name="distanceMeasure">internal</str>
       <float name="accuracy">0.7</float>
