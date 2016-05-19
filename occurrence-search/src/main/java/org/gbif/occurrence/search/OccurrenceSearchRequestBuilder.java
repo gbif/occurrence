@@ -243,73 +243,73 @@ public class OccurrenceSearchRequestBuilder {
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
-    SolrQueryUtils.applyFacetSettings(request,solrQuery,FACET_FIELD_CONFIGURATION_MAP);
+    SolrQueryUtils.applyFacetSettings(request,solrQuery, FACET_FIELD_CONFIGURATION_MAP);
     solrQuery.setFacetMissing(false);
     return solrQuery;
   }
 
-  private final static Map<OccurrenceSearchParameter,FacetFieldConfiguration> getFacetsConfiguration() {
+  private static Map<OccurrenceSearchParameter, FacetFieldConfiguration> getFacetsConfiguration() {
     return ImmutableMap.<OccurrenceSearchParameter,FacetFieldConfiguration>builder()
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.BASIS_OF_RECORD).getFieldName(),
-                                       OccurrenceSearchParameter.BASIS_OF_RECORD,FacetField.Method.ENUM,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.BASIS_OF_RECORD, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.TYPE_STATUS,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TYPE_STATUS).getFieldName(),
-                                       OccurrenceSearchParameter.TYPE_STATUS,FacetField.Method.ENUM,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.TYPE_STATUS, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.DATASET_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.DATASET_KEY,FacetField.Method.ENUM,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.DATASET_KEY, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
     .put(OccurrenceSearchParameter.TAXON_KEY,
          new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
-                                     OccurrenceSearchParameter.TAXON_KEY,FacetField.Method.ENUM,
-                                     FacetField.SortOrder.COUNT,false))
+                                     OccurrenceSearchParameter.TAXON_KEY, FacetField.Method.ENUM,
+                                     FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.COUNTRY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COUNTRY).getFieldName(),
-                                       OccurrenceSearchParameter.COUNTRY,FacetField.Method.ENUM,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.COUNTRY, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.MONTH,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.MONTH).getFieldName(),
-                                       OccurrenceSearchParameter.MONTH,FacetField.Method.ENUM,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.MONTH, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.YEAR,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.YEAR).getFieldName(),
-                                       OccurrenceSearchParameter.YEAR,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.YEAR, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.KINGDOM_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.KINGDOM_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.KINGDOM_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.KINGDOM_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.PHYLUM_KEY,
          new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PHYLUM_KEY).getFieldName(),
-                                     OccurrenceSearchParameter.PHYLUM_KEY,FacetField.Method.FIELD_CACHE,
-                                     FacetField.SortOrder.COUNT,false))
+                                     OccurrenceSearchParameter.PHYLUM_KEY, FacetField.Method.FIELD_CACHE,
+                                     FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.CLASS_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CLASS_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.CLASS_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.CLASS_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.ORDER_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ORDER_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.ORDER_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.ORDER_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.FAMILY_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.FAMILY_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.FAMILY_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.FAMILY_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.GENUS_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.GENUS_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.GENUS_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.GENUS_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.SUBGENUS_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SUBGENUS_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.SUBGENUS_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.SUBGENUS_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.SPECIES_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SPECIES_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.SPECIES_KEY,FacetField.Method.FIELD_CACHE,
-                                       FacetField.SortOrder.COUNT,false))
+                                       OccurrenceSearchParameter.SPECIES_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .build();
 
 
@@ -319,13 +319,15 @@ public class OccurrenceSearchRequestBuilder {
    * Adds an occurrence date parameter: DATE or MODIFIED.
    */
   private static void addDateQuery(Multimap<OccurrenceSearchParameter, String> params,
-    OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField, List<String> filterQueries, boolean isFacetedSearch) {
+                                   OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField,
+                                   SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(dateParam)) {
-      Collection<String> dateParams = new ArrayList<String>();
-      for (String value : params.get(dateParam)) {
+      Collection<String> requestDateParams = params.get(dateParam);
+      Collection<String> dateParams = new ArrayList<String>(requestDateParams.size());
+      for (String value : requestDateParams) {
         dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
       }
-      filterQueries.add((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "") +
+      solrQuery.addFilterQuery((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "") +
                         toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
     }
   }
@@ -334,15 +336,16 @@ public class OccurrenceSearchRequestBuilder {
    * Add the occurrence bounding box and polygon parameters.
    * Those 2 parameters are returned in 1 filter expression because both refer to same Solr field: coordinate.
    */
-  private static void addLocationQuery(Multimap<OccurrenceSearchParameter,String> params,
-                                       Collection<String> filterQueries, boolean isFacetedSearch) {
+  private static void addLocationQuery(Multimap<OccurrenceSearchParameter, String> params,
+                                       SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      Collection<String> locationParams = new ArrayList<String>();
-      for (String value : params.get(OccurrenceSearchParameter.GEOMETRY)) {
+      Collection<String> requestLocationParams = params.get(OccurrenceSearchParameter.GEOMETRY);
+      Collection<String> locationParams = new ArrayList<String>(requestLocationParams.size());
+      for (String value : requestLocationParams) {
         locationParams
           .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
       }
-      filterQueries.add((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "") +
+      solrQuery.addFilterQuery((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "") +
                         toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
     }
   }
@@ -350,13 +353,12 @@ public class OccurrenceSearchRequestBuilder {
   /**
    * Adds the filter query to SolrQuery object.
    * Creates a conjunction of disjunctions: disjunctions(ORs) are created for the filter applied to the same field;
-   * The those disjunctions are joint in a big conjunction.
+   * those disjunctions are joint in a big conjunction.
    */
   private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
     boolean isFacetedSearch = request.getFacets() != null && !request.getFacets().isEmpty();
     if (params != null && !params.isEmpty()) {
-      List<String> filterQueries = Lists.newArrayList();
       for (OccurrenceSearchParameter param : params.keySet()) {
         OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
         List<String> aFieldParameters = Lists.newArrayList();
@@ -374,20 +376,16 @@ public class OccurrenceSearchRequestBuilder {
           }
         }
         if (!aFieldParameters.isEmpty()) {
-          filterQueries.add( (isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
+          solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
                                toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
 
         }
       }
-      addLocationQuery(params, filterQueries, isFacetedSearch);
-      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, filterQueries, isFacetedSearch);
+      addLocationQuery(params, solrQuery, isFacetedSearch);
+      addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, solrQuery,
+                   isFacetedSearch);
       addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
-                   filterQueries,isFacetedSearch);
-
-      for(String filterQuery : filterQueries) {
-        solrQuery.addFilterQuery(filterQuery);
-      }
-
+                   solrQuery, isFacetedSearch);
     }
   }
 }

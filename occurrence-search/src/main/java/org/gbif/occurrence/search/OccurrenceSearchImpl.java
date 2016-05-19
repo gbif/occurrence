@@ -57,11 +57,11 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchImpl.class);
 
-  private static final Map<String, OccurrenceSearchParameter> FIELD_PARAMETER_MAPPING = new HashMap();
+  private static final Map<String, OccurrenceSearchParameter> FIELD_PARAMETER_MAPPING = new HashMap<String, OccurrenceSearchParameter>();
 
   static {
-    for(Map.Entry<OccurrenceSearchParameter,OccurrenceSolrField> paramField : QUERY_FIELD_MAPPING.entrySet()) {
-      FIELD_PARAMETER_MAPPING.put(paramField.getValue().getFieldName(),paramField.getKey());
+    for (Map.Entry<OccurrenceSearchParameter, OccurrenceSolrField> paramField : QUERY_FIELD_MAPPING.entrySet()) {
+      FIELD_PARAMETER_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
     }
   }
 
@@ -85,7 +85,8 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
                               OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
                               @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
     this.solrClient = solrClient;
-    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,maxOffset, maxLimit);
+    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,
+                                                                        maxOffset, maxLimit);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
@@ -105,7 +106,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     // set total count
     response.setCount(results.getNumFound());
     // Populates the results
-    List<Occurrence> occurrences = Lists.newArrayList();
+    List<Occurrence> occurrences = Lists.newArrayListWithCapacity(results.size());
     for (SolrDocument doc : results) {
       // Only field key is returned in the result
       Integer occKey = (Integer) doc.getFieldValue(OccurrenceSolrField.KEY.getFieldName());
@@ -123,14 +124,14 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       response.setSpellCheckResponse(SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
     }
     response.setResults(occurrences);
-    response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse,FIELD_PARAMETER_MAPPING));
+    response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse, FIELD_PARAMETER_MAPPING));
     return response;
   }
 
   @Override
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(@Nullable OccurrenceSearchRequest request) {
     try {
-      if (replaceScientificNames(request)) {
+      if (hasReplaceableScientificNames(request)) {
         SolrQuery solrQuery = occurrenceSearchRequestBuilder.build(request);
         QueryResponse queryResponse = solrClient.query(solrQuery);
         return buildResponse(queryResponse, request);
@@ -184,7 +185,6 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    * @return a list of elements that matched against the prefix
    */
   public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
-    List<String> suggestions = Lists.newArrayList();
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
       SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField,
@@ -192,6 +192,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       QueryResponse queryResponse = solrClient.query(solrQuery);
       TermsResponse termsResponse = queryResponse.getTermsResponse();
       List<Term> terms = termsResponse.getTerms(solrField);
+      List<String> suggestions = Lists.newArrayListWithCapacity(terms.size());
       for (Term term : terms) {
         suggestions.add(term.getTerm());
       }
@@ -209,7 +210,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific name was found
    *         false: if none scientific name was found
    */
-  private boolean replaceScientificNames(OccurrenceSearchRequest request) {
+  private boolean hasReplaceableScientificNames(OccurrenceSearchRequest request) {
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
