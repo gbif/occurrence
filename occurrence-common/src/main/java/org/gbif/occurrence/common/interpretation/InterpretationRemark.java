@@ -13,24 +13,24 @@ import java.util.List;
  */
 public class InterpretationRemark {
 
-  private OccurrenceIssue note;
+  private OccurrenceIssue type;
   private InterpretationRemarkSeverity severity;
   private List<Term> relatedTerms;
 
-  public static InterpretationRemark of(OccurrenceIssue occurrenceIssue, InterpretationRemarkSeverity severity,
+  public static InterpretationRemark of(OccurrenceIssue type, InterpretationRemarkSeverity severity,
                                           Term ... relatedTerms){
-    return new InterpretationRemark(occurrenceIssue, severity, Arrays.asList(relatedTerms));
+    return new InterpretationRemark(type, severity, Arrays.asList(relatedTerms));
   }
 
-  public InterpretationRemark(OccurrenceIssue note, InterpretationRemarkSeverity severity,
+  public InterpretationRemark(OccurrenceIssue type, InterpretationRemarkSeverity severity,
                               List<Term> relatedTerms){
-    this.note = note;
+    this.type = type;
     this.severity = severity;
     this.relatedTerms = relatedTerms;
   }
 
-  public OccurrenceIssue getNote() {
-    return note;
+  public OccurrenceIssue getType() {
+    return type;
   }
 
   public InterpretationRemarkSeverity getSeverity() {

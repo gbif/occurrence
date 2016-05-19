@@ -20,11 +20,11 @@ public class InterpretationRemarkClassification {
                           OccurrenceIssue.BASIS_OF_RECORD_INVALID, InterpretationRemarkSeverity.ERROR,
                           DwcTerm.basisOfRecord))
                   .add(InterpretationRemark.of(
-                          OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH, InterpretationRemarkSeverity.ERROR,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.country))
-                  .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_OUT_OF_RANGE, InterpretationRemarkSeverity.ERROR,
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.TAXON_MATCH_NONE, InterpretationRemarkSeverity.ERROR,
+                          DwcTerm.scientificName)) //probably all others terms too (class, order, ...)
 
                   // Warnings
                   .add(InterpretationRemark.of(
@@ -34,10 +34,16 @@ public class InterpretationRemarkClassification {
                           OccurrenceIssue.COUNTRY_INVALID, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.country))
                   .add(InterpretationRemark.of(
+                          OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.country))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.country))
+                  .add(InterpretationRemark.of(
                           OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.geodeticDatum))
 
-                  // Info
+                          // Info
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_ROUNDED, InterpretationRemarkSeverity.INFO,
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
@@ -50,6 +56,8 @@ public class InterpretationRemarkClassification {
 //  x COUNTRY_COORDINATE_MISMATCH,
 //  x COORDINATE_OUT_OF_RANGE,
 //  x COORDINATE_ROUNDED,
+//  x TAXON_MATCH_NONE
+//  x COUNTRY_DERIVED_FROM_COORDINATES
 
 //  COORDINATE_INVALID,
 //  GEODETIC_DATUM_INVALID,
@@ -59,7 +67,7 @@ public class InterpretationRemarkClassification {
 //  COORDINATE_PRECISION_INVALID,
 //  COORDINATE_UNCERTAINTY_METERS_INVALID,
 //  COUNTRY_MISMATCH,
-//  COUNTRY_DERIVED_FROM_COORDINATES,
+//  ,
 //  CONTINENT_COUNTRY_MISMATCH,
 //  CONTINENT_INVALID,
 //  CONTINENT_DERIVED_FROM_COORDINATES,
@@ -71,7 +79,7 @@ public class InterpretationRemarkClassification {
 //  RECORDED_DATE_UNLIKELY,
 //  TAXON_MATCH_FUZZY,
 //  TAXON_MATCH_HIGHERRANK,
-//  TAXON_MATCH_NONE,
+//  ,
 //  DEPTH_NOT_METRIC,
 //  DEPTH_UNLIKELY,
 //  DEPTH_MIN_MAX_SWAPPED,
