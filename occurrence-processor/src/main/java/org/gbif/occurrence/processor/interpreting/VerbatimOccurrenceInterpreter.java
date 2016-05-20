@@ -210,8 +210,8 @@ public class VerbatimOccurrenceInterpreter {
     if (parsed.isSuccessful()) {
       occ.setBasisOfRecord(parsed.getPayload());
     } else {
-      //TODO: flag value invalid issue (new API enum value to be created)
       LOG.debug("Unknown basisOfRecord [{}]", verbatim.getVerbatimField(DwcTerm.basisOfRecord));
+      occ.addIssue(OccurrenceIssue.BASIS_OF_RECORD_INVALID);
       occ.setBasisOfRecord(BasisOfRecord.UNKNOWN);
     }
   }
