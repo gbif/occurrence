@@ -1,7 +1,10 @@
 package org.gbif.occurrence.common.interpretation;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.util.List;
 
@@ -13,7 +16,22 @@ import com.google.common.collect.ImmutableList;
  */
 public class InterpretationRemarksDefinition {
 
-  public static List<InterpretationRemark> REMARKS =
+  private static final List<Term> TAXONOMY_TERMS =
+          ImmutableList.<Term>builder()
+                  .add(DwcTerm.kingdom)
+                  .add(DwcTerm.phylum)
+                  .add(DwcTerm.class_)
+                  .add(DwcTerm.order)
+                  .add(DwcTerm.family)
+                  .add(DwcTerm.genus)
+                  .add(DwcTerm.scientificName)
+                  .add(DwcTerm.scientificNameAuthorship)
+                  .add(GbifTerm.genericName)
+                  .add(DwcTerm.specificEpithet)
+                  .add(DwcTerm.infraspecificEpithet)
+                  .build();
+
+  public static final List<InterpretationRemark> REMARKS =
           ImmutableList.<InterpretationRemark>builder()
                   // Errors
                   .add(InterpretationRemark.of(
@@ -24,11 +42,22 @@ public class InterpretationRemarksDefinition {
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.TAXON_MATCH_NONE, InterpretationRemarkSeverity.ERROR,
-                          DwcTerm.scientificName)) //probably all others terms too (class, order, ...)
+                          TAXONOMY_TERMS))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.INTERPRETATION_ERROR, InterpretationRemarkSeverity.ERROR))
 
                   // Warnings
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.ZERO_COORDINATE, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COUNTRY_INVALID, InterpretationRemarkSeverity.WARNING,
@@ -54,13 +83,79 @@ public class InterpretationRemarksDefinition {
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.geodeticDatum, DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
-
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.TAXON_MATCH_FUZZY, InterpretationRemarkSeverity.WARNING,
+                          TAXONOMY_TERMS))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.TAXON_MATCH_HIGHERRANK, InterpretationRemarkSeverity.WARNING,
+                          TAXONOMY_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_PRECISION_INVALID, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.coordinatePrecision))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_UNCERTAINTY_METERS_INVALID, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.coordinateUncertaintyInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.RECORDED_DATE_MISMATCH, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.RECORDED_DATE_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.RECORDED_DATE_UNLIKELY, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.eventDate, DwcTerm.year, DwcTerm.month, DwcTerm.day))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.MODIFIED_DATE_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DcTerm.modified))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.MODIFIED_DATE_UNLIKELY, InterpretationRemarkSeverity.WARNING,
+                          DcTerm.modified))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.dateIdentified))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.IDENTIFIED_DATE_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.dateIdentified))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.ELEVATION_NOT_METRIC, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.ELEVATION_UNLIKELY, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.ELEVATION_MIN_MAX_SWAPPED, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.ELEVATION_NON_NUMERIC, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumElevationInMeters, DwcTerm.maximumElevationInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.DEPTH_NOT_METRIC, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.DEPTH_UNLIKELY, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.DEPTH_MIN_MAX_SWAPPED, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.DEPTH_NON_NUMERIC, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.minimumDepthInMeters, DwcTerm.maximumDepthInMeters))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.TYPE_STATUS_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.typeStatus))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.REFERENCES_URI_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DcTerm.references))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.INDIVIDUAL_COUNT_INVALID, InterpretationRemarkSeverity.WARNING,
+                          DwcTerm.individualCount))
+// provided in extension
+//                  .add(InterpretationRemark.of(
+//                          OccurrenceIssue.MULTIMEDIA_DATE_INVALID, InterpretationRemarkSeverity.WARNING,
+//                          DwcTerm.mul))
+//                  .add(InterpretationRemark.of(
+//                          OccurrenceIssue.MULTIMEDIA_URI_INVALID, InterpretationRemarkSeverity.WARNING,
+//                          DwcTerm.individualCount))
 
                   // Info
                   .add(InterpretationRemark.of(
@@ -71,42 +166,11 @@ public class InterpretationRemarksDefinition {
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.geodeticDatum))
                   .build();
 
-
-
 // not used
 //  COORDINATE_INVALID,
 //  CONTINENT_INVALID,
 //  CONTINENT_DERIVED_FROM_COORDINATES,
 //  CONTINENT_COUNTRY_MISMATCH,
-
-//  ,
-//  PRESUMED_SWAPPED_COORDINATE,
-//  PRESUMED_NEGATED_LONGITUDE,
-//  PRESUMED_NEGATED_LATITUDE,
-//  RECORDED_DATE_MISMATCH,
-//  RECORDED_DATE_INVALID,
-//  RECORDED_DATE_UNLIKELY,
-//  TAXON_MATCH_FUZZY,
-//  TAXON_MATCH_HIGHERRANK,
-//  ,
-//  DEPTH_NOT_METRIC,
-//  DEPTH_UNLIKELY,
-//  DEPTH_MIN_MAX_SWAPPED,
-//  DEPTH_NON_NUMERIC,
-//  ELEVATION_UNLIKELY,
-//  ELEVATION_MIN_MAX_SWAPPED,
-//  ELEVATION_NOT_METRIC,
-//  ELEVATION_NON_NUMERIC,
-//  MODIFIED_DATE_INVALID,
-//  MODIFIED_DATE_UNLIKELY,
-//  IDENTIFIED_DATE_UNLIKELY,
-//  IDENTIFIED_DATE_INVALID,
-
-//  TYPE_STATUS_INVALID,
-//  MULTIMEDIA_DATE_INVALID,
-//  MULTIMEDIA_URI_INVALID,
-//  REFERENCES_URI_INVALID,
-//  INTERPRETATION_ERROR,
-//  INDIVIDUAL_COUNT_INVALID;
+// ---------
 
 }
