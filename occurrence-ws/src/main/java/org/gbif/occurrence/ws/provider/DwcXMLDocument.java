@@ -33,9 +33,9 @@ public class DwcXMLDocument {
     DC(DcTerm.class, DcTerm.PREFIX, DcTerm.NS),
     GBIF(GbifTerm.class, GbifTerm.PREFIX, GbifTerm.NS);
 
-    private Class<? extends Term> termClass;
-    private String prefix;
-    private String namespace;
+    private final Class<? extends Term> termClass;
+    private final String prefix;
+    private final String namespace;
 
     DwcXmlNamespace(Class<? extends Term> termClass, String prefix, String namespace) {
       this.termClass = termClass;
@@ -59,8 +59,8 @@ public class DwcXMLDocument {
     }
   }
 
-  private Document doc;
-  private Element currentElement;
+  private final Document doc;
+  private final Element currentElement;
 
   /**
    * Private constructor, newInstance method should be used to get an instance.
@@ -99,7 +99,7 @@ public class DwcXMLDocument {
     return rootElement;
   }
 
-  public void append(DcTerm term, String value){
+  public void append(DcTerm term, String value) {
     append(currentElement, DwcXmlNamespace.DC, term, value);
   }
   public void append(DwcTerm term, String value) {
@@ -114,7 +114,7 @@ public class DwcXMLDocument {
    *
    * @return
    */
-  public Document getDocument(){
+  public Document getDocument() {
     return doc;
   }
 
@@ -143,7 +143,7 @@ public class DwcXMLDocument {
    * @param term
    * @param value the value to add or null
    */
-  private void append(Element parentElement, DwcXmlNamespace dwcXmlNamespace, Term term, String value){
+  private void append(Element parentElement, DwcXmlNamespace dwcXmlNamespace, Term term, String value) {
     if (value == null) {
       return;
     }

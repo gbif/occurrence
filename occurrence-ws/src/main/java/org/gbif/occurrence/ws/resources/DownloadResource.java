@@ -120,7 +120,7 @@ public class DownloadResource {
       throw new NotAuthenticatedException("No user authenticated for creating a download");
     } else if (!principal.getName().equals(request.getCreator())) {
       LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
-        request.getCreator());
+               request.getCreator());
       throw new NotAllowedException(principal.getName() + " not allowed to create download with creator "
         + request.getCreator());
     }

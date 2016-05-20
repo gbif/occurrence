@@ -36,11 +36,11 @@ public class InterpretationResource {
   private static class InterpretationRemarksWrapper {
     private final List<InterpretationRemark> remarks;
 
-    public InterpretationRemarksWrapper (List<InterpretationRemark> remarks){
+    public InterpretationRemarksWrapper (List<InterpretationRemark> remarks) {
       this.remarks = remarks;
     }
 
-    public List<InterpretationRemark> getRemarks(){
+    public List<InterpretationRemark> getRemarks() {
       return remarks;
     }
   }

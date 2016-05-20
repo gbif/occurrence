@@ -139,7 +139,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     try {
-      if (!downloadLimitsService.isInDownloadLimits(request.getCreator())){
+      if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
         throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
       }
       String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));

@@ -20,8 +20,8 @@ public class DownloadWorkflowParameters {
   /**
    * Constant parameters shared by all the Oozie workflows.
    */
-  public static final ImmutableMap<String,String> CONSTANT_PARAMETERS = new ImmutableMap.Builder<String,String>()
-                                                          .put(OozieClient.USE_SYSTEM_LIBPATH,"true")
+  public static final ImmutableMap<String,String> CONSTANT_PARAMETERS = new ImmutableMap.Builder<String, String>()
+                                                          .put(OozieClient.USE_SYSTEM_LIBPATH, "true")
                                                           .put("mapreduce.job.user.classpath.first", "true").build();
   //Download format.
   public static final String DOWNLOAD_FORMAT = "download_format";
@@ -32,7 +32,7 @@ public class DownloadWorkflowParameters {
   /**
    * Private default constructor.
    */
-  private DownloadWorkflowParameters(){
+  private DownloadWorkflowParameters() {
     //hidden constructor
   }
 

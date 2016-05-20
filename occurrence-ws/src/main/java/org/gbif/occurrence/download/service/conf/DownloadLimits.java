@@ -56,8 +56,8 @@ public class DownloadLimits {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
-    this.softLimit = new Limit(Integer.parseInt(softLimits.next()),Integer.parseInt(softLimits.next()));
-    this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()),Integer.parseInt(hardLimits.next()));
+    this.softLimit = new Limit(Integer.parseInt(softLimits.next()), Integer.parseInt(softLimits.next()));
+    this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()), Integer.parseInt(hardLimits.next()));
   }
 
   public int getMaxUserDownloads() {
@@ -73,7 +73,7 @@ public class DownloadLimits {
   }
 
   public boolean violatesLimits(int userDownloads, int globalDownloads) {
-    return getSoftLimit().violatesLimit(userDownloads,globalDownloads) &&
-           getHardLimit().violatesLimit(userDownloads,globalDownloads);
+    return getSoftLimit().violatesLimit(userDownloads, globalDownloads)
+           && getHardLimit().violatesLimit(userDownloads, globalDownloads);
   }
 }

@@ -21,7 +21,7 @@ public class FeaturedOccurrence {
   private final Date lastInterpreted;
 
   public FeaturedOccurrence(Integer key, Double latitude, Double longitude, String scientificName, String publisher,
-    UUID publisherKey, Date lastInterpreted) {
+                            UUID publisherKey, Date lastInterpreted) {
     this.key = key;
     this.scientificName = scientificName;
     this.publisher = publisher;

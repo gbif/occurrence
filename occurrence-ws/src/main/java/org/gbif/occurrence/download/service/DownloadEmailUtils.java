@@ -78,23 +78,23 @@ public class DownloadEmailUtils {
   /**
    * Sends an email notifying that an error occurred while creating the download file.
    */
-  public void sendErrorNotificationMail(Download d) {
-    sendNotificationMail(d, ERROR_SUBJECT, "error.ftl");
+  public void sendErrorNotificationMail(Download download) {
+    sendNotificationMail(download, ERROR_SUBJECT, "error.ftl");
   }
 
   /**
    * Sends an email notifying that the occurrence download is ready.
    */
-  public void sendSuccessNotificationMail(Download d) {
-    sendNotificationMail(d, SUCCESS_SUBJECT, "success.ftl");
+  public void sendSuccessNotificationMail(Download download) {
+    sendNotificationMail(download, SUCCESS_SUBJECT, "success.ftl");
   }
 
   @VisibleForTesting
-  protected String buildBody(Download d, String bodyTemplate) throws IOException, TemplateException {
+  protected String buildBody(Download download, String bodyTemplate) throws IOException, TemplateException {
     // Prepare the E-Mail body text
     StringWriter contentBuffer = new StringWriter();
     Template template = freemarker.getTemplate(bodyTemplate);
-    template.process(new EmailModel(d, portalUrl, getHumanQuery(d)), contentBuffer);
+    template.process(new EmailModel(download, portalUrl, getHumanQuery(download)), contentBuffer);
     return contentBuffer.toString();
   }
 
@@ -111,8 +111,8 @@ public class DownloadEmailUtils {
    */
   private List<Address> getNotificationAddresses(Download download) {
     List<Address> emails = Lists.newArrayList();
-    if (download.getRequest().getNotificationAddresses() == null ||
-        download.getRequest().getNotificationAddresses().isEmpty()) {
+    if (download.getRequest().getNotificationAddresses() == null
+        || download.getRequest().getNotificationAddresses().isEmpty()) {
       User user = userService.get(download.getRequest().getCreator());
       if (user != null) {
         try {
@@ -132,10 +132,10 @@ public class DownloadEmailUtils {
   /**
    * Utility method that sends a notification email.
    */
-  private void sendNotificationMail(Download d, String subject, String bodyTemplate) {
-    List<Address> emails = getNotificationAddresses(d);
+  private void sendNotificationMail(Download download, String subject, String bodyTemplate) {
+    List<Address> emails = getNotificationAddresses(download);
     if (emails.isEmpty() && bccAddresses.isEmpty()) {
-      LOG.warn("No valid notification addresses given for download {}", d.getKey());
+      LOG.warn("No valid notification addresses given for download {}", download.getKey());
       return;
     }
     try {
@@ -146,13 +146,13 @@ public class DownloadEmailUtils {
       msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[bccAddresses.size()]));
       msg.setSubject(subject);
       msg.setSentDate(new Date());
-      msg.setText(buildBody(d, bodyTemplate));
+      msg.setText(buildBody(download, bodyTemplate));
       Transport.send(msg);
 
     } catch (TemplateException | IOException e) {
-      LOG.error(NOTIFY_ADMIN, "Rendering of notification Mail for download [{}] failed", d.getKey(), e);
+      LOG.error(NOTIFY_ADMIN, "Rendering of notification Mail for download [{}] failed", download.getKey(), e);
     } catch (MessagingException e) {
-      LOG.error(NOTIFY_ADMIN, "Sending of notification Mail for download [{}] failed", d.getKey(), e);
+      LOG.error(NOTIFY_ADMIN, "Sending of notification Mail for download [{}] failed", download.getKey(), e);
     }
   }
 

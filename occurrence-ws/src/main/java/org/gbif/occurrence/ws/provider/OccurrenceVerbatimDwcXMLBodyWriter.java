@@ -72,13 +72,16 @@ public class OccurrenceVerbatimDwcXMLBodyWriter implements MessageBodyWriter<Ver
   }
 
   @Override
-  public long getSize(VerbatimOccurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+  public long getSize(VerbatimOccurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
+                      MediaType mediaType) {
     // deprecated by JAX-RS 2.0 and ignored by Jersey runtime
     return -1L;
   }
 
   @Override
-  public void writeTo(VerbatimOccurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+  public void writeTo(VerbatimOccurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
+                      MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                      OutputStream entityStream) throws IOException, WebApplicationException {
     entityStream.write(verbatimOccurrenceXMLAsByteArray(occurrence));
   }
 

@@ -52,9 +52,8 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Provides
   @Singleton
   @Named("oozie.default_properties")
-  Map<String,String> providesDefaultParameters(@Named("environment") String environment,
-                                                        @Named("ws.url") String wsUrl,
-                                                        @Named("hdfs.namenode") String nameNode) {
+  Map<String,String> providesDefaultParameters(@Named("environment") String environment, @Named("ws.url") String wsUrl,
+                                               @Named("hdfs.namenode") String nameNode) {
     return new ImmutableMap.Builder<String, String>()
                                               .put(OozieClient.LIBPATH,String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,environment))
                                                .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,environment))

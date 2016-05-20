@@ -48,16 +48,17 @@ public class FeaturedOccurrenceReader {
   private final String tableName;
   private final Random random = new Random();
   private final Meter requests = Metrics.newMeter(FeaturedOccurrenceReader.class, "requests", "requests",
-    TimeUnit.SECONDS);
+                                                  TimeUnit.SECONDS);
   private final Meter missingOccurrences = Metrics.newMeter(FeaturedOccurrenceReader.class, "missingOccurrences",
-    "missingOccurrences", TimeUnit.SECONDS);
+                                                            "missingOccurrences", TimeUnit.SECONDS);
   private final Meter registryFailures = Metrics.newMeter(FeaturedOccurrenceReader.class, "registryFailures",
-    "registryFailures", TimeUnit.SECONDS);
+                                                          "registryFailures", TimeUnit.SECONDS);
 
   @Inject
   public FeaturedOccurrenceReader(OccurrenceService occurrenceService,
-    @Named("featured_table_pool") HTablePool htablePool, @Named("featured_table_name") String tableName,
-    OrganizationService organizationService) {
+                                  @Named("featured_table_pool") HTablePool htablePool,
+                                  @Named("featured_table_name") String tableName,
+                                  OrganizationService organizationService) {
     this.occurrenceService = occurrenceService;
     this.htablePool = htablePool;
     this.tableName = tableName;
@@ -105,9 +106,9 @@ public class FeaturedOccurrenceReader {
           }
         }
         if (org != null) {
-          featured.add(new FeaturedOccurrence(o.getKey(), o.getDecimalLatitude(), o.getDecimalLongitude(), o
-            .getScientificName(), org
-            .getTitle(), org.getKey(), o.getLastInterpreted()));
+          featured.add(new FeaturedOccurrence(o.getKey(), o.getDecimalLatitude(), o.getDecimalLongitude(),
+                                              o.getScientificName(), org.getTitle(), org.getKey(),
+                                              o.getLastInterpreted()));
         }
       } catch (Exception e) {
         registryFailures.mark();

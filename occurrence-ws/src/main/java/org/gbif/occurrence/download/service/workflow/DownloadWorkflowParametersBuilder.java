@@ -40,7 +40,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.putAll(defaultProperties);
     properties.put(DownloadWorkflowParameters.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
-    properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name()) ;
+    properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
     }

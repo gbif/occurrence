@@ -1,7 +1,6 @@
 package org.gbif.occurrence.ws.resources;
 
 
-import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -51,7 +50,7 @@ public class OccurrenceSearchResource {
   @GET
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@Context OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
-      request.getOffset());
+              request.getOffset());
     return searchService.search(request);
   }
 

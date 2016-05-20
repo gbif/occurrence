@@ -156,22 +156,24 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
   }
 
   @Override
-  public long getSize(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+  public long getSize(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
+                      MediaType mediaType) {
     // deprecated by JAX-RS 2.0 and ignored by Jersey runtime
     return -1L;
   }
 
   @Override
-  public void writeTo(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+  public void writeTo(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
+                      MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+                      OutputStream entityStream) throws IOException, WebApplicationException {
     entityStream.write(occurrenceXMLAsByteArray(occurrence));
   }
 
-  private void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value) {
-    if (value == null) {
-      return;
+  private static void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value) {
+    if (value != null) {
+      dwcXMLDocument.append(DwcTerm.countryCode, value.getIso2LetterCode());
+      dwcXMLDocument.append(DwcTerm.country, value.getTitle());
     }
-    dwcXMLDocument.append(DwcTerm.countryCode, value.getIso2LetterCode());
-    dwcXMLDocument.append(DwcTerm.country, value.getTitle());
   }
 
   /**
@@ -181,11 +183,10 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DwcTerm term, Object value) {
-    if (value == null) {
-      return;
+  private static void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DwcTerm term, Object value) {
+    if (value != null) {
+      dwcXMLDocument.append(term, value.toString());
     }
-    dwcXMLDocument.append(term, value.toString());
   }
 
   /**
@@ -195,11 +196,10 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DcTerm term, Object value) {
-    if (value == null) {
-      return;
+  private static void appendIfNotNull(DwcXMLDocument dwcXMLDocument, DcTerm term, Object value) {
+    if (value != null) {
+      dwcXMLDocument.append(term, value.toString());
     }
-    dwcXMLDocument.append(term, value.toString());
   }
 
   /**
@@ -209,18 +209,18 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    * @param term
    * @param value nulls accepted and skipped
    */
-  private void appendIfNotNull(DwcXMLDocument dwcXMLDocument, GbifTerm term, Object value) {
-    if (value == null) {
-      return;
+  private static void appendIfNotNull(DwcXMLDocument dwcXMLDocument, GbifTerm term, Object value) {
+    if (value != null) {
+      dwcXMLDocument.append(term, value.toString());
     }
-    dwcXMLDocument.append(term, value.toString());
+
   }
 
-  private static String toISODateTime(Date d) {
-    if (d == null) {
+  private static String toISODateTime(Date date) {
+    if (date == null) {
       return null;
     }
-    return FDF.format(d);
+    return FDF.format(date);
   }
 
 }
