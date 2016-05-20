@@ -1,7 +1,7 @@
 package org.gbif.occurrence.ws.resources;
 
 import org.gbif.occurrence.common.interpretation.InterpretationRemark;
-import org.gbif.occurrence.common.interpretation.InterpretationRemarkClassification;
+import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
 
 import java.util.List;
 import javax.ws.rs.GET;
@@ -21,10 +21,28 @@ import com.google.inject.Singleton;
 @Singleton
 public class InterpretationResource {
 
+  private static final InterpretationRemarksWrapper INTERPRETATION_REMARKS =
+          new InterpretationRemarksWrapper(InterpretationRemarksDefinition.REMARKS);
+
   @GET
-  @Path("remarks")
-  public List<InterpretationRemark> getInterpretationRemark() {
-    return InterpretationRemarkClassification.CLASSIFICATION;
+  public InterpretationRemarksWrapper getInterpretation() {
+    return INTERPRETATION_REMARKS;
+  }
+
+  /**
+   * This wrapper is simply used to send the remarks under the "remarks" variable instead of root object.
+   * Just in case this endpoint needs to return more in the future.
+   */
+  private static class InterpretationRemarksWrapper {
+    private final List<InterpretationRemark> remarks;
+
+    public InterpretationRemarksWrapper (List<InterpretationRemark> remarks){
+      this.remarks = remarks;
+    }
+
+    public List<InterpretationRemark> getRemarks(){
+      return remarks;
+    }
   }
 
 }

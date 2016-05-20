@@ -11,9 +11,9 @@ import com.google.common.collect.ImmutableList;
  * Classification and definition of all the {@link InterpretationRemark}.
  * WORK IN PROGRESS
  */
-public class InterpretationRemarkClassification {
+public class InterpretationRemarksDefinition {
 
-  public static List<InterpretationRemark> CLASSIFICATION =
+  public static List<InterpretationRemark> REMARKS =
           ImmutableList.<InterpretationRemark>builder()
                   // Errors
                   .add(InterpretationRemark.of(
@@ -42,8 +42,7 @@ public class InterpretationRemarkClassification {
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.geodeticDatum))
-
-                          // Info
+                  // Info
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_ROUNDED, InterpretationRemarkSeverity.INFO,
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
