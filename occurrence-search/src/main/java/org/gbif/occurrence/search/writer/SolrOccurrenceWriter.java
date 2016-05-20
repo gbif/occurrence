@@ -21,6 +21,7 @@ import org.apache.solr.common.SolrInputDocument;
 import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CLASS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COLLECTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CONTINENT;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COORDINATE;
@@ -29,25 +30,32 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ELEVATION;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_DATE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.FAMILY_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GENUS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.HAS_COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ISSUE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.KINGDOM_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LAST_INTERPRETED;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MEDIA_TYPE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ORDER_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PHYLUM_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORDED_BY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.RECORD_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SPATIAL_ISSUES;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SPECIES_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SUBGENUS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ESTABLISHMENT_MEANS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.OCCURRENCE_ID;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField. FULL_TEXT;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.FULL_TEXT;
 
 
 /**
@@ -137,6 +145,14 @@ public class SolrOccurrenceWriter {
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
+    doc.setField(KINGDOM_KEY.getFieldName(), occurrence.getKingdomKey());
+    doc.setField(PHYLUM_KEY.getFieldName(), occurrence.getPhylumKey());
+    doc.setField(CLASS_KEY.getFieldName(), occurrence.getClassKey());
+    doc.setField(ORDER_KEY.getFieldName(), occurrence.getOrderKey());
+    doc.setField(FAMILY_KEY.getFieldName(), occurrence.getFamilyKey());
+    doc.setField(GENUS_KEY.getFieldName(), occurrence.getGenusKey());
+    doc.setField(SUBGENUS_KEY.getFieldName(), occurrence.getSubgenusKey());
+    doc.setField(SPECIES_KEY.getFieldName(), occurrence.getSpeciesKey());
     doc.setField(ELEVATION.getFieldName(), occurrence.getElevation());
     doc.setField(DEPTH.getFieldName(), occurrence.getDepth());
     doc.setField(INSTITUTION_CODE.getFieldName(), occurrence.getVerbatimField(DwcTerm.institutionCode));
@@ -185,7 +201,7 @@ public class SolrOccurrenceWriter {
    */
   private static Set<Integer> buildTaxonKey(Occurrence occurrence) {
 
-    Set<Integer> taxonKey = new HashSet<Integer>();
+    Set<Integer> taxonKey = new HashSet<Integer>(10);
 
     if (occurrence.getTaxonKey() != null) {
       taxonKey.add(occurrence.getTaxonKey());

@@ -52,7 +52,7 @@ public class OccurrenceSearchRequestBuilder {
   private static final String SOLR_SPELLCHECK = "spellcheck";
   private static final String SOLR_SPELLCHECK_COUNT = "spellcheck.count";
   private static final String SOLR_SPELLCHECK_Q = "spellcheck.q";
-  private static final Integer DEFAULT_SPELL_CHECK_COUNT = 4;
+  private static final String DEFAULT_SPELL_CHECK_COUNT = "4";
   private static final Pattern COMMON_REPLACER = Pattern.compile(",", Pattern.LITERAL);
 
 
@@ -87,7 +87,7 @@ public class OccurrenceSearchRequestBuilder {
     /**
      * Query parameter.
      */
-    private OccurrenceFullTextQueryBuilder withQ(String q){
+    private OccurrenceFullTextQueryBuilder withQ(String q) {
       this.q = q;
       return this;
     }
@@ -117,7 +117,7 @@ public class OccurrenceSearchRequestBuilder {
         return PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, phraseQ), ftQ.toString());
       }
       return  PARAMS_OR_JOINER.join(String.format(NON_TOKENIZED_QUERY, q),
-                                               String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
+                                    String.format(TERM_PATTERN, q, MAX_SCORE, FUZZY_DISTANCE, MAX_SCORE / 2));
     }
   }
 
@@ -221,7 +221,7 @@ public class OccurrenceSearchRequestBuilder {
     solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellCheck());
     if (request.isSpellCheck()) {
       solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
-                         request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT.toString() : Integer.toString(request.getSpellCheckCount()));
+                         request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT : Integer.toString(request.getSpellCheckCount()));
     }
     // q param
     if (Strings.isNullOrEmpty(request.getQ()) || SolrConstants.DEFAULT_FILTER_QUERY.equals(request.getQ())) {
@@ -243,13 +243,13 @@ public class OccurrenceSearchRequestBuilder {
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
-    SolrQueryUtils.applyFacetSettings(request,solrQuery, FACET_FIELD_CONFIGURATION_MAP);
+    SolrQueryUtils.applyFacetSettings(request, solrQuery, FACET_FIELD_CONFIGURATION_MAP);
     solrQuery.setFacetMissing(false);
     return solrQuery;
   }
 
   private static Map<OccurrenceSearchParameter, FacetFieldConfiguration> getFacetsConfiguration() {
-    return ImmutableMap.<OccurrenceSearchParameter,FacetFieldConfiguration>builder()
+    return ImmutableMap.<OccurrenceSearchParameter, FacetFieldConfiguration>builder()
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.BASIS_OF_RECORD).getFieldName(),
                                        OccurrenceSearchParameter.BASIS_OF_RECORD, FacetField.Method.ENUM,
@@ -327,8 +327,8 @@ public class OccurrenceSearchRequestBuilder {
       for (String value : requestDateParams) {
         dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
       }
-      solrQuery.addFilterQuery((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "") +
-                        toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
+      solrQuery.addFilterQuery((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "")
+                               + toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
     }
   }
 
@@ -345,8 +345,8 @@ public class OccurrenceSearchRequestBuilder {
         locationParams
           .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
       }
-      solrQuery.addFilterQuery((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "") +
-                        toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
+      solrQuery.addFilterQuery((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "")
+                               + toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
     }
   }
 
@@ -376,8 +376,8 @@ public class OccurrenceSearchRequestBuilder {
           }
         }
         if (!aFieldParameters.isEmpty()) {
-          solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "") +
-                               toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
+          solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "")
+                                   + toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
 
         }
       }

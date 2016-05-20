@@ -15,7 +15,7 @@ public enum OccurrenceSolrField {
   SPATIAL_ISSUES("spatial_issues"), HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"),
   LAST_INTERPRETED("last_interpreted"), TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue"),
   ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id"),
-  SCIENTIFIC_NAME("scientific_name"),FULL_TEXT("full_text");
+  SCIENTIFIC_NAME("scientific_name"), FULL_TEXT("full_text");
 
   private final String fieldName;
 
