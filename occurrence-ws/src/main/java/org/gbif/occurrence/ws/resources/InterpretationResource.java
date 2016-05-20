@@ -13,7 +13,7 @@ import com.google.inject.Singleton;
 
 /**
  *
- * Resource related to interpretation and processing
+ * Resource related to interpretation/processing of occurrences
  *
  */
 @Path("occurrence/interpretation")

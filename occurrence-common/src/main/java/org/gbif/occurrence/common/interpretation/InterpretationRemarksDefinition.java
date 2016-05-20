@@ -11,8 +11,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Classification and definition of all the {@link InterpretationRemark}.
- * WORK IN PROGRESS
+ * Definition and classification of all the {@link InterpretationRemark}.
  */
 public class InterpretationRemarksDefinition {
 
@@ -149,13 +148,14 @@ public class InterpretationRemarksDefinition {
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.INDIVIDUAL_COUNT_INVALID, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.individualCount))
-// provided in extension
-//                  .add(InterpretationRemark.of(
-//                          OccurrenceIssue.MULTIMEDIA_DATE_INVALID, InterpretationRemarkSeverity.WARNING,
-//                          DwcTerm.mul))
-//                  .add(InterpretationRemark.of(
-//                          OccurrenceIssue.MULTIMEDIA_URI_INVALID, InterpretationRemarkSeverity.WARNING,
-//                          DwcTerm.individualCount))
+
+                  // Provided in Multimedia extension so we can't link them to a specific Term
+                  // We can also have multiple "media" but the error is attached to the Occurrence.
+                  // In other words, we can't link the error to the problematic media.
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.MULTIMEDIA_DATE_INVALID, InterpretationRemarkSeverity.WARNING))
+                  .add(InterpretationRemark.of(
+                          OccurrenceIssue.MULTIMEDIA_URI_INVALID, InterpretationRemarkSeverity.WARNING))
 
                   // Info
                   .add(InterpretationRemark.of(
@@ -165,8 +165,7 @@ public class InterpretationRemarksDefinition {
                           OccurrenceIssue.COORDINATE_REPROJECTED, InterpretationRemarkSeverity.INFO,
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.geodeticDatum))
                   .build();
-
-// not used
+// Currently not used by occurrence-processor
 //  COORDINATE_INVALID,
 //  CONTINENT_INVALID,
 //  CONTINENT_DERIVED_FROM_COORDINATES,
