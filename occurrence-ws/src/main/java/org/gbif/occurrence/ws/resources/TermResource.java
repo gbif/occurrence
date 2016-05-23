@@ -1,5 +1,7 @@
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
@@ -55,10 +57,23 @@ public class TermResource {
 
     private final String simpleName;
     private final String qualifiedName;
+    private final String group;
+    private final String source;
 
     public TermWrapper(Term term){
       simpleName = term.simpleName();
       qualifiedName = term.qualifiedName();
+      source = term.getClass().getSimpleName();
+
+      // Not too clean but we can't override the Term's @JsonSerialize
+      if(DwcTerm.class.equals(term.getClass())){
+        group = ((DwcTerm)term).getGroup();
+      } else if (GbifTerm.class.equals(term.getClass())){
+        group = ((GbifTerm)term).getGroup();
+      }
+      else{
+        group = null;
+      }
     }
 
     public String getSimpleName() {
@@ -68,6 +83,15 @@ public class TermResource {
     public String getQualifiedName() {
       return qualifiedName;
     }
+
+    public String getGroup() {
+      return group;
+    }
+
+    public String getSource() {
+      return source;
+    }
+
   }
 
 }
