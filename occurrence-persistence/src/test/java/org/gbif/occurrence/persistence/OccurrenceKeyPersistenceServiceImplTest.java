@@ -23,9 +23,11 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -65,7 +67,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
   private static PublisherProvidedUniqueIdentifier dwcId;
   private static HolyTriplet newId;
 
-  private HTablePool tablePool = null;
+  private static Connection CONNECTION = null;
   private OccurrenceKeyPersistenceService occurrenceKeyService;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
@@ -90,6 +92,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     tripletId = new HolyTriplet(datasetKey, IC, CC, CN, UQ);
     dwcId = new PublisherProvidedUniqueIdentifier(datasetKey, DWC);
     newId = new HolyTriplet(datasetKey, IC, CC, CN, NEW_UQ);
+    CONNECTION = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
   @AfterClass
@@ -97,6 +100,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     TEST_UTIL.shutdownMiniCluster();
     CURATOR.close();
     ZOOKEEPER_SERVER.stop();
+    CONNECTION.close();
   }
 
   @Before
@@ -105,27 +109,23 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     TEST_UTIL.truncateTable(COUNTER_TABLE);
     TEST_UTIL.truncateTable(OCCURRENCE_TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
-    KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, tablePool, ZOO_LOCK_PROVIDER);
-    occurrenceKeyService =
-      new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
-    HTableInterface lookupTable = tablePool.getTable(CFG.lookupTable);
-    Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
-    lookupTable.put(put);
-    put = new Put(Bytes.toBytes(DWC_KEY));
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
+    KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, CONNECTION, ZOO_LOCK_PROVIDER);
+    occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
+    try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(CFG.lookupTable))) {
+      Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+      lookupTable.put(put);
+      put = new Put(Bytes.toBytes(DWC_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+      lookupTable.put(put);
+    }
 
-    HTableInterface counterTable = tablePool.getTable(CFG.counterTable);
-    put = new Put(Bytes.toBytes(HBaseLockingKeyService.COUNTER_ROW));
-    put.add(CF, Bytes.toBytes(Columns.COUNTER_COLUMN),
-      Bytes.toBytes(Long.valueOf(2)));
-    counterTable.put(put);
-    counterTable.flushCommits();
-    counterTable.close();
+    try (Table counterTable = CONNECTION.getTable(TableName.valueOf(CFG.counterTable))) {
+      Put put = new Put(Bytes.toBytes(HBaseLockingKeyService.COUNTER_ROW));
+      put.addColumn(CF, Bytes.toBytes(Columns.COUNTER_COLUMN), Bytes.toBytes(Long.valueOf(2)));
+      counterTable.put(put);
+      counterTable.close();
+    }
   }
 
   @Test
@@ -372,9 +372,8 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     private KeyGeneratorThread(Set<UniqueIdentifier> ids) {
       this.ids = ids;
       ThreadLocalLockProvider threadLocalLockProvider = new ThreadLocalLockProvider(CURATOR);
-      KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, tablePool, threadLocalLockProvider);
-      this.occKeyService =
-        new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
+      KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, CONNECTION, threadLocalLockProvider);
+      occKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     }
 
     public void run() {

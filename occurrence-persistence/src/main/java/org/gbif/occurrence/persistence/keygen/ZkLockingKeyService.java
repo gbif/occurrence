@@ -8,7 +8,7 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import java.util.Set;
 
 import com.google.inject.Inject;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,9 +27,9 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
   private final ThreadLocalLockProvider zookeeperLockManagerProvider;
 
   @Inject
-  public ZkLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool,
+  public ZkLockingKeyService(OccHBaseConfiguration cfg, Connection connection,
                              ThreadLocalLockProvider zookeeperLockManagerProvider) {
-    super(cfg, tablePool, new OccurrenceKeyBuilder());
+    super(cfg, connection, new OccurrenceKeyBuilder());
     this.zookeeperLockManagerProvider = zookeeperLockManagerProvider;
   }
 

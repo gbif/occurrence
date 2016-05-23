@@ -18,12 +18,13 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
@@ -44,20 +45,20 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   private static final Logger LOG = LoggerFactory.getLogger(AbstractHBaseKeyPersistenceService.class);
   private static final int HBASE_CLIENT_CACHING = 200;
 
-  private final HTablePool tablePool;
-  private final String lookupTableName;
+  private final Connection connection;
+  private final TableName lookupTableName;
   private final HBaseStore<Integer> occurrenceTableStore;
   protected final HBaseStore<String> lookupTableStore;
   protected final HBaseStore<Integer> counterTableStore;
   protected final KeyBuilder keyBuilder;
 
-  public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, HTablePool tablePool, KeyBuilder keyBuilder) {
-    lookupTableName = checkNotNull(cfg.lookupTable, "lookupTable can't be null");
-    this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
+  public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, Connection connection, KeyBuilder keyBuilder) {
+    lookupTableName =  TableName.valueOf(checkNotNull(cfg.lookupTable, "lookupTable can't be null"));
+    this.connection = checkNotNull(connection, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
-    lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
-    counterTableStore = new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
-    occurrenceTableStore = new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+    lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
+    counterTableStore = new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
+    occurrenceTableStore = new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
   }
 
   @Override
@@ -116,9 +117,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   public Set<Integer> findKeysByScope(String scope) {
     Set<Integer> keys = Sets.newHashSet();
     // note HTableStore isn't capable of ad hoc scans
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(lookupTableName);
+    try (Table table = connection.getTable(lookupTableName)) {
       Scan scan = new Scan();
       scan.setCacheBlocks(false);
       scan.setCaching(HBASE_CLIENT_CACHING);
@@ -132,16 +131,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
     }
-
     return keys;
   }
 
@@ -182,9 +172,8 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     filters.add(valueFilter);
     Filter filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
     scan.setFilter(filterList);
-    HTableInterface lookupTable = tablePool.getTable(lookupTableName);
     List<Delete> keysToDelete = Lists.newArrayList();
-    try {
+    try (Table lookupTable = connection.getTable(lookupTableName)) {
       ResultScanner resultScanner = lookupTable.getScanner(scan);
       for (Result result : resultScanner) {
         Delete delete = new Delete(result.getRow());
@@ -195,15 +184,8 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Failure accessing HBase", e);
-    } finally {
-      if (lookupTable != null) {
-        try {
-          lookupTable.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool, continuing with possible memory leak", e);
-        }
-      }
     }
+
   }
 
   @Override
@@ -213,25 +195,16 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
 
     // craft a delete for every uniqueString
     Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
-    HTableInterface lookupTable = tablePool.getTable(lookupTableName);
-    List<Delete> keysToDelete = Lists.newArrayList();
+    List<Delete> keysToDelete = Lists.newArrayListWithCapacity(lookupKeys.size());
     for (String lookupKey : lookupKeys) {
       keysToDelete.add(new Delete(Bytes.toBytes(lookupKey)));
     }
-    try {
+    try (Table lookupTable = connection.getTable(lookupTableName)) {
       if (!keysToDelete.isEmpty()) {
         lookupTable.delete(keysToDelete);
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Failure accessing HBase", e);
-    } finally {
-      if (lookupTable != null) {
-        try {
-          lookupTable.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool, continuing with possible memory leak", e);
-        }
-      }
     }
   }
 

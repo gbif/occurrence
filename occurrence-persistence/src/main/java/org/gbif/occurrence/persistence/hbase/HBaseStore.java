@@ -6,15 +6,14 @@ import org.gbif.hbase.util.ResultReader;
 import java.io.IOException;
 import javax.annotation.Nullable;
 
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -26,22 +25,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HBaseStore<T> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(HBaseStore.class);
   private static final String KEY_CANT_BE_NULL_MSG = "key can't be null";
   public static final String HBASE_READ_ERROR_MSG = "Could not read from HBase";
 
-  private final String tableName;
+  private final TableName tableName;
   private final String cf;
   private final byte[] cfBytes;
-  private final HTablePool tablePool;
+  private final Connection connection;
 
   // TODO consider a put and get builder that adds columns with successive calls
 
-  public HBaseStore(String tableName, String cf, HTablePool tablePool) {
-    this.tableName = checkNotNull(tableName, "tableName can't be null");
+  public HBaseStore(String tableName, String cf, Connection connection) {
+    this.tableName = TableName.valueOf(checkNotNull(tableName, "tableName can't be null"));
     this.cf = checkNotNull(cf, "cf can't be null");
-    this.cfBytes = Bytes.toBytes(cf);
-    this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
+    cfBytes = Bytes.toBytes(cf);
+    this.connection = checkNotNull(connection, "connection can't be null");
   }
 
   public Integer getInt(T key, String columnName) {
@@ -100,7 +98,7 @@ public class HBaseStore<T> {
     checkNotNull(value, "value can't be null");
 
     long result = 0;
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         result = table.incrementColumnValue(byteKey, cfBytes, Bytes.toBytes(columnName), value);
@@ -116,13 +114,13 @@ public class HBaseStore<T> {
     checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(columnName, "columnName can't be null");
     checkNotNull(value, "value can't be null");
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Put put = new Put(byteKey);
-        put.add(cfBytes, Bytes.toBytes(columnName), value);
+        put.addColumn(cfBytes, Bytes.toBytes(columnName), value);
         table.put(put);
-        table.flushCommits();
+        //table.flushCommits();
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
@@ -143,7 +141,7 @@ public class HBaseStore<T> {
     checkNotNull(columnName, "columnName can't be null");
 
     Result row = null;
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Get get = new Get(byteKey);
@@ -170,7 +168,7 @@ public class HBaseStore<T> {
     checkNotNull(key, KEY_CANT_BE_NULL_MSG);
 
     Result row = null;
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Get get = new Get(byteKey);
@@ -204,14 +202,14 @@ public class HBaseStore<T> {
     checkNotNull(checkColumn, "checkColumn can't be null");
 
     boolean success = false;
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Put put = new Put(byteKey);
         if (ts != null && ts > 0) {
-          put.add(cfBytes, Bytes.toBytes(putColumn), ts, putValue);
+          put.addColumn(cfBytes, Bytes.toBytes(putColumn), ts, putValue);
         } else {
-          put.add(cfBytes, Bytes.toBytes(putColumn), putValue);
+          put.addColumn(cfBytes, Bytes.toBytes(putColumn), putValue);
         }
         success = table.checkAndPut(byteKey, cfBytes, Bytes.toBytes(checkColumn), checkValue, put);
       }
@@ -227,15 +225,15 @@ public class HBaseStore<T> {
     checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkArgument(columns.length > 0, "columns can't be empty");
 
-    try (HTableInterface table = tablePool.getTable(tableName)) {
+    try (Table table = connection.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Delete delete = new Delete(byteKey);
         for (String column : columns) {
-          delete.deleteColumn(cfBytes, Bytes.toBytes(column));
+          delete.addColumn(cfBytes, Bytes.toBytes(column));
         }
         table.delete(delete);
-        table.flushCommits();
+        //table.flushCommits();
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);

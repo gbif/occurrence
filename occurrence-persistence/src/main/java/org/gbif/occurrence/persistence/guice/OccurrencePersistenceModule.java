@@ -14,6 +14,7 @@ import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.zookeeper.ZookeeperLockManager;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import com.google.common.base.Throwables;
@@ -24,8 +25,10 @@ import com.google.inject.TypeLiteral;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,8 +90,11 @@ public class OccurrencePersistenceModule extends PrivateModule {
   }
 
   @Provides
-  public HTablePool provideHTablePool() {
-    return new HTablePool(HBaseConfiguration.create(), cfg.hbasePoolSize);
+  @Singleton
+  public Connection provideHBaseConnection() throws IOException {
+    Configuration hBaseConfiguration = HBaseConfiguration.create();
+    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(cfg.hbasePoolSize));
+    return ConnectionFactory.createConnection(hBaseConfiguration);
   }
 
   @Provides

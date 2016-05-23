@@ -30,8 +30,10 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -73,7 +75,7 @@ public class OccurrenceSearchTestIT {
     @Provides
     @Singleton
     public OccurrenceService provideOccurrenceService() {
-      OccurrenceService occurrenceService = new OccurrencePersistenceServiceImpl(CFG, hTablePool);
+      OccurrenceService occurrenceService = new OccurrencePersistenceServiceImpl(CFG, hbaseConnection);
       return occurrenceService;
     }
 
@@ -102,13 +104,13 @@ public class OccurrenceSearchTestIT {
     CFG.setEnvironment("test");
   }
 
-  private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
+  private static final TableName OCCURRENCE_TABLE = TableName.valueOf(CFG.occTable);
 
   private static final String CF_NAME = "o";
 
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
 
-  private static HTablePool hTablePool;
+  private static Connection hbaseConnection;
 
 
   // Solr server
@@ -130,7 +132,7 @@ public class OccurrenceSearchTestIT {
   public static void beforeClass() throws Exception {
     TEST_UTIL.startMiniCluster(1);
     TEST_UTIL.createTable(OCCURRENCE_TABLE, CF);
-    hTablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
+    hbaseConnection = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
     occurrenceSearchService = injector.getInstance(OccurrenceSearchService.class);
     solrClient = injector.getInstance(SolrClient.class);
     // deletes all previous data
@@ -175,15 +177,13 @@ public class OccurrenceSearchTestIT {
    * Loads test data from the CSV file and store it into Solr and HBase.
    */
   private static void loadOccurrences() throws IOException {
-    final HTableInterface hTable = hTablePool.getTable(OCCURRENCE_TABLE);
-    try {
+    try (Table hTable = hbaseConnection.getTable(OCCURRENCE_TABLE)) {
       OccurrenceDataLoader.processOccurrences(CSV_TEST_FILE, new HBasePredicateWriter(hTable),
         new SolrPredicateWriter(new SolrOccurrenceWriter(solrClient)));
     } catch (Exception e) {
       LOG.error("Error processing occurrence objects from file", e);
     } finally {
       commitToSolrQuietly();
-      hTable.close();
     }
   }
 

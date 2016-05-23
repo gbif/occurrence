@@ -16,6 +16,7 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 
 import akka.dispatch.ExecutionContextExecutorService;
@@ -29,8 +30,10 @@ import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 /**
  * Private guice module that provides bindings the required Modules and dependencies.
@@ -130,8 +133,10 @@ public final class DownloadWorkflowModule extends AbstractModule {
   }
 
   @Provides
-  HTablePool provideHTablePool(@Named(PROPERTIES_PREFIX + "max_connection_pool") Integer maxConnectionPool) {
-    return new HTablePool(HBaseConfiguration.create(), maxConnectionPool);
+  Connection provideHBaseConnection(@Named(PROPERTIES_PREFIX + "max_connection_pool") Integer maxConnectionPool) throws IOException {
+    Configuration hBaseConfiguration = HBaseConfiguration.create();
+    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
+    return ConnectionFactory.createConnection(hBaseConfiguration);
   }
 
   @Provides

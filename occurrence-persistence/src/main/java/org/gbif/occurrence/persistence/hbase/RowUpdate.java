@@ -12,9 +12,9 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.RowMutations;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,33 +53,33 @@ public class RowUpdate {
   /**
    * Executes the put and delete on a given hbase table, finally flushing the commit.
    */
-  public void execute(HTableInterface table) throws IOException {
+  public void execute(Table table) throws IOException {
     LOG.debug("Executing [{}] mutations", rowMutations.getMutations().size());
     table.mutateRow(rowMutations);
-    table.flushCommits();
+    //table.flushCommits();
   }
 
   public void setField(String column, @Nullable byte[] value) throws IOException {
     if (value != null) {
-      Put put = new Put(this.key);
-      put.add(Columns.CF, Bytes.toBytes(column), value);
+      Put put = new Put(key);
+      put.addColumn(Columns.CF, Bytes.toBytes(column), value);
       rowMutations.add(put);
     } else {
-      Delete del = new Delete(this.key);
-      del.deleteColumn(Columns.CF, Bytes.toBytes(column));
+      Delete del = new Delete(key);
+      del.addColumn(Columns.CF, Bytes.toBytes(column));
       rowMutations.add(del);
     }
   }
 
   public void deleteField(String column) throws IOException {
     Delete del = new Delete(this.key);
-    del.deleteColumn(Columns.CF, Bytes.toBytes(column));
+    del.addColumn(Columns.CF, Bytes.toBytes(column));
     rowMutations.add(del);
   }
 
   public void deleteField(byte[] columnQualifier) throws IOException {
     Delete del = new Delete(this.key);
-    del.deleteColumn(Columns.CF, columnQualifier);
+    del.addColumn(Columns.CF, columnQualifier);
     rowMutations.add(del);
   }
 
@@ -214,7 +214,7 @@ public class RowUpdate {
     return value == null ? null : Bytes.toBytes(value.getIso2LetterCode());
   }
 
-  private static byte[] nullSafeBytes(Enum value) {
+  private static byte[] nullSafeBytes(Enum<?> value) {
     return value == null ? null : Bytes.toBytes(value.name());
   }
 

@@ -25,9 +25,9 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
-
+import org.apache.hadoop.hbase.client.Connection;
 /**
  * Note not a real JUnit test but rather an extremely expensive test that is meant to be run against the real cluster.
  */
@@ -61,12 +61,14 @@ public class FragmentProcessorThroughputTest {
   private static final AtomicInteger fragsPersisted = new AtomicInteger(0);
 
   public FragmentProcessorThroughputTest(int hbasePoolSize) throws IOException {
-    HTablePool tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
+    Configuration hBaseConfiguration = HBaseConfiguration.create();
+    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(hbasePoolSize));
+    Connection connection = org.apache.hadoop.hbase.client.ConnectionFactory.createConnection(hBaseConfiguration);
     HBaseLockingKeyService keyService =
-      new HBaseLockingKeyService(CFG, tablePool);
+      new HBaseLockingKeyService(CFG, connection);
     OccurrenceKeyPersistenceService occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyService);
     FragmentPersistenceService fragService =
-      new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
+      new FragmentPersistenceServiceImpl(CFG, connection, occurrenceKeyService);
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost("mq.gbif.org");
     connectionFactory.setVirtualHost("/users/omeyn");

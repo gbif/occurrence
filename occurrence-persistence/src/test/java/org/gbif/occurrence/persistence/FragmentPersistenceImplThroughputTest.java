@@ -9,6 +9,7 @@ import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -19,8 +20,10 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 /**
  * Note not a real JUnit test, but an extremely expensive performance test that should use the real cluster.
@@ -36,10 +39,12 @@ public class FragmentPersistenceImplThroughputTest {
 
   private static final AtomicInteger fragsPersisted = new AtomicInteger(0);
 
-  public FragmentPersistenceImplThroughputTest(int hbasePoolSize) {
-    HTablePool tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
-    HBaseLockingKeyService keyService = new HBaseLockingKeyService(CFG, tablePool);
-    fragService = new FragmentPersistenceServiceImpl(CFG, tablePool, new OccurrenceKeyPersistenceServiceImpl(keyService));
+  public FragmentPersistenceImplThroughputTest(int hbasePoolSize) throws IOException {
+    Configuration hBaseConfiguration = HBaseConfiguration.create();
+    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(hbasePoolSize));
+    Connection connection = ConnectionFactory.createConnection(hBaseConfiguration);
+    HBaseLockingKeyService keyService = new HBaseLockingKeyService(CFG, connection);
+    fragService = new FragmentPersistenceServiceImpl(CFG, connection, new OccurrenceKeyPersistenceServiceImpl(keyService));
   }
 
   public void testNoContention(int threadCount) throws InterruptedException {
@@ -155,7 +160,7 @@ public class FragmentPersistenceImplThroughputTest {
     }
   }
 
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) throws InterruptedException, IOException {
     // following stats from single regionserver, single region
     // on pure insert, raw rate is ~3k/sec
     // on pure update where some fields null, raw rate is ~8k/sec

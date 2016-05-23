@@ -33,9 +33,11 @@ import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -89,7 +91,7 @@ public class FragmentPersistenceServiceImplTest {
   private static final byte[] JSON_HASH = DigestUtils.md5(JSON);
   private static final EndpointType JSON_ENDPOINT_TYPE = EndpointType.DWC_ARCHIVE;
 
-  private HTablePool tablePool = null;
+  private Connection connection = null;
   private FragmentPersistenceServiceImpl fragmentService;
   private OccurrenceKeyPersistenceService occurrenceKeyService;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
@@ -130,11 +132,11 @@ public class FragmentPersistenceServiceImplTest {
     TEST_UTIL.truncateTable(COUNTER_TABLE);
     TEST_UTIL.truncateTable(LOOKUP_TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
+    connection = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
 
     // reset lookup table
     KeyPersistenceService keyPersistenceService =
-      new ZkLockingKeyService(CFG, tablePool, zooLockProvider);
+      new ZkLockingKeyService(CFG, connection, zooLockProvider);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     HolyTriplet holyTriplet = new HolyTriplet(XML_DATASET_KEY, INST_CODE, COL_CODE, CAT, UNIT_QUALIFIER);
@@ -150,61 +152,41 @@ public class FragmentPersistenceServiceImplTest {
     ids.add(pubId);
     jsonKey = occurrenceKeyService.generateKey(ids).getKey();
 
-    fragmentService = new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
+    fragmentService = new FragmentPersistenceServiceImpl(CFG, connection, occurrenceKeyService);
 
-    HTableInterface table = tablePool.getTable(CFG.occTable);
+    Table table = connection.getTable(TableName.valueOf(CFG.occTable));
 
     Put put = new Put(Bytes.toBytes(xmlKey));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.catalogNumber)),
-      Bytes.toBytes(CAT));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.collectionCode)),
-      Bytes.toBytes(COL_CODE));
-    put
-      .add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
-      Bytes.toBytes(XML_DATASET_KEY.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)),
-      Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.unitQualifier)),
-      Bytes.toBytes(UNIT_QUALIFIER));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)),
-      Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
-      Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)),
-      Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), XML);
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), XML_HASH);
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.xmlSchema)),
-      Bytes.toBytes(XML_SCHEMA.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
-      Bytes.toBytes(ENDPOINT_TYPE.toString()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.catalogNumber)), Bytes.toBytes(CAT));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.collectionCode)), Bytes.toBytes(COL_CODE));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)), Bytes.toBytes(XML_DATASET_KEY.toString()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)), Bytes.toBytes(INST_CODE));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.unitQualifier)), Bytes.toBytes(UNIT_QUALIFIER));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)), Bytes.toBytes(DWC_ID));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)), Bytes.toBytes(HARVEST_DATE.getTime()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)), Bytes.toBytes(CRAWL_ID));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), XML);
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), XML_HASH);
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.xmlSchema)), Bytes.toBytes(XML_SCHEMA.toString()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)), Bytes.toBytes(ENDPOINT_TYPE.toString()));
     table.put(put);
 
     put = new Put(Bytes.toBytes(jsonKey));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.catalogNumber)),
-      Bytes.toBytes(CAT));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.collectionCode)),
-      Bytes.toBytes(COL_CODE));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
-      Bytes.toBytes(JSON_DATASET_KEY.toString()));
-    put
-      .add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)),
-      Bytes.toBytes(INST_CODE));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)),
-      Bytes.toBytes(DWC_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
-      Bytes.toBytes(HARVEST_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)),
-      Bytes.toBytes(CRAWL_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), JSON);
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), JSON_HASH);
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
-      Bytes.toBytes(JSON_ENDPOINT_TYPE.toString()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.catalogNumber)), Bytes.toBytes(CAT));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.collectionCode)), Bytes.toBytes(COL_CODE));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)), Bytes.toBytes(JSON_DATASET_KEY.toString()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentCreated)), Bytes.toBytes(CREATED));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.institutionCode)), Bytes.toBytes(INST_CODE));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.occurrenceID)), Bytes.toBytes(DWC_ID));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)), Bytes.toBytes(HARVEST_DATE.getTime()));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)), Bytes.toBytes(CRAWL_ID));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), JSON);
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragmentHash)), JSON_HASH);
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)), Bytes.toBytes(JSON_ENDPOINT_TYPE.toString()));
     table.put(put);
 
-    table.flushCommits();
+    //table.flushCommits();
     table.close();
   }
 

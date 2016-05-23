@@ -25,7 +25,8 @@ import java.util.UUID;
 
 import com.google.common.collect.Sets;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,6 +54,7 @@ public class OccurrenceDeletionServiceTest {
   private static final String LOOKUP_CF_NAME = "o";
   private static final byte[] LOOKUP_CF = Bytes.toBytes(LOOKUP_CF_NAME);
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
+  private static Connection CONNECTION;
 
   private static final UUID GOOD_DATASET_KEY = UUID.randomUUID();
 
@@ -67,21 +69,22 @@ public class OccurrenceDeletionServiceTest {
     TEST_UTIL.createTable(TABLE, CF);
     TEST_UTIL.createTable(COUNTER_TABLE, COUNTER_CF);
     TEST_UTIL.createTable(LOOKUP_TABLE, LOOKUP_CF);
+    CONNECTION = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
+    CONNECTION.close();
   }
 
   @Before
   public void setUp() {
-    HTablePool tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
     KeyPersistenceService keyPersistenceService =
-      new HBaseLockingKeyService(CFG, tablePool);
+      new HBaseLockingKeyService(CFG, CONNECTION);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
-    fragmentService = new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
-    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, tablePool);
+    fragmentService = new FragmentPersistenceServiceImpl(CFG, CONNECTION, occurrenceKeyService);
+    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, CONNECTION);
     occurrenceDeletionService = new OccurrenceDeletionService(occurrenceService, occurrenceKeyService);
 
     // add some occurrences

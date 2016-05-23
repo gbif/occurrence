@@ -15,7 +15,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -46,8 +46,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
                                                     TimeUnit.SECONDS);
 
   @Inject
-  public HBaseLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool) {
-    super(cfg, tablePool, new OccurrenceKeyBuilder());
+  public HBaseLockingKeyService(OccHBaseConfiguration cfg, Connection connection) {
+    super(cfg, connection, new OccurrenceKeyBuilder());
   }
 
   @Override

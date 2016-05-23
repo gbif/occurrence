@@ -15,9 +15,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,7 +53,7 @@ public class HBaseLockingKeyServiceTest {
 
 
 
-  private HTablePool tablePool = null;
+  private static Connection CONNECTION = null;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
   private HBaseLockingKeyService keyService;
 
@@ -66,6 +68,7 @@ public class HBaseLockingKeyServiceTest {
     TEST_UTIL.createTable(LOOKUP_TABLE, CF);
     TEST_UTIL.createTable(COUNTER_TABLE, COUNTER_CF);
     TEST_UTIL.createTable(OCCURRENCE_TABLE, CF);
+    CONNECTION = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
   @Before
@@ -74,14 +77,13 @@ public class HBaseLockingKeyServiceTest {
     TEST_UTIL.truncateTable(COUNTER_TABLE);
     TEST_UTIL.truncateTable(OCCURRENCE_TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
-
-    keyService = new HBaseLockingKeyService(CFG, tablePool);
+    keyService = new HBaseLockingKeyService(CFG, CONNECTION);
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
+    CONNECTION.close();
   }
 
   @Test
@@ -102,16 +104,16 @@ public class HBaseLockingKeyServiceTest {
   @Test
   public void testAddOccIdToExistingTriplet() throws IOException {
     // setup: 1 finalized row, the triplet
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
+
     String datasetKey = UUID.randomUUID().toString();
     String triplet = "IC|CC|CN|null";
     byte[] lookupKey1 = Bytes.toBytes(keyBuilder.buildKey(triplet, datasetKey));
     Put put = new Put(lookupKey1);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    try(Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
+      lookupTable.put(put);
+    }
 
     // test: keygen attempt uses previous unique id and a new "occurrenceId", expects the existing key to be returned
     KeyLookupResult result = keyService.generateKey(ImmutableSet.of(triplet, "ABCD"), datasetKey);
@@ -140,7 +142,7 @@ public class HBaseLockingKeyServiceTest {
 
     // first one claimed up to 300, then "died". On restart we claim 300 to 400.
     HBaseLockingKeyService keyService2 =
-      new HBaseLockingKeyService(CFG, tablePool);
+      new HBaseLockingKeyService(CFG, CONNECTION);
     for (int i = 0; i < 50; i++) {
       Set<String> uniqueIds = ImmutableSet.of("A" + i);
       result = keyService2.generateKey(uniqueIds, "boo");
@@ -151,24 +153,26 @@ public class HBaseLockingKeyServiceTest {
   @Test
   public void testLockWriteDie() throws IOException {
     // setup: 2 rows, each one gets as far as writing the new id but "dies" before releasing lock
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
     String datasetKey = UUID.randomUUID().toString();
 
     byte[] lock1 = Bytes.toBytes(UUID.randomUUID().toString());
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock1);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
-    lookupTable.put(put);
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock1);
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    try(Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
+      lookupTable.put(put);
+      byte[] lock2 = Bytes.toBytes(UUID.randomUUID().toString());
+      byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
+      put = new Put(lookupKey2);
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock2);
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(3));
+      lookupTable.put(put);
+      lookupTable.close();
+    }
 
-    byte[] lock2 = Bytes.toBytes(UUID.randomUUID().toString());
-    byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
-    put = new Put(lookupKey2);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock2);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(3));
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
+
+
 
     // test: 3rd keygen attempt uses both previous unique ids, expects a new key to be generated
     KeyLookupResult result = keyService.generateKey(ImmutableSet.of("ABCD", "EFGH"), datasetKey);
@@ -178,23 +182,23 @@ public class HBaseLockingKeyServiceTest {
   @Test
   public void testConflictingIds() throws IOException {
     // setup: 2 rows with different lookupkeys and assigned ids
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
+
     String datasetKey = "fakeuuid";
 
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
-    lookupTable.put(put);
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
+      lookupTable.put(put);
 
-    byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
-    put = new Put(lookupKey2);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
-
+      byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
+      put = new Put(lookupKey2);
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+      lookupTable.put(put);
+      lookupTable.close();
+    }
     // test: gen id for one occ with both lookupkeys
     exception.expect(IllegalDataStateException.class);
     exception.expectMessage(
@@ -211,11 +215,10 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey = Bytes.toBytes(datasetKey + "|ABCD");
     byte[] lock = Bytes.toBytes(UUID.randomUUID().toString());
     Put put = new Put(lookupKey);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock);
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock);
+    try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
+      lookupTable.put(put);
+    }
 
     KeyLookupResult result = keyService.generateKey(ImmutableSet.of("ABCD"), datasetKey);
     assertEquals(1, result.getKey());
@@ -231,11 +234,10 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey = Bytes.toBytes(datasetKey + "|ABCD");
     byte[] lock = Bytes.toBytes(UUID.randomUUID().toString());
     Put put = new Put(lookupKey);
-    put.add(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), ts, lock);
-    HTableInterface lookupTable = tablePool.getTable(LOOKUP_TABLE);
-    lookupTable.put(put);
-    lookupTable.flushCommits();
-    lookupTable.close();
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), ts, lock);
+    try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
+      lookupTable.put(put);
+    }
 
 //    System.out.println("start at [" + System.currentTimeMillis() + "]");
     KeyLookupResult result = keyService.generateKey(ImmutableSet.of("ABCD"), datasetKey);

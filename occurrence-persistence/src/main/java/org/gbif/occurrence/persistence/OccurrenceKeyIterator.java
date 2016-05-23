@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,36 +22,26 @@ import org.slf4j.LoggerFactory;
  */
 public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceKeyIterator.class);
   private final ResultScanner scanner;
   private final Iterator<Result> iterator;
-  private final HTableInterface table;
   private boolean scannerClosed = false;
 
   /**
    * Create the iterator from a given tablePool, for the specified occurrence table, and the given scan. Only the row
    * keys for the returned scan are returned in calls to next().
    *
-   * @param tablePool the HBase tablePool that holds the connection to HBase
+   * @param connection the HBase connection
    * @param occurrenceTableName the occurrence table to scan
    * @param scan the scan (query) to execute
    */
-  public OccurrenceKeyIterator(HTablePool tablePool, String occurrenceTableName, Scan scan) {
+  public OccurrenceKeyIterator(Connection connection, String occurrenceTableName, Scan scan) {
     // TODO: heartbeat thread to shutdown/close resources if no activity after x seconds?
-    table = tablePool.getTable(occurrenceTableName);
-    try {
+
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       scanner = table.getScanner(scan);
       iterator = scanner.iterator();
     } catch (IOException e) {
       throw new PersistenceException("Could not read from HBase", e);
-    } finally {
-      if (table != null) {
-        try {
-          table.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-        }
-      }
     }
   }
 

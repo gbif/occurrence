@@ -34,12 +34,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -60,12 +61,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_CACHE_SIZE = 50;
   private final String occurrenceTableName;
-  private final HTablePool tablePool;
+  private final Connection connection;
 
   @Inject
-  public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, HTablePool tablePool) {
-    this.occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
-    this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
+  public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
+    occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
+    this.connection = checkNotNull(connection, "connection can't be null");
   }
 
   /**
@@ -78,9 +79,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   @Override
   public String getFragment(int key) {
     String fragment = null;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       Get get = new Get(Bytes.toBytes(key));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
@@ -93,10 +92,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      closeTable(table);
     }
-
     return fragment;
   }
 
@@ -107,9 +103,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       return null;
     }
     VerbatimOccurrence verb = null;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName)))  {
       Get get = new Get(Bytes.toBytes(key));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
@@ -119,8 +113,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       verb = OccurrenceBuilder.buildVerbatimOccurrence(result);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      closeTable(table);
     }
 
     return verb;
@@ -132,9 +124,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       return null;
     }
     Occurrence occ = null;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       Get get = new Get(Bytes.toBytes(key));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
@@ -144,8 +134,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       occ = OccurrenceBuilder.buildOccurrence(result);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      closeTable(table);
     }
 
     return occ;
@@ -159,7 +147,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     scan.addColumn(Columns.CF, col);
     scan.setFilter(new SingleColumnValueFilter(Columns.CF, col, CompareFilter.CompareOp.EQUAL, columnValue));
 
-    return new OccurrenceKeyIterator(tablePool, occurrenceTableName, scan);
+    return new OccurrenceKeyIterator(connection, occurrenceTableName, scan);
   }
 
   @Override
@@ -189,9 +177,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   public void delete(List<Integer> occurrenceKeys) {
     checkNotNull(occurrenceKeys, "occurrenceKeys can't be null");
 
-    HTableInterface occTable = null;
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName)))  {
       List<Delete> deletes = Lists.newArrayList();
       for (Integer occurrenceKey : occurrenceKeys) {
         if (occurrenceKey != null) {
@@ -199,11 +185,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         }
       }
       LOG.debug("Deleting [{}] occurrences", occurrenceKeys.size());
-      occTable.delete(deletes);
+      table.delete(deletes);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      closeTable(occTable);
     }
   }
 
@@ -211,20 +195,16 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     checkNotNull(occ, "occurrence can't be null");
     checkNotNull(occ.getKey(), "occurrence's key can't be null");
 
-    HTableInterface occTable = null;
     RowUpdate upd = new RowUpdate(occ.getKey());
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       if (occ instanceof Occurrence) {
-        populateVerbatimPutDelete(occTable, upd, occ, false);
+        populateVerbatimPutDelete(table, upd, occ, false);
         populateInterpretedPutDelete(upd, (Occurrence) occ);
       } else {
-        populateVerbatimPutDelete(occTable, upd, occ, true);
+        populateVerbatimPutDelete(table, upd, occ, true);
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      closeTable(occTable);
     }
 
     return upd;
@@ -236,14 +216,10 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     RowUpdate upd = buildRowUpdate(occ);
 
-    HTableInterface occTable = null;
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
-      upd.execute(occTable);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
+      upd.execute(table);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      closeTable(occTable);
     }
   }
 
@@ -254,7 +230,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    *        (typically true when updating an Occurrence and false for
    *        VerbatimOccurrence)
    */
-  private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
+  private void populateVerbatimPutDelete(Table occTable, RowUpdate upd, VerbatimOccurrence occ,
                                          boolean deleteInterpretedVerbatimColumns) throws IOException {
 
     // adding the mutations to the HTable is quite expensive, hence worth all these comparisons
@@ -498,13 +474,4 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     return value.setScale(scale, BigDecimal.ROUND_HALF_UP);
   }
 
-  private void closeTable(HTableInterface table) {
-    if (table != null) {
-      try {
-        table.close();
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
-    }
-  }
 }

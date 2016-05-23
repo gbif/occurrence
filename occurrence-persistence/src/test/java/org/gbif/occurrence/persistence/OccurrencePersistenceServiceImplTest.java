@@ -41,10 +41,12 @@ import java.util.UUID;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.RowMutations;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -139,19 +141,21 @@ public class OccurrencePersistenceServiceImplTest {
 
   private static final String TERM_VALUE_PREFIX = "I am ";
 
-  private HTablePool tablePool = null;
+  private static Connection CONNECTION = null;
   private OccurrencePersistenceServiceImpl occurrenceService;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
+    CONNECTION.close();
   }
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     TEST_UTIL.startMiniCluster(1);
     TEST_UTIL.createTable(TABLE, CF);
+    CONNECTION = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
 
@@ -159,175 +163,125 @@ public class OccurrencePersistenceServiceImplTest {
   public void setUp() throws Exception {
     TEST_UTIL.truncateTable(TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 20);
+    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, CONNECTION);
+    try (Table table = CONNECTION.getTable(TableName.valueOf(CFG.occTable))) {
+      Put put = new Put(Bytes.toBytes(KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.elevation)), Bytes.toBytes(ELEV));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.basisOfRecord)), Bytes.toBytes(BOR.name()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.classKey)), Bytes.toBytes(CLASS_ID));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.class_)), Bytes.toBytes(CLASS));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)), Bytes.toBytes(DATASET_KEY.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.depth)), Bytes.toBytes(DEPTH));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.family)), Bytes.toBytes(FAMILY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.familyKey)), Bytes.toBytes(FAMILY_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.genus)), Bytes.toBytes(GENUS));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.genusKey)), Bytes.toBytes(GENUS_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.publishingCountry)), Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)), Bytes.toBytes(LAST_CRAWLED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastParsed)), Bytes.toBytes(LAST_PARSED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)), Bytes.toBytes(LAST_INTERPRETED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.kingdom)), Bytes.toBytes(KINGDOM));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.kingdomKey)), Bytes.toBytes(KINGDOM_ID));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLatitude)), Bytes.toBytes(LAT));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLongitude)), Bytes.toBytes(LNG));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DcTerm.modified)), Bytes.toBytes(MOD.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.month)), Bytes.toBytes(MONTH));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.taxonKey)), Bytes.toBytes(TAXON_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.eventDate)), Bytes.toBytes(EVENT_DATE.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.order)), Bytes.toBytes(ORDER));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.orderKey)), Bytes.toBytes(ORDER_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey)), Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.phylum)), Bytes.toBytes(PHYLUM));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.phylumKey)), Bytes.toBytes(PHYLUM_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)), Bytes.toBytes(PROTOCOL.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.scientificName)), Bytes.toBytes(SCI_NAME));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.species)), Bytes.toBytes(SPECIES));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.speciesKey)), Bytes.toBytes(SPECIES_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.year)), Bytes.toBytes(YEAR));
 
-    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, tablePool);
-    HTableInterface table = tablePool.getTable(CFG.occTable);
-    Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevation)), Bytes.toBytes(ELEV));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.basisOfRecord)),
-      Bytes.toBytes(BOR.name()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.classKey)),
-      Bytes.toBytes(CLASS_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.class_)), Bytes.toBytes(CLASS));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
-      Bytes.toBytes(DATASET_KEY.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.depth)), Bytes.toBytes(DEPTH));
-    put
-      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.family)), Bytes.toBytes(FAMILY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.familyKey)),
-      Bytes.toBytes(FAMILY_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.genus)), Bytes.toBytes(GENUS));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.genusKey)),
-      Bytes.toBytes(GENUS_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.publishingCountry)),
-      Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
+      // new for occurrence widening
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.elevationAccuracy)), Bytes.toBytes(ELEV_ACC));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.coordinateUncertaintyInMeters)), Bytes.toBytes(UNCERTAINTY_METERS));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.continent)), Bytes.toBytes(CONTINENT.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.countryCode)), Bytes.toBytes(COUNTRY.getIso2LetterCode()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.dateIdentified)), Bytes.toBytes(DATE_IDENTIFIED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.day)), Bytes.toBytes(DAY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.depthAccuracy)), Bytes.toBytes(DEPTH_ACC));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.establishmentMeans)), Bytes.toBytes(ESTAB_MEANS.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.individualCount)), Bytes.toBytes(INDIVIDUAL_COUNT));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)), Bytes.toBytes(LAST_INTERPRETED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.lifeStage)), Bytes.toBytes(LIFE_STAGE.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.sex)), Bytes.toBytes(SEX.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.stateProvince)), Bytes.toBytes(STATE_PROV));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.waterBody)), Bytes.toBytes(WATERBODY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.subgenus)), Bytes.toBytes(SUBGENUS));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.subgenusKey)), Bytes.toBytes(SUBGENUS_KEY));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.typeStatus)), Bytes.toBytes(TYPE_STATUS.toString()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.typifiedName)), Bytes.toBytes(TYPIFIED_NAME));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.genericName)), Bytes.toBytes(GENERIC_NAME));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.specificEpithet)), Bytes.toBytes(SPECIFIC_EPITHET));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.infraspecificEpithet)), Bytes.toBytes(INFRA_SPECIFIC_EPITHET));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.taxonRank)), Bytes.toBytes(TAXON_RANK.name()));
 
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)),
-      Bytes.toBytes(LAST_CRAWLED.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastParsed)),
-      Bytes.toBytes(LAST_PARSED.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)),
-      Bytes.toBytes(LAST_INTERPRETED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
+      put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
+      put.addColumn(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
+      put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
+      put.addColumn(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
+      put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
 
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.kingdom)),
-      Bytes.toBytes(KINGDOM));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.kingdomKey)),
-      Bytes.toBytes(KINGDOM_ID));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLatitude)), Bytes.toBytes(LAT));
-    put
-      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.decimalLongitude)), Bytes.toBytes(LNG));
-    put.add(CF, Bytes.toBytes(Columns.column(DcTerm.modified)),
-      Bytes.toBytes(MOD.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.month)), Bytes.toBytes(MONTH));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.taxonKey)),
-      Bytes.toBytes(TAXON_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.eventDate)),
-      Bytes.toBytes(EVENT_DATE.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.order)), Bytes.toBytes(ORDER));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.orderKey)),
-      Bytes.toBytes(ORDER_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey)),
-      Bytes.toBytes(PUBLISHING_ORG_KEY.toString()));
-    put
-      .add(CF, Bytes.toBytes(Columns.column(DwcTerm.phylum)), Bytes.toBytes(PHYLUM));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.phylumKey)),
-      Bytes.toBytes(PHYLUM_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
-      Bytes.toBytes(PROTOCOL.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.scientificName)),
-      Bytes.toBytes(SCI_NAME));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.species)),
-      Bytes.toBytes(SPECIES));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.speciesKey)),
-      Bytes.toBytes(SPECIES_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.year)), Bytes.toBytes(YEAR));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), Bytes.toBytes(XML));
 
-    // new for occurrence widening
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.elevationAccuracy)),
-      Bytes.toBytes(ELEV_ACC));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.coordinateUncertaintyInMeters)),
-            Bytes.toBytes(UNCERTAINTY_METERS));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.continent)),
-      Bytes.toBytes(CONTINENT.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.countryCode)),
-      Bytes.toBytes(COUNTRY.getIso2LetterCode()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.dateIdentified)),
-      Bytes.toBytes(DATE_IDENTIFIED.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.day)), Bytes.toBytes(DAY));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.depthAccuracy)),
-      Bytes.toBytes(DEPTH_ACC));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.establishmentMeans)),
-      Bytes.toBytes(ESTAB_MEANS.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.individualCount)),
-      Bytes.toBytes(INDIVIDUAL_COUNT));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)), Bytes.toBytes(LAST_INTERPRETED.getTime()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.lifeStage)),
-      Bytes.toBytes(LIFE_STAGE.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.sex)),
-      Bytes.toBytes(SEX.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.stateProvince)),
-      Bytes.toBytes(STATE_PROV));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.waterBody)),
-      Bytes.toBytes(WATERBODY));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.subgenus)),
-      Bytes.toBytes(SUBGENUS));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.subgenusKey)),
-      Bytes.toBytes(SUBGENUS_KEY));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.typeStatus)),
-      Bytes.toBytes(TYPE_STATUS.toString()));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.typifiedName)),
-      Bytes.toBytes(TYPIFIED_NAME));
-
-    put.add(CF, Bytes.toBytes(Columns.column(GbifTerm.genericName)),
-      Bytes.toBytes(GENERIC_NAME));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.specificEpithet)),
-      Bytes.toBytes(SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.infraspecificEpithet)),
-      Bytes.toBytes(INFRA_SPECIFIC_EPITHET));
-    put.add(CF, Bytes.toBytes(Columns.column(DwcTerm.taxonRank)),
-      Bytes.toBytes(TAXON_RANK.name()));
-
-    put.add(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
-
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.fragment)), Bytes.toBytes(XML));
-
-    for (DwcTerm term : DwcTerm.values()) {
-      if (!term.isClass()) {
-        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      for (DwcTerm term : DwcTerm.values()) {
+        if (!term.isClass()) {
+          put.addColumn(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+        }
       }
-    }
-    for (Term term : IucnTerm.values()) {
-      put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
-    }
-    for (DcTerm term : DcTerm.values()) {
-      if (!term.isClass()) {
-        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      for (Term term : IucnTerm.values()) {
+        put.addColumn(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
       }
-    }
-    for (GbifTerm term : GbifTerm.values()) {
-      if (term != GbifTerm.lastParsed && !term.isClass() && term != GbifTerm.coordinateAccuracy) {
-        put.add(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+      for (DcTerm term : DcTerm.values()) {
+        if (!term.isClass()) {
+          put.addColumn(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+        }
       }
+      for (GbifTerm term : GbifTerm.values()) {
+        if (term != GbifTerm.lastParsed && !term.isClass() && term != GbifTerm.coordinateAccuracy) {
+          put.addColumn(CF, Bytes.toBytes(Columns.verbatimColumn(term)), Bytes.toBytes("I am " + term.toString()));
+        }
+      }
+      Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
+      put.addColumn(CF, Bytes.toBytes(Columns.column(term)), Bytes.toBytes("I am " + term.toString()));
+
+      setUpIssues();
+
+      table.put(put);
     }
-    Term term = TermFactory.instance().findTerm("fancyUnknownTerm");
-    put.add(CF, Bytes.toBytes(Columns.column(term)), Bytes.toBytes("I am " + term.toString()));
-
-    setUpIssues();
-
-    table.put(put);
-    table.flushCommits();
-    table.close();
   }
 
 
   private void setUpIdentifiers() throws IOException {
-    HTableInterface table = tablePool.getTable(CFG.occTable);
+    try (Table table = CONNECTION.getTable(TableName.valueOf(CFG.occTable))) {
     Put put = new Put(Bytes.toBytes(KEY));
-    put.add(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
-    put.add(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
-    put.add(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
-    put.add(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
-    put.add(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.identifierCount)), Bytes.toBytes(3));
+    put.addColumn(CF, Bytes.toBytes(Columns.idColumn(0)), Bytes.toBytes(ID_0));
+    put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(0)), Bytes.toBytes(ID_TYPE_0));
+    put.addColumn(CF, Bytes.toBytes(Columns.idColumn(1)), Bytes.toBytes(ID_1));
+    put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(1)), Bytes.toBytes(ID_TYPE_1));
+    put.addColumn(CF, Bytes.toBytes(Columns.idColumn(2)), Bytes.toBytes(ID_2));
+    put.addColumn(CF, Bytes.toBytes(Columns.idTypeColumn(2)), Bytes.toBytes(ID_TYPE_2));
+    put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.identifierCount)), Bytes.toBytes(3));
     table.put(put);
-    table.close();
+    }
   }
 
   private void setUpIssues() throws IOException {
-    HTableInterface table = tablePool.getTable(CFG.occTable);
-    Put put = new Put(Bytes.toBytes(KEY));
-    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      put.add(CF, Bytes.toBytes(Columns.column(issue)), Bytes.toBytes(1));
+    try (Table table = CONNECTION.getTable(TableName.valueOf(CFG.occTable))) {
+      Put put = new Put(Bytes.toBytes(KEY));
+      for (OccurrenceIssue issue : OccurrenceIssue.values()) {
+        put.addColumn(CF, Bytes.toBytes(Columns.column(issue)), Bytes.toBytes(1));
+      }
+      table.put(put);
     }
-    table.put(put);
-    table.close();
   }
 
   @Test

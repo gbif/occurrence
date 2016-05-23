@@ -19,10 +19,11 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Meter;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,8 @@ public class FeaturedOccurrenceReader {
 
   private final OccurrenceService occurrenceService;
   private final OrganizationService organizationService;
-  private final HTablePool htablePool;
-  private final String tableName;
+  private final Connection connection;
+  private final TableName tableName;
   private final Random random = new Random();
   private final Meter requests = Metrics.newMeter(FeaturedOccurrenceReader.class, "requests", "requests",
                                                   TimeUnit.SECONDS);
@@ -56,18 +57,23 @@ public class FeaturedOccurrenceReader {
 
   @Inject
   public FeaturedOccurrenceReader(OccurrenceService occurrenceService,
-                                  @Named("featured_table_pool") HTablePool htablePool,
+                                  @Named("featured_table_pool") Connection connection,
                                   @Named("featured_table_name") String tableName,
                                   OrganizationService organizationService) {
     this.occurrenceService = occurrenceService;
-    this.htablePool = htablePool;
-    this.tableName = tableName;
+    this.connection = connection;
+    this.tableName = TableName.valueOf(tableName);
     this.organizationService = organizationService;
   }
 
+  private Result getRow(String key) throws  IOException {
+    try (Table htable = connection.getTable(tableName)){
+      return htable.get(new Get(Bytes.toBytes(key)));
+    }
+  }
+
   private void appendOccurrence(List<Occurrence> results, String key) throws IOException {
-    HTableInterface htable = htablePool.getTable(tableName);
-    Result row = htable.get(new Get(Bytes.toBytes(key)));
+    Result row = getRow(key);
     String[] occurrenceIds = COMMA_PATTERN.split(Bytes.toString(row.getValue(CF, COL)));
     int randomIndex = random.nextInt(occurrenceIds.length);
     Occurrence occ = occurrenceService.get(Integer.parseInt(occurrenceIds[randomIndex]));

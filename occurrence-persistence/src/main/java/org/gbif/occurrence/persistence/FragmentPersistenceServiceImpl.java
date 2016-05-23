@@ -21,10 +21,11 @@ import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +41,14 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
   private static final Logger LOG = LoggerFactory.getLogger(FragmentPersistenceServiceImpl.class);
 
   private final String occurrenceTableName;
-  private final HTablePool tablePool;
+  private final Connection connection;
   private final OccurrenceKeyPersistenceService keyService;
 
   @Inject
-  public FragmentPersistenceServiceImpl(OccHBaseConfiguration cfg, HTablePool tablePool,
+  public FragmentPersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection,
                                         OccurrenceKeyPersistenceService keyService) {
     occurrenceTableName = cfg.occTable;
-    this.tablePool = tablePool;
+    this.connection = connection;
     this.keyService = keyService;
   }
 
@@ -66,9 +67,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
     }
 
     Fragment frag = null;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       Get get = new Get(Bytes.toBytes(key));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
@@ -78,14 +77,6 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      if (table != null) {
-        try {
-          table.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-        }
-      }
     }
 
     return frag;
@@ -120,25 +111,15 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
     }
 
     boolean keyCreated = false;
-    HTableInterface occTable = null;
-    try {
-      occTable = tablePool.getTable(occurrenceTableName);
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       if (createKey) {
         KeyLookupResult keyLookupResult = keyService.generateKey(uniqueIds);
         keyCreated = keyLookupResult.isCreated();
         fragment.setKey(keyLookupResult.getKey());
       }
-      writeFields(occTable, fragment);
+      writeFields(table, fragment);
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
-    } finally {
-      if (occTable != null) {
-        try {
-          occTable.close();
-        } catch (IOException e) {
-          LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-        }
-      }
     }
 
     return keyCreated;
@@ -153,7 +134,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
    *
    * @throws IOException if communicating with HBase fails
    */
-  private void writeFields(HTableInterface occTable, Fragment frag) throws IOException {
+  private void writeFields(Table occTable, Fragment frag) throws IOException {
 
     Fragment oldFrag = get(frag.getKey());
     boolean isInsert = oldFrag == null;

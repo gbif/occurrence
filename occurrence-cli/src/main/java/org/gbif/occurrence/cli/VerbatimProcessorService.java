@@ -14,13 +14,13 @@ import com.beust.jcommander.internal.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
 
 public class VerbatimProcessorService extends AbstractIdleService {
 
   private final ProcessorCliConfiguration cfg;
   private final Set<MessageListener> listeners = Sets.newHashSet();
-  private final Collection<HTablePool> tablePools = Lists.newArrayList();
+  private final Collection<Connection> connections = Lists.newArrayList();
 
   public VerbatimProcessorService(ProcessorCliConfiguration configuration) {
     this.cfg = configuration;
@@ -50,7 +50,7 @@ public class VerbatimProcessorService extends AbstractIdleService {
         listener.close();
       }
     }
-    for (HTablePool pool : tablePools) {
+    for (Connection pool : connections) {
       if (pool != null) {
         pool.close();
       }

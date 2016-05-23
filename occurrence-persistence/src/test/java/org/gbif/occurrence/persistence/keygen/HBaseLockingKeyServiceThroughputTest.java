@@ -2,6 +2,7 @@ package org.gbif.occurrence.persistence.keygen;
 
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -9,8 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 /**
  * Note not a real JUnit test, but an extremely expensive performance test that should use the real cluster.
@@ -22,14 +25,16 @@ public class HBaseLockingKeyServiceThroughputTest {
     CFG.setEnvironment("keygen_test");
   }
 
-  private HTablePool tablePool = null;
+  private Connection connection = null;
   private final HBaseLockingKeyService keyService;
 
   private static final AtomicInteger keysGenerated = new AtomicInteger(0);
 
-  public HBaseLockingKeyServiceThroughputTest(int hbasePoolSize) {
-    tablePool = new HTablePool(HBaseConfiguration.create(), hbasePoolSize);
-    keyService = new HBaseLockingKeyService(CFG, tablePool);
+  public HBaseLockingKeyServiceThroughputTest(int hbasePoolSize) throws IOException {
+    Configuration hBaseConfiguration = HBaseConfiguration.create();
+    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(hbasePoolSize));
+    connection = ConnectionFactory.createConnection(hBaseConfiguration);
+    keyService = new HBaseLockingKeyService(CFG, connection);
   }
 
   public void testNoContention(int threadCount) throws InterruptedException {
@@ -117,7 +122,7 @@ public class HBaseLockingKeyServiceThroughputTest {
     }
   }
 
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) throws InterruptedException, IOException {
     int hbasePoolSize = 100;
     int persistingThreads = 100;
     if (args.length == 2) {

@@ -21,7 +21,8 @@ import java.util.UUID;
 
 import com.google.common.collect.Sets;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -50,7 +51,7 @@ public class DatasetDeletionServiceImplTest {
 
   private static final UUID GOOD_DATASET_KEY = UUID.randomUUID();
 
-  private HTablePool tablePool;
+  private static Connection connection;
   private OccurrenceKeyPersistenceService occurrenceKeyService;
   private OccurrencePersistenceService occurrenceService;
   private DatasetDeletionService deletionService;
@@ -63,11 +64,13 @@ public class DatasetDeletionServiceImplTest {
     TEST_UTIL.createTable(TABLE, CF);
     TEST_UTIL.createTable(LOOKUP_TABLE, LOOKUP_CF);
     TEST_UTIL.createTable(COUNTER_TABLE, COUNTER_CF);
+    connection = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
     TEST_UTIL.shutdownMiniCluster();
+    connection.close();
   }
 
   @Before
@@ -76,12 +79,11 @@ public class DatasetDeletionServiceImplTest {
     TEST_UTIL.truncateTable(LOOKUP_TABLE);
     TEST_UTIL.truncateTable(COUNTER_TABLE);
 
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
-    KeyPersistenceService<Integer> keyService =  new HBaseLockingKeyService(CFG, tablePool);
+    KeyPersistenceService<Integer> keyService =  new HBaseLockingKeyService(CFG, connection);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyService);
     FragmentPersistenceService fragmentService =
-      new FragmentPersistenceServiceImpl(CFG, tablePool, occurrenceKeyService);
-    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, tablePool);
+      new FragmentPersistenceServiceImpl(CFG, connection, occurrenceKeyService);
+    occurrenceService = new OccurrencePersistenceServiceImpl(CFG, connection);
     deletionService = new DatasetDeletionServiceImpl(occurrenceService, occurrenceKeyService);
 
     // add some occurrences

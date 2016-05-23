@@ -26,8 +26,10 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.name.Named;
 import org.apache.bval.guice.ValidationModule;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 public class OccurrenceWsListener extends GbifServletListener {
 
@@ -49,8 +51,10 @@ public class OccurrenceWsListener extends GbifServletListener {
     @SuppressWarnings("unused")
     @Provides
     @Named("featured_table_pool")
-    public HTablePool provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) {
-      return new HTablePool(HBaseConfiguration.create(), maxConnectionPool);
+    public Connection provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) throws IOException {
+      Configuration hBaseConfiguration = HBaseConfiguration.create();
+      hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
+      return ConnectionFactory.createConnection(hBaseConfiguration);
     }
 
     @Override

@@ -28,10 +28,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
@@ -43,7 +44,7 @@ public class OccurrenceMapReader {
 
   private static final Joiner SEMICOLON_JOINER = Joiner.on(';').skipNulls();
   private final String occurrenceTableName;
-  private final HTablePool tablePool;
+  private final Connection connection;
 
   /**
    * Utility to build an API Occurrence record as a Map<String,Object> from an HBase row.
@@ -121,7 +122,8 @@ public class OccurrenceMapReader {
    * Extracts the media types from the hbase result.
    */
   private static String extractMediaTypes(Result result) {
-    Optional<byte[]> val = Optional.fromNullable(result.getValue(Columns.CF, Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
+    Optional<byte[]> val = Optional.fromNullable(result.getValue(Columns.CF,
+                                                                 Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
     return val.isPresent() ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val.get())) : "";
   }
 
@@ -198,11 +200,11 @@ public class OccurrenceMapReader {
   }
 
   @Inject
-  public OccurrenceMapReader(
-    @Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String occurrenceTableName, HTablePool tablePool
+  public OccurrenceMapReader(@Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String tableName,
+                             Connection connection
   ) {
-    this.occurrenceTableName = occurrenceTableName;
-    this.tablePool = tablePool;
+    occurrenceTableName = tableName;
+    this.connection = connection;
   }
 
   /**
@@ -211,7 +213,7 @@ public class OccurrenceMapReader {
    */
   public Result get(@Nonnull Integer key) throws IOException {
     Preconditions.checkNotNull(key, "Occurrence key can't be null");
-    try (HTableInterface table = tablePool.getTable(occurrenceTableName)) {
+    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       return table.get(new Get(Bytes.toBytes(key)));
     }
   }

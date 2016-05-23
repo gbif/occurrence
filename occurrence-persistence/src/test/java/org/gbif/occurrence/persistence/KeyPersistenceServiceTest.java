@@ -23,7 +23,8 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTablePool;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -54,7 +55,7 @@ public class KeyPersistenceServiceTest {
   private static final byte[] COUNTER_CF = Bytes.toBytes(COUNTER_CF_NAME);
   private static final byte[] OCCURRENCE_TABLE = Bytes.toBytes(CFG.occTable);
 
-  private HTablePool tablePool = null;
+  private static Connection connection = null;
   private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
   private static TestingServer ZOOKEEPER_SERVER;
@@ -75,6 +76,7 @@ public class KeyPersistenceServiceTest {
         .retryPolicy(new RetryNTimes(1, 1000)).build();
     CURATOR.start();
     ZOO_LOCK_PROVIDER = new ThreadLocalLockProvider(CURATOR);
+    connection = ConnectionFactory.createConnection(TEST_UTIL.getConfiguration());
   }
 
   @Before
@@ -82,8 +84,6 @@ public class KeyPersistenceServiceTest {
     TEST_UTIL.truncateTable(LOOKUP_TABLE);
     TEST_UTIL.truncateTable(COUNTER_TABLE);
     TEST_UTIL.truncateTable(OCCURRENCE_TABLE);
-
-    tablePool = new HTablePool(TEST_UTIL.getConfiguration(), 1);
   }
 
   @AfterClass
@@ -91,19 +91,20 @@ public class KeyPersistenceServiceTest {
     CURATOR.close();
     ZOOKEEPER_SERVER.stop();
     TEST_UTIL.shutdownMiniCluster();
+    connection.close();
   }
 
   @Ignore
   @Test
   public void testZkLockingKeyService() {
-    ZkLockingKeyService service = new ZkLockingKeyService(CFG, tablePool, ZOO_LOCK_PROVIDER);
+    ZkLockingKeyService service = new ZkLockingKeyService(CFG, connection, ZOO_LOCK_PROVIDER);
     testContention(service);
   }
 
   @Ignore
   @Test
   public void testHBaseLockingKeyService() {
-    HBaseLockingKeyService service = new HBaseLockingKeyService(CFG, tablePool);
+    HBaseLockingKeyService service = new HBaseLockingKeyService(CFG, connection);
     testContention(service);
   }
 
