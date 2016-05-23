@@ -20,13 +20,13 @@ public class InterpretationRemark {
   private final List<Term> relatedTerms;
 
   public static InterpretationRemark of(OccurrenceIssue type, InterpretationRemarkSeverity severity,
-                                          Term ... relatedTerms){
+                                          Term ... relatedTerms) {
     Preconditions.checkNotNull(relatedTerms, "relatedTerms can not be null");
     return new InterpretationRemark(type, severity, Arrays.asList(relatedTerms));
   }
 
   public static InterpretationRemark of(OccurrenceIssue type, InterpretationRemarkSeverity severity,
-                                        List<Term> relatedTerms){
+                                        List<Term> relatedTerms) {
     return new InterpretationRemark(type, severity, relatedTerms);
   }
 
