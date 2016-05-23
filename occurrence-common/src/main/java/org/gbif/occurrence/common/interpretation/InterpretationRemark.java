@@ -6,6 +6,8 @@ import org.gbif.dwc.terms.Term;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 /**
  * InterpretationRemark is built on top of {@link OccurrenceIssue} to provide more information in the context
  * of the processing and interpretation. We want to keep this information separated from the definition of the
@@ -19,6 +21,7 @@ public class InterpretationRemark {
 
   public static InterpretationRemark of(OccurrenceIssue type, InterpretationRemarkSeverity severity,
                                           Term ... relatedTerms){
+    Preconditions.checkNotNull(relatedTerms, "relatedTerms can not be null");
     return new InterpretationRemark(type, severity, Arrays.asList(relatedTerms));
   }
 
@@ -27,6 +30,13 @@ public class InterpretationRemark {
     return new InterpretationRemark(type, severity, relatedTerms);
   }
 
+  /**
+   * Ideally, you should use one of static builders.
+   *
+   * @param type
+   * @param severity
+   * @param relatedTerms
+   */
   public InterpretationRemark(OccurrenceIssue type, InterpretationRemarkSeverity severity,
                               List<Term> relatedTerms){
     this.type = type;
