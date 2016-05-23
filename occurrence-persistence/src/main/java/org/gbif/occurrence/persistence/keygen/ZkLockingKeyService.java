@@ -28,7 +28,7 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
 
   @Inject
   public ZkLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool,
-    ThreadLocalLockProvider zookeeperLockManagerProvider) {
+                             ThreadLocalLockProvider zookeeperLockManagerProvider) {
     super(cfg, tablePool, new OccurrenceKeyBuilder());
     this.zookeeperLockManagerProvider = zookeeperLockManagerProvider;
   }
@@ -65,7 +65,7 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
     try {
       findResult = findKey(uniqueStrings, scope);
       if (findResult != null) {
-        LOG.debug(Thread.currentThread().getName() + " Asked to generate, but found existing.");
+        LOG.debug("{} Asked to generate, but found existing.",Thread.currentThread().getName());
         return findResult;
       }
 

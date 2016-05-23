@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -45,7 +46,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.occurrence.persistence.util.ComparisonUtil.nullSafeEquals;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -163,8 +163,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   }
 
   @Override
-  public void update(VerbatimOccurrence verb) {
-    updateOcc(verb);
+  public void update(VerbatimOccurrence occurrence) {
+    updateOcc(occurrence);
   }
 
   @Override
@@ -255,7 +255,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    *        VerbatimOccurrence)
    */
   private void populateVerbatimPutDelete(HTableInterface occTable, RowUpdate upd, VerbatimOccurrence occ,
-    boolean deleteInterpretedVerbatimColumns) throws IOException {
+                                         boolean deleteInterpretedVerbatimColumns) throws IOException {
 
     // adding the mutations to the HTable is quite expensive, hence worth all these comparisons
     VerbatimOccurrence oldVerb = getVerbatim(occ.getKey());
@@ -282,22 +282,22 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       }
     }
 
-    if (!nullSafeEquals(oldVerb.getDatasetKey(), occ.getDatasetKey())) {
+    if (!Objects.equals(oldVerb.getDatasetKey(), occ.getDatasetKey())) {
       upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
     }
-    if (!nullSafeEquals(oldVerb.getPublishingCountry(), occ.getPublishingCountry())) {
+    if (!Objects.equals(oldVerb.getPublishingCountry(), occ.getPublishingCountry())) {
       upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());
     }
-    if (!nullSafeEquals(oldVerb.getPublishingOrgKey(), occ.getPublishingOrgKey())) {
+    if (!Objects.equals(oldVerb.getPublishingOrgKey(), occ.getPublishingOrgKey())) {
       upd.setInterpretedField(GbifInternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
     }
-    if (!nullSafeEquals(oldVerb.getProtocol(), occ.getProtocol())) {
+    if (!Objects.equals(oldVerb.getProtocol(), occ.getProtocol())) {
       upd.setInterpretedField(GbifTerm.protocol, occ.getProtocol());
     }
-    if (!nullSafeEquals(oldVerb.getLastCrawled(), occ.getLastCrawled())) {
+    if (!Objects.equals(oldVerb.getLastCrawled(), occ.getLastCrawled())) {
       upd.setInterpretedField(GbifTerm.lastCrawled, occ.getLastCrawled());
     }
-    if (!nullSafeEquals(oldVerb.getLastParsed(), occ.getLastParsed())) {
+    if (!Objects.equals(oldVerb.getLastParsed(), occ.getLastParsed())) {
       upd.setInterpretedField(GbifTerm.lastParsed, occ.getLastParsed());
     }
     updateExtensions(oldVerb, occ, upd);
@@ -310,7 +310,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     throws IOException {
     for (Extension extension : Extension.values()) {
       String newExtensions = getExtensionAsJson(newOcc, extension);
-      if (!nullSafeEquals(getExtensionAsJson(oldOcc, extension), newExtensions)) {
+      if (!Objects.equals(getExtensionAsJson(oldOcc, extension), newExtensions)) {
         upd.setVerbatimExtension(extension, newExtensions);
       }
     }
@@ -337,133 +337,133 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
     Occurrence oldOcc = get(occ.getKey());
 
-    if (!nullSafeEquals(oldOcc.getBasisOfRecord(), occ.getBasisOfRecord())) {
+    if (!Objects.equals(oldOcc.getBasisOfRecord(), occ.getBasisOfRecord())) {
       upd.setInterpretedField(DwcTerm.basisOfRecord, occ.getBasisOfRecord());
     }
-    if (!nullSafeEquals(oldOcc.getTaxonKey(), occ.getTaxonKey())) {
+    if (!Objects.equals(oldOcc.getTaxonKey(), occ.getTaxonKey())) {
       upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
     }
-    if (!nullSafeEquals(oldOcc.getKingdom(), occ.getKingdom())) {
+    if (!Objects.equals(oldOcc.getKingdom(), occ.getKingdom())) {
       updateRank(upd, occ, Rank.KINGDOM);
     }
-    if (!nullSafeEquals(oldOcc.getPhylum(), occ.getPhylum())) {
+    if (!Objects.equals(oldOcc.getPhylum(), occ.getPhylum())) {
       updateRank(upd, occ, Rank.PHYLUM);
     }
-    if (!nullSafeEquals(oldOcc.getClazz(), occ.getClazz())) {
+    if (!Objects.equals(oldOcc.getClazz(), occ.getClazz())) {
       updateRank(upd, occ, Rank.CLASS);
     }
-    if (!nullSafeEquals(oldOcc.getOrder(), occ.getOrder())) {
+    if (!Objects.equals(oldOcc.getOrder(), occ.getOrder())) {
       updateRank(upd, occ, Rank.ORDER);
     }
-    if (!nullSafeEquals(oldOcc.getFamily(), occ.getFamily())) {
+    if (!Objects.equals(oldOcc.getFamily(), occ.getFamily())) {
       updateRank(upd, occ, Rank.FAMILY);
     }
-    if (!nullSafeEquals(oldOcc.getGenus(), occ.getGenus())) {
+    if (!Objects.equals(oldOcc.getGenus(), occ.getGenus())) {
       updateRank(upd, occ, Rank.GENUS);
     }
-    if (!nullSafeEquals(oldOcc.getSubgenus(), occ.getSubgenus())) {
+    if (!Objects.equals(oldOcc.getSubgenus(), occ.getSubgenus())) {
       updateRank(upd, occ, Rank.SUBGENUS);
     }
-    if (!nullSafeEquals(oldOcc.getSpecies(), occ.getSpecies())) {
+    if (!Objects.equals(oldOcc.getSpecies(), occ.getSpecies())) {
       updateRank(upd, occ, Rank.SPECIES);
     }
-    if (!nullSafeEquals(oldOcc.getDepth(), occ.getDepth())) {
+    if (!Objects.equals(oldOcc.getDepth(), occ.getDepth())) {
       upd.setInterpretedField(GbifTerm.depth, occ.getDepth());
     }
-    if (!nullSafeEquals(oldOcc.getDepthAccuracy(), occ.getDepthAccuracy())) {
+    if (!Objects.equals(oldOcc.getDepthAccuracy(), occ.getDepthAccuracy())) {
       upd.setInterpretedField(GbifTerm.depthAccuracy, occ.getDepthAccuracy());
     }
-    if (!nullSafeEquals(oldOcc.getElevation(), occ.getElevation())) {
+    if (!Objects.equals(oldOcc.getElevation(), occ.getElevation())) {
       upd.setInterpretedField(GbifTerm.elevation, occ.getElevation());
     }
-    if (!nullSafeEquals(oldOcc.getElevationAccuracy(), occ.getElevationAccuracy())) {
+    if (!Objects.equals(oldOcc.getElevationAccuracy(), occ.getElevationAccuracy())) {
       upd.setInterpretedField(GbifTerm.elevationAccuracy, occ.getElevationAccuracy());
     }
-    if (!nullSafeEquals(oldOcc.getDecimalLatitude(), occ.getDecimalLatitude())) {
+    if (!Objects.equals(oldOcc.getDecimalLatitude(), occ.getDecimalLatitude())) {
       upd.setInterpretedField(DwcTerm.decimalLatitude, occ.getDecimalLatitude());
     }
-    if (!nullSafeEquals(oldOcc.getDecimalLongitude(), occ.getDecimalLongitude())) {
+    if (!Objects.equals(oldOcc.getDecimalLongitude(), occ.getDecimalLongitude())) {
       upd.setInterpretedField(DwcTerm.decimalLongitude, occ.getDecimalLongitude());
     }
-    if (!nullSafeEquals(oldOcc.getCountry(), occ.getCountry())) {
+    if (!Objects.equals(oldOcc.getCountry(), occ.getCountry())) {
       upd.setInterpretedField(DwcTerm.countryCode, occ.getCountry());
     }
-    if (!nullSafeEquals(oldOcc.getModified(), occ.getModified())) {
+    if (!Objects.equals(oldOcc.getModified(), occ.getModified())) {
       upd.setInterpretedField(DcTerm.modified, occ.getModified());
     }
-    if (!nullSafeEquals(oldOcc.getEventDate(), occ.getEventDate())) {
+    if (!Objects.equals(oldOcc.getEventDate(), occ.getEventDate())) {
       upd.setInterpretedField(DwcTerm.eventDate, occ.getEventDate());
     }
-    if (!nullSafeEquals(oldOcc.getYear(), occ.getYear())) {
+    if (!Objects.equals(oldOcc.getYear(), occ.getYear())) {
       upd.setInterpretedField(DwcTerm.year, occ.getYear());
     }
-    if (!nullSafeEquals(oldOcc.getMonth(), occ.getMonth())) {
+    if (!Objects.equals(oldOcc.getMonth(), occ.getMonth())) {
       upd.setInterpretedField(DwcTerm.month, occ.getMonth());
     }
-    if (!nullSafeEquals(oldOcc.getDay(), occ.getDay())) {
+    if (!Objects.equals(oldOcc.getDay(), occ.getDay())) {
       upd.setInterpretedField(DwcTerm.day, occ.getDay());
     }
-    if (!nullSafeEquals(oldOcc.getScientificName(), occ.getScientificName())) {
+    if (!Objects.equals(oldOcc.getScientificName(), occ.getScientificName())) {
       upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
     }
-    if (!nullSafeEquals(oldOcc.getGenericName(), occ.getGenericName())) {
+    if (!Objects.equals(oldOcc.getGenericName(), occ.getGenericName())) {
       upd.setInterpretedField(GbifTerm.genericName, occ.getGenericName());
     }
-    if (!nullSafeEquals(oldOcc.getSpecificEpithet(), occ.getSpecificEpithet())) {
+    if (!Objects.equals(oldOcc.getSpecificEpithet(), occ.getSpecificEpithet())) {
       upd.setInterpretedField(DwcTerm.specificEpithet, occ.getSpecificEpithet());
     }
-    if (!nullSafeEquals(oldOcc.getInfraspecificEpithet(), occ.getInfraspecificEpithet())) {
+    if (!Objects.equals(oldOcc.getInfraspecificEpithet(), occ.getInfraspecificEpithet())) {
       upd.setInterpretedField(DwcTerm.infraspecificEpithet, occ.getInfraspecificEpithet());
     }
-    if (!nullSafeEquals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
+    if (!Objects.equals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
       upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
     }
-    if (!nullSafeEquals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
+    if (!Objects.equals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
       upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
     }
-    if (!nullSafeEquals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
+    if (!Objects.equals(oldOcc.getCoordinatePrecision(), occ.getCoordinatePrecision())) {
       upd.setInterpretedField(DwcTerm.coordinatePrecision, occ.getCoordinatePrecision());
     }
-    if (!nullSafeEquals(oldOcc.getContinent(), occ.getContinent())) {
+    if (!Objects.equals(oldOcc.getContinent(), occ.getContinent())) {
       upd.setInterpretedField(DwcTerm.continent, occ.getContinent());
     }
-    if (!nullSafeEquals(oldOcc.getDateIdentified(), occ.getDateIdentified())) {
+    if (!Objects.equals(oldOcc.getDateIdentified(), occ.getDateIdentified())) {
       upd.setInterpretedField(DwcTerm.dateIdentified, occ.getDateIdentified());
     }
-    if (!nullSafeEquals(oldOcc.getEstablishmentMeans(), occ.getEstablishmentMeans())) {
+    if (!Objects.equals(oldOcc.getEstablishmentMeans(), occ.getEstablishmentMeans())) {
       upd.setInterpretedField(DwcTerm.establishmentMeans, occ.getEstablishmentMeans());
     }
-    if (!nullSafeEquals(oldOcc.getIndividualCount(), occ.getIndividualCount())) {
+    if (!Objects.equals(oldOcc.getIndividualCount(), occ.getIndividualCount())) {
       upd.setInterpretedField(DwcTerm.individualCount, occ.getIndividualCount());
     }
-    if (!nullSafeEquals(oldOcc.getLifeStage(), occ.getLifeStage())) {
+    if (!Objects.equals(oldOcc.getLifeStage(), occ.getLifeStage())) {
       upd.setInterpretedField(DwcTerm.lifeStage, occ.getLifeStage());
     }
-    if (!nullSafeEquals(oldOcc.getSex(), occ.getSex())) {
+    if (!Objects.equals(oldOcc.getSex(), occ.getSex())) {
       upd.setInterpretedField(DwcTerm.sex, occ.getSex());
     }
-    if (!nullSafeEquals(oldOcc.getStateProvince(), occ.getStateProvince())) {
+    if (!Objects.equals(oldOcc.getStateProvince(), occ.getStateProvince())) {
       upd.setInterpretedField(DwcTerm.stateProvince, occ.getStateProvince());
     }
-    if (!nullSafeEquals(oldOcc.getWaterBody(), occ.getWaterBody())) {
+    if (!Objects.equals(oldOcc.getWaterBody(), occ.getWaterBody())) {
       upd.setInterpretedField(DwcTerm.waterBody, occ.getWaterBody());
     }
-    if (!nullSafeEquals(oldOcc.getTypeStatus(), occ.getTypeStatus())) {
+    if (!Objects.equals(oldOcc.getTypeStatus(), occ.getTypeStatus())) {
       upd.setInterpretedField(DwcTerm.typeStatus, occ.getTypeStatus());
     }
-    if (!nullSafeEquals(oldOcc.getTypifiedName(), occ.getTypifiedName())) {
+    if (!Objects.equals(oldOcc.getTypifiedName(), occ.getTypifiedName())) {
       upd.setInterpretedField(GbifTerm.typifiedName, occ.getTypifiedName());
     }
-    if (!nullSafeEquals(oldOcc.getLastInterpreted(), occ.getLastInterpreted())) {
+    if (!Objects.equals(oldOcc.getLastInterpreted(), occ.getLastInterpreted())) {
       upd.setInterpretedField(GbifTerm.lastInterpreted, occ.getLastInterpreted());
     }
-    if (!nullSafeEquals(oldOcc.getReferences(), occ.getReferences())) {
+    if (!Objects.equals(oldOcc.getReferences(), occ.getReferences())) {
       upd.setInterpretedField(DcTerm.references, occ.getReferences());
     }
 
     // Multimedia extension
     String newMediaJson = MediaSerDeserUtils.toJson(occ.getMedia());
-    if (!nullSafeEquals(MediaSerDeserUtils.toJson(oldOcc.getMedia()), newMediaJson)) {
+    if (!Objects.equals(MediaSerDeserUtils.toJson(oldOcc.getMedia()), newMediaJson)) {
       upd.setInterpretedExtension(Extension.MULTIMEDIA, newMediaJson);
     }
 

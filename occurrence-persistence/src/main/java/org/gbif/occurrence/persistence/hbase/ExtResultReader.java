@@ -13,8 +13,6 @@ import javax.annotation.Nullable;
 import com.google.common.base.Strings;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -23,7 +21,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ExtResultReader {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ExtResultReader.class);
+  //Validation messages
+  private static final String ROW_CAN_T_BE_NULL_MSG = "row can't be null";
+  private static final String COLUMN_CAN_T_BE_NULL_MSG = "column can't be null";
+
   private static String CF = Columns.OCCURRENCE_COLUMN_FAMILY;
   /**
    * Should never be instantiated.
@@ -44,8 +45,8 @@ public class ExtResultReader {
   }
 
   public static String getString(Result row, String column, @Nullable String defaultValue) {
-    checkNotNull(row, "row can't be null");
-    checkNotNull(column, "column can't be null");
+    checkNotNull(row, ROW_CAN_T_BE_NULL_MSG);
+    checkNotNull(column, COLUMN_CAN_T_BE_NULL_MSG);
     return ResultReader.getString(row, CF, column, defaultValue);
   }
 
@@ -68,8 +69,8 @@ public class ExtResultReader {
   }
 
   public static Double getDouble(Result row, String column, @Nullable Double defaultValue) {
-    checkNotNull(row, "row can't be null");
-    checkNotNull(column, "column can't be null");
+    checkNotNull(row, ROW_CAN_T_BE_NULL_MSG);
+    checkNotNull(column, COLUMN_CAN_T_BE_NULL_MSG);
     return ResultReader.getDouble(row, CF, column, defaultValue);
   }
 
@@ -82,8 +83,8 @@ public class ExtResultReader {
   }
 
   public static Integer getInteger(Result row, String column, @Nullable Integer defaultValue) {
-    checkNotNull(row, "row can't be null");
-    checkNotNull(column, "column can't be null");
+    checkNotNull(row, ROW_CAN_T_BE_NULL_MSG);
+    checkNotNull(column, COLUMN_CAN_T_BE_NULL_MSG);
     return ResultReader.getInteger(row, CF, column, defaultValue);
   }
 
@@ -105,8 +106,8 @@ public class ExtResultReader {
   }
 
   public static Long getLong(Result row, String column, @Nullable Long defaultValue) {
-    checkNotNull(row, "row can't be null");
-    checkNotNull(column, "column can't be null");
+    checkNotNull(row, ROW_CAN_T_BE_NULL_MSG);
+    checkNotNull(column, COLUMN_CAN_T_BE_NULL_MSG);
     return ResultReader.getLong(row, CF, column, defaultValue);
   }
 
@@ -119,8 +120,8 @@ public class ExtResultReader {
   }
 
   public static byte[] getBytes(Result row, String column, @Nullable byte[] defaultValue) {
-    checkNotNull(row, "row can't be null");
-    checkNotNull(column, "column can't be null");
+    checkNotNull(row, ROW_CAN_T_BE_NULL_MSG);
+    checkNotNull(column, COLUMN_CAN_T_BE_NULL_MSG);
     return ResultReader.getBytes(row, CF, column, defaultValue);
   }
 

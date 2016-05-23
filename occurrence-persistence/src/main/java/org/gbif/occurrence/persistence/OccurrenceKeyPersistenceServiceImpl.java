@@ -24,10 +24,10 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
 
   private final KeyPersistenceService<Integer> keyPersistenceService;
 
-  private final Timer lockWaitTimer =
-    Metrics.newTimer(OccurrenceKeyPersistenceServiceImpl.class, "lock wait", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-  private final Meter lockRequests =
-    Metrics.newMeter(OccurrenceKeyPersistenceServiceImpl.class, "lock req", "lock req", TimeUnit.SECONDS);
+  private final Timer lockWaitTimer = Metrics.newTimer(OccurrenceKeyPersistenceServiceImpl.class, "lock wait",
+                                                       TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+  private final Meter lockRequests = Metrics.newMeter(OccurrenceKeyPersistenceServiceImpl.class, "lock req", "lock req",
+                                                      TimeUnit.SECONDS);
 
   @Inject
   public OccurrenceKeyPersistenceServiceImpl(KeyPersistenceService<Integer> keyPersistenceService) {
@@ -69,7 +69,7 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
     checkArgument(!uniqueIdentifiers.isEmpty(), "uniqueIdentifiers can't be empty");
 
     String datasetKey = uniqueIdentifiers.iterator().next().getDatasetKey().toString();
-    Set<String> uniqueStrings = Sets.newHashSet();
+    Set<String> uniqueStrings = Sets.newHashSetWithExpectedSize(uniqueIdentifiers.size());
     for (UniqueIdentifier uniqueIdentifier : uniqueIdentifiers) {
       uniqueStrings.add(uniqueIdentifier.getUnscopedUniqueString());
     }
@@ -99,7 +99,7 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
   @Override
   public void deleteKeyByUniqueIdentifiers(Set<UniqueIdentifier> uniqueIdentifiers) {
     String datasetKey = uniqueIdentifiers.iterator().next().getDatasetKey().toString();
-    Set<String> uniqueStrings = Sets.newHashSet();
+    Set<String> uniqueStrings = Sets.newHashSetWithExpectedSize(uniqueIdentifiers.size());
     for (UniqueIdentifier uniqueIdentifier : uniqueIdentifiers) {
       uniqueStrings.add(uniqueIdentifier.getUnscopedUniqueString());
     }

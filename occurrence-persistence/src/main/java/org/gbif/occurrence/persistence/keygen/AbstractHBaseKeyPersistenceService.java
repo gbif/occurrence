@@ -42,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class AbstractHBaseKeyPersistenceService implements KeyPersistenceService<Integer> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractHBaseKeyPersistenceService.class);
+  private static final int HBASE_CLIENT_CACHING = 200;
 
   private final HTablePool tablePool;
   private final String lookupTableName;
@@ -51,15 +52,12 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   protected final KeyBuilder keyBuilder;
 
   public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, HTablePool tablePool, KeyBuilder keyBuilder) {
-    this.lookupTableName = checkNotNull(cfg.lookupTable, "lookupTable can't be null");
+    lookupTableName = checkNotNull(cfg.lookupTable, "lookupTable can't be null");
     this.tablePool = checkNotNull(tablePool, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
-    this.lookupTableStore =
-      new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
-    this.counterTableStore =
-      new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
-    this.occurrenceTableStore =
-      new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+    lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+    counterTableStore = new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
+    occurrenceTableStore = new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, tablePool);
   }
 
   @Override
@@ -123,7 +121,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       table = tablePool.getTable(lookupTableName);
       Scan scan = new Scan();
       scan.setCacheBlocks(false);
-      scan.setCaching(200);
+      scan.setCaching(HBASE_CLIENT_CACHING);
       scan.setFilter(new PrefixFilter(Bytes.toBytes(scope)));
       ResultScanner results = table.getScanner(scan);
       for (Result result : results) {
@@ -180,7 +178,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       filters.add(new PrefixFilter(Bytes.toBytes(OccurrenceKeyHelper.buildKeyPrefix(rawDatasetKey))));
     }
     Filter valueFilter = new SingleColumnValueFilter(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN),
-                                                     CompareFilter.CompareOp.EQUAL,Bytes.toBytes(occurrenceKey));
+                                                     CompareFilter.CompareOp.EQUAL, Bytes.toBytes(occurrenceKey));
     filters.add(valueFilter);
     Filter filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
     scan.setFilter(filterList);
@@ -237,17 +235,17 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     }
   }
 
-  protected void failWithConflictingLookup(Map<String, Integer> conflictingKeys) {
+  protected static void failWithConflictingLookup(Map<String, Integer> conflictingKeys) {
     StringBuilder sb = new StringBuilder("Found inconsistent occurrence keys in looking up unique identifiers:");
     for (Map.Entry<String, Integer> entry : conflictingKeys.entrySet()) {
-      sb.append("[").append(entry.getKey()).append("]=[").append(entry.getValue()).append("]");
+      sb.append('[').append(entry.getKey()).append("]=[").append(entry.getValue()).append(']');
     }
     throw new IllegalDataStateException(sb.toString());
   }
 
 
   private void fillMissingKeys(Set<String> lookupKeys, Map<String, Integer> foundOccurrenceKeys,
-    Integer occurrenceKey) {
+                               Integer occurrenceKey) {
     for (String lookupKey : lookupKeys) {
       if (!foundOccurrenceKeys.containsKey(lookupKey)) {
         lookupTableStore.putInt(lookupKey, Columns.LOOKUP_KEY_COLUMN, occurrenceKey);

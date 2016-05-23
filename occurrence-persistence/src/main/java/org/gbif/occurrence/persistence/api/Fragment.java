@@ -160,7 +160,7 @@ public class Fragment {
   public int hashCode() {
     return Objects
       .hashCode(key, datasetKey, data, dataHash, unitQualifier, fragmentType, harvestedDate, crawlId, xmlSchema,
-        protocol, created);
+                protocol, created);
   }
 
   @Override

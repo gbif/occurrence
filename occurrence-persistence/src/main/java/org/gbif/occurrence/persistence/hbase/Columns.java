@@ -9,6 +9,8 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import org.apache.hadoop.hbase.util.Bytes;
@@ -27,6 +29,8 @@ public class Columns {
   // the one column family for all columns of the occurrence table
   public static final String OCCURRENCE_COLUMN_FAMILY = "o";
   public static final byte[] CF = Bytes.toBytes(OCCURRENCE_COLUMN_FAMILY);
+
+  private static final Pattern PREFIX_REPLACE = Pattern.compile(":");
 
   // a prefix required for all non term based columns
   private static final String INTERNAL_PREFIX = "_";
@@ -50,6 +54,7 @@ public class Columns {
   // etc.
   private static final String IDENTIFIER_TYPE_COLUMN = INTERNAL_PREFIX + "t";
   private static final String IDENTIFIER_COLUMN = INTERNAL_PREFIX + "i";
+  public static final String EXTENSION_CANT_BE_NULL_MSG = "extension can't be null";
 
   /**
    * Should never be instantiated.
@@ -90,7 +95,7 @@ public class Columns {
    * @return the extension's column name
    */
   public static String column(Extension extension) {
-    checkNotNull(extension, "extension can't be null");
+    checkNotNull(extension, EXTENSION_CANT_BE_NULL_MSG);
     return column(extension, "");
   }
 
@@ -115,12 +120,12 @@ public class Columns {
    * @return the extension's column name
    */
   public static String verbatimColumn(Extension extension) {
-    checkNotNull(extension, "extension can't be null");
+    checkNotNull(extension, EXTENSION_CANT_BE_NULL_MSG);
     return column(extension, VERBATIM_TERM_PREFIX);
   }
 
   private static String column(Extension extension, String colPrefix) {
-    return colPrefix + extension.getRowType().replaceAll(":", "_");
+    return colPrefix + PREFIX_REPLACE.matcher(extension.getRowType()).replaceAll("_");
   }
 
   private static String column(Term term, String colPrefix) {

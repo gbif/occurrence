@@ -118,7 +118,7 @@ public class SolrOccurrenceWriter {
   /**
    * Populates the Solr document using the occurrence object.
    */
-  private SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
+  private static SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
     Double latitude = occurrence.getDecimalLatitude();
     Double longitude = occurrence.getDecimalLongitude();
@@ -127,21 +127,21 @@ public class SolrOccurrenceWriter {
     doc.setField(YEAR.getFieldName(), occurrence.getYear());
     doc.setField(MONTH.getFieldName(), occurrence.getMonth());
     doc.setField(BASIS_OF_RECORD.getFieldName(),
-      occurrence.getBasisOfRecord() == null ? null : occurrence.getBasisOfRecord().name());
+                 occurrence.getBasisOfRecord() == null ? null : occurrence.getBasisOfRecord().name());
     doc.setField(CATALOG_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.catalogNumber));
     doc.setField(RECORDED_BY.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordedBy));
     doc.setField(TYPE_STATUS.getFieldName(),
-      occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus().name());
+                 occurrence.getTypeStatus() == null ? null : occurrence.getTypeStatus().name());
     doc.setField(RECORD_NUMBER.getFieldName(), occurrence.getVerbatimField(DwcTerm.recordNumber));
     doc.setField(COUNTRY.getFieldName(),
-      occurrence.getCountry() == null ? null : occurrence.getCountry().getIso2LetterCode());
+                 occurrence.getCountry() == null ? null : occurrence.getCountry().getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(),
-      occurrence.getPublishingCountry() == null ? null : occurrence.getPublishingCountry().getIso2LetterCode());
+                 occurrence.getPublishingCountry() == null ? null : occurrence.getPublishingCountry().getIso2LetterCode());
     doc.setField(CONTINENT.getFieldName(), occurrence.getContinent() == null ? null : occurrence.getContinent().name());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     if (!taxonKey.isEmpty()) {
-      doc.setField(TAXON_KEY.getFieldName(), taxonKey);
+      doc.setField(TAXON_KEY.getFieldName(), taxonKey.isEmpty());
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
@@ -162,9 +162,9 @@ public class SolrOccurrenceWriter {
     doc.setField(LONGITUDE.getFieldName(), longitude);
     doc.setField(HAS_COORDINATE.getFieldName(), latitude != null && longitude != null);
     doc.setField(EVENT_DATE.getFieldName(),
-      occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
+                 occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
     doc.setField(LAST_INTERPRETED.getFieldName(),
-      occurrence.getLastInterpreted() != null ? toDateQueryFormat(occurrence.getLastInterpreted()) : null);
+                 occurrence.getLastInterpreted() != null ? toDateQueryFormat(occurrence.getLastInterpreted()) : null);
     if (isValidCoordinate(latitude, longitude)) {
       doc.setField(COORDINATE.getFieldName(), COORD_JOINER.join(latitude, longitude));
     } else {
@@ -173,9 +173,9 @@ public class SolrOccurrenceWriter {
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
     doc.setField(ISSUE.getFieldName(), occurrence.getIssues());
     doc.setField(ESTABLISHMENT_MEANS.getFieldName(),
-      occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
+                 occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
-    doc.setField(FULL_TEXT.getFieldName(),FullTextFieldBuilder.buildFullTextField(occurrence));
+    doc.setField(FULL_TEXT.getFieldName(), FullTextFieldBuilder.buildFullTextField(occurrence));
     return doc;
   }
 

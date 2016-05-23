@@ -113,7 +113,7 @@ public class ZookeeperLockManager {
     }
   }
 
-  private String buildPath(String datasetKey) {
+  private static String buildPath(String datasetKey) {
     return PATH_TO_LOCKS + datasetKey;
   }
 }

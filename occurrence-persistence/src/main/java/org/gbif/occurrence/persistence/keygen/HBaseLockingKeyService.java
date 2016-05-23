@@ -42,8 +42,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
   // our reserved upper key limit for the current batch
   private int maxReservedKeyInclusive;
 
-  private final Meter reattempts =
-    Metrics.newMeter(HBaseLockingKeyService.class, "reattempts", "reattempts", TimeUnit.SECONDS);
+  private final Meter reattempts = Metrics.newMeter(HBaseLockingKeyService.class, "reattempts", "reattempts",
+                                                    TimeUnit.SECONDS);
 
   @Inject
   public HBaseLockingKeyService(OccHBaseConfiguration cfg, HTablePool tablePool) {
@@ -71,15 +71,15 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
       KeyStatus status = null;
       byte[] existingLock = null;
       if (row != null) {
-        String rawStatus = ResultReader
-          .getString(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_STATUS_COLUMN, null);
+        String rawStatus = ResultReader.getString(row, Columns.OCCURRENCE_COLUMN_FAMILY,
+                                                  Columns.LOOKUP_STATUS_COLUMN, null);
         if (rawStatus != null) {
           status = KeyStatus.valueOf(rawStatus);
         }
-        existingLock = ResultReader
-          .getBytes(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_LOCK_COLUMN, null);
-        key = ResultReader
-          .getInteger(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_KEY_COLUMN, null);
+        existingLock = ResultReader.getBytes(row, Columns.OCCURRENCE_COLUMN_FAMILY,
+                                             Columns.LOOKUP_LOCK_COLUMN, null);
+        key = ResultReader.getInteger(row, Columns.OCCURRENCE_COLUMN_FAMILY,
+                                      Columns.LOOKUP_KEY_COLUMN, null);
         LOG.debug("Got existing status [{}] existingLock [{}] key [{}]", status, existingLock, key);
       }
 
@@ -100,7 +100,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
       } else if (existingLock == null) {
         // lock is ours for the taking - checkAndPut lockId, expecting null for lockId
         boolean gotLock = lookupTableStore.checkAndPut(lookupKey, Columns.LOOKUP_LOCK_COLUMN, lockId,
-          Columns.LOOKUP_LOCK_COLUMN, null, now);
+                                                       Columns.LOOKUP_LOCK_COLUMN, null, now);
         if (gotLock) {
           statusMap.put(lookupKey, KeyStatus.ALLOCATING);
           LOG.debug("Grabbed free lock, now ALLOCATING [{}]", lookupKey);
@@ -111,16 +111,16 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
         }
       } else {
         // somebody has written their lockId and so has the lock, but they haven't finished yet (status != ALLOCATED)
-        Long existingLockTs = ResultReader
-          .getTimestamp(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_LOCK_COLUMN);
+        Long existingLockTs = ResultReader.getTimestamp(row, Columns.OCCURRENCE_COLUMN_FAMILY,
+                                                        Columns.LOOKUP_LOCK_COLUMN);
         if (now - existingLockTs > STALE_LOCK_TIME) {
           LOG.debug("Found stale lock for [{}]", lookupKey);
           // Someone died before releasing lock.
           // Note that key could be not null here - this means that thread had the lock, wrote the key, but then
           // died before releasing lock.
           // checkandPut our lockId, expecting lock to match the existing lock
-          boolean gotLock = lookupTableStore.checkAndPut(lookupKey, Columns.LOOKUP_LOCK_COLUMN, lockId,
-            Columns.LOOKUP_LOCK_COLUMN, existingLock, now);
+          boolean gotLock = lookupTableStore.checkAndPut(lookupKey, Columns.LOOKUP_LOCK_COLUMN,
+                                                         lockId, Columns.LOOKUP_LOCK_COLUMN, existingLock, now);
           if (gotLock) {
             statusMap.put(lookupKey, KeyStatus.ALLOCATING);
             LOG.debug("Reset stale lock, now ALLOCATING [{}]", lookupKey);
@@ -173,8 +173,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
       if (entry.getValue() == KeyStatus.ALLOCATING) {
         // TODO: combine into one put
         lookupTableStore.putInt(entry.getKey(), Columns.LOOKUP_KEY_COLUMN, key);
-        lookupTableStore
-          .putString(entry.getKey(), Columns.LOOKUP_STATUS_COLUMN, KeyStatus.ALLOCATED.toString());
+        lookupTableStore.putString(entry.getKey(), Columns.LOOKUP_STATUS_COLUMN, KeyStatus.ALLOCATED.toString());
       }
     }
 
@@ -198,8 +197,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     // if we have exhausted our reserved keys, get a new batch of them
     if (currentKey == maxReservedKeyInclusive) {
       // get batch
-      Long longKey = counterTableStore
-        .incrementColumnValue(COUNTER_ROW, Columns.COUNTER_COLUMN, BATCHED_ID_SIZE);
+      Long longKey = counterTableStore.incrementColumnValue(COUNTER_ROW, Columns.COUNTER_COLUMN, BATCHED_ID_SIZE);
       if (longKey > Integer.MAX_VALUE) {
         throw new IllegalStateException("HBase issuing keys larger than Integer can support");
       }

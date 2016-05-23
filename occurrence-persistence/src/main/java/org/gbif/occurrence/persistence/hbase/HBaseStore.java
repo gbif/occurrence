@@ -27,6 +27,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class HBaseStore<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(HBaseStore.class);
+  private static final String KEY_CANT_BE_NULL_MSG = "key can't be null";
+  public static final String HBASE_READ_ERROR_MSG = "Could not read from HBase";
 
   private final String tableName;
   private final String cf;
@@ -93,41 +95,28 @@ public class HBaseStore<T> {
   }
 
   public long incrementColumnValue(T key, String columnName, long value) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(columnName, "columnName can't be null");
     checkNotNull(value, "value can't be null");
 
     long result = 0;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         result = table.incrementColumnValue(byteKey, cfBytes, Bytes.toBytes(columnName), value);
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
 
     return result;
   }
 
   private void put(T key, String columnName, byte[] value) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(columnName, "columnName can't be null");
     checkNotNull(value, "value can't be null");
-
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Put put = new Put(byteKey);
@@ -136,15 +125,7 @@ public class HBaseStore<T> {
         table.flushCommits();
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
   }
 
@@ -158,13 +139,11 @@ public class HBaseStore<T> {
    * @throws ServiceUnavailableException if there are errors when communicating with HBase
    */
   public Result getRow(T key, String columnName) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(columnName, "columnName can't be null");
 
-    HTableInterface table = null;
     Result row = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Get get = new Get(byteKey);
@@ -172,15 +151,7 @@ public class HBaseStore<T> {
         row = table.get(get);
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
 
     return row;
@@ -196,27 +167,17 @@ public class HBaseStore<T> {
    */
   @Nullable
   public Result getRow(T key) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
 
-    HTableInterface table = null;
     Result row = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Get get = new Get(byteKey);
         row = table.get(get);
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
 
     return row;
@@ -237,15 +198,13 @@ public class HBaseStore<T> {
    */
   public boolean checkAndPut(T key, String putColumn, byte[] putValue, String checkColumn, @Nullable byte[] checkValue,
     @Nullable Long ts) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(putColumn, "putColumn can't be null");
     checkNotNull(putValue, "putValue can't be null");
     checkNotNull(checkColumn, "checkColumn can't be null");
 
     boolean success = false;
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Put put = new Put(byteKey);
@@ -257,15 +216,7 @@ public class HBaseStore<T> {
         success = table.checkAndPut(byteKey, cfBytes, Bytes.toBytes(checkColumn), checkValue, put);
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
 
     return success;
@@ -273,12 +224,10 @@ public class HBaseStore<T> {
 
   // TODO: fix deletions generally and add javadoc
   public void delete(T key, String... columns) {
-    checkNotNull(key, "key can't be null");
+    checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkArgument(columns.length > 0, "columns can't be empty");
 
-    HTableInterface table = null;
-    try {
-      table = tablePool.getTable(tableName);
+    try (HTableInterface table = tablePool.getTable(tableName)) {
       byte[] byteKey = convertKey(key);
       if (byteKey != null) {
         Delete delete = new Delete(byteKey);
@@ -289,15 +238,7 @@ public class HBaseStore<T> {
         table.flushCommits();
       }
     } catch (IOException e) {
-      throw new ServiceUnavailableException("Could not read from HBase", e);
-    } finally {
-      try {
-        if (table != null) {
-          table.close();
-        }
-      } catch (IOException e) {
-        LOG.warn("Couldn't return table to pool - continuing with possible memory leak", e);
-      }
+      throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
     }
   }
 

@@ -26,13 +26,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DatasetDeletionServiceImpl implements DatasetDeletionService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasetDeletionServiceImpl.class);
+  public static final int KEYS_BATCH_SIZE = 100000;
 
   private final OccurrencePersistenceService occurrenceService;
   private final OccurrenceKeyPersistenceService occurrenceKeyService;
 
   @Inject
   public DatasetDeletionServiceImpl(OccurrencePersistenceService occurrenceService,
-    OccurrenceKeyPersistenceService occurrenceKeyService) {
+                                    OccurrenceKeyPersistenceService occurrenceKeyService) {
     this.occurrenceService = checkNotNull(occurrenceService, "occurrenceService can't be null");
     this.occurrenceKeyService = checkNotNull(occurrenceKeyService, "occurrenceKeyService can't be null");
   }
@@ -61,17 +62,17 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
     LOG.debug("Starting delete by column for [{}]", column);
     int deleteCount = 0;
     Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, Columns.column(column));
-    List<Integer> keys = Lists.newArrayList();
+    List<Integer> keys = Lists.newArrayListWithCapacity(KEYS_BATCH_SIZE);
     while (keyIterator.hasNext()) {
       int key = keyIterator.next();
       // TODO: this is critical, but causes extreme performance problems (full scan of lookups per deleted key)
       occurrenceKeyService.deleteKey(key, null);
       keys.add(key);
-      if (keys.size() % 100000 == 0) {
+      if ((keys.size() % KEYS_BATCH_SIZE) == 0) {
         LOG.debug("Writing batch of [{}] deletes", keys.size());
         occurrenceService.delete(keys);
         deleteCount += keys.size();
-        keys = Lists.newArrayList();
+        keys = Lists.newArrayListWithCapacity(KEYS_BATCH_SIZE);
       }
     }
     LOG.debug("Writing batch of [{}] deletes", keys.size());

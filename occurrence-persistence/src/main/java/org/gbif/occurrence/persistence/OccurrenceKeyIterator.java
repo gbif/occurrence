@@ -37,10 +37,10 @@ public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
    */
   public OccurrenceKeyIterator(HTablePool tablePool, String occurrenceTableName, Scan scan) {
     // TODO: heartbeat thread to shutdown/close resources if no activity after x seconds?
-    this.table = tablePool.getTable(occurrenceTableName);
+    table = tablePool.getTable(occurrenceTableName);
     try {
-      this.scanner = table.getScanner(scan);
-      this.iterator = scanner.iterator();
+      scanner = table.getScanner(scan);
+      iterator = scanner.iterator();
     } catch (IOException e) {
       throw new PersistenceException("Could not read from HBase", e);
     } finally {
@@ -56,7 +56,9 @@ public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
 
   @Override
   public boolean hasNext() {
-    if (scannerClosed) return false;
+    if (scannerClosed) {
+      return false;
+    }
 
     if (iterator.hasNext()) {
       return true;

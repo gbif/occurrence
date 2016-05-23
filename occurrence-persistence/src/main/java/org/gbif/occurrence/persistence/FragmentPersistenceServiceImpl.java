@@ -14,6 +14,8 @@ import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -26,8 +28,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.gbif.occurrence.persistence.util.ComparisonUtil.nullSafeEquals;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -45,8 +45,8 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
 
   @Inject
   public FragmentPersistenceServiceImpl(OccHBaseConfiguration cfg, HTablePool tablePool,
-    OccurrenceKeyPersistenceService keyService) {
-    this.occurrenceTableName = cfg.occTable;
+                                        OccurrenceKeyPersistenceService keyService) {
+    occurrenceTableName = cfg.occTable;
     this.tablePool = tablePool;
     this.keyService = keyService;
   }
@@ -159,31 +159,31 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
     boolean isInsert = oldFrag == null;
     RowUpdate upd = new RowUpdate(frag.getKey());
 
-    if (isInsert || !nullSafeEquals(oldFrag.getDatasetKey(), frag.getDatasetKey())) {
+    if (isInsert || !Objects.equals(oldFrag.getDatasetKey(), frag.getDatasetKey())) {
       upd.setInterpretedField(GbifTerm.datasetKey, frag.getDatasetKey());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getUnitQualifier(), frag.getUnitQualifier())) {
+    if (isInsert || !Objects.equals(oldFrag.getUnitQualifier(), frag.getUnitQualifier())) {
       upd.setInterpretedField(GbifInternalTerm.unitQualifier, frag.getUnitQualifier());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getProtocol(), frag.getProtocol())) {
+    if (isInsert || !Objects.equals(oldFrag.getProtocol(), frag.getProtocol())) {
       upd.setInterpretedField(GbifTerm.protocol, frag.getProtocol());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getHarvestedDate(), frag.getHarvestedDate())) {
+    if (isInsert || !Objects.equals(oldFrag.getHarvestedDate(), frag.getHarvestedDate())) {
       upd.setInterpretedField(GbifTerm.lastCrawled, frag.getHarvestedDate());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getCrawlId(), frag.getCrawlId())) {
+    if (isInsert || !Objects.equals(oldFrag.getCrawlId(), frag.getCrawlId())) {
       upd.setInterpretedField(GbifInternalTerm.crawlId, frag.getCrawlId());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getData(), frag.getData())) {
+    if (isInsert || !Arrays.equals(oldFrag.getData(), frag.getData())) {
       upd.setInterpretedField(GbifInternalTerm.fragment, frag.getData());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getDataHash(), frag.getDataHash())) {
+    if (isInsert || !Arrays.equals(oldFrag.getDataHash(), frag.getDataHash())) {
       upd.setInterpretedField(GbifInternalTerm.fragmentHash, frag.getDataHash());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getXmlSchema(), frag.getXmlSchema())) {
+    if (isInsert || !Objects.equals(oldFrag.getXmlSchema(), frag.getXmlSchema())) {
       upd.setInterpretedField(GbifInternalTerm.xmlSchema, frag.getXmlSchema());
     }
-    if (isInsert || !nullSafeEquals(oldFrag.getCreated(), frag.getCreated())) {
+    if (isInsert || !Objects.equals(oldFrag.getCreated(), frag.getCreated())) {
       upd.setInterpretedField(GbifInternalTerm.fragmentCreated, frag.getCreated());
     }
 
