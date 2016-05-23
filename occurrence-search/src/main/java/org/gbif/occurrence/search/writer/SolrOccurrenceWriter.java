@@ -141,7 +141,7 @@ public class SolrOccurrenceWriter {
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     if (!taxonKey.isEmpty()) {
-      doc.setField(TAXON_KEY.getFieldName(), taxonKey.isEmpty());
+      doc.setField(TAXON_KEY.getFieldName(), taxonKey);
     } else {
       doc.setField(TAXON_KEY.getFieldName(), null);
     }
