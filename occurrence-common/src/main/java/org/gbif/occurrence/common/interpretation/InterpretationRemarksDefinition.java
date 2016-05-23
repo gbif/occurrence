@@ -30,6 +30,16 @@ public class InterpretationRemarksDefinition {
                   .add(DwcTerm.infraspecificEpithet)
                   .build();
 
+  private static final List<Term> COORDINATES_TERMS =
+          ImmutableList.<Term>builder()
+                  .add(DwcTerm.decimalLatitude)
+                  .add(DwcTerm.decimalLongitude)
+                  .add(DwcTerm.verbatimLatitude)
+                  .add(DwcTerm.verbatimLatitude)
+                  .add(DwcTerm.verbatimCoordinates)
+                  .add(DwcTerm.geodeticDatum)
+                  .build();
+
   public static final List<InterpretationRemark> REMARKS =
           ImmutableList.<InterpretationRemark>builder()
                   // Errors
@@ -38,7 +48,7 @@ public class InterpretationRemarksDefinition {
                           DwcTerm.basisOfRecord))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_OUT_OF_RANGE, InterpretationRemarkSeverity.ERROR,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.TAXON_MATCH_NONE, InterpretationRemarkSeverity.ERROR,
                           TAXONOMY_TERMS))
@@ -48,28 +58,28 @@ public class InterpretationRemarksDefinition {
                   // Warnings
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.ZERO_COORDINATE, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COUNTRY_INVALID, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.country))
+                          DwcTerm.country, DwcTerm.countryCode))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COUNTRY_MISMATCH, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.country, DwcTerm.countryCode))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.country))
+                          ImmutableList.<Term>builder().addAll(COORDINATES_TERMS).add(DwcTerm.country, DwcTerm.countryCode).build()))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.country))
+                          ImmutableList.<Term>builder().addAll(COORDINATES_TERMS).add(DwcTerm.country, DwcTerm.countryCode).build()))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84, InterpretationRemarkSeverity.WARNING,
                           DwcTerm.geodeticDatum))
@@ -78,10 +88,10 @@ public class InterpretationRemarksDefinition {
                           DwcTerm.geodeticDatum))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_REPROJECTION_FAILED, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.geodeticDatum, DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_REPROJECTION_SUSPICIOUS, InterpretationRemarkSeverity.WARNING,
-                          DwcTerm.geodeticDatum, DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
+                          COORDINATES_TERMS))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.TAXON_MATCH_FUZZY, InterpretationRemarkSeverity.WARNING,
                           TAXONOMY_TERMS))
@@ -163,7 +173,7 @@ public class InterpretationRemarksDefinition {
                           DwcTerm.decimalLatitude, DwcTerm.decimalLongitude))
                   .add(InterpretationRemark.of(
                           OccurrenceIssue.COORDINATE_REPROJECTED, InterpretationRemarkSeverity.INFO,
-                          DwcTerm.decimalLatitude, DwcTerm.decimalLongitude, DwcTerm.geodeticDatum))
+                          COORDINATES_TERMS))
                   .build();
 // Currently not used by occurrence-processor
 //  COORDINATE_INVALID,
