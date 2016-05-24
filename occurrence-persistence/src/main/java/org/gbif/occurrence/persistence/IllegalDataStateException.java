@@ -10,6 +10,7 @@ package org.gbif.occurrence.persistence;
  * being an exception that would typically be checked - it offers clients the possibility to code for recovery.
  */
 public class IllegalDataStateException extends RuntimeException {
+
   public IllegalDataStateException(String message) {
     super(message);
   }

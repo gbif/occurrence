@@ -308,8 +308,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * Populates put and delete for the occurrence specific interpreted columns, leaving any verbatim columns untouched.
    * TODO: use reflection to get values from the java properties now that we have corresponding terms?
    */
-  private void populateInterpretedPutDelete(RowUpdate upd, Occurrence occ)
-    throws IOException {
+  private void populateInterpretedPutDelete(RowUpdate upd, Occurrence occ) throws IOException {
 
     Occurrence oldOcc = get(occ.getKey());
 
@@ -456,7 +455,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
   }
 
-  private void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
+  private static void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
     upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
     upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
   }
@@ -467,8 +466,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * @param scale
    * @return
    */
-  private BigDecimal nullSafeRoundHalfUp(BigDecimal value, int scale){
-    if(value == null){
+  private static BigDecimal nullSafeRoundHalfUp(BigDecimal value, int scale){
+    if(value == null) {
       return null;
     }
     return value.setScale(scale, BigDecimal.ROUND_HALF_UP);

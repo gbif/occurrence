@@ -152,8 +152,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     // get the dataset for this occurrence if not handed in as scope
     String rawDatasetKey = datasetKey;
     if (rawDatasetKey == null) {
-      rawDatasetKey = occurrenceTableStore
-        .getString(occurrenceKey, Columns.column(GbifTerm.datasetKey));
+      rawDatasetKey = occurrenceTableStore.getString(occurrenceKey, Columns.column(GbifTerm.datasetKey));
     }
 
     // scan the lookup table for all rows where the key matches our dataset prefix and the cell value is our
@@ -172,9 +171,9 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     filters.add(valueFilter);
     Filter filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
     scan.setFilter(filterList);
-    List<Delete> keysToDelete = Lists.newArrayList();
-    try (Table lookupTable = connection.getTable(lookupTableName)) {
-      ResultScanner resultScanner = lookupTable.getScanner(scan);
+    try (Table lookupTable = connection.getTable(lookupTableName);
+         ResultScanner resultScanner = lookupTable.getScanner(scan)) {
+      List<Delete> keysToDelete = Lists.newArrayList();
       for (Result result : resultScanner) {
         Delete delete = new Delete(result.getRow());
         keysToDelete.add(delete);

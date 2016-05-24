@@ -120,7 +120,6 @@ public class HBaseStore<T> {
         Put put = new Put(byteKey);
         put.addColumn(cfBytes, Bytes.toBytes(columnName), value);
         table.put(put);
-        //table.flushCommits();
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);
@@ -195,7 +194,7 @@ public class HBaseStore<T> {
    * @throws ServiceUnavailableException if there are errors when communicating with HBase
    */
   public boolean checkAndPut(T key, String putColumn, byte[] putValue, String checkColumn, @Nullable byte[] checkValue,
-    @Nullable Long ts) {
+                             @Nullable Long ts) {
     checkNotNull(key, KEY_CANT_BE_NULL_MSG);
     checkNotNull(putColumn, "putColumn can't be null");
     checkNotNull(putValue, "putValue can't be null");

@@ -44,6 +44,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -246,12 +248,12 @@ public class OccurrenceBuilder {
     verb.setLastParsed(ExtResultReader.getDate(row, GbifTerm.lastParsed));
     verb.setProtocol(EndpointType.fromString(ExtResultReader.getString(row, GbifTerm.protocol)));
 
-    for (KeyValue kv : row.raw()) {
+    for (Cell cell : row.rawCells()) {
       // all verbatim Term fields in row are prefixed. Columns without that prefix return null!
       // extensions are also kept with a v_ prefix, so explicitly ignore them.
-      Term term = Columns.termFromVerbatimColumn(kv.getQualifier());
+      Term term = Columns.termFromVerbatimColumn(CellUtil.cloneQualifier(cell));
       if (term != null && !TermUtils.isExtensionTerm(term)) {
-        verb.setVerbatimField(term, Bytes.toString(kv.getValue()));
+        verb.setVerbatimField(term, Bytes.toString(CellUtil.cloneValue(cell)));
       }
     }
 

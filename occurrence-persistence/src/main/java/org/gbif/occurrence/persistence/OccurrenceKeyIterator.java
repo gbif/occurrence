@@ -62,8 +62,7 @@ public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
   @Override
   public Integer next() {
     if (hasNext()) {
-     Result result = iterator.next();
-     return Bytes.toInt(result.getRow());
+      return Bytes.toInt(iterator.next().getRow());
     } else {
       throw new NoSuchElementException();
     }
