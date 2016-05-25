@@ -8,16 +8,20 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.MediaParser;
 import org.gbif.common.parsers.UrlParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.dwc.terms.AcTerm;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.Terms;
 
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 
 /**
@@ -26,6 +30,8 @@ import com.google.common.collect.Range;
 public class MultiMediaInterpreter {
 
   private static final MediaParser MEDIA_PARSER = MediaParser.getInstance();
+  private static final Set<Extension> SUPPORTED_MEDIA_EXTENSIONS = ImmutableSet.of(
+          Extension.IMAGE, Extension.MULTIMEDIA, Extension.AUDUBON);
 
   /**
    * Private constructor.
@@ -50,24 +56,24 @@ public class MultiMediaInterpreter {
       }
     }
 
-    // simple image or multimedia extension which are nearly identical
-    if (verbatim.getExtensions().containsKey(Extension.IMAGE) ||
-        verbatim.getExtensions().containsKey(Extension.MULTIMEDIA)) {
-      final Extension mediaExt = verbatim.getExtensions().containsKey(Extension.IMAGE) ? Extension.IMAGE : Extension.MULTIMEDIA;
+    // handle possible multimedia extensions
+    final Extension mediaExt = getMultimediaExtension(verbatim.getExtensions().keySet());
+    if (mediaExt != null) {
       for (Map<Term, String> rec : verbatim.getExtensions().get(mediaExt)) {
-        URI uri = UrlParser.parse(rec.get(DcTerm.identifier));
-        URI link = UrlParser.parse(rec.get(DcTerm.references));
+        URI uri = UrlParser.parse(Terms.getValueOfFirst(rec, DcTerm.identifier, AcTerm.accessURI));
+        URI link = UrlParser.parse(Terms.getValueOfFirst(rec, DcTerm.references, AcTerm.furtherInformationURL,
+                AcTerm.attributionLinkURL));
         // link or media uri must exist
         if (uri != null || link != null) {
           MediaObject m = new MediaObject();
           m.setIdentifier(uri);
           m.setReferences(link);
-          m.setTitle(rec.get(DcTerm.title));
+          m.setTitle(Terms.getValueOfFirst(rec, DcTerm.title, AcTerm.caption));
           m.setDescription(rec.get(DcTerm.description));
-          m.setLicense(rec.get(DcTerm.license));
+          m.setLicense(Terms.getValueOfFirst(rec, DcTerm.license, DcTerm.rights));
           m.setPublisher(rec.get(DcTerm.publisher));
           m.setContributor(rec.get(DcTerm.contributor));
-          m.setSource(rec.get(DcTerm.source));
+          m.setSource(Terms.getValueOfFirst(rec, DcTerm.source, AcTerm.derivedFrom));
           m.setAudience(rec.get(DcTerm.audience));
           m.setRightsHolder(rec.get(DcTerm.rightsHolder));
           m.setCreator(rec.get(DcTerm.creator));
@@ -75,7 +81,7 @@ public class MultiMediaInterpreter {
           if (rec.containsKey(DcTerm.created)) {
             Range<Date> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_VALID_RECORDED_DATE, new Date());
             OccurrenceParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
-                                          validRecordedDateRange, OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
+                    validRecordedDateRange, OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
             m.setCreated(parsed.getPayload());
             occ.getIssues().addAll(parsed.getIssues());
           }
@@ -91,6 +97,20 @@ public class MultiMediaInterpreter {
 
     // merge information if the same image URL is given several times, e.g. via the core AND an extension
     deduplicateMedia(occ);
+  }
+
+  /**
+   * Return the first multimedia Extension supported by this method.
+   * @param recordExtension
+   * @return
+   */
+  private static Extension getMultimediaExtension(Set<Extension> recordExtension){
+    for(Extension ext: recordExtension){
+      if(SUPPORTED_MEDIA_EXTENSIONS.contains(ext)){
+        return ext;
+      }
+    }
+    return null;
   }
 
   /**
