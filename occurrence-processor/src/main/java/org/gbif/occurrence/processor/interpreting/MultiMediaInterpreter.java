@@ -30,8 +30,10 @@ import com.google.common.collect.Range;
 public class MultiMediaInterpreter {
 
   private static final MediaParser MEDIA_PARSER = MediaParser.getInstance();
+
+  // Order is important in case more than one extension is provided. The order will define the precedence.
   private static final Set<Extension> SUPPORTED_MEDIA_EXTENSIONS = ImmutableSet.of(
-          Extension.IMAGE, Extension.MULTIMEDIA, Extension.AUDUBON);
+          Extension.MULTIMEDIA, Extension.AUDUBON, Extension.IMAGE);
 
   /**
    * Private constructor.
@@ -100,13 +102,14 @@ public class MultiMediaInterpreter {
   }
 
   /**
-   * Return the first multimedia Extension supported by this method.
+   * Return the first multimedia Extension supported (SUPPORTED_MEDIA_EXTENSIONS).
+   *
    * @param recordExtension
-   * @return
+   * @return First media Extension found or null if not found
    */
   private static Extension getMultimediaExtension(Set<Extension> recordExtension){
-    for(Extension ext: recordExtension){
-      if(SUPPORTED_MEDIA_EXTENSIONS.contains(ext)){
+    for(Extension ext: SUPPORTED_MEDIA_EXTENSIONS){
+      if(recordExtension.contains(ext)){
         return ext;
       }
     }
