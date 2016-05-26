@@ -132,7 +132,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         return null;
       }
       occ = OccurrenceBuilder.buildOccurrence(result);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new ServiceUnavailableException("Could not read from HBase", e);
     }
 

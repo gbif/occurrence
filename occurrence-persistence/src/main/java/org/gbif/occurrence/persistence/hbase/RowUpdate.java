@@ -190,11 +190,11 @@ public class RowUpdate {
     setField(Columns.verbatimColumn(extension), nullSafeBytes(value));
   }
 
-  private byte[] nullSafeBytes(String value) {
+  private static byte[] nullSafeBytes(String value) {
     return value == null ? null : Bytes.toBytes(value);
   }
 
-  private byte[] nullSafeBytes(Double value) {
+  private static byte[] nullSafeBytes(Double value) {
     return value == null ? null : Bytes.toBytes(value);
   }
 
