@@ -131,14 +131,4 @@ public class ResponseSchemaDetector {
     elements.put(ResponseElementEnum.RECORD, ExtractionSimpleXPaths.ABCD_2_0_6_RECORD);
     distinctiveElements.put(OccurrenceSchemaType.ABCD_2_0_6, elements);
   }
-
-  private void printNode(Node node) {
-    LOG.info("Node name: [{}]", node.getNodeName());
-    if (node.hasChildNodes()) {
-      NodeList children = node.getChildNodes();
-      for (int i = 0; i < children.getLength(); i++) {
-        printNode(children.item(i));
-      }
-    }
-  }
 }

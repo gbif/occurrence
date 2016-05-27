@@ -17,8 +17,10 @@ package org.gbif.occurrence.model;
 
 import org.gbif.occurrence.constants.PrioritizedPropertyNameEnum;
 import org.gbif.occurrence.parsing.xml.HigherTaxonParser;
+import org.gbif.occurrence.parsing.xml.PrioritizedProperty;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -52,17 +54,18 @@ public class Identification extends PropertyPrioritizer {
    */
   @Override
   public void resolvePriorities() {
-    for (PrioritizedPropertyNameEnum name : prioritizedProps.keySet()) {
-      String result = findHighestPriority(prioritizedProps.get(name));
-      switch (name) {
+    for (Map.Entry<PrioritizedPropertyNameEnum,Set<PrioritizedProperty>> entry : prioritizedProps.entrySet()) {
+      PrioritizedPropertyNameEnum name = entry.getKey();
+      String result = findHighestPriority(entry.getValue());
+      switch (entry.getKey()) {
         case ID_DATE_IDENTIFIED:
-          this.dateIdentified = result;
+          dateIdentified = result;
           break;
         case ID_IDENTIFIER_NAME:
-          this.identifierName = result;
+          identifierName = result;
           break;
         case ID_SCIENTIFIC_NAME:
-          this.scientificName = result;
+          scientificName = result;
           break;
         default:
           LOG.warn("Fell through priority resolution for [{}]", name);

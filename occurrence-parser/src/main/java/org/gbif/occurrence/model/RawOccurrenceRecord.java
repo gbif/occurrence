@@ -557,10 +557,10 @@ public class RawOccurrenceRecord implements Serializable {
            minAltitude + ",\n maxAltitude=" + maxAltitude + ",\n altitudePrecision=" + altitudePrecision +
            ",\n minDepth=" + minDepth + ",\n maxDepth=" + maxDepth + ",\n depthPrecision=" + depthPrecision +
            ",\n continentOrOcean=" + continentOrOcean + ",\n country=" + country + ",\n stateOrProvince=" +
-           stateOrProvince + ",\n county=" + county + ",\n collectorName=" + collectorName + ",\n collectorsFieldNumber=" + collectorsFieldNumber +
-           ",\n locality=" +  locality + ",\n occurrenceDate=" + occurrenceDate + ",\n basisOfRecord=" + basisOfRecord +
-           ",\n identifierName=" + identifierName + ",\n dateIdentified=" + dateIdentified + ",\n unitQualifier=" +
-           unitQualifier + "]";
+           stateOrProvince + ",\n county=" + county + ",\n collectorName=" + collectorName
+           + ",\n collectorsFieldNumber=" + collectorsFieldNumber + ",\n locality=" +  locality + ",\n occurrenceDate="
+           + occurrenceDate + ",\n basisOfRecord=" + basisOfRecord + ",\n identifierName=" + identifierName
+           + ",\n dateIdentified=" + dateIdentified + ",\n unitQualifier=" + unitQualifier + "]";
   }
 
 }

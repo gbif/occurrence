@@ -22,16 +22,18 @@ import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
  */
 public class OccurrenceSearchDateUtils {
 
+  /**
+   * Private constructor.
+   */
+  private OccurrenceSearchDateUtils() {
+    //utility classes must be have private constructors
+  }
 
   /**
    * Converts the value parameter into a date range query.
    */
   public static String toDateQuery(String value) {
-    if (SearchTypeValidator.isRange(value)) {
-      return toRangeDateQueryFormat(value);
-    } else {
-      return toSingleDateQueryFormat(value);
-    }
+    return SearchTypeValidator.isRange(value) ? toRangeDateQueryFormat(value): toSingleDateQueryFormat(value);
   }
 
   private static String toRangeDateQueryFormat(String value) {
@@ -39,14 +41,12 @@ public class OccurrenceSearchDateUtils {
     if (!dateRange.hasLowerBound() && !dateRange.hasUpperBound()) {
       return DEFAULT_FILTER_QUERY;
     } else if (dateRange.hasLowerBound() && !dateRange.hasUpperBound()) {
-      return String.format(RANGE_FORMAT, toDateQueryFormat(dateRange.lowerEndpoint()),
-        DEFAULT_FILTER_QUERY);
+      return String.format(RANGE_FORMAT, toDateQueryFormat(dateRange.lowerEndpoint()), DEFAULT_FILTER_QUERY);
     } else if (!dateRange.hasLowerBound() && dateRange.hasUpperBound()) {
-      return String.format(RANGE_FORMAT, DEFAULT_FILTER_QUERY,
-        toDateQueryFormat(dateRange.upperEndpoint()));
+      return String.format(RANGE_FORMAT, DEFAULT_FILTER_QUERY, toDateQueryFormat(dateRange.upperEndpoint()));
     } else {
       return String.format(RANGE_FORMAT, toDateQueryFormat(dateRange.lowerEndpoint()),
-        toDateQueryFormat(dateRange.upperEndpoint()));
+                           toDateQueryFormat(dateRange.upperEndpoint()));
     }
   }
 
@@ -60,12 +60,10 @@ public class OccurrenceSearchDateUtils {
     final String lowerDateStr = toDateQueryFormat(lowerDate);
     if (occDateFormat == IsoDateFormat.YEAR_MONTH) {
       // Generated query: [yyyy-MM-01T00:00:00Z TO yyyy-'MM-LAST_DATE_OF_THE_MONTH'T00:00:00Z]
-      String upperDayeStr = toDateQueryFormat(toLastDayOfMonth(lowerDate));
-      return String.format(RANGE_FORMAT, lowerDateStr, upperDayeStr);
+      return String.format(RANGE_FORMAT, lowerDateStr, toDateQueryFormat(toLastDayOfMonth(lowerDate)));
     } else if (occDateFormat == IsoDateFormat.YEAR) {
       // Generated query: [yyyy-01-01T00:00:00Z TO yyyy-'LAST_DATE_OF_THE_YEAR'T00:00:00Z]
-      String upperDayeStr = toDateQueryFormat(toLastDayOfYear(lowerDate));
-      return String.format(RANGE_FORMAT, lowerDateStr, upperDayeStr);
+      return String.format(RANGE_FORMAT, lowerDateStr, toDateQueryFormat(toLastDayOfYear(lowerDate)));
     } else {
       return toPhraseQuery(lowerDateStr);
     }

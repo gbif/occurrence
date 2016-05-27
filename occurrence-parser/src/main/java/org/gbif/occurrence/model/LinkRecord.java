@@ -63,7 +63,7 @@ public class LinkRecord implements Serializable {
   }
 
   public String debugDump() {
-    return "LinkRecord [\nrawLinkType=" + rawLinkType + ",\nlinkType=" + linkType + ",\nurl=" + url +
-           ",\ndescription=" + description + "]";
+    return "LinkRecord [\nrawLinkType=" + rawLinkType + ",\nlinkType=" + linkType + ",\nurl=" + url
+           + ",\ndescription=" + description + "]";
   }
 }

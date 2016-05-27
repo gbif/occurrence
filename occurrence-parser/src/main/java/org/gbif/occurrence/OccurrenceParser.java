@@ -56,12 +56,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OccurrenceParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceParser.class);
+  public static final String ADD_RECORD_AS_XML = "addRecordAsXml";
+  public static final String SET_ABCD_1_HEADER = "setAbcd1Header";
 
   public List<RawOccurrenceRecord> parseResponseFileToRor(File inputFile) {
     List<RawXmlOccurrence> raws = parseResponseFileToRawXml(inputFile);
-    List<RawOccurrenceRecord> rors = parseRawXmlToRor(raws);
-
-    return rors;
+    return parseRawXmlToRor(raws);
   }
 
   /**
@@ -88,19 +88,19 @@ public class OccurrenceParser {
 
       NodeCreateRule rawAbcd = new NodeCreateRule();
       digester.addRule(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, rawAbcd);
-      digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, "addRecordAsXml");
+      digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, ADD_RECORD_AS_XML);
 
       NodeCreateRule rawAbcd1Header = new NodeCreateRule();
       digester.addRule(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, rawAbcd1Header);
-      digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, "setAbcd1Header");
+      digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, SET_ABCD_1_HEADER);
 
       NodeCreateRule rawDwc1_0 = new NodeCreateRule();
       digester.addRule(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, rawDwc1_0);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, "addRecordAsXml");
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, ADD_RECORD_AS_XML);
 
       NodeCreateRule rawDwc1_4 = new NodeCreateRule();
       digester.addRule(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, rawDwc1_4);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, "addRecordAsXml");
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, ADD_RECORD_AS_XML);
 
       //      NodeCreateRule rawDwcManis = new NodeCreateRule();
       //      digester.addRule(ExtractionSimpleXPaths.DWC_MANIS_RECORD_XPATH, rawDwcManis);
@@ -108,18 +108,14 @@ public class OccurrenceParser {
 
       NodeCreateRule rawDwc2009 = new NodeCreateRule();
       digester.addRule(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, rawDwc2009);
-      digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, "addRecordAsXml");
+      digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, ADD_RECORD_AS_XML);
 
       digester.parse(inputSource);
       return responseBody.getRecords();
-    } catch (ParserConfigurationException e) {
+    } catch (ParserConfigurationException | TransformerException e) {
       throw new ServiceUnavailableException("Error setting up Commons Digester", e);
-    } catch (SAXException e) {
+    } catch (SAXException | IOException e) {
       throw new ParsingException("Parsing failed", e);
-    } catch (IOException e) {
-      throw new ParsingException("Parsing failed", e);
-    } catch (TransformerException e) {
-      throw new ServiceUnavailableException("Error setting up Commons Digester", e);
     }
   }
 
@@ -129,30 +125,106 @@ public class OccurrenceParser {
   public List<RawXmlOccurrence> parseResponseFileToRawXml(File gzipFile) {
     if (LOG.isDebugEnabled()) LOG.debug(">> parseResponseFileToRawXml [{}]", gzipFile.getAbsolutePath());
     ParsedSearchResponse responseBody = null;
-    InputStreamReader inputStreamReader = null;
-    BufferedReader bufferedReader = null;
     try {
       responseBody = new ParsedSearchResponse();
+      List<String> charsets = getCharsets(gzipFile);
+      String goodCharset = null;
+      boolean encodingError = false;
+      for (String charsetName : charsets) {
+        LOG.debug("Trying charset [{}]", charsetName);
+        try (FileInputStream fis = new FileInputStream(gzipFile);
+             GZIPInputStream inputStream = new GZIPInputStream(fis);
+             BufferedReader inputReader =
+               new BufferedReader(new XmlSanitizingReader(new InputStreamReader(inputStream, charsetName)));) {
+          InputSource inputSource = new InputSource(inputReader);
 
-      FileInputStream fis = new FileInputStream(gzipFile);
-      GZIPInputStream inputStream = new GZIPInputStream(fis);
+          Digester digester = new Digester();
+          digester.setNamespaceAware(true);
+          digester.setValidating(false);
+          digester.push(responseBody);
 
-      // charsets are a nightmare and users can't be trusted, so strategy
-      // is try these encodings in order until one of them (hopefully) works
-      // (note the last two could be repeats of the first two):
-      // - utf-8
-      // - latin1 (iso-8859-1)
-      // - the declared encoding from the parsing itself
-      // - a guess at detecting the charset from the raw gzipFile bytes
+          NodeCreateRule rawAbcd = new NodeCreateRule();
+          digester.addRule(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, rawAbcd);
+          digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, ADD_RECORD_AS_XML);
 
-      List<String> charsets = new ArrayList<String>();
-      charsets.add("UTF-8");
-      charsets.add("ISO-8859-1");
+          NodeCreateRule rawAbcd1Header = new NodeCreateRule();
+          digester.addRule(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, rawAbcd1Header);
+          digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, SET_ABCD_1_HEADER);
 
-      // read parsing declaration
+          NodeCreateRule rawDwc1_0 = new NodeCreateRule();
+          digester.addRule(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, rawDwc1_0);
+          digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, ADD_RECORD_AS_XML);
 
-      inputStreamReader = new InputStreamReader(inputStream);
-      bufferedReader = new BufferedReader(inputStreamReader);
+          NodeCreateRule rawDwc1_4 = new NodeCreateRule();
+          digester.addRule(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, rawDwc1_4);
+          digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, ADD_RECORD_AS_XML);
+
+          // TODO: dwc_manis appears to work without a NodeCreateRule here - why?
+
+          NodeCreateRule rawDwc2009 = new NodeCreateRule();
+          digester.addRule(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, rawDwc2009);
+          digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, ADD_RECORD_AS_XML);
+
+          digester.parse(inputSource);
+
+          LOG.debug("Success with charset [{}] - skipping any others", charsetName);
+          goodCharset = charsetName;
+          break;
+        } catch (SAXException e) {
+          String msg = "SAX exception when parsing parsing from response gzipFile [" + gzipFile.getAbsolutePath()
+              + "] using encoding [" + charsetName + "] - trying another charset";
+          LOG.debug(msg, e);
+        } catch (MalformedByteSequenceException e) {
+          LOG.debug("Malformed utf-8 byte when parsing with encoding [{}] - trying another charset", charsetName);
+          encodingError = true;
+        } catch (IOException ex) {
+          LOG.warn("Error reading input files",ex);
+        }
+      }
+
+      if (goodCharset == null) {
+        if (encodingError) {
+          LOG.warn(
+              "Could not parse gzipFile - none of the encoding attempts worked (failed with malformed utf8) - skipping gzipFile [{}]",
+              gzipFile.getAbsolutePath());
+        } else {
+          LOG.warn("Could not parse gzipFile (malformed parsing) - skipping gzipFile [{}]", gzipFile.getAbsolutePath());
+        }
+      }
+
+    } catch (IOException e) {
+      LOG.warn("Could not find response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
+    } catch (TransformerException e) {
+      LOG.warn("Could not create parsing transformer for [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
+    } catch (ParserConfigurationException e) {
+      LOG.warn("Failed to pull raw parsing from response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
+    }
+
+    if (LOG.isDebugEnabled()) LOG.debug("<< parseResponseFileToRawXml [{}]", gzipFile.getAbsolutePath());
+    return (responseBody == null) ? null : responseBody.getRecords();
+  }
+
+  /**
+   * Utility method to extract character encondings from a gzip file.
+   * Charsets are a nightmare and users can't be trusted, so strategy
+   * is try these encodings in order until one of them (hopefully) works
+   * (note the last two could be repeats of the first two):
+   *  - utf-8
+   *  - latin1 (iso-8859-1)
+   *  - the declared encoding from the parsing itself
+   *  - a guess at detecting the charset from the raw gzipFile bytes
+   */
+  private static List<String> getCharsets(File gzipFile) throws IOException {
+    List<String> charsets = new ArrayList<String>();
+    charsets.add("UTF-8");
+    charsets.add("ISO-8859-1");
+
+    // read parsing declaration
+
+    try (FileInputStream fis = new FileInputStream(gzipFile);
+         GZIPInputStream inputStream = new GZIPInputStream(fis);
+         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+         BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
       boolean gotEncoding = false;
       String encoding;
       int lineCount = 0;
@@ -171,102 +243,16 @@ public class OccurrenceParser {
             charsets.add(encoding);
           } catch (Exception e) {
             LOG.debug(
-                "Could not find supported charset matching detected encoding of [{}] - trying other guesses instead",
-                encoding);
+              "Could not find supported charset matching detected encoding of [{}] - trying other guesses instead",
+              encoding);
           }
           gotEncoding = true;
         }
       }
-
-      // attempt detection from bytes
-      Charset charset = CharsetDetection.detectEncoding(gzipFile);
-      charsets.add(charset.name());
-      String goodCharset = null;
-      boolean encodingError = false;
-      for (String charsetName : charsets) {
-        LOG.debug("Trying charset [{}]", charsetName);
-        try {
-          // reset streams
-          fis = new FileInputStream(gzipFile);
-          inputStream = new GZIPInputStream(fis);
-
-          BufferedReader inputReader =
-              new BufferedReader(new XmlSanitizingReader(new InputStreamReader(inputStream, charsetName)));
-          InputSource inputSource = new InputSource(inputReader);
-
-          Digester digester = new Digester();
-          digester.setNamespaceAware(true);
-          digester.setValidating(false);
-          digester.push(responseBody);
-
-          NodeCreateRule rawAbcd = new NodeCreateRule();
-          digester.addRule(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, rawAbcd);
-          digester.addSetNext(ExtractionSimpleXPaths.ABCD_RECORD_XPATH, "addRecordAsXml");
-
-          NodeCreateRule rawAbcd1Header = new NodeCreateRule();
-          digester.addRule(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, rawAbcd1Header);
-          digester.addSetNext(ExtractionSimpleXPaths.ABCD_HEADER_XPATH, "setAbcd1Header");
-
-          NodeCreateRule rawDwc1_0 = new NodeCreateRule();
-          digester.addRule(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, rawDwc1_0);
-          digester.addSetNext(ExtractionSimpleXPaths.DWC_1_0_RECORD_XPATH, "addRecordAsXml");
-
-          NodeCreateRule rawDwc1_4 = new NodeCreateRule();
-          digester.addRule(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, rawDwc1_4);
-          digester.addSetNext(ExtractionSimpleXPaths.DWC_1_4_RECORD_XPATH, "addRecordAsXml");
-
-          // TODO: dwc_manis appears to work without a NodeCreateRule here - why?
-
-          NodeCreateRule rawDwc2009 = new NodeCreateRule();
-          digester.addRule(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, rawDwc2009);
-          digester.addSetNext(ExtractionSimpleXPaths.DWC_2009_RECORD_XPATH, "addRecordAsXml");
-
-          digester.parse(inputSource);
-
-          LOG.debug("Success with charset [{}] - skipping any others", charsetName);
-          goodCharset = charsetName;
-          break;
-        } catch (SAXException e) {
-          String msg = "SAX exception when parsing parsing from response gzipFile [" + gzipFile.getAbsolutePath()
-              + "] using encoding [" + charsetName + "] - trying another charset";
-          LOG.debug(msg, e);
-        } catch (IOException e) {
-          if (e instanceof MalformedByteSequenceException) {
-            LOG.debug("Malformed utf-8 byte when parsing with encoding [{}] - trying another charset", charsetName);
-            encodingError = true;
-          }
-        }
-      }
-
-      if (goodCharset == null) {
-        if (encodingError) {
-          LOG.warn(
-              "Could not parse gzipFile - none of the encoding attempts worked (failed with malformed utf8) - skipping gzipFile [{}]",
-              gzipFile.getAbsolutePath());
-        } else {
-          LOG.warn("Could not parse gzipFile (malformed parsing) - skipping gzipFile [{}]", gzipFile.getAbsolutePath());
-        }
-      }
-
-    } catch (FileNotFoundException e) {
-      LOG.warn("Could not find response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
-    } catch (IOException e) {
-      LOG.warn("Could not read response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
-    } catch (TransformerException e) {
-      LOG.warn("Could not create parsing transformer for [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
-    } catch (ParserConfigurationException e) {
-      LOG.warn("Failed to pull raw parsing from response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
-    } finally {
-      try {
-        if (bufferedReader != null) bufferedReader.close();
-        if (inputStreamReader != null) inputStreamReader.close();
-      } catch (IOException e) {
-        LOG.debug("Failed to close input files", e);
-      }
     }
-
-    if (LOG.isDebugEnabled()) LOG.debug("<< parseResponseFileToRawXml [{}]", gzipFile.getAbsolutePath());
-    return (responseBody == null) ? null : responseBody.getRecords();
+    // attempt detection from bytes
+    charsets.add(CharsetDetection.detectEncoding(gzipFile).name());
+    return charsets;
   }
 
   public List<RawOccurrenceRecord> parseRawXmlToRor(List<RawXmlOccurrence> raws) {
@@ -279,3 +265,4 @@ public class OccurrenceParser {
   }
 
 }
+

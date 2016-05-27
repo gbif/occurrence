@@ -31,9 +31,7 @@ public class TermResource {
                           ImmutableSet.<Term>builder()
                                   .addAll(TermUtils.interpretedTerms())
                                   .addAll(TermUtils.verbatimTerms())
-                                  .build())
-                          , buildTermToTermWrapperFunction())
-          );
+                                  .build()), buildTermToTermWrapperFunction()));
 
   @GET
   public Set<TermWrapper> getInterpretation() {
@@ -60,7 +58,7 @@ public class TermResource {
     private final String group;
     private final String source;
 
-    public TermWrapper(Term term){
+    public TermWrapper(Term term) {
       simpleName = term.simpleName();
       qualifiedName = term.qualifiedName();
       source = term.getClass().getSimpleName();
@@ -68,10 +66,9 @@ public class TermResource {
       // Not too clean but we can't override the Term's @JsonSerialize
       if(DwcTerm.class.equals(term.getClass())){
         group = ((DwcTerm)term).getGroup();
-      } else if (GbifTerm.class.equals(term.getClass())){
+      } else if (GbifTerm.class.equals(term.getClass())) {
         group = ((GbifTerm)term).getGroup();
-      }
-      else{
+      } else {
         group = null;
       }
     }

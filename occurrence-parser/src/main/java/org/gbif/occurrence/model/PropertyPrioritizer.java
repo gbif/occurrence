@@ -57,11 +57,11 @@ public abstract class PropertyPrioritizer {
   }
 
   /** Highest priority is 1. */
-  protected String findHighestPriority(Set<PrioritizedProperty> props) {
+  protected static String findHighestPriority(Set<PrioritizedProperty> props) {
     String result = null;
     int highestPriority = Integer.MAX_VALUE;
     for (PrioritizedProperty prop : props) {
-      if (prop.getPriority().intValue() < highestPriority) {
+      if (prop.getPriority() < highestPriority) {
         highestPriority = prop.getPriority();
         result = prop.getProperty();
       }

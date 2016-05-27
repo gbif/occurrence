@@ -36,9 +36,6 @@ public class RawXmlOccurrence {
   private String xml;
   private OccurrenceSchemaType schemaType;
 
-  public RawXmlOccurrence() {
-  }
-
   public byte[] getHash() {
     byte[] hash = null;
     try {
@@ -46,9 +43,7 @@ public class RawXmlOccurrence {
       byte[] bytesOfMessage = plain.getBytes("UTF-8");
       MessageDigest md = MessageDigest.getInstance("MD5");
       hash = md.digest(bytesOfMessage);
-    } catch (UnsupportedEncodingException e) {
-      LOG.error("Encoding error creating hash - must be JVM problem", e);
-    } catch (NoSuchAlgorithmException e) {
+    } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
       LOG.error("Encoding error creating hash - must be JVM problem", e);
     }
 

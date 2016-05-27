@@ -38,8 +38,8 @@ public class TypificationRecord implements Serializable {
   }
 
   public boolean isEmpty() {
-    return StringUtils.isEmpty(notes) && StringUtils.isEmpty(typeStatus) && StringUtils.isEmpty(publication) &&
-           StringUtils.isEmpty(scientificName);
+    return StringUtils.isEmpty(notes) && StringUtils.isEmpty(typeStatus) && StringUtils.isEmpty(publication)
+           && StringUtils.isEmpty(scientificName);
   }
 
   public String debugDump() {

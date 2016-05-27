@@ -16,8 +16,11 @@
 package org.gbif.occurrence.model;
 
 import org.gbif.occurrence.constants.PrioritizedPropertyNameEnum;
+import org.gbif.occurrence.parsing.xml.PrioritizedProperty;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -44,17 +47,18 @@ public class ImageRecord extends PropertyPrioritizer implements Serializable {
    */
   @Override
   public void resolvePriorities() {
-    for (PrioritizedPropertyNameEnum name : prioritizedProps.keySet()) {
+    for (Map.Entry<PrioritizedPropertyNameEnum,Set<PrioritizedProperty>> entry : prioritizedProps.entrySet()) {
+      PrioritizedPropertyNameEnum name = entry.getKey();
       String result = findHighestPriority(prioritizedProps.get(name));
       switch (name) {
         case IMAGE_URL:
-          this.url = result;
+          url = result;
           break;
         case IMAGE_RIGHTS:
-          this.rights = result;
+          rights = result;
           break;
         default:
-          LOG.warn("Fell through priority resolution for [" + name + "]");
+          LOG.warn("Fell through priority resolution for [{}]", name);
       }
     }
   }
