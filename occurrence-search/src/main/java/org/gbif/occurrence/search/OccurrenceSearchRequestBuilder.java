@@ -83,7 +83,6 @@ public class OccurrenceSearchRequestBuilder {
     private static final Integer SCORE_DECREMENT = 20;
 
 
-
     /**
      * Query parameter.
      */
@@ -175,6 +174,9 @@ public class OccurrenceSearchRequestBuilder {
 
   private final int maxLimit;
 
+  //Flag to enable/disable faceted search
+  private final boolean facetsEnable;
+
   public static final int MAX_OFFSET = 1000000;
   public static final int MAX_PAGE_SIZE = 300;
 
@@ -184,13 +186,14 @@ public class OccurrenceSearchRequestBuilder {
    * Default constructor.
    */
   public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset,
-                                        int maxLimit) {
+                                        int maxLimit, boolean facetsEnable) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset can't less than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit can't less than zero");
     this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
     this.maxOffset = Math.min(maxOffset, MAX_OFFSET);
     this.maxLimit = Math.min(maxLimit, MAX_PAGE_SIZE);
+    this.facetsEnable = facetsEnable;
   }
 
   /**
@@ -239,12 +242,14 @@ public class OccurrenceSearchRequestBuilder {
     // paging
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
-    setFilterParameters(request, solrQuery);
+    setFilterParameters(request, solrQuery, facetsEnable);
     // set the request handler
     setRequestHandler(solrQuery, requestHandler);
 
-    SolrQueryUtils.applyFacetSettings(request, solrQuery, FACET_FIELD_CONFIGURATION_MAP);
-    solrQuery.setFacetMissing(false);
+    if (facetsEnable) {
+      SolrQueryUtils.applyFacetSettings(request, solrQuery, FACET_FIELD_CONFIGURATION_MAP);
+      solrQuery.setFacetMissing(false);
+    }
     return solrQuery;
   }
 
@@ -355,9 +360,9 @@ public class OccurrenceSearchRequestBuilder {
    * Creates a conjunction of disjunctions: disjunctions(ORs) are created for the filter applied to the same field;
    * those disjunctions are joint in a big conjunction.
    */
-  private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery) {
+  private static void setFilterParameters(OccurrenceSearchRequest request, SolrQuery solrQuery, boolean facetsEnable) {
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
-    boolean isFacetedSearch = request.getFacets() != null && !request.getFacets().isEmpty();
+    boolean isFacetedSearch =  facetsEnable && request.getFacets() != null && !request.getFacets().isEmpty();
     if (params != null && !params.isEmpty()) {
       for (OccurrenceSearchParameter param : params.keySet()) {
         OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
@@ -387,5 +392,9 @@ public class OccurrenceSearchRequestBuilder {
       addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
                    solrQuery, isFacetedSearch);
     }
+  }
+
+  public boolean isFacetsEnable() {
+    return facetsEnable;
   }
 }

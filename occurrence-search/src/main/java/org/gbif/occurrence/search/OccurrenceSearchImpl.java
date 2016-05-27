@@ -83,10 +83,11 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   @Inject
   public OccurrenceSearchImpl(SolrClient solrClient, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
                               OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
-                              @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit) {
+                              @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit,
+                              @Named("facets.enable") boolean facetsEnable) {
     this.solrClient = solrClient;
     occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,
-                                                                        maxOffset, maxLimit);
+                                                                        maxOffset, maxLimit, facetsEnable);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
@@ -124,7 +125,10 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       response.setSpellCheckResponse(SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
     }
     response.setResults(occurrences);
-    response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse, FIELD_PARAMETER_MAPPING));
+
+    if (occurrenceSearchRequestBuilder.isFacetsEnable()) {
+      response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse, FIELD_PARAMETER_MAPPING));
+    }
     return response;
   }
 
