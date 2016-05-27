@@ -99,8 +99,8 @@ public class MultiMediaInterpreterTest {
     v.getExtensions().put(Extension.AUDUBON, media);
 
     Map<Term, String> rec = Maps.newHashMap();
-    rec.put(AcTerm.accessURI, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg");
-    rec.put(AcTerm.furtherInformationURL, "http://www.flickr.com/photos/70939559@N02/7039524065");
+    rec.put(AcTerm.accessURI, "http://specify-attachments-saiab.saiab.ac.za/originals/sp6-3853933608872243693.att.JPG");
+    rec.put(DcTerm.identifier, "d79633d3-0967-40fa-9557-d6915e4d1353");
     rec.put(DcTerm.format, "jpg");
     rec.put(DcTerm.title, "Geranium Plume Moth 0032");
     rec.put(DcTerm.description, "Geranium Plume Moth 0032 description");
@@ -129,8 +129,7 @@ public class MultiMediaInterpreterTest {
     assertEquals("BY-NC-SA 2.0", o.getMedia().get(0).getLicense());
     assertEquals("Moayed Bahajjaj", o.getMedia().get(0).getCreator());
     assertEquals("2012-03-29", ISO.format(o.getMedia().get(0).getCreated()));
-    assertEquals("http://www.flickr.com/photos/70939559@N02/7039524065", o.getMedia().get(0).getReferences().toString());
-    assertEquals("http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg", o.getMedia().get(0).getIdentifier()
+    assertEquals("http://specify-attachments-saiab.saiab.ac.za/originals/sp6-3853933608872243693.att.JPG", o.getMedia().get(0).getIdentifier()
             .toString());
   }
 

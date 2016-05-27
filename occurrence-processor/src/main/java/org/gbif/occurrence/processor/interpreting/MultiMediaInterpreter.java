@@ -62,7 +62,9 @@ public class MultiMediaInterpreter {
     final Extension mediaExt = getMultimediaExtension(verbatim.getExtensions().keySet());
     if (mediaExt != null) {
       for (Map<Term, String> rec : verbatim.getExtensions().get(mediaExt)) {
-        URI uri = UrlParser.parse(Terms.getValueOfFirst(rec, DcTerm.identifier, AcTerm.accessURI));
+        //For AUDUBON, we use accessURI over identifier
+        //TODO handle AUDUBON in its own method
+        URI uri = UrlParser.parse(Terms.getValueOfFirst(rec, AcTerm.accessURI, DcTerm.identifier));
         URI link = UrlParser.parse(Terms.getValueOfFirst(rec, DcTerm.references, AcTerm.furtherInformationURL,
                 AcTerm.attributionLinkURL));
         // link or media uri must exist
@@ -70,8 +72,8 @@ public class MultiMediaInterpreter {
           MediaObject m = new MediaObject();
           m.setIdentifier(uri);
           m.setReferences(link);
-          m.setTitle(Terms.getValueOfFirst(rec, DcTerm.title, AcTerm.caption));
-          m.setDescription(rec.get(DcTerm.description));
+          m.setTitle(rec.get(DcTerm.title));
+          m.setDescription(Terms.getValueOfFirst(rec, DcTerm.description, AcTerm.caption));
           m.setLicense(Terms.getValueOfFirst(rec, DcTerm.license, DcTerm.rights));
           m.setPublisher(rec.get(DcTerm.publisher));
           m.setContributor(rec.get(DcTerm.contributor));
