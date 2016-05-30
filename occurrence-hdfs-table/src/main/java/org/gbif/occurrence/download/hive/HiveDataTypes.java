@@ -65,8 +65,11 @@ public final class HiveDataTypes {
                                                                       GbifTerm.elevationAccuracy,
                                                                       GbifTerm.depth,
                                                                       GbifTerm.depthAccuracy);
-  private static final Set<Term> BOOLEAN_TERMS =
-    ImmutableSet.<Term>of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
+
+  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.<Term>of(GbifTerm.hasCoordinate,
+                                                                       GbifTerm.hasGeospatialIssues,
+                                                                       GbifTerm.repatriated);
+
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = ImmutableMap.<Term, String>builder()
