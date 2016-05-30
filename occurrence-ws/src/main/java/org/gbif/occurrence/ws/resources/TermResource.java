@@ -6,6 +6,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -25,31 +26,31 @@ import com.google.inject.Singleton;
 @Singleton
 public class TermResource {
 
-  private static Set<TermWrapper> OCCURRENCE_TERMS =
+  /**
+   * Function to "wrap" a DwcTerm inside a TermWrapper.
+   * @return a TermWrapper instance that contains a term
+   */
+  private static final Function<Term, TermWrapper> TO_TERM_WRAPPER = new Function<Term, TermWrapper>() {
+    @Override
+    public TermWrapper apply(@Nullable Term term) {
+      return new TermWrapper(term);
+    }
+  };
+
+
+  private static final Set<TermWrapper> OCCURRENCE_TERMS =
           ImmutableSet.copyOf(
                   Iterables.transform(ImmutableSet.copyOf(
                           ImmutableSet.<Term>builder()
                                   .addAll(TermUtils.interpretedTerms())
                                   .addAll(TermUtils.verbatimTerms())
-                                  .build()), buildTermToTermWrapperFunction()));
+                                  .build()), TO_TERM_WRAPPER));
 
   @GET
   public Set<TermWrapper> getInterpretation() {
     return OCCURRENCE_TERMS;
   }
 
-  /**
-   * Function to "wrap" a DwcTerm inside a TermWrapper.
-   * @return
-   */
-  private static Function<Term, TermWrapper> buildTermToTermWrapperFunction(){
-    return new Function<Term, TermWrapper>() {
-      @Override
-      public TermWrapper apply(Term term) {
-        return new TermWrapper(term);
-      }
-    };
-  }
 
   private static class TermWrapper {
 
@@ -64,7 +65,7 @@ public class TermResource {
       source = term.getClass().getSimpleName();
 
       // Not too clean but we can't override the Term's @JsonSerialize
-      if(DwcTerm.class.equals(term.getClass())){
+      if (DwcTerm.class.equals(term.getClass())) {
         group = ((DwcTerm)term).getGroup();
       } else if (GbifTerm.class.equals(term.getClass())) {
         group = ((GbifTerm)term).getGroup();

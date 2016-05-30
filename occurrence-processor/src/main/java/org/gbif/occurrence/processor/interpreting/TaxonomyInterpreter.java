@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public class TaxonomyInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
-  private static final NameParser parser = new NameParser();
+  private static final NameParser PARSER = new NameParser();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
   private static final String MATCH_PATH = "species/match";
 
@@ -53,11 +53,11 @@ public class TaxonomyInterpreter {
       .build(RetryingWebserviceClient.newInstance(NameUsageMatch.class, 5, 2000));
 
 
-  private final WebResource MATCHING_WS;
+  private final WebResource matchingWs;
 
   @Inject
   public TaxonomyInterpreter(WebResource apiBaseWs) {
-    MATCHING_WS = apiBaseWs.path(MATCH_PATH);
+    matchingWs = apiBaseWs.path(MATCH_PATH);
   }
 
   public TaxonomyInterpreter(ApiClientConfiguration cfg) {
@@ -72,7 +72,8 @@ public class TaxonomyInterpreter {
    * @param specificEpithet see DwcTerm.specificEpithet
    * @param infraspecificEpithet see DwcTerm.infraspecificEpithet
    */
-  public static String buildScientificName(String scientificName, String authorship, String genericName, String genus, String specificEpithet, String infraspecificEpithet) {
+  public static String buildScientificName(String scientificName, String authorship, String genericName, String genus,
+                                           String specificEpithet, String infraspecificEpithet) {
     String sciname = ClassificationUtils.clean(scientificName);
     if (sciname == null) {
       // handle case when the scientific name is null and only given as atomized fields: genus & speciesEpitheton
@@ -111,17 +112,19 @@ public class TaxonomyInterpreter {
         rank);
   }
 
-  public OccurrenceParseResult<NameUsageMatch> match(String kingdom, String phylum, String clazz, String order, String family, String genus,
-                                                     String scientificName, String authorship,
-                                                     String genericName, String specificEpithet, String infraspecificEpithet, Rank rank) {
+  public OccurrenceParseResult<NameUsageMatch> match(String kingdom, String phylum, String clazz, String order,
+                                                     String family, String genus, String scientificName,
+                                                     String authorship, String genericName, String specificEpithet,
+                                                     String infraspecificEpithet, Rank rank) {
 
-    genus = ClassificationUtils.clean(genus);
-    genericName = ClassificationUtils.clean(genericName);
-    specificEpithet = ClassificationUtils.cleanAuthor(specificEpithet);
-    infraspecificEpithet = ClassificationUtils.cleanAuthor(infraspecificEpithet);
-    authorship = ClassificationUtils.cleanAuthor(authorship);
+    String cleanGenus = ClassificationUtils.clean(genus);
+    String cleanGenericName = ClassificationUtils.clean(genericName);
+    String cleanSpecificEpithet = ClassificationUtils.cleanAuthor(specificEpithet);
+    String cleanInfraspecificEpithet = ClassificationUtils.cleanAuthor(infraspecificEpithet);
+    String cleanAuthorship = ClassificationUtils.cleanAuthor(authorship);
 
-    final String sciname = buildScientificName(scientificName, authorship, genericName, genus, specificEpithet, infraspecificEpithet);
+    String sciname = buildScientificName(scientificName, cleanAuthorship, cleanGenericName, cleanGenus,
+                                               cleanSpecificEpithet, cleanInfraspecificEpithet);
 
     OccurrenceParseResult<NameUsageMatch> result;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -130,14 +133,14 @@ public class TaxonomyInterpreter {
     queryParams.add("class",   ClassificationUtils.clean(clazz));
     queryParams.add("order",   ClassificationUtils.clean(order));
     queryParams.add("family",  ClassificationUtils.clean(family));
-    queryParams.add("genus",  genus);
+    queryParams.add("genus",  cleanGenus);
     queryParams.add("name",   sciname);
     if (rank != null) {
       queryParams.add("rank", rank.name());
     }
 
     LOG.debug("Attempt to match name [{}]", sciname);
-    WebResource res = MATCHING_WS.queryParams(queryParams);
+    WebResource res = matchingWs.queryParams(queryParams);
     LOG.debug("WS call with: {}", res.getURI());
     try {
       NameUsageMatch lookup = CACHE.get(res);
@@ -165,7 +168,7 @@ public class TaxonomyInterpreter {
     return result;
   }
 
-  private void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
+  private static void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
     occ.setTaxonKey(match.getUsageKey());
     occ.setScientificName(match.getScientificName());
     occ.setTaxonRank(match.getRank());
@@ -175,7 +178,7 @@ public class TaxonomyInterpreter {
 
     // parse name into pieces - we dont get them from the nub lookup
     try {
-      ParsedName pn = parser.parse(match.getScientificName(), match.getRank());
+      ParsedName pn = PARSER.parse(match.getScientificName(), match.getRank());
       occ.setGenericName(pn.getGenusOrAbove());
       occ.setSpecificEpithet(pn.getSpecificEpithet());
       occ.setInfraspecificEpithet(pn.getInfraSpecificEpithet());
@@ -238,7 +241,7 @@ public class TaxonomyInterpreter {
     }
   }
 
-  private Rank interpretRank(Map<Term, String> terms){
+  private static Rank interpretRank(Map<Term, String> terms){
     Rank rank = null;
     if (hasTerm(terms, DwcTerm.taxonRank)) {
       rank = RANK_PARSER.parse(value(terms, DwcTerm.taxonRank)).getPayload();

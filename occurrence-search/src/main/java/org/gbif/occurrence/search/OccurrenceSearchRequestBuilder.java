@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
@@ -25,13 +24,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
 
+import static org.gbif.common.search.builder.SolrQueryUtils.taggedField;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
 import static org.gbif.common.search.util.QueryUtils.PARAMS_OR_JOINER;
 import static org.gbif.common.search.util.QueryUtils.setQueryPaging;
@@ -41,7 +40,6 @@ import static org.gbif.common.search.util.QueryUtils.toParenthesesQuery;
 import static org.gbif.common.search.util.SolrConstants.DEFAULT_QUERY;
 import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
 import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
-import static org.gbif.common.search.builder.SolrQueryUtils.taggedField;
 
 
 /**
@@ -180,7 +178,8 @@ public class OccurrenceSearchRequestBuilder {
   public static final int MAX_OFFSET = 1000000;
   public static final int MAX_PAGE_SIZE = 300;
 
-  private static final Map<OccurrenceSearchParameter,FacetFieldConfiguration> FACET_FIELD_CONFIGURATION_MAP = getFacetsConfiguration();
+  private static final Map<OccurrenceSearchParameter,FacetFieldConfiguration> FACET_FIELD_CONFIGURATION_MAP =
+    getFacetsConfiguration();
 
   /**
    * Default constructor.
@@ -224,7 +223,9 @@ public class OccurrenceSearchRequestBuilder {
     solrQuery.setParam(SOLR_SPELLCHECK, request.isSpellCheck());
     if (request.isSpellCheck()) {
       solrQuery.setParam(SOLR_SPELLCHECK_COUNT,
-                         request.getSpellCheckCount() < 0 ? DEFAULT_SPELL_CHECK_COUNT : Integer.toString(request.getSpellCheckCount()));
+                         request.getSpellCheckCount() < 0
+                           ? DEFAULT_SPELL_CHECK_COUNT
+                           : Integer.toString(request.getSpellCheckCount()));
     }
     // q param
     if (Strings.isNullOrEmpty(request.getQ()) || SolrConstants.DEFAULT_FILTER_QUERY.equals(request.getQ())) {
@@ -366,31 +367,33 @@ public class OccurrenceSearchRequestBuilder {
     if (params != null && !params.isEmpty()) {
       for (OccurrenceSearchParameter param : params.keySet()) {
         OccurrenceSolrField solrField = QUERY_FIELD_MAPPING.get(param);
-        List<String> aFieldParameters = Lists.newArrayList();
-        for (String value : params.get(param)) {
-
-          if (solrField != null && param.type() != Date.class) {
-            String parsedValue = QueryUtils.parseQueryValue(value);
-            if (QueryUtils.isRangeQuery(parsedValue)) {
-              parsedValue = COMMON_REPLACER.matcher(parsedValue).replaceAll(" TO ");
+        if (solrField != null) {
+          Collection<String> paramValues = params.get(param);
+          List<String> aFieldParameters = Lists.newArrayListWithExpectedSize(paramValues.size());
+          for (String value : aFieldParameters) {
+            if (param.type() != Date.class) {
+              String parsedValue = QueryUtils.parseQueryValue(value);
+              if (QueryUtils.isRangeQuery(parsedValue)) {
+                parsedValue = COMMON_REPLACER.matcher(parsedValue).replaceAll(" TO ");
+              }
+              if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
+                parsedValue = parsedValue.toUpperCase();
+              }
+              aFieldParameters.add(PARAMS_JOINER.join(solrField.getFieldName(), parsedValue));
             }
-            if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
-              parsedValue = parsedValue.toUpperCase();
-            }
-            aFieldParameters.add(PARAMS_JOINER.join(solrField.getFieldName(), parsedValue));
           }
-        }
-        if (!aFieldParameters.isEmpty()) {
-          solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "")
-                                   + toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
+          if (!aFieldParameters.isEmpty()) {
+            solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "")
+                                     + toParenthesesQuery(PARAMS_OR_JOINER.join(aFieldParameters)));
 
+          }
         }
       }
       addLocationQuery(params, solrQuery, isFacetedSearch);
       addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceSolrField.EVENT_DATE, solrQuery,
                    isFacetedSearch);
-      addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED,
-                   solrQuery, isFacetedSearch);
+      addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceSolrField.LAST_INTERPRETED, solrQuery,
+                   isFacetedSearch);
     }
   }
 

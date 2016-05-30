@@ -26,7 +26,8 @@ public class ArrayNullsRemoverGenericUDF extends GenericUDF {
     List list = retValInspector.getList(arguments[0].get());
     List result = Lists.newArrayList();
     if (list != null && !list.isEmpty()) {
-      if (primitiveObjectInspector != null && primitiveObjectInspector.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
+      if (primitiveObjectInspector != null
+          && primitiveObjectInspector.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
         result = handlerStringArray(list);
       } else {
         result = Lists.newArrayList(list);

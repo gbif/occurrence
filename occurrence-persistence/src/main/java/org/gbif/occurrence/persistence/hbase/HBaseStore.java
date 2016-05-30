@@ -232,7 +232,6 @@ public class HBaseStore<T> {
           delete.addColumn(cfBytes, Bytes.toBytes(column));
         }
         table.delete(delete);
-        //table.flushCommits();
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException(HBASE_READ_ERROR_MSG, e);

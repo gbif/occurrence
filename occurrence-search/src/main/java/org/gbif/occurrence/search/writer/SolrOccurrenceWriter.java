@@ -29,8 +29,10 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.COUNTRY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DEPTH;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ELEVATION;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ESTABLISHMENT_MEANS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_DATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.FAMILY_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.FULL_TEXT;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.GENUS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.HAS_COORDINATE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTITUTION_CODE;
@@ -42,6 +44,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LATITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LONGITUDE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MEDIA_TYPE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.MONTH;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.OCCURRENCE_ID;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ORDER_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PHYLUM_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_COUNTRY;
@@ -53,9 +56,6 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SUBGENUS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ESTABLISHMENT_MEANS;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.OCCURRENCE_ID;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.FULL_TEXT;
 
 
 /**
@@ -136,7 +136,9 @@ public class SolrOccurrenceWriter {
     doc.setField(COUNTRY.getFieldName(),
                  occurrence.getCountry() == null ? null : occurrence.getCountry().getIso2LetterCode());
     doc.setField(PUBLISHING_COUNTRY.getFieldName(),
-                 occurrence.getPublishingCountry() == null ? null : occurrence.getPublishingCountry().getIso2LetterCode());
+                 occurrence.getPublishingCountry() == null
+                   ? null
+                   : occurrence.getPublishingCountry().getIso2LetterCode());
     doc.setField(CONTINENT.getFieldName(), occurrence.getContinent() == null ? null : occurrence.getContinent().name());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
@@ -201,7 +203,7 @@ public class SolrOccurrenceWriter {
    */
   private static Set<Integer> buildTaxonKey(Occurrence occurrence) {
 
-    Set<Integer> taxonKey = new HashSet<Integer>(10);
+    Set<Integer> taxonKey = new HashSet<Integer>();
 
     if (occurrence.getTaxonKey() != null) {
       taxonKey.add(occurrence.getTaxonKey());

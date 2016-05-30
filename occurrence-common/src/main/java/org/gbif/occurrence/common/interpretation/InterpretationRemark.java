@@ -38,7 +38,7 @@ public class InterpretationRemark {
    * @param relatedTerms
    */
   public InterpretationRemark(OccurrenceIssue type, InterpretationRemarkSeverity severity,
-                              List<Term> relatedTerms){
+                              List<Term> relatedTerms) {
     this.type = type;
     this.severity = severity;
     this.relatedTerms = relatedTerms;

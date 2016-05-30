@@ -85,14 +85,11 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   @Provides
   @Singleton
-  CuratorFramework provideCuratorFramework(
-    @Named(PROPERTIES_PREFIX + "zookeeper.namespace") String zookeeperNamespace,
-    @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-    @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries
-  ) {
-    CuratorFramework curator = CuratorFrameworkFactory.builder()
-      .namespace(zookeeperNamespace)
+  CuratorFramework provideCuratorFramework(@Named(PROPERTIES_PREFIX + "zookeeper.namespace") String zookeeperNamespace,
+                                           @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
+                                           @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
+                                           @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
+    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
       .build();
@@ -119,8 +116,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Provides
   @Singleton
   OccurrenceDownloadService provideOccurrenceDownloadService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri
-  ) {
+    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
     return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
   }
@@ -133,7 +129,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
   }
 
   @Provides
-  Connection provideHBaseConnection(@Named(PROPERTIES_PREFIX + "max_connection_pool") Integer maxConnectionPool) throws IOException {
+  Connection provideHBaseConnection(@Named(PROPERTIES_PREFIX + "max_connection_pool") Integer maxConnectionPool)
+    throws IOException {
     Configuration hBaseConfiguration = HBaseConfiguration.create();
     hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
     return ConnectionFactory.createConnection(hBaseConfiguration);
@@ -163,7 +160,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   /**
    * Utility class that contains constants and keys set each time the workflow is executed.
    */
-   public final static class DynamicSettings {
+   public static final class DynamicSettings {
 
     /**
      * Hidden constructor.
@@ -182,7 +179,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   /**
    * Utility class that contains configuration keys of common settings.
    */
-  public final static class DefaultSettings {
+  public static final class DefaultSettings {
 
     public static final String NAME_NODE_KEY = "hdfs.namenode";
     public static final String HIVE_DB_KEY = "hive.db";

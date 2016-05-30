@@ -178,7 +178,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     checkNotNull(occurrenceKeys, "occurrenceKeys can't be null");
 
     try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName)))  {
-      List<Delete> deletes = Lists.newArrayList();
+      List<Delete> deletes = Lists.newArrayListWithExpectedSize(occurrenceKeys.size());
       for (Integer occurrenceKey : occurrenceKeys) {
         if (occurrenceKey != null) {
           deletes.add(new Delete(Bytes.toBytes(occurrenceKey)));
@@ -462,12 +462,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   /**
    * Used to round (with half up) a BigDecimal to only keep a certain number of digit(s).
-   * @param value
-   * @param scale
-   * @return
    */
   private static BigDecimal nullSafeRoundHalfUp(BigDecimal value, int scale){
-    if(value == null) {
+    if (value == null) {
       return null;
     }
     return value.setScale(scale, BigDecimal.ROUND_HALF_UP);

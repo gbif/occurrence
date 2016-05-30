@@ -56,7 +56,6 @@ public class RowUpdate {
   public void execute(Table table) throws IOException {
     LOG.debug("Executing [{}] mutations", rowMutations.getMutations().size());
     table.mutateRow(rowMutations);
-    //table.flushCommits();
   }
 
   public void setField(String column, @Nullable byte[] value) throws IOException {
@@ -166,11 +165,11 @@ public class RowUpdate {
     setField(Columns.column(term), nullSafeBytes(value));
   }
 
-  public void setVerbatimField(Term term, @Nullable Enum value) throws IOException {
+  public void setVerbatimField(Term term, @Nullable Enum<?> value) throws IOException {
     setField(Columns.verbatimColumn(term), nullSafeBytes(value));
   }
 
-  public void setInterpretedField(Term term, @Nullable Enum value) throws IOException {
+  public void setInterpretedField(Term term, @Nullable Enum<?> value) throws IOException {
     setField(Columns.column(term), nullSafeBytes(value));
   }
 
