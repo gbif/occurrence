@@ -27,13 +27,13 @@ import org.gbif.utils.file.CharsetDetection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -56,6 +56,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OccurrenceParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceParser.class);
+  private static final String ENCONDING_EQ = "encoding=";
+  private static final Pattern ENCODING_PATTERN = Pattern.compile(ENCONDING_EQ);
+  private static final Pattern REPLACE_QUOTES_PAT = Pattern.compile("[\"']");
+
   public static final String ADD_RECORD_AS_XML = "addRecordAsXml";
   public static final String SET_ABCD_1_HEADER = "setAbcd1Header";
 
@@ -185,7 +189,7 @@ public class OccurrenceParser {
       if (goodCharset == null) {
         if (encodingError) {
           LOG.warn(
-              "Could not parse gzipFile - none of the encoding attempts worked (failed with malformed utf8) - skipping gzipFile [{}]",
+              "Could not parse gzipFile - all encoding attempts failed  with malformed utf8 - skipping gzipFile [{}]",
               gzipFile.getAbsolutePath());
         } else {
           LOG.warn("Could not parse gzipFile (malformed parsing) - skipping gzipFile [{}]", gzipFile.getAbsolutePath());
@@ -197,7 +201,8 @@ public class OccurrenceParser {
     } catch (TransformerException e) {
       LOG.warn("Could not create parsing transformer for [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
     } catch (ParserConfigurationException e) {
-      LOG.warn("Failed to pull raw parsing from response gzipFile [{}] - skipping gzipFile", gzipFile.getAbsolutePath(), e);
+      LOG.warn("Failed to pull raw parsing from response gzipFile [{}] - skipping gzipFile",
+               gzipFile.getAbsolutePath(), e);
     }
 
     if (LOG.isDebugEnabled()) LOG.debug("<< parseResponseFileToRawXml [{}]", gzipFile.getAbsolutePath());
@@ -231,12 +236,12 @@ public class OccurrenceParser {
       while (bufferedReader.ready() && !gotEncoding && lineCount < 5) {
         String line = bufferedReader.readLine();
         lineCount++;
-        if (line != null && line.contains("encoding=")) {
-          encoding = line.split("encoding=")[1];
+        if (line != null && line.contains(ENCONDING_EQ)) {
+          encoding = ENCODING_PATTERN.split(line,0)[1];
           // drop trailing ?>
           encoding = encoding.substring(0, encoding.length() - 2);
           // drop quotes
-          encoding = encoding.replaceAll("\"", "").replaceAll("'", "").trim();
+          encoding = REPLACE_QUOTES_PAT.matcher(encoding).replaceAll("").trim();
           LOG.debug("Found encoding [{}] in parsing declaration", encoding);
           try {
             Charset.forName(encoding);

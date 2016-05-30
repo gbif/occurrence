@@ -137,6 +137,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.GENUS_KEY, GbifTerm.genusKey)
       .put(OccurrenceSearchParameter.SUBGENUS_KEY, GbifTerm.subgenusKey)
       .put(OccurrenceSearchParameter.SPECIES_KEY, GbifTerm.speciesKey)
+      .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.speciesKey)
       .build();
 
   private StringBuilder builder;
@@ -336,7 +337,7 @@ public class HiveQueryVisitor {
   /**
    * Determines if the type of a parameter it'a a Hive array.
    */
-  private boolean isHiveArray(OccurrenceSearchParameter parameter) {
+  private static boolean isHiveArray(OccurrenceSearchParameter parameter) {
     return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
   }
 

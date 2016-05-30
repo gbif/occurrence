@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import org.apache.solr.client.solrj.SolrClient;
@@ -56,6 +57,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SUBGENUS_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.REPATRIATED;
 
 
 /**
@@ -178,6 +180,7 @@ public class SolrOccurrenceWriter {
                  occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
     doc.setField(FULL_TEXT.getFieldName(), FullTextFieldBuilder.buildFullTextField(occurrence));
+    doc.setField(REPATRIATED.getFieldName(),isRepatriated(occurrence).orNull());
     return doc;
   }
 
@@ -241,6 +244,16 @@ public class SolrOccurrenceWriter {
     }
 
     return taxonKey;
+  }
+
+  /**
+   * Determines if the occurrence record has been repatriated.
+   */
+  private static Optional<Boolean> isRepatriated(Occurrence occurrence) {
+    if (occurrence.getPublishingCountry() != null && occurrence.getCountry() !=  null) {
+      return  Optional.of(!occurrence.getPublishingCountry().equals(occurrence.getCountry()));
+    }
+    return Optional.absent();
   }
 
 }

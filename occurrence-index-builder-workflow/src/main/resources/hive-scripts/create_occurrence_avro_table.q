@@ -49,5 +49,6 @@ TBLPROPERTIES (
     {"name":"media_type","type":["null",{"type":"array", "items":"string"}],"default":null},
     {"name":"issue","type":["null",{"type":"array", "items":"string"}],"default":null},
     {"name":"scientific_name","type":["string", "null"]},
-    {"name":"full_text","type":["null",{"type":"array", "items":"string"}],"default":null}]
+    {"name":"full_text","type":["null",{"type":"array", "items":"string"}],"default":null},
+    {"name":"repatriated","type":["boolean", "null"]}]
 }');

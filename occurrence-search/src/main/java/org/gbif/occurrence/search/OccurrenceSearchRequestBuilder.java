@@ -155,6 +155,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.ISSUE, OccurrenceSolrField.ISSUE)
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, OccurrenceSolrField.OCCURRENCE_ID)
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceSolrField.ESTABLISHMENT_MEANS)
+      .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceSolrField.REPATRIATED)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
@@ -316,6 +317,10 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SPECIES_KEY).getFieldName(),
                                        OccurrenceSearchParameter.SPECIES_KEY, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.REPATRIATED,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.REPATRIATED).getFieldName(),
+                                       OccurrenceSearchParameter.REPATRIATED, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .build();
 
 
@@ -370,7 +375,7 @@ public class OccurrenceSearchRequestBuilder {
         if (solrField != null) {
           Collection<String> paramValues = params.get(param);
           List<String> aFieldParameters = Lists.newArrayListWithExpectedSize(paramValues.size());
-          for (String value : aFieldParameters) {
+          for (String value : paramValues) {
             if (param.type() != Date.class) {
               String parsedValue = QueryUtils.parseQueryValue(value);
               if (QueryUtils.isRangeQuery(parsedValue)) {

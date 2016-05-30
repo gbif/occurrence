@@ -70,6 +70,18 @@ public class OccurrenceHDFSTableDefinition {
            + " IS NOT NULL)";
   }
 
+
+  /**
+   * @return a string for constructing the repatriated field
+   */
+  private static String repatriatedInitializer() {
+    return "IF("
+           + HiveColumns.columnFor(GbifTerm.publishingCountry)
+           + " IS NOT NULL AND "
+           + HiveColumns.columnFor(DwcTerm.countryCode)
+           + " IS NOT NULL, countrycode = publishingcountry, NULL )";
+  }
+
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
@@ -134,7 +146,9 @@ public class OccurrenceHDFSTableDefinition {
                                                                    GbifTerm.hasCoordinate,
                                                                    hasCoordinateInitializer(),
                                                                    GbifTerm.issue,
-                                                                   issueInitializer());
+                                                                   issueInitializer(),
+                                                                   GbifTerm.repatriated,
+                                                                   repatriatedInitializer());
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {

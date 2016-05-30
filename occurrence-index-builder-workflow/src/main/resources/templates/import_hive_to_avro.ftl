@@ -42,5 +42,6 @@ scientificname,
 removeNulls(array(
 <#list fields as field>
 ${field}<#if field_has_next>,</#if>
-</#list>))
+</#list>)),
+repatriated
 FROM ${r"${sourceOccurrenceTable}"} occ;

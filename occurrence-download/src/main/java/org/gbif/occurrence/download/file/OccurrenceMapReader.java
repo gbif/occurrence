@@ -77,6 +77,7 @@ public class OccurrenceMapReader {
       occurrence.put(GbifTerm.hasCoordinate.simpleName(),
                      Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
                                       && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
+      occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orNull());
       return occurrence;
     }
   }
@@ -110,12 +111,27 @@ public class OccurrenceMapReader {
           occurrence.put(GbifTerm.hasCoordinate.simpleName(),
                          Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
                                           && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
+        } else if (term == GbifTerm.repatriated) {
+          occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orNull());
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
       }
       return occurrence;
     }
+  }
+
+  /**
+   * Validates if the occurrence record it's a repatriated record.
+   */
+  private static Optional<String> getRepatriated(Result result) {
+    String publishingCountry = ExtResultReader.getString(result,Columns.column(GbifTerm.publishingCountry));
+    String countryCode = ExtResultReader.getString(result,Columns.column(DwcTerm.countryCode));
+
+    if (publishingCountry != null && countryCode != null) {
+      return Optional.of(Boolean.toString(publishingCountry.equalsIgnoreCase(countryCode)));
+    }
+    return Optional.absent();
   }
 
   /**
