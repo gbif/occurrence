@@ -29,7 +29,7 @@ public final class HiveColumns {
    * Escapes the name if required.
    */
   private static String escapeColumnName(String columnName) {
-    return RESERVED_WORDS.contains(columnName) ? columnName + "_" : columnName;
+    return RESERVED_WORDS.contains(columnName) ? columnName + '_' : columnName;
   }
 
   /**

@@ -32,15 +32,16 @@ public final class HiveDataTypes {
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.<Term>of(GbifTerm.mediaType, GbifTerm.issue);
-  private static final Set<Term> BIGINT_TERMS = ImmutableSet.<Term>of(
-    // dates are all stored as BigInt
-    DwcTerm.eventDate,
-    DwcTerm.dateIdentified,
-    GbifTerm.lastInterpreted,
-    GbifTerm.lastParsed,
-    GbifTerm.lastCrawled,
-    DcTerm.modified,
-    GbifInternalTerm.fragmentCreated);
+
+  // dates are all stored as BigInt
+  private static final Set<Term> BIGINT_TERMS = ImmutableSet.<Term>of(DwcTerm.eventDate,
+                                                                      DwcTerm.dateIdentified,
+                                                                      GbifTerm.lastInterpreted,
+                                                                      GbifTerm.lastParsed,
+                                                                      GbifTerm.lastCrawled,
+                                                                      DcTerm.modified,
+                                                                      GbifInternalTerm.fragmentCreated);
+
   private static final Set<Term> INT_TERMS = ImmutableSet.<Term>of(GbifTerm.gbifID,
                                                                    DwcTerm.year,
                                                                    DwcTerm.month,
