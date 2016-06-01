@@ -16,6 +16,7 @@ import org.gbif.dwc.terms.Terms;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,22 +44,12 @@ public class MultiMediaInterpreter {
   }
 
   public static void interpretMedia(VerbatimOccurrence verbatim, Occurrence occ) {
-    // media via core term
-    if (verbatim.hasVerbatimField(DwcTerm.associatedMedia)) {
-      for (URI uri : UrlParser.parseUriList(verbatim.getVerbatimField(DwcTerm.associatedMedia))) {
-        if (uri == null) {
-          occ.getIssues().add(OccurrenceIssue.MULTIMEDIA_URI_INVALID);
 
-        } else {
-          MediaObject m = new MediaObject();
-          m.setIdentifier(uri);
-          MEDIA_PARSER.detectType(m);
-          occ.getMedia().add(m);
-        }
-      }
-    }
+    //the order is important since we will keep the first object that appears for each URI
+    List<MediaObject> mediaList = Lists.newLinkedList();
+    List<URI> mediaUri = Lists.newLinkedList();
 
-    // handle possible multimedia extensions
+    // handle possible multimedia extensions first
     final Extension mediaExt = getMultimediaExtension(verbatim.getExtensions().keySet());
     if (mediaExt != null) {
       for (Map<Term, String> rec : verbatim.getExtensions().get(mediaExt)) {
@@ -91,16 +82,33 @@ public class MultiMediaInterpreter {
           }
 
           MEDIA_PARSER.detectType(m);
-          occ.getMedia().add(m);
-
+          mediaList.add(m);
+          mediaUri.add(getPreferredURI(m));
         } else {
           occ.getIssues().add(OccurrenceIssue.MULTIMEDIA_URI_INVALID);
         }
       }
     }
 
-    // merge information if the same image URL is given several times, e.g. via the core AND an extension
-    deduplicateMedia(occ);
+    // media via core term
+    if (verbatim.hasVerbatimField(DwcTerm.associatedMedia)) {
+      for (URI uri : UrlParser.parseUriList(verbatim.getVerbatimField(DwcTerm.associatedMedia))) {
+        if (uri == null) {
+          occ.getIssues().add(OccurrenceIssue.MULTIMEDIA_URI_INVALID);
+        } else {
+          // only try to build the object if we don't already got it from the extension
+          if(!mediaUri.contains(uri)) {
+            MediaObject m = new MediaObject();
+            m.setIdentifier(uri);
+            MEDIA_PARSER.detectType(m);
+            mediaList.add(m);
+          }
+        }
+      }
+    }
+
+    // make sure information is not given several times for the same image
+    occ.setMedia(deduplicateMedia(mediaList));
   }
 
   /**
@@ -119,22 +127,32 @@ public class MultiMediaInterpreter {
   }
 
   /**
-   * merges media records if the same image URL or link is given several times.
-   * Remove any media that has not either a file or webpage uri.
+   * We can get file uris or weblinks. Prefer file URIs as they clearly identify a single image
+   * @param mediaObject
+   * @return
    */
-  private static void deduplicateMedia(Occurrence occ) {
+  private static URI getPreferredURI(MediaObject mediaObject){
+    return mediaObject.getIdentifier() != null ? mediaObject.getIdentifier() : mediaObject.getReferences();
+  }
+
+  /**
+   * Merges media records if the same image URL or link is given several times.
+   * Remove any media that has not either a file or webpage uri.
+   * @return a new list
+   */
+  private static List<MediaObject> deduplicateMedia(List<MediaObject> mediaList) {
     Map<String, MediaObject> media = Maps.newLinkedHashMap();
-    for (MediaObject m : occ.getMedia()) {
-      // we can get file uris or weblinks. Prefer file URIs as they clearly identify a single image
-      URI uri = m.getIdentifier() != null ? m.getIdentifier() : m.getReferences();
+    for (MediaObject m : mediaList) {
+
+      URI uri = getPreferredURI(m);
       if (uri != null) {
         String url = uri.toString();
         if (!media.containsKey(url)) {
           media.put(url, m);
-        } //else --> // merge infos about the same image?
+        }
       }
     }
-    occ.setMedia(Lists.newArrayList(media.values()));
+    return Lists.newArrayList(media.values());
   }
 
 }

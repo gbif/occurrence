@@ -133,4 +133,37 @@ public class MultiMediaInterpreterTest {
             .toString());
   }
 
+  /**
+   * If the information about the same image (same URI) is given in the core AND the extension we should use the one
+   * from the extension (richer data).
+   * @throws Exception
+   */
+  @Test
+  public void testExtensionsPriority() throws Exception {
+    VerbatimOccurrence v = new VerbatimOccurrence();
+    Occurrence o = new Occurrence();
+    v.setVerbatimField(
+            DwcTerm.associatedMedia,
+            "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg, http://www.flickr.com/photos/70939559@N02/7039524065.png");
+
+    List<Map<Term, String>> media = Lists.newArrayList();
+    v.getExtensions().put(Extension.AUDUBON, media);
+
+    Map<Term, String> rec = Maps.newHashMap();
+    rec.put(AcTerm.accessURI, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg");
+    rec.put(DcTerm.format, "jpg");
+    rec.put(DcTerm.title, "Geranium Plume Moth 0032");
+    rec.put(DcTerm.description, "Geranium Plume Moth 0032 description");
+    rec.put(AcTerm.derivedFrom, "http://farm8.staticflickr.com/7093/7039524065_3ed0382368.jpg");
+    rec.put(DcTerm.license, "BY-NC-SA 2.0");
+    rec.put(DcTerm.creator, "Moayed Bahajjaj");
+    rec.put(DcTerm.created, "2012-03-29");
+    media.add(rec);
+
+    MultiMediaInterpreter.interpretMedia(v, o);
+
+    assertEquals(2, o.getMedia().size());
+    assertEquals("BY-NC-SA 2.0", o.getMedia().get(0).getLicense());
+  }
+
 }
