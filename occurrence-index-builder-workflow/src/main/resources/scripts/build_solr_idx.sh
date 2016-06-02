@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 SOLR_HOME=$1
 AVRO_TABLE=$2
 ZK_HOST=$3
