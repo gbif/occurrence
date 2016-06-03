@@ -69,7 +69,6 @@ public class OccurrencePersistenceModule extends PrivateModule {
   @Override
   protected void configure() {
     bind(OccHBaseConfiguration.class).toInstance(cfg);
-
     bind(OccurrenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrencePersistenceService.class).to(OccurrencePersistenceServiceImpl.class);
     bind(OccurrenceKeyPersistenceService.class).to(OccurrenceKeyPersistenceServiceImpl.class);
@@ -91,11 +90,15 @@ public class OccurrencePersistenceModule extends PrivateModule {
 
   @Provides
   @Singleton
-  public Connection provideHBaseConnection() throws IOException {
-    Configuration hBaseConfiguration = HBaseConfiguration.create();
-    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(cfg.hbasePoolSize));
-    hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(cfg.hbasePoolSize));
-    return ConnectionFactory.createConnection(hBaseConfiguration);
+  public Connection provideHBaseConnection() {
+    try {
+      Configuration hBaseConfiguration = HBaseConfiguration.create();
+      hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(cfg.hbasePoolSize));
+      hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(1));
+      return ConnectionFactory.createConnection(hBaseConfiguration);
+    } catch (IOException ex) {
+      throw Throwables.propagate(ex);
+    }
   }
 
   @Provides
