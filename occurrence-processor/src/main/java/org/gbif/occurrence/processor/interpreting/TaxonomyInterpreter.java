@@ -125,7 +125,6 @@ public class TaxonomyInterpreter {
 
     String sciname = buildScientificName(scientificName, cleanAuthorship, cleanGenericName, cleanGenus,
                                                cleanSpecificEpithet, cleanInfraspecificEpithet);
-
     OccurrenceParseResult<NameUsageMatch> result;
     MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
     queryParams.add("kingdom", ClassificationUtils.clean(kingdom));
@@ -134,6 +133,7 @@ public class TaxonomyInterpreter {
     queryParams.add("order",   ClassificationUtils.clean(order));
     queryParams.add("family",  ClassificationUtils.clean(family));
     queryParams.add("genus",  cleanGenus);
+
     queryParams.add("name",   sciname);
     if (rank != null) {
       queryParams.add("rank", rank.name());
@@ -240,7 +240,7 @@ public class TaxonomyInterpreter {
       occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
     }
   }
-
+  
   private static Rank interpretRank(Map<Term, String> terms){
     Rank rank = null;
     if (hasTerm(terms, DwcTerm.taxonRank)) {
