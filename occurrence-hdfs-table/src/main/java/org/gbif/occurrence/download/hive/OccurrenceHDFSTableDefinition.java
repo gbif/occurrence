@@ -79,7 +79,7 @@ public class OccurrenceHDFSTableDefinition {
            + HiveColumns.columnFor(GbifTerm.publishingCountry)
            + " IS NOT NULL AND "
            + HiveColumns.columnFor(DwcTerm.countryCode)
-           + " IS NOT NULL, countrycode = publishingcountry, NULL )";
+           + " IS NOT NULL, countrycode != publishingcountry, NULL )";
   }
 
   private static String cleanDelimitersInitializer(String column) {

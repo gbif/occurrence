@@ -25,7 +25,7 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
   private final Counter updatedOccurrencesCount = Metrics.newCounter(getClass(), "updatedIndexedOccurrencesCount");
   private final Counter deletedOccurrencesCount = Metrics.newCounter(getClass(), "deletedIndexedOccurrencesCount");
   private final Timer writeTimer = Metrics.newTimer(getClass(), "occurrenceIndexWrites", TimeUnit.MILLISECONDS,
-    TimeUnit.SECONDS);
+                                                    TimeUnit.SECONDS);
   private final SolrOccurrenceWriter solrOccurrenceWriter;
 
   /**
