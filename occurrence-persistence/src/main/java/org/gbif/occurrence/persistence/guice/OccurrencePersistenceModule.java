@@ -94,7 +94,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
     try {
       Configuration hBaseConfiguration = HBaseConfiguration.create();
       hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(cfg.hbasePoolSize));
-      hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(1));
+      hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(0));
       return ConnectionFactory.createConnection(hBaseConfiguration);
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
