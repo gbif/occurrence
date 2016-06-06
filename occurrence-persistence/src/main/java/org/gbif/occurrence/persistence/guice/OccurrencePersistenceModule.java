@@ -92,10 +92,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
   @Singleton
   public Connection provideHBaseConnection() {
     try {
-      Configuration hBaseConfiguration = HBaseConfiguration.create();
-      hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(cfg.hbasePoolSize));
-      hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(0));
-      return ConnectionFactory.createConnection(hBaseConfiguration);
+      return ConnectionFactory.createConnection(HBaseConfiguration.create());
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
