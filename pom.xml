@@ -47,6 +47,7 @@
     <module>occurrence-hive</module>
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
+    <module>occurrence-heatmaps</module>
   </modules>
 
   <properties>
