@@ -78,24 +78,25 @@ Note the empty .password properties you need to fill in:
 Create an hbase table which is named by the property in the pom and should be populated with something like this:
 
 ```
-SELECT cell, collect_set(occId)
+INSERT OVERWRITE TABLE featured_occurrence 
+SELECT cell, collect_set(gbifid)
 FROM
 (
-  SELECT max(id) as occId, dataset_id, owning_org_id, concat(pmod(cast(latitude AS int),5), ':', pmod(cast(longitude AS int),5)) as cell
-  FROM uat_occurrence_hdfs
+  SELECT max(gbifid) as gbifid, datasetkey, publishingorgkey, concat(pmod(cast(decimallatitude AS int),5), ':', pmod(cast(decimallongitude AS int),5)) as cell
+  FROM occurrence_hdfs
   WHERE
-    dataset_id IS NOT NULL AND
-    owning_org_id IS NOT NULL AND
-    latitude>=-85 AND latitude<=85 AND
-    longitude>=-180 AND longitude<=180 AND
-    geospatial_issue=0 AND
-    kingdom_id IN(1,2,3,4,5,6,7,8)
+    datasetkey IS NOT NULL AND
+    publishingorgkey IS NOT NULL AND
+    decimallatitude>=-85 AND decimallatitude<=85 AND
+    decimallongitude>=-180 AND decimallongitude<=180 AND
+    hasgeospatialissues=FALSE AND
+    kingdomkey IN(1,2,3,4,5,6,7,8)
   GROUP BY
-    dataset_id,
-    owning_org_id,
-    kingdom_id,
-    pmod(cast(latitude AS int),5),
-    pmod(cast(longitude AS int),5)
+    datasetkey,
+    publishingorgkey,
+    kingdomkey,
+    pmod(cast(decimallatitude AS int),5),
+    pmod(cast(decimallongitude AS int),5)
 ) t1
 GROUP BY cell;
 ```

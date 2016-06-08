@@ -20,7 +20,7 @@ public class OccurrenceHeatmapRequestProvider {
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
 
-  public static OccurrenceHeatmapRequest buildOccurrenceHeatmapSearchRequest(HttpServletRequest request){
+  public static OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request){
     OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest = new OccurrenceHeatmapRequest();
 
     final String q = request.getParameter(PARAM_QUERY_STRING);

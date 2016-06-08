@@ -20,7 +20,7 @@ import org.apache.solr.common.util.NamedList;
 import org.junit.Test;
 
 
-public class OccurrenceHeatmapRequestProviderTest {
+public class OccurrenceHeatmapsTest {
 
   private static final String ZOOM_QUERY = "3";
   private static final String Q = "*";
@@ -30,7 +30,7 @@ public class OccurrenceHeatmapRequestProviderTest {
   public void heatmapRequestBuildTest() {
 
     OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
-      .buildOccurrenceHeatmapSearchRequest(getMockRequest());
+      .buildOccurrenceHeatmapRequest(getMockRequest());
 
     assertEquals(heatmapRequest.getZoom(), Integer.parseInt(ZOOM_QUERY));
     assertEquals(heatmapRequest.getParameters().get(OccurrenceSearchParameter.COUNTRY).iterator().next(), US_CODE);
@@ -101,7 +101,7 @@ public class OccurrenceHeatmapRequestProviderTest {
   @Test
   public void heatmapSearchTest() throws IOException, SolrServerException {
     OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
-      .buildOccurrenceHeatmapSearchRequest(getMockRequest());
+      .buildOccurrenceHeatmapRequest(getMockRequest());
     OccurrenceHeatmapsService heatmapsService = new OccurrenceHeatmapsService(getMockSolrClient(), "select");
     OccurrenceHeatmapResponse heatmapSearchResponse = heatmapsService.searchHeatMap(heatmapRequest);
     assertMockResponse(heatmapSearchResponse);
