@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.apache.bval.guice.ValidationModule;
 import org.apache.hadoop.conf.Configuration;
@@ -51,6 +52,7 @@ public class OccurrenceWsListener extends GbifServletListener {
     @SuppressWarnings("unused")
     @Provides
     @Named("featured_table_pool")
+    @Singleton
     public Connection provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) throws IOException {
       Configuration hBaseConfiguration = HBaseConfiguration.create();
       hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
