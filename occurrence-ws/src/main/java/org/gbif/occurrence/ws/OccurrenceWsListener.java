@@ -56,7 +56,6 @@ public class OccurrenceWsListener extends GbifServletListener {
     public Connection provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) throws IOException {
       Configuration hBaseConfiguration = HBaseConfiguration.create();
       hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
-      hBaseConfiguration.set("hbase.hconnection.threads.core", Integer.toString(0));
       return ConnectionFactory.createConnection(hBaseConfiguration);
     }
 
