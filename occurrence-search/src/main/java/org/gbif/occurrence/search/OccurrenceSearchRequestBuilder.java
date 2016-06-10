@@ -321,6 +321,74 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.REPATRIATED).getFieldName(),
                                        OccurrenceSearchParameter.REPATRIATED, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.HAS_COORDINATE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getFieldName(),
+                                       OccurrenceSearchParameter.HAS_COORDINATE, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE).getFieldName(),
+                                       OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.CATALOG_NUMBER,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CATALOG_NUMBER).getFieldName(),
+                                       OccurrenceSearchParameter.CATALOG_NUMBER, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.COLLECTION_CODE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COLLECTION_CODE).getFieldName(),
+                                       OccurrenceSearchParameter.COLLECTION_CODE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.CONTINENT,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CONTINENT).getFieldName(),
+                                       OccurrenceSearchParameter.CONTINENT, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.DECIMAL_LATITUDE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DECIMAL_LATITUDE).getFieldName(),
+                                       OccurrenceSearchParameter.DECIMAL_LATITUDE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE).getFieldName(),
+                                       OccurrenceSearchParameter.DECIMAL_LONGITUDE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.RECORDED_BY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.RECORDED_BY).getFieldName(),
+                                       OccurrenceSearchParameter.RECORDED_BY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.RECORD_NUMBER,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.RECORD_NUMBER).getFieldName(),
+                                       OccurrenceSearchParameter.RECORD_NUMBER, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PUBLISHING_COUNTRY).getFieldName(),
+                                       OccurrenceSearchParameter.PUBLISHING_COUNTRY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.DEPTH,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DEPTH).getFieldName(),
+                                       OccurrenceSearchParameter.DEPTH, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.ELEVATION,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ELEVATION).getFieldName(),
+                                       OccurrenceSearchParameter.ELEVATION, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.OCCURRENCE_ID,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.OCCURRENCE_ID).getFieldName(),
+                                       OccurrenceSearchParameter.OCCURRENCE_ID, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.MEDIA_TYPE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.MEDIA_TYPE).getFieldName(),
+                                       OccurrenceSearchParameter.MEDIA_TYPE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ESTABLISHMENT_MEANS).getFieldName(),
+                                       OccurrenceSearchParameter.ESTABLISHMENT_MEANS, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.ISSUE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ISSUE).getFieldName(),
+                                       OccurrenceSearchParameter.ISSUE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.INSTITUTION_CODE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTITUTION_CODE).getFieldName(),
+                                       OccurrenceSearchParameter.INSTITUTION_CODE, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .build();
 
 
