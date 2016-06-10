@@ -389,6 +389,10 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTITUTION_CODE).getFieldName(),
                                        OccurrenceSearchParameter.INSTITUTION_CODE, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.SCIENTIFIC_NAME,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SCIENTIFIC_NAME).getFieldName(),
+                                       OccurrenceSearchParameter.SCIENTIFIC_NAME, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .build();
 
 
