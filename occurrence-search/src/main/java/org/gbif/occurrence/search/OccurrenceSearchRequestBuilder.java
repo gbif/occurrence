@@ -150,6 +150,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.GENUS_KEY, OccurrenceSolrField.GENUS_KEY)
       .put(OccurrenceSearchParameter.SUBGENUS_KEY, OccurrenceSolrField.SUBGENUS_KEY)
       .put(OccurrenceSearchParameter.SPECIES_KEY, OccurrenceSolrField.SPECIES_KEY)
+      .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, OccurrenceSolrField.SCIENTIFIC_NAME)
       .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceSolrField.TYPE_STATUS)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, OccurrenceSolrField.MEDIA_TYPE)
       .put(OccurrenceSearchParameter.ISSUE, OccurrenceSolrField.ISSUE)
