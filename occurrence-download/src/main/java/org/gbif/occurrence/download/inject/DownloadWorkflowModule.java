@@ -129,11 +129,9 @@ public final class DownloadWorkflowModule extends AbstractModule {
   }
 
   @Provides
-  Connection provideHBaseConnection(@Named(PROPERTIES_PREFIX + "max_connection_pool") Integer maxConnectionPool)
+  Connection provideHBaseConnection()
     throws IOException {
-    Configuration hBaseConfiguration = HBaseConfiguration.create();
-    hBaseConfiguration.set("hbase.hconnection.threads.max", Integer.toString(maxConnectionPool));
-    return ConnectionFactory.createConnection(hBaseConfiguration);
+    return ConnectionFactory.createConnection(HBaseConfiguration.create());
   }
 
   @Provides
