@@ -18,6 +18,7 @@ import org.gbif.common.search.util.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -219,10 +220,12 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      for (String value : request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
+      Collection<String> values  = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+      for (String value : values) {
         NameUsageMatch nameUsageMatch = nameUsageMatchingService.match(value, null, null, true, false);
         if (nameUsageMatch.getMatchType() == MatchType.EXACT) {
           hasValidReplaces = true;
+          values.remove(value);
           request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsageKey());
         }
       }
