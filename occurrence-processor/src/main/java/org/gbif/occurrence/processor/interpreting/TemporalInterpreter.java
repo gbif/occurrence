@@ -71,7 +71,7 @@ public class TemporalInterpreter {
         }
       }
 
-      //Get eventDate as java.util.Date in UTC
+      //Get eventDate as java.util.Date in UTC. We ignore the timezone provided if one was provided
       Date eventDate = DateTimeUtils.toDate(localDate.atStartOfDay(UTC_ZONE_ID).toInstant());
 
       occ.setEventDate(eventDate);
