@@ -50,6 +50,7 @@ public class TermUtils {
   private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(DwcTerm.year,
                                                                              DwcTerm.month,
                                                                              DwcTerm.day,
+                                                                             DwcTerm.individualCount,
                                                                              GbifTerm.taxonKey,
                                                                              GbifTerm.kingdomKey,
                                                                              GbifTerm.phylumKey,
