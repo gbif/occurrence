@@ -137,7 +137,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.GENUS_KEY, GbifTerm.genusKey)
       .put(OccurrenceSearchParameter.SUBGENUS_KEY, GbifTerm.subgenusKey)
       .put(OccurrenceSearchParameter.SPECIES_KEY, GbifTerm.speciesKey)
-      .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.speciesKey)
+      .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.repatriated)
       .build();
 
   private StringBuilder builder;
