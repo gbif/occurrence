@@ -236,29 +236,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private Long getDownloadSize(String downloadKey) {
     File downloadFile = new File(downloadMount, downloadKey + ".zip");
-    if(tryFileExist(downloadFile,FILE_EXISTS_RETRIES,FILE_EXISTS_WAITING)) {
+    if(downloadFile.exists()) {
       return downloadFile.length();
     }
     LOG.error("Download file not found {}",downloadFile.getName());
     return 0L;
-  }
-
-  /**
-   * Utility function to retry a file existence check 'times' and waits 'waitingTime' between each check.
-   */
-  private static boolean tryFileExist(File file, int times, long waitingTime) {
-    for(int i = 0; i < times; i++) {
-      if(!file.exists()) {
-        try {
-          Thread.sleep(waitingTime);
-        } catch (InterruptedException ex) {
-          LOG.debug("Thread interrupted checking file existence {}", file.getName());
-        }
-      } else {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
