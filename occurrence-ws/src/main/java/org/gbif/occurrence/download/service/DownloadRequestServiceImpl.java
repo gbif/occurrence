@@ -61,6 +61,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
 
+  //Next variables are used for the tryFileExist function
+  private static int FILE_EXISTS_RETRIES = 3;
+  private static long FILE_EXISTS_WAITING = 2000;
+
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
    */
@@ -232,10 +236,29 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private Long getDownloadSize(String downloadKey) {
     File downloadFile = new File(downloadMount, downloadKey + ".zip");
-    if (downloadFile.exists()) {
+    if(tryFileExist(downloadFile,FILE_EXISTS_RETRIES,FILE_EXISTS_WAITING)) {
       return downloadFile.length();
     }
+    LOG.error("Download file not found {}",downloadFile.getName());
     return 0L;
+  }
+
+  /**
+   * Utility function to retry a file existence check 'times' and waits 'waitingTime' between each check.
+   */
+  private static boolean tryFileExist(File file, int times, long waitingTime) {
+    for(int i = 0; i < times; i++) {
+      if(!file.exists()) {
+        try {
+          Thread.sleep(waitingTime);
+        } catch (InterruptedException ex) {
+          LOG.debug("Thread interrupted checking file existence {}", file.getName());
+        }
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
