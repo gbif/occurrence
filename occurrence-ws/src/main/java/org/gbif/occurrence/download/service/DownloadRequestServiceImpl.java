@@ -63,7 +63,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   //Next variables are used for the tryFileExist function
   private static int FILE_EXISTS_RETRIES = 3;
-  private static long FILE_EXISTS_WAITING = 2000;
+  private static long FILE_EXISTS_WAITING = 10000;
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
