@@ -23,6 +23,8 @@ public class OccurrenceHeatmapsService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsService.class);
 
+  private static final int MIN_GRID_LEVEL = 3;
+
   private final SolrClient solrClient;
 
   private final OccurrenceSearchRequestBuilder occurrenceSearchHeatmapRequestBuilder;
@@ -40,7 +42,7 @@ public class OccurrenceHeatmapsService {
       solrQuery.setStart(0);
       solrQuery.setFacet(true);
       solrQuery.add(FacetParams.FACET_HEATMAP, OccurrenceSolrField.COORDINATE.getFieldName());
-      solrQuery.add(FacetParams.FACET_HEATMAP_LEVEL, Integer.toString(request.getZoom()));
+      solrQuery.add(FacetParams.FACET_HEATMAP_LEVEL, Integer.toString(gridLevel(request.getZoom())));
       solrQuery.add(FacetParams.FACET_HEATMAP_MAX_CELLS, Integer.toString(HeatmapFacetCounter.MAX_ROWS_OR_COLUMNS));
       if(request.getGeometry() != null) {
         solrQuery.add(FacetParams.FACET_HEATMAP_GEOM, request.getGeometry());
@@ -50,6 +52,20 @@ public class OccurrenceHeatmapsService {
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
+    }
+  }
+
+
+
+  private static int gridLevel(int zoom) {
+    if( zoom < MIN_GRID_LEVEL){
+      return MIN_GRID_LEVEL;
+    } else if (zoom <= 6) {
+      return MIN_GRID_LEVEL + 1;
+    } else if (zoom < 11) {
+      return MIN_GRID_LEVEL + 2;
+    } else {
+      return MIN_GRID_LEVEL + 3;
     }
   }
 }
