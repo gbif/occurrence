@@ -18,7 +18,7 @@
   </distributionManagement>
 
   <properties>
-    <hbase-indexer-engine.version>1.5-cdh5.4.2</hbase-indexer-engine.version>
+    <hbase-indexer-engine.version>1.5-cdh5.4.10</hbase-indexer-engine.version>
     <spatial4j.version>0.3</spatial4j.version>
     <commons-codec.version>1.9</commons-codec.version>
   </properties>
