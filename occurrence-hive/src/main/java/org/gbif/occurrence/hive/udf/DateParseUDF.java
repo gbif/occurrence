@@ -1,8 +1,8 @@
 package org.gbif.occurrence.hive.udf;
 
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.date.AtomizedLocalDate;
 import org.gbif.occurrence.processor.interpreting.TemporalInterpreter;
-import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +16,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorConverters;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.threeten.bp.temporal.TemporalAccessor;
 
 /**
  * Parses year month and day only.
@@ -35,14 +36,23 @@ public class DateParseUDF extends GenericUDF {
     String month = getArgument(1, arguments);
     String day = getArgument(2, arguments);
     String event_date = getArgument(3, arguments);
-    List<Object> result = new ArrayList<Object>(3);
+    List<Object> result = new ArrayList<Object>(4);
     try {
-      OccurrenceParseResult<DateYearMonthDay> parsed =
-        TemporalInterpreter.interpretRecordedDate(year, month, day, event_date);
+      OccurrenceParseResult<AtomizedLocalDate> parsed =
+        TemporalInterpreter.interpretEventDate(year, month, day, event_date);
+      OccurrenceParseResult<TemporalAccessor> parsed2 =
+              TemporalInterpreter.interpretRecordedDate(year, month, day, event_date);
       if (parsed.isSuccessful() && parsed.getIssues().isEmpty()) {
         result.add(parsed.getPayload().getYear());
         result.add(parsed.getPayload().getMonth());
         result.add(parsed.getPayload().getDay());
+        result.add(TemporalInterpreter.toUTCDate(parsed2.getPayload()).getTime());
+      }
+      else{
+        result.add(null);
+        result.add(null);
+        result.add(null);
+        result.add(null);
       }
     } catch (Exception e) {
       // not much to do - indicates bad data
@@ -79,11 +89,12 @@ public class DateParseUDF extends GenericUDF {
         .getConverter(arguments[i], PrimitiveObjectInspectorFactory.writableStringObjectInspector);
     }
 
-    return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays.asList("year", "month", "day", "event_date"), Arrays
-        .<ObjectInspector>asList(PrimitiveObjectInspectorFactory.javaIntObjectInspector,
-          PrimitiveObjectInspectorFactory.javaIntObjectInspector,
-          PrimitiveObjectInspectorFactory.javaIntObjectInspector,
-          PrimitiveObjectInspectorFactory.javaStringObjectInspector));
+    return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays.asList("year", "month", "day", "epoch"), Arrays
+        .<ObjectInspector>asList(
+                PrimitiveObjectInspectorFactory.javaIntObjectInspector,
+                PrimitiveObjectInspectorFactory.javaIntObjectInspector,
+                PrimitiveObjectInspectorFactory.javaIntObjectInspector,
+                PrimitiveObjectInspectorFactory.javaLongObjectInspector));
   }
 
 }
