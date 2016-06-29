@@ -26,6 +26,8 @@ import com.google.common.collect.Range;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.temporal.TemporalAccessor;
 
+import static org.gbif.common.parsers.date.TemporalAccessorUtils.toUTCDate;
+
 /**
  * Interprets multi media extension records.
  */
@@ -78,7 +80,7 @@ public class MultiMediaInterpreter {
             Range<LocalDate> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_LOCAL_DATE, LocalDate.now());
             OccurrenceParseResult<TemporalAccessor> parsed = TemporalInterpreter.interpretLocalDate(rec.get(DcTerm.created),
                     validRecordedDateRange, OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
-            m.setCreated(TemporalInterpreter.toUTCDate(parsed.getPayload()));
+            m.setCreated(toUTCDate(parsed.getPayload()));
             occ.getIssues().addAll(parsed.getIssues());
           }
 

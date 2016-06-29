@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.date.AtomizedLocalDate;
+import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.common.parsers.date.TextDateParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -13,7 +14,6 @@ import org.gbif.dwc.terms.DwcTerm;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -24,11 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.LocalDate;
-import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.Year;
 import org.threeten.bp.YearMonth;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.temporal.ChronoField;
 import org.threeten.bp.temporal.TemporalAccessor;
 import org.threeten.bp.temporal.TemporalQueries;
@@ -39,8 +36,6 @@ import org.threeten.bp.temporal.TemporalQueries;
 public class TemporalInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(TemporalInterpreter.class);
-
-  static ZoneId UTC_ZONE_ID = ZoneId.of("UTC");
 
   static final LocalDate MIN_LOCAL_DATE = LocalDate.of(1600, 1, 1);
   static final LocalDate MIN_EPOCH_LOCAL_DATE = LocalDate.ofEpochDay(0);
@@ -72,7 +67,7 @@ public class TemporalInterpreter {
       }
 
       //Get eventDate as java.util.Date in UTC. We ignore the timezone provided if one was provided
-      Date eventDate = DateTimeUtils.toDate(localDate.atStartOfDay(UTC_ZONE_ID).toInstant());
+      Date eventDate = DateTimeUtils.toDate(localDate.atStartOfDay(TemporalAccessorUtils.UTC_ZONE_ID).toInstant());
 
       occ.setEventDate(eventDate);
       occ.setYear(localDate.getYear());
@@ -86,7 +81,7 @@ public class TemporalInterpreter {
       Range<LocalDate> validModifiedDateRange = Range.closed(MIN_EPOCH_LOCAL_DATE, upperBound);
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DcTerm.modified),
               validModifiedDateRange, OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
-      occ.setModified(toUTCDate(parsed.getPayload()));
+      occ.setModified(TemporalAccessorUtils.toUTCDate(parsed.getPayload()));
       occ.getIssues().addAll(parsed.getIssues());
     }
 
@@ -95,7 +90,7 @@ public class TemporalInterpreter {
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
               validRecordedDateRange, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
       if(parsed.isSuccessful()) {
-        occ.setDateIdentified(toUTCDate(parsed.getPayload()));
+        occ.setDateIdentified(TemporalAccessorUtils.toUTCDate(parsed.getPayload()));
       }
       occ.getIssues().addAll(parsed.getIssues());
     }
@@ -170,7 +165,8 @@ public class TemporalInterpreter {
 
       LOG.debug("Date mismatch: [{} vs {}]].", parsedYMDResult.getPayload(), parsedDateResult.getPayload());
 
-      Optional<? extends TemporalAccessor> bestResolution = getBestResolutionTemporalAccessor(parsedYMDResult.getPayload(), parsedDateResult.getPayload());
+      Optional<? extends TemporalAccessor> bestResolution =
+              TemporalAccessorUtils.getBestResolutionTemporalAccessor(parsedYMDResult.getPayload(), parsedDateResult.getPayload());
       if(bestResolution.isPresent()){
         parsedTemporalAccessor = bestResolution.get();
         // if one of the 2 result is null we can not set the confidence to DEFINITE
@@ -266,74 +262,7 @@ public class TemporalInterpreter {
     return OccurrenceParseResult.fail();
   }
 
-  /**
-   * The idea of "best resolution" TemporalAccessor is to get the TemporalAccessor that offers more resolution than
-   * the other but they must NOT contradict.
-   * e.g. 2005-01 and 2005-01-01 will return 2005-01-01.
-   *
-   * Note that if one of the 2 parameters is null the other one will be considered having the best resolution
-   *
-   * @param ta1
-   * @param ta2
-   * @return
-   */
-  public static Optional<? extends TemporalAccessor> getBestResolutionTemporalAccessor(@Nullable TemporalAccessor ta1,
-                                                                                       @Nullable TemporalAccessor ta2){
-    //handle nulls combinations
-    if(ta1 == null && ta2 == null){
-      return Optional.absent();
-    }
-    if(ta1 == null){
-      return Optional.of(ta2);
-    }
-    if(ta2 == null){
-      return Optional.of(ta1);
-    }
 
-    AtomizedLocalDate ymd1 = AtomizedLocalDate.fromTemporalAccessor(ta1);
-    AtomizedLocalDate ymd2 = AtomizedLocalDate.fromTemporalAccessor(ta2);
 
-    // If they both provide the year, it must match
-    if(ymd1.getYear() != null && ymd2.getYear() != null && !ymd1.getYear().equals(ymd2.getYear())){
-      return Optional.absent();
-    }
-    // If they both provide the month, it must match
-    if(ymd1.getMonth() != null && ymd2.getMonth() != null && !ymd1.getMonth().equals(ymd2.getMonth())){
-      return Optional.absent();
-    }
-    // If they both provide the day, it must match
-    if(ymd1.getDay() != null && ymd2.getDay() != null && !ymd1.getDay().equals(ymd2.getDay())){
-      return Optional.absent();
-    }
-
-    if(ymd1.getResolution() > ymd2.getResolution()){
-      return Optional.of(ta1);
-    }
-
-    return Optional.of(ta2);
-  }
-
-  /**
-   * Transform a TemporalAccessor to a java.util.Date in the UTC time zone.
-   *
-   * @param temporalAccessor
-   * @return
-   */
-  public static Date toUTCDate(TemporalAccessor temporalAccessor){
-    if(temporalAccessor.isSupported(ChronoField.OFFSET_SECONDS)){
-      return DateTimeUtils.toDate(temporalAccessor.query(ZonedDateTime.FROM).toInstant());
-    }
-
-    if(temporalAccessor.isSupported(ChronoField.SECOND_OF_DAY)){
-      return DateTimeUtils.toDate(temporalAccessor.query(LocalDateTime.FROM).atZone(UTC_ZONE_ID).toInstant());
-    }
-
-    LocalDate localDate = temporalAccessor.query(LocalDate.FROM);
-    if (localDate != null) {
-      return DateTimeUtils.toDate(localDate.atStartOfDay(UTC_ZONE_ID).toInstant());
-    }
-
-    return null;
-  }
 
 }
