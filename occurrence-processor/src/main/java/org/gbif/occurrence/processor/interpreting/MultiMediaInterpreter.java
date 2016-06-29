@@ -15,7 +15,6 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.Terms;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +23,10 @@ import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.temporal.TemporalAccessor;
+
+import static org.gbif.common.parsers.date.TemporalAccessorUtils.toUTCDate;
 
 /**
  * Interprets multi media extension records.
@@ -74,10 +77,10 @@ public class MultiMediaInterpreter {
           m.setCreator(rec.get(DcTerm.creator));
           m.setFormat(MEDIA_PARSER.parseMimeType(rec.get(DcTerm.format)));
           if (rec.containsKey(DcTerm.created)) {
-            Range<Date> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_VALID_RECORDED_DATE, new Date());
-            OccurrenceParseResult<Date> parsed = TemporalInterpreter.interpretDate(rec.get(DcTerm.created),
+            Range<LocalDate> validRecordedDateRange = Range.closed(TemporalInterpreter.MIN_LOCAL_DATE, LocalDate.now());
+            OccurrenceParseResult<TemporalAccessor> parsed = TemporalInterpreter.interpretLocalDate(rec.get(DcTerm.created),
                     validRecordedDateRange, OccurrenceIssue.MULTIMEDIA_DATE_INVALID);
-            m.setCreated(parsed.getPayload());
+            m.setCreated(toUTCDate(parsed.getPayload()));
             occ.getIssues().addAll(parsed.getIssues());
           }
 

@@ -221,7 +221,7 @@ public class LocationInterpreter {
     }
   }
 
-  private void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
+  public void interpretDepth(VerbatimOccurrence verbatim, Occurrence occ) {
     OccurrenceParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseDepth(verbatim.getVerbatimField(DwcTerm.minimumDepthInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumDepthInMeters), null);
@@ -232,7 +232,7 @@ public class LocationInterpreter {
     }
   }
 
-  private void interpretElevation(VerbatimOccurrence verbatim, Occurrence occ) {
+  public void interpretElevation(VerbatimOccurrence verbatim, Occurrence occ) {
     OccurrenceParseResult<DoubleAccuracy> result = MeterRangeParser
       .parseElevation(verbatim.getVerbatimField(DwcTerm.minimumElevationInMeters),
         verbatim.getVerbatimField(DwcTerm.maximumElevationInMeters), null);

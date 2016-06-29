@@ -3,21 +3,24 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.processor.interpreting.result.DateYearMonthDay;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
-import com.google.common.collect.Range;
+import com.google.common.base.Optional;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.Year;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.temporal.ChronoUnit;
+import org.threeten.bp.temporal.TemporalAccessor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,7 +35,7 @@ public class TemporalInterpreterTest {
   public void testAllDates() {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, "1879");
-    v.setVerbatimField(DwcTerm.month, "11 ");
+    v.setVerbatimField(DwcTerm.month, "11 "); //keep the space at the end
     v.setVerbatimField(DwcTerm.day, "1");
     v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
     v.setVerbatimField(DwcTerm.dateIdentified, "2012-01-11");
@@ -52,20 +55,19 @@ public class TemporalInterpreterTest {
   }
 
   @Test
-  public void testLikelyYearRanges() {
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1900));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1901));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2010));
-    assertTrue(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2014));
+  public void testTemporalInterpreter(){
+    assertTrue(TemporalInterpreter.isValidDate(Year.of(2005), true));
+    assertTrue(TemporalInterpreter.isValidDate(YearMonth.of(2005, 1), true));
+    assertTrue(TemporalInterpreter.isValidDate(LocalDate.of(2005, 1, 1), true));
+    assertTrue(TemporalInterpreter.isValidDate(LocalDateTime.of(2005, 1, 1, 2, 3, 4), true));
+    assertTrue(TemporalInterpreter.isValidDate(LocalDate.now(), true));
+    assertTrue(TemporalInterpreter.isValidDate(LocalDateTime.now().plus(23, ChronoUnit.HOURS), true));
 
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(Calendar.getInstance().get(Calendar.YEAR) + 1));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(1580));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(900));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(90));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(0));
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(-1900));
+    // Dates out of bounds
+    assertFalse(TemporalInterpreter.isValidDate(YearMonth.of(1599, 12), true));
 
-    assertFalse(TemporalInterpreter.VALID_RECORDED_YEAR_RANGE.contains(2100));
+    // we tolerate a offset of 1 day
+    assertFalse(TemporalInterpreter.isValidDate(LocalDate.now().plusDays(2), true));
   }
 
   @Test
@@ -143,126 +145,147 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testGoodDate() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", "22", null);
-    assertResult(1984, 3, 22, "1984-03-22", result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "22", null);
+    assertResult(1984, 3, 22, result);
   }
 
   @Test
   public void testGoodOldDate() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1957", "3", "22", null);
-    assertResult(1957, 3, 22, "1957-03-22", result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1957", "3", "22", null);
+    assertResult(1957, 3, 22, result);
   }
 
+  /**
+   * 0 month now fails.
+   */
   @Test
   public void test0Month() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "0", "22", null);
-    assertResult(1984, null, 22, null, result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "0", "22", null);
+    //assertResult(1984, null, 22, null, result);
+    assertFalse(result.isSuccessful());
   }
 
   @Test
   public void testOldYear() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1599", "3", "22", null);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1599", "3", "22", null);
     assertNullResult(result);
   }
 
   @Test
   public void testFutureYear() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("2100", "3", "22", null);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("2100", "3", "22", null);
     assertNullResult(result);
   }
 
   @Test
   public void testBadDay() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", "32", null);
-    assertResult(1984, 3, null, null, result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "32", null);
+    assertNullResult(result);
   }
 
   @Test
   public void testStringGood() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "1984-03-22");
-    assertResult(1984, 3, 22, "1984-03-22", result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "1984-03-22");
+    assertResult(1984, 3, 22, result);
   }
 
   @Test
   public void testStringTimestamp() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "1984-03-22T00:00");
-    assertResult(1984, 3, 22, "1984-03-22", result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "1984-03-22T00:00");
+    assertResult(LocalDateTime.of(1984, 3, 22, 0, 0), result);
   }
 
   @Test
   public void testStringBad() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, "22-17-1984");
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "22-17-1984");
     assertNullResult(result);
   }
 
   @Test
   public void testStringWins() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", null, "1984-03-22");
-    assertResult(1984, 3, 22, "1984-03-22", result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, "1984-03-22");
+    assertResult(1984, 3, 22, result);
+  }
+
+  @Test
+  public void testStrange() {
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("16", "6", "1990", "16-6-1990");
+    assertResult(1990, 6, 16, result);
+    assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
   }
 
   @Test
   public void testStringLoses() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", null, "22-17-1984");
-    assertResult(1984, 3, null, null, result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, "22-17-1984");
+    assertResult(1984, 3, result);
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
   }
 
   // these two tests demonstrate the problem from POR-2120
-//  @Test
-//  public void testOnlyYear() {
-//    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", null, null, null);
-//    assertResult(1984, null, null, null, result);
-//
-//    result = interpretRecordedDate(null, null, null, "1984");
-//    assertResult(1984, null, null, null, result);
-//
-//    result = interpretRecordedDate("1984", null, null, "1984");
-//    assertResult(1984, null, null, null, result);
-//  }
-//
-//  @Test
-//  public void testYearWithZeros() {
-//    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "0", "0", "1984");
-//    System.out.println("Got result: " + result.getPayload().getDate());
-//    assertResult(1984, null, null, null, result);
-//
-//    result = interpretRecordedDate(null, null, null, "1984");
-//    System.out.println("Got result: " + result.getPayload().getDate());
-//    assertResult(1984, null, null, null, result);
-//
-//    result = interpretRecordedDate("1984", "0", "0", null);
-//    assertResult(1984, null, null, null, result);
-//
-//    result = interpretRecordedDate(null, null, null, "0-0-1984");
-//    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
-//    assertNull(result.getPayload());
-//  }
-//
-//  @Test
-//  public void testYearMonthNoDay() {
-//    ParseResult<DateYearMonthDay> result = interpretRecordedDate("1984", "3", null, null);
-//    System.out.println("Got result: " + result.getPayload().getDate());
-//    assertResult(1984, 3, null, null, result);
-//
-//    result = interpretRecordedDate("1984", "3", null, "1984-03");
-//    System.out.println("Got result: " + result.getPayload().getDate());
-//    assertResult(1984, 3, null, null, result);
-//
-//    result = interpretRecordedDate(null, null, null, "1984-03");
-//    System.out.println("Got result: " + result.getPayload().getDate());
-//    assertResult(1984, 3, null, null, result);
-//  }
-
   @Test
-  public void testOnlyMonth() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, "3", null, null);
-    assertResult(null, 3, null, null, result);
+  public void testOnlyYear() {
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", null, null, null);
+    assertResult(1984, result);
+
+    result = interpretRecordedDate(null, null, null, "1984");
+    assertResult(1984, result);
+
+    result = interpretRecordedDate("1984", null, null, "1984");
+    assertResult(1984, result);
   }
 
   @Test
+  public void testYearWithZeros() {
+    // providing 0 will cause a RECORDED_DATE_MISMATCH since 0 could be null but also January
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "0", "0", "1984");
+    assertResult(1984, result);
+    assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+
+    result = interpretRecordedDate(null, null, null, "1984");
+    assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
+    assertTrue(result.getIssues().isEmpty());
+
+    // This is not supported for the moment
+    result = interpretRecordedDate("1984", "0", "0", null);
+    assertNullResult(result);
+
+    result = interpretRecordedDate(null, null, null, "0-0-1984");
+    assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
+    assertNull(result.getPayload());
+  }
+
+  @Test
+  public void testYearMonthNoDay() {
+    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, null);
+    assertResult(1984, 3, result);
+
+    result = interpretRecordedDate("1984", "3", null, "1984-03");
+    assertResult(1984, 3,result);
+
+    result = interpretRecordedDate(null, null, null, "1984-03");
+    assertResult(1984, 3, result);
+  }
+
+  /**
+   * Only month now fails
+   */
+  @Test
+  public void testOnlyMonth() {
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, "3", null, null);
+   // assertResult(null, 3, null, null, result);
+    assertFalse(result.isSuccessful());
+  }
+
+  /**
+   * Only day now fails
+   */
+  @Test
   public void testOnlyDay() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, "23", null);
-    assertResult(null, null, 23, null, result);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, "23", null);
+    //assertResult(null, null, 23, null, result);
+    assertFalse(result.isSuccessful());
   }
 
   /**
@@ -273,11 +296,11 @@ public class TemporalInterpreterTest {
   public void testNow() {
 
     // Makes sure the static content is loaded
-    ParseResult<DateYearMonthDay> result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(Calendar.getInstance()));
+    ParseResult<TemporalAccessor> result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(Calendar.getInstance()));
     assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
 
     // Sorry for this Thread.sleep, we need to run the TemporalInterpreter at least 1 second later until
-    // we refactor to inject a Calendar of we move to new Java 8 Date/Time API
+    // we refactor to inject a Calendar or we move to new Java 8 Date/Time API
     try {
       Thread.sleep(1000);
     } catch (InterruptedException e) {
@@ -291,43 +314,45 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testAllNulls() {
-    ParseResult<DateYearMonthDay> result = interpretRecordedDate(null, null, null, null);
+    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, null);
     assertNullResult(result);
   }
 
   @Test
   public void testDateStrings() {
-    assertValidDate("1999-07-19", "1999-07-19");
-    assertValidDate("1999-07-19", "1999-07-19T00:00:00");
-    assertValidDate("1999-07-19", "19-07-1999");
-    assertValidDate("1999-07-19", "07-19-1999");
-    assertValidDate("1999-09-07", "07-09-1999");
-    assertValidDate("1999-06-07", "07-06-1999");
-    assertValidDate("1999-07-19", "19/7/1999");
-    assertValidDate("1999-07-19", "1999.7.19");
-    assertValidDate("1999-07-19", "19.7.1999");
-    assertValidDate("1999-07-19", "19.7.1999");
-    assertValidDate("1999-07-19", "19990719");
-    assertValidDate("2012-05-06", "20120506");
+    testEventDate(1999, 7, 19, "1999-07-19");
+    testEventDate(1999, 7, 19, "19-07-1999");
+    testEventDate(1999, 7, 19, "07-19-1999");
+    testEventDate(1999, 7, 19, "19/7/1999");
+    testEventDate(1999, 7, 19, "1999.7.19");
+    testEventDate(1999, 7, 19, "19.7.1999");
+    testEventDate(1999, 7, 19, "19990719");
+    testEventDate(2012, 5, 6, "20120506");
+
+    assertResult(LocalDateTime.of(1999, 7, 19, 0, 0), interpretRecordedDate(null, null, null, "1999-07-19T00:00:00"));
   }
 
-  private void assertValidDate(String expected, String input) {
-    assertDate(expected, interpretRecordedDate(null, null, null, input).getPayload());
+  @Test
+  public void testGetBestResolutionTemporalAccessor(){
+    TemporalAccessor ta1 = Year.of(2005);
+    TemporalAccessor ta2 = YearMonth.of(2005, 1);
+    Optional<? extends TemporalAccessor> result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
+    assertEquals(YearMonth.of(2005, 1), YearMonth.from(result.get()));
+
+    ta1 = LocalDate.of(2005, 1, 1);
+    ta2 = Year.of(2005);
+    result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
+    assertEquals(LocalDate.of(2005, 1, 1), LocalDate.from(result.get()));
+
+    //this should not work
+    ta1 = Year.of(2005);
+    ta2 = YearMonth.of(2006, 1);
+    result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
+    assertFalse(result.isPresent());
   }
 
-  /**
-   * @param expected expected date in ISO yyyy-MM-dd format
-   */
-  private void assertDate(String expected, DateYearMonthDay result) {
-    if (expected == null) {
-      if (result != null) {
-        assertNull(result.getDate());
-      }
-    } else {
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      assertNotNull("Missing date", result.getDate());
-      assertEquals(expected, sdf.format(result.getDate()));
-    }
+  private void testEventDate(int y, int m, int d, String input) {
+    assertResult(y, m, d, interpretRecordedDate(null, null, null, input));
   }
 
   /**
@@ -351,20 +376,65 @@ public class TemporalInterpreterTest {
     }
   }
 
-  private void assertResult(Integer y, Integer m, Integer d, String date, ParseResult<DateYearMonthDay> result) {
+  /**
+   * Utility method to assert a ParseResult when a LocalDate is expected.
+   * This method should not be used to test expected null results.
+   * @param y
+   * @param m
+   * @param d
+   * @param result
+   */
+  private void assertResult(Integer y, Integer m, Integer d, ParseResult<TemporalAccessor> result) {
+    // sanity checks
     assertNotNull(result);
-    assertInts(y, result.getPayload().getYear());
-    assertInts(m, result.getPayload().getMonth());
-    assertInts(d, result.getPayload().getDay());
-    assertDate(date, result.getPayload());
+
+    LocalDate localDate = result.getPayload().query(LocalDate.FROM);
+    assertInts(y, localDate.getYear());
+    assertInts(m, localDate.getMonthValue());
+    assertInts(d, localDate.getDayOfMonth());
+
+    assertEquals(LocalDate.of(y, m, d), result.getPayload());
   }
 
-  private void assertNullResult(ParseResult<DateYearMonthDay> result) {
+  private void assertResult(TemporalAccessor expectedTA, ParseResult<TemporalAccessor> result) {
+    assertEquals(expectedTA, result.getPayload());
+  }
+
+  /**
+   * Utility method to assert a ParseResult when a YearMonth is expected.
+   * This method should not be used to test expected null results.
+   * @param y
+   * @param m
+   * @param result
+   */
+  private void assertResult(Integer y, Integer m, ParseResult<TemporalAccessor> result) {
+    // sanity checks
+    assertNotNull(result);
+
+    YearMonth yearMonthDate = result.getPayload().query(YearMonth.FROM);
+    assertInts(y, yearMonthDate.getYear());
+    assertInts(m, yearMonthDate.getMonthValue());
+
+    assertEquals(YearMonth.of(y, m), result.getPayload());
+  }
+
+  private void assertResult(Integer y, ParseResult<TemporalAccessor> result) {
+    // sanity checks
+    assertNotNull(result);
+
+    Year yearDate = result.getPayload().query(Year.FROM);
+    assertInts(y, yearDate.getValue());
+
+    assertEquals(Year.of(y), result.getPayload());
+  }
+
+  private void assertNullResult(ParseResult<TemporalAccessor> result) {
+    assertFalse(result.isSuccessful());
     assertNotNull(result);
     assertNull(result.getPayload());
   }
 
-  private ParseResult<DateYearMonthDay> interpretRecordedDate(String y, String m, String d, String date) {
+  private OccurrenceParseResult<TemporalAccessor> interpretRecordedDate(String y, String m, String d, String date) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, y);
     v.setVerbatimField(DwcTerm.month, m);
@@ -374,7 +444,7 @@ public class TemporalInterpreterTest {
     return TemporalInterpreter.interpretRecordedDate(v);
   }
 
-  private ParseResult<DateYearMonthDay> interpretEventDate(String date) {
+  private ParseResult<TemporalAccessor> interpretEventDate(String date) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.eventDate, date);
 
