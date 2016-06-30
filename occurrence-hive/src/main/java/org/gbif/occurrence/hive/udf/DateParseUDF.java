@@ -2,6 +2,7 @@ package org.gbif.occurrence.hive.udf;
 
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.date.AtomizedLocalDate;
+import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.occurrence.processor.interpreting.TemporalInterpreter;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class DateParseUDF extends GenericUDF {
         result.add(parsed.getPayload().getYear());
         result.add(parsed.getPayload().getMonth());
         result.add(parsed.getPayload().getDay());
-        result.add(TemporalInterpreter.toUTCDate(parsed2.getPayload()).getTime());
+        result.add(TemporalAccessorUtils.toUTCDate(parsed2.getPayload()).getTime());
       }
       else{
         result.add(null);
