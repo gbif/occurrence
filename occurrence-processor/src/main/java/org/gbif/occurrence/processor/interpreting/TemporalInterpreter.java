@@ -22,10 +22,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.LocalDate;
-import org.threeten.bp.Year;
-import org.threeten.bp.YearMonth;
 import org.threeten.bp.temporal.ChronoField;
 import org.threeten.bp.temporal.TemporalAccessor;
 import org.threeten.bp.temporal.TemporalQueries;
@@ -49,30 +46,16 @@ public class TemporalInterpreter {
     OccurrenceParseResult<TemporalAccessor> eventResult = interpretRecordedDate(verbatim);
     if (eventResult.isSuccessful()) {
       TemporalAccessor temporalAccessor = eventResult.getPayload();
-      LocalDate localDate = temporalAccessor.query(TemporalQueries.localDate());
 
-      // Try from partial date
-      if(localDate == null) {
-        YearMonth yearMonth = temporalAccessor.query(YearMonth.FROM);
-        if (yearMonth != null) {
-          localDate = yearMonth.atDay(1);
-        }
-      }
-
-      if(localDate == null) {
-        Year year = temporalAccessor.query(Year.FROM);
-        if (year != null) {
-          localDate = year.atDay(1);
-        }
-      }
-
-      //Get eventDate as java.util.Date in UTC. We ignore the timezone provided if one was provided
-      Date eventDate = DateTimeUtils.toDate(localDate.atStartOfDay(TemporalAccessorUtils.UTC_ZONE_ID).toInstant());
+      //Get eventDate as java.util.Date and ignore the offset (timezone) if provided
+      //Note for debug: be careful if you inspect the content of 'eventDate' it will contain your machine timezone.
+      Date eventDate = TemporalAccessorUtils.toDate(temporalAccessor, true);
+      AtomizedLocalDate atomizedLocalDate = AtomizedLocalDate.fromTemporalAccessor(temporalAccessor);
 
       occ.setEventDate(eventDate);
-      occ.setYear(localDate.getYear());
-      occ.setMonth(localDate.getMonthValue());
-      occ.setDay(localDate.getDayOfMonth());
+      occ.setYear(atomizedLocalDate.getYear());
+      occ.setMonth(atomizedLocalDate.getMonth());
+      occ.setDay(atomizedLocalDate.getDay());
     }
     occ.getIssues().addAll(eventResult.getIssues());
 
@@ -81,7 +64,7 @@ public class TemporalInterpreter {
       Range<LocalDate> validModifiedDateRange = Range.closed(MIN_EPOCH_LOCAL_DATE, upperBound);
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DcTerm.modified),
               validModifiedDateRange, OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
-      occ.setModified(TemporalAccessorUtils.toUTCDate(parsed.getPayload()));
+      occ.setModified(TemporalAccessorUtils.toDate(parsed.getPayload()));
       occ.getIssues().addAll(parsed.getIssues());
     }
 
@@ -90,7 +73,7 @@ public class TemporalInterpreter {
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
               validRecordedDateRange, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
       if(parsed.isSuccessful()) {
-        occ.setDateIdentified(TemporalAccessorUtils.toUTCDate(parsed.getPayload()));
+        occ.setDateIdentified(TemporalAccessorUtils.toDate(parsed.getPayload()));
       }
       occ.getIssues().addAll(parsed.getIssues());
     }
