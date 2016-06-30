@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.google.common.base.Optional;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.junit.Test;
 import org.threeten.bp.LocalDate;
@@ -330,25 +329,6 @@ public class TemporalInterpreterTest {
     testEventDate(2012, 5, 6, "20120506");
 
     assertResult(LocalDateTime.of(1999, 7, 19, 0, 0), interpretRecordedDate(null, null, null, "1999-07-19T00:00:00"));
-  }
-
-  @Test
-  public void testGetBestResolutionTemporalAccessor(){
-    TemporalAccessor ta1 = Year.of(2005);
-    TemporalAccessor ta2 = YearMonth.of(2005, 1);
-    Optional<? extends TemporalAccessor> result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
-    assertEquals(YearMonth.of(2005, 1), YearMonth.from(result.get()));
-
-    ta1 = LocalDate.of(2005, 1, 1);
-    ta2 = Year.of(2005);
-    result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
-    assertEquals(LocalDate.of(2005, 1, 1), LocalDate.from(result.get()));
-
-    //this should not work
-    ta1 = Year.of(2005);
-    ta2 = YearMonth.of(2006, 1);
-    result = TemporalInterpreter.getBestResolutionTemporalAccessor(ta1, ta2);
-    assertFalse(result.isPresent());
   }
 
   private void testEventDate(int y, int m, int d, String input) {
