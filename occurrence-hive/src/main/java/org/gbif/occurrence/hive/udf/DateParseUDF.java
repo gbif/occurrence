@@ -47,7 +47,7 @@ public class DateParseUDF extends GenericUDF {
         result.add(parsed.getPayload().getYear());
         result.add(parsed.getPayload().getMonth());
         result.add(parsed.getPayload().getDay());
-        result.add(TemporalAccessorUtils.toUTCDate(parsed2.getPayload()).getTime());
+        result.add(TemporalAccessorUtils.toDate(parsed2.getPayload(), true).getTime());
       }
       else{
         result.add(null);
