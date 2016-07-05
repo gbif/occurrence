@@ -6,8 +6,9 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.date.AtomizedLocalDate;
+import org.gbif.common.parsers.date.DateParsers;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
-import org.gbif.common.parsers.date.TextDateParser;
+import org.gbif.common.parsers.date.TemporalParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 
@@ -37,7 +38,7 @@ public class TemporalInterpreter {
   static final LocalDate MIN_LOCAL_DATE = LocalDate.of(1600, 1, 1);
   static final LocalDate MIN_EPOCH_LOCAL_DATE = LocalDate.ofEpochDay(0);
 
-  private static final TextDateParser TEXTDATE_PARSER = new TextDateParser();
+  private static final TemporalParser TEXTDATE_PARSER = DateParsers.defaultTemporalParser();
 
   private TemporalInterpreter() {
   }
