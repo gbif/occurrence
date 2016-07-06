@@ -11,6 +11,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.common.search.inject.SolrModule;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
@@ -21,6 +22,7 @@ import org.gbif.occurrence.search.writers.SolrPredicateWriter;
 import org.gbif.service.guice.PrivateServiceModule;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -161,14 +164,18 @@ public class OccurrenceSearchTestIT {
    * @return
    */
   private static Injector getInjector() {
+    InputStream inputStream = null;
     try {
       Properties properties = new Properties();
-      properties.load(Resources.newInputStreamSupplier(Resources.getResource("occurrence.properties")).getInput());
+      inputStream = Resources.asByteSource(Resources.getResource("occurrence.properties")).openBufferedStream();
+      properties.load(inputStream);
       return Guice.createInjector(new OccurrenceSearchTestModule(properties));
     } catch (IllegalArgumentException e) {
       throw e;
     } catch (IOException e) {
       throw new IllegalStateException(e);
+    } finally {
+      IOUtils.closeQuietly(inputStream);
     }
   }
 
@@ -492,5 +499,19 @@ public class OccurrenceSearchTestIT {
     occurrenceSearchRequest.addMediaTypeFilter(MediaType.Sound);
     response = occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 3);
+  }
+
+  /**
+   * Perform a search by OccurrenceIssue
+   */
+  @Test
+  public void testSearchByIssue() {
+    // There is 1 occurrence with with issue COUNTRY_INVALID
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addIssueFilter(OccurrenceIssue.COUNTRY_INVALID);
+
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+            occurrenceSearchService.search(occurrenceSearchRequest);
+    Assert.assertTrue(response.getCount() == 1);
   }
 }

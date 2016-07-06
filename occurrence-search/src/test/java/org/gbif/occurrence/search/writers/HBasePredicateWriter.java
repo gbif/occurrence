@@ -1,6 +1,7 @@
 package org.gbif.occurrence.search.writers;
 
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -253,6 +254,12 @@ public class HBasePredicateWriter implements Predicate<Occurrence> {
     if (occ.getEstablishmentMeans() != null) {
       put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.establishmentMeans)),
               Bytes.toBytes(occ.getEstablishmentMeans().name()));
+    }
+
+    // OccurrenceIssues
+    for (OccurrenceIssue issue : occ.getIssues()) {
+      put.addColumn(CF, Bytes.toBytes(Columns.column(issue)),
+              Bytes.toBytes(1));
     }
 
     hTable.put(put);

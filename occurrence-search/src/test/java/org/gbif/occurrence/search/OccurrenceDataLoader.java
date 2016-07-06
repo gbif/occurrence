@@ -7,6 +7,7 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -27,9 +28,12 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Resources;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.Optional;
@@ -71,6 +75,28 @@ public class OccurrenceDataLoader {
       return null;
     }
 
+  }
+
+  private static class IssueProcessor implements CellProcessor {
+
+    private ObjectMapper MAPPER = new ObjectMapper();
+
+    @Override
+    public Set<OccurrenceIssue> execute(Object value, CsvContext context) {
+      Set<OccurrenceIssue> occurrenceIssues = Sets.newHashSet();
+      try {
+        Set<String> issues = MAPPER.readValue(value.toString(), new TypeReference<Set<String>>() {
+        });
+        if(issues != null && !issues.isEmpty()) {
+          for (String issueStr : issues) {
+            occurrenceIssues.add(VocabularyUtils.lookupEnum(issueStr, OccurrenceIssue.class));
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return occurrenceIssues;
+    }
   }
 
 
@@ -216,7 +242,8 @@ public class OccurrenceDataLoader {
     new Optional(new ParseDate(DATE_FORMAT)),// identificationDate
     new Optional(new TypeStatusProcessor()),// typeStatus
     new Optional(new MediaListProcessor()),// List<Media> in JSON
-    new Optional(new EstablishmentMeansProcessor())// establishmentMeans.
+    new Optional(new EstablishmentMeansProcessor()),// establishmentMeans.
+    new Optional(new IssueProcessor())// issues.
   };
 
 
@@ -266,7 +293,8 @@ public class OccurrenceDataLoader {
     "dateIdentified",
     "typeStatus",
     "media",
-    "establishmentMeans"
+    "establishmentMeans",
+    "issues"
   };
 
 
