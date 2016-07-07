@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.ObjectUtils;
@@ -147,12 +146,12 @@ public class TemporalInterpreter {
 
       issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
 
-      LOG.debug("Date mismatch: [{} vs {}]].", parsedYMDResult.getPayload(), parsedDateResult.getPayload());
+      LOG.debug("Date mismatch: [{} vs {}].", parsedYMDResult.getPayload(), parsedDateResult.getPayload());
 
-      Optional<? extends TemporalAccessor> bestResolution =
+      TemporalAccessor bestResolution =
               TemporalAccessorUtils.getBestResolutionTemporalAccessor(parsedYMDResult.getPayload(), parsedDateResult.getPayload());
-      if(bestResolution.isPresent()){
-        parsedTemporalAccessor = bestResolution.get();
+      if(bestResolution != null){
+        parsedTemporalAccessor = bestResolution;
         // if one of the 2 result is null we can not set the confidence to DEFINITE
         confidence = (parsedYMDResult.getPayload() == null || parsedDateResult.getPayload() == null) ?
                 ParseResult.CONFIDENCE.PROBABLE :ParseResult.CONFIDENCE.DEFINITE;
@@ -177,6 +176,13 @@ public class TemporalInterpreter {
     return OccurrenceParseResult.success(confidence, parsedTemporalAccessor, issues);
   }
 
+  /**
+   * Check if a date express as TemporalAccessor falls between the predefined range.
+   * Lower bound defined by {@link #MIN_LOCAL_DATE} and upper bound by current date + 1 day
+   * @param temporalAccessor
+   * @param acceptPartialDate
+   * @return valid or not according to the predefined range.
+   */
   public static boolean isValidDate(TemporalAccessor temporalAccessor, boolean acceptPartialDate){
     LocalDate upperBound = LocalDate.now().plusDays(1);
     return isValidDate(temporalAccessor, acceptPartialDate, Range.closed(MIN_LOCAL_DATE, upperBound));
@@ -245,8 +251,5 @@ public class TemporalInterpreter {
     }
     return OccurrenceParseResult.fail();
   }
-
-
-
 
 }

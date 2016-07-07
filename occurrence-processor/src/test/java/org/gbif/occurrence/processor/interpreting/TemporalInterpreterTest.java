@@ -70,6 +70,13 @@ public class TemporalInterpreterTest {
   }
 
   @Test
+  public void testInterpretRecordedDate(){
+    OccurrenceParseResult<TemporalAccessor> result =
+            TemporalInterpreter.interpretRecordedDate("", "1", "2005", "2005-01-01");
+    assertEquals(LocalDate.of(2005, 1, 1), result.getPayload());
+  }
+
+  @Test
   public void testLikelyIdentified() {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, "1879");
