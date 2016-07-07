@@ -1,5 +1,6 @@
 package org.gbif.occurrence.search;
 
+import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -23,6 +24,7 @@ import org.gbif.service.guice.PrivateServiceModule;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -167,7 +169,8 @@ public class OccurrenceSearchTestIT {
     InputStream inputStream = null;
     try {
       Properties properties = new Properties();
-      inputStream = Resources.asByteSource(Resources.getResource("occurrence.properties")).openBufferedStream();
+      inputStream = Resources.newInputStreamSupplier(Resources.getResource("occurrence.properties")).getInput();
+
       properties.load(inputStream);
       return Guice.createInjector(new OccurrenceSearchTestModule(properties));
     } catch (IllegalArgumentException e) {
@@ -513,5 +516,19 @@ public class OccurrenceSearchTestIT {
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =
             occurrenceSearchService.search(occurrenceSearchRequest);
     Assert.assertTrue(response.getCount() == 1);
+  }
+
+  @Test
+  public void testFacetByIssue() {
+    // There is 1 occurrence with with issue COUNTRY_INVALID
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+
+    occurrenceSearchRequest.addFacets(OccurrenceSearchParameter.ISSUE);
+
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
+            occurrenceSearchService.search(occurrenceSearchRequest);
+
+    List<Facet.Count> count = response.getFacets().iterator().next().getCounts();
+    Assert.assertTrue(count.iterator().next().getCount() == 1l);
   }
 }
