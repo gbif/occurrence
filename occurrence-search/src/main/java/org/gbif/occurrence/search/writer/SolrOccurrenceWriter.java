@@ -5,6 +5,7 @@ package org.gbif.occurrence.search.writer;
 
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
@@ -175,7 +176,7 @@ public class SolrOccurrenceWriter {
       doc.setField(COORDINATE.getFieldName(), null);
     }
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
-    doc.setField(ISSUE.getFieldName(), occurrence.getIssues());
+    doc.setField(ISSUE.getFieldName(), buildIssue(occurrence.getIssues()));
     doc.setField(ESTABLISHMENT_MEANS.getFieldName(),
                  occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
@@ -184,6 +185,19 @@ public class SolrOccurrenceWriter {
     return doc;
   }
 
+  /**
+   * Returns a nullable set of String that contains the result of .name() of each issues.
+   */
+  private static Set<String> buildIssue(Set<OccurrenceIssue> occurrenceIssues) {
+    Set<String> issuesList = null;
+    if (occurrenceIssues != null && !occurrenceIssues.isEmpty()) {
+      issuesList = Sets.newHashSetWithExpectedSize(occurrenceIssues.size());
+      for (OccurrenceIssue issue : occurrenceIssues) {
+        issuesList.add(issue.name().toUpperCase());
+      }
+    }
+    return issuesList;
+  }
 
   /**
    * Returns a nullable set of String that contains the media types present in the occurrence object.
@@ -191,7 +205,7 @@ public class SolrOccurrenceWriter {
   private static Set<String> buildMediaType(Occurrence occurrence) {
     Set<String> mediaTypes = null;
     if (occurrence.getMedia() != null && !occurrence.getMedia().isEmpty()) {
-      mediaTypes = Sets.newHashSet();
+      mediaTypes = Sets.newHashSetWithExpectedSize(occurrence.getMedia().size());
       for (MediaObject mediaObject : occurrence.getMedia()) {
         if (mediaObject.getType() != null) {
           mediaTypes.add(mediaObject.getType().name().toUpperCase());
