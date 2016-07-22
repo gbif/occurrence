@@ -18,6 +18,9 @@ SET hbase.client.scanner.caching=400;
 SET hive.mapred.reduce.tasks.speculative.execution=false;
 SET hive.hadoop.supports.splittable.combineinputformat=true;
 SET mapred.max.split.size=256000000;
+SET hbase.rpc.timeout=120000;
+SET hbase.client.scanner.timeout.period=120000;
+SET hbase.cells.scanned.per.heartbeat.check=20000;
 
 -- hint: ensure these are on the job classpath
 CREATE TEMPORARY FUNCTION collectMediaTypes AS 'org.gbif.occurrence.hive.udf.CollectMediaTypesUDF';
