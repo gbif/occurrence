@@ -37,8 +37,9 @@ public class InterpretOccurrenceCommand extends BaseCommand {
       return;
     }
 
+    MessagePublisher publisher = null;
     try {
-      MessagePublisher publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
+      publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
       if (config.key != null) {
         sendDeleteMessage(publisher, config.key);
         LOG.info("Sent interpretation message for key {}", config.key);
@@ -61,6 +62,8 @@ public class InterpretOccurrenceCommand extends BaseCommand {
       }
     } catch (IOException e) {
       LOG.error("Caught exception while sending delete occurrence message", e);
+    } finally {
+      if (publisher != null) publisher.close();
     }
   }
 

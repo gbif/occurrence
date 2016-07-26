@@ -38,8 +38,9 @@ public class DeleteOccurrenceCommand extends BaseCommand {
       return;
     }
 
+    MessagePublisher publisher = null;
     try {
-      MessagePublisher publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
+      publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
       if (config.key != null) {
         sendDeleteMessage(publisher, config.key);
       } else {
@@ -52,6 +53,8 @@ public class DeleteOccurrenceCommand extends BaseCommand {
       }
     } catch (IOException e) {
       LOG.error("Caught exception while sending delete occurrence message", e);
+    } finally {
+      if (publisher != null) publisher.close();
     }
   }
 

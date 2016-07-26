@@ -27,8 +27,9 @@ public abstract class DatasetMutationCommand extends BaseCommand {
       return;
     }
 
+    MessagePublisher publisher = null;
     try {
-      MessagePublisher publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
+      publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
       if (config.uuid != null) {
         sendMessage(publisher, config.uuid);
       } else {
@@ -41,6 +42,8 @@ public abstract class DatasetMutationCommand extends BaseCommand {
       }
     } catch (IOException e) {
       LOG.error("Caught exception while sending dataset mutation message", e);
+    } finally {
+      if (publisher != null) publisher.close();
     }
   }
 
