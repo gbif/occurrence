@@ -22,8 +22,4 @@
     <name>hbase.client.scanner.caching</name>
     <value>1000</value>
   </property>
-  <property>
-    <name>hbase.rpc.timeout</name>
-    <value>120000</value>
-  </property>
 </configuration>
