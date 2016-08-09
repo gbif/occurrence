@@ -41,14 +41,14 @@ public class InterpretOccurrenceCommand extends BaseCommand {
     try {
       publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
       if (config.key != null) {
-        sendDeleteMessage(publisher, config.key);
+        sendInterpretMessage(publisher, config.key);
         LOG.info("Sent interpretation message for key {}", config.key);
       } else {
         List<Integer> keys = HueCsvReader.readIntKeys(config.keyFileName);
         if (keys != null && !keys.isEmpty()) {
           int counter = 0;
           for (Integer key : keys) {
-            sendDeleteMessage(publisher, key);
+            sendInterpretMessage(publisher, key);
             counter++;
             if (counter % 10000 == 0) {
               LOG.info("Sent {} interpretation messages for key file {} so far.", counter, config.keyFileName);
@@ -67,7 +67,7 @@ public class InterpretOccurrenceCommand extends BaseCommand {
     }
   }
 
-  private static void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
+  private static void sendInterpretMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
     publisher.send(new InterpretVerbatimMessage(occurrenceKey));
   }
 }
