@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Min;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -181,6 +182,25 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     return suggestTermByField(prefix, OccurrenceSearchParameter.OCCURRENCE_ID, limit);
   }
 
+  @Override
+  public List<String> suggestOrganismIds(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.ORGANISM_ID, limit);
+  }
+
+  @Override
+  public List<String> suggestLocalities(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.LOCALITY, limit);
+  }
+
+  @Override
+  public List<String> suggestWaterBodies(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.WATER_BODY, limit);
+  }
+
+  @Override
+  public List<String> suggestStateProvinces(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.STATE_PROVINCE, limit);
+  }
 
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.
