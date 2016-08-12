@@ -26,6 +26,10 @@ import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 
 /**
  * Ws client for {@link OccurrenceSearchService}.
@@ -81,6 +85,26 @@ public class OccurrenceWsSearchClient extends BaseWsFacetedSearchClient<Occurren
   @Override
   public List<String> suggestOccurrenceIds(String prefix, @Nullable Integer limit) {
     return suggestTerms(OCCURRENCE_ID_PATH, prefix, limit);
+  }
+
+  @Override
+  public List<String> suggestOrganismIds(String prefix, @Nullable Integer limit) {
+    return suggestTerms(ORGANISM_ID_PATH, prefix, limit);
+  }
+
+  @Override
+  public List<String> suggestLocalities(String prefix, @Nullable Integer limit) {
+    return suggestTerms(LOCALITY_PATH, prefix, limit);
+  }
+
+  @Override
+  public List<String> suggestWaterBodies(String prefix, @Nullable Integer limit) {
+    return suggestTerms(WATER_BODY_PATH, prefix, limit);
+  }
+
+  @Override
+  public List<String> suggestStateProvinces(String prefix, @Nullable Integer limit) {
+    return suggestTerms(STATE_PROVINCE_PATH, prefix, limit);
   }
 
   /**
