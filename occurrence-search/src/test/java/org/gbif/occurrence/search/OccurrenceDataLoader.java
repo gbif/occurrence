@@ -6,7 +6,9 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DwcTerm;
@@ -190,6 +192,36 @@ public class OccurrenceDataLoader {
 
   }
 
+  /**
+   * Produces a EndpointType instance.
+   */
+  private static class EndpointTypeProcessor implements CellProcessor {
+
+    @Override
+    public EndpointType execute(Object value, CsvContext context) {
+      Enum<?> endpointType = VocabularyUtils.lookupEnum((String) value, EndpointType.class);
+      if (endpointType != null) {
+        return (EndpointType) endpointType;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Produces a License instance.
+   */
+  private static class LicenseProcessor implements CellProcessor {
+
+    @Override
+    public License execute(Object value, CsvContext context) {
+      Enum<?> license = VocabularyUtils.lookupEnum((String) value, License.class);
+      if (license != null) {
+        return (License) license;
+      }
+      return null;
+    }
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDataLoader.class);
 
   // Date format used in the CSV file.
@@ -243,7 +275,11 @@ public class OccurrenceDataLoader {
     new Optional(new TypeStatusProcessor()),// typeStatus
     new Optional(new MediaListProcessor()),// List<Media> in JSON
     new Optional(new EstablishmentMeansProcessor()),// establishmentMeans.
-    new Optional(new IssueProcessor())// issues.
+    new Optional(new IssueProcessor()),// issues.
+    new Optional(),// organismId
+    new Optional(),// waterBody
+    new Optional(new EndpointTypeProcessor()), // protocol
+    new Optional(new LicenseProcessor()) // datasetLicense
   };
 
 
@@ -294,7 +330,11 @@ public class OccurrenceDataLoader {
     "typeStatus",
     "media",
     "establishmentMeans",
-    "issues"
+    "issues",
+    "organismID",
+    "waterBody",
+    "protocol",
+    "datasetLicense"
   };
 
 
@@ -310,7 +350,8 @@ public class OccurrenceDataLoader {
     "stateProvince",
     "recordedBy",
     "recordNumber",
-    "identifiedBy").build();
+    "identifiedBy",
+    "organismID").build();
 
 
   /**

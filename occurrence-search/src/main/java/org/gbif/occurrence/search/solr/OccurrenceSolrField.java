@@ -1,5 +1,6 @@
 package org.gbif.occurrence.search.solr;
 
+import org.gbif.api.vocabulary.EndpointType;
 
 /**
  * Enum that contains the mapping of symbolic names and field names of valid Solr fields.
@@ -15,7 +16,9 @@ public enum OccurrenceSolrField {
   SPATIAL_ISSUES("spatial_issues"), HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"),
   LAST_INTERPRETED("last_interpreted"), TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue"),
   ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id"),
-  SCIENTIFIC_NAME("scientific_name"), FULL_TEXT("full_text"), REPATRIATED("repatriated");
+  SCIENTIFIC_NAME("scientific_name"), FULL_TEXT("full_text"), REPATRIATED("repatriated"),
+  ORGANISM_ID("organism_id"), STATE_PROVINCE("state_province"), WATER_BODY("water_body"), LOCALITY("locality"),
+  PROTOCOL("protocol"), DATASET_LICENSE("dataset_license");
 
   private final String fieldName;
 

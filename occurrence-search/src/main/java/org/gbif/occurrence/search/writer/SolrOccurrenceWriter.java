@@ -59,6 +59,12 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXON_KEY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TYPE_STATUS;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.YEAR;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.REPATRIATED;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ORGANISM_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.STATE_PROVINCE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.WATER_BODY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LOCALITY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PROTOCOL;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_LICENSE;
 
 
 /**
@@ -182,6 +188,12 @@ public class SolrOccurrenceWriter {
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
     doc.setField(FULL_TEXT.getFieldName(), FullTextFieldBuilder.buildFullTextField(occurrence));
     doc.setField(REPATRIATED.getFieldName(),isRepatriated(occurrence).orNull());
+    doc.setField(ORGANISM_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.organismID));
+    doc.setField(STATE_PROVINCE.getFieldName(), occurrence.getStateProvince());
+    doc.setField(WATER_BODY.getFieldName(), occurrence.getWaterBody());
+    doc.setField(LOCALITY.getFieldName(), occurrence.getVerbatimField(DwcTerm.locality));
+    doc.setField(PROTOCOL.getFieldName(), occurrence.getProtocol() == null ? null : occurrence.getProtocol().name());
+    doc.setField(DATASET_LICENSE.getFieldName(), occurrence.getDatasetLicense() == null ? null : occurrence.getDatasetLicense());
     return doc;
   }
 

@@ -43,5 +43,11 @@ removeNulls(array(
 <#list fields as field>
 ${field}<#if field_has_next>,</#if>
 </#list>)),
-repatriated
+repatriated,
+locality,
+organismid,
+stateprovince,
+waterbody,
+protocol,
+datasetlicense
 FROM ${r"${sourceOccurrenceTable}"} occ;

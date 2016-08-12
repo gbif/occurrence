@@ -157,6 +157,11 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, OccurrenceSolrField.OCCURRENCE_ID)
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceSolrField.ESTABLISHMENT_MEANS)
       .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceSolrField.REPATRIATED)
+      .put(OccurrenceSearchParameter.LOCALITY, OccurrenceSolrField.LOCALITY)
+      .put(OccurrenceSearchParameter.STATE_PROVINCE, OccurrenceSolrField.STATE_PROVINCE)
+      .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceSolrField.WATER_BODY)
+      .put(OccurrenceSearchParameter.DATASET_LICENSE, OccurrenceSolrField.DATASET_LICENSE)
+      .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceSolrField.PROTOCOL)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
@@ -268,7 +273,7 @@ public class OccurrenceSearchRequestBuilder {
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.DATASET_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_KEY).getFieldName(),
-                                       OccurrenceSearchParameter.DATASET_KEY, FacetField.Method.ENUM,
+                                       OccurrenceSearchParameter.DATASET_KEY, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
     .put(OccurrenceSearchParameter.TAXON_KEY,
          new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
@@ -376,15 +381,15 @@ public class OccurrenceSearchRequestBuilder {
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.MEDIA_TYPE,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.MEDIA_TYPE).getFieldName(),
-                                       OccurrenceSearchParameter.MEDIA_TYPE, FacetField.Method.FIELD_CACHE,
+                                       OccurrenceSearchParameter.MEDIA_TYPE, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ESTABLISHMENT_MEANS).getFieldName(),
-                                       OccurrenceSearchParameter.ESTABLISHMENT_MEANS, FacetField.Method.FIELD_CACHE,
+                                       OccurrenceSearchParameter.ESTABLISHMENT_MEANS, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.ISSUE,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.ISSUE).getFieldName(),
-                                       OccurrenceSearchParameter.ISSUE, FacetField.Method.FIELD_CACHE,
+                                       OccurrenceSearchParameter.ISSUE, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.INSTITUTION_CODE,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTITUTION_CODE).getFieldName(),
@@ -393,6 +398,14 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SCIENTIFIC_NAME).getFieldName(),
                                        OccurrenceSearchParameter.SCIENTIFIC_NAME, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.PROTOCOL,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PROTOCOL).getFieldName(),
+                                       OccurrenceSearchParameter.PROTOCOL, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.DATASET_LICENSE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_LICENSE).getFieldName(),
+                                       OccurrenceSearchParameter.DATASET_LICENSE, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
       .build();
 

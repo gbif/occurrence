@@ -50,5 +50,11 @@ TBLPROPERTIES (
     {"name":"issue","type":["null",{"type":"array", "items":"string"}],"default":null},
     {"name":"scientific_name","type":["string", "null"]},
     {"name":"full_text","type":["null",{"type":"array", "items":"string"}],"default":null},
-    {"name":"repatriated","type":["boolean", "null"]}]
+    {"name":"repatriated","type":["boolean", "null"]},
+    {"name":"locality","type":["string", "null"]},
+    {"name":"organism_id","type":["string", "null"]},
+    {"name":"state_province","type":["string", "null"]},
+    {"name":"water_body","type":["string", "null"]},
+    {"name":"protocol","type":["string", "null"]},
+    {"name":"dataset_license","type":["string", "null"]}]
 }');

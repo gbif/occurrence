@@ -262,6 +262,21 @@ public class HBasePredicateWriter implements Predicate<Occurrence> {
               Bytes.toBytes(1));
     }
 
+    if (occ.getWaterBody() != null) {
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.waterBody)),
+                    Bytes.toBytes(occ.getWaterBody()));
+    }
+
+    if (occ.getVerbatimField(DwcTerm.organismID) != null) {
+      put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.organismID)),
+                    Bytes.toBytes(occ.getVerbatimField(DwcTerm.organismID)));
+    }
+
+    if (occ.getProtocol() != null) {
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.protocol)),
+                    Bytes.toBytes(occ.getProtocol().name()));
+    }
+
     hTable.put(put);
   }
 
