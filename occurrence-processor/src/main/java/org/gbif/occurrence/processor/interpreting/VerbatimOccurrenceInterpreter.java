@@ -51,7 +51,7 @@ public class VerbatimOccurrenceInterpreter {
   private static final EstablishmentMeansParser EST_PARSER = EstablishmentMeansParser.getInstance();
   private static final LifeStageParser LST_PARSER = LifeStageParser.getInstance();
 
-  private final PublishingOrgInterpreter publishingOrgInterpreter;
+  private final DatasetInfoInterpreter datasetInfoInterpreter;
   private final TaxonomyInterpreter taxonomyInterpreter;
   private final LocationInterpreter locationInterpreter;
   private final OccurrencePersistenceService occurrenceService;
@@ -59,9 +59,9 @@ public class VerbatimOccurrenceInterpreter {
 
   @Inject
   public VerbatimOccurrenceInterpreter(OccurrencePersistenceService occurrenceService,
-    ZookeeperConnector zookeeperConnector, PublishingOrgInterpreter publishingOrgInterpreter,
+    ZookeeperConnector zookeeperConnector, DatasetInfoInterpreter datasetInfoInterpreter,
     TaxonomyInterpreter taxonomyInterpreter, LocationInterpreter locationInterpreter) {
-    this.publishingOrgInterpreter = publishingOrgInterpreter;
+    this.datasetInfoInterpreter = datasetInfoInterpreter;
     this.taxonomyInterpreter = taxonomyInterpreter;
     this.locationInterpreter = locationInterpreter;
     this.occurrenceService = checkNotNull(occurrenceService, "occurrenceService can't be null");
@@ -96,9 +96,9 @@ public class VerbatimOccurrenceInterpreter {
       occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {
-      publishingOrgInterpreter.interpretPublishingOrg(occ);
+      datasetInfoInterpreter.interpretDatasetInfo(occ);
     } catch (Exception e) {
-      LOG.warn("Caught a runtime exception during owning org interpretation", e);
+      LOG.warn("Caught a runtime exception during dataset info interpretation", e);
       occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
     }
     try {

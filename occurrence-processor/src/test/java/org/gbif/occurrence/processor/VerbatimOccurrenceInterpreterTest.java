@@ -19,7 +19,7 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
-import org.gbif.occurrence.processor.interpreting.PublishingOrgInterpreter;
+import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
@@ -82,7 +82,7 @@ public class VerbatimOccurrenceInterpreterTest {
     fragmentPersister.insert(fragment, uniqueIds);
     OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceMock(fragmentPersister);
     interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
-      new PublishingOrgInterpreter(cfg.newApiClient()),
+      new DatasetInfoInterpreter(cfg.newApiClient()),
       new TaxonomyInterpreter(cfg.newApiClient()),
       new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))
     );

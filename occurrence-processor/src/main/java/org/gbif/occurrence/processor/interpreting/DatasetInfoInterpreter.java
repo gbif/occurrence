@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.License;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
 
@@ -25,12 +26,12 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * This is not really an Interpreter - just a wrapper around the webservice calls to look up the publishing organization of
- * a dataset and its fields.
+ * This is not an Interpreter. It's just a wrapper around the webservice calls to look up dataset info that is included
+ * in occurrence records.
  */
-public class PublishingOrgInterpreter {
+public class DatasetInfoInterpreter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PublishingOrgInterpreter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
 
   private final DatasetWsClient datasetClient;
   private final OrganizationWsClient orgClient;
@@ -57,12 +58,12 @@ public class PublishingOrgInterpreter {
       });
 
   @Inject
-  public PublishingOrgInterpreter(WebResource apiWs) {
+  public DatasetInfoInterpreter(WebResource apiWs) {
     datasetClient = new DatasetWsClient(apiWs, null);
     orgClient = new OrganizationWsClient(apiWs, null);
   }
 
-  public void interpretPublishingOrg(Occurrence occ) {
+  public void interpretDatasetInfo(Occurrence occ) {
     Organization org = getOrgByDataset(occ.getDatasetKey());
     // update the occurrence's publishing org if it's empty or out of sync
 
@@ -79,6 +80,11 @@ public class PublishingOrgInterpreter {
       } else {
         occ.setPublishingCountry(country);
       }
+    }
+
+    License license = getDatasetLicense(occ.getDatasetKey());
+    if (license != null) {
+      occ.setDatasetLicense(license);
     }
   }
 
@@ -104,6 +110,30 @@ public class PublishingOrgInterpreter {
     }
 
     return org == null ? null : org;
+  }
+
+  /**
+   * Find and return the organization which publishes the dataset for the given datasetKey.
+   *
+   * @param datasetKey the dataset publisher to find
+   * @return the dataset license
+   */
+  @Nullable
+  @VisibleForTesting
+  protected License getDatasetLicense(UUID datasetKey) {
+    checkNotNull(datasetKey, "datasetKey can't be null");
+
+    License license = null;
+    try {
+      Dataset dataset = datasetCache.get(datasetKey);
+      if (dataset != null && dataset.getLicense() != null) {
+        license = dataset.getLicense();
+      }
+    } catch (UncheckedExecutionException | ExecutionException e) {
+      LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);
+    }
+
+    return license == null ? null : license;
   }
 
   /**

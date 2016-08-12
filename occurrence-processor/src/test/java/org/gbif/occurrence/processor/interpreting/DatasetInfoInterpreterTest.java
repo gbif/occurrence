@@ -14,12 +14,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 @Ignore("requires live webservice")
-public class PublishingOrgInterpreterTest {
+public class DatasetInfoInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
-  static final PublishingOrgInterpreter interpreter;
+  static final DatasetInfoInterpreter interpreter;
   static {
     cfg.url = URI.create("http://api.gbif-uat.org/v1/");
-    interpreter = new PublishingOrgInterpreter(cfg.newApiClient());
+    interpreter = new DatasetInfoInterpreter(cfg.newApiClient());
   }
 
   private static final String BGBM_KEY = "57254bd0-8256-11d8-b7ed-b8a03c50a862";
