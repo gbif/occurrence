@@ -10,6 +10,7 @@ import org.gbif.api.service.occurrence.OccurrenceService;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Min;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -67,4 +68,23 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService {
     return new ImmutableList.Builder<String>().add("id1").add("id2").add("id3").build();
   }
 
+  @Override
+  public List<String> suggestOrganismIds(String prefix, @Nullable Integer limit) {
+    return new ImmutableList.Builder<String>().add("id1").add("id2").add("id3").build();
+  }
+
+  @Override
+  public List<String> suggestLocalities(String prefix, @Nullable Integer limit) {
+    return new ImmutableList.Builder<String>().add("Florida").add("San Jorge").add("Panama Canal").build();
+  }
+
+  @Override
+  public List<String> suggestWaterBodies(String prefix, @Nullable Integer limit) {
+    return new ImmutableList.Builder<String>().add("Pacific Ocean").add("Atlantic Ocean").build();
+  }
+
+  @Override
+  public List<String> suggestStateProvinces(String prefix, @Nullable Integer limit) {
+    return new ImmutableList.Builder<String>().add("Florida").add("New York").add("Texas").build();
+  }
 }
