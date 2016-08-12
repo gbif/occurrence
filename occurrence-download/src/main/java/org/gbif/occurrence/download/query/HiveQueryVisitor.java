@@ -138,6 +138,12 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.SUBGENUS_KEY, GbifTerm.subgenusKey)
       .put(OccurrenceSearchParameter.SPECIES_KEY, GbifTerm.speciesKey)
       .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.repatriated)
+      .put(OccurrenceSearchParameter.ORGANISM_ID, DwcTerm.organismID)
+      .put(OccurrenceSearchParameter.LOCALITY, DwcTerm.locality)
+      .put(OccurrenceSearchParameter.STATE_PROVINCE, DwcTerm.stateProvince)
+      .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
+      .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
+      .put(OccurrenceSearchParameter.DATASET_LICENSE, GbifTerm.datasetLicense)
       .build();
 
   private StringBuilder builder;
