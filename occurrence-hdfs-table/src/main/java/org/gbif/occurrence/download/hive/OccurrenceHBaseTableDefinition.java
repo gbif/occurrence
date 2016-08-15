@@ -160,7 +160,7 @@ public class OccurrenceHBaseTableDefinition {
   private static HBaseField interpretedField(Term term) {
     return new HBaseField(term, HiveColumns.columnFor(term),
                           // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
-                          // column uin HBase for us
+                          // column in HBase for us
                           HiveDataTypes.typeForTerm(term, false), // not verbatim context
                           Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(term));
   }

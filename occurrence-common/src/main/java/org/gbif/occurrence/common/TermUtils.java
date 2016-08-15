@@ -163,7 +163,8 @@ public class TermUtils {
                                                                                  GbifTerm.publishingCountry,
                                                                                  GbifTerm.protocol,
                                                                                  GbifTerm.lastCrawled,
-                                                                                 GbifTerm.lastParsed);
+                                                                                 GbifTerm.lastParsed,
+                                                                                 DcTerm.license);
 
   /**
    * TODO: is this correct? -> Terms used during interpretation and superseded by an interpreted property
