@@ -279,7 +279,7 @@ public class OccurrenceDataLoader {
     new Optional(),// organismId
     new Optional(),// waterBody
     new Optional(new EndpointTypeProcessor()), // protocol
-    new Optional(new LicenseProcessor()) // datasetLicense
+    new Optional(new LicenseProcessor()) // license
   };
 
 
@@ -334,7 +334,7 @@ public class OccurrenceDataLoader {
     "organismID",
     "waterBody",
     "protocol",
-    "datasetLicense"
+    "license"
   };
 
 
