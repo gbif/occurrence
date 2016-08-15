@@ -1,5 +1,6 @@
 package org.gbif.occurrence.ws;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.checklistbank.ws.client.guice.ChecklistBankWsClientModule;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.occurrence.download.service.OccurrenceDownloadServiceModule;
@@ -12,14 +13,17 @@ import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.app.ConfUtils;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
+import org.gbif.ws.mixin.LicenseMixin;
 import org.gbif.ws.server.guice.GbifServletListener;
 import org.gbif.ws.server.guice.WsAuthModule;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -27,7 +31,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.apache.bval.guice.ValidationModule;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -94,5 +97,8 @@ public class OccurrenceWsListener extends GbifServletListener {
     return modules;
   }
 
-
+  @Override
+  protected Map<Class<?>, Class<?>> getMixIns() {
+    return ImmutableMap.<Class<?>, Class<?>>of(Occurrence.class, LicenseMixin.class);
+  }
 }
