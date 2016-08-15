@@ -84,7 +84,7 @@ public class DatasetInfoInterpreter {
 
     License license = getDatasetLicense(occ.getDatasetKey());
     if (license != null) {
-      occ.setDatasetLicense(license);
+      occ.setLicense(license);
     }
   }
 

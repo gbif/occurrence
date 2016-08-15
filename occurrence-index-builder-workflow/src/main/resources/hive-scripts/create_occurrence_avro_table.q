@@ -56,5 +56,5 @@ TBLPROPERTIES (
     {"name":"state_province","type":["string", "null"]},
     {"name":"water_body","type":["string", "null"]},
     {"name":"protocol","type":["string", "null"]},
-    {"name":"dataset_license","type":["string", "null"]}]
+    {"name":"license","type":["string", "null"]}]
 }');

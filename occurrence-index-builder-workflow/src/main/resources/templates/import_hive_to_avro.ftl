@@ -49,5 +49,5 @@ organismid,
 stateprovince,
 waterbody,
 protocol,
-datasetlicense
+license
 FROM ${r"${sourceOccurrenceTable}"} occ;

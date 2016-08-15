@@ -261,8 +261,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldVerb.getDatasetKey(), occ.getDatasetKey())) {
       upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
     }
-    if (!Objects.equals(oldVerb.getDatasetLicense(), occ.getDatasetLicense())) {
-      upd.setInterpretedField(GbifTerm.datasetLicense, occ.getDatasetLicense());
+    if (!Objects.equals(oldVerb.getLicense(), occ.getLicense())) {
+      upd.setInterpretedField(DcTerm.license, occ.getLicense());
     }
     if (!Objects.equals(oldVerb.getPublishingCountry(), occ.getPublishingCountry())) {
       upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());

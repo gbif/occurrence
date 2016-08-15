@@ -64,7 +64,7 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.STATE_PROVINCE
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.WATER_BODY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LOCALITY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PROTOCOL;
-import static org.gbif.occurrence.search.solr.OccurrenceSolrField.DATASET_LICENSE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LICENSE;
 
 
 /**
@@ -193,7 +193,7 @@ public class SolrOccurrenceWriter {
     doc.setField(WATER_BODY.getFieldName(), occurrence.getWaterBody());
     doc.setField(LOCALITY.getFieldName(), occurrence.getVerbatimField(DwcTerm.locality));
     doc.setField(PROTOCOL.getFieldName(), occurrence.getProtocol() == null ? null : occurrence.getProtocol().name());
-    doc.setField(DATASET_LICENSE.getFieldName(), occurrence.getDatasetLicense() == null ? null : occurrence.getDatasetLicense());
+    doc.setField(LICENSE.getFieldName(), occurrence.getLicense() == null ? null : occurrence.getLicense());
     return doc;
   }
 

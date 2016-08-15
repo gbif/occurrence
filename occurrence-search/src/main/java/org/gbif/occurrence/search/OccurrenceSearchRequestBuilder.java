@@ -160,7 +160,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.LOCALITY, OccurrenceSolrField.LOCALITY)
       .put(OccurrenceSearchParameter.STATE_PROVINCE, OccurrenceSolrField.STATE_PROVINCE)
       .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceSolrField.WATER_BODY)
-      .put(OccurrenceSearchParameter.DATASET_LICENSE, OccurrenceSolrField.DATASET_LICENSE)
+      .put(OccurrenceSearchParameter.LICENSE, OccurrenceSolrField.LICENSE)
       .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceSolrField.PROTOCOL)
       .build();
 
@@ -403,9 +403,9 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PROTOCOL).getFieldName(),
                                        OccurrenceSearchParameter.PROTOCOL, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
-      .put(OccurrenceSearchParameter.DATASET_LICENSE,
-           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_LICENSE).getFieldName(),
-                                       OccurrenceSearchParameter.DATASET_LICENSE, FacetField.Method.ENUM,
+      .put(OccurrenceSearchParameter.LICENSE,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.LICENSE).getFieldName(),
+                                       OccurrenceSearchParameter.LICENSE, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
       .build();
 
