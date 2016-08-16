@@ -30,6 +30,10 @@ import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
 
 
 /**
@@ -100,4 +104,37 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing occurrenceId suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestOccurrenceIds(prefix, limit);
   }
+
+  @GET
+  @Path(ORGANISM_ID_PATH)
+  public List<String>
+  suggestOrganismIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing organismId suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestOrganismIds(prefix, limit);
+  }
+
+  @GET
+  @Path(LOCALITY_PATH)
+  public List<String>
+  suggestLocality(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing locality suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestLocalities(prefix, limit);
+  }
+
+  @GET
+  @Path(STATE_PROVINCE_PATH)
+  public List<String>
+  suggestStateProvince(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing stateProvince suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestStateProvinces(prefix, limit);
+  }
+
+  @GET
+  @Path(WATER_BODY_PATH)
+  public List<String>
+  suggestWaterBody(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestWaterBodies(prefix, limit);
+  }
+
 }

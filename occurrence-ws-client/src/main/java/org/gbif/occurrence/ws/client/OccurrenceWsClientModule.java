@@ -1,12 +1,16 @@
 package org.gbif.occurrence.ws.client;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.ws.client.guice.GbifWsClientModule;
+import org.gbif.ws.mixin.LicenseMixin;
 
+import java.util.Map;
 import java.util.Properties;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
@@ -40,6 +44,11 @@ public class OccurrenceWsClientModule extends GbifWsClientModule {
   }
 
   @Override
+  protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {
+    return new ImmutableMap.Builder<Class<?>, Class<?>>().put(Occurrence.class, LicenseMixin.class).build();
+  }
+
+  @Override
   protected void configureClient() {
     bind(OccurrenceService.class).to(OccurrenceWsClient.class).in(Scopes.SINGLETON);
     bind(OccurrenceSearchService.class).to(OccurrenceWsSearchClient.class).in(Scopes.SINGLETON);
@@ -48,4 +57,6 @@ public class OccurrenceWsClientModule extends GbifWsClientModule {
     expose(OccurrenceService.class);
     expose(OccurrenceSearchService.class);
   }
+
+
 }
