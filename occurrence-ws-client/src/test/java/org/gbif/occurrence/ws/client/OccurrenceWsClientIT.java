@@ -29,6 +29,8 @@ import static org.junit.Assert.assertTrue;
 
 public class OccurrenceWsClientIT extends BaseResourceTest {
 
+  private static int HTTP_TO = 60000;
+
   private OccurrenceService client;
   private String wsBaseUrl;
 
@@ -41,6 +43,7 @@ public class OccurrenceWsClientIT extends BaseResourceTest {
     Properties properties = new Properties();
     wsBaseUrl = new URIBuilder(getBaseURI()).setPath(contextPath).toString();
     properties.put("occurrence.ws.url", wsBaseUrl);
+    properties.put("httpTimeout", HTTP_TO);
     Injector clientInjector =
       Guice.createInjector(new OccurrenceWsClientModule(properties), new AbstractModule() {
         @Override
