@@ -162,6 +162,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceSolrField.WATER_BODY)
       .put(OccurrenceSearchParameter.LICENSE, OccurrenceSolrField.LICENSE)
       .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceSolrField.PROTOCOL)
+      .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceSolrField.ORGANISM_ID)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
