@@ -261,9 +261,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldVerb.getDatasetKey(), occ.getDatasetKey())) {
       upd.setInterpretedField(GbifTerm.datasetKey, occ.getDatasetKey());
     }
-    if (!Objects.equals(oldVerb.getLicense(), occ.getLicense())) {
-      upd.setInterpretedField(DcTerm.license, occ.getLicense());
-    }
     if (!Objects.equals(oldVerb.getPublishingCountry(), occ.getPublishingCountry())) {
       upd.setInterpretedField(GbifTerm.publishingCountry, occ.getPublishingCountry());
     }
@@ -437,6 +434,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!Objects.equals(oldOcc.getReferences(), occ.getReferences())) {
       upd.setInterpretedField(DcTerm.references, occ.getReferences());
+    }
+    if (!Objects.equals(oldOcc.getLicense(), occ.getLicense())) {
+      upd.setInterpretedField(DcTerm.license, occ.getLicense());
     }
 
     // Multimedia extension
