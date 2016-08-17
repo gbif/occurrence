@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 
 public class OccurrenceWsClientIT extends BaseResourceTest {
 
-  private static int HTTP_TO = 60000;
+  private static String HTTP_TO = "60000";
 
   private OccurrenceService client;
   private String wsBaseUrl;

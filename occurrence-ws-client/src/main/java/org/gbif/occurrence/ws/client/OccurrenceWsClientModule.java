@@ -43,7 +43,8 @@ public class OccurrenceWsClientModule extends GbifWsClientModule {
     return client.resource(url);
   }
 
-  protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {
+  @Override
+  protected Map<Class<?>, Class<?>> getMixIns() {
     return new ImmutableMap.Builder<Class<?>, Class<?>>().put(Occurrence.class, LicenseMixin.class).build();
   }
 
