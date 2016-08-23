@@ -16,6 +16,7 @@ import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.api.vocabulary.License;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
@@ -106,7 +107,7 @@ public class DwcaArchiveBuilder {
     + "Please respect the rights declared for each dataset in the download: ";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String RIGHTS =
-    "The data included in this download are provided to the user under a Creative Commons BY-NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0) which means that you are free to use, share, and adapt the data provided that you give reasonable and appropriate credit (attribution) and that you do not use the material for commercial purposes (non-commercial).\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
+    "The data included in this download are provided to the user under a %s license (%s), please read the license terms and conditions to understand the implications of its usage and sharing.\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private final DatasetService datasetService;
@@ -201,8 +202,8 @@ public class DwcaArchiveBuilder {
       rightsWriter.write(citationLink);
     }
     rightsWriter.write("\nRights as supplied: ");
-    if (!Strings.isNullOrEmpty(dataset.getRights())) {
-      rightsWriter.write(dataset.getRights());
+    if (dataset.getLicense() != null) {
+      rightsWriter.write(dataset.getLicense().getLicenseUrl());
     } else {
       rightsWriter.write("Not supplied");
     }
@@ -255,10 +256,10 @@ public class DwcaArchiveBuilder {
       }
 
       // metadata, citation and rights
-      addConstituentMetadata();
+      License downloadLicense = addConstituentMetadata();
 
       // metadata about the entire archive data
-      addMetadata();
+      addMetadata(downloadLicense);
 
       // meta.xml
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
@@ -432,13 +433,25 @@ public class DwcaArchiveBuilder {
   }
 
   /**
+   * Compares the currente download license against a datasetLicense and returns the most restrictive.
+   */
+  private License getMostRestrictiveLicense(License downloadLicense, License datasetLicense) {
+    return (datasetLicense != null  && datasetLicense.isConcrete()
+            && downloadLicense.compareTo(datasetLicense) > 0) ? datasetLicense : downloadLicense;
+  }
+
+  /**
    * Adds an eml file per dataset involved into a subfolder "dataset" which is supported by our dwc archive reader.
    * Create a rights.txt and citation.txt file targeted at humans to quickly yield an overview about rights and
    * datasets involved.
+   * This method returns the License that must be assigned to the occurrence download file.
    */
-  private void addConstituentMetadata() throws IOException {
+  private License addConstituentMetadata() throws IOException {
 
     Path citationSrc = new Path(configuration.getCitationDataFileName());
+
+    //default download license
+    License downloadLicense = License.CC_BY_4_0;
 
     LOG.info("Adding constituent dataset metadata to archive, based on: {}", citationSrc);
 
@@ -446,7 +459,7 @@ public class DwcaArchiveBuilder {
     // first copy from HDFS to local file
     if (!sourceFs.exists(citationSrc)) {
       LOG.warn("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
-      return;
+      return downloadLicense;
     }
 
     Map<UUID, Integer> srcDatasets = readDatasetCounts(citationSrc);
@@ -472,6 +485,7 @@ public class DwcaArchiveBuilder {
       try {
         Dataset srcDataset = datasetService.get(constituentId);
 
+        downloadLicense = getMostRestrictiveLicense(downloadLicense,srcDataset.getLicense());
         // citation
         String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
         // rights
@@ -493,16 +507,18 @@ public class DwcaArchiveBuilder {
                                 e.getResponse().getEntity(String.class)), e);
       } catch (Exception e) {
         LOG.error("Error creating download file", e);
+        return  downloadLicense;
       }
     }
     closer.close();
+    return downloadLicense;
   }
 
   /**
    * Creates a single EML metadata file for the entire archive.
    * Make sure we execute this method AFTER building the constituents metadata which adds to our dataset instance.
    */
-  private void addMetadata() {
+  private void addMetadata(License downloadLicense) {
     LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadKey is not a string in UUID format
@@ -529,7 +545,7 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      dataset.setRights(String.format(RIGHTS, userService.get(configuration.getUser()).getName(), dataset.getTitle()));
+      dataset.setRights(String.format(RIGHTS,downloadLicense.getLicenseTitle(), downloadLicense.getLicenseUrl()));
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
                                             DOWNLOAD_CONTACT_EMAIL,
