@@ -425,14 +425,6 @@ public class DwcaArchiveBuilder {
   }
 
   /**
-   * Compares the currente download license against a datasetLicense and returns the most restrictive.
-   */
-  private License getMostRestrictiveLicense(License downloadLicense, License datasetLicense) {
-    return (datasetLicense != null  && datasetLicense.isConcrete()
-            && downloadLicense.compareTo(datasetLicense) > 0) ? datasetLicense : downloadLicense;
-  }
-
-  /**
    * Adds an eml file per dataset involved into a subfolder "dataset" which is supported by our dwc archive reader.
    * Create a rights.txt and citation.txt file targeted at humans to quickly yield an overview about rights and
    * datasets involved.
@@ -477,7 +469,7 @@ public class DwcaArchiveBuilder {
       try {
         Dataset srcDataset = datasetService.get(constituentId);
 
-        downloadLicense = getMostRestrictiveLicense(downloadLicense,srcDataset.getLicense());
+        downloadLicense = License.getMostRestrictive(downloadLicense, srcDataset.getLicense(), License.CC_BY_4_0);
         // citation
         String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
         // rights
