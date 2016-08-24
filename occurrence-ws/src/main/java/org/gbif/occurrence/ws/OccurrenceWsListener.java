@@ -88,7 +88,6 @@ public class OccurrenceWsListener extends GbifServletListener {
     // others
     modules.add(new WsAuthModule(properties));
     modules.add(new ValidationModule());
-    modules.add(new DrupalMyBatisModule(properties));
     modules.add(new OccurrencePersistenceModule(properties));
     modules.add(new OccurrenceSearchModule(properties));
     modules.add(new OccurrenceDownloadServiceModule(properties));

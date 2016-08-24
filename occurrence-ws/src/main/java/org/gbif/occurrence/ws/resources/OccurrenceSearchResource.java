@@ -67,8 +67,8 @@ public class OccurrenceSearchResource {
 
   @GET
   @Path(COLLECTION_CODE_PATH)
-  public List<String>
-    suggestCollectionCodes(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestCollectionCodes(@QueryParam(QUERY_PARAM) String prefix,
+                                             @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing collection codes suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestCollectionCodes(prefix, limit);
   }
@@ -91,48 +91,43 @@ public class OccurrenceSearchResource {
 
   @GET
   @Path(INSTITUTION_CODE_PATH)
-  public List<String>
-    suggestInstitutionCodes(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestInstitutionCodes(@QueryParam(QUERY_PARAM) String prefix,
+                                              @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing institution codes suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestInstitutionCodes(prefix, limit);
   }
 
   @GET
   @Path(OCCURRENCE_ID_PATH)
-  public List<String>
-  suggestOccurrenceIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestOccurrenceIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing occurrenceId suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestOccurrenceIds(prefix, limit);
   }
 
   @GET
   @Path(ORGANISM_ID_PATH)
-  public List<String>
-  suggestOrganismIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestOrganismIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing organismId suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestOrganismIds(prefix, limit);
   }
 
   @GET
   @Path(LOCALITY_PATH)
-  public List<String>
-  suggestLocality(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestLocality(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing locality suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestLocalities(prefix, limit);
   }
 
   @GET
   @Path(STATE_PROVINCE_PATH)
-  public List<String>
-  suggestStateProvince(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestStateProvince(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing stateProvince suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestStateProvinces(prefix, limit);
   }
 
   @GET
   @Path(WATER_BODY_PATH)
-  public List<String>
-  suggestWaterBody(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  public List<String> suggestWaterBody(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestWaterBodies(prefix, limit);
   }

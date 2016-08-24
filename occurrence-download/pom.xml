@@ -177,10 +177,6 @@
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
-      <artifactId>drupal-mybatis</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
       <artifactId>gbif-common-mybatis</artifactId>
       <version>${gbif-common-mybatis.version}</version>
     </dependency>

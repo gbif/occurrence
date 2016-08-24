@@ -8,7 +8,6 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
-import org.gbif.api.service.common.UserService;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -17,7 +16,6 @@ import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.api.vocabulary.License;
-import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -113,7 +111,6 @@ public class DwcaArchiveBuilder {
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final UserService userService;
   private final TitleLookup titleLookup;
   private final Dataset dataset;
   private final File archiveDir;
@@ -148,9 +145,7 @@ public class DwcaArchiveBuilder {
     DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
-    Injector inj = Guice.createInjector(new DrupalMyBatisModule(workflowConfiguration.getDownloadSettings()),
-                                        new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
-    UserService userService = inj.getInstance(UserService.class);
+    Injector inj = Guice.createInjector(new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
     TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
 
     FileSystem sourceFs = configuration.isSmallDownload()
@@ -162,7 +157,6 @@ public class DwcaArchiveBuilder {
     DwcaArchiveBuilder generator = new DwcaArchiveBuilder(datasetService,
                                                           datasetUsageService,
                                                           occurrenceDownloadService,
-                                                          userService,
                                                           sourceFs,
                                                           targetFs,
                                                           archiveDir,
@@ -214,7 +208,6 @@ public class DwcaArchiveBuilder {
     DatasetService datasetService,
     DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
-    UserService userService,
     FileSystem sourceFs,
     FileSystem targetFs,
     File archiveDir,
@@ -225,7 +218,6 @@ public class DwcaArchiveBuilder {
     this.datasetService = datasetService;
     this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.userService = userService;
     this.sourceFs = sourceFs;
     this.targetFs = targetFs;
     this.archiveDir = archiveDir;
