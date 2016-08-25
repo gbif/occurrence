@@ -18,7 +18,8 @@ public enum OccurrenceSolrField {
   ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id"),
   SCIENTIFIC_NAME("scientific_name"), FULL_TEXT("full_text"), REPATRIATED("repatriated"),
   ORGANISM_ID("organism_id"), STATE_PROVINCE("state_province"), WATER_BODY("water_body"), LOCALITY("locality"),
-  PROTOCOL("protocol"), LICENSE("license");
+  PROTOCOL("protocol"), LICENSE("license"), CRAWL_ID("crawl_id"),
+  PUBLISHING_ORGANIZATION_KEY("publishing_organization_key");
 
   private final String fieldName;
 

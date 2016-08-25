@@ -163,6 +163,8 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.LICENSE, OccurrenceSolrField.LICENSE)
       .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceSolrField.PROTOCOL)
       .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceSolrField.ORGANISM_ID)
+      .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY)
+      .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
@@ -407,6 +409,14 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.LICENSE,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.LICENSE).getFieldName(),
                                        OccurrenceSearchParameter.LICENSE, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.CRAWL_ID,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CRAWL_ID).getFieldName(),
+                                       OccurrenceSearchParameter.CRAWL_ID, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.PUBLISHING_ORG,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PUBLISHING_ORG).getFieldName(),
+                                       OccurrenceSearchParameter.PUBLISHING_ORG, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
       .build();
 

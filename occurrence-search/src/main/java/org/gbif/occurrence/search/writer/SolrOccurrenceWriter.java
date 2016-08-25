@@ -65,6 +65,8 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.WATER_BODY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LOCALITY;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PROTOCOL;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LICENSE;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CRAWL_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY;
 
 
 /**
@@ -193,6 +195,9 @@ public class SolrOccurrenceWriter {
     doc.setField(WATER_BODY.getFieldName(), occurrence.getWaterBody());
     doc.setField(LOCALITY.getFieldName(), occurrence.getVerbatimField(DwcTerm.locality));
     doc.setField(PROTOCOL.getFieldName(), occurrence.getProtocol() == null ? null : occurrence.getProtocol().name());
+    doc.setField(CRAWL_ID.getFieldName(), occurrence.getCrawlId() == null ? null : occurrence.getCrawlId());
+    doc.setField(PUBLISHING_ORGANIZATION_KEY.getFieldName(),
+                 occurrence.getPublishingOrgKey() == null ? null : occurrence.getPublishingOrgKey());
     doc.setField(LICENSE.getFieldName(), occurrence.getLicense() == null ? null : occurrence.getLicense());
     return doc;
   }

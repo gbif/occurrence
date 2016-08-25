@@ -219,6 +219,8 @@ public class OccurrenceBuilder {
       //It  should be replaced by License.fromString(value).orNull() but conflicts of Guava versions avoid its usage
       occ.setLicense(VocabularyUtils.lookupEnum(ExtResultReader.getString(row, DcTerm.license), License.class));
 
+      occ.setCrawlId(ExtResultReader.getInteger(row, GbifInternalTerm.crawlId));
+
       return occ;
     }
   }

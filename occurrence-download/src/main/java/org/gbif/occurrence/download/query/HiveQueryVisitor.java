@@ -33,6 +33,7 @@ import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
@@ -145,6 +146,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
+      .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
+      .put(OccurrenceSearchParameter.CRAWL_ID, GbifInternalTerm.crawlId)
       .build();
 
   private StringBuilder builder;

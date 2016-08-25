@@ -112,6 +112,8 @@
     <field name="locality" type="string" indexed="true" stored="false"/>
     <field name="protocol" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="license" type="string" indexed="true" stored="false" docValues="true"/>
+    <field name="crawl_id" type="int" indexed="true" stored="false" docValues="true"/>
+    <field name="publishing_organization_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <field name="_version_" type="long" indexed="true" stored="true"/>
   </fields>
