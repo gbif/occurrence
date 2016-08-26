@@ -108,6 +108,8 @@ public class DwcaArchiveBuilder {
     "The data included in this download are provided to the user under a %s license (%s), please read the license terms and conditions to understand the implications of its usage and sharing.\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
+  private static final EMLWriter EML_WRITER = EMLWriter.newInstance(true);
+
   private final DatasetService datasetService;
   private final DatasetOccurrenceDownloadUsageService datasetUsageService;
   private final OccurrenceDownloadService occurrenceDownloadService;
@@ -250,8 +252,11 @@ public class DwcaArchiveBuilder {
       // metadata, citation and rights
       License downloadLicense = addConstituentMetadata();
 
+      // persist the License assigned to the download
+      persistDownloadLicense(configuration.getDownloadKey(), downloadLicense);
+
       // metadata about the entire archive data
-      addMetadata(downloadLicense);
+      generateMetadata();
 
       // meta.xml
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
@@ -502,7 +507,7 @@ public class DwcaArchiveBuilder {
    * Creates a single EML metadata file for the entire archive.
    * Make sure we execute this method AFTER building the constituents metadata which adds to our dataset instance.
    */
-  private void addMetadata(License downloadLicense) {
+  private void generateMetadata() {
     LOG.info("Add query dataset metadata to archive");
     try {
       // Random UUID use because the downloadKey is not a string in UUID format
@@ -529,7 +534,8 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      dataset.setRights(String.format(RIGHTS,downloadLicense.getLicenseTitle(), downloadLicense.getLicenseUrl()));
+      dataset.setRights(String.format(RIGHTS, download.getLicense().getLicenseTitle(),
+              download.getLicense().getLicenseUrl()));
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
                                             DOWNLOAD_CONTACT_EMAIL,
@@ -548,7 +554,7 @@ public class DwcaArchiveBuilder {
 
       File eml = new File(archiveDir, METADATA_FILENAME);
       Writer writer = FileUtils.startNewUtf8File(eml);
-      EMLWriter.write(dataset, writer, true);
+      EML_WRITER.writeTo(dataset, writer);
 
     } catch (Exception e) {
       LOG.error("Failed to write query result dataset EML file", e);
@@ -586,6 +592,18 @@ public class DwcaArchiveBuilder {
     } catch (Exception e) {
       LOG.error("Error persisting dataset usage information", e);
     }
+  }
+
+  /**
+   * Persist download license that was assigned to the occurrence download.
+   *
+   * @param downloadKey
+   * @param license
+   */
+  private void persistDownloadLicense(String downloadKey, License license) {
+    Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+    download.setLicense(license);
+    occurrenceDownloadService.update(download);
   }
 
   /**
