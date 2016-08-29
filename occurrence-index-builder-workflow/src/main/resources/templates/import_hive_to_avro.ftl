@@ -49,5 +49,7 @@ organismid,
 stateprovince,
 waterbody,
 protocol,
-license
+license,
+crawlid,
+publishingorgkey
 FROM ${r"${sourceOccurrenceTable}"} occ;
