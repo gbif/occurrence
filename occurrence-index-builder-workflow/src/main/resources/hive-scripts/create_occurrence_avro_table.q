@@ -57,6 +57,6 @@
       {"name":"water_body","type":["string", "null"]},
       {"name":"protocol","type":["string", "null"]},
       {"name":"license","type":["string", "null"]},
-      {"name":"crawl_id","type":["int", "null"]}
+      {"name":"crawl_id","type":["int", "null"]},
       {"name":"publishing_organization_key","type":["string", "null"]}]
   }');
