@@ -36,12 +36,13 @@ public class DatasetUsagesCollector {
   }
 
   /**
-   * Increments in 1 the number of records coming from the dataset (if any) parameter and record the license.
+   * Increments in 1 the number of records coming from the dataset (if any) parameter.
+   * Record the license.
    *
    * @param datasetKey
    * @param license
    */
-  public void incrementDatasetUsage(String datasetKey, String license) {
+  public void collectDatasetUsage(String datasetKey, String license) {
     incrementDatasetUsage(datasetKey);
 
     if(license != null && !datasetLicensesString.contains(license)) {

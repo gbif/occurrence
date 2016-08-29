@@ -80,7 +80,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
             Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
             if (occurrenceRecordMap != null) {
               //collect usages
-              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+              datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
                       occurrenceRecordMap.get(DcTerm.license.simpleName()));
               //write results
               csvMapWriter.write(occurrenceRecordMap, COLUMNS);
