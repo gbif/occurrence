@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.DownloadFileWork;
@@ -79,7 +80,8 @@ public class SimpleCsvDownloadActor extends UntypedActor {
             Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
             if (occurrenceRecordMap != null) {
               //collect usages
-              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
+              datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+                      occurrenceRecordMap.get(DcTerm.license.simpleName()));
               //write results
               csvMapWriter.write(occurrenceRecordMap, COLUMNS);
               return true;
@@ -97,7 +99,8 @@ public class SimpleCsvDownloadActor extends UntypedActor {
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work.toString());
     }
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
+    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
+            datasetUsagesCollector.getDatasetLicenses()), getSelf());
   }
 
 }

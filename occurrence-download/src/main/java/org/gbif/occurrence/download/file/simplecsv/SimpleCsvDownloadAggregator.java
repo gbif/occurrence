@@ -1,6 +1,9 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -9,6 +12,8 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.license.LicenseSelector;
+import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.FileOutputStream;
@@ -18,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
 
@@ -41,15 +47,18 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
   private final WorkflowConfiguration workflowConfiguration;
   private final String outputFileName;
 
+  private final OccurrenceDownloadService occurrenceDownloadService;
+  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+
   @Inject
   public SimpleCsvDownloadAggregator(
-    DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration
-  ) {
+    DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,
+    OccurrenceDownloadService occurrenceDownloadService) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
     outputFileName =
       configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
-
+    this.occurrenceDownloadService = occurrenceDownloadService;
   }
 
   public void init() {
@@ -96,9 +105,11 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
       for (Result result : results) {
         datasetUsagesCollector.sumUsages(result.getDatasetUsages());
+        datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
         DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName(), outputFileWriter);
       }
       persistUsages(datasetUsagesCollector);
+      persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
     } catch (Exception e) {
       LOG.error("Error merging results", e);
       throw Throwables.propagate(e);
@@ -120,4 +131,21 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     }
   }
 
+
+  /**
+   * Persist download license that was assigned to the occurrence download.
+   *
+   * @param downloadKey
+   * @param licenses
+   */
+  private void persistDownloadLicense(String downloadKey, Set<License> licenses) {
+
+    for(License license : licenses){
+      licenseSelector.collectLicense(license);
+    }
+
+    Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+    download.setLicense(licenseSelector.getSelectedLicense());
+    occurrenceDownloadService.update(download);
+  }
 }

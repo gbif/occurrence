@@ -22,6 +22,8 @@ import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.license.LicenseSelector;
+import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanFilterBuilder;
@@ -120,6 +122,7 @@ public class DwcaArchiveBuilder {
   private final FileSystem sourceFs;
   private final FileSystem targetFs;
   private final DownloadJobConfiguration configuration;
+  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
   private final List<Constituent> constituents = Lists.newArrayList();
   private final Ordering<Constituent> constituentsOrder =
     Ordering.natural().onResultOf(new Function<Constituent, Integer>() {
@@ -439,16 +442,13 @@ public class DwcaArchiveBuilder {
 
     Path citationSrc = new Path(configuration.getCitationDataFileName());
 
-    //default download license
-    License downloadLicense = License.CC_BY_4_0;
-
     LOG.info("Adding constituent dataset metadata to archive, based on: {}", citationSrc);
 
     // now read the dataset citation table and create an EML file per datasetId
     // first copy from HDFS to local file
     if (!sourceFs.exists(citationSrc)) {
       LOG.warn("No citation file directory existing on HDFS, skip creating of dataset metadata {}", citationSrc);
-      return downloadLicense;
+      return licenseSelector.getSelectedLicense();
     }
 
     Map<UUID, Integer> srcDatasets = readDatasetCounts(citationSrc);
@@ -474,7 +474,7 @@ public class DwcaArchiveBuilder {
       try {
         Dataset srcDataset = datasetService.get(constituentId);
 
-        downloadLicense = License.getMostRestrictive(downloadLicense, srcDataset.getLicense(), License.CC_BY_4_0);
+        licenseSelector.collectLicense(srcDataset.getLicense());
         // citation
         String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
         // rights
@@ -496,11 +496,11 @@ public class DwcaArchiveBuilder {
                                 e.getResponse().getEntity(String.class)), e);
       } catch (Exception e) {
         LOG.error("Error creating download file", e);
-        return  downloadLicense;
+        return licenseSelector.getSelectedLicense();
       }
     }
     closer.close();
-    return downloadLicense;
+    return licenseSelector.getSelectedLicense();
   }
 
   /**
