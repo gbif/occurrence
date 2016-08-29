@@ -96,6 +96,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
       for (Result result : results) {
         datasetUsagesCollector.sumUsages(result.getDatasetUsages());
+        datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
         DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName(), outputFileWriter);
       }
       persistUsages(datasetUsagesCollector);
