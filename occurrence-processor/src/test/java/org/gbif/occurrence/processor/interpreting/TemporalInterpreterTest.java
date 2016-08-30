@@ -173,20 +173,20 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testOldYear() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1599", "3", "22", null);
-    assertNullResult(result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1599", "3", "22", null);
+    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_UNLIKELY);
   }
 
   @Test
   public void testFutureYear() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("2100", "3", "22", null);
-    assertNullResult(result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("2100", "3", "22", null);
+    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_UNLIKELY);
   }
 
   @Test
   public void testBadDay() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "32", null);
-    assertNullResult(result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "32", null);
+    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
   }
 
   @Test
@@ -203,8 +203,8 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testStringBad() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "22-17-1984");
-    assertNullResult(result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "22-17-1984");
+    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
   }
 
   @Test
@@ -253,9 +253,9 @@ public class TemporalInterpreterTest {
     assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
     assertTrue(result.getIssues().isEmpty());
 
-    // This is not supported for the moment
+    // This is not supported
     result = interpretRecordedDate("1984", "0", "0", null);
-    assertNullResult(result);
+    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
 
     result = interpretRecordedDate(null, null, null, "0-0-1984");
     assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
@@ -320,8 +320,9 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testAllNulls() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, null);
-    assertNullResult(result);
+    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, null);
+    // null and/or empty string will not return an error
+    assertNullPayload(result, null);
   }
 
   @Test
@@ -415,10 +416,14 @@ public class TemporalInterpreterTest {
     assertEquals(Year.of(y), result.getPayload());
   }
 
-  private void assertNullResult(ParseResult<TemporalAccessor> result) {
-    assertFalse(result.isSuccessful());
+  private void assertNullPayload(OccurrenceParseResult<TemporalAccessor> result, OccurrenceIssue expectedIssue) {
     assertNotNull(result);
+    assertFalse(result.isSuccessful());
     assertNull(result.getPayload());
+
+    if(expectedIssue != null) {
+      assertTrue(result.getIssues().contains(expectedIssue));
+    }
   }
 
   private OccurrenceParseResult<TemporalAccessor> interpretRecordedDate(String y, String m, String d, String date) {

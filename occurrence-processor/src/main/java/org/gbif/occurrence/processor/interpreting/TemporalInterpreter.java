@@ -168,7 +168,13 @@ public class TemporalInterpreter {
     }
 
     if(!isValidDate(parsedTemporalAccessor, true)){
-      issues.add(OccurrenceIssue.RECORDED_DATE_UNLIKELY);
+      if(parsedTemporalAccessor == null) {
+        issues.add(OccurrenceIssue.RECORDED_DATE_INVALID);
+      }
+      else{
+        issues.add(OccurrenceIssue.RECORDED_DATE_UNLIKELY);
+      }
+
       LOG.debug("Invalid date: [{}]].", parsedTemporalAccessor);
       return OccurrenceParseResult.fail(issues);
     }
