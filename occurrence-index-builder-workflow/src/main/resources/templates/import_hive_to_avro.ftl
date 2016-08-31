@@ -49,7 +49,7 @@ organismid,
 stateprovince,
 waterbody,
 protocol,
-license,
+COALESCE(license,"UNSPECIFIED") AS license,
 crawlid,
 publishingorgkey
 FROM ${r"${sourceOccurrenceTable}"} occ;
