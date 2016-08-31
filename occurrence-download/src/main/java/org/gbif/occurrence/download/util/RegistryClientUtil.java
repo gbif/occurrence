@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.util;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
@@ -46,8 +47,10 @@ public class RegistryClientUtil {
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
     cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, REGISTRY_CLIENT_TO);
-    JacksonJsonContextResolver.addMixIns(ImmutableMap.<Class<?>, Class<?>>of(Occurrence.class, LicenseMixin.class,
-                                                                             Dataset.class, DatasetMixin.class));
+    JacksonJsonContextResolver.addMixIns(ImmutableMap.<Class<?>, Class<?>>of(
+            Occurrence.class, LicenseMixin.class,
+            Dataset.class, DatasetMixin.class,
+            Download.class, LicenseMixin.class));
     return ApacheHttpClient.create(cc);
   }
 
