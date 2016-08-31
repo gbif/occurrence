@@ -1,5 +1,6 @@
 package org.gbif.occurrence.ws.client;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
@@ -45,7 +46,10 @@ public class OccurrenceWsClientModule extends GbifWsClientModule {
 
   @Override
   protected Map<Class<?>, Class<?>> getMixIns() {
-    return new ImmutableMap.Builder<Class<?>, Class<?>>().put(Occurrence.class, LicenseMixin.class).build();
+    return new ImmutableMap.Builder<Class<?>, Class<?>>()
+            .put(Occurrence.class, LicenseMixin.class)
+            .put(Download.class, LicenseMixin.class)
+            .build();
   }
 
   @Override

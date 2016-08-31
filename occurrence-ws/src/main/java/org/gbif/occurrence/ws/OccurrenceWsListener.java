@@ -1,5 +1,6 @@
 package org.gbif.occurrence.ws;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.checklistbank.ws.client.guice.ChecklistBankWsClientModule;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
@@ -99,6 +100,8 @@ public class OccurrenceWsListener extends GbifServletListener {
 
   @Override
   protected Map<Class<?>, Class<?>> getMixIns() {
-    return ImmutableMap.<Class<?>, Class<?>>of(Occurrence.class, LicenseMixin.class);
+    return ImmutableMap.<Class<?>, Class<?>>of(
+            Occurrence.class, LicenseMixin.class,
+            Download.class, LicenseMixin.class);
   }
 }

@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.ws.client.BaseWsGetClient;
+import org.gbif.ws.mixin.LicenseMixin;
 import org.gbif.ws.util.InputStreamUtils;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class OccurrenceDownloadWsClient extends BaseWsGetClient<Download, String
   @Inject
   public OccurrenceDownloadWsClient(WebResource resource, @Nullable ClientFilter authFilter) {
     super(Download.class, resource.path(Constants.OCCURRENCE_DOWNLOAD_PATH), authFilter);
+    mapper.getSerializationConfig().addMixInAnnotations(Download.class, LicenseMixin.class);
   }
 
   @Override
