@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
@@ -215,14 +216,9 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
       SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField,
                                            Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
-      QueryResponse queryResponse = solrClient.query(solrQuery);
-      TermsResponse termsResponse = queryResponse.getTermsResponse();
-      List<Term> terms = termsResponse.getTerms(solrField);
-      List<String> suggestions = Lists.newArrayListWithCapacity(terms.size());
-      for (Term term : terms) {
-        suggestions.add(term.getTerm());
-      }
-      return suggestions;
+      final QueryResponse queryResponse = solrClient.query(solrQuery);
+      final TermsResponse termsResponse = queryResponse.getTermsResponse();
+      return termsResponse.getTerms(solrField).stream().map( f -> f.getTerm()).collect(Collectors.toList());
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing/building the request", e);
       throw new SearchException(e);
