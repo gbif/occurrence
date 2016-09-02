@@ -53,6 +53,11 @@
                 <exclude>hbase-site.xml</exclude>
                 <exclude>mapred-site.xml</exclude>
                 <exclude>yarn-site.xml</exclude>
+                <exclude>hdfs-default.xml</exclude>
+                <exclude>hbase-default.xml</exclude>
+                <exclude>mapred-default.xml</exclude>
+                <exclude>core-default.xml</exclude>
+                <exclude>yarn-default.xml</exclude>
                 <exclude>registry-sync.properties</exclude>
                 <exclude>*logback.xml</exclude>
               </excludes>
