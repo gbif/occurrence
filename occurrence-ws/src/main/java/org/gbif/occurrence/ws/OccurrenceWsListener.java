@@ -1,7 +1,5 @@
 package org.gbif.occurrence.ws;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.checklistbank.ws.client.guice.ChecklistBankWsClientModule;
 import org.gbif.drupal.guice.DrupalMyBatisModule;
 import org.gbif.occurrence.download.service.OccurrenceDownloadServiceModule;
@@ -14,7 +12,7 @@ import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.app.ConfUtils;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
-import org.gbif.ws.mixin.LicenseMixin;
+import org.gbif.ws.mixin.Mixins;
 import org.gbif.ws.server.guice.GbifServletListener;
 import org.gbif.ws.server.guice.WsAuthModule;
 
@@ -24,7 +22,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -100,8 +97,6 @@ public class OccurrenceWsListener extends GbifServletListener {
 
   @Override
   protected Map<Class<?>, Class<?>> getMixIns() {
-    return ImmutableMap.<Class<?>, Class<?>>of(
-            Occurrence.class, LicenseMixin.class,
-            Download.class, LicenseMixin.class);
+    return Mixins.getPredefinedMixins();
   }
 }

@@ -1,8 +1,5 @@
 package org.gbif.occurrence.download.util;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -12,13 +9,11 @@ import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
-import org.gbif.ws.mixin.DatasetMixin;
-import org.gbif.ws.mixin.LicenseMixin;
+import org.gbif.ws.mixin.Mixins;
 
 import java.io.IOException;
 import java.util.Properties;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -47,10 +42,7 @@ public class RegistryClientUtil {
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
     cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, REGISTRY_CLIENT_TO);
-    JacksonJsonContextResolver.addMixIns(ImmutableMap.<Class<?>, Class<?>>of(
-            Occurrence.class, LicenseMixin.class,
-            Dataset.class, DatasetMixin.class,
-            Download.class, LicenseMixin.class));
+    JacksonJsonContextResolver.addMixIns(Mixins.getPredefinedMixins());
     return ApacheHttpClient.create(cc);
   }
 

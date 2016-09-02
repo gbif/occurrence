@@ -20,7 +20,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 
 /**
- * A complete guice module that exposes the full ChecklistBank API or a configurable subset.
+ * A complete guice module that exposes the full occurrence API or a configurable subset.
  * In order to use this module an authentication module needs to be installed first, such as {@link org.gbif.ws.client.guice.AnonymousAuthModule}
  * for anonymous access or {@link org.gbif.ws.client.guice.GbifApplicationAuthModule} for trusted applications.
  */

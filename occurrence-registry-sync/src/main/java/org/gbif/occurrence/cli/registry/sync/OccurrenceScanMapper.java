@@ -15,6 +15,7 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
+import org.gbif.ws.mixin.Mixins;
 
 import java.io.IOException;
 import java.util.Map;
@@ -75,6 +76,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getClasses().add(RegistryObjectMapperContextResolver.class);
     cc.getFeatures().put(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES.toString(), false);
+    RegistryObjectMapperContextResolver.addMixIns(Mixins.getPredefinedMixins());
     Client httpClient = ApacheHttpClient.create(cc);
     WebResource regResource = httpClient.resource(props.getProperty(SyncCommon.REG_WS_PROPS_KEY));
     datasetService = new DatasetWsClient(regResource, null);
