@@ -5,7 +5,6 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OrganizationService;
-import org.gbif.api.vocabulary.Country;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
@@ -43,8 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A mapreduce Mapper that synchronizes occurrences with the registry. It checks for changed publishing organizations,
- * changed publishing organization country, and dataset deletions. For organization changes the new values are written
+ * A mapreduce Mapper that synchronizes occurrences with the registry. It checks for changes detected by
+ * {@link RegistryBasedOccurrenceMutator} and dataset deletions. For organization changes the new values are written
  * to the occurrence HBase table via occurrence persistence, and then an OccurrenceMutatedMessage is sent. For dataset
  * deletions a DeleteDatasetMessage is sent.
  */
@@ -58,6 +57,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
 
   private DatasetService datasetService;
   private OrganizationService orgService;
+  private RegistryBasedOccurrenceMutator registryChangesRule;
   private OccurrencePersistenceService occurrencePersistenceService;
   private MessagePublisher messagePublisher;
 
@@ -79,6 +79,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     WebResource regResource = httpClient.resource(props.getProperty(SyncCommon.REG_WS_PROPS_KEY));
     datasetService = new DatasetWsClient(regResource, null);
     orgService = new OrganizationWsClient(regResource, null);
+    registryChangesRule = new RegistryBasedOccurrenceMutator();
 
     Injector injector =
       Guice.createInjector(new PostalServiceModule("sync", props), new OccurrencePersistenceModule(props));
@@ -114,19 +115,13 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       publishingOrg = DATASET_TO_OWNING_ORG.get(datasetKey);
       needsUpdate = true;
     } else {
-      UUID newPublishingOrgKey = dataset.getPublishingOrganizationKey();
-      publishingOrg = orgService.get(newPublishingOrgKey);
-      String rawPublishingOrgKey = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.OOK_COL));
-      UUID publishingOrgKey = rawPublishingOrgKey == null ? null : UUID.fromString(rawPublishingOrgKey);
-      String rawHostCountry = Bytes.toString(values.getValue(SyncCommon.OCC_CF, SyncCommon.HC_COL));
-      Country hostCountry = rawHostCountry == null ? null : Country.fromIsoCode(rawHostCountry);
-      Country newHostCountry = publishingOrg.getCountry();
-      if (newPublishingOrgKey.equals(publishingOrgKey) && newHostCountry == hostCountry) {
-        needsUpdate = false;
-        UNCHANGED_DATASETS.add(datasetKey);
-      } else {
+      publishingOrg = orgService.get(dataset.getPublishingOrganizationKey());
+      if (registryChangesRule.requiresUpdate(dataset, publishingOrg, values)) {
         needsUpdate = true;
         DATASET_TO_OWNING_ORG.put(datasetKey, publishingOrg);
+      } else {
+        needsUpdate = false;
+        UNCHANGED_DATASETS.add(datasetKey);
       }
     }
 
@@ -134,8 +129,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       Occurrence origOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
       // we have no clone or other easy copy method
       Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
-      updatedOcc.setPublishingOrgKey(publishingOrg.getKey());
-      updatedOcc.setPublishingCountry(publishingOrg.getCountry());
+      registryChangesRule.mutateOccurrence(updatedOcc, dataset, publishingOrg);
       occurrencePersistenceService.update(updatedOcc);
 
       int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));

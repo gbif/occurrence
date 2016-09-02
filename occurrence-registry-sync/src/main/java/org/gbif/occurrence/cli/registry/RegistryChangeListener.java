@@ -42,7 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens for any registry changes of interest to occurrences: namely organization and dataset updates or deletions.
+ * Listens for any registry changes {@link RegistryChangeMessage}
+ * of interest to occurrences: namely organization and dataset updates or deletions.
  */
 public class RegistryChangeListener extends AbstractMessageCallback<RegistryChangeMessage> {
 
