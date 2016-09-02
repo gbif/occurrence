@@ -15,6 +15,7 @@ import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.common.messaging.api.messages.RegistryChangeMessage;
 import org.gbif.common.messaging.api.messages.StartCrawlMessage;
 import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
+import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
@@ -49,6 +50,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
+  private static final String HBASE_TIMEOUT = "600000";
 
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
     .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
@@ -67,10 +69,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
+  private RegistryBasedOccurrenceMutator occurrenceMutator;
 
   public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
+    this.occurrenceMutator = new RegistryBasedOccurrenceMutator();
   }
 
   @Override
@@ -105,16 +109,16 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           } catch (IOException e) {
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
-          // check if owning org has changed, and update old records if so
-          if (oldDataset.getPublishingOrganizationKey().equals(newDataset.getPublishingOrganizationKey())) {
-            LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
-          } else {
+          // check if we should start a m/r job to update occurrence records
+          if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
             try {
               runMrSync(newDataset.getKey());
             } catch (Exception e) {
               LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
             }
+          } else {
+            LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
           }
         } else {
           LOG.info("Ignoring update of dataset [{}] because either no crawlable endpoints or we just sent a crawl",
@@ -175,7 +179,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             }
           };
           visitOwnedDatasets(newOrg.getKey(), visitor);
-        } else if (oldOrg.getCountry() != newOrg.getCountry() && newOrg.isEndorsementApproved()) {
+        } else if (occurrenceMutator.requiresUpdate(oldOrg, newOrg)) {
           if (newOrg.getNumPublishedDatasets() > 0) {
             LOG.info("Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
               newOrg.getKey(), oldOrg.getCountry(), newOrg.getCountry());
@@ -196,8 +200,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static void runMrSync(@Nullable UUID datasetKey) {
     Configuration conf = HBaseConfiguration.create();
-    conf.set("hbase.client.scanner.timeout.period", "600000");
-    conf.set("hbase.rpc.timeout", "600000");
+    conf.set("hbase.client.scanner.timeout.period", HBASE_TIMEOUT);
+    conf.set("hbase.rpc.timeout", HBASE_TIMEOUT);
 
     Properties props = SyncCommon.loadProperties();
     // add all props to job context for use by the OccurrenceScanMapper when it no longer has access to our classpath
