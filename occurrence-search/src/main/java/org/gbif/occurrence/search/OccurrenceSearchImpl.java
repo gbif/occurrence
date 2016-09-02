@@ -214,7 +214,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
-      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix), solrField,
+      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix).toLowerCase(), solrField,
                                            Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       final QueryResponse queryResponse = solrClient.query(solrQuery);
       final TermsResponse termsResponse = queryResponse.getTermsResponse();
