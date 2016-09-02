@@ -15,6 +15,7 @@ import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.common.messaging.api.messages.RegistryChangeMessage;
 import org.gbif.common.messaging.api.messages.StartCrawlMessage;
 import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
+import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
@@ -67,10 +68,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
+  private RegistryBasedOccurrenceMutator occurrenceMutator;
 
   public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
+    this.occurrenceMutator = new RegistryBasedOccurrenceMutator();
   }
 
   @Override
@@ -105,8 +108,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           } catch (IOException e) {
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
-          // check if owning org has changed, and update old records if so
-          if (oldDataset.getPublishingOrganizationKey().equals(newDataset.getPublishingOrganizationKey())) {
+          // check if we should start a m/r job to update occurrence records
+          if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
             LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
           } else {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
@@ -175,7 +178,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             }
           };
           visitOwnedDatasets(newOrg.getKey(), visitor);
-        } else if (oldOrg.getCountry() != newOrg.getCountry() && newOrg.isEndorsementApproved()) {
+        } else if (occurrenceMutator.requiresUpdate(oldOrg, newOrg)) {
           if (newOrg.getNumPublishedDatasets() > 0) {
             LOG.info("Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
               newOrg.getKey(), oldOrg.getCountry(), newOrg.getCountry());

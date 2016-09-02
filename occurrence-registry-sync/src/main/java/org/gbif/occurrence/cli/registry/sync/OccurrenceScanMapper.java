@@ -57,7 +57,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
 
   private DatasetService datasetService;
   private OrganizationService orgService;
-  private RegistryBasedOccurrenceMutator registryChangesRule;
+  private RegistryBasedOccurrenceMutator occurrenceMutator;
   private OccurrencePersistenceService occurrencePersistenceService;
   private MessagePublisher messagePublisher;
 
@@ -79,7 +79,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     WebResource regResource = httpClient.resource(props.getProperty(SyncCommon.REG_WS_PROPS_KEY));
     datasetService = new DatasetWsClient(regResource, null);
     orgService = new OrganizationWsClient(regResource, null);
-    registryChangesRule = new RegistryBasedOccurrenceMutator();
+    occurrenceMutator = new RegistryBasedOccurrenceMutator();
 
     Injector injector =
       Guice.createInjector(new PostalServiceModule("sync", props), new OccurrencePersistenceModule(props));
@@ -116,7 +116,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       needsUpdate = true;
     } else {
       publishingOrg = orgService.get(dataset.getPublishingOrganizationKey());
-      if (registryChangesRule.requiresUpdate(dataset, publishingOrg, values)) {
+      if (occurrenceMutator.requiresUpdate(dataset, publishingOrg, values)) {
         needsUpdate = true;
         DATASET_TO_OWNING_ORG.put(datasetKey, publishingOrg);
       } else {
@@ -129,7 +129,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
       Occurrence origOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
       // we have no clone or other easy copy method
       Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
-      registryChangesRule.mutateOccurrence(updatedOcc, dataset, publishingOrg);
+      occurrenceMutator.mutateOccurrence(updatedOcc, dataset, publishingOrg);
       occurrencePersistenceService.update(updatedOcc);
 
       int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));

@@ -45,6 +45,32 @@ public class RegistryBasedOccurrenceMutator {
   }
 
   /**
+   * Check if changes on a dataset should trigger an update of Occurrence records.
+   *
+   * @param currentDataset
+   * @param newDataset
+   * @return
+   */
+  public boolean requiresUpdate(Dataset currentDataset, Dataset newDataset) {
+    return !(currentDataset.getPublishingOrganizationKey().equals(newDataset.getPublishingOrganizationKey())
+            && currentDataset.getLicense().equals(newDataset.getLicense()));
+  }
+
+  /**
+   * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
+   * @param currentOrg
+   * @param newOrg
+   * @return
+   */
+  public boolean requiresUpdate(Organization currentOrg, Organization newOrg) {
+    // endorsement not approved means that we don't have records so nothing to update
+    if (!newOrg.isEndorsementApproved()) {
+      return false;
+    }
+    return !(currentOrg.getCountry().equals(newOrg.getCountry()));
+  }
+
+  /**
    * Mutate the provided {@link Occurrence} based on information from the Registry.
    * @param occurrence
    * @param dataset
@@ -55,4 +81,6 @@ public class RegistryBasedOccurrenceMutator {
     occurrence.setPublishingCountry(publishingOrg.getCountry());
     occurrence.setLicense(dataset.getLicense());
   }
+
+
 }
