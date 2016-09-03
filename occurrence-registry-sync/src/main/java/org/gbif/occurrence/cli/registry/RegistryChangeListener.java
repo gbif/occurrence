@@ -199,6 +199,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   }
 
   private static void runMrSync(@Nullable UUID datasetKey) {
+
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.client.scanner.timeout.period", HBASE_TIMEOUT);
     conf.set("hbase.rpc.timeout", HBASE_TIMEOUT);
@@ -240,6 +241,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
+
+      //TODO remove me
+      job.getConfiguration().set("hbase.zookeeper.quorum", "c1n2.gbif.org,c1n1.gbif.org,c1n6.gbif.org");
+      job.getConfiguration().set("hbase.zookeeper.property.clientPort", "2181");
 
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
