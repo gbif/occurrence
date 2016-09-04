@@ -242,9 +242,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
 
-      //TODO remove me
-      job.getConfiguration().set("hbase.zookeeper.quorum", "c1n2.gbif.org,c1n1.gbif.org,c1n6.gbif.org");
-      job.getConfiguration().set("hbase.zookeeper.property.clientPort", "2181");
+      job.getConfiguration().addResource("hbase-site.xml");
+
 
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
