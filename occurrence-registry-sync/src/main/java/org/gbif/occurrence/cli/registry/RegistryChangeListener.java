@@ -242,9 +242,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
 
-      job.getConfiguration().addResource("hbase-site.xml");
-
-
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
       } else {

@@ -1,5 +1,8 @@
 package org.gbif.occurrence.processor.interpreting.util;
 
+import org.gbif.ws.mixin.Mixins;
+
+import java.util.Map;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
@@ -29,6 +32,12 @@ public class ObjectMapperContextResolver implements ContextResolver<ObjectMapper
 
     // Enforce use of ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
     MAPPER.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+    // register predefined Mixins
+    for (Map.Entry<Class<?>, Class<?>> classClassEntry : Mixins.getPredefinedMixins().entrySet()) {
+      MAPPER.getSerializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
+      MAPPER.getDeserializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
+    }
   }
 
   @Override
