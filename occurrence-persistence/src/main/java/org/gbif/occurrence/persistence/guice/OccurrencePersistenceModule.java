@@ -41,6 +41,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceModule.class);
 
   private final OccHBaseConfiguration cfg;
+  private final Configuration hbaseConfiguration;
 
   @Deprecated
   public OccurrencePersistenceModule(Properties properties) {
@@ -49,6 +50,17 @@ public class OccurrencePersistenceModule extends PrivateModule {
 
   public OccurrencePersistenceModule(OccHBaseConfiguration cfg) {
     this.cfg = cfg;
+    this.hbaseConfiguration = null;
+  }
+
+  /**
+   * Get a OccurrencePersistenceModule instance with the provided HBase connection.
+   * @param cfg
+   * @param hbaseConfiguration
+   */
+  public OccurrencePersistenceModule(OccHBaseConfiguration cfg, Configuration hbaseConfiguration) {
+    this.cfg = cfg;
+    this.hbaseConfiguration = hbaseConfiguration;
   }
 
   private static OccHBaseConfiguration toCfg(Properties props) {
@@ -91,7 +103,11 @@ public class OccurrencePersistenceModule extends PrivateModule {
   @Provides
   @Singleton
   public Connection provideHBaseConnection() {
+
     try {
+      if(hbaseConfiguration != null){
+        return ConnectionFactory.createConnection(hbaseConfiguration);
+      }
       return ConnectionFactory.createConnection(HBaseConfiguration.create());
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
