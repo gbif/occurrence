@@ -15,6 +15,7 @@ import org.gbif.common.search.builder.SolrQueryUtils;
 import org.gbif.common.search.builder.SpellCheckResponseBuilder;
 import org.gbif.common.search.exception.SearchException;
 import org.gbif.common.search.util.QueryUtils;
+import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -45,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
 import static org.gbif.common.search.util.QueryUtils.buildTermQuery;
+import static org.gbif.common.search.util.SolrConstants.BLANK;
+import static org.gbif.common.search.util.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.common.search.util.SolrConstants.SOLR_REQUEST_HANDLER;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
@@ -214,7 +218,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
-      SolrQuery solrQuery = buildTermQuery(QueryUtils.parseQueryValue(prefix).toLowerCase(), solrField,
+      SolrQuery solrQuery = buildTermQuery(parseTermsQueryValue(prefix).toLowerCase(), solrField,
                                            Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       final QueryResponse queryResponse = solrClient.query(solrQuery);
       final TermsResponse termsResponse = queryResponse.getTermsResponse();
@@ -223,6 +227,25 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       LOG.error("Error executing/building the request", e);
       throw new SearchException(e);
     }
+  }
+
+
+  /**
+   * Escapes a query value and transform it into a phrase query if necessary.
+   */
+  private static String parseTermsQueryValue(final String q) {
+    // return default query for empty queries
+    String qValue = Strings.nullToEmpty(q).trim();
+    if (Strings.isNullOrEmpty(qValue)) {
+      return DEFAULT_FILTER_QUERY;
+    }
+    // If default query was sent, must not be escaped
+    if (!qValue.equals(DEFAULT_FILTER_QUERY)) {
+      qValue = QueryUtils.clearConsecutiveBlanks(qValue);
+      qValue =QueryUtils. escapeQuery(qValue);
+    }
+
+    return qValue;
   }
 
 
