@@ -55,6 +55,8 @@
         <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
         <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\t|\n|\r|(?:(?>\u000D\u000A)|[\u000A\u000B\u000C\u000D\u0085\u2028\u2029])" replacement=" " replace="all" />
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\s+{2,}" replacement=" " replace="all" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
       <analyzer type="query">
@@ -69,8 +71,9 @@
       <analyzer type="index">
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.TrimFilterFactory"/>
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\t|\n|\r|(?:(?>\u000D\u000A)|[\u000A\u000B\u000C\u000D\u0085\u2028\u2029])" replacement=" " replace="all" />
         <filter class="solr.PatternReplaceFilterFactory" pattern="\s+{2,}" replacement=" " replace="all" />
+        <filter class="solr.TrimFilterFactory"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.KeywordTokenizerFactory"/>
