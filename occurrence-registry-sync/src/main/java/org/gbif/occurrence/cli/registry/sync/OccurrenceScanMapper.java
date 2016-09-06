@@ -11,6 +11,7 @@ import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.common.messaging.guice.PostalServiceModule;
 import org.gbif.occurrence.cli.registry.RegistryObjectMapperContextResolver;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.registry.ws.client.DatasetWsClient;
@@ -72,6 +73,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     for (Map.Entry<String, String> entry : context.getConfiguration()) {
       props.setProperty(entry.getKey(), entry.getValue());
     }
+
     ClientConfig cc = new DefaultClientConfig();
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getClasses().add(RegistryObjectMapperContextResolver.class);
@@ -83,8 +85,13 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     orgService = new OrganizationWsClient(regResource, null);
     occurrenceMutator = new RegistryBasedOccurrenceMutator();
 
+    OccHBaseConfiguration occHBaseConfiguration = new OccHBaseConfiguration();
+    occHBaseConfiguration.occTable = props.getProperty("occurrence.db.table_name");
+    occHBaseConfiguration.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
+
     Injector injector =
-      Guice.createInjector(new PostalServiceModule("sync", props), new OccurrencePersistenceModule(props));
+      Guice.createInjector(new PostalServiceModule("sync", props),
+              new OccurrencePersistenceModule(occHBaseConfiguration, context.getConfiguration()));
     occurrencePersistenceService = injector.getInstance(OccurrencePersistenceService.class);
     messagePublisher = injector.getInstance(MessagePublisher.class);
   }
