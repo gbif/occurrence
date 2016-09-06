@@ -198,8 +198,14 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
+  /**
+   * Creates and submit a MapReduce job to the cluster using {@link OccurrenceScanMapper} as a mapper.
+   *
+   * @param datasetKey
+   */
   private static void runMrSync(@Nullable UUID datasetKey) {
 
+    //create the HBase config here since hbase-site.xml is (at least should) be in our classpath.
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.client.scanner.timeout.period", HBASE_TIMEOUT);
     conf.set("hbase.rpc.timeout", HBASE_TIMEOUT);

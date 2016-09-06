@@ -49,12 +49,11 @@ public class OccurrencePersistenceModule extends PrivateModule {
   }
 
   public OccurrencePersistenceModule(OccHBaseConfiguration cfg) {
-    this.cfg = cfg;
-    this.hbaseConfiguration = null;
+    this(cfg, null);
   }
 
   /**
-   * Get a OccurrencePersistenceModule instance with the provided HBase connection.
+   * Get an OccurrencePersistenceModule instance with the provided HBase configuration.
    * @param cfg
    * @param hbaseConfiguration
    */
