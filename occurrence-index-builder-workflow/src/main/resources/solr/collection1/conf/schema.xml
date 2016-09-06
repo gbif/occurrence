@@ -69,13 +69,13 @@
       <analyzer type="index">
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.PatternReplaceFilterFactory" pattern="^\s+{2,}" replacement=" " replace="all" />
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\s+{2,}" replacement=" " replace="all" />
         <filter class="solr.TrimFilterFactory"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.PatternReplaceFilterFactory" pattern="^\s+{2,}" replacement=" " replace="all" />
+        <filter class="solr.PatternReplaceFilterFactory" pattern="\s+{2,}" replacement=" " replace="all" />
         <filter class="solr.TrimFilterFactory"/>
       </analyzer>
     </fieldType>
