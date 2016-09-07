@@ -51,9 +51,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
   private static final String HBASE_TIMEOUT = "600000";
-  private static final String MR_MAP_MEMORY_MB= "512";
+  private static final String MR_MAP_MEMORY_MB= "1024";
   //approx. 85% of MR_MAP_MEMORY_MB
-  private static final String MR_MAP_JAVA_OPTS = "-Xmx1024m";
+  private static final String MR_MAP_JAVA_OPTS = "-Xmx768m";
 
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
     .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
