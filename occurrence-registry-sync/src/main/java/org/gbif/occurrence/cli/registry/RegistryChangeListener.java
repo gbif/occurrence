@@ -51,6 +51,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
   private static final String HBASE_TIMEOUT = "600000";
+  private static final String MR_MAP_MEMORY_MB= "1024";
 
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
     .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
@@ -247,6 +248,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
+      job.getConfiguration().set("mapreduce.map.memory.mb", MR_MAP_MEMORY_MB);
 
       if (targetTable == null) {
         LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
