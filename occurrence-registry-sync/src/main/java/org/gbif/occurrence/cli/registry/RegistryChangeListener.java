@@ -226,6 +226,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.OOK_COL);
     scan.addColumn(SyncCommon.OCC_CF, SyncCommon.CI_COL);
     scan.setCaching(200);
+    scan.setCacheBlocks(false); // don't set to true for MR jobs (from HBase MapReduce Examples)
 
     String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
