@@ -56,7 +56,8 @@ public final class HiveDataTypes {
                                                                    GbifTerm.subgenusKey,
                                                                    GbifTerm.speciesKey,
                                                                    GbifInternalTerm.crawlId,
-                                                                   GbifInternalTerm.identifierCount);
+                                                                   GbifInternalTerm.identifierCount,
+                                                                   DwcTerm.individualCount);
 
   private static final Set<Term> DOUBLE_TERMS = ImmutableSet.<Term>of(DwcTerm.decimalLatitude,
                                                                       DwcTerm.decimalLongitude,
