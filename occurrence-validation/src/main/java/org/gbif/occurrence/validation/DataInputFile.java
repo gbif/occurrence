@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 public class DataInputFile {
 
-  private Character separator;
+  private Character separator = '\t';
 
   private String[] columns;
 
