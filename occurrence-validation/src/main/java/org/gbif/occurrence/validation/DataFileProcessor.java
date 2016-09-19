@@ -25,6 +25,8 @@ public class DataFileProcessor extends UntypedActor {
 
   private String apiUrl;
 
+  private  final ValidationResultsAggregator aggregator = new ValidationResultsAggregator();
+
   public DataFileProcessor(String apiUrl) {
     this.apiUrl = apiUrl;
   }
@@ -46,9 +48,11 @@ public class DataFileProcessor extends UntypedActor {
       String[] splits = FileBashUtilities.splitFile(dataInputFile.getFileName(), splitSize, outDir);
       ActorRef workerRouter = getContext().actorOf(new Props(new FileLineEmitterFactory(apiUrl))
                                                      .withRouter(new RoundRobinRouter(splits.length)), "dataFileRouter");
-      for(String split : splits){
+      for(int i = 0; i < splits.length; i++) {
         DataInputFile dataInputSplitFile = new DataInputFile();
-        dataInputSplitFile.setFileName(split);
+        dataInputSplitFile.setFileName(splits[i]);
+        dataInputSplitFile.setColumns(dataInputFile.getColumns());
+        dataInputSplitFile.setHasHeaders(dataInputFile.isHasHeaders() && (i == 0));
         workerRouter.tell(dataInputSplitFile,self());
       }
 
@@ -57,8 +61,8 @@ public class DataFileProcessor extends UntypedActor {
     }
   }
 
-  private void accumulateResults(OccurrenceInterpretationResult occurrenceInterpretationResult) {
-     LOG.info(occurrenceInterpretationResult.getUpdated().toString());
+  private void accumulateResults(OccurrenceInterpretationResult result) {
+     aggregator.accumulateResult(result);
   }
 
 
@@ -68,19 +72,18 @@ public class DataFileProcessor extends UntypedActor {
   public static void run(String inputFile, String apiUrl) {
 
     // Create an Akka system
-    ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
+    final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
 
     // create the master
-    ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
+    final ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
       public UntypedActor create() {
         return new DataFileProcessor(apiUrl);
       }
     }), "DataFileProcessor");
     try {
-      int numOfLines = FileBashUtilities.countLines(inputFile);
       DataInputFile dataInputFile = new DataInputFile();
       dataInputFile.setFileName(inputFile);
-      dataInputFile.setNumOfLines(numOfLines);
+      dataInputFile.setNumOfLines(FileBashUtilities.countLines(inputFile));
       // start the calculation
       master.tell(dataInputFile);
       while (!master.isTerminated()) {
@@ -94,5 +97,9 @@ public class DataFileProcessor extends UntypedActor {
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  public static void main(String[] args) {
+    DataFileProcessor.run("/Users/fmendez/dev/git/gbif/occurrence/occurrence-validation/src/main/resources/data.txt", "http://api.gbif.org/v1");
   }
 }

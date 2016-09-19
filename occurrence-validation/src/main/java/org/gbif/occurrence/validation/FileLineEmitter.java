@@ -1,6 +1,7 @@
 package org.gbif.occurrence.validation;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 
@@ -27,8 +28,13 @@ public class FileLineEmitter extends UntypedActor {
 
     try (BufferedReader br = new BufferedReader(new FileReader(dataInputFile.getFileName()))) {
       String line;
+      //skip the first line
+      if (dataInputFile.isHasHeaders()) {
+        line = br.readLine();
+      }
       while ((line = br.readLine()) != null) {
         OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
+        result.getUpdated().addIssue(OccurrenceIssue.BASIS_OF_RECORD_INVALID);
         getSender().tell(result);
       }
     }
