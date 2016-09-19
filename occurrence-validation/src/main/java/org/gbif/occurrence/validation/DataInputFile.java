@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 public class DataInputFile {
 
-  private Character separator = '\t';
+  private Character delimiterChar = '\t';
 
   private String[] columns;
 
@@ -12,14 +12,12 @@ public class DataInputFile {
 
   private Integer numOfLines;
 
-  private boolean hasHeaders;
-
-  public Character getSeparator() {
-    return separator;
+  public Character getDelimiterChar() {
+    return delimiterChar;
   }
 
-  public void setSeparator(Character separator) {
-    this.separator = separator;
+  public void setDelimiterChar(Character delimiterChar) {
+    this.delimiterChar = delimiterChar;
   }
 
   public String[] getColumns() {
@@ -45,13 +43,5 @@ public class DataInputFile {
   @Nullable
   public void setNumOfLines(Integer numOfLines) {
     this.numOfLines = numOfLines;
-  }
-
-  public boolean isHasHeaders() {
-    return hasHeaders;
-  }
-
-  public void setHasHeaders(boolean hasHeaders) {
-    this.hasHeaders = hasHeaders;
   }
 }
