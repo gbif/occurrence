@@ -6,7 +6,7 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.tabular.MappedTabularDataFileReader;
-import org.gbif.utils.file.tabular.TabularFiles;
+import org.gbif.tabular.MappedTabularFiles;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,10 +38,10 @@ public class FileLineEmitter extends UntypedActor {
       columnsMapping[i] = TERM_FACTORY.findTerm(columnsName[i]);
     }
 
-    //TODO C.G. provide static utility to get instance of MappedTabularDataFileReader
-    try (MappedTabularDataFileReader<Term> mappedTabularFileReader = new MappedTabularDataFileReader(
-            TabularFiles.newTabularFileReader(new FileInputStream(new File(dataInputFile.getFileName())), '"',
-            dataInputFile.getDelimiterChar(), true), columnsMapping)) {
+    try (MappedTabularDataFileReader<Term> mappedTabularFileReader =
+                 MappedTabularFiles.newTermMappedTabularFileReader(new FileInputStream(
+                                 new File(dataInputFile.getFileName())), dataInputFile.getDelimiterChar(),
+                         dataInputFile.isHasHeaders(), columnsMapping)) {
       Map<Term, String> line;
       while ((line = mappedTabularFileReader.read()) != null) {
         OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
