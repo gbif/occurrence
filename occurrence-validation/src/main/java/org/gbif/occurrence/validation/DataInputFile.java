@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 public class DataInputFile {
 
-  private Character separator = '\t';
+  private Character delimiterChar = '\t';
 
   private String[] columns;
 
@@ -12,12 +12,12 @@ public class DataInputFile {
 
   private Integer numOfLines;
 
-  public Character getSeparator() {
-    return separator;
+  public Character getDelimiterChar() {
+    return delimiterChar;
   }
 
-  public void setSeparator(Character separator) {
-    this.separator = separator;
+  public void setDelimiterChar(Character delimiterChar) {
+    this.delimiterChar = delimiterChar;
   }
 
   public String[] getColumns() {
