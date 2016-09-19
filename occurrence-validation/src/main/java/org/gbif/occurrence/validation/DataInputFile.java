@@ -12,6 +12,8 @@ public class DataInputFile {
 
   private Integer numOfLines;
 
+  private boolean hasHeaders;
+
   public Character getDelimiterChar() {
     return delimiterChar;
   }
@@ -43,5 +45,13 @@ public class DataInputFile {
   @Nullable
   public void setNumOfLines(Integer numOfLines) {
     this.numOfLines = numOfLines;
+  }
+
+  public boolean isHasHeaders() {
+    return hasHeaders;
+  }
+
+  public void setHasHeaders(boolean hasHeaders) {
+    this.hasHeaders = hasHeaders;
   }
 }
