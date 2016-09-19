@@ -44,6 +44,14 @@ public class FileBashUtilities {
       while((line = in.readLine()) != null) {
         out.add(line);
       }
+      while(process.isAlive()){
+        System.out.print("waiting");
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException ex){
+
+        }
+      }
       return out.toArray(new String[]{});
     } finally {
       if(process.isAlive()) {

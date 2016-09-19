@@ -29,7 +29,7 @@ class FileLineEmitterFactory implements UntypedActorFactory {
 
   @Override
   public Actor create() throws Exception {
-    return new FileLineEmitter();
+    return new FileLineEmitter(buidlOccurrenceInterpreter());
   }
 
   /**

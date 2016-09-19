@@ -2,7 +2,11 @@ package org.gbif.occurrence.validation;
 
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import akka.actor.ActorRef;
@@ -11,6 +15,7 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorFactory;
 import akka.routing.RoundRobinRouter;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +30,10 @@ public class DataFileProcessor extends UntypedActor {
 
   private String apiUrl;
 
+  private int numOfActors;
+
+  private Set<DataWorkResult> results;
+
   private  final ValidationResultsAggregator aggregator = new ValidationResultsAggregator();
 
   public DataFileProcessor(String apiUrl) {
@@ -37,6 +46,12 @@ public class DataFileProcessor extends UntypedActor {
       runActors((DataInputFile)message);
     } else if (message instanceof OccurrenceInterpretationResult) {
       accumulateResults((OccurrenceInterpretationResult)message);
+    } else if (message instanceof DataWorkResult) {
+       results.add((DataWorkResult)message);
+      if(results.size() == numOfActors) {
+        getContext().stop(self());
+        System.out.print(aggregator);
+      }
     }
   }
 
@@ -44,13 +59,15 @@ public class DataFileProcessor extends UntypedActor {
     try {
       int splitSize = dataInputFile.getNumOfLines() > FILE_SPLIT_SIZE ?
         (dataInputFile.getNumOfLines() / FILE_SPLIT_SIZE) : dataInputFile.getNumOfLines();
-      String outDir = UUID.randomUUID().toString();
-      String[] splits = FileBashUtilities.splitFile(dataInputFile.getFileName(), splitSize, outDir);
+      String outDir = new File(UUID.randomUUID().toString()).getAbsolutePath();
+      String[] splits = FileBashUtilities.splitFile(dataInputFile.getFileName(), splitSize,  outDir);
+      numOfActors = splits.length;
       ActorRef workerRouter = getContext().actorOf(new Props(new FileLineEmitterFactory(apiUrl))
                                                      .withRouter(new RoundRobinRouter(splits.length)), "dataFileRouter");
+      results = Sets.newHashSetWithExpectedSize(numOfActors);
       for(int i = 0; i < splits.length; i++) {
         DataInputFile dataInputSplitFile = new DataInputFile();
-        dataInputSplitFile.setFileName(splits[i]);
+        dataInputSplitFile.setFileName(new File(outDir, splits[i]).getAbsolutePath());
         dataInputSplitFile.setColumns(dataInputFile.getColumns());
         dataInputSplitFile.setHasHeaders(dataInputFile.isHasHeaders() && (i == 0));
         workerRouter.tell(dataInputSplitFile,self());
@@ -62,7 +79,7 @@ public class DataFileProcessor extends UntypedActor {
   }
 
   private void accumulateResults(OccurrenceInterpretationResult result) {
-     aggregator.accumulateResult(result);
+    aggregator.accumulateResult(result);
   }
 
 
@@ -84,6 +101,7 @@ public class DataFileProcessor extends UntypedActor {
       DataInputFile dataInputFile = new DataInputFile();
       dataInputFile.setFileName(inputFile);
       dataInputFile.setNumOfLines(FileBashUtilities.countLines(inputFile));
+      dataInputFile.setColumns(new String[]{"gbifid"});
       // start the calculation
       master.tell(dataInputFile);
       while (!master.isTerminated()) {

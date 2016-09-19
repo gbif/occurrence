@@ -1,6 +1,7 @@
 package org.gbif.occurrence.validation;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
@@ -20,6 +21,9 @@ public class FileLineEmitter extends UntypedActor {
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
   private OccurrenceInterpreter interpreter;
 
+  public FileLineEmitter(OccurrenceInterpreter interpreter) {
+    this.interpreter = interpreter;
+  }
   @Override
   public void onReceive(Object message) throws Exception {
     if (message instanceof DataInputFile) {
@@ -45,8 +49,12 @@ public class FileLineEmitter extends UntypedActor {
       Map<Term, String> line;
       while ((line = mappedTabularFileReader.read()) != null) {
         OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
+        result.getUpdated().addIssue(OccurrenceIssue.BASIS_OF_RECORD_INVALID);
         getSender().tell(result);
       }
+      getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.SUCCESS));
+    } catch (Exception ex) {
+      getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.FAILED));
     }
   }
 
