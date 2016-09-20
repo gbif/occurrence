@@ -1,13 +1,13 @@
 package org.gbif.occurrence.validation;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.tabular.MappedTabularDataFileReader;
+import org.gbif.tabular.MappedTabularDataLine;
 import org.gbif.tabular.MappedTabularFiles;
 
 import java.io.File;
@@ -48,9 +48,9 @@ public class FileLineEmitter extends UntypedActor {
                  MappedTabularFiles.newTermMappedTabularFileReader(new FileInputStream(
                                  new File(dataInputFile.getFileName())), dataInputFile.getDelimiterChar(),
                          dataInputFile.isHasHeaders(), columnsMapping)) {
-      Map<Term, String> line;
+      MappedTabularDataLine<Term> line;
       while ((line = mappedTabularFileReader.read()) != null) {
-        OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
+        OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line.getMappedData()));
         getSender().tell(result);
       }
       getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.SUCCESS));
