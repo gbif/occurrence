@@ -1,7 +1,8 @@
 package org.gbif.occurrence.validation;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 import akka.actor.UntypedActor;
 
@@ -49,7 +51,6 @@ public class FileLineEmitter extends UntypedActor {
       Map<Term, String> line;
       while ((line = mappedTabularFileReader.read()) != null) {
         OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
-        result.getUpdated().addIssue(OccurrenceIssue.BASIS_OF_RECORD_INVALID);
         getSender().tell(result);
       }
       getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.SUCCESS));
@@ -68,6 +69,10 @@ public class FileLineEmitter extends UntypedActor {
   private VerbatimOccurrence toVerbatimOccurrence(Map<Term, String> line) {
     VerbatimOccurrence verbatimOccurrence = new VerbatimOccurrence();
     verbatimOccurrence.setVerbatimFields(line);
+    String datasetKey = verbatimOccurrence.getVerbatimField(GbifTerm.datasetKey);
+    if (datasetKey != null) {
+      verbatimOccurrence.setDatasetKey(UUID.fromString(datasetKey));
+    }
     return verbatimOccurrence;
   }
 }

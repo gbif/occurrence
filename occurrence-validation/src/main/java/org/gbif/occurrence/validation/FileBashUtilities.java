@@ -6,12 +6,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 public class FileBashUtilities {
+
+  /**
+   * Private constructor.
+   */
+  private FileBashUtilities() {
+    //empty constructor
+  }
 
   public static int countLines(String fileName) throws IOException {
     String[] out = executeSimpleCmd(String.format("wc -l %s | awk '{print $1;}'",fileName));
@@ -58,11 +64,5 @@ public class FileBashUtilities {
         process.destroy();
       }
     }
-  }
-
-  public static void main(String[] args) throws IOException {
-    String lines[] = splitFile("/Users/fmendez/dev/git/gbif/occurrence/occurrence-processor/src/test/resources/lines.txt", 1,
-                               UUID.randomUUID().toString());
-    System.out.println(lines);
   }
 }
