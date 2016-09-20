@@ -50,6 +50,10 @@ public class FileLineEmitter extends UntypedActor {
                          dataInputFile.isHasHeaders(), columnsMapping)) {
       MappedTabularDataLine<Term> line;
       while ((line = mappedTabularFileReader.read()) != null) {
+
+        //line.getNumberOfColumn() < columnsMapping.length -> StructureIssue.LINE_ELEMENT_COUNT_MISSING_DATA
+        //line.getNumberOfColumn() > columnsMapping.length -> StructureIssue.LINE_ELEMENT_COUNT_TOO_MANY_DATA
+
         OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line.getMappedData()));
         getSender().tell(result);
       }
