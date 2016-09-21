@@ -1,14 +1,11 @@
 package org.gbif.occurrence.validation;
 
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
+import org.gbif.occurrence.validation.api.DataFile;
+import org.gbif.occurrence.validation.tabular.OccurrenceLineProcessorFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,6 +32,8 @@ public class DataFileProcessor extends UntypedActor {
 
   private int numOfActors;
 
+  private int numOfInputRecords;
+
   private Set<DataWorkResult> results;
 
   private  final ValidationResultsAggregator aggregator = new ValidationResultsAggregator();
@@ -45,38 +44,46 @@ public class DataFileProcessor extends UntypedActor {
 
   @Override
   public void onReceive(Object message) throws Exception {
-    if (message instanceof DataInputFile) {
-      runActors((DataInputFile)message);
+    if (message instanceof DataFile) {
+      runActors((DataFile)message);
     } else if (message instanceof OccurrenceInterpretationResult) {
       accumulateResults((OccurrenceInterpretationResult)message);
     } else if (message instanceof DataWorkResult) {
        results.add((DataWorkResult)message);
+      System.out.println(message);
       if(results.size() == numOfActors) {
         getContext().stop(self());
+        getContext().system().shutdown();
+        System.out.println("# of records processed: " + numOfInputRecords);
         System.out.print(aggregator);
       }
     }
   }
 
-  private void runActors(DataInputFile dataInputFile) {
+  private void runActors(DataFile dataFile) {
     try {
-      int splitSize = dataInputFile.getNumOfLines() > FILE_SPLIT_SIZE ?
-        (dataInputFile.getNumOfLines() / FILE_SPLIT_SIZE) : dataInputFile.getNumOfLines();
+      numOfInputRecords = dataFile.getNumOfLines();
+      int splitSize = numOfInputRecords > FILE_SPLIT_SIZE ?
+        (dataFile.getNumOfLines() / FILE_SPLIT_SIZE) : 1;
       File outDir = new File(UUID.randomUUID().toString());
       outDir.deleteOnExit();
       String outDirPath = new File(UUID.randomUUID().toString()).getAbsolutePath();
-      String[] splits = FileBashUtilities.splitFile(dataInputFile.getFileName(), splitSize,  outDirPath);
+      String[] splits = FileBashUtilities.splitFile(dataFile.getFileName(), numOfInputRecords / splitSize, outDirPath);
       numOfActors = splits.length;
-      ActorRef workerRouter = getContext().actorOf(new Props(new FileLineEmitterFactory(apiUrl))
+      ActorRef workerRouter = getContext().actorOf(new Props(new FileLineEmitterFactory(new OccurrenceLineProcessorFactory(apiUrl,
+                                                                                                                           dataFile
+                                                                                                                             .getDelimiterChar(),
+                                                                                                                           dataFile
+                                                                                                                             .getColumns())))
                                                      .withRouter(new RoundRobinRouter(splits.length)), "dataFileRouter");
       results = Sets.newHashSetWithExpectedSize(numOfActors);
       for(int i = 0; i < splits.length; i++) {
-        DataInputFile dataInputSplitFile = new DataInputFile();
+        DataFile dataInputSplitFile = new DataFile();
         File splitFile = new File(outDirPath, splits[i]);
         splitFile.deleteOnExit();
         dataInputSplitFile.setFileName(splitFile.getAbsolutePath());
-        dataInputSplitFile.setColumns(dataInputFile.getColumns());
-        dataInputSplitFile.setHasHeaders(dataInputFile.isHasHeaders() && (i == 0));
+        dataInputSplitFile.setColumns(dataFile.getColumns());
+        dataInputSplitFile.setHasHeaders(dataFile.isHasHeaders() && (i == 0));
         workerRouter.tell(dataInputSplitFile,self());
       }
 
@@ -86,7 +93,7 @@ public class DataFileProcessor extends UntypedActor {
   }
 
   private void accumulateResults(OccurrenceInterpretationResult result) {
-    aggregator.accumulateResult(result);
+    aggregator.accumulate(result);
   }
 
 
@@ -95,8 +102,8 @@ public class DataFileProcessor extends UntypedActor {
    */
   public static void run(String inputFile, String apiUrl) {
 
-    // Create an Akka system
     final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
+    // Create an Akka system
 
     // create the master
     final ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
@@ -105,12 +112,13 @@ public class DataFileProcessor extends UntypedActor {
       }
     }), "DataFileProcessor");
     try {
-      DataInputFile dataInputFile = new DataInputFile();
-      dataInputFile.setFileName(inputFile);
-      dataInputFile.setNumOfLines(FileBashUtilities.countLines(inputFile));
-      dataInputFile.setColumns(getHeader(dataInputFile));
+      DataFile dataFile = new DataFile();
+      dataFile.setFileName(inputFile);
+      dataFile.setNumOfLines(FileBashUtilities.countLines(inputFile));
+      dataFile.setColumns(dataFile.readHeader());
+      dataFile.setHasHeaders(true);
       // start the calculation
-      master.tell(dataInputFile);
+      master.tell(dataFile);
       while (!master.isTerminated()) {
         try {
           Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
@@ -122,15 +130,6 @@ public class DataFileProcessor extends UntypedActor {
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
-  }
-
-  private static String[] getHeader(DataInputFile dataInputFile) {
-    try (BufferedReader br = new BufferedReader(new FileReader(dataInputFile.getFileName()))) {
-      return br.readLine().split(dataInputFile.getDelimiterChar().toString());
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-
   }
 
   public static void main(String[] args) {

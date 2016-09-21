@@ -1,78 +1,46 @@
 package org.gbif.occurrence.validation;
 
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
-import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
-import org.gbif.tabular.MappedTabularDataFileReader;
-import org.gbif.tabular.MappedTabularFiles;
+import org.gbif.occurrence.validation.api.DataFile;
+import org.gbif.occurrence.validation.api.RecordProcessor;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
 
 import akka.actor.UntypedActor;
 
-public class FileLineEmitter extends UntypedActor {
+public class FileLineEmitter<T> extends UntypedActor {
 
-  private static final TermFactory TERM_FACTORY = TermFactory.instance();
-  private OccurrenceInterpreter interpreter;
 
-  public FileLineEmitter(OccurrenceInterpreter interpreter) {
-    this.interpreter = interpreter;
+  private final RecordProcessor<T> recordProcessor;
+
+  public FileLineEmitter(RecordProcessor<T> recordProcessor) {
+    this.recordProcessor = recordProcessor;
   }
   @Override
   public void onReceive(Object message) throws Exception {
-    if (message instanceof DataInputFile) {
-      doWork((DataInputFile) message);
+    if (message instanceof DataFile) {
+      doWork((DataFile) message);
     } else {
       unhandled(message);
     }
   }
 
-  private void doWork(DataInputFile dataInputFile) throws IOException {
+  private void doWork(DataFile dataFile) throws IOException {
 
-    //Build the columns mapping from Strings
-    String[] columnsName = dataInputFile.getColumns();
-    Term[] columnsMapping = new Term[columnsName.length];
-    for (int i = 0; i < columnsName.length; i++) {
-      columnsMapping[i] = TERM_FACTORY.findTerm(columnsName[i]);
-    }
-
-    try (MappedTabularDataFileReader<Term> mappedTabularFileReader =
-                 MappedTabularFiles.newTermMappedTabularFileReader(new FileInputStream(
-                                 new File(dataInputFile.getFileName())), dataInputFile.getDelimiterChar(),
-                         dataInputFile.isHasHeaders(), columnsMapping)) {
-      Map<Term, String> line;
-      while ((line = mappedTabularFileReader.read()) != null) {
-        OccurrenceInterpretationResult result = interpreter.interpret(toVerbatimOccurrence(line));
-        getSender().tell(result);
+    try (BufferedReader br = new BufferedReader(new FileReader(dataFile.getFileName()))) {
+      String line;
+      if(dataFile.isHasHeaders()) {
+        line = br.readLine();
       }
-      getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.SUCCESS));
+      while ((line = br.readLine()) != null) {
+        getSender().tell(recordProcessor.process(line));
+      }
+      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
     } catch (Exception ex) {
-      getSender().tell(new DataWorkResult(dataInputFile, DataWorkResult.Result.FAILED));
+      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));
     }
   }
 
-  /**
-   * Get a {@link VerbatimOccurrence} instance from a {@Map} of {@link Term}
-   *
-   * @param line
-   *
-   * @return
-   */
-  private VerbatimOccurrence toVerbatimOccurrence(Map<Term, String> line) {
-    VerbatimOccurrence verbatimOccurrence = new VerbatimOccurrence();
-    verbatimOccurrence.setVerbatimFields(line);
-    String datasetKey = verbatimOccurrence.getVerbatimField(GbifTerm.datasetKey);
-    if (datasetKey != null) {
-      verbatimOccurrence.setDatasetKey(UUID.fromString(datasetKey));
-    }
-    return verbatimOccurrence;
-  }
+
 }

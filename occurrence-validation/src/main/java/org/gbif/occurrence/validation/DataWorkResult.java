@@ -1,27 +1,29 @@
 package org.gbif.occurrence.validation;
 
+import org.gbif.occurrence.validation.api.DataFile;
+
 public class DataWorkResult {
 
   public static enum Result {
     SUCCESS, FAILED;
   }
 
-  private DataInputFile dataInputFile;
+  private DataFile dataFile;
 
   private Result result;
 
 
-  public DataWorkResult(DataInputFile dataInputFile, Result result) {
-    this.dataInputFile = dataInputFile;
+  public DataWorkResult(DataFile dataFile, Result result) {
+    this.dataFile = dataFile;
     this.result = result;
   }
 
-  public DataInputFile getDataInputFile() {
-    return dataInputFile;
+  public DataFile getDataFile() {
+    return dataFile;
   }
 
-  public void setDataInputFile(DataInputFile dataInputFile) {
-    this.dataInputFile = dataInputFile;
+  public void setDataFile(DataFile dataFile) {
+    this.dataFile = dataFile;
   }
 
   public Result getResult() {
@@ -30,5 +32,10 @@ public class DataWorkResult {
 
   public void setResult(Result result) {
     this.result = result;
+  }
+
+  @Override
+  public String toString() {
+    return "Result: " + result.name() + " Datafile: " + dataFile.getFileName();
   }
 }

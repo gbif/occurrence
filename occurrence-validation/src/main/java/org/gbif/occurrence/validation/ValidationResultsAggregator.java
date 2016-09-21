@@ -2,17 +2,20 @@ package org.gbif.occurrence.validation;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
+import org.gbif.occurrence.validation.api.ResultsCollector;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
-import com.google.common.base.MoreObjects;
 
-public class ValidationResultsAggregator {
+public class ValidationResultsAggregator implements ResultsCollector<OccurrenceInterpretationResult> {
 
   private ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
+  private LongAdder recordCount = new LongAdder();
 
-  public void accumulateResult(OccurrenceInterpretationResult result) {
+  @Override
+  public void accumulate(OccurrenceInterpretationResult result) {
+    recordCount.increment();
     result.getUpdated().getIssues().forEach(
       issue -> issuesCounter.computeIfAbsent(issue, k -> new LongAdder()).increment()
     );
@@ -20,7 +23,7 @@ public class ValidationResultsAggregator {
 
   @Override
   public String toString() {
-    return issuesCounter.toString();
+    return "Record count: " + recordCount.toString() + " Issues: " + issuesCounter.toString();
   }
 
 }

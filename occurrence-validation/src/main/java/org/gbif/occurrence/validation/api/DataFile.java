@@ -1,8 +1,10 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.api;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import javax.annotation.Nullable;
 
-public class DataInputFile {
+public class DataFile {
 
   private Character delimiterChar = '\t';
 
@@ -53,5 +55,14 @@ public class DataInputFile {
 
   public void setHasHeaders(boolean hasHeaders) {
     this.hasHeaders = hasHeaders;
+  }
+
+  public String[] readHeader() {
+    try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+      return br.readLine().split(delimiterChar.toString());
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+
   }
 }
