@@ -19,7 +19,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -111,12 +110,7 @@ public class FileLineEmitter extends UntypedActor {
     Map<Term, String> relatedData;
 
     for (OccurrenceIssue issue : result.getUpdated().getIssues()) {
-      relatedData = InterpretationRemarksDefinition.REMARKS.stream()
-              //FIXME rewrite in a more efficient way: InterpretationRemarksDefinition should also have the mapping with the
-              //OccurrenceIssue as key
-              .filter(r -> issue.equals(r.getType()))
-              .map(r -> r.getRelatedTerms())
-              .flatMap(Collection::stream)
+      relatedData = InterpretationRemarksDefinition.getRelatedTerms(issue).stream()
               .filter(t -> verbatimFields.get(t) != null)
               .collect(Collectors.toMap(Function.identity(),
                       t -> verbatimFields.get(t)));
