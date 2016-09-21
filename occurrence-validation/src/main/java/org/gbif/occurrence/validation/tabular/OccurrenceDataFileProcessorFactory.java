@@ -1,8 +1,12 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.tabular;
 
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
+import org.gbif.occurrence.validation.DataWorkResult;
+import org.gbif.occurrence.validation.FileBashUtilities;
+import org.gbif.occurrence.validation.FileLineEmitterFactory;
+import org.gbif.occurrence.validation.ValidationResultsAggregator;
 import org.gbif.occurrence.validation.api.DataFile;
-import org.gbif.occurrence.validation.tabular.OccurrenceLineProcessorFactory;
+import org.gbif.occurrence.validation.api.DataFileProcessor;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,16 +23,18 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DataFileProcessor extends UntypedActor {
+public class OccurrenceDataFileProcessorFactory extends UntypedActor implements DataFileProcessor {
 
 
-  private static final Logger LOG = LoggerFactory.getLogger(DataFileProcessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDataFileProcessorFactory.class);
 
   private static final long SLEEP_TIME_BEFORE_TERMINATION = 5000L;
 
   private static final int FILE_SPLIT_SIZE = 10000;
 
-  private String apiUrl;
+  private final String apiUrl;
+
+  private final DataFile dataFile;
 
   private int numOfActors;
 
@@ -38,8 +44,9 @@ public class DataFileProcessor extends UntypedActor {
 
   private  final ValidationResultsAggregator aggregator = new ValidationResultsAggregator();
 
-  public DataFileProcessor(String apiUrl) {
+  public OccurrenceDataFileProcessorFactory(String apiUrl, DataFile dataFile) {
     this.apiUrl = apiUrl;
+    this.dataFile = dataFile;
   }
 
   @Override
@@ -50,12 +57,11 @@ public class DataFileProcessor extends UntypedActor {
       accumulateResults((OccurrenceInterpretationResult)message);
     } else if (message instanceof DataWorkResult) {
        results.add((DataWorkResult)message);
-      System.out.println(message);
       if(results.size() == numOfActors) {
         getContext().stop(self());
         getContext().system().shutdown();
-        System.out.println("# of records processed: " + numOfInputRecords);
-        System.out.print(aggregator);
+        LOG.info("# of records processed: " + numOfInputRecords);
+        LOG.info("Results: ", aggregator.toString());
       }
     }
   }
@@ -100,23 +106,18 @@ public class DataFileProcessor extends UntypedActor {
   /**
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
-  public static void run(String inputFile, String apiUrl) {
+  public void process(DataFile dataFile) {
 
-    final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
+    final ActorSystem system = ActorSystem.create("DataFileProcessorSystem-" + dataFile.getFileName());
     // Create an Akka system
 
     // create the master
     final ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
       public UntypedActor create() {
-        return new DataFileProcessor(apiUrl);
+        return this;
       }
-    }), "DataFileProcessor");
+    }), "DataFileProcessor-" + dataFile.getFileName());
     try {
-      DataFile dataFile = new DataFile();
-      dataFile.setFileName(inputFile);
-      dataFile.setNumOfLines(FileBashUtilities.countLines(inputFile));
-      dataFile.setColumns(dataFile.readHeader());
-      dataFile.setHasHeaders(true);
       // start the calculation
       master.tell(dataFile);
       while (!master.isTerminated()) {
@@ -127,12 +128,9 @@ public class DataFileProcessor extends UntypedActor {
         }
       }
       system.shutdown();
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
   }
 
-  public static void main(String[] args) {
-    DataFileProcessor.run(args[0], args[1]);
-  }
 }

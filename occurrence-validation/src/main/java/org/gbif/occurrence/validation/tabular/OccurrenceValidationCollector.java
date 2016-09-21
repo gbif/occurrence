@@ -1,4 +1,4 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.tabular;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
 
-public class ValidationResultsAggregator implements ResultsCollector<OccurrenceInterpretationResult> {
+public class OccurrenceValidationCollector implements ResultsCollector<OccurrenceInterpretationResult> {
 
   private ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
   private LongAdder recordCount = new LongAdder();

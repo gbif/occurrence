@@ -152,7 +152,7 @@
     <geocode.version>0.10</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.27</gbif-parsers.version>
+    <gbif-parsers.version>0.29-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.22</gbif-postal-service.version>
     <gbif-registry.version>2.56</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
