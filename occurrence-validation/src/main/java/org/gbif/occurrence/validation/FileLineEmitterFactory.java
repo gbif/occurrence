@@ -7,7 +7,7 @@ import akka.actor.Actor;
 import akka.actor.UntypedActorFactory;
 
 
-class FileLineEmitterFactory implements UntypedActorFactory {
+public class FileLineEmitterFactory implements UntypedActorFactory {
 
   private RecordProcessorFactory recordProcessorFactory;
 

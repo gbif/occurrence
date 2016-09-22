@@ -4,11 +4,12 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.ResultsCollector;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
 
-public class OccurrenceValidationCollector implements ResultsCollector<OccurrenceInterpretationResult> {
+public class OccurrenceValidationCollector implements ResultsCollector<OccurrenceInterpretationResult,Map<OccurrenceIssue, LongAdder>> {
 
   private ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
   private LongAdder recordCount = new LongAdder();
@@ -19,6 +20,11 @@ public class OccurrenceValidationCollector implements ResultsCollector<Occurrenc
     result.getUpdated().getIssues().forEach(
       issue -> issuesCounter.computeIfAbsent(issue, k -> new LongAdder()).increment()
     );
+  }
+
+  @Override
+  public Map<OccurrenceIssue, LongAdder> getAggregatedResult(){
+    return issuesCounter;
   }
 
   @Override

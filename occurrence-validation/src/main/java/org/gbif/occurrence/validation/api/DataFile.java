@@ -57,7 +57,10 @@ public class DataFile {
     this.hasHeaders = hasHeaders;
   }
 
-  public String[] readHeader() {
+  public void loadHeaders() {
+    this.columns = readHeader();
+  }
+  private String[] readHeader() {
     try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
       return br.readLine().split(delimiterChar.toString());
     } catch (Exception ex) {

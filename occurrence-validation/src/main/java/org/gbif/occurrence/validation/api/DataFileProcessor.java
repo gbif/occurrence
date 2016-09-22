@@ -1,6 +1,6 @@
 package org.gbif.occurrence.validation.api;
 
-public interface DataFileProcessor {
+public interface DataFileProcessor<T> {
 
-  void process(DataFile dataFile);
+  T process(DataFile dataFile);
 }
