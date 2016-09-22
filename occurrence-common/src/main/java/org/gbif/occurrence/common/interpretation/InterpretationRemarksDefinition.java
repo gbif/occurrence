@@ -66,9 +66,6 @@ public class InterpretationRemarksDefinition {
                   .put(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemark.of(
                           OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemarkSeverity.WARNING,
                           COORDINATES_TERMS))
-                  .put(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemark.of(
-                          OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE, InterpretationRemarkSeverity.WARNING,
-                          COORDINATES_TERMS))
                   .put(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, InterpretationRemark.of(
                           OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE, InterpretationRemarkSeverity.WARNING,
                           COORDINATES_TERMS))
@@ -192,9 +189,17 @@ public class InterpretationRemarksDefinition {
    */
   public static final Set<InterpretationRemark> REMARKS = REMARKS_MAP.inverse().keySet();
 
+  /**
+   * Get the terms related to an OccurrenceIssue or null if the OccurrenceIssue is not
+   * linked to a specific set of fields (e.g. INTERPRETATION_ERROR) or the OccurrenceIssue is unknown.
+   * @param occIssue
+   * @return
+   */
   public static Set<Term> getRelatedTerms(OccurrenceIssue occIssue){
-    return REMARKS_MAP.get(occIssue).getRelatedTerms();
+    if(REMARKS_MAP.containsKey(occIssue)){
+      return REMARKS_MAP.get(occIssue).getRelatedTerms();
+    }
+    return null;
   }
-
 
 }
