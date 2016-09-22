@@ -2,7 +2,6 @@ package org.gbif.occurrence.validation;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.DataFile;
@@ -24,8 +23,6 @@ import akka.actor.UntypedActor;
 
 public class FileLineEmitter<T> extends UntypedActor {
 
-  private static final TermFactory TERM_FACTORY = TermFactory.instance();
-
   private final RecordProcessor<T> recordProcessor;
 
   public FileLineEmitter(RecordProcessor<T> recordProcessor) {
@@ -46,7 +43,7 @@ public class FileLineEmitter<T> extends UntypedActor {
     try (BufferedReader br = new BufferedReader(new FileReader(dataFile.getFileName()))) {
       String line;
       if(dataFile.isHasHeaders()) {
-        line = br.readLine();
+        br.readLine();
       }
       while ((line = br.readLine()) != null) {
         getSender().tell(recordProcessor.process(line));
