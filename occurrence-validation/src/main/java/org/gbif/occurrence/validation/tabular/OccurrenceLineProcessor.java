@@ -10,9 +10,7 @@ import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretatio
 import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -65,7 +63,6 @@ public class OccurrenceLineProcessor implements RecordProcessor<RecordInterpreti
   }
 
   /**
-   * WORK-IN-PROGRESS
    *
    * Creates a RecordInterpretionBasedEvaluationResult from an OccurrenceInterpretationResult.
    *
@@ -76,11 +73,12 @@ public class OccurrenceLineProcessor implements RecordProcessor<RecordInterpreti
    */
   private RecordInterpretionBasedEvaluationResult toEvaluationResult(String id, OccurrenceInterpretationResult result) {
 
+    //should we avoid creating an object (return null) or return an empty object?
     if(result.getUpdated().getIssues().isEmpty()){
       return null;
     }
-    //FIXME reduce verboseness
-    List<RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails> details = new ArrayList();
+
+    RecordInterpretionBasedEvaluationResult.Builder builder = new RecordInterpretionBasedEvaluationResult.Builder();
     Map<Term, String> verbatimFields = result.getOriginal().getVerbatimFields();
     Map<Term, String> relatedData;
 
@@ -89,9 +87,8 @@ public class OccurrenceLineProcessor implements RecordProcessor<RecordInterpreti
               .filter(t -> verbatimFields.get(t) != null)
               .collect(Collectors.toMap(Function.identity(),
                       t -> verbatimFields.get(t)));
-      details.add(
-              new RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails(issue, relatedData));
+      builder.addDetail(issue, relatedData);
     }
-    return new RecordInterpretionBasedEvaluationResult(id, details);
+    return builder.build();
   }
 }
