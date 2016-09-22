@@ -12,7 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
-public class SingleDataFileProcessor<T> implements DataFileProcessor<Map<OccurrenceIssue, Long>> {
+public class SingleDataFileProcessor implements DataFileProcessor<Map<OccurrenceIssue, Long>> {
 
   public static class DataFileReader  implements Closeable {
 
