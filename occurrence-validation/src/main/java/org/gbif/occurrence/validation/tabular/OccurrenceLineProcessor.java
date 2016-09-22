@@ -1,18 +1,25 @@
 package org.gbif.occurrence.validation.tabular;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.RecordProcessor;
+import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
-public class OccurrenceLineProcessor implements RecordProcessor<OccurrenceInterpretationResult> {
+public class OccurrenceLineProcessor implements RecordProcessor<RecordInterpretionBasedEvaluationResult> {
 
   private final OccurrenceInterpreter interpreter;
   private final Character separator;
@@ -25,8 +32,9 @@ public class OccurrenceLineProcessor implements RecordProcessor<OccurrenceInterp
   }
 
   @Override
-  public OccurrenceInterpretationResult process(String line) {
-    return interpreter.interpret(toVerbatimOccurrence(line));
+  public RecordInterpretionBasedEvaluationResult process(String line) {
+    //FIXME provide a recordId, something to locate the issue in the file (if coming from a file)
+    return toEvaluationResult("id", interpreter.interpret(toVerbatimOccurrence(line)));
   }
 
   /**
@@ -54,5 +62,36 @@ public class OccurrenceLineProcessor implements RecordProcessor<OccurrenceInterp
       verbatimMap.put(columns[i],values[i]);
     }
     return verbatimMap;
+  }
+
+  /**
+   * WORK-IN-PROGRESS
+   *
+   * Creates a RecordInterpretionBasedEvaluationResult from an OccurrenceInterpretationResult.
+   *
+   * @param id
+   * @param result
+   *
+   * @return
+   */
+  private RecordInterpretionBasedEvaluationResult toEvaluationResult(String id, OccurrenceInterpretationResult result) {
+
+    if(result.getUpdated().getIssues().isEmpty()){
+      return null;
+    }
+    //FIXME reduce verboseness
+    List<RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails> details = new ArrayList();
+    Map<Term, String> verbatimFields = result.getOriginal().getVerbatimFields();
+    Map<Term, String> relatedData;
+
+    for (OccurrenceIssue issue : result.getUpdated().getIssues()) {
+      relatedData = InterpretationRemarksDefinition.getRelatedTerms(issue).stream()
+              .filter(t -> verbatimFields.get(t) != null)
+              .collect(Collectors.toMap(Function.identity(),
+                      t -> verbatimFields.get(t)));
+      details.add(
+              new RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails(issue, relatedData));
+    }
+    return new RecordInterpretionBasedEvaluationResult(id, details);
   }
 }

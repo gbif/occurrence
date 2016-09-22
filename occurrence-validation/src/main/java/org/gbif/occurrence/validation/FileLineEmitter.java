@@ -1,23 +1,13 @@
 package org.gbif.occurrence.validation;
 
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
-import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.RecordProcessor;
-import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 import org.gbif.occurrence.validation.model.RecordStructureEvaluationResult;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import akka.actor.UntypedActor;
 
@@ -56,32 +46,7 @@ public class FileLineEmitter<T> extends UntypedActor {
   }
 
 
-  /**
-   * WORK-IN-PROGRESS
-   *
-   * Creates a RecordInterpretionBasedEvaluationResult from an OccurrenceInterpretationResult.
-   *
-   * @param id
-   * @param result
-   *
-   * @return
-   */
-  private RecordInterpretionBasedEvaluationResult toEvaluationResult(String id, OccurrenceInterpretationResult result) {
-    //FIXME reduce verboseness
-    List<RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails> details = new ArrayList();
-    Map<Term, String> verbatimFields = result.getOriginal().getVerbatimFields();
-    Map<Term, String> relatedData;
 
-    for (OccurrenceIssue issue : result.getUpdated().getIssues()) {
-      relatedData = InterpretationRemarksDefinition.getRelatedTerms(issue).stream()
-              .filter(t -> verbatimFields.get(t) != null)
-              .collect(Collectors.toMap(Function.identity(),
-                      t -> verbatimFields.get(t)));
-      details.add(
-              new RecordInterpretionBasedEvaluationResult.RecordValidationResultDetails(issue, relatedData));
-    }
-    return new RecordInterpretionBasedEvaluationResult(id, details);
-  }
 
   /**
    * WORK-IN-PROGRESS
