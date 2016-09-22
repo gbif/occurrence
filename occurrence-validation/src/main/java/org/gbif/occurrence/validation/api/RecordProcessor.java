@@ -1,7 +1,9 @@
 package org.gbif.occurrence.validation.api;
 
-public interface RecordProcessor<T> {
+import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
-  T process(String line);
+public interface RecordProcessor {
+
+  RecordInterpretionBasedEvaluationResult process(String line);
 
 }

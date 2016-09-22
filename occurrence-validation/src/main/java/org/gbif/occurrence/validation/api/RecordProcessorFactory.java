@@ -1,6 +1,6 @@
 package org.gbif.occurrence.validation.api;
 
-public interface RecordProcessorFactory<T> {
+public interface RecordProcessorFactory {
 
-  RecordProcessor<T> create();
+  RecordProcessor create();
 }

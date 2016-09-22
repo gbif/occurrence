@@ -17,7 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class OccurrenceLineProcessor implements RecordProcessor<RecordInterpretionBasedEvaluationResult> {
+public class OccurrenceLineProcessor implements RecordProcessor {
 
   private final OccurrenceInterpreter interpreter;
   private final Character separator;

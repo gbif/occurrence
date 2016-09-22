@@ -20,11 +20,13 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
-public class OccurrenceLineProcessorFactory implements RecordProcessorFactory<OccurrenceInterpretationResult> {
+public class OccurrenceLineProcessorFactory implements RecordProcessorFactory {
 
   private final String apiUrl;
   private final Character separator;
   private final Term[] columns;
+
+  private static ApacheHttpClient httpClient;
 
   private static final int CLIENT_TO = 600000; // registry client default timeout
 
@@ -39,7 +41,7 @@ public class OccurrenceLineProcessorFactory implements RecordProcessorFactory<Oc
     }
   }
 
-  public RecordProcessor<OccurrenceInterpretationResult> create() {
+  public RecordProcessor create() {
     return new OccurrenceLineProcessor(buidlOccurrenceInterpreter(),separator,columns);
   }
 
@@ -47,13 +49,16 @@ public class OccurrenceLineProcessorFactory implements RecordProcessorFactory<Oc
    * Creates an HTTP client.
    */
   private ApacheHttpClient createHttpClient() {
-    ClientConfig cc = new DefaultClientConfig();
-    cc.getClasses().add(JacksonJsonContextResolver.class);
-    cc.getClasses().add(JacksonJsonProvider.class);
-    cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
-    cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, CLIENT_TO);
-    JacksonJsonContextResolver.addMixIns(Mixins.getPredefinedMixins());
-    return ApacheHttpClient.create(cc);
+    if (httpClient == null) {
+      ClientConfig cc = new DefaultClientConfig();
+      cc.getClasses().add(JacksonJsonContextResolver.class);
+      cc.getClasses().add(JacksonJsonProvider.class);
+      cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
+      cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, CLIENT_TO);
+      JacksonJsonContextResolver.addMixIns(Mixins.getPredefinedMixins());
+      httpClient = ApacheHttpClient.create(cc);
+    }
+    return httpClient;
   }
 
   public OccurrenceInterpreter buidlOccurrenceInterpreter() {

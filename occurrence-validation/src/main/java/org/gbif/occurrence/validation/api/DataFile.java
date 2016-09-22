@@ -2,6 +2,8 @@ package org.gbif.occurrence.validation.api;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.Objects;
 import javax.annotation.Nullable;
 
 public class DataFile {
@@ -58,8 +60,41 @@ public class DataFile {
   }
 
   public void loadHeaders() {
-    this.columns = readHeader();
+    columns = readHeader();
   }
+
+  @Override
+  public String toString() {
+    return "DataFile{" +
+           "delimiterChar=" + delimiterChar +
+           ", columns=" + Arrays.toString(columns) +
+           ", fileName='" + fileName + '\'' +
+           ", numOfLines=" + numOfLines +
+           ", hasHeaders=" + hasHeaders +
+           '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    DataFile dataFile = (DataFile) o;
+    return hasHeaders == dataFile.hasHeaders &&
+           Objects.equals(delimiterChar, dataFile.delimiterChar) &&
+           Arrays.equals(columns, dataFile.columns) &&
+           Objects.equals(fileName, dataFile.fileName) &&
+           Objects.equals(numOfLines, dataFile.numOfLines);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(delimiterChar, columns, fileName, numOfLines, hasHeaders);
+  }
+
+  /**
+   * Reads the first line of a file and return it as the header.
+   * @return
+   */
   private String[] readHeader() {
     try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
       return br.readLine().split(delimiterChar.toString());

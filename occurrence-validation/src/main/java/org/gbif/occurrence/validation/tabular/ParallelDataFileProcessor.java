@@ -9,6 +9,7 @@ import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
 import org.gbif.occurrence.validation.api.RecordProcessorFactory;
 import org.gbif.occurrence.validation.api.ResultsCollector;
+import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
 
   private static class ParallelDataFileProcessorMaster extends UntypedActor {
 
-    private final ResultsCollector<OccurrenceInterpretationResult,Map<OccurrenceIssue, LongAdder>> collector;
+    private final ResultsCollector<Map<OccurrenceIssue, LongAdder>> collector;
     private final RecordProcessorFactory recordProcessorFactory;
 
     private Set<DataWorkResult> results;
@@ -58,8 +59,8 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
       if (message instanceof  DataFile) {
         dataFile = (DataFile)message;
         runActors();
-      } else if (message instanceof OccurrenceInterpretationResult) {
-        collector.accumulate((OccurrenceInterpretationResult) message);
+      } else if (message instanceof RecordInterpretionBasedEvaluationResult) {
+        collector.accumulate((RecordInterpretionBasedEvaluationResult) message);
       } else if (message instanceof DataWorkResult) {
         results.add((DataWorkResult) message);
         System.out.println(message);
@@ -108,7 +109,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
 
   @Override
   public Map<OccurrenceIssue, LongAdder> process(DataFile dataFile) {
-    OccurrenceValidationCollector validationCollector = new OccurrenceValidationCollector();
+    ConcurrentValidationCollector validationCollector = new ConcurrentValidationCollector();
     final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
     // Create an Akka system
 

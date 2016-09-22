@@ -1,8 +1,10 @@
 package org.gbif.occurrence.validation.api;
 
-public interface ResultsCollector<T,R> {
+import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
-  void accumulate(T result);
+public interface ResultsCollector<R> {
+
+  void accumulate(RecordInterpretionBasedEvaluationResult result);
 
   R getAggregatedResult();
 }

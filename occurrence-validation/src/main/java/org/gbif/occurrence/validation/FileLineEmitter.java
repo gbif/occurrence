@@ -13,9 +13,9 @@ import akka.actor.UntypedActor;
 
 public class FileLineEmitter<T> extends UntypedActor {
 
-  private final RecordProcessor<T> recordProcessor;
+  private final RecordProcessor recordProcessor;
 
-  public FileLineEmitter(RecordProcessor<T> recordProcessor) {
+  public FileLineEmitter(RecordProcessor recordProcessor) {
     this.recordProcessor = recordProcessor;
   }
 

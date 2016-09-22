@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
 
-public class OccurrenceValidationCollector implements ResultsCollector<RecordInterpretionBasedEvaluationResult, Map<OccurrenceIssue, LongAdder>> {
+public class ConcurrentValidationCollector implements ResultsCollector<Map<OccurrenceIssue, LongAdder>> {
 
   private ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
   private LongAdder recordCount = new LongAdder();
