@@ -2,7 +2,9 @@ package org.gbif.occurrence.validation;
 
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.RecordProcessor;
+import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 import org.gbif.occurrence.validation.model.RecordStructureEvaluationResult;
+import org.gbif.occurrence.validation.tabular.SingleDataFileProcessor;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -11,7 +13,7 @@ import java.text.MessageFormat;
 
 import akka.actor.UntypedActor;
 
-public class FileLineEmitter<T> extends UntypedActor {
+public class FileLineEmitter extends UntypedActor {
 
   private final RecordProcessor recordProcessor;
 
@@ -30,14 +32,12 @@ public class FileLineEmitter<T> extends UntypedActor {
 
   private void doWork(DataFile dataFile) throws IOException {
 
-    try (BufferedReader br = new BufferedReader(new FileReader(dataFile.getFileName()))) {
-      String line;
-      if(dataFile.isHasHeaders()) {
-        br.readLine();
+    try (SingleDataFileProcessor.DataFileReader reader = new SingleDataFileProcessor.DataFileReader(dataFile,recordProcessor)) {
+      RecordInterpretionBasedEvaluationResult result;
+      while ((result = reader.read()) != null) {
+        getSender().tell(result);
       }
-      while ((line = br.readLine()) != null) {
-        getSender().tell(recordProcessor.process(line));
-      }
+      //add reader aggregated result to the DataWorkResult
       getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
     } catch (Exception ex) {
       getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));

@@ -7,12 +7,17 @@ import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationRes
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
+public class ConcurrentValidationCollector implements ResultsCollector<Map<OccurrenceIssue, Long>> {
 
-public class ConcurrentValidationCollector implements ResultsCollector<Map<OccurrenceIssue, LongAdder>> {
+  private final ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter;
+  private final LongAdder recordCount;
 
-  private ConcurrentHashMap<OccurrenceIssue, LongAdder> issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
-  private LongAdder recordCount = new LongAdder();
+  public ConcurrentValidationCollector(){
+    issuesCounter = new ConcurrentHashMap(OccurrenceIssue.values().length);
+    recordCount = new LongAdder();
+  }
 
   @Override
   public void accumulate(RecordInterpretionBasedEvaluationResult result) {
@@ -23,13 +28,16 @@ public class ConcurrentValidationCollector implements ResultsCollector<Map<Occur
   }
 
   @Override
-  public Map<OccurrenceIssue, LongAdder> getAggregatedResult() {
-    return issuesCounter;
+  public Map<OccurrenceIssue, Long> getAggregatedResult() {
+    return issuesCounter.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(),
+                                                                      entry -> entry.getValue().longValue()));
   }
 
   @Override
   public String toString() {
-    return "Record count: " + recordCount.toString() + " Issues: " + issuesCounter.toString();
+    return "ConcurrentValidationCollector{" +
+           "issuesCounter=" + issuesCounter +
+           ", recordCount=" + recordCount +
+           '}';
   }
-
 }

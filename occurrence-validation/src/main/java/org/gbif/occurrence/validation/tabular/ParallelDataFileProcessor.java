@@ -28,7 +28,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ParallelDataFileProcessor implements DataFileProcessor<Map<OccurrenceIssue, LongAdder>> {
+public class ParallelDataFileProcessor implements DataFileProcessor<Map<OccurrenceIssue, Long>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(ParallelDataFileProcessor.class);
 
@@ -108,7 +108,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
   }
 
   @Override
-  public Map<OccurrenceIssue, LongAdder> process(DataFile dataFile) {
+  public Map<OccurrenceIssue, Long> process(DataFile dataFile) {
     ConcurrentValidationCollector validationCollector = new ConcurrentValidationCollector();
     final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
     // Create an Akka system
