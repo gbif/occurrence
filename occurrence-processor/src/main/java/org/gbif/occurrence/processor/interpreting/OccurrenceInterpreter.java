@@ -103,7 +103,7 @@ public class OccurrenceInterpreter {
       }
     });
     occ.setLastInterpreted(new Date());
-    return new OccurrenceInterpretationResult(null, occ);
+    return new OccurrenceInterpretationResult(new Occurrence(verbatim), occ);
   }
 
   /**
