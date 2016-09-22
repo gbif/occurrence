@@ -83,11 +83,13 @@ public class OccurrenceLineProcessor implements RecordProcessor {
     Map<Term, String> relatedData;
 
     for (OccurrenceIssue issue : result.getUpdated().getIssues()) {
-      relatedData = InterpretationRemarksDefinition.getRelatedTerms(issue).stream()
-              .filter(t -> verbatimFields.get(t) != null)
-              .collect(Collectors.toMap(Function.identity(),
-                      t -> verbatimFields.get(t)));
-      builder.addDetail(issue, relatedData);
+      if (InterpretationRemarksDefinition.REMARKS_MAP.containsKey(issue)) {
+        relatedData = InterpretationRemarksDefinition.getRelatedTerms(issue)
+          .stream()
+          .filter(t -> verbatimFields.get(t) != null)
+          .collect(Collectors.toMap(Function.identity(), t -> verbatimFields.get(t)));
+        builder.addDetail(issue, relatedData);
+      }
     }
     return builder.build();
   }

@@ -6,7 +6,6 @@ import org.gbif.occurrence.validation.tabular.ParallelDataFileProcessor;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.atomic.LongAdder;
 
 public class OccurrenceValidationApp {
 
@@ -19,7 +18,7 @@ public class OccurrenceValidationApp {
     dataFile.setHasHeaders(true);
     dataFile.loadHeaders();
     ParallelDataFileProcessor parallelDataFileProcessor = new ParallelDataFileProcessor(args[1]);
-    Map<OccurrenceIssue, LongAdder> result = parallelDataFileProcessor.process(dataFile);
+    Map<OccurrenceIssue, Long> result = parallelDataFileProcessor.process(dataFile);
     System.out.println(result.toString());
   }
 }

@@ -10,21 +10,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
-public class SimpleValidationCollector implements ResultsCollector<Map<OccurrenceIssue, Integer>> {
+public class SimpleValidationCollector implements ResultsCollector<Map<OccurrenceIssue, Long>> {
 
-  private HashMap<OccurrenceIssue, Integer> issuesCounter = new HashMap(OccurrenceIssue.values().length);
+  private HashMap<OccurrenceIssue, Long> issuesCounter = new HashMap(OccurrenceIssue.values().length);
   private long recordCount;
 
   @Override
   public void accumulate(RecordInterpretionBasedEvaluationResult result) {
     recordCount += 1;
-    /*result.getUpdated().getIssues().forEach(
-      issue -> issuesCounter.compute(issue, (k,v) -> (v == null) ? 1 : v++)
-    );  */
+    result.getDetails().forEach(
+      detail -> issuesCounter.compute(detail.getIssueFlag(), (k,v) -> (v == null) ? 1 : v++)
+    );
   }
 
   @Override
-  public Map<OccurrenceIssue, Integer> getAggregatedResult(){
+  public Map<OccurrenceIssue, Long> getAggregatedResult(){
     return issuesCounter;
   }
 
