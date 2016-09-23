@@ -1,4 +1,4 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.parallel;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.validation.api.ResultsCollector;

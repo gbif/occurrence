@@ -1,8 +1,8 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.single;
 
-import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
+import org.gbif.occurrence.validation.api.DataFileValidationResult;
 import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
@@ -10,9 +10,8 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 
-public class SingleDataFileProcessor implements DataFileProcessor<Map<OccurrenceIssue, Long>> {
+public class SingleDataFileProcessor implements DataFileProcessor {
 
   public static class DataFileReader  implements Closeable {
 
@@ -57,13 +56,13 @@ public class SingleDataFileProcessor implements DataFileProcessor<Map<Occurrence
   }
 
   @Override
-  public Map<OccurrenceIssue, Long> process(DataFile dataFile) {
+  public DataFileValidationResult process(DataFile dataFile) {
     try (DataFileReader dataFileReader = new DataFileReader(dataFile, recordProcessor)) {
       RecordInterpretionBasedEvaluationResult result;
       while ((result = dataFileReader.read()) != null) {
         collector.accumulate(result);
       }
-      return collector.getAggregatedResult();
+      return new DataFileValidationResult(collector.getAggregatedResult());
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

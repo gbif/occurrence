@@ -1,4 +1,4 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.processor;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceIssue;

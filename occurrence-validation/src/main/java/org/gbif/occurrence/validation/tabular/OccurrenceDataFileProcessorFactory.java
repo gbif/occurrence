@@ -2,15 +2,13 @@ package org.gbif.occurrence.validation.tabular;
 
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gbif.occurrence.validation.tabular.parallel.ParallelDataFileProcessor;
+import org.gbif.occurrence.validation.tabular.processor.OccurrenceLineProcessorFactory;
+import org.gbif.occurrence.validation.tabular.single.SingleDataFileProcessor;
 
 public class OccurrenceDataFileProcessorFactory {
 
-
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDataFileProcessorFactory.class);
-
-  private static final long SLEEP_TIME_BEFORE_TERMINATION = 50000L;
+  public static final int FILE_SPLIT_SIZE = 10000;
 
   private final String apiUrl;
 
@@ -25,6 +23,12 @@ public class OccurrenceDataFileProcessorFactory {
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
   public DataFileProcessor create(DataFile dataFile) {
+    OccurrenceLineProcessorFactory factory = new OccurrenceLineProcessorFactory(apiUrl, dataFile.getDelimiterChar(),
+                                                                                dataFile.getColumns());
+
+    if (dataFile.getNumOfLines() <= FILE_SPLIT_SIZE) {
+       return new SingleDataFileProcessor(factory.create());
+    }
     return new ParallelDataFileProcessor(apiUrl);
   }
 

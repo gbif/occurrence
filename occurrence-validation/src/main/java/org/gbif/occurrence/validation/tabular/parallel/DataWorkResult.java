@@ -1,10 +1,10 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.tabular.parallel;
 
 import org.gbif.occurrence.validation.api.DataFile;
 
 public class DataWorkResult {
 
-  public static enum Result {
+  public enum Result {
     SUCCESS, FAILED;
   }
 

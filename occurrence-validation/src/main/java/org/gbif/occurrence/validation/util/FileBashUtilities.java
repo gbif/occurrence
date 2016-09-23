@@ -1,4 +1,4 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.util;
 
 import java.io.BufferedReader;
 import java.io.File;

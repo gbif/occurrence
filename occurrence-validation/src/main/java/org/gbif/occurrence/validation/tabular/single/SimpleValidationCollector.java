@@ -1,14 +1,11 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.single;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.ResultsCollector;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.LongAdder;
 
 public class SimpleValidationCollector implements ResultsCollector<Map<OccurrenceIssue, Long>> {
 

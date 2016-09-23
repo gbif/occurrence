@@ -1,15 +1,14 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.parallel;
 
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
-import org.gbif.occurrence.validation.DataWorkResult;
-import org.gbif.occurrence.validation.FileBashUtilities;
-import org.gbif.occurrence.validation.FileLineEmitterFactory;
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
+import org.gbif.occurrence.validation.api.DataFileValidationResult;
 import org.gbif.occurrence.validation.api.RecordProcessorFactory;
 import org.gbif.occurrence.validation.api.ResultsCollector;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
+import org.gbif.occurrence.validation.tabular.processor.OccurrenceLineProcessorFactory;
+import org.gbif.occurrence.validation.util.FileBashUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +27,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ParallelDataFileProcessor implements DataFileProcessor<Map<OccurrenceIssue, Long>> {
+public class ParallelDataFileProcessor implements DataFileProcessor {
 
   private static final Logger LOG = LoggerFactory.getLogger(ParallelDataFileProcessor.class);
 
@@ -83,7 +82,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
         String outDirPath = outDir.getAbsolutePath();
         String[] splits = FileBashUtilities.splitFile(dataFile.getFileName(), numOfInputRecords / splitSize, outDirPath);
         numOfActors = splits.length;
-        ActorRef workerRouter = getContext().actorOf(new Props(new FileLineEmitterFactory(recordProcessorFactory))
+        ActorRef workerRouter = getContext().actorOf(new Props(new SingleFileReaderFactory(recordProcessorFactory))
                                                        .withRouter(new RoundRobinRouter(numOfActors)), "dataFileRouter");
         results = Sets.newHashSetWithExpectedSize(numOfActors);
         for(int i = 0; i < splits.length; i++) {
@@ -108,7 +107,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
   }
 
   @Override
-  public Map<OccurrenceIssue, Long> process(DataFile dataFile) {
+  public DataFileValidationResult process(DataFile dataFile) {
     ConcurrentValidationCollector validationCollector = new ConcurrentValidationCollector();
     final ActorSystem system = ActorSystem.create("DataFileProcessorSystem");
     // Create an Akka system
@@ -117,7 +116,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
     final ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
       public UntypedActor create() {
         return new ParallelDataFileProcessorMaster(validationCollector,
-                                                   new OccurrenceLineProcessorFactory(apiUrl,dataFile.getDelimiterChar(),dataFile.getColumns()));
+                                                   new OccurrenceLineProcessorFactory(apiUrl, dataFile.getDelimiterChar(), dataFile.getColumns()));
       }
     }), "DataFileProcessor");
     try {
@@ -136,6 +135,6 @@ public class ParallelDataFileProcessor implements DataFileProcessor<Map<Occurren
       system.shutdown();
       LOG.info("Processing time for file {}: {} seconds", dataFile.getFileName(), system.uptime());
     }
-    return validationCollector.getAggregatedResult();
+    return new DataFileValidationResult(validationCollector.getAggregatedResult());
   }
 }

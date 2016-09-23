@@ -1,23 +1,21 @@
-package org.gbif.occurrence.validation;
+package org.gbif.occurrence.validation.tabular.parallel;
 
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 import org.gbif.occurrence.validation.model.RecordStructureEvaluationResult;
-import org.gbif.occurrence.validation.tabular.SingleDataFileProcessor;
+import org.gbif.occurrence.validation.tabular.single.SingleDataFileProcessor;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
 
 import akka.actor.UntypedActor;
 
-public class FileLineEmitter extends UntypedActor {
+public class SingleFileReaderActor extends UntypedActor {
 
   private final RecordProcessor recordProcessor;
 
-  public FileLineEmitter(RecordProcessor recordProcessor) {
+  public SingleFileReaderActor(RecordProcessor recordProcessor) {
     this.recordProcessor = recordProcessor;
   }
 
@@ -41,12 +39,8 @@ public class FileLineEmitter extends UntypedActor {
       getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
     } catch (Exception ex) {
       getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));
-
     }
   }
-
-
-
 
   /**
    * WORK-IN-PROGRESS

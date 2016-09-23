@@ -1,4 +1,4 @@
-package org.gbif.occurrence.validation.tabular;
+package org.gbif.occurrence.validation.tabular.processor;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -7,7 +7,6 @@ import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
-import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.api.RecordProcessorFactory;
 import org.gbif.ws.json.JacksonJsonContextResolver;
@@ -61,7 +60,7 @@ public class OccurrenceLineProcessorFactory implements RecordProcessorFactory {
     return httpClient;
   }
 
-  public OccurrenceInterpreter buidlOccurrenceInterpreter() {
+  private OccurrenceInterpreter buidlOccurrenceInterpreter() {
     WebResource webResource = createHttpClient().resource(apiUrl);
     DatasetInfoInterpreter datasetInfoInterpreter = new DatasetInfoInterpreter(webResource);
     TaxonomyInterpreter taxonomyInterpreter = new TaxonomyInterpreter(webResource);
