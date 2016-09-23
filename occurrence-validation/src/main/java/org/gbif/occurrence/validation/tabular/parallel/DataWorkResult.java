@@ -13,6 +13,9 @@ public class DataWorkResult {
   private Result result;
 
 
+  public DataWorkResult() {
+
+  }
   public DataWorkResult(DataFile dataFile, Result result) {
     this.dataFile = dataFile;
     this.result = result;

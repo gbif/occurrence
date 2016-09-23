@@ -13,8 +13,12 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import akka.actor.UntypedActor;
+import static akka.dispatch.Futures.future;
+
+import static akka.pattern.Patterns.pipe;
 
 public class SingleFileReaderActor extends UntypedActor {
 
@@ -34,24 +38,29 @@ public class SingleFileReaderActor extends UntypedActor {
   }
 
   private void doWork(DataFile dataFile) throws IOException {
-    //TODO this can be improved to not rebuild the column mapping for each file in parallel processing
-    try( RecordSource recordSource = RecordSourceFactory.fromDelimited(new File(dataFile.getFileName()),
-            dataFile.getDelimiterChar(), dataFile.isHasHeaders(),
-            TempTermsUtils.buildTermMapping(dataFile.getColumns()))){
+    pipe(future(new Callable<DataWorkResult>() {
+      @Override
+      public DataWorkResult call() throws Exception {
+        try( RecordSource recordSource = RecordSourceFactory.fromDelimited(new File(dataFile.getFileName()),
+                                                                           dataFile.getDelimiterChar(), dataFile.isHasHeaders(),
+                                                                           TempTermsUtils.buildTermMapping(dataFile.getColumns()))){
 
-      RecordInterpretionBasedEvaluationResult result;
+          RecordInterpretionBasedEvaluationResult result;
 
-      Map<Term, String> record;
-      while ((record = recordSource.read()) != null) {
-        result = recordProcessor.process(record);
-        getSender().tell(result);
+          Map<Term, String> record;
+          while ((record = recordSource.read()) != null) {
+            result = recordProcessor.process(record);
+            getSender().tell(result);
+          }
+
+
+          //add reader aggregated result to the DataWorkResult
+          return new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS);
+        } catch (Exception ex) {
+          return new DataWorkResult(dataFile, DataWorkResult.Result.FAILED);
+        }
       }
-
-      //add reader aggregated result to the DataWorkResult
-      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
-    } catch (Exception ex) {
-      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));
-    }
+    }, getContext().dispatcher())).to(getSender());
   }
 
   /**
@@ -63,10 +72,10 @@ public class SingleFileReaderActor extends UntypedActor {
    * @return
    */
   private static RecordStructureEvaluationResult toColumnCountMismatchEvaluationResult(int lineNumber, int expectedColumnCount,
-                                                                            int actualColumnCount) {
+                                                                                       int actualColumnCount) {
     return new RecordStructureEvaluationResult(Integer.toString(lineNumber),
-            MessageFormat.format("Column count mismatch: expected {0} columns, got {1} columns",
-            expectedColumnCount, actualColumnCount));
+                                               MessageFormat.format("Column count mismatch: expected {0} columns, got {1} columns",
+                                                                    expectedColumnCount, actualColumnCount));
   }
 
 
