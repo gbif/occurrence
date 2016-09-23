@@ -5,13 +5,10 @@ import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
 import org.gbif.occurrence.validation.api.DataFileValidationResult;
 import org.gbif.occurrence.validation.api.RecordProcessorFactory;
-import org.gbif.occurrence.validation.api.RecordSource;
 import org.gbif.occurrence.validation.api.ResultsCollector;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
-import org.gbif.occurrence.validation.tabular.RecordSourceFactory;
 import org.gbif.occurrence.validation.tabular.processor.OccurrenceLineProcessorFactory;
 import org.gbif.occurrence.validation.util.FileBashUtilities;
-import org.gbif.occurrence.validation.util.TempTermsUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,8 +85,8 @@ public class ParallelDataFileProcessor implements DataFileProcessor {
         ActorRef workerRouter = getContext().actorOf(new Props(new SingleFileReaderFactory(recordProcessorFactory))
                                                        .withRouter(new RoundRobinRouter(numOfActors)), "dataFileRouter");
         results = Sets.newHashSetWithExpectedSize(numOfActors);
-        for(int i = 0; i < splits.length; i++) {
 
+        for(int i = 0; i < splits.length; i++) {
           DataFile dataInputSplitFile = new DataFile();
           File splitFile = new File(outDirPath, splits[i]);
           splitFile.deleteOnExit();
@@ -97,10 +94,7 @@ public class ParallelDataFileProcessor implements DataFileProcessor {
           dataInputSplitFile.setColumns(dataFile.getColumns());
           dataInputSplitFile.setHasHeaders(dataFile.isHasHeaders() && (i == 0));
 
-          RecordSource recordSource = RecordSourceFactory.fromDelimited(new File(dataInputSplitFile.getFileName()),
-                  dataFile.getDelimiterChar(), dataFile.isHasHeaders(), TempTermsUtils.buildTermMapping(dataFile.getColumns()));
-
-          workerRouter.tell(recordSource, self());
+          workerRouter.tell(dataInputSplitFile, self());
         }
       } catch (IOException ex) {
         LOG.error("Error processin file",ex);

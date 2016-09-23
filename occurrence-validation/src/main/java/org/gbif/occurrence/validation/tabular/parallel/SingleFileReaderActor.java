@@ -6,7 +6,10 @@ import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.api.RecordSource;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 import org.gbif.occurrence.validation.model.RecordStructureEvaluationResult;
+import org.gbif.occurrence.validation.tabular.RecordSourceFactory;
+import org.gbif.occurrence.validation.util.TempTermsUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
@@ -23,15 +26,19 @@ public class SingleFileReaderActor extends UntypedActor {
 
   @Override
   public void onReceive(Object message) throws Exception {
-    if (message instanceof RecordSource) {
-      doWork((RecordSource) message);
+    if (message instanceof DataFile) {
+      doWork((DataFile) message);
     } else {
       unhandled(message);
     }
   }
 
-  private void doWork(RecordSource recordSource) throws IOException {
-    try {
+  private void doWork(DataFile dataFile) throws IOException {
+    //TODO this can be improved to not rebuild the column mapping for each file in parallel processing
+    try( RecordSource recordSource = RecordSourceFactory.fromDelimited(new File(dataFile.getFileName()),
+            dataFile.getDelimiterChar(), dataFile.isHasHeaders(),
+            TempTermsUtils.buildTermMapping(dataFile.getColumns()))){
+
       RecordInterpretionBasedEvaluationResult result;
 
       Map<Term, String> record;
@@ -41,10 +48,9 @@ public class SingleFileReaderActor extends UntypedActor {
       }
 
       //add reader aggregated result to the DataWorkResult
-      //FIXME new DataFile()
-      getSender().tell(new DataWorkResult(new DataFile(), DataWorkResult.Result.SUCCESS));
+      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
     } catch (Exception ex) {
-      getSender().tell(new DataWorkResult(new DataFile(), DataWorkResult.Result.FAILED));
+      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));
     }
   }
 
