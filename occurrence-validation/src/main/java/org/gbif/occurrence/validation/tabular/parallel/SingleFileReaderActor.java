@@ -34,11 +34,11 @@ public class SingleFileReaderActor extends UntypedActor {
     try {
       RecordInterpretionBasedEvaluationResult result;
 
-        Map<Term, String> record;
-        while ((record = recordSource.read()) != null) {
-          result = recordProcessor.process(record);
-          getSender().tell(result);
-        }
+      Map<Term, String> record;
+      while ((record = recordSource.read()) != null) {
+        result = recordProcessor.process(record);
+        getSender().tell(result);
+      }
 
       //add reader aggregated result to the DataWorkResult
       //FIXME new DataFile()

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- *
+ * Temporary class
  */
 public class TabularFileReader implements RecordSource {
 
