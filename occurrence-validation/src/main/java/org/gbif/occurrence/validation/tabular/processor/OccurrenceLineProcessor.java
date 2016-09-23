@@ -2,7 +2,6 @@ package org.gbif.occurrence.validation.tabular.processor;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
@@ -10,9 +9,7 @@ import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretatio
 import org.gbif.occurrence.validation.api.RecordProcessor;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,46 +17,17 @@ import java.util.stream.Collectors;
 public class OccurrenceLineProcessor implements RecordProcessor {
 
   private final OccurrenceInterpreter interpreter;
-  private final Character separator;
-  private final Term[] columns;
 
-  public OccurrenceLineProcessor(OccurrenceInterpreter interpreter, Character separator, Term[] columns) {
+  public OccurrenceLineProcessor(OccurrenceInterpreter interpreter) {
     this.interpreter = interpreter;
-    this.separator = separator;
-    this.columns = columns;
   }
 
   @Override
-  public RecordInterpretionBasedEvaluationResult process(String line) {
-    //FIXME provide a recordId, something to locate the issue in the file (if coming from a file)
-    return toEvaluationResult("id", interpreter.interpret(toVerbatimOccurrence(line)));
-  }
-
-  /**
-   * Get a {@link VerbatimOccurrence} instance from a {@Map} of {@link Term}
-   *
-   * @param line
-   *
-   * @return
-   */
-  private VerbatimOccurrence toVerbatimOccurrence(String line) {
+  public RecordInterpretionBasedEvaluationResult process(Map<Term, String> record) {
+    //TODO maybe we should copy the fields?
     VerbatimOccurrence verbatimOccurrence = new VerbatimOccurrence();
-    verbatimOccurrence.setVerbatimFields(toVerbatimMap(line));
-    String datasetKey = verbatimOccurrence.getVerbatimField(GbifTerm.datasetKey);
-    if (datasetKey != null) {
-      verbatimOccurrence.setDatasetKey(UUID.fromString(datasetKey));
-    }
-    return verbatimOccurrence;
-  }
-
-  private Map<Term,String> toVerbatimMap(String line) {
-    String[] values = line.split(separator.toString());
-    int numOfRecords = Math.min(columns.length,values.length);
-    Map<Term,String> verbatimMap = new HashMap(numOfRecords);
-    for(int i = 0; i < numOfRecords; i++) {
-      verbatimMap.put(columns[i],values[i]);
-    }
-    return verbatimMap;
+    verbatimOccurrence.setVerbatimFields(record);
+    return toEvaluationResult("id", interpreter.interpret(verbatimOccurrence));
   }
 
   /**

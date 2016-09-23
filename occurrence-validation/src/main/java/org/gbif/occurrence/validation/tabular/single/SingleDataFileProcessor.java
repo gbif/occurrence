@@ -1,53 +1,21 @@
 package org.gbif.occurrence.validation.tabular.single;
 
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.DataFileProcessor;
 import org.gbif.occurrence.validation.api.DataFileValidationResult;
 import org.gbif.occurrence.validation.api.RecordProcessor;
+import org.gbif.occurrence.validation.api.RecordSource;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
+import org.gbif.occurrence.validation.tabular.RecordSourceFactory;
+import org.gbif.occurrence.validation.util.TempTermsUtils;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
+import java.util.Map;
 
 public class SingleDataFileProcessor implements DataFileProcessor {
 
-  public static class DataFileReader  implements Closeable {
-
-    private BufferedReader reader;
-
-    private final RecordProcessor recordProcessor;
-
-    public DataFileReader(DataFile dataFile, RecordProcessor recordProcessor) {
-      this.recordProcessor = recordProcessor;
-      try {
-        reader = new BufferedReader(new FileReader(dataFile.getFileName()));
-        if(dataFile.isHasHeaders()) {
-          reader.readLine();
-        }
-      } catch (Exception ex){
-         throw new IllegalArgumentException(ex);
-      }
-    }
-
-    public RecordInterpretionBasedEvaluationResult read() throws IOException {
-      String line = reader.readLine();
-      if (line != null) {
-        return recordProcessor.process(line);
-      }
-      return null;
-    }
-
-    @Override
-    public void close() throws IOException {
-      if (reader != null) {
-        reader.close();
-      }
-    }
-  }
   private final RecordProcessor recordProcessor;
-
   private final SimpleValidationCollector collector;
 
   public SingleDataFileProcessor(RecordProcessor recordProcessor) {
@@ -57,9 +25,13 @@ public class SingleDataFileProcessor implements DataFileProcessor {
 
   @Override
   public DataFileValidationResult process(DataFile dataFile) {
-    try (DataFileReader dataFileReader = new DataFileReader(dataFile, recordProcessor)) {
+
+    try( RecordSource recordSource = RecordSourceFactory.fromDelimited(new File(dataFile.getFileName()), dataFile.getDelimiterChar(),
+            dataFile.isHasHeaders(), TempTermsUtils.buildTermMapping(dataFile.getColumns()))){
       RecordInterpretionBasedEvaluationResult result;
-      while ((result = dataFileReader.read()) != null) {
+      Map<Term, String> record;
+      while ((record = recordSource.read()) != null) {
+        result = recordProcessor.process(record);
         collector.accumulate(result);
       }
       return new DataFileValidationResult(collector.getAggregatedResult());
@@ -67,6 +39,5 @@ public class SingleDataFileProcessor implements DataFileProcessor {
       throw new RuntimeException(ex);
     }
   }
-
 
 }

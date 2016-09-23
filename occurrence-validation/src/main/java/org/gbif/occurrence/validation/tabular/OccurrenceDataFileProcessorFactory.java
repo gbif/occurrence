@@ -18,13 +18,11 @@ public class OccurrenceDataFileProcessorFactory {
   }
 
 
-
   /**
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
   public DataFileProcessor create(DataFile dataFile) {
-    OccurrenceLineProcessorFactory factory = new OccurrenceLineProcessorFactory(apiUrl, dataFile.getDelimiterChar(),
-                                                                                dataFile.getColumns());
+    OccurrenceLineProcessorFactory factory = new OccurrenceLineProcessorFactory(apiUrl);
 
     if (dataFile.getNumOfLines() <= FILE_SPLIT_SIZE) {
        return new SingleDataFileProcessor(factory.create());

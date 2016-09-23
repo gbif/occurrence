@@ -1,6 +1,5 @@
 package org.gbif.occurrence.validation.tabular.processor;
 
-import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
@@ -22,8 +21,6 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 public class OccurrenceLineProcessorFactory implements RecordProcessorFactory {
 
   private final String apiUrl;
-  private final Character separator;
-  private final Term[] columns;
 
   private static ApacheHttpClient httpClient;
 
@@ -31,17 +28,12 @@ public class OccurrenceLineProcessorFactory implements RecordProcessorFactory {
 
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
 
-  public OccurrenceLineProcessorFactory(String apiUrl, Character separator, String[] columns) {
+  public OccurrenceLineProcessorFactory(String apiUrl) {
     this.apiUrl = apiUrl;
-    this.separator = separator;
-    this.columns = new Term[columns.length];
-    for (int i = 0; i < columns.length; i++) {
-      this.columns[i] = TERM_FACTORY.findTerm(columns[i]);
-    }
   }
 
   public RecordProcessor create() {
-    return new OccurrenceLineProcessor(buidlOccurrenceInterpreter(),separator,columns);
+    return new OccurrenceLineProcessor(buidlOccurrenceInterpreter());
   }
 
   /**

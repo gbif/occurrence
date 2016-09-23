@@ -1,13 +1,15 @@
 package org.gbif.occurrence.validation.tabular.parallel;
 
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.validation.api.DataFile;
 import org.gbif.occurrence.validation.api.RecordProcessor;
+import org.gbif.occurrence.validation.api.RecordSource;
 import org.gbif.occurrence.validation.model.RecordInterpretionBasedEvaluationResult;
 import org.gbif.occurrence.validation.model.RecordStructureEvaluationResult;
-import org.gbif.occurrence.validation.tabular.single.SingleDataFileProcessor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Map;
 
 import akka.actor.UntypedActor;
 
@@ -21,24 +23,28 @@ public class SingleFileReaderActor extends UntypedActor {
 
   @Override
   public void onReceive(Object message) throws Exception {
-    if (message instanceof DataFile) {
-      doWork((DataFile) message);
+    if (message instanceof RecordSource) {
+      doWork((RecordSource) message);
     } else {
       unhandled(message);
     }
   }
 
-  private void doWork(DataFile dataFile) throws IOException {
-
-    try (SingleDataFileProcessor.DataFileReader reader = new SingleDataFileProcessor.DataFileReader(dataFile,recordProcessor)) {
+  private void doWork(RecordSource recordSource) throws IOException {
+    try {
       RecordInterpretionBasedEvaluationResult result;
-      while ((result = reader.read()) != null) {
-        getSender().tell(result);
-      }
+
+        Map<Term, String> record;
+        while ((record = recordSource.read()) != null) {
+          result = recordProcessor.process(record);
+          getSender().tell(result);
+        }
+
       //add reader aggregated result to the DataWorkResult
-      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.SUCCESS));
+      //FIXME new DataFile()
+      getSender().tell(new DataWorkResult(new DataFile(), DataWorkResult.Result.SUCCESS));
     } catch (Exception ex) {
-      getSender().tell(new DataWorkResult(dataFile, DataWorkResult.Result.FAILED));
+      getSender().tell(new DataWorkResult(new DataFile(), DataWorkResult.Result.FAILED));
     }
   }
 
