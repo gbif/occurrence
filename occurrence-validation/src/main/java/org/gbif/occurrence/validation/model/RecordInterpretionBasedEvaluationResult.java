@@ -31,11 +31,12 @@ public class RecordInterpretionBasedEvaluationResult extends RecordEvaluationRes
   public static class Builder {
     public List<Details> details;
 
-    public void addDetail(OccurrenceIssue issueFlag, Map<Term, String> relatedData){
+    public Builder addDetail(OccurrenceIssue issueFlag, Map<Term, String> relatedData){
       if(details == null){
         details = Lists.newArrayList();
       }
       details.add(new Details(issueFlag, relatedData));
+      return this;
     }
 
     public RecordInterpretionBasedEvaluationResult build(){

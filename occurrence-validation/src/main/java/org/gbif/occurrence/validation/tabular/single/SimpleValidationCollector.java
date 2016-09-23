@@ -16,7 +16,7 @@ public class SimpleValidationCollector implements ResultsCollector<Map<Occurrenc
   public void accumulate(RecordInterpretionBasedEvaluationResult result) {
     recordCount += 1;
     result.getDetails().forEach(
-      detail -> issuesCounter.compute(detail.getIssueFlag(), (k,v) -> (v == null) ? 1 : v++)
+      detail -> issuesCounter.compute(detail.getIssueFlag(), (k,v) -> (v == null) ? 1 : ++v)
     );
   }
 
