@@ -19,9 +19,10 @@ public class CleanDelimiterCharsUDF extends UDF {
   private final Text text = new Text();
 
   public Text evaluate(Text field) {
-    if (field != null) {
-      text.set(DownloadUtils.DELIMETERS_MATCH_PATTERN.matcher(field.toString()).replaceAll(" "));
+    if (field == null) {
+      return null;
     }
-    return field;
+    text.set(DownloadUtils.DELIMETERS_MATCH_PATTERN.matcher(field.toString()).replaceAll(" "));
+    return text;
   }
 }
