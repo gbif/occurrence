@@ -48,7 +48,6 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-validation</module>
   </modules>
 
   <properties>
