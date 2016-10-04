@@ -3,7 +3,7 @@ package org.gbif.occurrence.ws.resources;
 import org.gbif.occurrence.common.interpretation.InterpretationRemark;
 import org.gbif.occurrence.common.interpretation.InterpretationRemarksDefinition;
 
-import java.util.List;
+import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -34,13 +34,13 @@ public class InterpretationResource {
    * Just in case this endpoint needs to return more in the future.
    */
   private static class InterpretationRemarksWrapper {
-    private final List<InterpretationRemark> remarks;
+    private final Set<InterpretationRemark> remarks;
 
-    public InterpretationRemarksWrapper (List<InterpretationRemark> remarks) {
+    public InterpretationRemarksWrapper (Set<InterpretationRemark> remarks) {
       this.remarks = remarks;
     }
 
-    public List<InterpretationRemark> getRemarks() {
+    public Set<InterpretationRemark> getRemarks() {
       return remarks;
     }
   }

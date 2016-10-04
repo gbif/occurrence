@@ -24,6 +24,7 @@ import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
+import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.messaging.FragmentPersistedListener;
@@ -119,9 +120,9 @@ public class OccurrenceProcessorIT {
     fragmentPersistedListener = new FragmentPersistedListener(verbatimProcessor);
     messageListener.listen("frag_persisted_test_" + now, 1, fragmentPersistedListener);
     verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
-      new DatasetInfoInterpreter(cfg.newApiClient()),
+      new OccurrenceInterpreter(new DatasetInfoInterpreter(cfg.newApiClient()),
       new TaxonomyInterpreter(cfg.newApiClient()),
-      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))
+      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient())))
     );
     interpretedProcessor =
       new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher,

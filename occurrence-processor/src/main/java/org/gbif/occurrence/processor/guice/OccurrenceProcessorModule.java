@@ -8,6 +8,7 @@ import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.occurrence.processor.InterpretedProcessor;
+import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
@@ -60,6 +61,9 @@ public class OccurrenceProcessorModule extends PrivateModule {
 
     bind(InterpretedProcessor.class).in(Scopes.SINGLETON);
     expose(InterpretedProcessor.class);
+
+    bind(OccurrenceInterpreter.class).in(Scopes.SINGLETON);
+    expose(OccurrenceInterpreter.class);
 
     bind(VerbatimOccurrenceInterpreter.class).in(Scopes.SINGLETON);
     expose(VerbatimOccurrenceInterpreter.class);
