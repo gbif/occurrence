@@ -142,7 +142,8 @@ public class TemporalInterpreter {
 
     // If both inputs exist verify that they match
     if(atomizedDateProvided && dateStringProvided &&
-            !ObjectUtils.equals(parsedYMDResult.getPayload(), parsedDateResult.getPayload())){
+            !(TemporalAccessorUtils.representsSameYMD(parsedYMDResult.getPayload(),  parsedDateResult.getPayload())
+                    || ObjectUtils.equals(parsedYMDResult.getPayload(), parsedDateResult.getPayload()))){
 
       issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
 
@@ -161,10 +162,11 @@ public class TemporalInterpreter {
       }
     }
     else{
-      parsedTemporalAccessor = parsedYMDResult.getPayload() != null ? parsedYMDResult.getPayload() :
-              parsedDateResult.getPayload();
-      confidence = parsedYMDResult.getPayload() != null ? parsedYMDResult.getConfidence() :
-              parsedDateResult.getConfidence();
+      // prioritized parsedDateResult because it can hold higher resolution date
+      parsedTemporalAccessor = parsedDateResult.getPayload() != null ? parsedDateResult.getPayload() :
+              parsedYMDResult.getPayload();
+      confidence = parsedDateResult.getPayload() != null ? parsedDateResult.getConfidence() :
+              parsedYMDResult.getConfidence();
     }
 
     if(!isValidDate(parsedTemporalAccessor, true)){

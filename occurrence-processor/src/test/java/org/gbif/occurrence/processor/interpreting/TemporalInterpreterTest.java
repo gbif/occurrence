@@ -18,6 +18,8 @@ import org.threeten.bp.LocalDate;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.Year;
 import org.threeten.bp.YearMonth;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalAccessor;
 
@@ -72,8 +74,22 @@ public class TemporalInterpreterTest {
   @Test
   public void testInterpretRecordedDate(){
     OccurrenceParseResult<TemporalAccessor> result =
-            TemporalInterpreter.interpretRecordedDate("", "1", "2005", "2005-01-01");
+            TemporalInterpreter.interpretRecordedDate("2005", "1", "", "2005-01-01");
     assertEquals(LocalDate.of(2005, 1, 1), result.getPayload());
+    assertEquals(1, result.getIssues().size());
+
+    //ensure that eventDate with more precision will not record an issue and the one with most precision
+    //will be returned
+    result =
+            TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:00Z");
+    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneId.of("Z")), result.getPayload());
+    assertEquals(0, result.getIssues().size());
+
+    // if dates contradict, do not return a date and flag it
+    result = TemporalInterpreter.interpretRecordedDate("2005", "1", "2", "2005-01-05");
+    assertNull(result.getPayload());
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
   }
 
   @Test
