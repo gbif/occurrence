@@ -23,6 +23,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * of the verbatim record.
  */
 @Singleton
-public class OccurrenceInterpreter {
+public class OccurrenceInterpreter implements Serializable {
 
   @FunctionalInterface
   private interface Interpreter{

@@ -8,6 +8,7 @@ import org.gbif.api.vocabulary.License;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
 
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * This is not an Interpreter. It's just a wrapper around the webservice calls to look up dataset info that is included
  * in occurrence records.
  */
-public class DatasetInfoInterpreter {
+public class DatasetInfoInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
 
