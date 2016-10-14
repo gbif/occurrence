@@ -1,5 +1,6 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import org.gbif.api.exception.UnparsableException;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -14,11 +15,11 @@ import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.nameparser.NameParser;
-import org.gbif.nameparser.UnparsableException;
+import org.gbif.nameparser.GBIFNameParser;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -38,10 +39,10 @@ import org.slf4j.LoggerFactory;
  * Takes a VerbatimOccurrence and does nub lookup on its provided taxonomy, then writes the result to the passed in
  * Occurrence.
  */
-public class TaxonomyInterpreter {
+public class TaxonomyInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
-  private static final NameParser PARSER = new NameParser();
+  private static final GBIFNameParser PARSER = new GBIFNameParser();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
   private static final String MATCH_PATH = "species/match";
 
@@ -240,7 +241,7 @@ public class TaxonomyInterpreter {
       occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
     }
   }
-  
+
   private static Rank interpretRank(Map<Term, String> terms){
     Rank rank = null;
     if (hasTerm(terms, DwcTerm.taxonRank)) {

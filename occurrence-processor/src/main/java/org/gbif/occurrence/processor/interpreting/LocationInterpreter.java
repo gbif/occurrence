@@ -16,6 +16,8 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 
+import java.io.Serializable;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
@@ -27,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * A wrapper for the interpreting steps required to parse and validate location incl coordinates given as latitude and
  * longitude.
  */
-public class LocationInterpreter {
+public class LocationInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocationInterpreter.class);
 

@@ -140,9 +140,9 @@
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.17</download-query-tools.version>
     <drupal-mybatis.version>0.19</drupal-mybatis.version>
-    <dwc-api.version>1.16</dwc-api.version>
+    <dwc-api.version>1.17-SNAPSHOT</dwc-api.version>
     <dwca-io.version>1.28-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>0.46-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.48-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.29-SNAPSHOT</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.30</gbif-common-search.version>
@@ -151,12 +151,12 @@
     <geocode.version>0.10</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.29-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.30-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>0.22</gbif-postal-service.version>
-    <gbif-registry.version>2.56</gbif-registry.version>
+    <gbif-registry.version>2.60-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.43</checklistbank-ws-client.version>
-    <name-parser.version>2.20-SNAPSHOT</name-parser.version>
+    <name-parser.version>2.21-SNAPSHOT</name-parser.version>
 
   </properties>
 
