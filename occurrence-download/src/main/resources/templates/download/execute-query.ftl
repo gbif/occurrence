@@ -81,4 +81,4 @@ SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 CREATE TABLE ${r"${citationTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} GROUP BY datasetkey;
+AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
