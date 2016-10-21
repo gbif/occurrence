@@ -30,7 +30,6 @@ import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -80,6 +79,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
     if (configuration.isPresent()) {
       bind(DownloadJobConfiguration.class).toInstance(configuration.get());
     }
+    bind(RegistryClientUtil.class).toInstance(new RegistryClientUtil(workflowConfiguration.getDownloadSettings()));
     bindDownloadFilesBuilding();
   }
 
@@ -100,24 +100,22 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Provides
   @Singleton
   DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri
+    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil
   ) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
     return registryClientUtil.setupDatasetUsageService(registryWsUri);
   }
 
   @Provides
   @Singleton
-  DatasetService provideDatasetService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
+  DatasetService provideDatasetService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri,
+                                       RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetService(registryWsUri);
   }
 
   @Provides
   @Singleton
   OccurrenceDownloadService provideOccurrenceDownloadService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri) {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getDownloadSettings());
+    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
   }
 
