@@ -112,6 +112,11 @@ public final class CitationsFileReader {
       datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWsUrl);
     }
 
+    public PersistUsage(DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService) {
+      this.datasetService = datasetService;
+      this.datasetUsageService = datasetUsageService;
+    }
+
     @Override
     public boolean apply(@Nullable DatasetOccurrenceDownloadUsage input) {
       try {

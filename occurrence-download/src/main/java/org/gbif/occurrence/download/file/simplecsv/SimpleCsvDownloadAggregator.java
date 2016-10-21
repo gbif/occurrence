@@ -2,6 +2,8 @@ package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
+import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
+import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -49,16 +51,22 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
 
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+  private final CitationsFileReader.PersistUsage persistUsage;
 
   @Inject
   public SimpleCsvDownloadAggregator(
-    DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,
-    OccurrenceDownloadService occurrenceDownloadService) {
+    DownloadJobConfiguration configuration,
+    WorkflowConfiguration workflowConfiguration,
+    OccurrenceDownloadService occurrenceDownloadService,
+    DatasetService datasetService,
+    DatasetOccurrenceDownloadUsageService occurrenceDownloadUsageService
+  ) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
     outputFileName =
       configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    persistUsage = new CitationsFileReader.PersistUsage(datasetService, occurrenceDownloadUsageService);
   }
 
   public void init() {
@@ -120,8 +128,6 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
    * Persists the dataset usages collected in by the datasetUsagesCollector.
    */
   private void persistUsages(DatasetUsagesCollector datasetUsagesCollector) {
-    CitationsFileReader.PersistUsage persistUsage =
-      new CitationsFileReader.PersistUsage(workflowConfiguration.getRegistryWsUrl());
     for (Map.Entry<UUID, Long> usage : datasetUsagesCollector.getDatasetUsages().entrySet()) {
       DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
       datasetOccurrenceDownloadUsage.setNumberRecords(usage.getValue());
@@ -131,21 +137,20 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     }
   }
 
-
   /**
    * Persist download license that was assigned to the occurrence download.
-   *
-   * @param downloadKey
-   * @param licenses
    */
   private void persistDownloadLicense(String downloadKey, Set<License> licenses) {
+    try {
+      for (License license : licenses) {
+        licenseSelector.collectLicense(license);
+      }
 
-    for(License license : licenses){
-      licenseSelector.collectLicense(license);
+      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+      download.setLicense(licenseSelector.getSelectedLicense());
+      occurrenceDownloadService.update(download);
+    } catch (Exception ex) {
+      LOG.error("Error persisting dataset license information", ex);
     }
-
-    Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
-    download.setLicense(licenseSelector.getSelectedLicense());
-    occurrenceDownloadService.update(download);
   }
 }
