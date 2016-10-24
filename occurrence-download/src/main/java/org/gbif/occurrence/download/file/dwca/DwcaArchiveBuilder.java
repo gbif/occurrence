@@ -200,7 +200,7 @@ public class DwcaArchiveBuilder {
       rightsWriter.write(citationLink);
     }
     rightsWriter.write("\nRights as supplied: ");
-    if (dataset.getLicense() != null) {
+    if (dataset.getLicense() != null && dataset.getLicense().isConcrete()) {
       rightsWriter.write(dataset.getLicense().getLicenseUrl());
     } else {
       rightsWriter.write("Not supplied");
@@ -533,8 +533,9 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      dataset.setRights(String.format(RIGHTS, download.getLicense().getLicenseTitle(),
-              download.getLicense().getLicenseUrl()));
+      if (download.getLicense().isConcrete()) {
+        dataset.setRights(String.format(RIGHTS, download.getLicense().getLicenseTitle(), download.getLicense().getLicenseUrl()));
+      }
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
                                             DOWNLOAD_CONTACT_EMAIL,
