@@ -132,17 +132,16 @@ public class DwcaArchiveBuilder {
       }
     });
 
-  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
-    buildArchive(configuration, new WorkflowConfiguration());
+  public static void buildArchive(DownloadJobConfiguration configuration, RegistryClientUtil registryClientUtil) throws IOException {
+    buildArchive(configuration, new WorkflowConfiguration(), registryClientUtil);
   }
 
-  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
+  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration, RegistryClientUtil registryClientUtil)
     throws IOException {
     String tmpDir = workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
     File archiveDir = new File(tmpDir, configuration.getDownloadKey());
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
     String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
@@ -601,9 +600,13 @@ public class DwcaArchiveBuilder {
    * @param license
    */
   private void persistDownloadLicense(String downloadKey, License license) {
-    Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
-    download.setLicense(license);
-    occurrenceDownloadService.update(download);
+    try {
+      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+      download.setLicense(license);
+      occurrenceDownloadService.update(download);
+    } catch (Exception ex) {
+      LOG.error("Error updating download license",ex);
+    }
   }
 
   /**
