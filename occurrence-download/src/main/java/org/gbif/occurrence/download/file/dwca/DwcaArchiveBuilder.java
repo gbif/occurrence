@@ -590,7 +590,8 @@ public class DwcaArchiveBuilder {
         datasetUsageService.create(datasetUsage);
       }
     } catch (Exception e) {
-      LOG.error("Error persisting dataset usage information", e);
+      LOG.error("Error persisting dataset usage information, downloadKey: {}, datasetKey: {}", downloadKey,
+                datasetKey, e);
     }
   }
 
@@ -606,7 +607,7 @@ public class DwcaArchiveBuilder {
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      LOG.error("Error updating download license",ex);
+      LOG.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
     }
   }
 
