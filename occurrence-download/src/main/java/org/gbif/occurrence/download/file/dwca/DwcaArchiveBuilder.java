@@ -132,17 +132,16 @@ public class DwcaArchiveBuilder {
       }
     });
 
-  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
-    buildArchive(configuration, new WorkflowConfiguration());
+  public static void buildArchive(DownloadJobConfiguration configuration, RegistryClientUtil registryClientUtil) throws IOException {
+    buildArchive(configuration, new WorkflowConfiguration(), registryClientUtil);
   }
 
-  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
+  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration, RegistryClientUtil registryClientUtil)
     throws IOException {
     String tmpDir = workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
     File archiveDir = new File(tmpDir, configuration.getDownloadKey());
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
 
     String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
@@ -201,7 +200,7 @@ public class DwcaArchiveBuilder {
       rightsWriter.write(citationLink);
     }
     rightsWriter.write("\nRights as supplied: ");
-    if (dataset.getLicense() != null) {
+    if (dataset.getLicense() != null && dataset.getLicense().isConcrete()) {
       rightsWriter.write(dataset.getLicense().getLicenseUrl());
     } else {
       rightsWriter.write("Not supplied");
@@ -534,8 +533,9 @@ public class DwcaArchiveBuilder {
       dataset.setType(DatasetType.OCCURRENCE);
       dataset.getDataDescriptions().add(createDataDescription());
       //TODO: use new license field once available
-      dataset.setRights(String.format(RIGHTS, download.getLicense().getLicenseTitle(),
-              download.getLicense().getLicenseUrl()));
+      if (download.getLicense().isConcrete()) {
+        dataset.setRights(String.format(RIGHTS, download.getLicense().getLicenseTitle(), download.getLicense().getLicenseUrl()));
+      }
       dataset.getContacts()
         .add(DwcaContactsUtil.createContact(DOWNLOAD_CONTACT_SERVICE,
                                             DOWNLOAD_CONTACT_EMAIL,
@@ -590,7 +590,8 @@ public class DwcaArchiveBuilder {
         datasetUsageService.create(datasetUsage);
       }
     } catch (Exception e) {
-      LOG.error("Error persisting dataset usage information", e);
+      LOG.error("Error persisting dataset usage information, downloadKey: {}, datasetKey: {}", downloadKey,
+                datasetKey, e);
     }
   }
 
@@ -601,9 +602,13 @@ public class DwcaArchiveBuilder {
    * @param license
    */
   private void persistDownloadLicense(String downloadKey, License license) {
-    Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
-    download.setLicense(license);
-    occurrenceDownloadService.update(download);
+    try {
+      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
+      download.setLicense(license);
+      occurrenceDownloadService.update(download);
+    } catch (Exception ex) {
+      LOG.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
+    }
   }
 
   /**

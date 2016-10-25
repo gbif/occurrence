@@ -33,6 +33,8 @@ public class RegistryClientUtil {
 
   private final Injector injector;
 
+  private final  ApacheHttpClient httpClient;
+
   /**
    * Creates an HTTP client.
    */
@@ -50,6 +52,7 @@ public class RegistryClientUtil {
    * Constructs an instance using properties class instance.
    */
   public RegistryClientUtil(Properties properties) {
+    httpClient = createHttpClient();
     injector = Guice.createInjector(createAuthModuleInstance(properties));
   }
 
@@ -58,6 +61,7 @@ public class RegistryClientUtil {
    */
   public RegistryClientUtil() {
     try {
+      httpClient = createHttpClient();
       injector =
         Guice.createInjector(createAuthModuleInstance(PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE)));
     } catch (IllegalArgumentException e) {
@@ -73,7 +77,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetService setupDatasetService(String uri) {
-    return new DatasetWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
+    return new DatasetWsClient(httpClient.resource(uri), injector.getInstance(ClientFilter.class));
   }
 
   /**
@@ -82,7 +86,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService(String uri) {
-    return new DatasetOccurrenceDownloadUsageWsClient(createHttpClient().resource(uri),
+    return new DatasetOccurrenceDownloadUsageWsClient(httpClient.resource(uri),
                                                       injector.getInstance(ClientFilter.class));
   }
 
@@ -92,7 +96,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService(String uri) {
-    return new OccurrenceDownloadWsClient(createHttpClient().resource(uri), injector.getInstance(ClientFilter.class));
+    return new OccurrenceDownloadWsClient(httpClient.resource(uri), injector.getInstance(ClientFilter.class));
   }
 
   /**

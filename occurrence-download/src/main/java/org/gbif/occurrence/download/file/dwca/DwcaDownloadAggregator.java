@@ -8,6 +8,7 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
+import org.gbif.occurrence.download.util.RegistryClientUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,6 +36,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   private final DatasetService datasetService;
 
   private final DownloadJobConfiguration configuration;
+
+  private final RegistryClientUtil registryClientUtil;
 
   /**
    * Utility method that creates a file, if the files exists it is deleted.
@@ -74,11 +77,13 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   public DwcaDownloadAggregator(
     DatasetOccurrenceDownloadUsageService datasetOccUsageService,
     DatasetService datasetService,
-    DownloadJobConfiguration configuration
+    DownloadJobConfiguration configuration,
+    RegistryClientUtil registryClientUtil
   ) {
     this.datasetService = datasetService;
     this.datasetOccUsageService = datasetOccUsageService;
     this.configuration = configuration;
+    this.registryClientUtil = registryClientUtil;
   }
 
   public void init() {
@@ -116,7 +121,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                configuration.getDownloadKey());
       }
       //Creates the DwcA zip file
-      DwcaArchiveBuilder.buildArchive(configuration);
+      DwcaArchiveBuilder.buildArchive(configuration, registryClientUtil);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

@@ -150,7 +150,8 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       download.setLicense(licenseSelector.getSelectedLicense());
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      LOG.error("Error persisting dataset license information", ex);
+      LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses,
+                ex);
     }
   }
 }

@@ -130,7 +130,7 @@ public final class CitationsFileReader {
           datasetUsageService.create(input);
         }
       } catch (Exception e) {
-        LOG.error("Error persisting dataset usage information", e);
+        LOG.error("Error persisting dataset usage information {}", input, e);
         return false;
       }
       return true;
