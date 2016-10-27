@@ -15,9 +15,9 @@ import org.gbif.common.parsers.NumberParser;
 import org.gbif.common.parsers.SexParser;
 import org.gbif.common.parsers.TypeStatusParser;
 import org.gbif.common.parsers.TypifiedNameParser;
+import org.gbif.common.parsers.UrlParser;
 import org.gbif.common.parsers.core.Parsable;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.UrlParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -26,6 +26,7 @@ import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretatio
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -60,27 +61,42 @@ public class OccurrenceInterpreter implements Serializable {
 
   private final DatasetInfoInterpreter datasetInfoInterpreter;
 
-
   //Holds the list of Interpreters that will be applied
   private final List<Interpreter> interpreters;
 
   @Inject
-  public OccurrenceInterpreter(DatasetInfoInterpreter datasetInfoInterpreter,
+  public OccurrenceInterpreter(@Nullable DatasetInfoInterpreter datasetInfoInterpreter,
                                TaxonomyInterpreter taxonomyInterpreter, LocationInterpreter locationInterpreter) {
     this.datasetInfoInterpreter = datasetInfoInterpreter;
     //the list of interpreters is initialized with all the interpretations methods used
-    interpreters = new ImmutableList.Builder<Interpreter>().add(locationInterpreter::interpretLocation,
-                                     taxonomyInterpreter::interpretTaxonomy,
-                                     MultiMediaInterpreter::interpretMedia,
-                                     this::interpretDatasetInfo,
-                                     OccurrenceInterpreter::interpretBor,
-                                     OccurrenceInterpreter::interpretSex,
-                                     OccurrenceInterpreter::interpretEstablishmentMeans,
-                                     OccurrenceInterpreter::interpretLifeStage,
-                                     OccurrenceInterpreter::interpretTypification,
-                                     TemporalInterpreter::interpretTemporal,
-                                     OccurrenceInterpreter::interpretReferences,
-                                     OccurrenceInterpreter::interpretIndividualCount).build();
+    ImmutableList.Builder<Interpreter> bldr = new ImmutableList.Builder<Interpreter>().add(
+            locationInterpreter::interpretLocation,
+            taxonomyInterpreter::interpretTaxonomy,
+            MultiMediaInterpreter::interpretMedia,
+            OccurrenceInterpreter::interpretBor,
+            OccurrenceInterpreter::interpretSex,
+            OccurrenceInterpreter::interpretEstablishmentMeans,
+            OccurrenceInterpreter::interpretLifeStage,
+            OccurrenceInterpreter::interpretTypification,
+            TemporalInterpreter::interpretTemporal,
+            OccurrenceInterpreter::interpretReferences,
+            OccurrenceInterpreter::interpretIndividualCount);
+
+    if(datasetInfoInterpreter != null) {
+      bldr.add(this::interpretDatasetInfo);
+    }
+
+    interpreters = bldr.build();
+  }
+
+  /**
+   * Constructor of OccurrenceInterpreter that will not fill the information from the dataset.
+   *
+   * @param taxonomyInterpreter
+   * @param locationInterpreter
+   */
+  public OccurrenceInterpreter(TaxonomyInterpreter taxonomyInterpreter, LocationInterpreter locationInterpreter) {
+    this(null, taxonomyInterpreter, locationInterpreter);
   }
 
   /**
@@ -109,6 +125,7 @@ public class OccurrenceInterpreter implements Serializable {
 
   /**
    *  This method was created to be follow the Interpreter functional interface contract.
+   *  Note that datasetInfoInterpreter is nullable but will not be added to the list if null
    */
   private void interpretDatasetInfo(VerbatimOccurrence verbatim, Occurrence occ) {
     datasetInfoInterpreter.interpretDatasetInfo(occ);
