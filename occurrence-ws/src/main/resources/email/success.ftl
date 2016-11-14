@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.download.service.EmailModel" -->
 Hello ${download.request.creator},
 
-your download is available on the following address:
+Your download is available at the following address:
     ${download.downloadLink}
 
 When using this dataset please use the following citation:
