@@ -101,8 +101,13 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
   @Override
   protected void cleanup(Context context) throws IOException, InterruptedException {
     if (messagePublisher != null) {
-      messagePublisher.close();
+      // wrapped to ensure we also close the httpClient if messagePublisher throws an exception (including runtime)
+      try {
+        messagePublisher.close();
+      }
+      catch (Exception ignore) {}
     }
+
     if (httpClient != null) {
       httpClient.destroy();
     }
