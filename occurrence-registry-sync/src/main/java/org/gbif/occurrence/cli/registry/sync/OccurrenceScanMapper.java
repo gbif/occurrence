@@ -62,6 +62,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
   private RegistryBasedOccurrenceMutator occurrenceMutator;
   private OccurrencePersistenceService occurrencePersistenceService;
   private MessagePublisher messagePublisher;
+  private Client httpClient;
 
   private int numRecords = 0;
 
@@ -80,7 +81,7 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
     cc.getFeatures().put(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES.toString(), false);
     RegistryObjectMapperContextResolver.addMixIns(Mixins.getPredefinedMixins());
 
-    Client httpClient = ApacheHttpClient.create(cc);
+    httpClient = ApacheHttpClient.create(cc);
     WebResource regResource = httpClient.resource(props.getProperty(SyncCommon.REG_WS_PROPS_KEY));
     datasetService = new DatasetWsClient(regResource, null);
     orgService = new OrganizationWsClient(regResource, null);
@@ -99,8 +100,11 @@ public class OccurrenceScanMapper extends TableMapper<ImmutableBytesWritable, Nu
 
   @Override
   protected void cleanup(Context context) throws IOException, InterruptedException {
-    if(messagePublisher != null){
+    if (messagePublisher != null) {
       messagePublisher.close();
+    }
+    if (httpClient != null) {
+      httpClient.destroy();
     }
   }
 
