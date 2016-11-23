@@ -152,11 +152,10 @@ public class DownloadMaster extends UntypedActor {
 
       // How many of the remaining jobs will be assigned to one job
       int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
-      int from;
       int to = 0;
       int additionalJobsCnt = 0;
       for (int i = 0; i < calcNrOfWorkers; i++) {
-        from = i == 0 ? 0 : to;
+        int from = i == 0 ? 0 : to;
         to = from + sizeOfChunks + remainingPerJob;
 
         // Calculates the remaining jobs that will be assigned to the new FileJob.

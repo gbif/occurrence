@@ -22,6 +22,7 @@ public class SolrQueryProcessor {
   // Default page size for Solr queries.
   private static final int LIMIT = 300;
 
+  private static final String KEY_FIELD = OccurrenceSolrField.KEY.getFieldName();
   /**
    * Executes a query on the SolrServer parameter and applies the predicate to each result.
    *
@@ -35,6 +36,8 @@ public class SolrQueryProcessor {
 
     // Creates a search request instance using the search request that comes in the fileJob
     SolrQuery solrQuery = createSolrQuery(downloadFileWork.getQuery());
+    //key is required since this runs in a distributed installations where the natural order can't be guaranteed
+    solrQuery.setSort(KEY_FIELD, SolrQuery.ORDER.desc);
 
     try {
       int recordCount = 0;
@@ -44,9 +47,9 @@ public class SolrQueryProcessor {
         solrQuery.setRows(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
         for (SolrDocument solrDocument : response.getResults()) {
-          resultHandler.apply((Integer) solrDocument.getFieldValue(OccurrenceSolrField.KEY.getFieldName()));
-          recordCount+=1;
+          resultHandler.apply((Integer) solrDocument.getFieldValue(KEY_FIELD));
         }
+        recordCount += response.getResults().size();
       }
     } catch (SolrServerException | IOException e) {
       throw Throwables.propagate(e);
