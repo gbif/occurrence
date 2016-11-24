@@ -23,16 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A mapreduce Mapper that synchronizes ALL occurrences with the registry.
+ * A MapReduce Mapper that synchronizes all occurrences (called with this mapper) with the registry.
  */
 public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceRegistryMapper.class);
 
-  private static final Set<UUID> DELETED_DATASETS = Sets.newHashSet();
+  private static final int MAX_DATASET_CACHE = 1000;
+  private static final int MAX_ORGANIZATION_CACHE = 1000;
 
   private LoadingCache<UUID, Dataset> datasetCache;
   private LoadingCache<UUID, Organization> organizationCache;
+
+  private static final Set<UUID> DELETED_DATASETS = Sets.newHashSet();
 
   private int numRecords = 0;
 
@@ -41,7 +44,7 @@ public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
     super.setup(context);
 
     datasetCache = CacheBuilder.newBuilder()
-            .maximumSize(1000)
+            .maximumSize(MAX_DATASET_CACHE)
             .build(
                     new CacheLoader<UUID, Dataset>() {
                       public Dataset load(UUID datasetKey) {
@@ -50,7 +53,7 @@ public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
                     });
 
     organizationCache = CacheBuilder.newBuilder()
-            .maximumSize(1000)
+            .maximumSize(MAX_ORGANIZATION_CACHE)
             .build(
                     new CacheLoader<UUID, Organization>() {
                       public Organization load(UUID key) {
@@ -92,7 +95,8 @@ public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
         OccurrenceMutatedMessage msg =
                 OccurrenceMutatedMessage.buildUpdateMessage(datasetKey, origOcc, updatedOcc, crawlId);
         try {
-          LOG.info(
+          //TODO use generateUpdateMessage
+          LOG.debug(
                   "Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
                   datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
                   updatedOcc.getPublishingCountry());

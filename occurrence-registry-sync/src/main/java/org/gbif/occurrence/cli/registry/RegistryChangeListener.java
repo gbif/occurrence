@@ -113,6 +113,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
           // check if we should start a m/r job to update occurrence records
+          // FIXME this can lead to issues if 100 datasets change organization in a batch update.
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
             LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
             try {

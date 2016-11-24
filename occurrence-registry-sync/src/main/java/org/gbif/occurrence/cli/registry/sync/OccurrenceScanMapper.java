@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * To be replaced by {@link OccurrenceRegistryMapper}
+ *
  * A mapreduce Mapper that synchronizes occurrences with the registry. It checks for changes detected by
  * {@link RegistryBasedOccurrenceMutator} and dataset deletions. For organization changes the new values are written
  * to the occurrence HBase table via occurrence persistence, and then an OccurrenceMutatedMessage is sent. For dataset

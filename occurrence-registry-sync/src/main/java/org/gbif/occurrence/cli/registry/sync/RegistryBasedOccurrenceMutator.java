@@ -8,6 +8,9 @@ import org.gbif.api.vocabulary.License;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
+import java.text.MessageFormat;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
@@ -58,6 +61,7 @@ public class RegistryBasedOccurrenceMutator {
 
   /**
    * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
+   *
    * @param currentOrg
    * @param newOrg
    * @return
@@ -82,5 +86,30 @@ public class RegistryBasedOccurrenceMutator {
     occurrence.setLicense(dataset.getLicense());
   }
 
+  /**
+   * Generates a message about what changed in the mutation. Mostly use for logging.
+   *
+   * @param currentOrg
+   * @param newOrg
+   * @param currentDataset
+   * @param newDataset
+   * @return
+   */
+  public Optional<String> generateUpdateMessage(Organization currentOrg, Organization newOrg, Dataset currentDataset,
+                                                Dataset newDataset) {
+    StringJoiner joiner = new StringJoiner(",");
+    if(requiresUpdate(currentOrg, newOrg)) {
+      joiner.add(MessageFormat.format("Publishing Organization [{0}]: Country [{1}] -> [{2}]", currentOrg.getKey(),
+              currentOrg.getCountry(), newOrg.getCountry()));
+    }
+
+    if(requiresUpdate(currentDataset, newDataset)) {
+      joiner.add(MessageFormat.format("Dataset [{0}]: Publishing Organization [{1}] -> [{2}], " +
+              "License [{3}] -> [{4}]", currentDataset.getKey(), currentDataset.getPublishingOrganizationKey(),
+              newDataset.getPublishingOrganizationKey(), currentDataset.getLicense(), newDataset.getLicense()));
+    }
+
+    return joiner.length() > 0 ? Optional.of(joiner.toString()) : Optional.empty();
+  }
 
 }

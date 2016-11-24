@@ -24,6 +24,7 @@ public class SyncCommon {
   public static final byte[] OOK_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.publishingOrgKey));
   public static final byte[] HC_COL = Bytes.toBytes(Columns.column(GbifTerm.publishingCountry));
   public static final byte[] CI_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId));
+  public static final byte[] LI_COL = Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted));
 
   public static Properties loadProperties() {
     Properties props = new Properties();

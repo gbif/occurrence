@@ -34,6 +34,9 @@ import org.codehaus.jackson.map.DeserializationConfig;
  */
 public class AbstractOccurrenceRegistryMapper extends TableMapper<ImmutableBytesWritable, NullWritable> {
 
+  public static final String PROP_OCCURRENCE_TABLE_NAME_KEY = "occurrence.db.table_name";
+  public static final String PROP_ZK_CONNECTION_STRING_KEY = "occurrence.db.zookeeper.connection_string";
+
   protected DatasetService datasetService;
   protected OrganizationService orgService;
   protected RegistryBasedOccurrenceMutator occurrenceMutator;
@@ -41,6 +44,12 @@ public class AbstractOccurrenceRegistryMapper extends TableMapper<ImmutableBytes
   protected MessagePublisher messagePublisher;
   protected Client httpClient;
 
+  /**
+   *
+   * @param context
+   * @throws IOException
+   * @throws InterruptedException
+   */
   @Override
   protected void setup(Context context) throws IOException, InterruptedException {
     super.setup(context);
@@ -63,8 +72,8 @@ public class AbstractOccurrenceRegistryMapper extends TableMapper<ImmutableBytes
     occurrenceMutator = new RegistryBasedOccurrenceMutator();
 
     OccHBaseConfiguration occHBaseConfiguration = new OccHBaseConfiguration();
-    occHBaseConfiguration.occTable = props.getProperty("occurrence.db.table_name");
-    occHBaseConfiguration.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
+    occHBaseConfiguration.occTable = props.getProperty(PROP_OCCURRENCE_TABLE_NAME_KEY);
+    occHBaseConfiguration.zkConnectionString = props.getProperty(PROP_ZK_CONNECTION_STRING_KEY);
 
     Injector injector =
             Guice.createInjector(new PostalServiceModule("sync", props),
