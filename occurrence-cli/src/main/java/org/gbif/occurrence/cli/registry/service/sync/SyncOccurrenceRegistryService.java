@@ -33,12 +33,7 @@ public class SyncOccurrenceRegistryService {
 
   private static final Logger LOG = LoggerFactory.getLogger(SyncOccurrenceRegistryService.class);
 
-  //TODO moved to config
   private static final int SCAN_CACHING = 200;
-  private static final String HBASE_TIMEOUT = "600000";
-  private static final String MR_MAP_MEMORY_MB= "1024";
-  //approx. 85% of MR_MAP_MEMORY_MB
-  private static final String MR_MAP_JAVA_OPTS = "-Xmx768m";
 
   private final SyncOccurrenceRegistryConfiguration configuration;
   private final Properties properties;
@@ -59,8 +54,8 @@ public class SyncOccurrenceRegistryService {
 
     //create the HBase config here since hbase-site.xml is (at least should) be in our classpath.
     Configuration conf = HBaseConfiguration.create();
-    conf.set("hbase.client.scanner.timeout.period", HBASE_TIMEOUT);
-    conf.set("hbase.rpc.timeout", HBASE_TIMEOUT);
+    conf.set("hbase.client.scanner.timeout.period", configuration.hbase.timeoutMs);
+    conf.set("hbase.rpc.timeout", configuration.hbase.timeoutMs);
 
     // add all props to job context for use by the OccurrenceRegistryMapper when it no longer has access to our classpath
     for (Object key : properties.keySet()) {
@@ -83,15 +78,15 @@ public class SyncOccurrenceRegistryService {
       job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
       job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
-      job.getConfiguration().set("mapreduce.map.memory.mb", MR_MAP_MEMORY_MB);
-      job.getConfiguration().set("mapreduce.map.java.opts", MR_MAP_JAVA_OPTS);
+      job.getConfiguration().set("mapreduce.map.memory.mb", configuration.mapReduce.mapMemoryMb);
+      job.getConfiguration().set("mapreduce.map.java.opts", configuration.mapReduce.mapJavaOpts);
 
       Scan scan = buildScan(datasetKey, lastUpdatedAfterMs);
 
       // NOTE: addDependencyJars must be false or you'll see it trying to load hdfs://c1n1/home/user/app/lib/occurrence-cli.jar
       TableMapReduceUtil
-              .initTableMapperJob(configuration.hbase.occurrenceTable, scan, OccurrenceRegistryMapper.class, ImmutableBytesWritable.class,
-                      NullWritable.class, job, false);
+              .initTableMapperJob(configuration.hbase.occurrenceTable, scan, OccurrenceRegistryMapper.class,
+                      ImmutableBytesWritable.class, NullWritable.class, job, false);
       job.waitForCompletion(true);
     } catch (Exception e) {
       LOG.error("Could not start m/r job, aborting", e);

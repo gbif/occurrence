@@ -23,6 +23,11 @@ public class SyncOccurrenceRegistryConfiguration {
   @NotNull
   public HBaseConfiguration hbase = new HBaseConfiguration();
 
+  @ParametersDelegate
+  @Valid
+  @NotNull
+  public MapReduceConfiguration mapReduce = new MapReduceConfiguration();
+
   @Parameter(names = "--registry-ws-url")
   @NotNull
   public String registryWsUrl;
@@ -32,5 +37,24 @@ public class SyncOccurrenceRegistryConfiguration {
 
   @Parameter(names = "--since")
   public Long since;
+
+
+  public class HBaseConfiguration {
+    @NotNull
+    public String zkConnectionString;
+
+    @NotNull
+    public String occurrenceTable;
+
+    public String timeoutMs = "600000";
+  }
+
+  public static class MapReduceConfiguration {
+    @NotNull
+    public String mapMemoryMb;
+
+    @NotNull
+    public String mapJavaOpts;
+  }
 
 }
