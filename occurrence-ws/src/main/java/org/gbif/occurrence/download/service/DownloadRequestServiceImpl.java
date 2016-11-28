@@ -239,7 +239,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if(downloadFile.exists()) {
       return downloadFile.length();
     }
-    LOG.error("Download file not found {}",downloadFile.getName());
+    LOG.warn("Download file not found {}", downloadFile.getName());
     return 0L;
   }
 
