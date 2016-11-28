@@ -216,9 +216,9 @@ public class CoordinateInterpreterTest {
   public void testRoundPrecision() {
     Double lat = 43.6512345;
     Double lng = -79.4056789;
-    // expect max 5 decimals
-    double roundedLat = Math.round(lat * Math.pow(10, 5)) / Math.pow(10, 5);
-    double roundedLng = Math.round(lng * Math.pow(10, 5)) / Math.pow(10, 5);
+    // expect max 6 decimals
+    double roundedLat = Math.round(lat * Math.pow(10, 6)) / Math.pow(10, 6);
+    double roundedLng = Math.round(lng * Math.pow(10, 6)) / Math.pow(10, 6);
     Country country = Country.CANADA;
     OccurrenceParseResult<CoordinateResult> result =
       interpreter.interpretCoordinate(lat.toString(), lng.toString(), null, country);
