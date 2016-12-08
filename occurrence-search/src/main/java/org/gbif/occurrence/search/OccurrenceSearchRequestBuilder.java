@@ -196,8 +196,8 @@ public class OccurrenceSearchRequestBuilder {
    */
   public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset,
                                         int maxLimit, boolean facetsEnable) {
-    Preconditions.checkArgument(maxOffset > 0, "Max offset can't less than zero");
-    Preconditions.checkArgument(maxLimit > 0, "Max limit can't less than zero");
+    Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
+    Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
     this.maxOffset = Math.min(maxOffset, MAX_OFFSET);
