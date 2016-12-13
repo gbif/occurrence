@@ -1,7 +1,5 @@
 package org.gbif.occurrence.search.solr;
 
-import org.gbif.api.vocabulary.EndpointType;
-
 /**
  * Enum that contains the mapping of symbolic names and field names of valid Solr fields.
  */

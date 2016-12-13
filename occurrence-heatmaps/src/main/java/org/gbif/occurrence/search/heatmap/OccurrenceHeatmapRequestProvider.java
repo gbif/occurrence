@@ -14,16 +14,37 @@ import org.slf4j.LoggerFactory;
 
 public class OccurrenceHeatmapRequestProvider {
 
+  public static final String POLYGON_PATTERN = "POLYGON((%s))";
   public static final String PARAM_QUERY_STRING = "q";
   public static final String GEOM_PARAM = "geom";
   public static final String ZOOM_PARAM = "z";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
 
-  public static OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request){
+  /**
+   * Making constructor private.
+   */
+  private OccurrenceHeatmapRequestProvider() {
+    //empty block
+  }
+
+  /**
+   * Translate the raw value into value that API understands.
+   */
+  private static String translateFilterValue(OccurrenceSearchParameter param, String value) {
+    if (param == OccurrenceSearchParameter.GEOMETRY) {
+      return String.format(POLYGON_PATTERN, value);
+    }
+    if (Enum.class.isAssignableFrom(param.type())) {
+      return value.toUpperCase();
+    }
+    return value;
+  }
+
+  public static OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request) {
     OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest = new OccurrenceHeatmapRequest();
 
-    final String q = request.getParameter(PARAM_QUERY_STRING);
+    String q = request.getParameter(PARAM_QUERY_STRING);
 
     if (!Strings.isNullOrEmpty(q)) {
       occurrenceHeatmapSearchRequest.setQ(q);
@@ -38,13 +59,15 @@ public class OccurrenceHeatmapRequestProvider {
    * correspondent value in the P generic parameter).
    * Empty (of all size) and null parameters are discarded.
    */
-  private static void setSearchParams(OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest, HttpServletRequest request) {
+  private static void setSearchParams(OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest,
+                                      HttpServletRequest request) {
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       OccurrenceSearchParameter p = findSearchParam(entry.getKey());
       if (p != null) {
         for (String val : removeEmptyParameters(entry.getValue())) {
-          SearchTypeValidator.validate(p, val);
-          occurrenceHeatmapSearchRequest.addParameter(p, val);
+          String translatedVal = translateFilterValue(p,val); //this transformation is require
+          SearchTypeValidator.validate(p, translatedVal);
+          occurrenceHeatmapSearchRequest.addParameter(p, translatedVal);
         }
       }
     }
@@ -76,8 +99,8 @@ public class OccurrenceHeatmapRequestProvider {
   private static List<String> removeEmptyParameters(String[] parameters) {
     List<String> cleanParameters = Lists.newArrayListWithCapacity(parameters.length);
     for (String param : parameters) {
-      final String cleanParam = Strings.nullToEmpty(param).trim();
-      if (cleanParam.length() > 0) {
+      String cleanParam = Strings.nullToEmpty(param).trim();
+      if (!cleanParam.isEmpty()) {
         cleanParameters.add(cleanParam);
       }
     }
@@ -85,7 +108,7 @@ public class OccurrenceHeatmapRequestProvider {
   }
 
   public static int getIntParam(HttpServletRequest request, String param, int defaultVal) {
-    final String[] vals = request.getParameterValues(param);
+    String[] vals = request.getParameterValues(param);
     if (vals != null && vals.length > 0) {
       try {
         return Integer.parseInt(vals[0]);

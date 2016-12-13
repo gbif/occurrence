@@ -15,7 +15,6 @@ import org.gbif.common.search.builder.SolrQueryUtils;
 import org.gbif.common.search.builder.SpellCheckResponseBuilder;
 import org.gbif.common.search.exception.SearchException;
 import org.gbif.common.search.util.QueryUtils;
-import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
@@ -47,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
 import static org.gbif.common.search.util.QueryUtils.buildTermQuery;
-import static org.gbif.common.search.util.SolrConstants.BLANK;
 import static org.gbif.common.search.util.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.common.search.util.SolrConstants.SOLR_REQUEST_HANDLER;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
@@ -222,7 +220,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
                                            Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       final QueryResponse queryResponse = solrClient.query(solrQuery);
       final TermsResponse termsResponse = queryResponse.getTermsResponse();
-      return termsResponse.getTerms(solrField).stream().map( f -> f.getTerm()).collect(Collectors.toList());
+      return termsResponse.getTerms(solrField).stream().map(Term::getTerm).collect(Collectors.toList());
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing/building the request", e);
       throw new SearchException(e);

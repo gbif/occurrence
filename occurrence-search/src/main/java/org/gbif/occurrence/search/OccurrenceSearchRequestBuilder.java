@@ -9,13 +9,13 @@ import org.gbif.common.search.util.QueryUtils;
 import org.gbif.common.search.util.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -38,7 +37,7 @@ import static org.gbif.common.search.util.QueryUtils.setRequestHandler;
 import static org.gbif.common.search.util.QueryUtils.setSortOrder;
 import static org.gbif.common.search.util.QueryUtils.toParenthesesQuery;
 import static org.gbif.common.search.util.SolrConstants.DEFAULT_QUERY;
-import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
+import static org.gbif.common.search.util.SolrConstants.PARAM_OR_OP;
 import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
 
 
@@ -214,11 +213,6 @@ public class OccurrenceSearchRequestBuilder {
   protected static String parseGeometryParam(String wkt) {
     try {
       Geometry geometry = new WKTReader().read(wkt);
-      if (geometry.isRectangle()) {
-        Envelope bbox = geometry.getEnvelopeInternal();
-        return String
-          .format(RANGE_FORMAT, bbox.getMinY() + "," + bbox.getMinX(), bbox.getMaxY() + "," + bbox.getMaxX());
-      }
       return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
@@ -430,13 +424,11 @@ public class OccurrenceSearchRequestBuilder {
                                    OccurrenceSearchParameter dateParam, OccurrenceSolrField solrField,
                                    SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(dateParam)) {
-      Collection<String> requestDateParams = params.get(dateParam);
-      Collection<String> dateParams = new ArrayList<String>(requestDateParams.size());
-      for (String value : requestDateParams) {
-        dateParams.add(PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)));
-      }
-      solrQuery.addFilterQuery((isFacetedSearch ? SolrQueryUtils.taggedField(solrField.getFieldName()) : "")
-                               + toParenthesesQuery(PARAMS_OR_JOINER.join(dateParams)));
+      String dateParams = params.get(dateParam).stream()
+                            .map(value -> PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)))
+                            .collect(Collectors.joining(PARAM_OR_OP));
+      solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "")
+                               + toParenthesesQuery(dateParams));
     }
   }
 
@@ -447,14 +439,12 @@ public class OccurrenceSearchRequestBuilder {
   private static void addLocationQuery(Multimap<OccurrenceSearchParameter, String> params,
                                        SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      Collection<String> requestLocationParams = params.get(OccurrenceSearchParameter.GEOMETRY);
-      Collection<String> locationParams = new ArrayList<String>(requestLocationParams.size());
-      for (String value : requestLocationParams) {
-        locationParams
-          .add(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(), parseGeometryParam(value)));
-      }
+      String locationParams = params.get(OccurrenceSearchParameter.GEOMETRY).stream()
+                                .map(value -> PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
+                                                                 parseGeometryParam(value)))
+                                .collect(Collectors.joining(PARAM_OR_OP));
       solrQuery.addFilterQuery((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "")
-                               + toParenthesesQuery(PARAMS_OR_JOINER.join(locationParams)));
+                               + toParenthesesQuery(locationParams));
     }
   }
 
