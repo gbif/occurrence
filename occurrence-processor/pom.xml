@@ -47,6 +47,7 @@
 
   <properties>
     <guava.version>14.0.1</guava.version>
+    <fastutil.version>5.0.9</fastutil.version>
   </properties>
 
   <build>
@@ -381,7 +382,7 @@
     <dependency>
       <groupId>fastutil</groupId>
       <artifactId>fastutil</artifactId>
-      <version>5.0.9</version>
+      <version>${fastutil.version}</version>
     </dependency>
 
   </dependencies>
