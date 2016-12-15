@@ -33,7 +33,12 @@ public class OccurrenceHeatmapRequestProvider {
    */
   private static String translateFilterValue(OccurrenceSearchParameter param, String value) {
     if (param == OccurrenceSearchParameter.GEOMETRY) {
-      return String.format(POLYGON_PATTERN, value);
+      try { //checks if the parameters is in WKT format
+        SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, value);
+        return value;
+      } catch (IllegalArgumentException ex) { //if not is WKT, assumes to be a POLYGON
+        return String.format(POLYGON_PATTERN, value);
+      }
     }
     if (Enum.class.isAssignableFrom(param.type())) {
       return value.toUpperCase();
