@@ -231,6 +231,8 @@ public class OccurrenceSearchRequestBuilder {
                            ? DEFAULT_SPELL_CHECK_COUNT
                            : Integer.toString(request.getSpellCheckCount()));
     }
+    // set the request handler
+    setRequestHandler(solrQuery, requestHandler);
     // q param
     if (Strings.isNullOrEmpty(request.getQ()) || SolrConstants.DEFAULT_FILTER_QUERY.equals(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
@@ -248,8 +250,6 @@ public class OccurrenceSearchRequestBuilder {
     setQueryPaging(request, solrQuery, maxLimit);
     // sets the filters
     setFilterParameters(request, solrQuery, facetsEnable);
-    // set the request handler
-    setRequestHandler(solrQuery, requestHandler);
 
     if (facetsEnable) {
       SolrQueryUtils.applyFacetSettings(request, solrQuery, FACET_FIELD_CONFIGURATION_MAP);
