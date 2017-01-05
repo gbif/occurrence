@@ -6,6 +6,7 @@ import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.RankParser;
@@ -239,7 +240,15 @@ public class TaxonomyInterpreter implements Serializable {
     } else {
       LOG.debug("No backbone match for occurrence {}", occ.getKey());
       occ.addIssue(OccurrenceIssue.TAXON_MATCH_NONE);
+      // assign unknown kingdom
+      applyKingdom(occ, Kingdom.INCERTAE_SEDIS);
     }
+  }
+
+  private static void applyKingdom(Occurrence occ, Kingdom k){
+    occ.setTaxonKey(k.nubUsageKey());
+    occ.setScientificName(k.scientificName());
+    occ.setTaxonRank(Rank.KINGDOM);
   }
 
   private static Rank interpretRank(Map<Term, String> terms){
