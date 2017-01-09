@@ -57,6 +57,10 @@ public class SyncOccurrenceRegistryService {
     conf.set("hbase.client.scanner.timeout.period", configuration.hbase.timeoutMs);
     conf.set("hbase.rpc.timeout", configuration.hbase.timeoutMs);
 
+    //test
+    conf.set("ipc.client.connect.timeout", "60000");
+
+
     // add all props to job context for use by the OccurrenceRegistryMapper when it no longer has access to our classpath
     for (Object key : properties.keySet()) {
       String stringKey = (String)key;
