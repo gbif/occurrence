@@ -5,7 +5,6 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
-import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 
 import java.io.IOException;
 import java.util.Set;
@@ -89,21 +88,21 @@ public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
         // we have no clone or other easy copy method
         Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
         occurrenceMutator.mutateOccurrence(updatedOcc, dataset, publishingOrg);
-        occurrencePersistenceService.update(updatedOcc);
+//        occurrencePersistenceService.update(updatedOcc);
 
         int crawlId = Bytes.toInt(values.getValue(SyncCommon.OCC_CF, SyncCommon.CI_COL));
-        OccurrenceMutatedMessage msg =
-                OccurrenceMutatedMessage.buildUpdateMessage(datasetKey, origOcc, updatedOcc, crawlId);
-        try {
-          //TODO use generateUpdateMessage
-          LOG.debug(
-                  "Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
-                  datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
-                  updatedOcc.getPublishingCountry());
-          messagePublisher.send(msg);
-        } catch (IOException e) {
-          LOG.warn("Failed to send update message", e);
-        }
+//        OccurrenceMutatedMessage msg =
+//                OccurrenceMutatedMessage.buildUpdateMessage(datasetKey, origOcc, updatedOcc, crawlId);
+//        try {
+//          //TODO use generateUpdateMessage
+//          LOG.debug(
+//                  "Sending update for key [{}], publishing org changed from [{}] to [{}] and host country from [{}] to [{}]",
+//                  datasetKey, origOcc.getPublishingOrgKey(), updatedOcc.getPublishingOrgKey(), origOcc.getPublishingCountry(),
+//                  updatedOcc.getPublishingCountry());
+//          messagePublisher.send(msg);
+//        } catch (IOException e) {
+//          LOG.warn("Failed to send update message", e);
+//        }
       }
       numRecords++;
       if (numRecords % 10000 == 0) {
