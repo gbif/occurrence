@@ -9,6 +9,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
 import java.text.MessageFormat;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -24,7 +25,9 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class RegistryBasedOccurrenceMutator {
 
   /**
-   * Check if a HBase {@link Result} representing an Occurrence requires an update based on a dataset.
+   * Check if a HBase {@link Result} representing an Occurrence requires an update based on a {@link Dataset} and
+   * an {@link Organization}.
+   * Note to devs: make sure the value you extract from {@link Result} is available in the Scan used.
    * @param dataset
    * @param hbaseValues
    * @return
@@ -42,9 +45,9 @@ public class RegistryBasedOccurrenceMutator {
 
     License recordLicense = ExtResultReader.getEnum(hbaseValues, DcTerm.license, License.class);
 
-    return !(newPublishingOrgKey.equals(publishingOrgKey) &&
-            newHostCountry == hostCountry &&
-            dataset.getLicense().equals(recordLicense));
+    return !(Objects.equals(newPublishingOrgKey, publishingOrgKey) &&
+            Objects.equals(newHostCountry, hostCountry) &&
+            Objects.equals(dataset.getLicense(), recordLicense));
   }
 
   /**
@@ -52,11 +55,12 @@ public class RegistryBasedOccurrenceMutator {
    *
    * @param currentDataset
    * @param newDataset
+   *
    * @return
    */
   public boolean requiresUpdate(Dataset currentDataset, Dataset newDataset) {
-    return !(currentDataset.getPublishingOrganizationKey().equals(newDataset.getPublishingOrganizationKey())
-            && currentDataset.getLicense().equals(newDataset.getLicense()));
+    return !(Objects.equals(currentDataset.getPublishingOrganizationKey(), newDataset.getPublishingOrganizationKey())
+            && Objects.equals(currentDataset.getLicense(), newDataset.getLicense()));
   }
 
   /**
@@ -71,7 +75,7 @@ public class RegistryBasedOccurrenceMutator {
     if (!newOrg.isEndorsementApproved()) {
       return false;
     }
-    return !(currentOrg.getCountry().equals(newOrg.getCountry()));
+    return !(Objects.equals(currentOrg.getCountry(), newOrg.getCountry()));
   }
 
   /**

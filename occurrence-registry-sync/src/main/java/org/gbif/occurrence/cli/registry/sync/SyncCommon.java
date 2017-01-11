@@ -1,5 +1,6 @@
 package org.gbif.occurrence.cli.registry.sync;
 
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.persistence.hbase.Columns;
@@ -25,6 +26,7 @@ public class SyncCommon {
   public static final byte[] HC_COL = Bytes.toBytes(Columns.column(GbifTerm.publishingCountry));
   public static final byte[] CI_COL = Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId));
   public static final byte[] LI_COL = Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted));
+  public static final byte[] LICENSE_COL = Bytes.toBytes(Columns.column(DcTerm.license));
 
   public static Properties loadProperties() {
     Properties props = new Properties();
