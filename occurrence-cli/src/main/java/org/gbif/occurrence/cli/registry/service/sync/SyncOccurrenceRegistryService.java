@@ -52,7 +52,7 @@ public class SyncOccurrenceRegistryService {
     Optional<UUID> datasetKey = Optional.ofNullable(configuration.datasetKey != null ? UUID.fromString(configuration.datasetKey ) : null);
     Optional<Long> lastUpdatedAfterMs = Optional.ofNullable(configuration.since);
 
-    //create the HBase config here since hbase-site.xml.bkp is (at least should) be in our classpath.
+    //create the HBase config here since hbase-site.xml is (at least should) be in our classpath.
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.client.scanner.timeout.period", configuration.hbase.timeoutMs);
     conf.set("hbase.rpc.timeout", configuration.hbase.timeoutMs);
@@ -114,7 +114,6 @@ public class SyncOccurrenceRegistryService {
     props.setProperty("sync.postalservice.port", Integer.toString(configuration.messaging.port));
 
     props.setProperty(AbstractOccurrenceRegistryMapper.PROP_OCCURRENCE_TABLE_NAME_KEY, configuration.hbase.occurrenceTable);
-//    props.setProperty(AbstractOccurrenceRegistryMapper.PROP_ZK_CONNECTION_STRING_KEY, configuration.hbase.zkConnectionString);
     props.setProperty(SyncCommon.REG_WS_PROPS_KEY,  configuration.registryWsUrl);
 
     return props;

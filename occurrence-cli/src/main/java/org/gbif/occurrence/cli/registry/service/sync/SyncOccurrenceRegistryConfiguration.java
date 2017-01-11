@@ -40,8 +40,6 @@ public class SyncOccurrenceRegistryConfiguration {
 
 
   public class HBaseConfiguration {
-    @NotNull
-    public String zkConnectionString;
 
     @NotNull
     public String occurrenceTable;
