@@ -41,6 +41,7 @@ import javax.ws.rs.core.SecurityContext;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.bval.guice.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +83,8 @@ public class DownloadResource {
   @Path("{key}")
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
   public InputStream getResult(@PathParam("key") String downloadKey, @Context HttpServletResponse response) {
+    // if key contains zip suffix remove it as we intend to work with the pure key
+    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ".zip");
     LOG.debug("Get download data: [{}]", downloadKey);
     // suggest filename for download in http headers
     response.setHeader("Content-Disposition", "attachment; filename=" + downloadKey + ".zip");
