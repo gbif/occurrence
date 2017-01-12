@@ -56,6 +56,8 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
+  // magic prefix for download keys to indicate these aren't real download files
+  private static final String NON_DOWNLOAD_PREFIX = "dwca-";
 
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
@@ -160,14 +162,17 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Override
   public InputStream getResult(String downloadKey) {
-    Download d = occurrenceDownloadService.get(downloadKey);
+    // avoid check for download in the registry if we have secret non download files with a magic prefix!
+    if (downloadKey == null || !downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
+      Download d = occurrenceDownloadService.get(downloadKey);
 
-    if (d == null) {
-      throw new NotFoundException("Download " + downloadKey + " doesn't exist");
-    }
+      if (d == null) {
+        throw new NotFoundException("Download " + downloadKey + " doesn't exist");
+      }
 
-    if (!d.isAvailable()) {
-      throw new NotFoundException("Download " + downloadKey + " is not ready yet");
+      if (!d.isAvailable()) {
+        throw new NotFoundException("Download " + downloadKey + " is not ready yet");
+      }
     }
 
     File localFile = new File(downloadMount, downloadKey + ".zip");
