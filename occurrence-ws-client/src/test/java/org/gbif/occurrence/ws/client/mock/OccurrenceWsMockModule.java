@@ -9,7 +9,6 @@ import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class OccurrenceWsMockModule extends PrivateModule {
