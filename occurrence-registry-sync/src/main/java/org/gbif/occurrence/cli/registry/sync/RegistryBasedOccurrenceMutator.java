@@ -28,8 +28,10 @@ public class RegistryBasedOccurrenceMutator {
    * Check if a HBase {@link Result} representing an Occurrence requires an update based on a {@link Dataset} and
    * an {@link Organization}.
    * Note to devs: make sure the value you extract from {@link Result} is available in the Scan used.
+   *
    * @param dataset
    * @param hbaseValues
+   *
    * @return
    */
   public boolean requiresUpdate(Dataset dataset, Organization publishingOrg, Result hbaseValues) {

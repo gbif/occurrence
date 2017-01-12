@@ -11,8 +11,10 @@ Example complete config files are given in the example-conf folder, with placeho
 
 Examples (note you can pass a standard logback xml file in the properties as shown in the second example):
 
+```bash
 $ java -Xmx1G -cp /path/to/configs/:target/occurrence-cli-0.4-SNAPSHOT-jar-with-dependencies.jar update-occurrence-index --conf example-conf/indexing_run.yaml
 $ java -Xmx1G -cp /path/to/configs/:target/occurrence-cli-0.4-SNAPSHOT-jar-with-dependencies.jar update-occurrence-index --conf example-conf/indexing_run.yaml --log-config indexing_logback.xml
+```
 
 NOTE: There are logging conflicts between xml Digester and this project (see http://dev.gbif.org/issues/browse/POR-2074) so your logback.xml should have the following line:
 
@@ -37,3 +39,11 @@ registry-change-listener | update the occurrence table when a dataset or organiz
 update-occurrence-index | inserts/updates occurrence records into the Solr Index
 verbatim-processor | create/updates the verbatim occurrence records
 sync-occurrence-registry | Synchronize the entire Occurrence table with the registry (via mapreduce)
+
+### Usage sync-occurrence-registry
+This cli target will create a MapReduce job, wait for completion and terminate.
+Example of how to resynchronize all occurrence records of a dataset with the registry:
+```bash
+java -Xmx128M -cp /path/to/config/:occurrence-cli.jar org.gbif.cli.Application sync-occurrence-registry --conf /Users/cgendreau/Documents/SourceCode/gbif-configuration/cli/prod/config/sync-occurrence-registry.yaml --dataset-key <DATASETKEY> --log-config logback-sync-occurence-registry.xml
+```
+Note: The config folder must include a hbase-site.xml file
