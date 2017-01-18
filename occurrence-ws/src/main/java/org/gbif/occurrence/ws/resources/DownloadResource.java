@@ -16,13 +16,10 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.ws.security.NotAllowedException;
-import org.gbif.ws.security.NotAuthenticatedException;
 import org.gbif.ws.util.ExtraMediaTypes;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 
 import java.io.InputStream;
-import java.security.AccessControlException;
-import java.security.Principal;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -65,7 +62,7 @@ public class DownloadResource {
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
     OccurrenceDownloadService occurrenceDownloadService) {
-    this.requestService = service;
+    requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
@@ -111,21 +108,4 @@ public class DownloadResource {
     return downloadKey;
   }
 
-  /**
-   * Checks that a user is authenticated and the same user is the creator of the download.
-   *
-   * @throws AccessControlException if no or wrong user is authenticated
-   */
-  private void assertLoginMatches(DownloadRequest request, SecurityContext security) {
-    // assert authenticated user is the same as in download
-    final Principal principal = security.getUserPrincipal();
-    if (principal == null) {
-      throw new NotAuthenticatedException("No user authenticated for creating a download");
-    } else if (!principal.getName().equals(request.getCreator())) {
-      LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
-               request.getCreator());
-      throw new NotAllowedException(principal.getName() + " not allowed to create download with creator "
-        + request.getCreator());
-    }
-  }
 }

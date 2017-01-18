@@ -2,21 +2,33 @@ package org.gbif.occurrence.ws.resources;
 
 
 import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.ws.util.ExtraMediaTypes;
 
+import java.util.HashSet;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +46,7 @@ import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 
 
 /**
@@ -44,11 +57,15 @@ import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
 public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
+  private static final Splitter EMAIL_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+
   private final OccurrenceSearchService searchService;
+  private final DownloadRequestService downloadRequestService;
 
   @Inject
-  public OccurrenceSearchResource(OccurrenceSearchService searchService) {
+  public OccurrenceSearchResource(OccurrenceSearchService searchService, DownloadRequestService downloadRequestService) {
     this.searchService = searchService;
+    this.downloadRequestService = downloadRequestService;
   }
 
   @GET
@@ -56,6 +73,44 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);
+  }
+
+
+  @GET
+  @Path("download")
+  public String download(@Context HttpServletRequest httpRequest,
+                         @QueryParam("notification_address") String emails,
+                         @QueryParam("format") String format,
+                         @QueryParam("creator") String creator,
+                         @Context SecurityContext securityContext) {
+    checkNotNullParameter("notification_address", emails);
+    checkNotNullParameter("format", format);
+    checkNotNullParameter("creator", creator);
+    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
+    LOG.info("Predicate build for passing to download [{}]", predicate);
+    DownloadRequest download =
+      new DownloadRequest(predicate, creator, new HashSet<>(EMAIL_SPLITTER.splitToList(emails)), true,
+                          DownloadFormat.valueOf(format.toUpperCase()));
+    assertLoginMatches(download, securityContext);
+    LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, downloadRequestService);
+    try {
+      String downloadKey = downloadRequestService.create(download);
+      LOG.debug("Got key [{}] for new download", downloadKey);
+      return downloadKey;
+    } catch(Exception ex) {
+      LOG.error("Error processing search-to-download request", ex);
+      throw new WebApplicationException(Response.serverError().build());
+    }
+  }
+
+  /**
+   * Validates that a parameter is not null or empty.
+   */
+  private static void checkNotNullParameter(String paramName, String paramValue) {
+    if (Strings.isNullOrEmpty(paramValue)) {
+      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                                          .entity("Parameter " + paramName + " can't be null").build());
+    }
   }
 
   @GET
