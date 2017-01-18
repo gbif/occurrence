@@ -29,6 +29,7 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,7 @@ public class OccurrenceSearchResource {
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
     DownloadRequest download =
-      new DownloadRequest(predicate, creator, new HashSet<>(EMAIL_SPLITTER.splitToList(emails)), true,
+      new DownloadRequest(predicate, creator, Sets.newHashSet(EMAIL_SPLITTER.split(emails)), true,
                           DownloadFormat.valueOf(format.toUpperCase()));
     assertLoginMatches(download, securityContext);
     LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, downloadRequestService);
