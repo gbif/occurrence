@@ -13,7 +13,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.ws.util.ExtraMediaTypes;
 
-import java.util.HashSet;
+import java.security.Principal;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,7 +47,7 @@ import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 
 /**
@@ -82,8 +82,8 @@ public class OccurrenceSearchResource {
   public String download(@Context HttpServletRequest httpRequest,
                          @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format,
-                         @QueryParam("creator") String creator,
                          @Context SecurityContext securityContext) {
+    String creator = assertUserAuthenticated(securityContext).getName();
     checkNotNullParameter("notification_address", emails);
     checkNotNullParameter("format", format);
     checkNotNullParameter("creator", creator);
@@ -92,7 +92,6 @@ public class OccurrenceSearchResource {
     DownloadRequest download =
       new DownloadRequest(predicate, creator, Sets.newHashSet(EMAIL_SPLITTER.split(emails)), true,
                           DownloadFormat.valueOf(format.toUpperCase()));
-    assertLoginMatches(download, securityContext);
     LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, downloadRequestService);
     try {
       String downloadKey = downloadRequestService.create(download);

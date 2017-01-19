@@ -32,14 +32,24 @@ public class DownloadSecurityUtil {
    */
   public static void assertLoginMatches(DownloadRequest request, SecurityContext security) {
     // assert authenticated user is the same as in download
-    Principal principal = security.getUserPrincipal();
-    if (principal == null) {
-      throw new NotAuthenticatedException("No user authenticated for creating a download");
-    } else if (!principal.getName().equals(request.getCreator())) {
+    Principal principal = assertUserAuthenticated(security);
+    if (!principal.getName().equals(request.getCreator())) {
       LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
                request.getCreator());
       throw new NotAllowedException(principal.getName() + " not allowed to create download with creator "
                                     + request.getCreator());
     }
+  }
+
+  /**
+   * Asserts that a user is authenticated, returns the user principal if present.
+   */
+  public static Principal assertUserAuthenticated(SecurityContext securityContext) {
+    // assert authenticated user is the same as in download
+    Principal principal = securityContext.getUserPrincipal();
+    if (principal == null) {
+      throw new NotAuthenticatedException("No user authenticated for creating a download");
+    }
+    return principal;
   }
 }
