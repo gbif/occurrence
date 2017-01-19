@@ -46,8 +46,8 @@
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="double" class="solr.TrieDoubleField"
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
-    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true"/>
-    <fieldType name="coordinate_map" class="solr.SpatialRecursivePrefixTreeFieldType" geo="false" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="degrees" autoIndex="true"  sortMissingLast="true" prefixTree="packedQuad"/>
+    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" normWrapLongitude="true"/>
+    <fieldType name="coordinate_map" class="solr.SpatialRecursivePrefixTreeFieldType" geo="false" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="degrees" autoIndex="true"  sortMissingLast="true" prefixTree="packedQuad" normWrapLongitude="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
