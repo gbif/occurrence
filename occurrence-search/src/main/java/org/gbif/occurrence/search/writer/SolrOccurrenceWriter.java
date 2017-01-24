@@ -197,7 +197,7 @@ public class SolrOccurrenceWriter {
     doc.setField(PROTOCOL.getFieldName(), occurrence.getProtocol() == null ? null : occurrence.getProtocol().name());
     doc.setField(CRAWL_ID.getFieldName(), occurrence.getCrawlId() == null ? null : occurrence.getCrawlId());
     doc.setField(PUBLISHING_ORGANIZATION_KEY.getFieldName(),
-                 occurrence.getPublishingOrgKey() == null ? null : occurrence.getPublishingOrgKey());
+                 occurrence.getPublishingOrgKey() == null ? null : occurrence.getPublishingOrgKey().toString());
     doc.setField(LICENSE.getFieldName(), occurrence.getLicense() == null ? null : occurrence.getLicense().name());
 
     return doc;
