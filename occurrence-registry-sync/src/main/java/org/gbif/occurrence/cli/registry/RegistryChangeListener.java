@@ -222,10 +222,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
 
     Scan scan = new Scan();
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL);
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL);
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.OOK_COL);
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.CI_COL);
+    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL); //datasetKey
+    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL); //publishingCountry
+    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.OOK_COL); //publishingOrgKey
+    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.CI_COL); //crawlId
+    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.LICENSE_COL);
+
     scan.setCaching(200);
     scan.setCacheBlocks(false); // don't set to true for MR jobs (from HBase MapReduce Examples)
 
