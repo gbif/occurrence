@@ -44,6 +44,6 @@ sync-occurrence-registry | Synchronize the entire Occurrence table with the regi
 This cli target will create a MapReduce job, wait for completion and terminate.
 Example of how to resynchronize all occurrence records of a dataset with the registry:
 ```bash
-java -Xmx128M -cp /path/to/config/:occurrence-cli.jar org.gbif.cli.Application sync-occurrence-registry --conf /Users/cgendreau/Documents/SourceCode/gbif-configuration/cli/prod/config/sync-occurrence-registry.yaml --dataset-key <DATASETKEY> --log-config logback-sync-occurence-registry.xml
+java -Xmx128M -cp /path/to/config/:occurrence-cli.jar org.gbif.cli.Application sync-occurrence-registry --conf /path/to/config/ sync-occurrence-registry.yaml --dataset-key <DATASETKEY> --log-config logback-sync-occurence-registry.xml
 ```
 Note: The config folder must include a hbase-site.xml file
