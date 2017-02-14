@@ -72,6 +72,7 @@ public class SyncOccurrenceRegistryService {
       Job job = Job.getInstance(conf, jobTitle);
       job.setJarByClass(OccurrenceRegistryMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
+
       job.setNumReduceTasks(0);
       job.getConfiguration().set("mapreduce.map.speculative", "false");
       job.getConfiguration().set("mapreduce.reduce.speculative", "false");
@@ -80,6 +81,7 @@ public class SyncOccurrenceRegistryService {
       job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
       job.getConfiguration().set("mapreduce.map.memory.mb", configuration.mapReduce.mapMemoryMb);
       job.getConfiguration().set("mapreduce.map.java.opts", configuration.mapReduce.mapJavaOpts);
+      job.getConfiguration().set("mapred.job.queue.name", configuration.mapReduce.queueName);
 
       Scan scan = buildScan(datasetKey, lastUpdatedAfterMs);
 

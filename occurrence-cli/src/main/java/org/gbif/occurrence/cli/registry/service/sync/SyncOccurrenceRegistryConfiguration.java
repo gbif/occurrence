@@ -53,6 +53,9 @@ public class SyncOccurrenceRegistryConfiguration {
 
     @NotNull
     public String mapJavaOpts;
+
+    @NotNull
+    public String queueName;
   }
 
 }
