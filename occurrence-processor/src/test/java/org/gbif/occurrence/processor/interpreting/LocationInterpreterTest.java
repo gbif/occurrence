@@ -42,7 +42,7 @@ public class LocationInterpreterTest {
     assertNotNull(result);
     assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
   }
-
+  
   @Test
   public void testVerbCoordInterp() throws InterruptedException {
     verb = new VerbatimOccurrence();
@@ -95,11 +95,17 @@ public class LocationInterpreterTest {
     occ = new Occurrence(verb);
 
     interpreter.interpretCoordinateUncertaintyAndPrecision(occ, verb);
-
     assertEquals(new Double(500), occ.getCoordinateUncertaintyInMeters());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COORDINATE_PRECISION_INVALID));
     assertNull(occ.getCoordinatePrecision());
     assertEquals(1, occ.getIssues().size());
+
+    //test -1 (see https://github.com/gbif/occurrence/issues/9)
+    verb.setVerbatimField(DwcTerm.coordinatePrecision, "-1");
+    occ = new Occurrence(verb);
+    interpreter.interpretCoordinateUncertaintyAndPrecision(occ, verb);
+    assertTrue(occ.getIssues().contains(OccurrenceIssue.COORDINATE_PRECISION_INVALID));
+    assertNull(occ.getCoordinatePrecision());
   }
 
   @Test
