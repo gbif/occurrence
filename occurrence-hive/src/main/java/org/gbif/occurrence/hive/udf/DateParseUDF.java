@@ -5,6 +5,7 @@ import org.gbif.common.parsers.date.AtomizedLocalDate;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.occurrence.processor.interpreting.TemporalInterpreter;
 
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,8 +18,6 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorConverters;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.threeten.bp.temporal.TemporalAccessor;
-
 /**
  * Parses year month and day only.
  */

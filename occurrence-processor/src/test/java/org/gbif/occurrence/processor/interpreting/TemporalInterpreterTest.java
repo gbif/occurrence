@@ -9,19 +9,19 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.junit.Test;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.Year;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.temporal.ChronoUnit;
-import org.threeten.bp.temporal.TemporalAccessor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -392,7 +392,7 @@ public class TemporalInterpreterTest {
     // sanity checks
     assertNotNull(result);
 
-    LocalDate localDate = result.getPayload().query(LocalDate.FROM);
+    LocalDate localDate = result.getPayload().query(LocalDate::from);
     assertInts(y, localDate.getYear());
     assertInts(m, localDate.getMonthValue());
     assertInts(d, localDate.getDayOfMonth());
@@ -415,7 +415,7 @@ public class TemporalInterpreterTest {
     // sanity checks
     assertNotNull(result);
 
-    YearMonth yearMonthDate = result.getPayload().query(YearMonth.FROM);
+    YearMonth yearMonthDate = result.getPayload().query(YearMonth::from);
     assertInts(y, yearMonthDate.getYear());
     assertInts(m, yearMonthDate.getMonthValue());
 
@@ -426,7 +426,7 @@ public class TemporalInterpreterTest {
     // sanity checks
     assertNotNull(result);
 
-    Year yearDate = result.getPayload().query(Year.FROM);
+    Year yearDate = result.getPayload().query(Year::from);
     assertInts(y, yearDate.getValue());
 
     assertEquals(Year.of(y), result.getPayload());

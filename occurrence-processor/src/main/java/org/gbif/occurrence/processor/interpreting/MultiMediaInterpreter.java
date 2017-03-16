@@ -15,6 +15,8 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.Terms;
 
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAccessor;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +25,6 @@ import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.temporal.TemporalAccessor;
 
 import static org.gbif.common.parsers.date.TemporalAccessorUtils.toDate;
 
