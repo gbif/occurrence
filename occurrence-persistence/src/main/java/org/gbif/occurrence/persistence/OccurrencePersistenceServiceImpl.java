@@ -1,5 +1,14 @@
 package org.gbif.occurrence.persistence;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -7,11 +16,7 @@ import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
@@ -21,32 +26,16 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nullable;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Delete;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -318,29 +307,13 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldOcc.getTaxonKey(), occ.getTaxonKey())) {
       upd.setInterpretedField(GbifTerm.taxonKey, occ.getTaxonKey());
     }
-    if (!Objects.equals(oldOcc.getKingdom(), occ.getKingdom())) {
-      updateRank(upd, occ, Rank.KINGDOM);
-    }
-    if (!Objects.equals(oldOcc.getPhylum(), occ.getPhylum())) {
-      updateRank(upd, occ, Rank.PHYLUM);
-    }
-    if (!Objects.equals(oldOcc.getClazz(), occ.getClazz())) {
-      updateRank(upd, occ, Rank.CLASS);
-    }
-    if (!Objects.equals(oldOcc.getOrder(), occ.getOrder())) {
-      updateRank(upd, occ, Rank.ORDER);
-    }
-    if (!Objects.equals(oldOcc.getFamily(), occ.getFamily())) {
-      updateRank(upd, occ, Rank.FAMILY);
-    }
-    if (!Objects.equals(oldOcc.getGenus(), occ.getGenus())) {
-      updateRank(upd, occ, Rank.GENUS);
-    }
-    if (!Objects.equals(oldOcc.getSubgenus(), occ.getSubgenus())) {
-      updateRank(upd, occ, Rank.SUBGENUS);
-    }
-    if (!Objects.equals(oldOcc.getSpecies(), occ.getSpecies())) {
-      updateRank(upd, occ, Rank.SPECIES);
+    for (Rank r : Rank.DWC_RANKS) {
+      if (!Objects.equals(oldOcc.getHigherRankKey(r), occ.getHigherRankKey(r))) {
+        upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
+      }
+      if (!Objects.equals(oldOcc.getHigherRank(r), occ.getHigherRank(r))) {
+        upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
+      }
     }
     if (!Objects.equals(oldOcc.getDepth(), occ.getDepth())) {
       upd.setInterpretedField(GbifTerm.depth, occ.getDepth());
@@ -456,11 +429,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         upd.setField(Columns.column(issue), Bytes.toBytes(1));
       }
     }
-  }
-
-  private static void updateRank(RowUpdate upd, Occurrence occ, Rank r) throws IOException {
-    upd.setInterpretedField(OccurrenceBuilder.rank2taxonTerm.get(r), ClassificationUtils.getHigherRank(occ, r));
-    upd.setInterpretedField(OccurrenceBuilder.rank2KeyTerm.get(r), ClassificationUtils.getHigherRankKey(occ, r));
   }
 
   /**

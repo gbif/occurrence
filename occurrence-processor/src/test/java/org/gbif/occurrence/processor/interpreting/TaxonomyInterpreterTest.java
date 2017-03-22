@@ -4,15 +4,12 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
-
-import java.net.URI;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.net.URI;
+
+import static org.junit.Assert.*;
 
 @Ignore("requires live webservice")
 public class TaxonomyInterpreterTest {
@@ -57,6 +54,14 @@ public class TaxonomyInterpreterTest {
     assertEquals(2492483, result.getPayload().getUsageKey().intValue());
     assertEquals(1, result.getPayload().getKingdomKey().intValue());
     assertEquals("Oenanthe Vieillot, 1816", result.getPayload().getScientificName());
+  }
+
+  @Test
+  public void testCeratiaceae() {
+    ParseResult<NameUsageMatch> result = interpreter.match("Chromista", "Dinophyta", "Dinophyceae", "Peridiniales", "Ceratiaceae", "Ceratium", "Ceratium hirundinella", "", null, null, null, Rank.SPECIES);
+    assertEquals(7598904, result.getPayload().getUsageKey().intValue());
+    assertEquals(7479242, result.getPayload().getFamilyKey().intValue());
+    assertEquals("Ceratium hirundinella (O.F.Müller) Dujardin, 1841", result.getPayload().getScientificName());
   }
 
   @Test

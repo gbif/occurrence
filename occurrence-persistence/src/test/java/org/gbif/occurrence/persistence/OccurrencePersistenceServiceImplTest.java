@@ -1,65 +1,27 @@
 package org.gbif.occurrence.persistence;
 
-import org.gbif.api.model.common.MediaObject;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.EstablishmentMeans;
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.api.vocabulary.LifeStage;
-import org.gbif.api.vocabulary.MediaType;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.Rank;
-import org.gbif.api.vocabulary.Sex;
-import org.gbif.api.vocabulary.TypeStatus;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.occurrence.common.config.OccHBaseConfiguration;
-import org.gbif.occurrence.persistence.hbase.Columns;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.RowMutations;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
+import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.*;
+import org.gbif.occurrence.common.config.OccHBaseConfiguration;
+import org.gbif.occurrence.persistence.hbase.Columns;
+import org.junit.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class OccurrencePersistenceServiceImplTest {
 
@@ -335,7 +297,8 @@ public class OccurrencePersistenceServiceImplTest {
     int classId = 88;
     String clazz = "Monocots";
     double depth = 120.8;
-    String family = "Melanthiaceae";
+    // keep family name, but change its key: https://github.com/gbif/portal-feedback/issues/136
+    String family = "Felidae";
     int familyId = 96578787;
     String genericName = "generic trillium";
     String genus = "Trillium";
