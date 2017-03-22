@@ -139,10 +139,10 @@
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.17</download-query-tools.version>
     <drupal-mybatis.version>0.19</drupal-mybatis.version>
-    <dwc-api.version>1.16</dwc-api.version>
-    <dwca-io.version>1.28</dwca-io.version>
+    <dwc-api.version>1.17</dwc-api.version>
+    <dwca-io.version>1.30</dwca-io.version>
     <gbif-api.version>0.50</gbif-api.version>
-    <gbif-common.version>0.32</gbif-common.version>
+    <gbif-common.version>0.34</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.30</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
@@ -150,7 +150,7 @@
     <geocode.version>0.10</geocode.version>
     <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.31-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.31</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
     <gbif-registry.version>2.63</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
