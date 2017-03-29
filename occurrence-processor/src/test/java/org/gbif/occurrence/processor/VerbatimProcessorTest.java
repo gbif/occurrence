@@ -40,7 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @Ignore("requires real messaging")
-public class VerbatimOccurrenceProcessorTest {
+public class VerbatimProcessorTest {
 
   // BoGART from BGBM
   private final UUID DATASET_KEY = UUID.fromString("85697f04-f762-11e1-a439-00145eb45e9a");

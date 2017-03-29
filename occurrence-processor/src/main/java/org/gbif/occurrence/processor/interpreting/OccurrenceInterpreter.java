@@ -35,8 +35,6 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 /**
  * Interprets/Validates verbatim occurrence records.
  * This class doesn't persist any information, it only collects possible issues and generates a interpreted version
@@ -50,7 +48,7 @@ public class OccurrenceInterpreter implements Serializable {
     void interpret(VerbatimOccurrence verbatim, Occurrence occurrence);
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(VerbatimOccurrenceInterpreter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceInterpreter.class);
 
   private static final TypeStatusParser TYPE_PARSER = TypeStatusParser.getInstance();
   private static final Parsable<String> TYPE_NAME_PARSER = TypifiedNameParser.getInstance();
@@ -109,7 +107,7 @@ public class OccurrenceInterpreter implements Serializable {
    * "original"
    * occurrence iff this was an update to an existing record (will be null otherwise)
    */
-  public OccurrenceInterpretationResult interpret(VerbatimOccurrence verbatim) {
+  public OccurrenceInterpretationResult interpret(VerbatimOccurrence verbatim, Occurrence original) {
     Occurrence occ = new Occurrence(verbatim);
     interpreters.stream().forEach(interpreter ->  {
       try {
@@ -119,8 +117,9 @@ public class OccurrenceInterpreter implements Serializable {
         occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);
       }
     });
+
     occ.setLastInterpreted(new Date());
-    return new OccurrenceInterpretationResult(new Occurrence(verbatim), occ);
+    return new OccurrenceInterpretationResult(original, occ);
   }
 
   /**

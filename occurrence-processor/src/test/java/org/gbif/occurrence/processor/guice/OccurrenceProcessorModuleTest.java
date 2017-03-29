@@ -56,9 +56,9 @@ public class OccurrenceProcessorModuleTest {
 
     cfg.hbase.setEnvironment("dev");
     cfg.hbase.hbasePoolSize = 10;
-    cfg.hbase.zkConnectionString = "c1n1.gbif.org";
+    cfg.hbase.zkConnectionString = "zk1.gbif-dev.org";
 
-    cfg.zooKeeper.connectionString = "c1n1.gbif.org";
+    cfg.zooKeeper.connectionString = "zk1.gbif-dev.org";
 
     Injector injector = Guice.createInjector(new OccurrenceProcessorModule(cfg));
     InterpretedProcessor interpretedProcessor = injector.getInstance(InterpretedProcessor.class);

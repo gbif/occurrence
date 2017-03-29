@@ -26,7 +26,6 @@ import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
-import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.messaging.FragmentPersistedListener;
 import org.gbif.occurrence.processor.messaging.OccurrenceFragmentedListener;
 import org.gbif.occurrence.processor.messaging.VerbatimPersistedListener;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +70,6 @@ public class OccurrenceProcessorIT {
     new OccurrencePersistenceServiceMock(fragmentPersister);
   private MessageListener messageListener;
   private MessagePublisher messagePublisher;
-  private VerbatimOccurrenceInterpreter verbatimInterpreter;
   private TestingServer zkServer;
   private CuratorFramework curator;
   private ZookeeperConnector zookeeperConnector;
@@ -119,14 +118,12 @@ public class OccurrenceProcessorIT {
       new VerbatimProcessor(fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector);
     fragmentPersistedListener = new FragmentPersistedListener(verbatimProcessor);
     messageListener.listen("frag_persisted_test_" + now, 1, fragmentPersistedListener);
-    verbatimInterpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
+    interpretedProcessor = new InterpretedProcessor(
       new OccurrenceInterpreter(new DatasetInfoInterpreter(cfg.newApiClient()),
       new TaxonomyInterpreter(cfg.newApiClient()),
-      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient())))
+      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))),
+        fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector
     );
-    interpretedProcessor =
-      new InterpretedProcessor(fragmentPersister, verbatimInterpreter, occurrenceService, messagePublisher,
-        zookeeperConnector);
     verbatimPersistedListener = new VerbatimPersistedListener(interpretedProcessor);
     messageListener.listen("verb_persisted_test_" + now, 1, verbatimPersistedListener);
   }
@@ -161,17 +158,17 @@ public class OccurrenceProcessorIT {
     assertEquals(datasetKey, got.getDatasetKey());
     // note: this is set here inside the occ project, but from a ws call the serializer will omit these 'superseded' terms
     assertEquals("Verbascum cheiranthifolium var. cheiranthifolium", got.getVerbatimField(DwcTerm.scientificName));
-    assertEquals("Verbascum cheiranthifolium Boiss.", got.getScientificName());
-    assertEquals(37.42123, got.getDecimalLatitude().doubleValue(), 0.000001);
-    assertEquals(34.56812, got.getDecimalLongitude().doubleValue(), 0.000001);
+    assertEquals("Verbascum cheiranthifolium var. cheiranthifolium", got.getScientificName());
+    assertEquals(37.421230, got.getDecimalLatitude().doubleValue(), 0.000001);
+    assertEquals(34.568123, got.getDecimalLongitude().doubleValue(), 0.000001);
     assertEquals(Country.fromIsoCode("TR"), got.getCountry());
-    Calendar c = Calendar.getInstance();
+    Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     c.set(1999, 6, 30);
     c.set(Calendar.HOUR_OF_DAY, 0);
     c.set(Calendar.MINUTE, 0);
     c.set(Calendar.SECOND, 0);
     c.set(Calendar.MILLISECOND, 0);
-    assertEquals(c.getTimeInMillis(), got.getEventDate().getTime());
+    assertEquals(c.getTime(), got.getEventDate());
     assertEquals(BasisOfRecord.PRESERVED_SPECIMEN, got.getBasisOfRecord());
     assertEquals("Markus Döring", got.getVerbatimField(DwcTerm.identifiedBy));
 
@@ -208,22 +205,22 @@ public class OccurrenceProcessorIT {
     assertEquals("AlgaTerra", got.getVerbatimField(DwcTerm.collectionCode));
     assertEquals("5834", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertEquals("Tetraedron caudatum (Corda) Hansgirg", got.getScientificName());
-    assertEquals(52.1234600, got.getDecimalLatitude().doubleValue(), 0.0000001);
-    assertEquals(13.1234599, got.getDecimalLongitude().doubleValue(), 0.0000001);
+    assertEquals("Tetraedron caudatum (Corda) Hansgirg, 1888", got.getScientificName());
+    assertEquals(52.123456, got.getDecimalLatitude().doubleValue(), 0.000001);
+    assertEquals(13.123456, got.getDecimalLongitude().doubleValue(), 0.000001);
     assertEquals("WGS84", got.getGeodeticDatum());
     assertTrue(got.getIssues().contains(OccurrenceIssue.COORDINATE_REPROJECTED));
     assertEquals(450, got.getElevation().intValue());
     assertEquals(Country.fromIsoCode("DE"), got.getCountry());
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.recordedBy));
     assertEquals("Nikolassee, Berlin", got.getVerbatimField(DwcTerm.locality));
-    Calendar c = Calendar.getInstance();
+    Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     c.set(1987, 3, 13);
     c.set(Calendar.HOUR_OF_DAY, 0);
     c.set(Calendar.MINUTE, 0);
     c.set(Calendar.SECOND, 0);
     c.set(Calendar.MILLISECOND, 0);
-    assertEquals(c.getTimeInMillis(), got.getEventDate().getTime());
+    assertEquals(c.getTime(), got.getEventDate());
     assertEquals(BasisOfRecord.HUMAN_OBSERVATION, got.getBasisOfRecord());
     assertEquals("Kusber, W.-H.", got.getVerbatimField(DwcTerm.identifiedBy));
 

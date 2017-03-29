@@ -7,7 +7,6 @@ import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.OccurrencePersistenceStatus;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -15,7 +14,6 @@ import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.UniqueIdentifier;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
-import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
@@ -23,21 +21,12 @@ import org.gbif.occurrence.processor.interpreting.DatasetInfoInterpreter;
 import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
-import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
-import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.net.URI;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Charsets;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -48,7 +37,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Ignore("requires real webservices")
-public class VerbatimOccurrenceInterpreterTest {
+public class OccurrenceInterpreterTest {
 
   // BoGART from BGBM
   private final UUID DATASET_KEY = UUID.fromString("85697f04-f762-11e1-a439-00145eb45e9a");
@@ -58,21 +47,12 @@ public class VerbatimOccurrenceInterpreterTest {
 
   private VerbatimOccurrence verb;
   private VerbatimOccurrence verbMod;
-  private VerbatimOccurrenceInterpreter interpreter;
-  private TestingServer zkServer;
-  private CuratorFramework curator;
-  private ZookeeperConnector zookeeperConnector;
+  private OccurrenceInterpreter interpreter;
 
   @Before
   public void setUp() throws Exception {
     ApiClientConfiguration cfg = new ApiClientConfiguration();;
     cfg.url = URI.create("http://api.gbif-dev.org/v1/");
-
-    zkServer = new TestingServer();
-    curator = CuratorFrameworkFactory.builder().connectString(zkServer.getConnectString()).namespace("crawler")
-      .retryPolicy(new RetryNTimes(1, 1000)).build();
-    curator.start();
-    zookeeperConnector = new ZookeeperConnector(curator);
 
     FragmentPersistenceService fragmentPersister =
       new FragmentPersistenceServiceMock(new OccurrenceKeyPersistenceServiceMock());
@@ -81,12 +61,9 @@ public class VerbatimOccurrenceInterpreterTest {
     Set<UniqueIdentifier> uniqueIds = Sets.newHashSet();
     uniqueIds.add(new HolyTriplet(DATASET_KEY, "ic", "cc", "cn", null));
     fragmentPersister.insert(fragment, uniqueIds);
-    OccurrencePersistenceService occurrenceService = new OccurrencePersistenceServiceMock(fragmentPersister);
-    interpreter = new VerbatimOccurrenceInterpreter(occurrenceService, zookeeperConnector,
-      new OccurrenceInterpreter(new DatasetInfoInterpreter(cfg.newApiClient()),
+    interpreter = new OccurrenceInterpreter(new DatasetInfoInterpreter(cfg.newApiClient()),
       new TaxonomyInterpreter(cfg.newApiClient()),
-      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient())))
-    );
+      new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient())));
 
     verb = buildVerbatim(fragment.getKey());
 
@@ -144,7 +121,7 @@ public class VerbatimOccurrenceInterpreterTest {
 
   @Test
   public void testFullNew() {
-    OccurrenceInterpretationResult interpResult = interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
+    OccurrenceInterpretationResult interpResult = interpreter.interpret(verb, null);
     assertNotNull(interpResult);
     Occurrence result = interpResult.getUpdated();
     assertEquals(verb.getKey(), result.getKey());
@@ -172,7 +149,7 @@ public class VerbatimOccurrenceInterpreterTest {
     assertEquals(Double.valueOf(12.5687), result.getDecimalLongitude());
     assertTrue(MODIFIED <= result.getLastInterpreted().getTime());
     assertEquals(7193916, result.getTaxonKey().intValue());
-    Calendar cal = Calendar.getInstance();
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     cal.set(1990, 3, 22);
     cal.set(Calendar.HOUR_OF_DAY, 0);
     cal.set(Calendar.MINUTE, 0);
@@ -202,8 +179,8 @@ public class VerbatimOccurrenceInterpreterTest {
 
   @Test
   public void testUpdate() {
-    interpreter.interpret(verb, OccurrencePersistenceStatus.NEW, true);
-    OccurrenceInterpretationResult interpResultMod = interpreter.interpret(verbMod, OccurrencePersistenceStatus.UPDATED, true);
+    interpreter.interpret(verb, null);
+    OccurrenceInterpretationResult interpResultMod = interpreter.interpret(verbMod, new Occurrence(verb));
     assertNotNull(interpResultMod.getUpdated());
     assertNotNull(interpResultMod.getOriginal());
   }

@@ -8,8 +8,8 @@ import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.api.FragmentPersistenceService;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
+import org.gbif.occurrence.processor.interpreting.OccurrenceInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
-import org.gbif.occurrence.processor.interpreting.VerbatimOccurrenceInterpreter;
 import org.gbif.occurrence.processor.zookeeper.ZookeeperConnector;
 
 import java.io.IOException;
@@ -35,8 +35,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class InterpretedProcessor {
 
+  private final OccurrenceInterpreter occurrenceInterpreter;
   private final FragmentPersistenceService fragmentPersister;
-  private final VerbatimOccurrenceInterpreter verbatimInterpreter;
   private final OccurrencePersistenceService occurrencePersister;
   private final MessagePublisher messagePublisher;
   private final ZookeeperConnector zookeeperConnector;
@@ -51,11 +51,10 @@ public class InterpretedProcessor {
   private static final Logger LOG = LoggerFactory.getLogger(InterpretedProcessor.class);
 
   @Inject
-  public InterpretedProcessor(FragmentPersistenceService fragmentPersister,
-    VerbatimOccurrenceInterpreter verbatimInterpreter, OccurrencePersistenceService occurrencePersister,
-    MessagePublisher messagePublisher, ZookeeperConnector zookeeperConnector) {
+  public InterpretedProcessor(OccurrenceInterpreter occurrenceInterpreter, FragmentPersistenceService fragmentPersister,
+     OccurrencePersistenceService occurrencePersister, MessagePublisher messagePublisher, ZookeeperConnector zookeeperConnector) {
+    this.occurrenceInterpreter = checkNotNull(occurrenceInterpreter, "occurrenceInterpreter can't be null");
     this.fragmentPersister = checkNotNull(fragmentPersister, "fragmentPersister can't be null");
-    this.verbatimInterpreter = checkNotNull(verbatimInterpreter, "verbatimInterpreter can't be null");
     this.occurrencePersister = checkNotNull(occurrencePersister, "occurrencePersister can't be null");
     this.messagePublisher = checkNotNull(messagePublisher, "messagePublisher can't be null");
     this.zookeeperConnector = checkNotNull(zookeeperConnector, "zookeeperConnector can't be null");
@@ -105,39 +104,64 @@ public class InterpretedProcessor {
       return;
     }
 
+    // Need the original for the interpretation result
+    Occurrence original = null;
+    if (status == OccurrencePersistenceStatus.UPDATED) {
+      original = occurrencePersister.get(verbatim.getKey());
+    }
+
     OccurrenceInterpretationResult interpretationResult;
     final TimerContext interpContext = interpTimer.time();
     try {
-      interpretationResult = verbatimInterpreter.interpret(verbatim, status, fromCrawl);
+      interpretationResult = occurrenceInterpreter.interpret(verbatim, original);
     } finally {
       interpContext.stop();
     }
 
-    if (interpretationResult.getUpdated() == null) {
-      logError("Could not interpret", occurrenceKey, datasetKey, fromCrawl);
-      return;
+    // persist the record (considered an update in all cases because the key must already exist on verbatim)
+    Occurrence interpreted = interpretationResult.getUpdated();
+    LOG.debug("Persisting interpreted occurrence {}", interpreted);
+    occurrencePersister.update(interpreted);
+
+    if (fromCrawl) {
+      LOG.debug("Updating zookeeper for OccurrenceInterpretedPersistedSuccess");
+      zookeeperConnector
+          .addCounter(interpreted.getDatasetKey(), ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
     }
 
-    Occurrence interpreted = interpretationResult.getUpdated();
+    // Compare original with newly interpreted
+    if (interpreted.equals(original)) {
+      status = OccurrencePersistenceStatus.UNCHANGED;
+    }
 
-    LOG.debug("sending messages");
     OccurrenceMutatedMessage interpMsg;
     // can only be NEW or UPDATED
-    if (status == OccurrencePersistenceStatus.NEW) {
-      interpMsg = OccurrenceMutatedMessage.buildNewMessage(interpreted.getDatasetKey(), interpreted, localAttemptId);
-    } else {
-      interpMsg = OccurrenceMutatedMessage
-        .buildUpdateMessage(interpreted.getDatasetKey(), interpretationResult.getOriginal(), interpreted,
-          localAttemptId);
+    switch (status) {
+      case NEW:
+        interpMsg = OccurrenceMutatedMessage.buildNewMessage(interpreted.getDatasetKey(), interpreted, localAttemptId);
+        break;
+      case UPDATED:
+        interpMsg = OccurrenceMutatedMessage
+            .buildUpdateMessage(interpreted.getDatasetKey(), interpretationResult.getOriginal(), interpreted,
+                localAttemptId);
+        break;
+      case UNCHANGED: // Don't send any message.
+      case DELETED: // Can't happen.
+      default:
+        interpMsg = null;
     }
 
-    final TimerContext context = msgTimer.time();
-    try {
-      messagePublisher.send(interpMsg);
-    } catch (IOException e) {
-      LOG.warn("Could not send OccurrencePersistedMessage for successful [{}]", status.toString(), e);
-    } finally {
-      context.stop();
+    LOG.debug("Sending message (unless unchanged) {}", status);
+
+    if (interpMsg != null) {
+      final TimerContext context = msgTimer.time();
+      try {
+        messagePublisher.send(interpMsg);
+      } catch (IOException e) {
+        LOG.warn("Could not send OccurrencePersistedMessage for successful [{}]", status.toString(), e);
+      } finally {
+        context.stop();
+      }
     }
 
     interpProcessed.mark();
@@ -145,7 +169,7 @@ public class InterpretedProcessor {
 
   private void logError(String message, int occurrenceKey, UUID datasetKey, boolean fromCrawl) {
     // TODO: send msg?
-    LOG.warn("{} verbatim occurrence with key [{}] - skipping.", message, occurrenceKey);
+    LOG.error("{} verbatim occurrence with key [{}] - skipping.", message, occurrenceKey);
     if (fromCrawl) {
       LOG.debug("Updating zookeeper for InterpretedOccurrencePersistedError");
       zookeeperConnector.addCounter(datasetKey, ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_ERROR);

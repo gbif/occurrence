@@ -78,7 +78,7 @@ public class FragmentProcessorThroughputTest {
       new DefaultMessagePublisher(new ConnectionParameters("mq.gbif.org", 5672, "omeyn", "omeyn", "/users/omeyn"));
     CuratorFramework curator =
       CuratorFrameworkFactory.builder().namespace("/fragproctest").retryPolicy(new ExponentialBackoffRetry(25, 100))
-        .connectString("c1n1.gbif.org:2181").build();
+        .connectString("zk1.gbif-dev.org:2181").build();
     curator.start();
     ZookeeperConnector zkConnector = new ZookeeperConnector(curator);
     fragmentProcessor = new FragmentProcessor(fragService, occurrenceKeyService, messagePublisher, zkConnector);

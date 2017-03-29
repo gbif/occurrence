@@ -25,7 +25,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class OccurrenceInterpretationTest {
+public class OccurrenceInterpreterTest {
 
   private static class OccurrenceProcessorMockModule extends AbstractModule {
 
@@ -64,7 +64,7 @@ public class OccurrenceInterpretationTest {
     verbatimOccurrence.setVerbatimField(DwcTerm.verbatimLatitude, "10.123");
     verbatimOccurrence.setVerbatimField(DwcTerm.verbatimLongitude, "55.678");
     verbatimOccurrence.setDatasetKey(UUID.randomUUID());
-    OccurrenceInterpretationResult result = occurrenceInterpreter.interpret(verbatimOccurrence);
+    OccurrenceInterpretationResult result = occurrenceInterpreter.interpret(verbatimOccurrence, null);
     assertTrue(result.getUpdated().getIssues().containsAll(Sets.newHashSet(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84,
                                                                   OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES,
                                                                   OccurrenceIssue.TAXON_MATCH_NONE,
@@ -116,7 +116,7 @@ public class OccurrenceInterpretationTest {
     v.setVerbatimField(DwcTerm.dateIdentified, "2015-08-04T17:15:02Z");
     v.setVerbatimField(DcTerm.rights, "© Karolina Fucikova some rights reserved");
 
-    OccurrenceInterpretationResult result = occurrenceInterpreter.interpret(v);
+    OccurrenceInterpretationResult result = occurrenceInterpreter.interpret(v, null);
 
     Occurrence o = result.getUpdated();
     assertEquals(7598904, (int)o.getTaxonKey());

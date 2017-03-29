@@ -110,7 +110,7 @@ public class JsonFragmentParserTest {
     assertEquals("30", verb.getVerbatimField(DwcTerm.day));
     assertEquals("Fake", verb.getVerbatimField(DwcTerm.country));
     assertEquals("TR", verb.getVerbatimField(DwcTerm.countryCode));
-    assertEquals("34.568123", verb.getVerbatimField(DwcTerm.decimalLongitude));
+    assertEquals("34.5681234", verb.getVerbatimField(DwcTerm.decimalLongitude));
     assertEquals("Magnoliopsida", verb.getVerbatimField(DwcTerm.class_));
     assertEquals("Scrophulariaceae", verb.getVerbatimField(DwcTerm.family));
     assertEquals("Asia", verb.getVerbatimField(DwcTerm.continent));
