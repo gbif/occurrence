@@ -129,10 +129,11 @@ public class InterpretedProcessor {
           .addCounter(interpreted.getDatasetKey(), ZookeeperConnector.CounterName.INTERPRETED_OCCURRENCE_PERSISTED_SUCCESS);
     }
 
-    // Compare original with newly interpreted
-    if (interpreted.equals(original)) {
-      status = OccurrencePersistenceStatus.UNCHANGED;
-    }
+    // TODO: Compare original with newly interpreted
+    // This approach won't work, since the lastInterpreted() dates differ.
+    // if (interpreted.equals(original)) {
+    //   status = OccurrencePersistenceStatus.UNCHANGED;
+    // }
 
     OccurrenceMutatedMessage interpMsg;
     // can only be NEW or UPDATED
