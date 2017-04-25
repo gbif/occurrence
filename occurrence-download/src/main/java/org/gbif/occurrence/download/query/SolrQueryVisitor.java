@@ -28,8 +28,8 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.common.search.util.SolrConstants;
-import org.gbif.occurrence.search.OccurrenceSearchDateUtils;
+import org.gbif.common.search.solr.SearchDateUtils;
+import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.lang.reflect.InvocationTargetException;
@@ -45,10 +45,10 @@ import com.vividsolutions.jts.io.WKTReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
-import static org.gbif.common.search.util.QueryUtils.parseQueryValue;
-import static org.gbif.common.search.util.SolrConstants.GEO_INTERSECTS_QUERY_FMT;
-import static org.gbif.common.search.util.SolrConstants.RANGE_FORMAT;
+import static org.gbif.common.search.solr.QueryUtils.PARAMS_JOINER;
+import static org.gbif.common.search.solr.QueryUtils.parseQueryValue;
+import static org.gbif.common.search.solr.SolrConstants.GEO_INTERSECTS_QUERY_FMT;
+import static org.gbif.common.search.solr.SolrConstants.RANGE_FORMAT;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
 /**
@@ -250,7 +250,7 @@ public class SolrQueryVisitor {
       return value.toUpperCase();
     }
     if (Date.class.isAssignableFrom(param.type())) {
-      return OccurrenceSearchDateUtils.toDateQuery(value);
+      return SearchDateUtils.toDateQuery(value);
 
     } else if (Number.class.isAssignableFrom(param.type())) {
       // don't quote numbers

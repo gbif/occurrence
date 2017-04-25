@@ -20,7 +20,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
-import static org.gbif.common.search.util.QueryUtils.toDateQueryFormat;
+import static org.gbif.common.search.solr.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CATALOG_NUMBER;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CLASS_KEY;

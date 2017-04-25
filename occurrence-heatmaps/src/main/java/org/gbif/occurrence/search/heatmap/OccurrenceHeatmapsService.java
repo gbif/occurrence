@@ -1,6 +1,6 @@
 package org.gbif.occurrence.search.heatmap;
 
-import org.gbif.common.search.exception.SearchException;
+import org.gbif.common.search.SearchException;
 import org.gbif.occurrence.search.OccurrenceSearchRequestBuilder;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
@@ -17,7 +17,7 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.common.search.util.SolrConstants.SOLR_REQUEST_HANDLER;
+import static org.gbif.common.search.solr.SolrConstants.SOLR_REQUEST_HANDLER;
 
 public class OccurrenceHeatmapsService {
 

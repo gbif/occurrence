@@ -11,11 +11,11 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.common.search.builder.SolrQueryUtils;
-import org.gbif.common.search.builder.SpellCheckResponseBuilder;
-import org.gbif.common.search.exception.SearchException;
-import org.gbif.common.search.util.QueryUtils;
+import org.gbif.common.search.SearchException;
+import org.gbif.common.search.solr.QueryUtils;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
+import org.gbif.occurrence.search.solr.SolrQueryUtils;
+import org.gbif.occurrence.search.solr.SpellCheckResponseBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
@@ -45,9 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
-import static org.gbif.common.search.util.QueryUtils.buildTermQuery;
-import static org.gbif.common.search.util.SolrConstants.DEFAULT_FILTER_QUERY;
-import static org.gbif.common.search.util.SolrConstants.SOLR_REQUEST_HANDLER;
+import static org.gbif.common.search.solr.QueryUtils.buildTermQuery;
+import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
+import static org.gbif.common.search.solr.SolrConstants.SOLR_REQUEST_HANDLER;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
 /**

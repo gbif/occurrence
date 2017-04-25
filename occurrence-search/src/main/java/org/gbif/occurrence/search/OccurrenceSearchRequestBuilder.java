@@ -2,12 +2,12 @@ package org.gbif.occurrence.search;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.common.search.builder.SolrQueryUtils;
-import org.gbif.common.search.model.FacetField;
-import org.gbif.common.search.model.configuration.FacetFieldConfiguration;
-import org.gbif.common.search.util.QueryUtils;
-import org.gbif.common.search.util.SolrConstants;
+import org.gbif.common.search.solr.QueryUtils;
+import org.gbif.common.search.solr.SolrConstants;
+import org.gbif.occurrence.search.solr.FacetField;
+import org.gbif.occurrence.search.solr.FacetFieldConfiguration;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
+import org.gbif.occurrence.search.solr.SolrQueryUtils;
 
 import java.util.Collection;
 import java.util.Date;
@@ -29,16 +29,16 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
 
-import static org.gbif.common.search.builder.SolrQueryUtils.taggedField;
-import static org.gbif.common.search.util.QueryUtils.PARAMS_JOINER;
-import static org.gbif.common.search.util.QueryUtils.PARAMS_OR_JOINER;
-import static org.gbif.common.search.util.QueryUtils.setQueryPaging;
-import static org.gbif.common.search.util.QueryUtils.setRequestHandler;
-import static org.gbif.common.search.util.QueryUtils.setSortOrder;
-import static org.gbif.common.search.util.QueryUtils.toParenthesesQuery;
-import static org.gbif.common.search.util.SolrConstants.DEFAULT_QUERY;
-import static org.gbif.common.search.util.SolrConstants.PARAM_OR_OP;
-import static org.gbif.occurrence.search.OccurrenceSearchDateUtils.toDateQuery;
+import static org.gbif.common.search.solr.QueryUtils.PARAMS_JOINER;
+import static org.gbif.common.search.solr.QueryUtils.PARAMS_OR_JOINER;
+import static org.gbif.common.search.solr.QueryUtils.setQueryPaging;
+import static org.gbif.common.search.solr.QueryUtils.setRequestHandler;
+import static org.gbif.common.search.solr.QueryUtils.setSortOrder;
+import static org.gbif.common.search.solr.QueryUtils.taggedField;
+import static org.gbif.common.search.solr.QueryUtils.toParenthesesQuery;
+import static org.gbif.common.search.solr.SearchDateUtils.toDateQuery;
+import static org.gbif.common.search.solr.SolrConstants.DEFAULT_QUERY;
+import static org.gbif.common.search.solr.SolrConstants.PARAM_OR_OP;
 
 
 /**

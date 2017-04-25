@@ -14,7 +14,8 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
-import org.gbif.common.search.inject.SolrModule;
+import org.gbif.common.search.solr.SolrConfig;
+import org.gbif.common.search.solr.SolrModule;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
@@ -65,13 +66,14 @@ public class OccurrenceSearchTestIT {
   public static class OccurrenceSearchTestModule extends PrivateServiceModule {
 
     private static final String PREFIX = "occurrence.search.";
-
+    private final SolrConfig solrConfig;
 
     /**
      * Default constructor.
      */
     public OccurrenceSearchTestModule(Properties properties) {
       super(PREFIX, properties);
+      solrConfig = SolrConfig.fromProperties(properties, PREFIX + "solr.");
     }
 
     /**
@@ -86,10 +88,11 @@ public class OccurrenceSearchTestIT {
 
     @Override
     protected void configureService() {
-      install(new SolrModule());
+      install(new SolrModule(solrConfig));
       bind(NameUsageMatchingService.class).toInstance(Mockito.mock(NameUsageMatchingService.class));
       bind(OccurrenceSearchService.class).to(OccurrenceSearchImpl.class);
       expose(OccurrenceSearchService.class);
+
       // Exposes the SolrClient because it is required to create the index.
       expose(SolrClient.class);
     }

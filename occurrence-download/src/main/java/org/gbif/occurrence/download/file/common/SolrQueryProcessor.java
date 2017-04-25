@@ -1,6 +1,6 @@
 package org.gbif.occurrence.download.file.common;
 
-import org.gbif.common.search.util.SolrConstants;
+import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 

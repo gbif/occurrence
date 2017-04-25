@@ -1,7 +1,7 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.common.search.util.SolrConstants;
+import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;

@@ -4,7 +4,8 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.common.search.inject.SolrModule;
+import org.gbif.common.search.solr.SolrConfig;
+import org.gbif.common.search.solr.SolrModule;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -46,6 +47,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
+  private static final String PROPERTIES_SOLR_PREFIX = PROPERTIES_PREFIX + "solr.";
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
@@ -72,7 +74,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Override
   protected void configure() {
     Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    install(new SolrModule());
+    install(new SolrModule(SolrConfig.fromProperties(workflowConfiguration.getDownloadSettings(),
+            PROPERTIES_SOLR_PREFIX)));
     bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
@@ -188,7 +191,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
      */
     private DefaultSettings() {
       //empty
-    }    public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
+    }
+    public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";
     public static final String ZK_LOCK_NAME_KEY = PROPERTIES_PREFIX + "zookeeper.lock_name";
