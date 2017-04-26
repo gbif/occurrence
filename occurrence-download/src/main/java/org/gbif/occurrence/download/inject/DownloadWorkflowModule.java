@@ -47,7 +47,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
-  private static final String PROPERTIES_SOLR_PREFIX = PROPERTIES_PREFIX + "solr.";
+  private static final String PROPERTIES_SOLR_PREFIX = "solr.";
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
