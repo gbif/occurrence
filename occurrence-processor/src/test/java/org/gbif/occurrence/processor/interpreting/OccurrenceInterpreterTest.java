@@ -1,9 +1,5 @@
 package org.gbif.occurrence.processor.interpreting;
 
-import com.google.common.collect.Sets;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.registry.Organization;
@@ -15,12 +11,17 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.guice.OccurrenceProcessorModule;
 import org.gbif.occurrence.processor.guice.ProcessorConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.OccurrenceInterpretationResult;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.net.URI;
 import java.util.UUID;
+
+import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -64,13 +65,13 @@ public class OccurrenceInterpreterTest {
     verbatimOccurrence.setVerbatimField(DwcTerm.verbatimLatitude, "10.123");
     verbatimOccurrence.setVerbatimField(DwcTerm.verbatimLongitude, "55.678");
     verbatimOccurrence.setDatasetKey(UUID.randomUUID());
+    verbatimOccurrence.setCrawlId(8);
     OccurrenceInterpretationResult result = occurrenceInterpreter.interpret(verbatimOccurrence, null);
     assertTrue(result.getUpdated().getIssues().containsAll(Sets.newHashSet(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84,
                                                                   OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES,
                                                                   OccurrenceIssue.TAXON_MATCH_NONE,
                                                                   OccurrenceIssue.BASIS_OF_RECORD_INVALID)));
-
-
+    assertEquals(8, result.getUpdated().getCrawlId().intValue());
   }
 
   /**
