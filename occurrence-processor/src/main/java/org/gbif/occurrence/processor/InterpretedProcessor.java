@@ -121,7 +121,6 @@ public class InterpretedProcessor {
     // persist the record (considered an update in all cases because the key must already exist on verbatim)
     Occurrence interpreted = interpretationResult.getUpdated();
     LOG.debug("Persisting interpreted occurrence {}", interpreted);
-    LOG.warn("Interpreted crawlId should be there -> {}", interpreted);
     occurrencePersister.update(interpreted);
 
     if (fromCrawl) {

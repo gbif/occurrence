@@ -1,27 +1,65 @@
 package org.gbif.occurrence.persistence;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
-import org.gbif.api.vocabulary.*;
-import org.gbif.dwc.terms.*;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.EstablishmentMeans;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.api.vocabulary.LifeStage;
+import org.gbif.api.vocabulary.MediaType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.api.vocabulary.Sex;
+import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.hbase.Columns;
-import org.junit.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.RowMutations;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class OccurrencePersistenceServiceImplTest {
 
@@ -79,6 +117,7 @@ public class OccurrencePersistenceServiceImplTest {
   private static final Integer INDIVIDUAL_COUNT = 123;
   private static final Date LAST_CRAWLED = new Date();
   private static final Date LAST_PARSED = new Date();
+  private static final Integer CRAWL_ID = 7;
   private static final Date LAST_INTERPRETED = new Date();
   private static final LifeStage LIFE_STAGE = LifeStage.ADULT;
   private static final Sex SEX = Sex.FEMALE;
@@ -140,6 +179,7 @@ public class OccurrencePersistenceServiceImplTest {
       put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.genusKey)), Bytes.toBytes(GENUS_KEY));
       put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.publishingCountry)), Bytes.toBytes(PUB_COUNTRY.getIso2LetterCode()));
       put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastCrawled)), Bytes.toBytes(LAST_CRAWLED.getTime()));
+      put.addColumn(CF, Bytes.toBytes(Columns.column(GbifInternalTerm.crawlId)), Bytes.toBytes(CRAWL_ID));
       put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastParsed)), Bytes.toBytes(LAST_PARSED.getTime()));
       put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.lastInterpreted)), Bytes.toBytes(LAST_INTERPRETED.getTime()));
       put.addColumn(CF, Bytes.toBytes(Columns.column(DwcTerm.kingdom)), Bytes.toBytes(KINGDOM));
@@ -488,6 +528,7 @@ public class OccurrencePersistenceServiceImplTest {
     expected.setPublishingCountry(PUB_COUNTRY);
     expected.setLastCrawled(LAST_CRAWLED);
     expected.setLastParsed(LAST_PARSED);
+    expected.setCrawlId(CRAWL_ID);
     expected.setProtocol(PROTOCOL);
     addTerms(expected, TERM_VALUE_PREFIX);
     assertTrue(expected.hasVerbatimField(DwcTerm.basisOfRecord));
@@ -828,6 +869,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(a.getProtocol(), b.getProtocol());
     assertEquals(a.getPublishingCountry(), b.getPublishingCountry());
     assertEquals(a.getPublishingOrgKey(), b.getPublishingOrgKey());
+    assertEquals(a.getCrawlId(), b.getCrawlId());
     for (DwcTerm term : DwcTerm.values()) {
       if (!term.isClass()) {
         assertEquals(a.getVerbatimField(term), b.getVerbatimField(term));

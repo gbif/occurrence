@@ -48,7 +48,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -219,8 +218,6 @@ public class OccurrenceBuilder {
       //It  should be replaced by License.fromString(value).orNull() but conflicts of Guava versions avoid its usage
       occ.setLicense(VocabularyUtils.lookupEnum(ExtResultReader.getString(row, DcTerm.license), License.class));
 
-      occ.setCrawlId(ExtResultReader.getInteger(row, GbifInternalTerm.crawlId));
-
       return occ;
     }
   }
@@ -254,6 +251,7 @@ public class OccurrenceBuilder {
     verb.setLastCrawled(ExtResultReader.getDate(row, GbifTerm.lastCrawled));
     verb.setLastParsed(ExtResultReader.getDate(row, GbifTerm.lastParsed));
     verb.setProtocol(EndpointType.fromString(ExtResultReader.getString(row, GbifTerm.protocol)));
+    verb.setCrawlId(ExtResultReader.getInteger(row, GbifInternalTerm.crawlId));
 
     for (Cell cell : row.rawCells()) {
       // all verbatim Term fields in row are prefixed. Columns without that prefix return null!
