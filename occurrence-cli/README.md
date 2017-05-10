@@ -47,3 +47,11 @@ Example of how to resynchronize all occurrence records of a dataset with the reg
 java -Xmx128M -cp /path/to/config/:occurrence-cli.jar org.gbif.cli.Application sync-occurrence-registry --conf /path/to/config/sync-occurrence-registry.yaml --dataset-key <DATASETKEY> --log-config logback-sync-occurence-registry.xml
 ```
 Note: The config folder must include a hbase-site.xml file
+
+### Usage generate-crawls-report
+This cli target will generate a report for all crawls of occurrence records included in the Occurrence HDFS table.
+It will wait for completion and terminate.
+
+```bash
+java -jar occurrence-cli.jar generate-crawls-report --conf occurrence_crawls_report.yaml
+```

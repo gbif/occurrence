@@ -323,6 +323,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-ws-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gbif.registry</groupId>
         <artifactId>registry-ws-client</artifactId>
         <version>${gbif-registry.version}</version>
@@ -861,6 +866,11 @@
       <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-builtins</artifactId>
+        <version>${hive.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
         <version>${hive.version}</version>
       </dependency>
       <dependency>
