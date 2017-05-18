@@ -106,21 +106,21 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
     ObjectMapper om = new ObjectMapper();
     om.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     try {
-      Map<UUID, PreviousCrawlsManagerService.DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl =
-              om.readValue(new File(reportLocation), new TypeReference<Map<UUID, PreviousCrawlsManagerService.DatasetRecordCountInfo>>() {});
+      Map<UUID, DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl =
+              om.readValue(new File(reportLocation), new TypeReference<Map<UUID, DatasetRecordCountInfo>>() {});
       analyseReport(allDatasetWithMoreThanOneCrawl);
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
-  public void analyseReport(Map<UUID, PreviousCrawlsManagerService.DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl) {
+  public void analyseReport(Map<UUID, DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl) {
     long allRecordsToDelete = allDatasetWithMoreThanOneCrawl.entrySet()
             .stream()
             .filter( e -> e.getValue().getDiffSolrLastCrawlPercentage() < config.automaticRecordDeletionThreshold)
             .mapToLong( e-> e.getValue().getSumAllPreviousCrawl())
             .sum();
 
-    List<PreviousCrawlsManagerService.DatasetRecordCountInfo> test = allDatasetWithMoreThanOneCrawl.entrySet()
+    List<DatasetRecordCountInfo> test = allDatasetWithMoreThanOneCrawl.entrySet()
             .stream()
             .map( t -> t.getValue())
             .filter( e -> e.getFragmentEmittedCount() != e.getFragmentProcessCount())

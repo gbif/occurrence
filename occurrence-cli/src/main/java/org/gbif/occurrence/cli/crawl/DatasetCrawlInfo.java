@@ -3,7 +3,7 @@ package org.gbif.occurrence.cli.crawl;
 /**
  * Simple holder for crawl info.
  */
-public class DatasetCrawlInfo {
+class DatasetCrawlInfo {
 
   private int crawlId;
   private int count;

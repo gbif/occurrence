@@ -83,6 +83,8 @@ public class PreviousCrawlsManagerService {
   public PreviousCrawlsManagerService(PreviousCrawlsManagerConfiguration config, DeletePreviousCrawlsService deletePreviousCrawlsService) {
     this.config = config;
     this.deletePreviousCrawlsService = deletePreviousCrawlsService;
+
+    prepare();
   }
 
   private void prepare() {
@@ -104,8 +106,6 @@ public class PreviousCrawlsManagerService {
    * @param resultHandler handler used to serialize the results
    */
   public void start(Consumer<Object> resultHandler) {
-    prepare();
-
     Object report;
     if (config.datasetKey == null) {
       report = manageDatasetWithMoreThanOneCrawl();
@@ -150,7 +150,8 @@ public class PreviousCrawlsManagerService {
               .forEach(drci -> {
                 int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(
                         drci.getDatasetKey(), drci.getLastCompleteCrawlId());
-                LOG.info("Number Of Delete message emitted for dataset " + drci.getDatasetKey() + ": " + numberOfMessageEmitted);
+                LOG.info("Number Of Delete message emitted for dataset " + drci.getDatasetKey() +
+                        ": " + numberOfMessageEmitted);
               });
     }
     return allDatasetWithMoreThanOneCrawl;
@@ -299,8 +300,6 @@ public class PreviousCrawlsManagerService {
    *  - PagesFragmentedSuccessful > 0 (make sure it is not waiting in queue)
    *  - FragmentsEmitted == FragmentsProcessed
    *
-   && dps.getFragmentsEmitted() == dps.getFragmentsProcessed()
-   *
    * Warning: This could potentially return a crawl that made it to HBase but that is not still in Solr.
    *
    * @param datasetKey
@@ -325,112 +324,6 @@ public class PreviousCrawlsManagerService {
       page.nextPage();
     }
     return lastCompletedCrawl;
-  }
-
-  static class DatasetRecordCountInfo {
-    private UUID datasetKey;
-    private boolean crawlDataConsistent;
-    private int lastCompleteCrawlId;
-    private long fragmentEmittedCount;
-    private long fragmentProcessCount;
-    private long solrCount;
-    private double diffSolrLastCrawlPercentage;
-    private List<DatasetCrawlInfo> crawlInfo;
-
-    public DatasetRecordCountInfo(){}
-
-    public List<DatasetCrawlInfo> getCrawlInfo() {
-      return crawlInfo;
-    }
-
-    public void setCrawlInfo(List<DatasetCrawlInfo> crawlInfo) {
-      this.crawlInfo = crawlInfo;
-    }
-
-    public DatasetRecordCountInfo(UUID datasetKey) {
-      this.datasetKey = datasetKey;
-    }
-
-    public UUID getDatasetKey() {
-      return datasetKey;
-    }
-
-    public void setDatasetKey(UUID datasetKey) {
-      this.datasetKey = datasetKey;
-    }
-
-    public int getLastCompleteCrawlId() {
-      return lastCompleteCrawlId;
-    }
-
-    public void setLastCompleteCrawlId(int lastCompleteCrawlId) {
-      this.lastCompleteCrawlId = lastCompleteCrawlId;
-    }
-
-    public long getFragmentEmittedCount() {
-      return fragmentEmittedCount;
-    }
-
-    public void setFragmentEmittedCount(long fragmentEmittedCount) {
-      this.fragmentEmittedCount = fragmentEmittedCount;
-    }
-
-    public long getFragmentProcessCount() {
-      return fragmentProcessCount;
-    }
-
-    public void setFragmentProcessCount(long fragmentProcessCount) {
-      this.fragmentProcessCount = fragmentProcessCount;
-    }
-
-    public long getSolrCount() {
-      return solrCount;
-    }
-
-    public void setSolrCount(long solrCount) {
-      this.solrCount = solrCount;
-    }
-
-    public boolean isCrawlDataConsistent() {
-      return crawlDataConsistent;
-    }
-
-    public void setCrawlDataConsistent(boolean crawlDataConsistent) {
-      this.crawlDataConsistent = crawlDataConsistent;
-    }
-
-    public long getDiffSolrLastCrawl() {
-      return solrCount - fragmentProcessCount;
-    }
-
-    public long getSumAllPreviousCrawl() {
-      if(crawlInfo == null || crawlInfo.isEmpty()) {
-        return 0;
-      }
-      return crawlInfo.stream()
-              .filter( dci -> dci.getCrawlId() != lastCompleteCrawlId)
-              .mapToLong(DatasetCrawlInfo::getCount)
-              .sum();
-    }
-
-    public double getDiffSolrLastCrawlPercentage() {
-      if(solrCount == 0) {
-        return 0;
-      }
-      return (double)getDiffSolrLastCrawl()/(double)solrCount*100d;
-    }
-
-    @Override
-    public String toString() {
-      return "datasetKey: " + datasetKey +
-              ", crawlDataConsistent: " + crawlDataConsistent +
-              ", lastCompleteCrawlId: " + lastCompleteCrawlId +
-              ", fragmentEmittedCount: " + fragmentEmittedCount +
-              ", fragmentProcessCount: " + fragmentProcessCount +
-              ", solrCount: " + solrCount +
-              ", diffSolrLastCrawlPercentage: " + diffSolrLastCrawlPercentage;
-    }
-
   }
 
 }
