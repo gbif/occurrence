@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -42,11 +43,34 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
 
   @Override
   protected void doRun() {
+    if(!checkConfiguration()) {
+      return;
+    }
+
     MessagePublisher messagePublisher = buildMessagePublisher();
     DeletePreviousCrawlsService deletePreviousCrawlsService = new DeletePreviousCrawlsService(config, messagePublisher);
 
     PreviousCrawlsManagerService checkPreviousCrawlsService = new PreviousCrawlsManagerService(config, deletePreviousCrawlsService);
     checkPreviousCrawlsService.start(this::printReportToJson);
+  }
+
+  /**
+   * Makes configuration check on multiple parameters.
+   *
+   * @return
+   */
+  private boolean checkConfiguration() {
+    if (config.delete && config.forceDelete) {
+      System.err.println("--delete and --force-delete flags can not be used together");
+      return false;
+    }
+
+    if (!config.displayReport && StringUtils.isBlank(config.reportLocation)) {
+      System.err.println("--displayReport or --report-location flag must be specified");
+      return false;
+    }
+
+    return true;
   }
 
   private MessagePublisher buildMessagePublisher() {

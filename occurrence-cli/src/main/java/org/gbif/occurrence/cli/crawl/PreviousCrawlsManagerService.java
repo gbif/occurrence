@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.slf4j.Logger;
@@ -62,6 +63,10 @@ public class PreviousCrawlsManagerService {
 
   private static final String SQL_QUERY_SINGLE_DATASET = "SELECT datasetkey, crawlid, count(*) AS crawlCount FROM " +
           " %s WHERE datasetkey = ? GROUP BY datasetkey, crawlid";
+
+  private static final int DATASET_KEY_IDX = 1;
+  private static final int CRAWL_ID_IDX = 2;
+  private static final int CRAWL_COUNT_IDX = 3;
 
   private static final Function<String, String> getSqlCommand = (tableName) ->
           String.format(SQL_WITH_CLAUSE, tableName) + String.format(SQL_QUERY, tableName);
@@ -107,8 +112,6 @@ public class PreviousCrawlsManagerService {
     } else {
       report = manageSingleDataset(UUID.fromString(config.datasetKey));
     }
-    // analyseReport(allDatasetWithMoreThanOneCrawl);
-
     resultHandler.accept(report);
   }
 
@@ -161,9 +164,10 @@ public class PreviousCrawlsManagerService {
    *
    * @return
    */
-  private boolean shouldRunAutomaticDeletion(DatasetRecordCountInfo datasetRecordCountInfo) {
+  @VisibleForTesting
+  protected boolean shouldRunAutomaticDeletion(DatasetRecordCountInfo datasetRecordCountInfo) {
 
-    if(config.forceDelete){
+    if (config.forceDelete) {
       return true;
     }
 
@@ -239,14 +243,14 @@ public class PreviousCrawlsManagerService {
       List<DatasetCrawlInfo> currentDatasetCrawlInfoList = new ArrayList<>();
       while (rs.next()) {
 
-        if(!UUID.fromString(rs.getString(1)).equals(currentDatasetKey)) {
-          currentDatasetKey = UUID.fromString(rs.getString(1));
+        if(!UUID.fromString(rs.getString(DATASET_KEY_IDX)).equals(currentDatasetKey)) {
+          currentDatasetKey = UUID.fromString(rs.getString(DATASET_KEY_IDX));
           currentDatasetCrawlInfoList = new ArrayList<>();
           currentDatasetRecordCountInfo = getDatasetRecordCountInfo(currentDatasetKey);
           currentDatasetRecordCountInfo.setCrawlInfo(currentDatasetCrawlInfoList);
           crawlInfo.put(currentDatasetKey, currentDatasetRecordCountInfo);
         }
-        currentDatasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(2), rs.getInt(3)));
+        currentDatasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(CRAWL_ID_IDX), rs.getInt(CRAWL_COUNT_IDX)));
       }
     } catch (SQLException e) {
       LOG.error("Error while generating the crawls report", e);
@@ -278,12 +282,11 @@ public class PreviousCrawlsManagerService {
     if (lastCompletedCrawl.isPresent()) {
       DatasetProcessStatus datasetProcessStatus = lastCompletedCrawl.get();
       //safe guard against incomplete crawls
-      datasetRecordCountInfo.setCrawlDataConsistent( datasetProcessStatus.getFragmentsEmitted() == datasetProcessStatus.getFragmentsProcessed());
+      datasetRecordCountInfo.setCrawlDataConsistent(datasetProcessStatus.getFragmentsEmitted() == datasetProcessStatus.getFragmentsProcessed());
       datasetRecordCountInfo.setLastCompleteCrawlId(datasetProcessStatus.getCrawlJob().getAttempt());
       datasetRecordCountInfo.setFragmentEmittedCount(datasetProcessStatus.getFragmentsEmitted());
       datasetRecordCountInfo.setFragmentProcessCount(datasetProcessStatus.getFragmentsProcessed());
-    }
-    else{
+    } else {
       datasetRecordCountInfo.setCrawlDataConsistent(false);
     }
     return datasetRecordCountInfo;
@@ -406,7 +409,7 @@ public class PreviousCrawlsManagerService {
       }
       return crawlInfo.stream()
               .filter( dci -> dci.getCrawlId() != lastCompleteCrawlId)
-              .mapToLong( dci -> dci.getCount())
+              .mapToLong(DatasetCrawlInfo::getCount)
               .sum();
     }
 
