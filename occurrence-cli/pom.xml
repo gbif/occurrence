@@ -20,14 +20,14 @@
   </distributionManagement>
 
   <properties>
-    <gbif-cli.version>0.10</gbif-cli.version>
+    <gbif-cli.version>0.12-SNAPSHOT</gbif-cli.version>
 
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>
 
     <!-- cli specific jackson versions in order to use yaml configs -->
     <jackson.version>1.9.11</jackson.version>
-    <jackson-annotations.version>2.4.2</jackson-annotations.version>
+    <jackson-annotations.version>2.8.7</jackson-annotations.version>
     <jackson-datatype-guava.version>1.9.1</jackson-datatype-guava.version>
     <metainf-services.version>1.5</metainf-services.version>
   </properties>

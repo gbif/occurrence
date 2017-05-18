@@ -42,6 +42,18 @@ class PreviousCrawlsManagerConfiguration {
   @Valid
   public double automaticRecordDeletionThreshold = 30;
 
+  @Parameter(names = "--delete-message-batch-size")
+  @Valid
+  public int deleteMessageBatchSize = 100;
+
+  @Parameter(names = "--delete-message-batch-interval")
+  @Valid
+  public int deleteMessageBatchIntervalMs = 100;
+
+  @Parameter(names = "--dataset-autodeletion-limit")
+  @Valid
+  public int datasetAutodeletionLimit = 2;
+
   /**
    * optional config normally received on command line
    */
@@ -54,6 +66,13 @@ class PreviousCrawlsManagerConfiguration {
    */
   @Parameter(names = "--delete")
   public boolean delete = false;
+
+  /**
+   * Emit delete messages for all occurrence records that are not in the latest crawl for the provided
+   * dataset-key (even if below automaticRecordDeletionThreshold).
+   */
+  @Parameter(names = "--force-delete")
+  public boolean forceDelete = false;
 
   @Parameter(names = "--report-location")
   public String reportLocation;

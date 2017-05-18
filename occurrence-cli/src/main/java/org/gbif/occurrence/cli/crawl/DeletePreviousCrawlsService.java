@@ -62,12 +62,17 @@ class DeletePreviousCrawlsService {
          PreparedStatement stmt = conn.prepareStatement(getSqlCommand.apply(config.hiveOccurrenceTable))) {
       stmt.setString(DATASET_KEY_IDX, datasetKey.toString());
       stmt.setInt(CRAWL_ID_IDX, lastSuccessfulCrawl);
+
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
           sendDeleteMessage(rs.getInt(1));
           numberOfMessageEmitted++;
+
+          if(numberOfMessageEmitted % config.deleteMessageBatchSize == 0){
+            Thread.sleep(config.deleteMessageBatchIntervalMs);
+          }
         }
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         LOG.error("Error while deleting records for dataset " + datasetKey , e);
       }
     } catch (SQLException e) {

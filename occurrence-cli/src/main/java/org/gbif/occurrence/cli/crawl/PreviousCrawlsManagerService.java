@@ -1,5 +1,6 @@
 package org.gbif.occurrence.cli.crawl;
 
+import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.crawler.DatasetProcessStatus;
@@ -19,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,34 +95,62 @@ public class PreviousCrawlsManagerService {
 
   /**
    * Starts the service.
+   *
    * @param resultHandler handler used to serialize the results
    */
   public void start(Consumer<Object> resultHandler) {
     prepare();
 
     Object report;
-    //
-    if (config.datasetKey != null) {
-      report = runOnSingleDataset(UUID.fromString(config.datasetKey));
+    if (config.datasetKey == null) {
+      report = manageDatasetWithMoreThanOneCrawl();
     } else {
-      Map<UUID, DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl =
-              getAllDatasetWithMoreThanOneCrawl();
-      report = allDatasetWithMoreThanOneCrawl;
+      report = manageSingleDataset(UUID.fromString(config.datasetKey));
     }
-   // analyseReport(allDatasetWithMoreThanOneCrawl);
+    // analyseReport(allDatasetWithMoreThanOneCrawl);
 
     resultHandler.accept(report);
   }
 
-
-  private DatasetRecordCountInfo runOnSingleDataset(UUID datasetKey) {
+  private DatasetRecordCountInfo manageSingleDataset(UUID datasetKey) {
     DatasetRecordCountInfo datasetRecordCountInfo = getDatasetCrawlInfo(datasetKey);
-    if (shouldRunDeletion(datasetRecordCountInfo)) {
+    if (shouldRunAutomaticDeletion(datasetRecordCountInfo)) {
       int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(datasetKey,
               datasetRecordCountInfo.getLastCompleteCrawlId());
       LOG.info("Number Of Delete message emitted: " + numberOfMessageEmitted);
     }
     return datasetRecordCountInfo;
+  }
+
+  /**
+   * This method will ignore a DatasetRecordCountInfo if isCrawlDataConsistent returns false
+   *
+   * @return
+   */
+  private Map<UUID, DatasetRecordCountInfo> manageDatasetWithMoreThanOneCrawl() {
+
+    //we do not support forceDelete on all datasets
+    if (config.forceDelete) {
+      LOG.error("--forceDelete is only support for a single dataset");
+      return Collections.EMPTY_MAP;
+    }
+
+    Map<UUID, DatasetRecordCountInfo> allDatasetWithMoreThanOneCrawl =
+            getAllDatasetWithMoreThanOneCrawl();
+
+    if (config.delete) {
+      allDatasetWithMoreThanOneCrawl.entrySet()
+              .stream()
+              .map(Map.Entry::getValue)
+              .filter(this::shouldRunAutomaticDeletion)
+              .limit(config.datasetAutodeletionLimit)
+              .forEach(drci -> {
+                int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(
+                        drci.getDatasetKey(), drci.getLastCompleteCrawlId());
+                LOG.info("Number Of Delete message emitted for dataset " + drci.getDatasetKey() + ": " + numberOfMessageEmitted);
+              });
+    }
+    return allDatasetWithMoreThanOneCrawl;
   }
 
   /**
@@ -131,17 +161,41 @@ public class PreviousCrawlsManagerService {
    *
    * @return
    */
-  private boolean shouldRunDeletion(DatasetRecordCountInfo datasetRecordCountInfo) {
+  private boolean shouldRunAutomaticDeletion(DatasetRecordCountInfo datasetRecordCountInfo) {
+
+    if(config.forceDelete){
+      return true;
+    }
+
     if (!config.delete) {
       return false;
     }
 
-    if (config.automaticRecordDeletionThreshold > datasetRecordCountInfo.getDiffSolrLastCrawlPercentage()) {
-      LOG.info("No automatic deletion. Percentage of records to remove (" + datasetRecordCountInfo.getDiffSolrLastCrawlPercentage() +
-              ") higher than the configured threshold (" + config.automaticRecordDeletionThreshold + ").");
+    if(!datasetRecordCountInfo.isCrawlDataConsistent()) {
+      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
+              " -> No automatic deletion. Crawl data is flagged as inconsistent :" + datasetRecordCountInfo);
       return false;
     }
 
+    if(datasetRecordCountInfo.getDiffSolrLastCrawl() == 0) {
+      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
+              " -> No automatic deletion. No difference between Solr and last crawl. Autodeletion may have run already.");
+      return false;
+    }
+
+    if(datasetRecordCountInfo.getDiffSolrLastCrawl() != datasetRecordCountInfo.getSumAllPreviousCrawl()) {
+      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
+              " -> No automatic deletion. Difference between Solr and last crawl is NOT equals to the sum of all previous crawls: "
+              + "diffSolrLastCrawl=" + datasetRecordCountInfo.getDiffSolrLastCrawl() + ", sumAllPreviousCrawl = " + datasetRecordCountInfo.getSumAllPreviousCrawl());
+      return false;
+    }
+
+    if (datasetRecordCountInfo.getDiffSolrLastCrawlPercentage() > config.automaticRecordDeletionThreshold) {
+      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
+              "-> No automatic deletion. Percentage of records to remove (" + datasetRecordCountInfo.getDiffSolrLastCrawlPercentage() +
+              ") higher than the configured threshold (" + config.automaticRecordDeletionThreshold + ").");
+      return false;
+    }
     return true;
   }
 
@@ -181,7 +235,7 @@ public class PreviousCrawlsManagerService {
          ResultSet rs = stmt.executeQuery(sql)) {
 
       UUID currentDatasetKey = null;
-      DatasetRecordCountInfo currentDatasetRecordCountInfo = null;
+      DatasetRecordCountInfo currentDatasetRecordCountInfo;
       List<DatasetCrawlInfo> currentDatasetCrawlInfoList = new ArrayList<>();
       while (rs.next()) {
 
@@ -219,23 +273,60 @@ public class PreviousCrawlsManagerService {
     datasetRecordCountInfo.setSolrCount(occResponse.getCount() != null ? occResponse.getCount() : 0);
 
     //Check crawl status, try to get the latest successful crawl
-    PagingResponse<DatasetProcessStatus> processStatus = datasetProcessStatusService.listDatasetProcessStatus(datasetKey, null);
-    Optional<DatasetProcessStatus> lastCompletedCrawl = processStatus.getResults()
-            .stream()
-            .filter(dps -> FinishReason.NORMAL == dps.getFinishReason() && dps.getPagesFragmentedSuccessful() > 0)
-            .findFirst();
+    Optional<DatasetProcessStatus> lastCompletedCrawl = getLastSuccessfulCrawl(datasetKey);
 
     if (lastCompletedCrawl.isPresent()) {
       DatasetProcessStatus datasetProcessStatus = lastCompletedCrawl.get();
+      //safe guard against incomplete crawls
+      datasetRecordCountInfo.setCrawlDataConsistent( datasetProcessStatus.getFragmentsEmitted() == datasetProcessStatus.getFragmentsProcessed());
       datasetRecordCountInfo.setLastCompleteCrawlId(datasetProcessStatus.getCrawlJob().getAttempt());
       datasetRecordCountInfo.setFragmentEmittedCount(datasetProcessStatus.getFragmentsEmitted());
       datasetRecordCountInfo.setFragmentProcessCount(datasetProcessStatus.getFragmentsProcessed());
     }
+    else{
+      datasetRecordCountInfo.setCrawlDataConsistent(false);
+    }
     return datasetRecordCountInfo;
   }
 
-  private static class DatasetRecordCountInfo {
+  /**
+   * Return the last successful crawl (if any).
+   * At the moment a successful crawl is defined as follow:
+   *  - FinishReason.NORMAL
+   *  - PagesFragmentedSuccessful > 0 (make sure it is not waiting in queue)
+   *  - FragmentsEmitted == FragmentsProcessed
+   *
+   && dps.getFragmentsEmitted() == dps.getFragmentsProcessed()
+   *
+   * Warning: This could potentially return a crawl that made it to HBase but that is not still in Solr.
+   *
+   * @param datasetKey
+   * @return
+   */
+  private Optional<DatasetProcessStatus> getLastSuccessfulCrawl(UUID datasetKey) {
+
+    boolean isEndOfRecords = false;
+    PagingResponse<DatasetProcessStatus> processStatus;
+    Optional<DatasetProcessStatus> lastCompletedCrawl = Optional.empty();
+
+    //make sure to page on process status since the last successful crawl may not be on the first page
+    PagingRequest page = new PagingRequest();
+    while(!lastCompletedCrawl.isPresent() && !isEndOfRecords) {
+      processStatus = datasetProcessStatusService.listDatasetProcessStatus(datasetKey, page);
+      isEndOfRecords = processStatus.isEndOfRecords();
+      lastCompletedCrawl = processStatus.getResults()
+              .stream()
+              .filter(dps -> FinishReason.NORMAL == dps.getFinishReason()
+                      && dps.getPagesFragmentedSuccessful() > 0)
+              .findFirst();
+      page.nextPage();
+    }
+    return lastCompletedCrawl;
+  }
+
+  static class DatasetRecordCountInfo {
     private UUID datasetKey;
+    private boolean crawlDataConsistent;
     private int lastCompleteCrawlId;
     private long fragmentEmittedCount;
     private long fragmentProcessCount;
@@ -297,6 +388,14 @@ public class PreviousCrawlsManagerService {
       this.solrCount = solrCount;
     }
 
+    public boolean isCrawlDataConsistent() {
+      return crawlDataConsistent;
+    }
+
+    public void setCrawlDataConsistent(boolean crawlDataConsistent) {
+      this.crawlDataConsistent = crawlDataConsistent;
+    }
+
     public long getDiffSolrLastCrawl() {
       return solrCount - fragmentProcessCount;
     }
@@ -316,6 +415,17 @@ public class PreviousCrawlsManagerService {
         return 0;
       }
       return (double)getDiffSolrLastCrawl()/(double)solrCount*100d;
+    }
+
+    @Override
+    public String toString() {
+      return "datasetKey: " + datasetKey +
+              ", crawlDataConsistent: " + crawlDataConsistent +
+              ", lastCompleteCrawlId: " + lastCompleteCrawlId +
+              ", fragmentEmittedCount: " + fragmentEmittedCount +
+              ", fragmentProcessCount: " + fragmentProcessCount +
+              ", solrCount: " + solrCount +
+              ", diffSolrLastCrawlPercentage: " + diffSolrLastCrawlPercentage;
     }
 
   }
