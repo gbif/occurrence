@@ -1,5 +1,6 @@
 package org.gbif.occurrence.cli.crawl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,12 +10,17 @@ import java.util.UUID;
 class DatasetRecordCountInfo {
 
   private UUID datasetKey;
-  private boolean crawlDataConsistent;
-  private int lastCompleteCrawlId;
-  private long fragmentEmittedCount;
-  private long fragmentProcessCount;
-  private long solrCount;
-  private List<DatasetCrawlInfo> crawlInfo;
+  //private boolean crawlDataConsistent;
+  //private int lastCompleteCrawlId;
+
+  private int lastCrawlId;
+  private int lastCrawlCount;
+  private int recordCount;
+
+  private long lastCrawlFragmentProcessCount;
+
+  private long currentSolrCount;
+  private List<DatasetCrawlInfo> crawlInfo = new ArrayList<>();
 
   public DatasetRecordCountInfo(){}
 
@@ -22,8 +28,13 @@ class DatasetRecordCountInfo {
     return crawlInfo;
   }
 
+  /**
+   * Set the {@link DatasetCrawlInfo} list and compute related variables.
+   * @param crawlInfo to be copied internally to a new list
+   */
   public void setCrawlInfo(List<DatasetCrawlInfo> crawlInfo) {
-    this.crawlInfo = crawlInfo;
+    this.crawlInfo = crawlInfo == null ? new ArrayList<>() : new ArrayList<>(crawlInfo);
+    computeCrawlData(crawlInfo);
   }
 
   public DatasetRecordCountInfo(UUID datasetKey) {
@@ -38,75 +49,86 @@ class DatasetRecordCountInfo {
     this.datasetKey = datasetKey;
   }
 
-  public int getLastCompleteCrawlId() {
-    return lastCompleteCrawlId;
+  public long getCurrentSolrCount() {
+    return currentSolrCount;
   }
 
-  public void setLastCompleteCrawlId(int lastCompleteCrawlId) {
-    this.lastCompleteCrawlId = lastCompleteCrawlId;
+  public void setCurrentSolrCount(long currentSolrCount) {
+    this.currentSolrCount = currentSolrCount;
   }
 
-  public long getFragmentEmittedCount() {
-    return fragmentEmittedCount;
+  public long getLastCrawlFragmentProcessCount() {
+    return lastCrawlFragmentProcessCount;
   }
 
-  public void setFragmentEmittedCount(long fragmentEmittedCount) {
-    this.fragmentEmittedCount = fragmentEmittedCount;
+  public void setLastCrawlFragmentProcessCount(long lastCrawlFragmentProcessCount) {
+    this.lastCrawlFragmentProcessCount = lastCrawlFragmentProcessCount;
   }
 
-  public long getFragmentProcessCount() {
-    return fragmentProcessCount;
-  }
-
-  public void setFragmentProcessCount(long fragmentProcessCount) {
-    this.fragmentProcessCount = fragmentProcessCount;
-  }
-
-  public long getSolrCount() {
-    return solrCount;
-  }
-
-  public void setSolrCount(long solrCount) {
-    this.solrCount = solrCount;
-  }
-
-  public boolean isCrawlDataConsistent() {
-    return crawlDataConsistent;
-  }
-
-  public void setCrawlDataConsistent(boolean crawlDataConsistent) {
-    this.crawlDataConsistent = crawlDataConsistent;
-  }
+//  public int getLastCompleteCrawlId() {
+//    return lastCompleteCrawlId;
+//  }
+//
+//  public void setLastCompleteCrawlId(int lastCompleteCrawlId) {
+//    this.lastCompleteCrawlId = lastCompleteCrawlId;
+//  }
 
   public long getDiffSolrLastCrawl() {
-    return solrCount - fragmentProcessCount;
+    return currentSolrCount - lastCrawlCount;
   }
 
-  public long getSumAllPreviousCrawl() {
-    if(crawlInfo == null || crawlInfo.isEmpty()) {
-      return 0;
-    }
-    return crawlInfo.stream()
-            .filter( dci -> dci.getCrawlId() != lastCompleteCrawlId)
-            .mapToLong(DatasetCrawlInfo::getCount)
+  private void computeCrawlData(List<DatasetCrawlInfo> crawlInfo) {
+
+    recordCount = crawlInfo.stream()
+            .mapToInt(DatasetCrawlInfo::getCount)
             .sum();
+
+    lastCrawlId = crawlInfo.stream()
+            .mapToInt(DatasetCrawlInfo::getCrawlId)
+            .max().orElse(-1);
+
+    lastCrawlCount = crawlInfo.stream()
+            .mapToInt(DatasetCrawlInfo::getCount)
+            .max().orElse(0);
   }
 
-  public double getDiffSolrLastCrawlPercentage() {
-    if(solrCount == 0) {
-      return 0;
-    }
-    return (double)getDiffSolrLastCrawl()/(double)solrCount*100d;
+  public double getPercentagePreviousCrawls() {
+    return 100 * (double)crawlInfo.stream()
+            .filter(dci -> dci.getCrawlId() != lastCrawlId)
+            .mapToInt(DatasetCrawlInfo::getCount)
+            .sum() / (double)recordCount;
   }
+
+//  public double getDiffSolrLastCrawlPercentage() {
+//    if (solrCount == 0) {
+//      return 0;
+//    }
+//    return (double) getDiffSolrLastCrawl() / (double) solrCount * 100d;
+//  }
+
+  /**
+   * Return the highest crawlId
+   * @return id of the last (highest) crawl or -1 if no crawl.
+   */
+  public int getLastCrawlId() {
+    return lastCrawlId;
+  }
+
+  public int getLastCrawlCount() {
+    return lastCrawlCount;
+  }
+
+//  public int getDiffLastCrawlPreviousCrawls() {
+//    return lastCrawlCount - getSumAllPreviousCrawl();
+//  }
 
   @Override
   public String toString() {
     return "datasetKey: " + datasetKey +
-            ", crawlDataConsistent: " + crawlDataConsistent +
-            ", lastCompleteCrawlId: " + lastCompleteCrawlId +
-            ", fragmentEmittedCount: " + fragmentEmittedCount +
-            ", fragmentProcessCount: " + fragmentProcessCount +
-            ", solrCount: " + solrCount;
+            ", lastCrawlId: " + lastCrawlId +
+            ", lastCrawlCount: " + lastCrawlCount +
+            ", lastCrawlFragmentProcessCount: " + lastCrawlFragmentProcessCount +
+            ", currentSolrCount: " + currentSolrCount;
   }
 
 }

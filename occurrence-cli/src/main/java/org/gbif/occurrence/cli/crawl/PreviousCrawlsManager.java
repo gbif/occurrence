@@ -1,18 +1,12 @@
 package org.gbif.occurrence.cli.crawl;
 
-import org.gbif.api.model.common.paging.PagingRequest;
-import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.crawler.DatasetProcessStatus;
-import org.gbif.api.model.crawler.FinishReason;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.DatasetProcessStatusService;
-import org.gbif.occurrence.ws.client.OccurrenceWsClientModule;
-import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
-import org.gbif.ws.client.guice.AnonymousAuthModule;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,24 +18,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service that checks for previous crawls and send delete messages if predefined conditions are met.
+ * Manager that checks for previous crawls and send delete messages if predefined conditions are met.
  */
-public class PreviousCrawlsManagerService {
+public class PreviousCrawlsManager {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PreviousCrawlsManagerService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PreviousCrawlsManager.class);
 
   private static final String SQL_WITH_CLAUSE =
           "WITH t1 AS (" +
@@ -75,29 +65,16 @@ public class PreviousCrawlsManagerService {
           String.format(SQL_QUERY_SINGLE_DATASET, tableName);
 
   private final PreviousCrawlsManagerConfiguration config;
+  private final DatasetProcessStatusService datasetProcessStatusService;
+  private final OccurrenceSearchService occurrenceSearchService;
+  private final PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService;
 
-  private DatasetProcessStatusService datasetProcessStatusService;
-  private OccurrenceSearchService occurrenceSearchService;
-  private final DeletePreviousCrawlsService deletePreviousCrawlsService;
-
-  public PreviousCrawlsManagerService(PreviousCrawlsManagerConfiguration config, DeletePreviousCrawlsService deletePreviousCrawlsService) {
+  public PreviousCrawlsManager(PreviousCrawlsManagerConfiguration config, DatasetProcessStatusService datasetProcessStatusService,
+                               OccurrenceSearchService occurrenceSearchService, PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService) {
     this.config = config;
+    this.datasetProcessStatusService = datasetProcessStatusService;
+    this.occurrenceSearchService = occurrenceSearchService;
     this.deletePreviousCrawlsService = deletePreviousCrawlsService;
-
-    prepare();
-  }
-
-  private void prepare() {
-    // Create Registry WS Client
-    Properties properties = new Properties();
-    properties.setProperty("registry.ws.url", config.registryWsUrl);
-    properties.setProperty("occurrence.ws.url", config.registryWsUrl);
-    properties.setProperty("httpTimeout", "30000");
-
-    Injector injector = Guice.createInjector(new RegistryWsClientModule(properties), new AnonymousAuthModule(),
-            new OccurrenceWsClientModule(properties));
-    datasetProcessStatusService = injector.getInstance(DatasetProcessStatusService.class);
-    occurrenceSearchService = injector.getInstance(OccurrenceSearchService.class);
   }
 
   /**
@@ -105,7 +82,7 @@ public class PreviousCrawlsManagerService {
    *
    * @param resultHandler handler used to serialize the results
    */
-  public void start(Consumer<Object> resultHandler) {
+  public void execute(Consumer<Object> resultHandler) {
     Object report;
     if (config.datasetKey == null) {
       report = manageDatasetWithMoreThanOneCrawl();
@@ -119,14 +96,13 @@ public class PreviousCrawlsManagerService {
     DatasetRecordCountInfo datasetRecordCountInfo = getDatasetCrawlInfo(datasetKey);
     if (shouldRunAutomaticDeletion(datasetRecordCountInfo)) {
       int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(datasetKey,
-              datasetRecordCountInfo.getLastCompleteCrawlId());
+              datasetRecordCountInfo.getLastCrawlId());
       LOG.info("Number Of Delete message emitted: " + numberOfMessageEmitted);
     }
     return datasetRecordCountInfo;
   }
 
   /**
-   * This method will ignore a DatasetRecordCountInfo if isCrawlDataConsistent returns false
    *
    * @return
    */
@@ -134,7 +110,7 @@ public class PreviousCrawlsManagerService {
 
     //we do not support forceDelete on all datasets
     if (config.forceDelete) {
-      LOG.error("--forceDelete is only support for a single dataset");
+      LOG.error("forceDelete is only support for a single dataset");
       return Collections.EMPTY_MAP;
     }
 
@@ -149,7 +125,7 @@ public class PreviousCrawlsManagerService {
               .limit(config.datasetAutodeletionLimit)
               .forEach(drci -> {
                 int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(
-                        drci.getDatasetKey(), drci.getLastCompleteCrawlId());
+                        drci.getDatasetKey(), drci.getLastCrawlId());
                 LOG.info("Number Of Delete message emitted for dataset " + drci.getDatasetKey() +
                         ": " + numberOfMessageEmitted);
               });
@@ -176,29 +152,18 @@ public class PreviousCrawlsManagerService {
       return false;
     }
 
-    if(!datasetRecordCountInfo.isCrawlDataConsistent()) {
+    if(datasetRecordCountInfo.getLastCrawlCount() != datasetRecordCountInfo.getLastCrawlFragmentProcessCount()) {
       LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              " -> No automatic deletion. Crawl data is flagged as inconsistent :" + datasetRecordCountInfo);
+              " -> No automatic deletion. Crawl lastCrawlCount != lastCrawlFragmentProcessCount which may indicate an " +
+              " incomplete or bad crawl. lastCrawlCount:" + datasetRecordCountInfo.getLastCrawlCount() +
+              ", lastCrawlFragmentProcessCount" + datasetRecordCountInfo.getLastCrawlFragmentProcessCount());
       return false;
     }
 
-    if(datasetRecordCountInfo.getDiffSolrLastCrawl() == 0) {
+    if (datasetRecordCountInfo.getPercentagePreviousCrawls() > config.automaticRecordDeletionThreshold) {
       LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              " -> No automatic deletion. No difference between Solr and last crawl. Autodeletion may have run already.");
-      return false;
-    }
-
-    if(datasetRecordCountInfo.getDiffSolrLastCrawl() != datasetRecordCountInfo.getSumAllPreviousCrawl()) {
-      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              " -> No automatic deletion. Difference between Solr and last crawl is NOT equals to the sum of all previous crawls: "
-              + "diffSolrLastCrawl=" + datasetRecordCountInfo.getDiffSolrLastCrawl() + ", sumAllPreviousCrawl = " + datasetRecordCountInfo.getSumAllPreviousCrawl());
-      return false;
-    }
-
-    if (datasetRecordCountInfo.getDiffSolrLastCrawlPercentage() > config.automaticRecordDeletionThreshold) {
-      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              "-> No automatic deletion. Percentage of records to remove (" + datasetRecordCountInfo.getDiffSolrLastCrawlPercentage() +
-              ") higher than the configured threshold (" + config.automaticRecordDeletionThreshold + ").");
+              "-> No automatic deletion. Percentage of records to remove (" + datasetRecordCountInfo.getPercentagePreviousCrawls() +
+              "% ) higher than the configured threshold (" + config.automaticRecordDeletionThreshold + "%).");
       return false;
     }
     return true;
@@ -210,9 +175,10 @@ public class PreviousCrawlsManagerService {
    * @return
    */
   private DatasetRecordCountInfo getDatasetCrawlInfo(UUID datasetKey) {
-    DatasetRecordCountInfo datasetRecordCountInfo  = getDatasetRecordCountInfo(datasetKey);
+    DatasetRecordCountInfo datasetRecordCountInfo  = new DatasetRecordCountInfo();
+    datasetRecordCountInfo.setDatasetKey(datasetKey);
     List<DatasetCrawlInfo> datasetCrawlInfoList = new ArrayList<>();
-    datasetRecordCountInfo.setCrawlInfo(datasetCrawlInfoList);
+
     try (Connection conn = config.hive.buildHiveConnection();
          PreparedStatement stmt = conn.prepareStatement(getSqlCommandSingleDataset.apply(config.hiveOccurrenceTable))) {
       stmt.setString(1, datasetKey.toString());
@@ -221,6 +187,8 @@ public class PreviousCrawlsManagerService {
           datasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(2), rs.getInt(3)));
         }
       }
+      datasetRecordCountInfo.setCrawlInfo(datasetCrawlInfoList);
+      populateSolrAndRegistryData(datasetRecordCountInfo);
     } catch (SQLException e) {
       LOG.error("Error while getting crawl information for dataset " + datasetKey , e);
     }
@@ -242,14 +210,20 @@ public class PreviousCrawlsManagerService {
       UUID currentDatasetKey = null;
       DatasetRecordCountInfo currentDatasetRecordCountInfo;
       List<DatasetCrawlInfo> currentDatasetCrawlInfoList = new ArrayList<>();
+
       while (rs.next()) {
 
         if(!UUID.fromString(rs.getString(DATASET_KEY_IDX)).equals(currentDatasetKey)) {
+          //manage previous list
+          if(currentDatasetKey != null) {
+            currentDatasetRecordCountInfo = new DatasetRecordCountInfo();
+            currentDatasetRecordCountInfo.setDatasetKey(currentDatasetKey);
+            currentDatasetRecordCountInfo.setCrawlInfo(currentDatasetCrawlInfoList);
+            populateSolrAndRegistryData(currentDatasetRecordCountInfo);
+            crawlInfo.put(currentDatasetKey, currentDatasetRecordCountInfo);
+          }
           currentDatasetKey = UUID.fromString(rs.getString(DATASET_KEY_IDX));
           currentDatasetCrawlInfoList = new ArrayList<>();
-          currentDatasetRecordCountInfo = getDatasetRecordCountInfo(currentDatasetKey);
-          currentDatasetRecordCountInfo.setCrawlInfo(currentDatasetCrawlInfoList);
-          crawlInfo.put(currentDatasetKey, currentDatasetRecordCountInfo);
         }
         currentDatasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(CRAWL_ID_IDX), rs.getInt(CRAWL_COUNT_IDX)));
       }
@@ -260,70 +234,26 @@ public class PreviousCrawlsManagerService {
   }
 
   /**
-   * Load information related to Solr count and last crawls .
+   * Populate the given {@link DatasetRecordCountInfo} with Solr count and last crawls information from the registry.
    *
-   * @param datasetKey
-   *
-   * @return
+   * @return the provided {@link DatasetRecordCountInfo} populated
    */
-  private DatasetRecordCountInfo getDatasetRecordCountInfo(UUID datasetKey) {
-
-    DatasetRecordCountInfo datasetRecordCountInfo = new DatasetRecordCountInfo(datasetKey);
+  private DatasetRecordCountInfo populateSolrAndRegistryData(DatasetRecordCountInfo datasetRecordCountInfo) {
 
     //Get the count from Solr
     OccurrenceSearchRequest osReq = new OccurrenceSearchRequest();
-    osReq.addDatasetKeyFilter(datasetKey);
+    osReq.addDatasetKeyFilter(datasetRecordCountInfo.getDatasetKey());
     osReq.setLimit(1);
     SearchResponse<Occurrence, OccurrenceSearchParameter> occResponse = occurrenceSearchService.search(osReq);
-    datasetRecordCountInfo.setSolrCount(occResponse.getCount() != null ? occResponse.getCount() : 0);
+    datasetRecordCountInfo.setCurrentSolrCount(occResponse.getCount() != null ? occResponse.getCount() : 0);
 
-    //Check crawl status, try to get the latest successful crawl
-    Optional<DatasetProcessStatus> lastCompletedCrawl = getLastSuccessfulCrawl(datasetKey);
-
-    if (lastCompletedCrawl.isPresent()) {
-      DatasetProcessStatus datasetProcessStatus = lastCompletedCrawl.get();
-      //safe guard against incomplete crawls
-      datasetRecordCountInfo.setCrawlDataConsistent(datasetProcessStatus.getFragmentsEmitted() == datasetProcessStatus.getFragmentsProcessed());
-      datasetRecordCountInfo.setLastCompleteCrawlId(datasetProcessStatus.getCrawlJob().getAttempt());
-      datasetRecordCountInfo.setFragmentEmittedCount(datasetProcessStatus.getFragmentsEmitted());
-      datasetRecordCountInfo.setFragmentProcessCount(datasetProcessStatus.getFragmentsProcessed());
-    } else {
-      datasetRecordCountInfo.setCrawlDataConsistent(false);
+    //Get crawl status of the last crawl
+    DatasetProcessStatus lastCompletedCrawl = datasetProcessStatusService.getDatasetProcessStatus(datasetRecordCountInfo.getDatasetKey(),
+            datasetRecordCountInfo.getLastCrawlId());
+    if (lastCompletedCrawl != null) {
+      datasetRecordCountInfo.setLastCrawlFragmentProcessCount(lastCompletedCrawl.getFragmentsProcessed());
     }
     return datasetRecordCountInfo;
-  }
-
-  /**
-   * Return the last successful crawl (if any).
-   * At the moment a successful crawl is defined as follow:
-   *  - FinishReason.NORMAL
-   *  - PagesFragmentedSuccessful > 0 (make sure it is not waiting in queue)
-   *  - FragmentsEmitted == FragmentsProcessed
-   *
-   * Warning: This could potentially return a crawl that made it to HBase but that is not still in Solr.
-   *
-   * @param datasetKey
-   * @return
-   */
-  private Optional<DatasetProcessStatus> getLastSuccessfulCrawl(UUID datasetKey) {
-
-    boolean isEndOfRecords = false;
-    PagingResponse<DatasetProcessStatus> processStatus;
-    Optional<DatasetProcessStatus> lastCompletedCrawl = Optional.empty();
-
-    //make sure to page on process status since the last successful crawl may not be on the first page
-    PagingRequest page = new PagingRequest();
-    while(!lastCompletedCrawl.isPresent() && !isEndOfRecords) {
-      processStatus = datasetProcessStatusService.listDatasetProcessStatus(datasetKey, page);
-      isEndOfRecords = processStatus.isEndOfRecords();
-      lastCompletedCrawl = processStatus.getResults()
-              .stream()
-              .filter(dps -> FinishReason.NORMAL == dps.getFinishReason()
-                      && dps.getPagesFragmentedSuccessful() > 0)
-              .findFirst();
-      page.nextPage();
-    }
-    return lastCompletedCrawl;
   }
 
 }

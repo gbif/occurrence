@@ -12,15 +12,20 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.function.Function;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service that can emits delete message for all gbifid linked to previous crawls.
+ * Class that can emits delete message for all gbifid linked to previous crawls.
+ * Previous crawls gbifid are received by a SQL query executed on a JDBC connection (e.g. Hive JDBC).
+ *
+ * Note: this class will issue a Thread.sleep the value of config.deleteMessageBatchIntervalMs on each
+ * config.deleteMessageBatchSize emitted.
  */
-class DeletePreviousCrawlsService {
+class PreviousCrawlsOccurrenceDeleter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DeletePreviousCrawlsService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PreviousCrawlsOccurrenceDeleter.class);
 
   private PreviousCrawlsManagerConfiguration config;
   private MessagePublisher publisher;
@@ -32,10 +37,17 @@ class DeletePreviousCrawlsService {
 
   private static final Function<String, String> getSqlCommand = (tableName) ->
           String.format(SQL_QUERY_GET_OTHER_CRAWL_ID, tableName);
-  private static final int DATASET_KEY_IDX = 1;
-  private static final int CRAWL_ID_IDX = 2;
+  private static final int GBIF_ID_SELECT_IDX = 1;
+  private static final int DATASET_KEY_STMT_IDX = 1;
+  private static final int CRAWL_ID_STMT_IDX = 2;
 
-  DeletePreviousCrawlsService(PreviousCrawlsManagerConfiguration config, MessagePublisher publisher) {
+  /**
+   * @param config
+   * @param publisher caller is responsible to close the provided {@link MessagePublisher}
+   */
+  PreviousCrawlsOccurrenceDeleter(PreviousCrawlsManagerConfiguration config, MessagePublisher publisher) {
+    Preconditions.checkArgument((config.delete || config.forceDelete) && publisher != null, "MessagePublisher " +
+            "shall be provided if configuration indicates deletion should be applied.");
     this.config = config;
     this.publisher = publisher;
   }
@@ -46,37 +58,35 @@ class DeletePreviousCrawlsService {
     this.publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.OCCURRENCE_MANUAL, null, null));
   }
 
-  public void close() {
-    publisher.close();
-  }
-
   /**
    * Sends delete message for all occurrence records that are coming from a crawl before lastSuccessfulCrawl.
+   *
    * @param datasetKey
    * @param lastSuccessfulCrawl
+   *
    * @return the number of delete message emitted.
    */
   public int deleteOccurrenceInPreviousCrawls(UUID datasetKey, int lastSuccessfulCrawl) {
     int numberOfMessageEmitted = 0;
     try (Connection conn = config.hive.buildHiveConnection();
          PreparedStatement stmt = conn.prepareStatement(getSqlCommand.apply(config.hiveOccurrenceTable))) {
-      stmt.setString(DATASET_KEY_IDX, datasetKey.toString());
-      stmt.setInt(CRAWL_ID_IDX, lastSuccessfulCrawl);
+      stmt.setString(DATASET_KEY_STMT_IDX, datasetKey.toString());
+      stmt.setInt(CRAWL_ID_STMT_IDX, lastSuccessfulCrawl);
 
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
-          sendDeleteMessage(rs.getInt(1));
+          sendDeleteMessage(rs.getInt(GBIF_ID_SELECT_IDX));
           numberOfMessageEmitted++;
 
-          if(numberOfMessageEmitted % config.deleteMessageBatchSize == 0){
+          if (numberOfMessageEmitted % config.deleteMessageBatchSize == 0) {
             Thread.sleep(config.deleteMessageBatchIntervalMs);
           }
         }
       } catch (IOException | InterruptedException e) {
-        LOG.error("Error while deleting records for dataset " + datasetKey , e);
+        LOG.error("Error while deleting records for dataset " + datasetKey, e);
       }
     } catch (SQLException e) {
-      LOG.error("Error while deleting records for dataset " + datasetKey , e);
+      LOG.error("Error while deleting records for dataset " + datasetKey, e);
     }
     return numberOfMessageEmitted;
   }
