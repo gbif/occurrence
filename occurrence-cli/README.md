@@ -50,4 +50,4 @@ Note: The config folder must include a hbase-site.xml file
 
 ### Usage previous-crawls-manager
 See [PreviousCrawlManager.md](https://github.com/gbif/occurrence/tree/master/occurrence-cli/doc/PreviousCrawlManager.md)
-```
+
