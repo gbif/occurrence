@@ -3,7 +3,8 @@ package org.gbif.occurrence.cli.crawl;
 /**
  *
  */
-public interface ServiceProvider<T> {
-  T aquire();
+interface ServiceProvider<T> {
+  T acquire();
+  void handleReport(Object report);
   void release();
 }

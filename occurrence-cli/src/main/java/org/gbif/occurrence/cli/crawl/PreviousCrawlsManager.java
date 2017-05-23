@@ -22,12 +22,15 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.annotation.Nullable;
+
 import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manager that checks for previous crawls and send delete messages if predefined conditions are met.
+ * Manager that checks for previous crawls and sends delete messages if predefined conditions are met.
  */
 public class PreviousCrawlsManager {
 
@@ -51,12 +54,12 @@ public class PreviousCrawlsManager {
                   " ORDER BY " +
                   "  o.datasetKey, o.crawlId";
 
-  private static final String SQL_QUERY_SINGLE_DATASET = "SELECT datasetkey, crawlid, count(*) AS crawlCount FROM " +
+  private static final String SQL_QUERY_SINGLE_DATASET = "SELECT datasetKey, crawlId, count(*) AS crawlCount FROM " +
           " %s WHERE datasetkey = ? GROUP BY datasetkey, crawlid";
 
-  private static final int DATASET_KEY_IDX = 1;
-  private static final int CRAWL_ID_IDX = 2;
-  private static final int CRAWL_COUNT_IDX = 3;
+  private static final String DATASET_KEY_LBL = "datasetKey";
+  private static final String CRAWL_ID_LBL = "crawlId";
+  private static final String CRAWL_COUNT_LBL = "crawlCount";
 
   private static final Function<String, String> getSqlCommand = (tableName) ->
           String.format(SQL_WITH_CLAUSE, tableName) + String.format(SQL_QUERY, tableName);
@@ -69,8 +72,10 @@ public class PreviousCrawlsManager {
   private final OccurrenceSearchService occurrenceSearchService;
   private final PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService;
 
+  @Inject
   public PreviousCrawlsManager(PreviousCrawlsManagerConfiguration config, DatasetProcessStatusService datasetProcessStatusService,
-                               OccurrenceSearchService occurrenceSearchService, PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService) {
+                               OccurrenceSearchService occurrenceSearchService,
+                               @Nullable PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService) {
     this.config = config;
     this.datasetProcessStatusService = datasetProcessStatusService;
     this.occurrenceSearchService = occurrenceSearchService;
@@ -92,6 +97,13 @@ public class PreviousCrawlsManager {
     resultHandler.accept(report);
   }
 
+  /**
+   * Manage deletion of previous crawls for the provided dataset.
+   * Decision to issue delete messages or not is taken by {@link #shouldRunAutomaticDeletion(DatasetRecordCountInfo)}
+   *
+   * @param datasetKey
+   * @return
+   */
   private DatasetRecordCountInfo manageSingleDataset(UUID datasetKey) {
     DatasetRecordCountInfo datasetRecordCountInfo = getDatasetCrawlInfo(datasetKey);
     if (shouldRunAutomaticDeletion(datasetRecordCountInfo)) {
@@ -103,6 +115,8 @@ public class PreviousCrawlsManager {
   }
 
   /**
+   * Manage deletion of previous crawls for all datasets with more than one crawl.
+   * Decision to issue delete messages or not is taken by {@link #shouldRunAutomaticDeletion(DatasetRecordCountInfo)}
    *
    * @return
    */
@@ -184,7 +198,7 @@ public class PreviousCrawlsManager {
       stmt.setString(1, datasetKey.toString());
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
-          datasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(2), rs.getInt(3)));
+          datasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(CRAWL_ID_LBL), rs.getInt(CRAWL_COUNT_LBL)));
         }
       }
       datasetRecordCountInfo.setCrawlInfo(datasetCrawlInfoList);
@@ -213,7 +227,7 @@ public class PreviousCrawlsManager {
 
       while (rs.next()) {
 
-        if(!UUID.fromString(rs.getString(DATASET_KEY_IDX)).equals(currentDatasetKey)) {
+        if(!UUID.fromString(rs.getString(DATASET_KEY_LBL)).equals(currentDatasetKey)) {
           //manage previous list
           if(currentDatasetKey != null) {
             currentDatasetRecordCountInfo = new DatasetRecordCountInfo();
@@ -222,10 +236,10 @@ public class PreviousCrawlsManager {
             populateSolrAndRegistryData(currentDatasetRecordCountInfo);
             crawlInfo.put(currentDatasetKey, currentDatasetRecordCountInfo);
           }
-          currentDatasetKey = UUID.fromString(rs.getString(DATASET_KEY_IDX));
+          currentDatasetKey = UUID.fromString(rs.getString(DATASET_KEY_LBL));
           currentDatasetCrawlInfoList = new ArrayList<>();
         }
-        currentDatasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(CRAWL_ID_IDX), rs.getInt(CRAWL_COUNT_IDX)));
+        currentDatasetCrawlInfoList.add(new DatasetCrawlInfo(rs.getInt(CRAWL_ID_LBL), rs.getInt(CRAWL_COUNT_LBL)));
       }
     } catch (SQLException e) {
       LOG.error("Error while generating the crawls report", e);

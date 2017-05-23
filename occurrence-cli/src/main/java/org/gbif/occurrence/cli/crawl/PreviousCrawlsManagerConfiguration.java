@@ -2,6 +2,7 @@ package org.gbif.occurrence.cli.crawl;
 
 import org.gbif.common.messaging.config.MessagingConfiguration;
 import org.gbif.occurrence.cli.common.HiveJdbcConfiguration;
+import org.gbif.occurrence.cli.common.SchedulingConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -20,9 +21,15 @@ class PreviousCrawlsManagerConfiguration {
   @NotNull
   public MessagingConfiguration messaging = new MessagingConfiguration();
 
-  @Parameter(names = "--registry-ws-url")
-  @NotNull
-  public String registryWsUrl;
+  /**
+   * This is optional since it can be used with or without scheduling.
+   */
+  @ParametersDelegate
+  @Valid
+  public SchedulingConfiguration scheduling = new SchedulingConfiguration();
+
+  @ParametersDelegate
+  public RegistryConfiguration registry = new RegistryConfiguration();
 
   @ParametersDelegate
   @Valid
@@ -32,6 +39,10 @@ class PreviousCrawlsManagerConfiguration {
   @Parameter(names = "--hive-occurrence-table")
   @NotNull
   public String hiveOccurrenceTable;
+
+  @Parameter(names = "--occurrence-ws-url")
+  @NotNull
+  public String occurrenceWsUrl;
 
   /**
    * the value is a percentage
@@ -79,5 +90,22 @@ class PreviousCrawlsManagerConfiguration {
 
   @Parameter(names = "--display-report")
   public boolean displayReport = false;
+
+
+  public static class RegistryConfiguration {
+
+    @Parameter(names = "--registry-app-key")
+    public String appKey;
+
+    @Parameter(names = "--registry-app-secret")
+    public String appSecret;
+
+    @Parameter(names = "--registry-username")
+    public String username;
+
+    @Parameter(names = "--registry-ws-url")
+    @NotNull
+    public String wsUrl;
+  }
 
 }
