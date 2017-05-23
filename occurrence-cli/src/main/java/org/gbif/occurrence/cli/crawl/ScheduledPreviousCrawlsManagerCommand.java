@@ -18,16 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Commands to manage occurrence record from previous crawls in a scheduled task.
  */
 @MetaInfServices(Command.class)
-public class ScheduledPreviousCrawlsCleanupCommand extends ServiceCommand {
-  private static final Logger LOG = LoggerFactory.getLogger(ScheduledPreviousCrawlsCleanupCommand.class);
+public class ScheduledPreviousCrawlsManagerCommand extends ServiceCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(ScheduledPreviousCrawlsManagerCommand.class);
 
   private final PreviousCrawlsManagerConfiguration config = new PreviousCrawlsManagerConfiguration();
 
-  public ScheduledPreviousCrawlsCleanupCommand() {
-    super("scheduled-previous-crawls-cleanup");
+  public ScheduledPreviousCrawlsManagerCommand() {
+    super("scheduled-previous-crawls-manager");
   }
 
   @Override
@@ -41,7 +41,8 @@ public class ScheduledPreviousCrawlsCleanupCommand extends ServiceCommand {
   }
 
   /**
-   *
+   * Provides an indirect access to {@link PreviousCrawlsManager} so we can release resources between scheduled calls.
+   * This is probably room for improvement here but at least it's simple.
    */
   private static class ScheduledPreviousCrawlsManagerServiceProvider implements ServiceProvider<PreviousCrawlsManager> {
 

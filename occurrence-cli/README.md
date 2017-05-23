@@ -49,15 +49,5 @@ java -Xmx128M -cp /path/to/config/:occurrence-cli.jar org.gbif.cli.Application s
 Note: The config folder must include a hbase-site.xml file
 
 ### Usage previous-crawls-manager
-This cli target is used to manage occurrence records from previous crawls. It works on the Occurrence HDFS table.
-
-Options:
-
- * `--report-location`: location to save the report (in JSON format)
- * `--display-report`: display the report in the console
- * `--dataset-key`: specify a specific dataset UUID.
- * `--delete`: issue delete occurrence messages if the number of record to delete is below the threshold.
-
-```bash
-java -jar occurrence-cli.jar generate-crawls-report --conf occurrence_crawls_report.yaml
+See [PreviousCrawlManager.md](https://github.com/gbif/occurrence/tree/master/occurrence-cli/doc/PreviousCrawlManager.md)
 ```

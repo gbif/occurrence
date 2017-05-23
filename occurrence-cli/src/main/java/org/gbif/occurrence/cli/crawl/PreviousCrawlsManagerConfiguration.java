@@ -91,7 +91,9 @@ class PreviousCrawlsManagerConfiguration {
   @Parameter(names = "--display-report")
   public boolean displayReport = false;
 
-
+  /**
+   * Simple container for configuration related to registry.
+   */
   public static class RegistryConfiguration {
 
     @Parameter(names = "--registry-app-key")
