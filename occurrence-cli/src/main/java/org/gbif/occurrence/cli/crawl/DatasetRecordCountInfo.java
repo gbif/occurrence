@@ -10,8 +10,6 @@ import java.util.UUID;
 class DatasetRecordCountInfo {
 
   private UUID datasetKey;
-  //private boolean crawlDataConsistent;
-  //private int lastCompleteCrawlId;
 
   private int lastCrawlId;
   private int lastCrawlCount;
@@ -65,18 +63,6 @@ class DatasetRecordCountInfo {
     this.lastCrawlFragmentProcessCount = lastCrawlFragmentProcessCount;
   }
 
-//  public int getLastCompleteCrawlId() {
-//    return lastCompleteCrawlId;
-//  }
-//
-//  public void setLastCompleteCrawlId(int lastCompleteCrawlId) {
-//    this.lastCompleteCrawlId = lastCompleteCrawlId;
-//  }
-
-  public long getDiffSolrLastCrawl() {
-    return currentSolrCount - lastCrawlCount;
-  }
-
   private void computeCrawlData(List<DatasetCrawlInfo> crawlInfo) {
 
     recordCount = crawlInfo.stream()
@@ -99,13 +85,6 @@ class DatasetRecordCountInfo {
             .sum() / (double)recordCount;
   }
 
-//  public double getDiffSolrLastCrawlPercentage() {
-//    if (solrCount == 0) {
-//      return 0;
-//    }
-//    return (double) getDiffSolrLastCrawl() / (double) solrCount * 100d;
-//  }
-
   /**
    * Return the highest crawlId
    * @return id of the last (highest) crawl or -1 if no crawl.
@@ -118,15 +97,16 @@ class DatasetRecordCountInfo {
     return lastCrawlCount;
   }
 
-//  public int getDiffLastCrawlPreviousCrawls() {
-//    return lastCrawlCount - getSumAllPreviousCrawl();
-//  }
+  public int getRecordCount() {
+    return recordCount;
+  }
 
   @Override
   public String toString() {
     return "datasetKey: " + datasetKey +
             ", lastCrawlId: " + lastCrawlId +
             ", lastCrawlCount: " + lastCrawlCount +
+            ", recordCount: " + recordCount +
             ", lastCrawlFragmentProcessCount: " + lastCrawlFragmentProcessCount +
             ", currentSolrCount: " + currentSolrCount;
   }
