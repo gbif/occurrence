@@ -31,13 +31,11 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
 public class OccurrenceDeletionServiceTest {
 
   private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
@@ -143,12 +141,13 @@ public class OccurrenceDeletionServiceTest {
 
     ic = "ic4";
     datasetKey = UUID.randomUUID();
+    crawlId = 2;
     uniqueIds = Sets.newHashSet();
     uniqueIds.add(new HolyTriplet(datasetKey, ic, cc, cn, null));
     fragment =
       new Fragment(datasetKey, null, null, fragmentType, protocol, harvestedDate, crawlId, schema, null, created);
     fragmentService.insert(fragment, uniqueIds);
-    verbatim = build(5, GOOD_DATASET_KEY, cn,cc,ic);
+    verbatim = build(5, GOOD_DATASET_KEY, cn, cc, ic, crawlId);
     occurrenceService.update(verbatim);
 
     ic = "ic5";
@@ -163,12 +162,19 @@ public class OccurrenceDeletionServiceTest {
   }
 
   private VerbatimOccurrence build(Integer key, UUID datasetKey, String cn, String cc, String ic) {
+    return build(key, datasetKey, cn, cc, ic, null);
+  }
+
+  private VerbatimOccurrence build(Integer key, UUID datasetKey, String cn, String cc, String ic, Integer crawlId) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setKey(key);
     v.setDatasetKey(datasetKey);
     v.setVerbatimField(DwcTerm.catalogNumber, cn);
     v.setVerbatimField(DwcTerm.collectionCode, cc);
     v.setVerbatimField(DwcTerm.institutionCode, ic);
+    if (crawlId != null) {
+      v.setCrawlId(crawlId);
+    }
     return v;
   }
 
@@ -176,19 +182,24 @@ public class OccurrenceDeletionServiceTest {
   public void testSingleOccurrence() {
     Occurrence occ = occurrenceService.get(3);
     assertNotNull(occ);
-    occurrenceDeletionService.deleteOccurrence(3);
+    occurrenceDeletionService.deleteOccurrence(3, null);
     occ = occurrenceService.get(3);
     assertNull(occ);
 
     occ = occurrenceService.get(4);
     assertNotNull(occ);
-    occurrenceDeletionService.deleteOccurrence(4);
+    occurrenceDeletionService.deleteOccurrence(4, null);
     occ = occurrenceService.get(4);
     assertNull(occ);
 
     occ = occurrenceService.get(5);
     assertNotNull(occ);
-    occurrenceDeletionService.deleteOccurrence(5);
+    //test deletion of a record with a target crawl of 1
+    occurrenceDeletionService.deleteOccurrence(5, 1);
+    occ = occurrenceService.get(5);
+    assertNotNull(occ);
+
+    occurrenceDeletionService.deleteOccurrence(5, 2);
     occ = occurrenceService.get(5);
     assertNull(occ);
   }

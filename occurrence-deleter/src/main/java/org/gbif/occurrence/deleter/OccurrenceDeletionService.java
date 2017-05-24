@@ -11,6 +11,7 @@ import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -41,7 +42,17 @@ public class OccurrenceDeletionService {
     this.occurrenceKeyService = checkNotNull(occurrenceKeyService, "occurrenceKeyService can't be null");
   }
 
-  public Occurrence deleteOccurrence(int occurrenceKey) {
+  /**
+   * Delete an Occurrence record by key.
+   * Optionally, a crawlId can be provided if the occurrenceKey is asked to be deleted for a specific crawl. It
+   * ensures the occurrence will not be deleted in case a new crawl updated it.
+   *
+   * @param occurrenceKey
+   * @param crawlId
+   *
+   * @return the deleted occurrence or null if en error occurred
+   */
+  public Occurrence deleteOccurrence(int occurrenceKey, @Nullable Integer crawlId) {
     checkArgument(occurrenceKey > 0, "occurrenceKey must be > 0");
     LOG.debug("Deleting occurrence for key [{}]", occurrenceKey);
 
@@ -50,6 +61,13 @@ public class OccurrenceDeletionService {
 
     if (verbatim == null) {
       LOG.info("No occurrence for key [{}], ignoring deletion request", occurrenceKey);
+      return null;
+    }
+
+    // ensure that if a crawlId is provided the occurrence is still at that crawlId otherwise ignore the delete request
+    if(crawlId != null && !crawlId.equals(verbatim.getCrawlId())) {
+      LOG.info("crawlId [{}] doesn't match the targeted crawlId [{}], ignoring deletion request for key [{}]",
+              verbatim.getCrawlId(), crawlId, occurrenceKey);
       return null;
     }
 

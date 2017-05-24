@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DeleteOccurrenceMessage;
+import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.deleter.OccurrenceDeletionService;
 
@@ -41,8 +42,13 @@ public class DeleteOccurrenceListener extends AbstractMessageCallback<DeleteOccu
   @Override
   public void handleMessage(DeleteOccurrenceMessage message) {
     final TimerContext context = processTimer.time();
+
+    // if the deletion reason is NOT_SEEN_IN_LAST_CRAWL, we need to ensure that the record hasn't changed since
+    final Integer targetedCrawlId = OccurrenceDeletionReason.NOT_SEEN_IN_LAST_CRAWL == message.getDeletionReason() ?
+            message.getCrawlAttemptLastSeen() : null;
+
     try {
-      Occurrence deleted = occurrenceDeletionService.deleteOccurrence(message.getOccurrenceKey());
+      Occurrence deleted = occurrenceDeletionService.deleteOccurrence(message.getOccurrenceKey(), targetedCrawlId);
       if (deleted != null) {
         try {
           messagePublisher.send(OccurrenceMutatedMessage
