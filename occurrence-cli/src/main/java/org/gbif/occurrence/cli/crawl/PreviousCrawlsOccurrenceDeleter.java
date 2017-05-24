@@ -38,12 +38,15 @@ class PreviousCrawlsOccurrenceDeleter {
 
   // we use a smaller than (<) instead of not equals (<>) to avoid deleting records of a potential new crawl
   // that started
-  private static final String SQL_QUERY_GET_OTHER_CRAWL_ID = "SELECT gbifid FROM " +
-          " %s WHERE datasetkey = ? AND crawlid < ?";
+  private static final String SQL_QUERY_GET_OTHER_CRAWL_ID = "SELECT gbifId, crawlId FROM " +
+          " %s WHERE datasetKey = ? AND crawlId < ?";
 
   private static final Function<String, String> getSqlCommand = (tableName) ->
           String.format(SQL_QUERY_GET_OTHER_CRAWL_ID, tableName);
-  private static final int GBIF_ID_SELECT_IDX = 1;
+
+  private static final String GBIF_ID_LBL = "gbifId";
+  private static final String CRAWL_ID_LBL = "crawlId";
+
   private static final int DATASET_KEY_STMT_IDX = 1;
   private static final int CRAWL_ID_STMT_IDX = 2;
 
@@ -63,12 +66,25 @@ class PreviousCrawlsOccurrenceDeleter {
     this.datasetService = datasetService;
   }
 
-  private void sendDeleteMessage(int occurrenceKey) throws IOException {
-    //Maybe it should use OccurrenceDeletionReason.NOT_SEEN_IN_LAST_CRAWL but it seems OccurrenceDeletionReason is
-    //never used
-    this.publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.OCCURRENCE_MANUAL, null, null));
+  /**
+   * Send a delete message (NOT_SEEN_IN_LAST_CRAWL) for an occurrence key.
+   * @param occurrenceKey
+   * @param lastSeenInCrawlId last crawl we saw the provided occurrenceKey
+   * @param lastSuccessfulCrawlId current crawl identified as the lastSuccessfulCrawl
+   * @throws IOException
+   */
+  private void sendDeleteMessage(int occurrenceKey, int lastSeenInCrawlId, int lastSuccessfulCrawlId) throws IOException {
+    this.publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.NOT_SEEN_IN_LAST_CRAWL,
+            lastSeenInCrawlId, lastSuccessfulCrawlId));
   }
 
+  /**
+   * Record a message in the registry to keep a trace of automatic deletion.
+   * Eventually we might want to only record deletion when the numberOfMessageEmitted is > than a certain threshold.
+   * @param datasetKey
+   * @param lastSuccessfulCrawl
+   * @param numberOfMessageEmitted
+   */
   private void addRegistryComment(UUID datasetKey, int lastSuccessfulCrawl, int numberOfMessageEmitted) {
     Comment comment = new Comment();
     comment.setContent(numberOfMessageEmitted + " occurrence(s) deleted (delete message(s) sent). " +
@@ -94,7 +110,7 @@ class PreviousCrawlsOccurrenceDeleter {
 
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
-          sendDeleteMessage(rs.getInt(GBIF_ID_SELECT_IDX));
+          sendDeleteMessage(rs.getInt(GBIF_ID_LBL), rs.getInt(CRAWL_ID_LBL), lastSuccessfulCrawl);
           numberOfMessageEmitted++;
 
           if (numberOfMessageEmitted % config.deleteMessageBatchSize == 0) {

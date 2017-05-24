@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
@@ -23,8 +24,9 @@ public class PreviousCrawlsManagerServiceTest {
     PreviousCrawlsManager pcms = new PreviousCrawlsManager(config, null, null, null);
     DatasetRecordCountInfo drci = getDatasetRecordCountInfo();
 
-    drci.setLastCrawlFragmentProcessCount(100);
+    drci.setLastCrawlFragmentEmittedCount(100);
     drci.setCrawlInfo(getCrawlInfoList(getCrawlInfo(1, 50), getCrawlInfo(2, 100)));
+    assertEquals(150, drci.getRecordCount());
     assertFalse("No automatic deletion. Percentage of records to remove (33) higher than the configured threshold (30).",
             pcms.shouldRunAutomaticDeletion(drci));
   }
@@ -40,8 +42,9 @@ public class PreviousCrawlsManagerServiceTest {
     PreviousCrawlsManager pcms = new PreviousCrawlsManager(config, null, null, null);
     DatasetRecordCountInfo drci = getDatasetRecordCountInfo();
 
-    drci.setLastCrawlFragmentProcessCount(100);
+    drci.setLastCrawlFragmentEmittedCount(100);
     drci.setCrawlInfo(getCrawlInfoList(getCrawlInfo(1, 18), getCrawlInfo(2, 100)));
+    assertEquals(118, drci.getRecordCount());
     assertTrue(pcms.shouldRunAutomaticDeletion(drci));
   }
 
