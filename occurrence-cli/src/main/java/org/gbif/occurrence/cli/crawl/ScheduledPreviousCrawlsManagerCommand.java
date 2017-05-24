@@ -3,16 +3,14 @@ package org.gbif.occurrence.cli.crawl;
 import org.gbif.cli.Command;
 import org.gbif.cli.service.ServiceCommand;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.occurrence.cli.common.JsonWriter;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.kohsuke.MetaInfServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +67,7 @@ public class ScheduledPreviousCrawlsManagerCommand extends ServiceCommand {
 
     @Override
     public void handleReport(Object report) {
-      printReportToJson(report);
+      printReport(report);
     }
 
     @Override
@@ -86,22 +84,20 @@ public class ScheduledPreviousCrawlsManagerCommand extends ServiceCommand {
      * Print the report to a file or to the console depending on {@link PreviousCrawlsManagerConfiguration}.
      * @param report
      */
-    private void printReportToJson(Object report) {
-      ObjectMapper om = new ObjectMapper();
-      om.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+    private void printReport(Object report) {
       try {
-
-        if (StringUtils.isNotBlank(config.reportLocation)) {
-          om.writeValue(Paths.get(config.reportLocation).toFile(), report);
+        if(StringUtils.isNotBlank(config.reportOutputFilepath)) {
+          JsonWriter.objectToJsonFile(config.reportOutputFilepath, report);
         }
 
         if (config.displayReport) {
-          System.out.print(om.writeValueAsString(report));
+          System.out.print(JsonWriter.objectToJsonString(report));
         }
       } catch (IOException e) {
         LOG.error("Failed to write report.", e);
       }
     }
+
   }
 
 }

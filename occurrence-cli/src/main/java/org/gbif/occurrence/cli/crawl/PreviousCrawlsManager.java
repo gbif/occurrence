@@ -1,10 +1,6 @@
 package org.gbif.occurrence.cli.crawl;
 
-import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.crawler.DatasetProcessStatus;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.DatasetProcessStatusService;
 
@@ -21,7 +17,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -102,6 +97,7 @@ public class PreviousCrawlsManager {
    * Decision to issue delete messages or not is taken by {@link #shouldRunAutomaticDeletion(DatasetRecordCountInfo)}
    *
    * @param datasetKey
+   *
    * @return
    */
   private DatasetRecordCountInfo manageSingleDataset(UUID datasetKey) {
@@ -166,11 +162,11 @@ public class PreviousCrawlsManager {
       return false;
     }
 
-    if(datasetRecordCountInfo.getLastCrawlCount() != datasetRecordCountInfo.getLastCrawlFragmentProcessCount()) {
+    if (datasetRecordCountInfo.getLastCrawlCount() != datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) {
       LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              " -> No automatic deletion. Crawl lastCrawlCount != lastCrawlFragmentProcessCount which may indicate an " +
+              " -> No automatic deletion. Crawl lastCrawlCount != lastCrawlFragmentEmittedCount which may indicate an " +
               " incomplete or bad crawl. lastCrawlCount:" + datasetRecordCountInfo.getLastCrawlCount() +
-              ", lastCrawlFragmentProcessCount" + datasetRecordCountInfo.getLastCrawlFragmentProcessCount());
+              ", lastCrawlFragmentEmittedCount" + datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
       return false;
     }
 
@@ -185,11 +181,13 @@ public class PreviousCrawlsManager {
 
   /**
    * Get {@link DatasetCrawlInfo} for a single Dataset.
+   *
    * @param datasetKey
+   *
    * @return
    */
   private DatasetRecordCountInfo getDatasetCrawlInfo(UUID datasetKey) {
-    DatasetRecordCountInfo datasetRecordCountInfo  = new DatasetRecordCountInfo();
+    DatasetRecordCountInfo datasetRecordCountInfo = new DatasetRecordCountInfo();
     datasetRecordCountInfo.setDatasetKey(datasetKey);
     List<DatasetCrawlInfo> datasetCrawlInfoList = new ArrayList<>();
 
@@ -202,15 +200,16 @@ public class PreviousCrawlsManager {
         }
       }
       datasetRecordCountInfo.setCrawlInfo(datasetCrawlInfoList);
-      populateSolrAndRegistryData(datasetRecordCountInfo);
+      populateRegistryData(datasetRecordCountInfo);
     } catch (SQLException e) {
-      LOG.error("Error while getting crawl information for dataset " + datasetKey , e);
+      LOG.error("Error while getting crawl information for dataset " + datasetKey, e);
     }
     return datasetRecordCountInfo;
   }
 
   /**
    * Get {@link DatasetRecordCountInfo} for each datasets that has records coming to more than one crawl.
+   *
    * @return
    */
   private Map<UUID, DatasetRecordCountInfo> getAllDatasetWithMoreThanOneCrawl() {
@@ -227,13 +226,13 @@ public class PreviousCrawlsManager {
 
       while (rs.next()) {
 
-        if(!UUID.fromString(rs.getString(DATASET_KEY_LBL)).equals(currentDatasetKey)) {
+        if (!UUID.fromString(rs.getString(DATASET_KEY_LBL)).equals(currentDatasetKey)) {
           //manage previous list
-          if(currentDatasetKey != null) {
+          if (currentDatasetKey != null) {
             currentDatasetRecordCountInfo = new DatasetRecordCountInfo();
             currentDatasetRecordCountInfo.setDatasetKey(currentDatasetKey);
             currentDatasetRecordCountInfo.setCrawlInfo(currentDatasetCrawlInfoList);
-            populateSolrAndRegistryData(currentDatasetRecordCountInfo);
+            populateRegistryData(currentDatasetRecordCountInfo);
             crawlInfo.put(currentDatasetKey, currentDatasetRecordCountInfo);
           }
           currentDatasetKey = UUID.fromString(rs.getString(DATASET_KEY_LBL));
@@ -252,20 +251,13 @@ public class PreviousCrawlsManager {
    *
    * @return the provided {@link DatasetRecordCountInfo} populated
    */
-  private DatasetRecordCountInfo populateSolrAndRegistryData(DatasetRecordCountInfo datasetRecordCountInfo) {
-
-    //Get the count from Solr
-    OccurrenceSearchRequest osReq = new OccurrenceSearchRequest();
-    osReq.addDatasetKeyFilter(datasetRecordCountInfo.getDatasetKey());
-    osReq.setLimit(1);
-    SearchResponse<Occurrence, OccurrenceSearchParameter> occResponse = occurrenceSearchService.search(osReq);
-    datasetRecordCountInfo.setCurrentSolrCount(occResponse.getCount() != null ? occResponse.getCount() : 0);
+  private DatasetRecordCountInfo populateRegistryData(DatasetRecordCountInfo datasetRecordCountInfo) {
 
     //Get crawl status of the last crawl
     DatasetProcessStatus lastCompletedCrawl = datasetProcessStatusService.getDatasetProcessStatus(datasetRecordCountInfo.getDatasetKey(),
             datasetRecordCountInfo.getLastCrawlId());
     if (lastCompletedCrawl != null) {
-      datasetRecordCountInfo.setLastCrawlFragmentProcessCount(lastCompletedCrawl.getFragmentsProcessed());
+      datasetRecordCountInfo.setLastCrawlFragmentEmittedCount(lastCompletedCrawl.getFragmentsEmitted());
     }
     return datasetRecordCountInfo;
   }

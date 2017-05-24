@@ -85,8 +85,8 @@ class PreviousCrawlsManagerConfiguration {
   @Parameter(names = "--force-delete")
   public boolean forceDelete = false;
 
-  @Parameter(names = "--report-location")
-  public String reportLocation;
+  @Parameter(names = "--report-output-filepath")
+  public String reportOutputFilepath;
 
   @Parameter(names = "--display-report")
   public boolean displayReport = false;

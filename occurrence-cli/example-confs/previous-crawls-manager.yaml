@@ -35,4 +35,4 @@ scheduling:
   startTime: "3:07"
 
 #prefer usage on command line since it overwrites report
-#reportLocation: /tmp/extended_report.json
+#reportOutputFilepath: /tmp/extended_report.json

@@ -3,15 +3,13 @@ package org.gbif.occurrence.cli.crawl;
 import org.gbif.cli.BaseCommand;
 import org.gbif.cli.Command;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.occurrence.cli.common.JsonWriter;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.kohsuke.MetaInfServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,7 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
     PreviousCrawlsManager previousCrawlsManager = injector.getInstance(PreviousCrawlsManager.class);
     MessagePublisher messagePublisher = injector.getInstance(MessagePublisher.class);
 
-    previousCrawlsManager.execute(this::printReportToJson);
+    previousCrawlsManager.execute(this::printReport);
 
     if (messagePublisher != null) {
       messagePublisher.close();
@@ -62,11 +60,10 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
       return false;
     }
 
-    if (!config.displayReport && StringUtils.isBlank(config.reportLocation)) {
-      System.err.println("--displayReport or --report-location flag must be specified");
+    if (!config.displayReport && StringUtils.isBlank(config.reportOutputFilepath)) {
+      System.err.println("--displayReport or --report-output-filepath flag must be specified");
       return false;
     }
-
     return true;
   }
 
@@ -74,17 +71,14 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
    * Print the report to a file or to the console depending on {@link PreviousCrawlsManagerConfiguration}.
    * @param report
    */
-  private void printReportToJson(Object report) {
-    ObjectMapper om = new ObjectMapper();
-    om.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+  private void printReport(Object report) {
     try {
-
-      if (StringUtils.isNotBlank(config.reportLocation)) {
-        om.writeValue(Paths.get(config.reportLocation).toFile(), report);
+      if(StringUtils.isNotBlank(config.reportOutputFilepath)) {
+        JsonWriter.objectToJsonFile(config.reportOutputFilepath, report);
       }
 
       if (config.displayReport) {
-        System.out.print(om.writeValueAsString(report));
+        System.out.print(JsonWriter.objectToJsonString(report));
       }
     } catch (IOException e) {
       LOG.error("Failed to write report.", e);

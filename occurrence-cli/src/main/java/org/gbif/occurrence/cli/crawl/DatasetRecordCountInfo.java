@@ -14,10 +14,8 @@ class DatasetRecordCountInfo {
   private int lastCrawlId;
   private int lastCrawlCount;
   private int recordCount;
+  private long lastCrawlFragmentEmittedCount;
 
-  private long lastCrawlFragmentProcessCount;
-
-  private long currentSolrCount;
   private List<DatasetCrawlInfo> crawlInfo = new ArrayList<>();
 
   public DatasetRecordCountInfo(){}
@@ -47,20 +45,12 @@ class DatasetRecordCountInfo {
     this.datasetKey = datasetKey;
   }
 
-  public long getCurrentSolrCount() {
-    return currentSolrCount;
+  public long getLastCrawlFragmentEmittedCount() {
+    return lastCrawlFragmentEmittedCount;
   }
 
-  public void setCurrentSolrCount(long currentSolrCount) {
-    this.currentSolrCount = currentSolrCount;
-  }
-
-  public long getLastCrawlFragmentProcessCount() {
-    return lastCrawlFragmentProcessCount;
-  }
-
-  public void setLastCrawlFragmentProcessCount(long lastCrawlFragmentProcessCount) {
-    this.lastCrawlFragmentProcessCount = lastCrawlFragmentProcessCount;
+  public void setLastCrawlFragmentEmittedCount(long lastCrawlFragmentEmittedCount) {
+    this.lastCrawlFragmentEmittedCount = lastCrawlFragmentEmittedCount;
   }
 
   private void computeCrawlData(List<DatasetCrawlInfo> crawlInfo) {
@@ -107,8 +97,8 @@ class DatasetRecordCountInfo {
             ", lastCrawlId: " + lastCrawlId +
             ", lastCrawlCount: " + lastCrawlCount +
             ", recordCount: " + recordCount +
-            ", lastCrawlFragmentProcessCount: " + lastCrawlFragmentProcessCount +
-            ", currentSolrCount: " + currentSolrCount;
+            ", lastCrawlFragmentEmittedCount: " + lastCrawlFragmentEmittedCount +
+            ", crawlInfo: {" + crawlInfo + "}";
   }
 
 }
