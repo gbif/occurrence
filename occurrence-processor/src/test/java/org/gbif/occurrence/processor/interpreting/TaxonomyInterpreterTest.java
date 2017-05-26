@@ -57,6 +57,13 @@ public class TaxonomyInterpreterTest {
   }
 
   @Test
+  @Ignore
+  public void testOtu() {
+    ParseResult<NameUsageMatch> result = interpreter.match("Animalia", "Annelida", null, null, "Lumbricidae", null, "BOLD:ACV7160", null, null, null, null, Rank.SPECIES);
+    assertEquals("BOLD:ACV7160", result.getPayload().getScientificName());
+  }
+
+  @Test
   public void testCeratiaceae() {
     ParseResult<NameUsageMatch> result = interpreter.match("Chromista", "Dinophyta", "Dinophyceae", "Peridiniales", "Ceratiaceae", "Ceratium", "Ceratium hirundinella", "", null, null, null, Rank.SPECIES);
     assertEquals(7598904, result.getPayload().getUsageKey().intValue());
