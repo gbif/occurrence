@@ -26,7 +26,7 @@ public class JsonWriter {
   public static void objectToJsonFile(String outputFilepath, Object obj) throws IOException {
     //creates folder structure (if required)
     File reportFile = new File(outputFilepath);
-    if(!reportFile.getParentFile().exists()) {
+    if (reportFile.getParentFile() != null && !reportFile.getParentFile().exists()) {
       reportFile.getParentFile().mkdirs();
     }
     OM.writeValue(reportFile, obj);
