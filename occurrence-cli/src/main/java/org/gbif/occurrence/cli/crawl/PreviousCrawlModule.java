@@ -39,6 +39,7 @@ public class PreviousCrawlModule extends AbstractModule {
     properties.setProperty("occurrence.ws.url", config.occurrenceWsUrl);
     properties.setProperty("httpTimeout", "30000");
 
+    //FIXME don't do that!
     /**
      * Only install {@link PreviousCrawlsOccurrenceDeleter} and required {@link GbifApplicationAuthModule} if needed.
      */

@@ -23,6 +23,7 @@ public class ScheduledPreviousCrawlsManagerCommand extends ServiceCommand {
   private static final Logger LOG = LoggerFactory.getLogger(ScheduledPreviousCrawlsManagerCommand.class);
 
   private final PreviousCrawlsManagerConfiguration config = new PreviousCrawlsManagerConfiguration();
+  private MessagePublisher messagePublisher;
 
   public ScheduledPreviousCrawlsManagerCommand() {
     super("scheduled-previous-crawls-manager");
@@ -35,69 +36,33 @@ public class ScheduledPreviousCrawlsManagerCommand extends ServiceCommand {
 
   @Override
   protected Service getService() {
-    return new ScheduledPreviousCrawlsManagerService(config, new ScheduledPreviousCrawlsManagerServiceProvider(config));
+    Injector injector = Guice.createInjector(new PreviousCrawlModule(config));
+    messagePublisher = injector.getInstance(MessagePublisher.class);
+    return new ScheduledPreviousCrawlsManagerService(injector.getInstance(PreviousCrawlsManager.class),
+            this::printReport, config, this::cleanup);
+  }
+
+  private void cleanup() {
+    messagePublisher.close();
   }
 
   /**
-   * Provides an indirect access to {@link PreviousCrawlsManager} so we can release resources between scheduled calls.
-   * This is probably room for improvement here but at least it's simple.
+   * Print the report to a file or to the console depending on {@link PreviousCrawlsManagerConfiguration}.
+   *
+   * @param report
    */
-  private static class ScheduledPreviousCrawlsManagerServiceProvider implements ServiceProvider<PreviousCrawlsManager> {
-
-    private final PreviousCrawlsManagerConfiguration config;
-    private MessagePublisher messagePublisher;
-    private PreviousCrawlsOccurrenceDeleter deletePreviousCrawlsService;
-    private PreviousCrawlsManager previousCrawlsManagerService;
-
-    ScheduledPreviousCrawlsManagerServiceProvider(PreviousCrawlsManagerConfiguration config) {
-      this.config = config;
-    }
-
-    @Override
-    public PreviousCrawlsManager acquire() {
-
-      //ensure to release resource
-      release();
-
-      Injector injector = Guice.createInjector(new PreviousCrawlModule(config));
-      previousCrawlsManagerService = injector.getInstance(PreviousCrawlsManager.class);
-      messagePublisher = injector.getInstance(MessagePublisher.class);
-      return previousCrawlsManagerService;
-    }
-
-    @Override
-    public void handleReport(Object report) {
-      printReport(report);
-    }
-
-    @Override
-    public void release() {
-      if(messagePublisher != null) {
-        messagePublisher.close();
+  private void printReport(Object report) {
+    try {
+      if (StringUtils.isNotBlank(config.reportOutputFilepath)) {
+        JsonWriter.objectToJsonFile(config.reportOutputFilepath, report);
       }
-      messagePublisher = null;
-      deletePreviousCrawlsService = null;
-      previousCrawlsManagerService = null;
-    }
 
-    /**
-     * Print the report to a file or to the console depending on {@link PreviousCrawlsManagerConfiguration}.
-     * @param report
-     */
-    private void printReport(Object report) {
-      try {
-        if(StringUtils.isNotBlank(config.reportOutputFilepath)) {
-          JsonWriter.objectToJsonFile(config.reportOutputFilepath, report);
-        }
-
-        if (config.displayReport) {
-          System.out.print(JsonWriter.objectToJsonString(report));
-        }
-      } catch (IOException e) {
-        LOG.error("Failed to write report.", e);
+      if (config.displayReport) {
+        System.out.print(JsonWriter.objectToJsonString(report));
       }
+    } catch (IOException e) {
+      LOG.error("Failed to write report.", e);
     }
-
   }
 
 }

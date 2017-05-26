@@ -36,7 +36,7 @@ public class SchedulingConfiguration {
     if(StringUtils.isBlank(startTime)){
       return t;
     }
-    
+
     try {
       t = LocalTime.parse(startTime);
     } catch (DateTimeParseException dtpEx) {

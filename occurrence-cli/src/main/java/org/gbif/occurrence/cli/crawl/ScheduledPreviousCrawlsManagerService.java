@@ -1,9 +1,11 @@
 package org.gbif.occurrence.cli.crawl;
 
 import org.gbif.cli.service.ScheduledService;
+import org.gbif.occurrence.cli.common.DestroyCallback;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Consumer;
 
 /**
  * Service that runs {@link PreviousCrawlsManager} on a schedule.
@@ -12,25 +14,33 @@ import java.time.temporal.ChronoUnit;
 public class ScheduledPreviousCrawlsManagerService extends ScheduledService {
 
   private final PreviousCrawlsManagerConfiguration config;
-  private ServiceProvider<PreviousCrawlsManager> previousCrawlsManagerServiceSupplier;
+  private final PreviousCrawlsManager previousCrawlsManager;
+  private final Consumer<Object> reportHandler;
+  private DestroyCallback destroyCallback;
 
   /**
+   * @param previousCrawlsManager
+   * @param reportHandler
    * @param config
-   * @param previousCrawlsManagerServiceSupplier Supplier capable of providing new instances
    */
-  ScheduledPreviousCrawlsManagerService(PreviousCrawlsManagerConfiguration config,
-                                        ServiceProvider<PreviousCrawlsManager> previousCrawlsManagerServiceSupplier){
+  ScheduledPreviousCrawlsManagerService(PreviousCrawlsManager previousCrawlsManager,
+                                        Consumer<Object> reportHandler,
+                                        PreviousCrawlsManagerConfiguration config,
+                                        DestroyCallback destroyCallback){
+    this.previousCrawlsManager = previousCrawlsManager;
+    this.reportHandler = reportHandler;
     this.config = config;
-    this.previousCrawlsManagerServiceSupplier = previousCrawlsManagerServiceSupplier;
+    this.destroyCallback = destroyCallback;
   }
 
   @Override
   protected void scheduledRun() {
-    PreviousCrawlsManager service = previousCrawlsManagerServiceSupplier.acquire();
-    service.execute(previousCrawlsManagerServiceSupplier::handleReport);
+    previousCrawlsManager.execute(reportHandler::accept);
+  }
 
-    //release resources since we will sleep for a while
-    previousCrawlsManagerServiceSupplier.release();
+  @Override
+  public void scheduledDestroy() {
+    destroyCallback.destroy();
   }
 
   @Override
