@@ -20,7 +20,7 @@
   </distributionManagement>
 
   <properties>
-    <gbif-cli.version>0.12-SNAPSHOT</gbif-cli.version>
+    <gbif-cli.version>0.12</gbif-cli.version>
 
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>
