@@ -31,6 +31,7 @@ class PreviousCrawlsOccurrenceDeleter {
   private static final Logger LOG = LoggerFactory.getLogger(PreviousCrawlsOccurrenceDeleter.class);
 
   public static final String REGISTRY_COMMENT_CREATED_BY = "PreviousCrawls Occurrence Deleter";
+  private static final String REGISTRY_COMMENT = "Auto-deletion of stale records: %d occurrence(s) flagged for deletion. %d was identified as the last normal crawl attempt.";
 
   private PreviousCrawlsManagerConfiguration config;
   private MessagePublisher publisher;
@@ -87,8 +88,7 @@ class PreviousCrawlsOccurrenceDeleter {
    */
   private void addRegistryComment(UUID datasetKey, int lastSuccessfulCrawl, int numberOfMessageEmitted) {
     Comment comment = new Comment();
-    comment.setContent(numberOfMessageEmitted + " occurrence(s) deleted (delete message(s) sent). " +
-            lastSuccessfulCrawl + " was identified as the lastCrawlId.");
+    comment.setContent(String.format(REGISTRY_COMMENT, numberOfMessageEmitted, lastSuccessfulCrawl));
     comment.setCreatedBy(REGISTRY_COMMENT_CREATED_BY);
     datasetService.addComment(datasetKey, comment);
   }
@@ -123,6 +123,9 @@ class PreviousCrawlsOccurrenceDeleter {
     } catch (SQLException e) {
       LOG.error("Error while deleting records for dataset " + datasetKey, e);
     }
+
+    //FIXME eventually change this to only log if config says force-delete since a regular delete
+    //will become the normal behavior after we cleaned the current backlog
     addRegistryComment(datasetKey, lastSuccessfulCrawl, numberOfMessageEmitted);
     return numberOfMessageEmitted;
   }

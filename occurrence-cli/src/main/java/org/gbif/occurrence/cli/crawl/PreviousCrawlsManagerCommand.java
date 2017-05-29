@@ -44,6 +44,7 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
 
     previousCrawlsManager.execute(this::printReport);
 
+    //ensure we close the messagePublisher
     if (messagePublisher != null) {
       messagePublisher.close();
     }
@@ -61,7 +62,7 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
     }
 
     if (!config.displayReport && StringUtils.isBlank(config.reportOutputFilepath)) {
-      System.err.println("--displayReport or --report-output-filepath flag must be specified");
+      System.err.println("--display-report or --report-output-filepath flag must be specified");
       return false;
     }
     return true;
@@ -69,11 +70,12 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
 
   /**
    * Print the report to a file or to the console depending on {@link PreviousCrawlsManagerConfiguration}.
+   *
    * @param report
    */
   private void printReport(Object report) {
     try {
-      if(StringUtils.isNotBlank(config.reportOutputFilepath)) {
+      if (StringUtils.isNotBlank(config.reportOutputFilepath)) {
         JsonWriter.objectToJsonFile(config.reportOutputFilepath, report);
       }
 

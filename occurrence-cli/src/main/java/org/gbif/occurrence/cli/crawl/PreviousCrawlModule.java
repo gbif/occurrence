@@ -4,7 +4,6 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.ws.client.OccurrenceWsClientModule;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
-import org.gbif.ws.client.guice.AnonymousAuthModule;
 import org.gbif.ws.client.guice.GbifApplicationAuthModule;
 
 import java.io.IOException;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Guice module responsible to bind all dependencies required to run the {@link PreviousCrawlsManager}.
+ *
  */
 public class PreviousCrawlModule extends AbstractModule {
 
@@ -39,20 +39,12 @@ public class PreviousCrawlModule extends AbstractModule {
     properties.setProperty("occurrence.ws.url", config.occurrenceWsUrl);
     properties.setProperty("httpTimeout", "30000");
 
-    //FIXME don't do that!
-    /**
-     * Only install {@link PreviousCrawlsOccurrenceDeleter} and required {@link GbifApplicationAuthModule} if needed.
-     */
-    if(config.delete || config.forceDelete) {
-      GbifApplicationAuthModule gbifApplicationAuthModule =
-              new GbifApplicationAuthModule(config.registry.appKey, config.registry.appSecret);
-      gbifApplicationAuthModule.setPrincipal(config.registry.username);
-      install(gbifApplicationAuthModule);
-      bind(PreviousCrawlsOccurrenceDeleter.class).in(Scopes.SINGLETON);
-    }
-    else{
-      install(new AnonymousAuthModule());
-    }
+    GbifApplicationAuthModule gbifApplicationAuthModule =
+            new GbifApplicationAuthModule(config.registry.appKey, config.registry.appSecret);
+    gbifApplicationAuthModule.setPrincipal(config.registry.username);
+    install(gbifApplicationAuthModule);
+
+    bind(PreviousCrawlsOccurrenceDeleter.class).in(Scopes.SINGLETON);
 
     install(new OccurrenceWsClientModule(properties));
     install(new RegistryWsClientModule(properties));
@@ -65,16 +57,6 @@ public class PreviousCrawlModule extends AbstractModule {
   @Provides
   @Singleton
   private MessagePublisher buildMessagePublisher() {
-
-    /**
-     *  if(config.delete || config.forceDelete) {
-     messagePublisher = buildMessagePublisher();
-     deletePreviousCrawlsService = new PreviousCrawlsOccurrenceDeleter(config,
-     messagePublisher);
-     }
-
-     */
-
     MessagePublisher publisher = null;
     try {
       publisher = new DefaultMessagePublisher(config.messaging.getConnectionParameters());
