@@ -38,7 +38,7 @@ public class VerbatimPersistedListener extends AbstractMessageCallback<VerbatimP
   public void handleMessage(VerbatimPersistedMessage message) {
     final TimerContext context = processTimer.time();
     try {
-      MDC.put("datasetUuid", message.getDatasetUuid().toString());
+      MDC.put("datasetKey", message.getDatasetUuid().toString());
       MDC.put("attempt", String.valueOf(message.getAttempt()));
       interpretedProcessor.buildInterpreted(message.getOccurrenceKey(), message.getStatus(), true, message.getAttempt(),
                                             message.getDatasetUuid());
@@ -47,4 +47,3 @@ public class VerbatimPersistedListener extends AbstractMessageCallback<VerbatimP
     }
   }
 }
-

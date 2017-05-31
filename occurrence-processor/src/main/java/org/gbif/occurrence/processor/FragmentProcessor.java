@@ -112,7 +112,7 @@ public class FragmentProcessor {
       checkNotNull(validationReport, "validationReport can't be null if schema is DWCA");
     }
 
-    MDC.put("datasetUuid", datasetKey.toString());
+    MDC.put("datasetKey", datasetKey.toString());
     MDC.put("attempt", crawlId.toString());
 
     boolean isXml = schema != OccurrenceSchemaType.DWCA;
