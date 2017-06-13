@@ -49,7 +49,7 @@ Scheduling related parameters:
 ```
 scheduling:
   frequencyInHour: 24
-  startTime: "7:07"
+  startTime: "07:07"
 ```
 
 Example of generating a complete report at regular interval:
