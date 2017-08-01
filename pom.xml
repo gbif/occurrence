@@ -169,6 +169,10 @@
       <url>http://repository.gbif.org/content/repositories/thirdparty</url>
     </repository>
     <repository>
+      <id>gbif-mirror</id>
+      <url>http://repository.gbif.org/content/groups/public/</url>
+    </repository>
+    <repository>
       <id>cloudera-release</id>
       <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
       <snapshots>
