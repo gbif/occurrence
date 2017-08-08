@@ -18,7 +18,7 @@ HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile
 WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV\;status=RUNNING\;status=PREP\;status=PREPSUSPENDED\;status=SUSPENDED\;status=PREPPAUSED\;status=PAUSED\;status=SUCCEEDED\;status=DONEWITHERROR\;status=FAILED |  awk 'NR==3' | awk '{print $1;}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
-  oozie job -oozie $OOZIE -kill $WID
+  sudo -s -u hdfs oozie job -oozie $OOZIE -kill $WID
 fi
 
 echo "Assembling jar for $ENV"
@@ -27,9 +27,8 @@ mvn --settings profiles.xml -P$P -DskipTests -Duser.timezone=UTC clean install p
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
-hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
-hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
+sudo -s -u hdfs hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
+sudo -s -u hdfs hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
 echo -e "oozie.use.system.libpath=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=occurrence-download"  > job.properties
 
-oozie job --oozie $OOZIE -config job.properties -run
-
+sudo -s -u hdfs oozie job --oozie $OOZIE -config job.properties -run

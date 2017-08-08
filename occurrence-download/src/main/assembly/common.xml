@@ -67,6 +67,7 @@
         <include>org.apache.hbase:hbase-server:jar</include>
         <include>org.apache.hbase:hbase-protocol:jar</include>
         <include>org.apache.hbase:hbase-hadoop-compat:jar</include>
+        <include>com.yammer.metrics:metrics-core:jar</include>
         <include>org.apache.hive:hive-hbase-handler</include>
         <include>org.apache.hive:hive-serde</include>
         <include>org.apache.htrace:htrace-core:jar</include>
