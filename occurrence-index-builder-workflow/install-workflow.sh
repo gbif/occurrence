@@ -30,14 +30,14 @@ mvn --settings profiles.xml -Psolr,$P package assembly:single
 
 if hdfs dfs -test -d /occurrence-index-builder-$P/; then
    echo "Removing content of current Oozie workflow directory"
-   sudo -s -u hdfs hdfs dfs -rm -r -f /occurrence-index-builder-$P/*
+   sudo -u hdfs hdfs dfs -rm -r -f /occurrence-index-builder-$P/*
 else
    echo "Creating workflow directory"
-   sudo -s -u hdfs hdfs dfs -mkdir /occurrence-index-builder-$P/
+   sudo -u hdfs hdfs dfs -mkdir /occurrence-index-builder-$P/
 fi
 echo "Copying new Oozie workflow to HDFS"
-sudo -s -u hdfs hdfs dfs -copyFromLocal target/oozie-workflow/* /occurrence-index-builder-$P/
+sudo -u hdfs hdfs dfs -copyFromLocal target/oozie-workflow/* /occurrence-index-builder-$P/
 
 echo "Executing Oozie workflow"
-sudo -s -u hdfs oozie job --oozie ${oozie_url} -config $P.properties -run
+sudo -u hdfs oozie job --oozie ${oozie_url} -config $P.properties -run
 
