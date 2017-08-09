@@ -20,7 +20,7 @@ echo "HADOOP_LIBJAR" $HADOOP_LIBJAR
 
 if [ $IS_SINGLE_SHARD = true ] ; then
 
-hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
+sudo -u hdfs hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
 -libjars $HADOOP_LIBJAR --morphline-file avro_solr_occurrence_morphline.conf --output-dir $OUT_HDFS_DIR \
 --log4j log4j.properties --verbose --shards 1 --solr-home-dir solr/collection1/ "$AVRO_TABLE" \
 
@@ -29,7 +29,7 @@ else
 curl """$SOLR_HTTP_URL"/admin/collections?action=DELETE\&name="$SOLR_COLLECTION"""
 $SOLR_HOME/server/scripts/cloud-scripts/zkcli.sh  -zkhost $ZK_HOST -cmd upconfig -confname $SOLR_COLLECTION -confdir solr/collection1/conf/
 curl """$SOLR_HTTP_URL"/admin/collections?action=CREATE\&name="$SOLR_COLLECTION"\&"$SOLR_COLLECTION_OPTS"\&collection.configName="$SOLR_COLLECTION"""
-hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
+sudo -u hdfs hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
 -libjars $HADOOP_LIBJAR --morphline-file avro_solr_occurrence_morphline.conf \
 --zk-host $ZK_HOST --output-dir $OUT_HDFS_DIR \
 --collection $SOLR_COLLECTION --log4j log4j.properties \
