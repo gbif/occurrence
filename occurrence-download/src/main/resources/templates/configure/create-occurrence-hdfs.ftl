@@ -40,7 +40,8 @@ SELECT
   ${field.initializer}<#if field_has_next>,</#if>
 </#list>
 FROM occurrence_hbase;
-
+--Vectorized disable to avoid ArrayStoreException: org.joda.time.format.DateTimeFormatterBuilder$PaddedNumber
+SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
 SET hive.auto.convert.join=false;
 
@@ -57,3 +58,4 @@ FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM occurrence_hdfs occ)
 occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
 
 SET hive.auto.convert.join=true;
+SET hive.vectorized.execution.reduce.enabled=true;
