@@ -38,7 +38,7 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    properties.put(DownloadWorkflowParameters.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
+    properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {

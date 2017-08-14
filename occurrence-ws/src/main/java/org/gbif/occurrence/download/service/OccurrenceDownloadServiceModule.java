@@ -52,13 +52,17 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Provides
   @Singleton
   @Named("oozie.default_properties")
-  Map<String,String> providesDefaultParameters(@Named("environment") String environment, @Named("ws.url") String wsUrl,
-                                               @Named("hdfs.namenode") String nameNode) {
+  Map<String,String> providesDefaultParameters(@Named("environment") String environment,
+                                               @Named("ws.url") String wsUrl,
+                                               @Named("hdfs.namenode") String nameNode,
+                                               @Named("user.name") String userName) {
     return new ImmutableMap.Builder<String, String>()
-                                              .put(OozieClient.LIBPATH,String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,environment))
-                                               .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,environment))
-                                              .put(OozieClient.WORKFLOW_NOTIFICATION_URL, DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
-                                              .put(OozieClient.USER_NAME, Constants.OOZIE_USER)
-                                              .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
+      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, environment))
+      .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
+                                                          environment))
+      .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
+           DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
+      .put(OozieClient.USER_NAME, userName)
+      .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 }
