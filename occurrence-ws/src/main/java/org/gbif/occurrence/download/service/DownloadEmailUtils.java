@@ -1,8 +1,8 @@
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.common.User;
+import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.service.common.UserService;
+import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
 import org.gbif.occurrence.query.HumanFilterBuilder;
 import org.gbif.occurrence.query.TitleLookup;
@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
+import static freemarker.template.Configuration.VERSION_2_3_25;
+
 
 /**
  * Utility class that sends notification emails of occurrence downloads.
@@ -47,8 +49,8 @@ public class DownloadEmailUtils {
   private static final String SUCCESS_SUBJECT = "Your GBIF data download is ready";
   private static final String ERROR_SUBJECT = "Your GBIF data download failed";
 
-  private final Configuration freemarker = new Configuration();
-  private final UserService userService;
+  private final Configuration freemarker = new Configuration(VERSION_2_3_25);
+  private final IdentityAccessService identityAccessService;
   private final Set<Address> bccAddresses;
   private final URI portalUrl;
   private final Session session;
@@ -56,8 +58,8 @@ public class DownloadEmailUtils {
 
   @Inject
   public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("portal.url") String portalUrl,
-    UserService userService, Session session, TitleLookup titleLookup) {
-    this.userService = userService;
+                            IdentityAccessService identityAccessService, Session session, TitleLookup titleLookup) {
+    this.identityAccessService = identityAccessService;
     this.titleLookup = titleLookup;
     this.bccAddresses = Sets.newHashSet(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
     this.session = session;
@@ -113,7 +115,7 @@ public class DownloadEmailUtils {
     List<Address> emails = Lists.newArrayList();
     if (download.getRequest().getNotificationAddresses() == null
         || download.getRequest().getNotificationAddresses().isEmpty()) {
-      User user = userService.get(download.getRequest().getCreator());
+      GbifUser user = identityAccessService.get(download.getRequest().getCreator());
       if (user != null) {
         try {
           emails.add(new InternetAddress(user.getEmail()));
