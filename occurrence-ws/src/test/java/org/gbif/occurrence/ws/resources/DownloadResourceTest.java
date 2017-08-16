@@ -1,6 +1,6 @@
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.model.common.UserPrincipal;
+import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
@@ -55,7 +55,7 @@ public class DownloadResourceTest {
     DownloadRequestService service = mock(DownloadRequestService.class);
     OccurrenceDownloadService downloadService = mock(OccurrenceDownloadService.class);
     sec = mock(SecurityContext.class);
-    UserPrincipal userP = mock(UserPrincipal.class);
+    GbifUserPrincipal userP = mock(GbifUserPrincipal.class);
     when(userP.getName()).thenReturn(user);
     when(sec.getUserPrincipal()).thenReturn(userP);
 
