@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.67-SNAPSHOT</version>
+    <version>0.68-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -152,10 +152,6 @@
           <artifactId>javax.servlet-api</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>drupal-mybatis</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
