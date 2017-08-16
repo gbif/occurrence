@@ -151,7 +151,7 @@
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.31</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
-    <gbif-registry.version>2.68</gbif-registry.version>
+    <gbif-registry.version>2.69-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.56</checklistbank-ws-client.version>
     <name-parser.version>2.24</name-parser.version>
