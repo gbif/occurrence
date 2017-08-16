@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS occurrence_multimedia
 (gbifid INT,type STRING,format STRING,identifier STRING,references STRING,title STRING,description STRING,
 source STRING,audience STRING,created STRING,creator STRING,contributor STRING,
 publisher STRING,license STRING,rightsHolder STRING)
-STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
+STORED AS PARQUET;
 
 INSERT OVERWRITE TABLE occurrence_multimedia
 SELECT gbifid,cleanDelimiters(mm_record['type']),cleanDelimiters(mm_record['format']),cleanDelimiters(mm_record['identifier']),cleanDelimiters(mm_record['references']),cleanDelimiters(mm_record['title']),cleanDelimiters(mm_record['description']),cleanDelimiters(mm_record['source']),cleanDelimiters(mm_record['audience']),toISO8601(mm_record['created']),cleanDelimiters(mm_record['creator']),cleanDelimiters(mm_record['contributor']),cleanDelimiters(mm_record['publisher']),cleanDelimiters(mm_record['license']),cleanDelimiters(mm_record['rightsHolder'])
