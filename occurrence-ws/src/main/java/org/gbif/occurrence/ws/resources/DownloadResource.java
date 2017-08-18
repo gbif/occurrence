@@ -61,7 +61,7 @@ public class DownloadResource {
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
-    OccurrenceDownloadService occurrenceDownloadService) {
+                          OccurrenceDownloadService occurrenceDownloadService) {
     requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;

@@ -31,7 +31,6 @@ import com.google.common.collect.Range;
  */
 public class PredicateFactory {
 
-  private static final String POLYGON = "POLYGON((%s))";
   private static final String WILDCARD = "*";
 
   /**
@@ -53,9 +52,10 @@ public class PredicateFactory {
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       OccurrenceSearchParameter param = toEnumParam(p.getKey());
-      if (param != null) {
+      String[] values = p.getValue();
+      if (param != null && values != null && values.length > 0) {
         // valid parameter
-        Predicate predicate = buildParamPredicate(param, p.getValue());
+        Predicate predicate = buildParamPredicate(param, values);
         if (predicate != null) {
           groupedByParam.add(predicate);
         }
@@ -81,7 +81,7 @@ public class PredicateFactory {
    */
   private static OccurrenceSearchParameter toEnumParam(String name) {
     try {
-      return (OccurrenceSearchParameter) VocabularyUtils.lookupEnum(name, OccurrenceSearchParameter.class);
+      return VocabularyUtils.lookupEnum(name, OccurrenceSearchParameter.class);
     } catch (IllegalArgumentException e) {
       return null;
     }
@@ -118,7 +118,7 @@ public class PredicateFactory {
   private static Predicate parsePredicate(OccurrenceSearchParameter param, String value) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
-      return new WithinPredicate(String.format(POLYGON, value));
+      return new WithinPredicate(value);
     }
 
     // test for ranges

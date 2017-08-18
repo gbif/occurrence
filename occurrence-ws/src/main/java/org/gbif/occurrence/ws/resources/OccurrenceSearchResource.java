@@ -84,7 +84,6 @@ public class OccurrenceSearchResource {
                          @QueryParam("format") String format,
                          @Context SecurityContext securityContext) {
     String creator = assertUserAuthenticated(securityContext).getName();
-    checkNotNullParameter("notification_address", emails);
     checkNotNullParameter("format", format);
     checkNotNullParameter("creator", creator);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
