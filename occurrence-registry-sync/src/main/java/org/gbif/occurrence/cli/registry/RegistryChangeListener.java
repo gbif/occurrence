@@ -233,6 +233,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     scan.setCacheBlocks(false); // don't set to true for MR jobs (from HBase MapReduce Examples)
 
     String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
+    String mrUser = props.getProperty(SyncCommon.MR_USER_PROPS_KEY);
     String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
     String rawDatasetKey = null;
     if (datasetKey != null) {
@@ -247,6 +248,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
     try {
       Job job = Job.getInstance(conf, jobTitle);
+      job.setUser(mrUser);
       job.setJarByClass(OccurrenceScanMapper.class);
       job.setOutputFormatClass(NullOutputFormat.class);
       job.setNumReduceTasks(0);
@@ -259,8 +261,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       job.getConfiguration().set("mapreduce.map.java.opts", MR_MAP_JAVA_OPTS);
       job.getConfiguration().set("mapred.job.queue.name", MR_QUEUE_NAME);
 
-      if (targetTable == null) {
-        LOG.error("Sync m/r not properly configured (occ table not set) - aborting");
+      if (targetTable == null || mrUser == null) {
+        LOG.error("Sync m/r not properly configured (occ table or mapreduce user not set) - aborting");
       } else {
         // NOTE: addDependencyJars must be false or you'll see it trying to load hdfs://c1n1/home/user/app/lib/occurrence-cli.jar
         TableMapReduceUtil

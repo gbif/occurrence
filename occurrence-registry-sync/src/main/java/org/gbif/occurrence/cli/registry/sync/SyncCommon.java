@@ -18,6 +18,7 @@ public class SyncCommon {
 
   public static final String OCC_TABLE_PROPS_KEY = "occurrence.db.table_name";
   public static final String REG_WS_PROPS_KEY = "registry.ws.url";
+  public static final String MR_USER_PROPS_KEY = "occurrence.mapreduce.user";
   public static final String PROPS_FILE = "registry-sync.properties";
   public static final String PROPS_FILE_PATH_KEY = "sync.hdfs_config_path";
   public static final byte[] OCC_CF = Columns.CF;
