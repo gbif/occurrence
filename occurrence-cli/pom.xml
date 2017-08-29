@@ -20,15 +20,15 @@
   </distributionManagement>
 
   <properties>
-    <gbif-cli.version>0.12</gbif-cli.version>
+    <gbif-cli.version>0.13</gbif-cli.version>
 
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>
+    <jackson2-annotations.version>2.8.7</jackson2-annotations.version>
 
-    <!-- cli specific jackson versions in order to use yaml configs -->
-    <jackson.version>1.9.11</jackson.version>
-    <jackson-annotations.version>2.8.7</jackson-annotations.version>
-    <jackson-datatype-guava.version>1.9.1</jackson-datatype-guava.version>
+    <jackson.version>1.9.12</jackson.version>
+    <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
+
     <metainf-services.version>1.5</metainf-services.version>
   </properties>
 
@@ -131,7 +131,7 @@
            Jackson 2 because only that supports YAML so we have to use the annotations from Jackson 2 -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson-annotations.version}</version>
+      <version>${jackson2-annotations.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
