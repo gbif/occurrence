@@ -36,12 +36,10 @@ public class OccurrenceResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
   private final OccurrenceService occurrenceService;
-  private final FeaturedOccurrenceReader featuredOccurrenceReader;
 
   @Inject
-  public OccurrenceResource(OccurrenceService occurrenceService, FeaturedOccurrenceReader featuredOccurrenceReader) {
+  public OccurrenceResource(OccurrenceService occurrenceService) {
     this.occurrenceService = occurrenceService;
-    this.featuredOccurrenceReader = featuredOccurrenceReader;
   }
 
   /**
@@ -88,18 +86,15 @@ public class OccurrenceResource {
   }
 
   /**
-   * This is an HTTP only api call, to supply the stream of featured occurrences for the dots on the map.
-   * @return The page of featured occurrences which is randomized.
+   * Removed API call, which supported a stream of featured occurrences on the old GBIF.org homepage.
+   * @return An empty list.
    */
   @GET
   @Path("featured")
-  public List<FeaturedOccurrence> getFeaturedOccurrences() {
-    try {
-      return featuredOccurrenceReader.featuredOccurrences();
-    } catch (IOException e) {
-      LOG.error("Unable to read featured occurrences", e);
-      return Lists.newArrayList();
-    }
+  @Deprecated
+  public List<Object> getFeaturedOccurrences() {
+    LOG.warn("Featured occurrences have been removed.", e);
+    return Lists.newArrayList();
   }
 
   /**

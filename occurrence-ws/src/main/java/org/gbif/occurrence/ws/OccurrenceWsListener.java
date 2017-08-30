@@ -6,7 +6,6 @@ import org.gbif.occurrence.download.service.OccurrenceDownloadServiceModule;
 import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.occurrence.search.guice.OccurrenceSearchModule;
-import org.gbif.occurrence.ws.resources.FeaturedOccurrenceReader;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -43,32 +42,6 @@ public class OccurrenceWsListener extends GbifServletListener {
 
   private static final String PACKAGES = "org.gbif.occurrence.ws";
 
-  /**
-   * Wires up the featured module to be able to access the HBase table.
-   */
-  private static class FeaturedModule extends PrivateServiceModule {
-
-    private static final String PREFIX = "occurrence.db.";
-
-    public FeaturedModule(Properties properties) {
-      super(PREFIX, properties);
-    }
-
-    @SuppressWarnings("unused")
-    @Provides
-    @Named("featured_table_pool")
-    @Singleton
-    public Connection provideHTablePool(@Named("max_connection_pool") Integer maxConnectionPool) throws IOException {
-      return ConnectionFactory.createConnection(HBaseConfiguration.create());
-    }
-
-    @Override
-    protected void configureService() {
-      bind(FeaturedOccurrenceReader.class);
-      expose(FeaturedOccurrenceReader.class);
-    }
-  }
-
   public OccurrenceWsListener() throws IOException {
     super(PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE)),
             new WsJerseyModuleConfiguration()
@@ -98,7 +71,6 @@ public class OccurrenceWsListener extends GbifServletListener {
     modules.add(new OccurrenceSearchModule(properties));
     modules.add(new OccurrenceDownloadServiceModule(properties));
     modules.add(new TitleLookupModule(true, properties.getProperty("api.url")));
-    modules.add(new FeaturedModule(properties));
     return modules;
   }
 
