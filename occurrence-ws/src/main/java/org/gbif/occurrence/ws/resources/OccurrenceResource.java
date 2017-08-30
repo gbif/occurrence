@@ -93,7 +93,7 @@ public class OccurrenceResource {
   @Path("featured")
   @Deprecated
   public List<Object> getFeaturedOccurrences() {
-    LOG.warn("Featured occurrences have been removed.", e);
+    LOG.warn("Featured occurrences have been removed.");
     return Lists.newArrayList();
   }
 
