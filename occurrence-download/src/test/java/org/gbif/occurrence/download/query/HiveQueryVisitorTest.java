@@ -50,7 +50,7 @@ public class HiveQueryVisitorTest {
       new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
-      "(((taxonkey = 212 OR kingdomkey = 212 OR phylumkey = 212 OR classkey = 212 OR orderkey = 212 OR familykey = 212 OR genuskey = 212 OR subgenuskey = 212 OR specieskey = 212)) AND (countrycode = \'GB\') AND (scientificname LIKE \'Passer%\') AND (year <= 1989) AND (hascoordinate = true))",
+      "(((taxonkey = 212 OR kingdomkey = 212 OR phylumkey = 212 OR classkey = 212 OR orderkey = 212 OR familykey = 212 OR genuskey = 212 OR subgenuskey = 212 OR specieskey = 212)) AND (countrycode = \'GB\') AND (lower(scientificname) LIKE lower(\'Passer%\')) AND (year <= 1989) AND (hascoordinate = true))",
       where);
   }
 
@@ -61,7 +61,7 @@ public class HiveQueryVisitorTest {
 
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("((catalognumber = \'value_1\') AND (institutioncode = \'value_2\'))"));
+    assertThat(query, equalTo("((lower(catalognumber) = lower(\'value_1\')) AND (lower(institutioncode) = lower(\'value_2\')))"));
   }
 
   @Test
@@ -71,14 +71,14 @@ public class HiveQueryVisitorTest {
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("((catalognumber = \'value_1\') OR (institutioncode = \'value_2\'))"));
+    assertThat(query, equalTo("((lower(catalognumber) = lower(\'value_1\')) OR (lower(institutioncode) = lower(\'value_2\')))"));
   }
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(PARAM, "value");
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("catalognumber = \'value\'"));
+    assertThat(query, equalTo("lower(catalognumber) = lower(\'value\')"));
   }
 
   @Test
@@ -100,7 +100,7 @@ public class HiveQueryVisitorTest {
     Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("((catalognumber = \'value_1\') OR (catalognumber = \'value_2\') OR (catalognumber = \'value_3\'))"));
+      equalTo("((lower(catalognumber) = lower(\'value_1\')) OR (lower(catalognumber) = lower(\'value_2\')) OR (lower(catalognumber) = lower(\'value_3\')))"));
   }
 
   @Test
@@ -121,7 +121,7 @@ public class HiveQueryVisitorTest {
   public void testNotPredicate() throws QueryBuildingException {
     Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("NOT catalognumber = \'value\'"));
+    assertThat(query, equalTo("NOT lower(catalognumber) = lower(\'value\')"));
   }
 
   @Test
@@ -133,14 +133,14 @@ public class HiveQueryVisitorTest {
 
     Predicate p = new NotPredicate(cp);
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("NOT ((catalognumber = \'value_1\') AND (institutioncode = \'value_2\'))"));
+    assertThat(query, equalTo("NOT ((lower(catalognumber) = lower(\'value_1\')) AND (lower(institutioncode) = lower(\'value_2\')))"));
   }
 
   @Test
   public void testQuotes() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(PARAM, "my \'pleasure\'");
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("catalognumber = \'my \\\'pleasure\\\'\'"));
+    assertThat(query, equalTo("lower(catalognumber) = lower(\'my \\\'pleasure\\\'\')"));
 
     p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "101");
     query = visitor.getHiveQuery(p);
@@ -163,7 +163,7 @@ public class HiveQueryVisitorTest {
   public void testIsNotNullPredicate() throws QueryBuildingException {
     Predicate p = new IsNotNullPredicate(PARAM);
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("catalognumber IS NOT NULL "));
+    assertThat(query, equalTo("lower(catalognumber) IS NOT NULL "));
   }
 
   @Test

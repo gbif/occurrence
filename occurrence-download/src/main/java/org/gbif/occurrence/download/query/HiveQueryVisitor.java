@@ -152,9 +152,20 @@ public class HiveQueryVisitor {
 
   private StringBuilder builder;
 
+  /**
+   * Transforms the value to the Hive statement lower(val).
+   */
+  private static String toHiveLower(String val) {
+    return "lower(" + val + ")";
+  }
+
   private static String toHiveField(OccurrenceSearchParameter param) {
     if (PARAM_TO_TERM.containsKey(param)) {
-      return HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
+      String hiveCol = HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param) {
+        return toHiveLower(hiveCol);
+      }
+      return hiveCol;
     }
     // QueryBuildingException requires an underlying exception
     throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive");
@@ -181,12 +192,16 @@ public class HiveQueryVisitor {
       return String.valueOf(d.getTime());
 
     } else if (Number.class.isAssignableFrom(param.type()) || Boolean.class.isAssignableFrom(param.type())) {
-      // dont quote numbers
+      // do not quote numbers
       return value;
 
     } else {
       // quote value, escape existing quotes
-      return '\'' + APOSTROPHE_MATCHER.replaceFrom(value, "\\\'") + '\'';
+      String strVal =  '\'' + APOSTROPHE_MATCHER.replaceFrom(value, "\\\'") + '\'';
+      if (OccurrenceSearchParameter.GEOMETRY != param) {
+        return toHiveLower(strVal);
+      }
+      return strVal;
     }
   }
 
