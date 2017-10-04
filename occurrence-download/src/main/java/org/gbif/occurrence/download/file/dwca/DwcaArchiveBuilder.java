@@ -333,6 +333,7 @@ public class DwcaArchiveBuilder {
   protected DataDescription createDataDescription() {
     // link back to archive
     DataDescription dataDescription = new DataDescription();
+    dataDescription.setName(DATA_DESC_FORMAT);
     dataDescription.setFormat(DATA_DESC_FORMAT);
     dataDescription.setCharset(Charsets.UTF_8.displayName());
     try {
