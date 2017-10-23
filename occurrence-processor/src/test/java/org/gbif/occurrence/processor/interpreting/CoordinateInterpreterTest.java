@@ -297,14 +297,14 @@ public class CoordinateInterpreterTest {
     assertCountry(-29.03, 167.95, Country.AUSTRALIA, Country.NORFOLK_ISLAND, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
 
     // Data from French Polynesia is sometimes labelled as France
-    assertCountry(-17.65, -149.46, Country.FRANCE, Country.FRENCH_POLYNESIA, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    assertCountry(-17.65, -149.46, Country.FRANCE, Country.FRENCH_POLYNESIA);
     // Data submitted with France but in Réunion will be changed to Réunion.
     assertCountry(-21.1144, 55.5325, Country.FRANCE, Country.RÉUNION);
 
     // Data from Palestine is sometimes labelled Israel
     assertCountry(32.0, 35.0, Country.ISRAEL, Country.PALESTINIAN_TERRITORY, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
 
-    // Western Sahara is Morocco; don't add an issue.
+    // Western Sahara / Morocco; don't add an issue.
     assertCountry(27.15, -13.20, Country.WESTERN_SAHARA, Country.MOROCCO);
   }
 

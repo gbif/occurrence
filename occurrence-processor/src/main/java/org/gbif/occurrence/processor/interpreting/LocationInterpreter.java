@@ -14,7 +14,6 @@ import org.gbif.common.parsers.geospatial.DoubleAccuracy;
 import org.gbif.common.parsers.geospatial.MeterRangeParser;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
-import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 
 import java.io.Serializable;
 
@@ -144,7 +143,7 @@ public class LocationInterpreter implements Serializable {
     OccurrenceParseResult<Country>
       inter = interpretCountry(verbatim.getVerbatimField(DwcTerm.countryCode),
       verbatim.getVerbatimField(DwcTerm.country));
-    occ.setCountry(CountryMaps.preferred(inter.getPayload()));
+    occ.setCountry(inter.getPayload());
     occ.getIssues().addAll(inter.getIssues());
     return occ.getCountry();
   }
@@ -177,6 +176,7 @@ public class LocationInterpreter implements Serializable {
       // If the country returned by the co-ordinate interpreter is different, then it's an acceptable
       // swap (e.g. Réunion→France).
       if (country == null || (country != parsedCoord.getPayload().getCountry())) {
+        LOG.debug("Swapping provided {} for georeferenced {}", country, parsedCoord.getPayload().getCountry());
         occ.setCountry(parsedCoord.getPayload().getCountry());
       }
 

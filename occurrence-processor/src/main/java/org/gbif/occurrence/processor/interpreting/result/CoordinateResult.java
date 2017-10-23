@@ -1,5 +1,7 @@
 package org.gbif.occurrence.processor.interpreting.result;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.common.parsers.geospatial.LatLng;
 
@@ -53,5 +55,13 @@ public class CoordinateResult {
     return Objects.equal(this.latitude, other.latitude)
            && Objects.equal(this.longitude, other.longitude)
            && Objects.equal(this.country, other.country);
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+        .append("country", getCountry())
+        .append("latitude", getLatitude())
+        .append("longitude", getLongitude()).toString();
   }
 }

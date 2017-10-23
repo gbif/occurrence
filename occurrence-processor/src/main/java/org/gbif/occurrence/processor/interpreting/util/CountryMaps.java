@@ -39,8 +39,6 @@ public class CountryMaps {
   // And this is the same, but without the issue — we aren't exactly following ISO, but we accept it.
   private static final Map<Country, Set<Country>> EQUIVALENT_COUNTRIES = Maps.newHashMap();
 
-  private static final Map<Country, Country> PREFERRED_COUNTRIES = Maps.newHashMap();
-
   static {
 
     InputStream in = CountryMaps.class.getClassLoader().getResourceAsStream(CONFUSED_COUNTRY_FILE);
@@ -56,16 +54,6 @@ public class CountryMaps {
           LOG.info("Adding [{}][{}] ({}) pair to confused country matches.", countryA, countryB, addIssue ? "with issue" : "without issue");
           addConfusedCountry(countryA, countryB, addIssue);
           addConfusedCountry(countryB, countryA, addIssue);
-
-          if (!addIssue) {
-            if (PREFERRED_COUNTRIES.containsKey(countryA)) {
-              LOG.info("Multiple preferred mappings from country [{}] (this time [{}]), disabling preference.", countryA, countryB);
-              PREFERRED_COUNTRIES.put(countryA, countryA);
-            } else {
-              LOG.info("Adding [{}][{}] to preferred country map.", countryA, countryB);
-              PREFERRED_COUNTRIES.put(countryA, countryB);
-            }
-          }
         }
       }
     } catch (IOException e) {
@@ -100,14 +88,5 @@ public class CountryMaps {
 
   public static Set<Country> confused(final Country country) {
     return CONFUSED_COUNTRIES.get(country);
-  }
-
-  public static Country preferred(final Country country) {
-    Country c = PREFERRED_COUNTRIES.get(country);
-    if (c == null) {
-      return country;
-    } else {
-      return c;
-    }
   }
 }

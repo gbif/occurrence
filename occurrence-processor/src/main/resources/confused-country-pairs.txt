@@ -4,16 +4,14 @@
 # If GBIF's usage of the ISO code / country varies from the standard, we don't add the issue.
 # At present, this is only done for Western Sahara.
 # This change is also done for occurrences without co-ordinates.
+#
 # If the ISO standard includes regions at more than one level, in some cases we don't add the issue.
-# At present, this is done for the French overseas departments (GP=FR-GP, etc).
+# At present, this is done for the French overseas departments (GP=FR-GP, etc) and Kosovo (XK=RS-KM).
 #
 # Record counts are approximate, from January 2016.
 #
 # XX,YY,add_issue
 #
-
-# Northern Ireland is often marked as Ireland.
-IE,GB,true
 
 # Australia
 # Christmas Island, 10000+ records
@@ -40,36 +38,33 @@ GL,DK,true
 AX,FI,true
 
 # French overseas departments: Guadeloupe, French Guiana, Martinique, Réunion, Mayotte
+# French overseas collectivities: French Polynesia, Saint Pierre and Miquelon, Wallis and Futuna, Saint Martin, Saint Barthélemy.
+# French special collectivity: New Caledonia. 7,600 records.
+# French overseas territory: French Southern and Antarctic Lands. 60 records.
 # Accept either code, since ISO 3166-2:FR also includes codes for these places (FR-GP, FR-GF etc).
 FR,GP,false
 FR,GF,false
 FR,MQ,false
 FR,RE,false
 FR,YT,false
+FR,PF,false
+FR,PM,false
+FR,WF,false
+FR,MF,false
+FR,BL,false
+FR,NC,false
+FR,TF,false
+# (NB TF includes the Scattered Islands in the Indian Ocean: https://en.wikipedia.org/wiki/Scattered_Islands_in_the_Indian_Ocean )
 
-# French overseas collectivites: French Polynesia, Saint Pierre and Miquelon, Wallis and Futuna, Saint Martin, Saint Barthélemy.
-# (All included for consistency, but with an issue, since we are using these the ISO way.)
-# French Polynesia, 307.
-PF,FR,true
-# Saint Pierre and Miquelon, 26.
-PM,FR,true
-# Wallis and Futuna, 4000 records
-WF,FR,true
-# Saint Martin, 53 records
-MF,FR,true
-# Saint Barthélemy, 2 records
-BL,FR,true
-
-# French special collectivity: New Caledonia. 7,600 records.
-NC,FR,true
-
-# French overseas territory: French Southern and Antarctic Lands. 60 records.
-TF,FR,true
-# (NB this includes the Scattered Islands in the Indian Ocean: https://en.wikipedia.org/wiki/Scattered_Islands_in_the_Indian_Ocean )
+# Northern Ireland is often marked as Ireland.
+IE,GB,true
 
 # Isreal and Palestine
 # Difficult to count, probably around 15,000-20,000
 IL,PS,true
+
+# Accept either code for Kosovo
+XK,RS,false
 
 # Morocco
 # Western Sahara, 571 records.  Either ISO code accepted.
