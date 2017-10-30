@@ -39,5 +39,5 @@ echo "Copying new Oozie workflow to HDFS"
 sudo -u hdfs hdfs dfs -copyFromLocal target/oozie-workflow/* /occurrence-index-builder-$P/
 
 echo "Executing Oozie workflow"
-sudo -u hdfs oozie job --oozie ${oozie_url} -config $P.properties -run
+sudo -u yarn oozie job --oozie ${oozie_url} -config $P.properties -run
 

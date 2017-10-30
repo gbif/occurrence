@@ -46,8 +46,7 @@
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="double" class="solr.TrieDoubleField"
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
-    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" normWrapLongitude="true"/>
-    <fieldType name="coordinate_map" class="solr.SpatialRecursivePrefixTreeFieldType" geo="false" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="degrees" autoIndex="true"  sortMissingLast="true" prefixTree="packedQuad" normWrapLongitude="true"/>
+    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -110,7 +109,6 @@
     <field name="continent" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="publishing_country" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="coordinate" type="coordinate" indexed="true" stored="false" />
-    <field name="coordinate_map" type="coordinate_map" indexed="true" stored="false" />
     <field name="spatial_issues" type="boolean" indexed="true" stored="false" />
     <field name="has_coordinate" type="boolean" indexed="true" stored="false" />
     <field name="latitude" type="double" indexed="true" stored="false" />
