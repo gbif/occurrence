@@ -73,7 +73,7 @@ public class SolrQueryVisitor {
   private static final String GREATER_THAN_EQUALS_OPERATOR = "[%s TO *]";
   private static final String LESS_THAN_OPERATOR = "[* TO %s}";
   private static final String LESS_THAN_EQUALS_OPERATOR = "[* TO %s]";
-  private static final String NOT_OPERATOR = "-";
+  private static final String NOT_OPERATOR = "*:* NOT ";
   private static final String NOT_NULL_COMPARISON = ":*";
 
   private StringBuilder builder;
@@ -179,8 +179,10 @@ public class SolrQueryVisitor {
 
   // TODO: This probably won't work without a bit more intelligence
   public void visit(NotPredicate predicate) throws QueryBuildingException {
+    builder.append('(');
     builder.append(NOT_OPERATOR);
     visit(predicate.getPredicate());
+    builder.append(')');
   }
 
   public void visit(WithinPredicate within) {

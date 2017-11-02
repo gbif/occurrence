@@ -105,7 +105,7 @@ public class SolrQueryVisitorTest {
   public void testNotPredicate() throws QueryBuildingException {
     Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("-catalog_number:value"));
+    assertThat(query, equalTo("(*:* NOT catalog_number:value)"));
   }
 
   @Test
@@ -124,7 +124,7 @@ public class SolrQueryVisitorTest {
 
     Predicate p = new NotPredicate(cp);
     String query = visitor.getQuery(p);
-    assertThat(query, equalTo("-((catalog_number:value_1) AND (institution_code:value_2))"));
+    assertThat(query, equalTo("(*:* NOT ((catalog_number:value_1) AND (institution_code:value_2)))"));
 
 
   }

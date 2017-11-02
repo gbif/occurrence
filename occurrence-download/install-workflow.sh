@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #exit on any failure
 set -e
 
