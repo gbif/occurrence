@@ -13,6 +13,10 @@
         <name>oozie.launcher.mapred.job.queue.name</name>
         <value>download-admin</value>
       </property>
+      <property>
+        <name>mapred.job.queue.name</name>
+        <value>download-admin</value>
+      </property>
     </configuration>
   </global>
 
