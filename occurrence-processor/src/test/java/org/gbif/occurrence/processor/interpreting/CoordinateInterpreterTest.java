@@ -302,7 +302,7 @@ public class CoordinateInterpreterTest {
     assertCountry(-21.1144, 55.5325, Country.FRANCE, Country.RÉUNION);
 
     // Data from Palestine is sometimes labelled Israel
-    assertCountry(32.0, 35.0, Country.ISRAEL, Country.PALESTINIAN_TERRITORY, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+    assertCountry(32.0, 35.25, Country.ISRAEL, Country.PALESTINIAN_TERRITORY, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
 
     // Western Sahara / Morocco; don't add an issue.
     assertCountry(27.15, -13.20, Country.WESTERN_SAHARA, Country.MOROCCO);
