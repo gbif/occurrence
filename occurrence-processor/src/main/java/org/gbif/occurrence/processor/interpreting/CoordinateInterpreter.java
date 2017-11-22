@@ -117,13 +117,14 @@ public class CoordinateInterpreter {
 
     // Try each possible way of transforming the co-ordinates; the first is the identity transform.
     OccurrenceParseResult<LatLng> interpretedLatLon = null;
+    boolean identityTransform = true;
     for (Map.Entry<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> geospatialTransform : TRANSFORMS.entrySet()) {
       BiFunction<Double, Double, LatLng> transform = geospatialTransform.getValue();
       List<OccurrenceIssue> transformIssues = geospatialTransform.getKey();
 
       LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
       List<Country> latLngCountries = getCountryForLatLng(tCoord);
-      Country matchCountry = matchCountry(country, latLngCountries, issues);
+      Country matchCountry = matchCountry(country, latLngCountries, issues, identityTransform);
       if (country == null || matchCountry != null) {
         // Either we don't have a country, in which case we don't want to try anything other than
         // the initial identity transform, or we have a match from this transform.
@@ -140,6 +141,8 @@ public class CoordinateInterpreter {
         interpretedLatLon = OccurrenceParseResult.fail(tCoord, transformIssues);
         break;
       }
+
+      identityTransform = false;
     }
 
     if (interpretedLatLon == null) {
@@ -162,7 +165,7 @@ public class CoordinateInterpreter {
   /**
    * @return true if the given country (or its oft-confused neighbours) is one of the potential countries given
    */
-  private static Country matchCountry(Country country, List<Country> potentialCountries, Set<OccurrenceIssue> issues) {
+  private static Country matchCountry(Country country, List<Country> potentialCountries, Set<OccurrenceIssue> issues, boolean identityTransform) {
     // If we don't have a supplied country, just return the first
     if (country == null && potentialCountries.size() > 0) {
       return potentialCountries.get(0);
@@ -173,26 +176,31 @@ public class CoordinateInterpreter {
       return country;
     }
 
-    // Then check with acceptable equivalent countries — no issue is added.
-    Set<Country> equivalentCountries = CountryMaps.equivalent(country);
-    if (equivalentCountries != null) {
-      for (Country pCountry : potentialCountries) {
-        if (equivalentCountries.contains(pCountry)) {
-          return pCountry;
+    // Only use the country equivalences if the coordinates haven't been changed.
+    if (identityTransform) {
+
+      // Then check with acceptable equivalent countries — no issue is added.
+      Set<Country> equivalentCountries = CountryMaps.equivalent(country);
+      if (equivalentCountries != null) {
+        for (Country pCountry : potentialCountries) {
+          if (equivalentCountries.contains(pCountry)) {
+            return pCountry;
+          }
+        }
+      }
+
+      // Then also check with commonly confused neighbours — an issue is added.
+      Set<Country> confusedCountries = CountryMaps.confused(country);
+      if (confusedCountries != null) {
+        for (Country pCountry : potentialCountries) {
+          if (confusedCountries.contains(pCountry)) {
+            issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+            return pCountry;
+          }
         }
       }
     }
 
-    // Then also check with commonly confused neighbours — an issue is added.
-    Set<Country> confusedCountries = CountryMaps.confused(country);
-    if (confusedCountries != null) {
-      for (Country pCountry : potentialCountries) {
-        if (confusedCountries.contains(pCountry)) {
-          issues.add(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-          return pCountry;
-        }
-      }
-    }
     return null;
   }
 

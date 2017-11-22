@@ -251,13 +251,11 @@ public class CoordinateInterpreterTest {
 
   @Test
   public void testConfusedCountryWithBadCoordinates() {
-    // Belfast is UK
-    assertCountry(54.597, -5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
-    // "Belfast" with negated/swapped coordinates is still the UK.
-    assertCountry(-54.597, -5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LATITUDE);
-    assertCountry(54.597, 5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE);
-    assertCountry(-54.597, 5.93, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE);
-    assertCountry(-5.93, 54.597, Country.IRELAND, 54.597, -5.93, Country.UNITED_KINGDOM, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES, OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE);
+    // https://www.gbif.org/occurrence/656979971 — says United States, but coordinates are Northern Mariana Islands
+    assertCountry(15.1030, 145.7410, Country.UNITED_STATES, Country.NORTHERN_MARIANA_ISLANDS, OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES);
+
+    // https://www.gbif.org/occurrence/1316597083 — says United States, coordinates are simply wrong, and shouldn't be negated to land on the Northern Mariana Islands.
+    assertCountry(-17.35, -149.25, Country.UNITED_STATES, Country.UNITED_STATES, OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
   }
 
   @Test
