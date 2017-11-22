@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -45,19 +46,17 @@ public class CoordinateInterpreter {
   private static final int RETRY_PERIOD_MSEC = 2000;
 
   // Coordinate transformations to attempt in order
-  private static final Map<List<OccurrenceIssue>, Lambda> TRANSFORMS = new LinkedHashMap<>();
-  interface Lambda { LatLng apply(Double lat, Double lng); } // Revert the commit introducing this line once we are on Java 8.
+  private static final Map<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> TRANSFORMS = new LinkedHashMap<>();
 
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
 
   static {
-    // These can use neater Java 8 lambda expressions once we've upgraded.
-    TRANSFORMS.put(Collections.<OccurrenceIssue>emptyList(), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, lng); }});
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, lng); }});
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lat, -1 * lng); }});
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(-1 * lat, -1 * lng); }});
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), new Lambda() { @Override public LatLng apply(Double lat, Double lng) { return new LatLng(lng, lat); }});
+    TRANSFORMS.put(Collections.emptyList(), (lat, lng) -> new LatLng(lat, lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), (lat, lng) -> new LatLng(-1 * lat, lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(lat, -1 * lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(-1 * lat, -1 * lng));
+    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), (lat, lng) -> new LatLng(lng, lat));
   }
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
@@ -118,8 +117,8 @@ public class CoordinateInterpreter {
 
     // Try each possible way of transforming the co-ordinates; the first is the identity transform.
     OccurrenceParseResult<LatLng> interpretedLatLon = null;
-    for (Map.Entry<List<OccurrenceIssue>, Lambda> geospatialTransform : TRANSFORMS.entrySet()) {
-      Lambda transform = geospatialTransform.getValue();
+    for (Map.Entry<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> geospatialTransform : TRANSFORMS.entrySet()) {
+      BiFunction<Double, Double, LatLng> transform = geospatialTransform.getValue();
       List<OccurrenceIssue> transformIssues = geospatialTransform.getKey();
 
       LatLng tCoord = transform.apply(coord.getLat(), coord.getLng());
