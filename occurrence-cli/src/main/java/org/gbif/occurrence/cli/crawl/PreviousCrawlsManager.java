@@ -163,9 +163,9 @@ public class PreviousCrawlsManager {
       return false;
     }
 
-    // If it concluded in anything other than a success we skip auto deletion
-    if (datasetRecordCountInfo.getFinishReason() != FinishReason.NORMAL ||
-        datasetRecordCountInfo.getFinishReason() != FinishReason.NOT_MODIFIED) {
+    // If it concluded in anything other than a success we skip auto deletion (e.g. could be running now)
+    if (!(datasetRecordCountInfo.getFinishReason() == FinishReason.NORMAL ||
+        datasetRecordCountInfo.getFinishReason() == FinishReason.NOT_MODIFIED)) {
       return false;
     }
 
@@ -174,7 +174,8 @@ public class PreviousCrawlsManager {
     // and when record IDs are reused within a dataset.
     long recordCountDiff = Math.abs(datasetRecordCountInfo.getLastCrawlCount()
                                     - datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
-    if ((recordCountDiff / datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) * 100 >
+    if (recordCountDiff > 0 && datasetRecordCountInfo.getLastCrawlFragmentEmittedCount() > 0 &&
+        (recordCountDiff / datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) * 100 >
         config.automaticRecordDeletionThreshold) {
       LOG.info("Dataset {} -> No automatic deletion. "
                + "Crawl lastCrawlCount differs from lastCrawlFragmentEmittedCount by too much which may indicate an " +

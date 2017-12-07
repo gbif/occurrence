@@ -1,5 +1,7 @@
 package org.gbif.occurrence.cli.crawl;
 
+import org.gbif.api.model.crawler.FinishReason;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -56,6 +58,7 @@ public class PreviousCrawlsManagerServiceTest {
   private DatasetRecordCountInfo getDatasetRecordCountInfo() {
     DatasetRecordCountInfo drci = new DatasetRecordCountInfo();
     drci.setDatasetKey(UUID.randomUUID());
+    drci.setFinishReason(FinishReason.NORMAL);
     return drci;
   }
 
