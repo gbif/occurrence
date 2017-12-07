@@ -1,5 +1,7 @@
 package org.gbif.occurrence.cli.crawl;
 
+import org.gbif.api.model.crawler.FinishReason;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +17,7 @@ class DatasetRecordCountInfo {
   private int lastCrawlCount;
   private int recordCount;
   private long lastCrawlFragmentEmittedCount;
+  private FinishReason finishReason;
 
   private List<DatasetCrawlInfo> crawlInfo = new ArrayList<>();
 
@@ -51,6 +54,14 @@ class DatasetRecordCountInfo {
 
   public void setLastCrawlFragmentEmittedCount(long lastCrawlFragmentEmittedCount) {
     this.lastCrawlFragmentEmittedCount = lastCrawlFragmentEmittedCount;
+  }
+
+  public void setFinishReason(FinishReason finishReason) {
+    this.finishReason = finishReason;
+  }
+
+  public FinishReason getFinishReason() {
+    return finishReason;
   }
 
   private void computeCrawlData(List<DatasetCrawlInfo> crawlInfo) {
@@ -98,6 +109,7 @@ class DatasetRecordCountInfo {
             ", lastCrawlCount: " + lastCrawlCount +
             ", recordCount: " + recordCount +
             ", lastCrawlFragmentEmittedCount: " + lastCrawlFragmentEmittedCount +
+            ", finishReason: " + finishReason +
             ", crawlInfo: {" + crawlInfo + "}";
   }
 

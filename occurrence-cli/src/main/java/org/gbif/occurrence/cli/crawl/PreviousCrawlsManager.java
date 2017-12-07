@@ -1,6 +1,7 @@
 package org.gbif.occurrence.cli.crawl;
 
 import org.gbif.api.model.crawler.DatasetProcessStatus;
+import org.gbif.api.model.crawler.FinishReason;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.DatasetProcessStatusService;
 
@@ -162,18 +163,34 @@ public class PreviousCrawlsManager {
       return false;
     }
 
-    if (datasetRecordCountInfo.getLastCrawlCount() != datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) {
-      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              " -> No automatic deletion. Crawl lastCrawlCount != lastCrawlFragmentEmittedCount which may indicate an " +
-              " incomplete or bad crawl. lastCrawlCount:" + datasetRecordCountInfo.getLastCrawlCount() +
-              ", lastCrawlFragmentEmittedCount" + datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
+    // If it concluded in anything other than a success we skip auto deletion
+    if (datasetRecordCountInfo.getFinishReason() != FinishReason.NORMAL ||
+        datasetRecordCountInfo.getFinishReason() != FinishReason.NOT_MODIFIED) {
+      return false;
+    }
+
+    // Tolerate a difference in framgent count and record count since some datasets hold small numbers of duplicates
+    // which are seen as an insert followed by updates.  This occurs when paging crawling hits the same records
+    // and when record IDs are reused within a dataset.
+    long recordCountDiff = Math.abs(datasetRecordCountInfo.getLastCrawlCount()
+                                    - datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
+    if ((recordCountDiff / datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) * 100 >
+        config.automaticRecordDeletionThreshold) {
+      LOG.info("Dataset {} -> No automatic deletion. "
+               + "Crawl lastCrawlCount differs from lastCrawlFragmentEmittedCount by too much which may indicate an " +
+              " incomplete or bad crawl. lastCrawlCount: {}, lastCrawlFragmentEmittedCount: {}",
+               datasetRecordCountInfo.getDatasetKey(),
+               datasetRecordCountInfo.getLastCrawlCount(),
+               datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
       return false;
     }
 
     if (datasetRecordCountInfo.getPercentagePreviousCrawls() > config.automaticRecordDeletionThreshold) {
-      LOG.info("Dataset " + datasetRecordCountInfo.getDatasetKey() +
-              "-> No automatic deletion. Percentage of records to remove (" + datasetRecordCountInfo.getPercentagePreviousCrawls() +
-              "% ) higher than the configured threshold (" + config.automaticRecordDeletionThreshold + "%).");
+      LOG.info("Dataset {} -> No automatic deletion. "
+               + "Percentage of records to remove ({}%) higher than the configured threshold ({}%).",
+               datasetRecordCountInfo.getDatasetKey(),
+               datasetRecordCountInfo.getPercentagePreviousCrawls(),
+               config.automaticRecordDeletionThreshold);
       return false;
     }
     return true;
@@ -257,6 +274,7 @@ public class PreviousCrawlsManager {
     DatasetProcessStatus lastCompletedCrawl = datasetProcessStatusService.getDatasetProcessStatus(datasetRecordCountInfo.getDatasetKey(),
             datasetRecordCountInfo.getLastCrawlId());
     if (lastCompletedCrawl != null) {
+      datasetRecordCountInfo.setFinishReason(lastCompletedCrawl.getFinishReason());
       datasetRecordCountInfo.setLastCrawlFragmentEmittedCount(lastCompletedCrawl.getFragmentsEmitted());
     }
     return datasetRecordCountInfo;
