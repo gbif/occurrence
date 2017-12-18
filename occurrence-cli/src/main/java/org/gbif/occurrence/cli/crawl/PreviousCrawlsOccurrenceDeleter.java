@@ -37,7 +37,7 @@ class PreviousCrawlsOccurrenceDeleter {
   private MessagePublisher publisher;
   private DatasetService datasetService;
 
-  // we use a smaller than (<) instead of not equals (<>) to avoid deleting records of a potential new crawl
+  // we use a smaller than (<) instead of not equal (<>) to avoid deleting records of a potential new crawl
   // that started
   private static final String SQL_QUERY_GET_OTHER_CRAWL_ID = "SELECT gbifId, crawlId FROM " +
           " %s WHERE datasetKey = ? AND crawlId < ?";

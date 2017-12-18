@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Manager that checks for previous crawls and sends delete messages if predefined conditions are met.
@@ -102,12 +103,15 @@ public class PreviousCrawlsManager {
    * @return
    */
   private DatasetRecordCountInfo manageSingleDataset(UUID datasetKey) {
+    MDC.put(DATASET_KEY_LBL, datasetKey.toString());
     DatasetRecordCountInfo datasetRecordCountInfo = getDatasetCrawlInfo(datasetKey);
     if (shouldRunAutomaticDeletion(datasetRecordCountInfo)) {
       int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(datasetKey,
               datasetRecordCountInfo.getLastCrawlId());
-      LOG.info("Number Of Delete message emitted: " + numberOfMessageEmitted);
+      LOG.info("Number of delete message emitted: {}", numberOfMessageEmitted);
+      LOG.info("Deletion report: {}", datasetRecordCountInfo);
     }
+    MDC.remove(DATASET_KEY_LBL);
     return datasetRecordCountInfo;
   }
 
@@ -132,15 +136,17 @@ public class PreviousCrawlsManager {
       allDatasetWithMoreThanOneCrawl.entrySet()
               .stream()
               .map(Map.Entry::getValue)
+              .peek(drci -> MDC.put(DATASET_KEY_LBL, drci.getDatasetKey().toString()))
               .filter(this::shouldRunAutomaticDeletion)
               .limit(config.datasetAutodeletionLimit)
               .forEach(drci -> {
                 int numberOfMessageEmitted = deletePreviousCrawlsService.deleteOccurrenceInPreviousCrawls(
                         drci.getDatasetKey(), drci.getLastCrawlId());
-                LOG.info("Number Of Delete message emitted for dataset " + drci.getDatasetKey() +
-                        ": " + numberOfMessageEmitted);
+                LOG.info("Number of delete message emitted for dataset {}: {}", drci.getDatasetKey(), numberOfMessageEmitted);
+                LOG.info("Deletion report: {}", drci);
               });
     }
+    MDC.remove(DATASET_KEY_LBL);
     return allDatasetWithMoreThanOneCrawl;
   }
 
@@ -156,20 +162,25 @@ public class PreviousCrawlsManager {
   protected boolean shouldRunAutomaticDeletion(DatasetRecordCountInfo datasetRecordCountInfo) {
 
     if (config.forceDelete) {
+      LOG.info("Dataset {} → Force automatic deletion.", datasetRecordCountInfo.getDatasetKey());
       return true;
     }
 
     if (!config.delete) {
+      LOG.info("Dataset {} → No deletion by configuration.", datasetRecordCountInfo.getDatasetKey());
       return false;
     }
 
-    // If it concluded in anything other than a success we skip auto deletion (e.g. could be running now)
+    // If it concluded anything other than success we skip auto deletion (e.g. could be running now)
     if (!(datasetRecordCountInfo.getFinishReason() == FinishReason.NORMAL ||
         datasetRecordCountInfo.getFinishReason() == FinishReason.NOT_MODIFIED)) {
+      LOG.info("Dataset {} → No deletion, most recent crawl is {}.",
+          datasetRecordCountInfo.getDatasetKey(),
+          datasetRecordCountInfo.getFinishReason());
       return false;
     }
 
-    // Tolerate a difference in framgent count and record count since some datasets hold small numbers of duplicates
+    // Tolerate a difference in fragment count and record count since some datasets hold small numbers of duplicates
     // which are seen as an insert followed by updates.  This occurs when paging crawling hits the same records
     // and when record IDs are reused within a dataset.
     long recordCountDiff = Math.abs(datasetRecordCountInfo.getLastCrawlCount()
@@ -177,9 +188,9 @@ public class PreviousCrawlsManager {
     if (recordCountDiff > 0 && datasetRecordCountInfo.getLastCrawlFragmentEmittedCount() > 0 &&
         (recordCountDiff / datasetRecordCountInfo.getLastCrawlFragmentEmittedCount()) * 100 >
         config.automaticRecordDeletionThreshold) {
-      LOG.info("Dataset {} -> No automatic deletion. "
-               + "Crawl lastCrawlCount differs from lastCrawlFragmentEmittedCount by too much which may indicate an " +
-              " incomplete or bad crawl. lastCrawlCount: {}, lastCrawlFragmentEmittedCount: {}",
+      LOG.info("Dataset {} → No automatic deletion. "
+               + "Crawl lastCrawlCount differs from lastCrawlFragmentEmittedCount by too much, which may indicate an " +
+              "incomplete or bad crawl. lastCrawlCount: {}, lastCrawlFragmentEmittedCount: {}",
                datasetRecordCountInfo.getDatasetKey(),
                datasetRecordCountInfo.getLastCrawlCount(),
                datasetRecordCountInfo.getLastCrawlFragmentEmittedCount());
@@ -187,13 +198,25 @@ public class PreviousCrawlsManager {
     }
 
     if (datasetRecordCountInfo.getPercentagePreviousCrawls() > config.automaticRecordDeletionThreshold) {
-      LOG.info("Dataset {} -> No automatic deletion. "
+      LOG.info("Dataset {} → No automatic deletion. "
                + "Percentage of records to remove ({}%) higher than the configured threshold ({}%).",
                datasetRecordCountInfo.getDatasetKey(),
                datasetRecordCountInfo.getPercentagePreviousCrawls(),
                config.automaticRecordDeletionThreshold);
       return false;
     }
+
+    LOG.info("Dataset {} → Automatic deletion. "
+            + "Crawl difference (|{}–{}| = {}) is within threshold ({}). "
+            + "Percentage of records to remove ({}%) lower threshold ({}%).",
+            datasetRecordCountInfo.getDatasetKey(),
+            datasetRecordCountInfo.getLastCrawlCount(),
+            datasetRecordCountInfo.getLastCrawlFragmentEmittedCount(),
+            recordCountDiff,
+            config.automaticRecordDeletionThreshold,
+            datasetRecordCountInfo.getPercentagePreviousCrawls(),
+            config.automaticRecordDeletionThreshold);
+
     return true;
   }
 
@@ -226,7 +249,7 @@ public class PreviousCrawlsManager {
   }
 
   /**
-   * Get {@link DatasetRecordCountInfo} for each datasets that has records coming to more than one crawl.
+   * Get {@link DatasetRecordCountInfo} for each dataset that has records coming from more than one crawl.
    *
    * @return
    */
