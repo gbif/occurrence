@@ -2,6 +2,7 @@ package org.gbif.occurrence.cli.crawl;
 
 import org.gbif.api.model.crawler.DatasetProcessStatus;
 import org.gbif.api.model.crawler.FinishReason;
+import org.gbif.api.model.crawler.ProcessState;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.DatasetProcessStatusService;
 
@@ -173,10 +174,12 @@ public class PreviousCrawlsManager {
 
     // If it concluded anything other than success we skip auto deletion (e.g. could be running now)
     if (!(datasetRecordCountInfo.getFinishReason() == FinishReason.NORMAL ||
-        datasetRecordCountInfo.getFinishReason() == FinishReason.NOT_MODIFIED)) {
-      LOG.info("Dataset {} → No deletion, most recent crawl is {}.",
+        datasetRecordCountInfo.getFinishReason() == FinishReason.NOT_MODIFIED) ||
+        datasetRecordCountInfo.getProcessStateOccurrence() == ProcessState.RUNNING) {
+      LOG.info("Dataset {} → No deletion, most recent crawl is {} and processing is {}.",
           datasetRecordCountInfo.getDatasetKey(),
-          datasetRecordCountInfo.getFinishReason());
+          datasetRecordCountInfo.getFinishReason(),
+          datasetRecordCountInfo.getProcessStateOccurrence());
       return false;
     }
 
@@ -299,6 +302,7 @@ public class PreviousCrawlsManager {
             datasetRecordCountInfo.getLastCrawlId());
     if (lastCompletedCrawl != null) {
       datasetRecordCountInfo.setFinishReason(lastCompletedCrawl.getFinishReason());
+      datasetRecordCountInfo.setProcessStateOccurrence(lastCompletedCrawl.getProcessStateOccurrence());
       datasetRecordCountInfo.setLastCrawlFragmentEmittedCount(lastCompletedCrawl.getFragmentsEmitted());
     }
     return datasetRecordCountInfo;

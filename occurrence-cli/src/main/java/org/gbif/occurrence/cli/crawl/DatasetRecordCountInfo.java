@@ -1,6 +1,7 @@
 package org.gbif.occurrence.cli.crawl;
 
 import org.gbif.api.model.crawler.FinishReason;
+import org.gbif.api.model.crawler.ProcessState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ class DatasetRecordCountInfo {
   private int recordCount;
   private long lastCrawlFragmentEmittedCount;
   private FinishReason finishReason;
+  private ProcessState processStateOccurrence;
 
   private List<DatasetCrawlInfo> crawlInfo = new ArrayList<>();
 
@@ -62,6 +64,14 @@ class DatasetRecordCountInfo {
 
   public FinishReason getFinishReason() {
     return finishReason;
+  }
+
+  public void setProcessStateOccurrence(ProcessState processStateOccurrence) {
+    this.processStateOccurrence = processStateOccurrence;
+  }
+
+  public ProcessState getProcessStateOccurrence() {
+    return processStateOccurrence;
   }
 
   private void computeCrawlData(List<DatasetCrawlInfo> crawlInfo) {
@@ -110,7 +120,7 @@ class DatasetRecordCountInfo {
             ", recordCount: " + recordCount +
             ", lastCrawlFragmentEmittedCount: " + lastCrawlFragmentEmittedCount +
             ", finishReason: " + finishReason +
+            ", processStateOccurrence: " + processStateOccurrence +
             ", crawlInfo: {" + crawlInfo + "}";
   }
-
 }
