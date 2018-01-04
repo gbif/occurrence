@@ -148,7 +148,6 @@
     <gbif-common-service.version>0.16</gbif-common-service.version>
     <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <geocode.version>0.10</geocode.version>
-    <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.31</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
@@ -735,6 +734,15 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
           </exclusion>
+          <!-- remove logging which we'll ship to logback -->
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -845,9 +853,18 @@
         <artifactId>hive-exec</artifactId>
         <version>${hive.version}</version>
         <exclusions>
+          <!-- remove logging which we'll ship to logback -->
           <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
           </exclusion>
           <exclusion>
             <artifactId>mockito-all</artifactId>

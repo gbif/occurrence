@@ -215,6 +215,10 @@
       <exclusions>
         <exclusion>
           <groupId>log4j</groupId>
+          <artifactId>apache-log4j-extras</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
@@ -346,6 +350,10 @@
         <exclusion>
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
