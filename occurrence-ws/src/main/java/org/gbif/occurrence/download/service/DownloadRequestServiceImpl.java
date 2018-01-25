@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
 
@@ -130,7 +133,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
           client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
-          LOG.info("Download {} canceled", downloadKey);
+          LOG.info("Download {} cancelled", downloadKey);
         }
       } else {
         throw new NotFoundException(String.format("Download %s not found", downloadKey));
@@ -168,6 +171,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       if (d == null) {
         throw new NotFoundException("Download " + downloadKey + " doesn't exist");
+      }
+
+      if (d.getStatus() == Download.Status.FILE_ERASED) {
+        throw new NotFoundException("Download " + downloadKey + " has been erased");
       }
 
       if (!d.isAvailable()) {
@@ -241,7 +248,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private Long getDownloadSize(String downloadKey) {
     File downloadFile = new File(downloadMount, downloadKey + ".zip");
-    if(downloadFile.exists()) {
+    if (downloadFile.exists()) {
       return downloadFile.length();
     }
     LOG.warn("Download file not found {}", downloadFile.getName());
@@ -256,6 +263,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setKey(downloadId);
     download.setRequest(request);
     download.setStatus(Download.Status.PREPARING);
+    download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(downloadLink(wsUrl, downloadId));
     occurrenceDownloadService.create(download);
   }

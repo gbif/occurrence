@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -69,7 +70,8 @@ public class DownloadEmailUtils {
 
   private void setupFreemarker() {
     freemarker.setDefaultEncoding("UTF-8");
-    freemarker.setLocale(Locale.US);
+    freemarker.setLocale(Locale.UK);
+    freemarker.setTimeZone(TimeZone.getTimeZone("GMT"));
     freemarker.setNumberFormat("0.####");
     freemarker.setDateFormat("yyyy-mm-dd");
     // create custom rendering for relative dates

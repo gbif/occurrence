@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Reads a datasets citations file and optionally persists teh data usages and return the usages into a Map object.
+ * Reads a datasets citations file and optionally persists the data usages and return the usages into a Map object.
  */
 public final class CitationsFileReader {
 
