@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+
 #exit on any failure
 set -e
+set -o pipefail
 
-#!/bin/bash
 P=$1
 TOKEN=$2
 
@@ -16,7 +17,7 @@ HBASE_TABLE=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="pro
 HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="'$P'"]]/*[name()="properties"]/*[name()="hive.db"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 
 #gets the oozie id of the current coordinator job if it exists
-WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV\;status=RUNNING\;status=PREP\;status=PREPSUSPENDED\;status=SUSPENDED\;status=PREPPAUSED\;status=PAUSED\;status=SUCCEEDED\;status=DONEWITHERROR\;status=FAILED |  awk 'NR==3' | awk '{print $1;}')
+WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV | awk 'NR==3 {print $1}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
   sudo -u hdfs oozie job -oozie $OOZIE -kill $WID
