@@ -73,7 +73,7 @@ public class DownloadEmailUtils {
     freemarker.setLocale(Locale.UK);
     freemarker.setTimeZone(TimeZone.getTimeZone("GMT"));
     freemarker.setNumberFormat("0.####");
-    freemarker.setDateFormat("yyyy-mm-dd");
+    freemarker.setDateFormat("yyyy-MM-dd");
     // create custom rendering for relative dates
     freemarker.setSharedVariable("niceDate", new NiceDateTemplateMethodModel());
     freemarker.setClassForTemplateLoading(DownloadEmailUtils.class, "/email");
