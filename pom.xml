@@ -142,7 +142,7 @@
     <dwc-api.version>1.17</dwc-api.version>
     <dwca-io.version>1.31</dwca-io.version>
     <gbif-api.version>0.60</gbif-api.version>
-    <gbif-common.version>0.35</gbif-common.version>
+    <gbif-common.version>0.37</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
