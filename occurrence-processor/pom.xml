@@ -155,6 +155,12 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>name-parser*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
