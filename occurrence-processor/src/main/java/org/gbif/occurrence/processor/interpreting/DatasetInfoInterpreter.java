@@ -5,6 +5,9 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.License;
+import org.gbif.common.parsers.CountryParser;
+import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
 
@@ -33,6 +36,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DatasetInfoInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
+
+  private final UUID EBIRD_DATASET = UUID.fromString("4fa7b334-ce0d-4e88-aaae-2e0c138d049e");
+
+  private CountryParser COUNTRY_PARSER = CountryParser.getInstance();
 
   private final DatasetWsClient datasetClient;
   private final OrganizationWsClient orgClient;
@@ -75,7 +82,22 @@ public class DatasetInfoInterpreter implements Serializable {
     if (occ.getPublishingOrgKey() == null) {
       LOG.info("Couldn't find publishing org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
     } else {
-      Country country = getOrgCountry(occ.getPublishingOrgKey());
+      // Special case for eBird, use the supplied publishing country.
+      Country country = null;
+      if (occ.getDatasetKey().equals(EBIRD_DATASET)) {
+        String verbatimPublishingCountryCode = occ.getVerbatimField(GbifTerm.publishingCountry);
+
+        OccurrenceParseResult<Country> result = new OccurrenceParseResult(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
+
+        if (result.isSuccessful()) {
+          country = result.getPayload();
+        } else {
+          LOG.info("Couldn't find publishing country for eBird record [{}]", occ.getKey());
+        }
+      } else {
+        country = getOrgCountry(occ.getPublishingOrgKey());
+      }
+
       if (country == null) {
         LOG.info("Couldn't find country for publishing org [{}]", occ.getPublishingOrgKey());
       } else {

@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.74-SNAPSHOT</version>
+  <version>0.79-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -104,6 +104,7 @@
     <jersey.version>1.18.3</jersey.version>
     <junit.version>4.12</junit.version>
     <logback.version>1.1.5</logback.version>
+    <logstash-encoder.version>4.11</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>1.9.0</mockito.version>
     <powermock-mockito.version>1.6.1</powermock-mockito.version>
@@ -140,18 +141,17 @@
     <download-query-tools.version>1.18</download-query-tools.version>
     <dwc-api.version>1.17</dwc-api.version>
     <dwca-io.version>1.31</dwca-io.version>
-    <gbif-api.version>0.57</gbif-api.version>
-    <gbif-common.version>0.35</gbif-common.version>
+    <gbif-api.version>0.59</gbif-api.version>
+    <gbif-common.version>0.37</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
     <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <geocode.version>0.10</geocode.version>
-    <geotools.version>12.1</geotools.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.31</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
-    <gbif-registry.version>2.69</gbif-registry.version>
+    <gbif-registry.version>2.77</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.56</checklistbank-ws-client.version>
     <name-parser.version>2.24</name-parser.version>
@@ -553,6 +553,12 @@
         <scope>runtime</scope>
       </dependency>
       <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>${logstash-encoder.version}</version>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
         <groupId>org.apache.solr</groupId>
         <artifactId>solr-core</artifactId>
         <version>${solr-lucene.version}</version>
@@ -728,6 +734,15 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
           </exclusion>
+          <!-- remove logging which we'll ship to logback -->
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
@@ -838,9 +853,18 @@
         <artifactId>hive-exec</artifactId>
         <version>${hive.version}</version>
         <exclusions>
+          <!-- remove logging which we'll ship to logback -->
           <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
           </exclusion>
           <exclusion>
             <artifactId>mockito-all</artifactId>

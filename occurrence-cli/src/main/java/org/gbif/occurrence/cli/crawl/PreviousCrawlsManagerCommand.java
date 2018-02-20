@@ -61,6 +61,13 @@ public class PreviousCrawlsManagerCommand extends BaseCommand {
       return false;
     }
 
+    if(!StringUtils.isBlank(config.datasetKey)) {
+      System.err.println("Note: --dataset-key is provided so --report-output-path will be ignored and --display-report will be "
+                         + "forced");
+      config.reportOutputFilepath = null;
+      config.displayReport = true;
+    }
+
     if (!config.displayReport && StringUtils.isBlank(config.reportOutputFilepath)) {
       System.err.println("--display-report or --report-output-filepath flag must be specified");
       return false;

@@ -6,6 +6,8 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.occurrence.query.TitleLookup;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.junit.Test;
@@ -23,7 +25,7 @@ public class DownloadEmailUtilsTest {
     when(tl.getDatasetTitle(Matchers.<String>any())).thenReturn("The little Mermaid");
     when(tl.getSpeciesName(Matchers.<String>any())).thenReturn("Abies alba Mill.");
 
-    DownloadEmailUtils utils = new DownloadEmailUtils("1@mailinator.com, 2@mailinator.com", "http:///www.gbif.org", null, null, tl);
+    DownloadEmailUtils utils = new DownloadEmailUtils("1@mailinator.com, 2@mailinator.com", "https://www.gbif.org", null, null, tl);
     Download d = new Download();
     d.setKey("0007082-141215154445624");
     d.setDoi(new DOI("10.5072/dl.j9spoa"));
@@ -34,6 +36,7 @@ public class DownloadEmailUtilsTest {
     d.setNumberDatasets(3);
     d.setSize(1787823);
     d.setTotalRecords(8792);
+    d.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
 
     DownloadRequest req = new DownloadRequest();
     req.setFormat(DownloadFormat.SIMPLE_CSV);
