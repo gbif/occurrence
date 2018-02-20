@@ -198,7 +198,7 @@ public class TaxonomyInterpreter implements Serializable {
   }
 
   private static String value(Map<Term, String> terms, Term term) {
-    return terms.get(term.qualifiedName());
+    return terms.get(term);
   }
   private static boolean hasTerm(Map<Term, String> terms, Term term) {
     return !Strings.isNullOrEmpty(value(terms, term));
