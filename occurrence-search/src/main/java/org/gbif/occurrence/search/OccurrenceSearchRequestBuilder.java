@@ -166,7 +166,9 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
       .build();
 
-  public static final String GEO_INTERSECTS_QUERY_FMT = "\"IsWithin(%s) distErrPct=0\"";
+  public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s) distErrPct=0\"";
+
+  public static final String BBOX_QUERY_FMT = "[%s TO %s]";
 
   // Solr full text search handle
   private static final String FULL_TEXT_HANDLER = "/search";
@@ -213,7 +215,7 @@ public class OccurrenceSearchRequestBuilder {
   protected static String parseGeometryParam(String wkt) {
     try {
       Geometry geometry = new WKTReader().read(wkt);
-      return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
+      return isRectangle(geometry)? toBBoxQuery(geometry) : String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
@@ -492,4 +494,20 @@ public class OccurrenceSearchRequestBuilder {
   public boolean isFacetsEnable() {
     return facetsEnable;
   }
+
+  /**
+   * Is the geometry a rectangle?.
+   */
+  private static boolean isRectangle(Geometry geometry) {
+    return geometry.equalsExact(geometry.getEnvelope());
+  }
+
+  /**
+   * Generates BBox range query from the input geometry.
+   */
+  private static String toBBoxQuery(Geometry geometry) {
+    return String.format(BBOX_QUERY_FMT, geometry.getCoordinates()[0].y + "," + geometry.getCoordinates()[0].x,
+                         geometry.getCoordinates()[2].y + "," + geometry.getCoordinates()[2].x);
+  }
+
 }
