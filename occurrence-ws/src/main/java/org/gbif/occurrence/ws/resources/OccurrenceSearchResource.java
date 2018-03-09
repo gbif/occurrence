@@ -15,6 +15,8 @@ import org.gbif.ws.util.ExtraMediaTypes;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -86,11 +88,7 @@ public class OccurrenceSearchResource {
     String creator = assertUserAuthenticated(securityContext).getName();
     checkNotNullParameter("format", format);
     checkNotNullParameter("creator", creator);
-    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
-    LOG.info("Predicate build for passing to download [{}]", predicate);
-    DownloadRequest download =
-      new DownloadRequest(predicate, creator, Sets.newHashSet(EMAIL_SPLITTER.split(emails)), true,
-                          DownloadFormat.valueOf(format.toUpperCase()));
+    DownloadRequest download = downloadPredicate(httpRequest, emails, format, securityContext);
     LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, downloadRequestService);
     try {
       String downloadKey = downloadRequestService.create(download);
@@ -100,6 +98,22 @@ public class OccurrenceSearchResource {
       LOG.error("Error processing search-to-download request", ex);
       throw new WebApplicationException(Response.serverError().build());
     }
+  }
+
+  @GET
+  @Path("predicate")
+  public DownloadRequest downloadPredicate(@Context HttpServletRequest httpRequest,
+                         @QueryParam("notification_address") String emails,
+                         @QueryParam("format") String format,
+                         @Context SecurityContext securityContext) {
+    checkNotNullParameter("format", format);
+    String creator = Optional.ofNullable(securityContext.getUserPrincipal()).map(Principal::getName).orElse(null);
+    Set<String> notificationAddress = Optional.ofNullable(emails)
+      .map(emailsN -> Sets.newHashSet(EMAIL_SPLITTER.split(emailsN))).orElse(null);
+    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
+    LOG.info("Predicate build for passing to download [{}]", predicate);
+    return new DownloadRequest(predicate, creator, notificationAddress, true,
+                               DownloadFormat.valueOf(format.toUpperCase()));
   }
 
   /**
