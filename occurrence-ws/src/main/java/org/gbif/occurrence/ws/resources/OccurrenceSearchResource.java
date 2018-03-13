@@ -108,10 +108,10 @@ public class OccurrenceSearchResource {
                          @Context SecurityContext securityContext) {
     String creator = getUserName(securityContext);
     Set<String> notificationAddress = asSet(emails);
+    DownloadFormat downloadFormat = Objects.isNull(format) ? DownloadFormat.SIMPLE_CSV : DownloadFormat.valueOf(format.toUpperCase());
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
-    return new DownloadRequest(predicate, creator, notificationAddress, true,
-                               DownloadFormat.valueOf(format.toUpperCase()));
+    return new DownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
   }
 
   /**
