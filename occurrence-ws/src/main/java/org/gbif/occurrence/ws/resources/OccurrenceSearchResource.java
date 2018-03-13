@@ -13,9 +13,9 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.ws.util.ExtraMediaTypes;
 
-import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,7 +60,7 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUs
 public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
-  private static final Splitter EMAIL_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+  private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
   private final OccurrenceSearchService searchService;
   private final DownloadRequestService downloadRequestService;
@@ -107,14 +107,29 @@ public class OccurrenceSearchResource {
                          @QueryParam("format") String format,
                          @Context SecurityContext securityContext) {
     checkNotNullParameter("format", format);
-    String creator = Optional.ofNullable(securityContext.getUserPrincipal()).map(Principal::getName).orElse(null);
-    Set<String> notificationAddress = Optional.ofNullable(emails)
-      .map(emailsN -> Sets.newHashSet(EMAIL_SPLITTER.split(emailsN))).orElse(null);
+    String creator = getUserName(securityContext);
+    Set<String> notificationAddress = asSet(emails);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
     return new DownloadRequest(predicate, creator, notificationAddress, true,
                                DownloadFormat.valueOf(format.toUpperCase()));
   }
+
+  /**
+   * Gets the user name from the security context.
+   */
+  private static String getUserName(SecurityContext securityContext) {
+    return Objects.nonNull(securityContext.getUserPrincipal()) ? securityContext.getUserPrincipal().getName() : null;
+  }
+
+  /**
+   * Transforms a String that contains elements split by ',' into a Set of strings.
+   */
+  private static Set<String> asSet(String cvsString) {
+    return Objects.nonNull(cvsString) ? Sets.newHashSet(COMMA_SPLITTER.split(cvsString)) : null;
+  }
+
+
 
   /**
    * Validates that a parameter is not null or empty.
