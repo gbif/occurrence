@@ -106,7 +106,6 @@ public class OccurrenceSearchResource {
                          @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format,
                          @Context SecurityContext securityContext) {
-    checkNotNullParameter("format", format);
     String creator = getUserName(securityContext);
     Set<String> notificationAddress = asSet(emails);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
