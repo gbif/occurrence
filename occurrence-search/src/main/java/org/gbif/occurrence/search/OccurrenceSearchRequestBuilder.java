@@ -218,8 +218,8 @@ public class OccurrenceSearchRequestBuilder {
    */
   protected static String parseGeometryParam(String wkt) {
     try {
-      Geometry geometry = new WKTReader().read(wkt);
-      return isRectangle(geometry)? toBBoxQuery(geometry) : toIntersectQuery(geometry);
+      Geometry geometry = new WKTReader(JtsSpatialContext.GEO.getGeometryFactory()).read(wkt);
+      return toIntersectQuery(geometry);
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
@@ -228,7 +228,7 @@ public class OccurrenceSearchRequestBuilder {
   public static String toIntersectQuery(Geometry geometry) {
     return normalizeGeo(geometry).stream()
             .map(geo -> String.format(GEO_INTERSECTS_QUERY_FMT, geo))
-            .collect(Collectors.joining(" OR ", "(", ")"));
+            .collect(Collectors.joining(" OR "));
 
   }
 
