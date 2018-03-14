@@ -10,6 +10,7 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import org.gbif.occurrence.search.solr.SolrQueryUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.spatial4j.core.context.jts.JtsSpatialContext;
+import com.spatial4j.core.shape.jts.JtsGeometry;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -166,7 +170,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
       .build();
 
-  public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s) distErrPct=0\"";
+  public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s)\"";
 
   public static final String BBOX_QUERY_FMT = "[%s TO %s]";
 
@@ -215,10 +219,17 @@ public class OccurrenceSearchRequestBuilder {
   protected static String parseGeometryParam(String wkt) {
     try {
       Geometry geometry = new WKTReader().read(wkt);
-      return isRectangle(geometry)? toBBoxQuery(geometry) : String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
+      return isRectangle(geometry)? toBBoxQuery(geometry) : toIntersectQuery(geometry);
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
+  }
+
+  public static String toIntersectQuery(Geometry geometry) {
+    return normalizeGeo(geometry).stream()
+            .map(geo -> String.format(GEO_INTERSECTS_QUERY_FMT, geo))
+            .collect(Collectors.joining(" OR ", "(", ")"));
+
   }
 
   public SolrQuery build(@Nullable OccurrenceSearchRequest request) {
@@ -508,6 +519,24 @@ public class OccurrenceSearchRequestBuilder {
   private static String toBBoxQuery(Geometry geometry) {
     return String.format(BBOX_QUERY_FMT, geometry.getCoordinates()[0].y + "," + geometry.getCoordinates()[0].x,
                          geometry.getCoordinates()[2].y + "," + geometry.getCoordinates()[2].x);
+  }
+
+  /**
+   * Polygons are wrapped around the dateline and transform into a GeometryCollection which is not supported by Solr.
+   *  This function converts the GeometryCollection into list of geometries.
+   */
+  private static Collection<Geometry> normalizeGeo(Geometry geometry) {
+    JtsGeometry jtsGeometry = new JtsGeometry(geometry, JtsSpatialContext.GEO, true, true);
+    if(jtsGeometry.getGeom() instanceof GeometryCollection) {
+      List<Geometry> geometries = Lists.newArrayList();
+      GeometryCollection geometryCollection = (GeometryCollection)jtsGeometry.getGeom();
+      for (int i = 0; i < geometryCollection.getNumGeometries(); i++) {
+        geometries.add(geometryCollection.getGeometryN(i));
+      }
+      return geometries;
+    } else {
+      return Collections.singletonList(geometry);
+    }
   }
 
 }
