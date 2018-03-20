@@ -228,7 +228,7 @@ public class OccurrenceSearchRequestBuilder {
   public static String toIntersectQuery(Geometry geometry) {
     return normalizeGeo(geometry).stream()
             .map(geo -> String.format(GEO_INTERSECTS_QUERY_FMT, geo))
-            .collect(Collectors.joining(" OR "));
+            .collect(Collectors.joining(" OR ", "(", ")"));
 
   }
 

@@ -85,6 +85,10 @@
        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
   <indexConfig>
     <ramBufferSizeMB>128</ramBufferSizeMB>
+    <mergeScheduler class="org.apache.lucene.index.ConcurrentMergeScheduler">
+      <int name="maxThreadCount">18</int>
+      <int name="maxMergeCount">36</int>
+    </mergeScheduler>
     <lockType>${solr.lock.type:hdfs}</lockType>
   </indexConfig>
 
