@@ -6,7 +6,6 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.spatial4j.core.context.jts.JtsSpatialContext;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -29,8 +28,8 @@ public class OccurrenceSearchRequestBuilderTest {
 
   @Test
   public void testParseGeometryParam() throws Exception {
-    assertEquals("\"Intersects(POLYGON ((30.1 10.1, 10 20, 20 40, 40 40, 30.1 10.1)))\"", OccurrenceSearchRequestBuilder.parseGeometryParam("POLYGON((30.1 10.1,10 20,20 40,40 40,30.1 10.1))"));
-    assertEquals("\"Intersects(POLYGON ((30.1 10.1, 10 20, 20 40, 40 40, 30.1 10.1)))\"", OccurrenceSearchRequestBuilder.parseGeometryParam("POLYGON  (  (30.1  10.1,   10  20, 20   40, 40 40, 30.10   10.1) )  "));
+    assertEquals("(\"Intersects(POLYGON ((30.1 10.1, 10 20, 20 40, 40 40, 30.1 10.1)))\")", OccurrenceSearchRequestBuilder.parseGeometryParam("POLYGON((30.1 10.1,10 20,20 40,40 40,30.1 10.1))"));
+    assertEquals("(\"Intersects(POLYGON ((30.1 10.1, 10 20, 20 40, 40 40, 30.1 10.1)))\")", OccurrenceSearchRequestBuilder.parseGeometryParam("POLYGON  (  (30.1  10.1,   10  20, 20   40, 40 40, 30.10   10.1) )  "));
 
   }
 
