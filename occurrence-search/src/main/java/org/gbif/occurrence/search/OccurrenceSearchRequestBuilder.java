@@ -10,7 +10,6 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import org.gbif.occurrence.search.solr.SolrQueryUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.spatial4j.core.context.jts.JtsSpatialContext;
-import com.spatial4j.core.shape.jts.JtsGeometry;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -170,7 +166,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
       .build();
 
-  public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s)\"";
+  public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s) distErrPct=0\"";
 
   public static final String BBOX_QUERY_FMT = "[%s TO %s]";
 
@@ -218,18 +214,11 @@ public class OccurrenceSearchRequestBuilder {
    */
   protected static String parseGeometryParam(String wkt) {
     try {
-      Geometry geometry = new WKTReader(JtsSpatialContext.GEO.getGeometryFactory()).read(wkt);
-      return toIntersectQuery(geometry);
+      Geometry geometry = new WKTReader().read(wkt);
+      return geometry.isRectangle()? toBBoxQuery(geometry) : String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
-  }
-
-  public static String toIntersectQuery(Geometry geometry) {
-    return normalizeGeo(geometry).stream()
-            .map(geo -> String.format(GEO_INTERSECTS_QUERY_FMT, geo))
-            .collect(Collectors.joining(" OR ", "(", ")"));
-
   }
 
   public SolrQuery build(@Nullable OccurrenceSearchRequest request) {
@@ -285,10 +274,10 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.DATASET_KEY).getFieldName(),
                                        OccurrenceSearchParameter.DATASET_KEY, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
-    .put(OccurrenceSearchParameter.TAXON_KEY,
-         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
-                                     OccurrenceSearchParameter.TAXON_KEY, FacetField.Method.ENUM,
-                                     FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.TAXON_KEY,
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.TAXON_KEY, FacetField.Method.ENUM,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.COUNTRY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COUNTRY).getFieldName(),
                                        OccurrenceSearchParameter.COUNTRY, FacetField.Method.ENUM,
@@ -306,9 +295,9 @@ public class OccurrenceSearchRequestBuilder {
                                        OccurrenceSearchParameter.KINGDOM_KEY, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.PHYLUM_KEY,
-         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PHYLUM_KEY).getFieldName(),
-                                     OccurrenceSearchParameter.PHYLUM_KEY, FacetField.Method.FIELD_CACHE,
-                                     FacetField.SortOrder.COUNT, false))
+           new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PHYLUM_KEY).getFieldName(),
+                                       OccurrenceSearchParameter.PHYLUM_KEY, FacetField.Method.FIELD_CACHE,
+                                       FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.CLASS_KEY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.CLASS_KEY).getFieldName(),
                                        OccurrenceSearchParameter.CLASS_KEY, FacetField.Method.FIELD_CACHE,
@@ -438,8 +427,8 @@ public class OccurrenceSearchRequestBuilder {
                                    SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(dateParam)) {
       String dateParams = params.get(dateParam).stream()
-                            .map(value -> PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)))
-                            .collect(Collectors.joining(PARAM_OR_OP));
+        .map(value -> PARAMS_JOINER.join(solrField.getFieldName(), toDateQuery(value)))
+        .collect(Collectors.joining(PARAM_OR_OP));
       solrQuery.addFilterQuery((isFacetedSearch ? taggedField(solrField.getFieldName()) : "")
                                + toParenthesesQuery(dateParams));
     }
@@ -453,9 +442,9 @@ public class OccurrenceSearchRequestBuilder {
                                        SolrQuery solrQuery, boolean isFacetedSearch) {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
       String locationParams = params.get(OccurrenceSearchParameter.GEOMETRY).stream()
-                                .map(value -> PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
-                                                                 parseGeometryParam(value)))
-                                .collect(Collectors.joining(PARAM_OR_OP));
+        .map(value -> PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
+                                         parseGeometryParam(value)))
+        .collect(Collectors.joining(PARAM_OR_OP));
       solrQuery.addFilterQuery((isFacetedSearch ? taggedField(OccurrenceSolrField.COORDINATE.getFieldName()) : "")
                                + toParenthesesQuery(locationParams));
     }
@@ -507,36 +496,11 @@ public class OccurrenceSearchRequestBuilder {
   }
 
   /**
-   * Is the geometry a rectangle?.
-   */
-  private static boolean isRectangle(Geometry geometry) {
-    return geometry.equalsExact(geometry.getEnvelope());
-  }
-
-  /**
    * Generates BBox range query from the input geometry.
    */
   private static String toBBoxQuery(Geometry geometry) {
     return String.format(BBOX_QUERY_FMT, geometry.getCoordinates()[0].y + "," + geometry.getCoordinates()[0].x,
                          geometry.getCoordinates()[2].y + "," + geometry.getCoordinates()[2].x);
-  }
-
-  /**
-   * Polygons are wrapped around the dateline and transform into a GeometryCollection which is not supported by Solr.
-   *  This function converts the GeometryCollection into list of geometries.
-   */
-  private static Collection<Geometry> normalizeGeo(Geometry geometry) {
-    JtsGeometry jtsGeometry = new JtsGeometry(geometry, JtsSpatialContext.GEO, true, true);
-    if(jtsGeometry.getGeom() instanceof GeometryCollection) {
-      List<Geometry> geometries = Lists.newArrayList();
-      GeometryCollection geometryCollection = (GeometryCollection)jtsGeometry.getGeom();
-      for (int i = 0; i < geometryCollection.getNumGeometries(); i++) {
-        geometries.add(geometryCollection.getGeometryN(i));
-      }
-      return geometries;
-    } else {
-      return Collections.singletonList(geometry);
-    }
   }
 
 }
