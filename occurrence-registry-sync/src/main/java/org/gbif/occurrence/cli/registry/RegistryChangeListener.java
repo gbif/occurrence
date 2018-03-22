@@ -45,6 +45,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Listens for any registry changes {@link RegistryChangeMessage}
  * of interest to occurrences: namely organization and dataset updates or deletions.
+ *
+ * This was written at a time when we only looked at occurrence datasets, but without
+ * planning, it is now the process that also triggers crawling for checklist datasets,
+ * and metadata-only datasets.
  */
 public class RegistryChangeListener extends AbstractMessageCallback<RegistryChangeMessage> {
 
@@ -58,7 +62,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
     .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
-      EndpointType.DWC_ARCHIVE).build();
+      EndpointType.DWC_ARCHIVE, EndpointType.EML).build();
 
   /*
     When an IPT publishes a new dataset we will get multiple messages from the registry informing us of the update
