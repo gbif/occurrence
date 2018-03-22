@@ -215,7 +215,7 @@ public class OccurrenceSearchRequestBuilder {
   protected static String parseGeometryParam(String wkt) {
     try {
       Geometry geometry = new WKTReader().read(wkt);
-      return geometry.isRectangle()? toBBoxQuery(geometry) : String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
+      return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
@@ -493,14 +493,6 @@ public class OccurrenceSearchRequestBuilder {
 
   public boolean isFacetsEnable() {
     return facetsEnable;
-  }
-
-  /**
-   * Generates BBox range query from the input geometry.
-   */
-  private static String toBBoxQuery(Geometry geometry) {
-    return String.format(BBOX_QUERY_FMT, geometry.getCoordinates()[0].y + "," + geometry.getCoordinates()[0].x,
-                         geometry.getCoordinates()[2].y + "," + geometry.getCoordinates()[2].x);
   }
 
 }
