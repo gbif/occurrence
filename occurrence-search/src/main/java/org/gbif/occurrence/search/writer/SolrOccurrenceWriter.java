@@ -129,7 +129,7 @@ public class SolrOccurrenceWriter {
   /**
    * Populates the Solr document using the occurrence object.
    */
-  private static SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
+  public static SolrInputDocument buildOccSolrDocument(Occurrence occurrence) {
     SolrInputDocument doc = new SolrInputDocument();
     Double latitude = occurrence.getDecimalLatitude();
     Double longitude = occurrence.getDecimalLongitude();

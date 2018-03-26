@@ -69,12 +69,8 @@ public class BulkloadSolr {
                     try {
                       Occurrence occurrence = OccurrenceBuilder.buildOccurrence(row);
 
-                      if (occurrence.getDecimalLatitude() != null && occurrence.getDecimalLongitude() != null
-                              && occurrence.getDecimalLatitude() > 40 && occurrence.getDecimalLatitude() < 70 ) {
-                        SolrInputDocument document = SolrOccurrenceWriter.buildOccSolrDocument(occurrence);
-                        c.output(document);
-
-                      }
+                      SolrInputDocument document = SolrOccurrenceWriter.buildOccSolrDocument(occurrence);
+                      c.output(document);
 
                     } catch (NullPointerException e) {
                       // Expected for bad data
