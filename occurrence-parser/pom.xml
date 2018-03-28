@@ -53,10 +53,6 @@
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
-      <artifactId>dwca-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
     </dependency>
     <dependency>

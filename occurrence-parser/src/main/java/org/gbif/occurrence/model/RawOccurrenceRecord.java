@@ -15,15 +15,12 @@
  */
 package org.gbif.occurrence.model;
 
-import org.gbif.dwca.record.DarwinCoreRecord;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * This is mostly cut and paste from synchronizer-gbif, intended as a place holder until this project is
@@ -93,40 +90,6 @@ public class RawOccurrenceRecord implements Serializable {
    * Default
    */
   public RawOccurrenceRecord() {
-  }
-
-  /**
-   * TODO: handle supporting table records & maybe dwca extensions?
-   */
-  public RawOccurrenceRecord(DarwinCoreRecord dwcr) {
-    this.basisOfRecord = dwcr.getBasisOfRecord();
-    this.catalogueNumber = dwcr.getCatalogNumber();
-    this.klass = dwcr.getClasss();
-    this.collectionCode = dwcr.getCollectionCode();
-    this.continentOrOcean = dwcr.getContinent();
-    this.country =
-      dwcr.getCountry() == null || dwcr.getCountry().isEmpty() ? dwcr.getCountryCode() : dwcr.getCountry();
-    this.county = dwcr.getCounty();
-    this.dateIdentified = dwcr.getDateIdentified();
-    this.latitude = dwcr.getVerbatimLatitude() == null ? dwcr.getDecimalLatitude() : dwcr.getVerbatimLatitude();
-    this.longitude = dwcr.getVerbatimLongitude() == null ? dwcr.getDecimalLongitude() : dwcr.getVerbatimLongitude();
-    this.geodeticDatum = dwcr.getGeodeticDatum();
-    this.family = dwcr.getFamily();
-    this.scientificName =
-      dwcr.getScientificName() == null || dwcr.getScientificName().isEmpty() ? dwcr.getFullScientificName()
-        : dwcr.getScientificName();
-    this.genus = dwcr.getGenus();
-    this.identifierName = dwcr.getIdentifiedBy();
-    this.institutionCode = dwcr.getInstitutionCode();
-    this.kingdom = dwcr.getKingdom();
-    this.maxDepth = dwcr.getMaximumDepthInMeters();
-    this.minDepth = dwcr.getMinimumDepthInMeters();
-    this.maxAltitude = dwcr.getMaximumElevationInMeters();
-    this.minAltitude = dwcr.getMinimumElevationInMeters();
-    this.order = dwcr.getOrder();
-    this.phylum = dwcr.getPhylum();
-    this.occurrenceDate = dwcr.getYear() + '-' + dwcr.getMonth() + '-' + dwcr.getDay();
-    this.collectorsFieldNumber = dwcr.getRecordNumber();
   }
 
   public String getAltitudePrecision() {

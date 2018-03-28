@@ -4,6 +4,7 @@
 *target
 .DS_Store
 logs
+pom.xml.releaseBackup
 
 # Package Files #
 *.jar
