@@ -163,8 +163,8 @@ public class Columns {
       return null;
     }
 
-    // this is a verbatim term column
-    return TermFactory.instance().findTerm(colName.substring(VERBATIM_TERM_PREFIX.length()));
+    // this is a verbatim term column, always a property term
+    return TermFactory.instance().findPropertyTerm(colName.substring(VERBATIM_TERM_PREFIX.length()));
   }
 
   public static String column(OccurrenceIssue issue) {
