@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This is mostly cut and paste from synchronizer-gbif, intended as a place holder until this project is
  * integrated with the main synchronizer process. Differences from sync-gbif are that id and dateIdentified are String,
- * and occurenceDate is retained as a verbatim string rather than parsed to year, month and day.
+ * and occurrenceDate is retained as a verbatim string rather than parsed to year, month and day.
  */
 public class RawOccurrenceRecord implements Serializable {
 

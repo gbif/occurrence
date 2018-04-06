@@ -25,7 +25,7 @@ public class DownloadEmailUtilsTest {
     when(tl.getDatasetTitle(Matchers.<String>any())).thenReturn("The little Mermaid");
     when(tl.getSpeciesName(Matchers.<String>any())).thenReturn("Abies alba Mill.");
 
-    DownloadEmailUtils utils = new DownloadEmailUtils("1@mailinator.com, 2@mailinator.com", "https://www.gbif.org", null, null, tl);
+    DownloadEmailUtils utils = new DownloadEmailUtils("1@mailinator.com; 2@mailinator.com", "https://www.gbif.org", null, null, tl);
     Download d = new Download();
     d.setKey("0007082-141215154445624");
     d.setDoi(new DOI("10.5072/dl.j9spoa"));
