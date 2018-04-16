@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.gbif.occurrence.search.writer;
 
 import org.gbif.api.model.common.MediaObject;
@@ -9,10 +6,10 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Joiner;

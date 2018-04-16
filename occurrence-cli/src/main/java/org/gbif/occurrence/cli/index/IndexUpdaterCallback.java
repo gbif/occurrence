@@ -1,12 +1,12 @@
 package org.gbif.occurrence.cli.index;
 
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.yammer.metrics.Metrics;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Callback handler that processes messages for updates and insertions on the Occurrence Index.
  */
-class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMessage> {
+class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMessage>  implements Closeable {
 
   private static final int UPDATE_BATCH_SIZE = 1000;
 
@@ -41,42 +40,52 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
   private final Timer writeTimer = Metrics.newTimer(getClass(), "occurrenceIndexWrites", TimeUnit.MILLISECONDS,
                                                     TimeUnit.SECONDS);
 
-  private static final Duration UPDATE_RATE = Duration.ofMinutes(2);
+  private final Duration updateWithin;
 
   private final SolrOccurrenceWriter solrOccurrenceWriter;
 
-  private List<Occurrence> updateBatch = Collections.synchronizedList(new ArrayList<>(UPDATE_BATCH_SIZE));
+  private final List<Occurrence> updateBatch;
 
   private LocalDate lastUpdate = LocalDate.now();
 
   private final ScheduledExecutorService updateTimer = Executors.newSingleThreadScheduledExecutor();
 
-  private void addOrUpdate() throws IOException, SolrServerException {
+  private void atomicAddOrUpdate() throws IOException, SolrServerException {
+    addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
+            || LocalDate.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
+  }
+
+  /**
+   * Flushes all the updates/creates into Solr.
+   */
+  private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
       synchronized (updateBatch) {
-          if (updateBatch.size() >= UPDATE_BATCH_SIZE
-              || LocalDate.now().minus(UPDATE_RATE).compareTo(lastUpdate) >= 0) { //has expired
-              try {
+        if(onCondition) {
+            try {
                 solrOccurrenceWriter.update(updateBatch);
-              } finally {
+            } finally {
                 updateBatch.clear();
                 lastUpdate = LocalDate.now();
-              }
-          }
+            }
+        }
       }
   }
 
   /**
    * Default constructor.
    */
-  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter) {
+  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter, int solrUpdateBatchSize,
+                              long solrUpdateWithinMs) {
     this.solrOccurrenceWriter = solrOccurrenceWriter;
+    updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
+    updateWithin = Duration.ofMillis(solrUpdateWithinMs);
     updateTimer.scheduleWithFixedDelay(() -> {
                 try {
-                  addOrUpdate();
+                  atomicAddOrUpdate();
                 } catch (Exception ex){
                   throw new RuntimeException(ex);
                 }
-            }, UPDATE_RATE.toMinutes(), UPDATE_RATE.toMinutes(), TimeUnit.MINUTES);
+            }, solrUpdateWithinMs, solrUpdateWithinMs, TimeUnit.MILLISECONDS);
   }
 
   @Override
@@ -89,13 +98,13 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
         case NEW:
           // create occurrence
           updateBatch.add(message.getNewOccurrence());
-          addOrUpdate();
+          atomicAddOrUpdate();
           newOccurrencesCount.inc();
           break;
         case UPDATED:
           // update occurrence
           updateBatch.add(message.getNewOccurrence());
-          addOrUpdate();
+          atomicAddOrUpdate();
           updatedOccurrencesCount.inc();
           break;
         case DELETED:
@@ -111,5 +120,18 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
     } finally {
       context.stop();
     }
+  }
+
+  /**
+   *  Tries an update and stop the timer.
+   */
+  @Override
+  public void close() {
+    try {
+      addOrUpdate(true);
+    } catch (Exception e) {
+      LOG.error("Error closing callback", e);
+    }
+    updateTimer.shutdownNow();
   }
 }
