@@ -51,10 +51,20 @@ class IndexingConfiguration {
   public String solrCollection;
 
 
+  @Parameter(names = "--solr-update-batch-size")
+  @NotNull
+  public int solrUpdateBatchSize = 1000;
+
+  @Parameter(names = "--solr-update-within")
+  @NotNull
+  public long solrUpdateWithinMs = 120000;
+
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("messaging", messaging).add("ganglia", ganglia).add("poolSize", poolSize)
       .add("commitWithinMs", commitWithinMs).add("queueName", queueName).add("solrServer", solrServer)
-      .add("solrServerType", solrServerType).add("solrCollection", solrCollection).toString();
+      .add("solrServerType", solrServerType).add("solrCollection", solrCollection)
+      .add("solrUpdateBatchSize", solrUpdateBatchSize).add("solrUpdateWithinMs", solrUpdateWithinMs)
+      .toString();
   }
 }

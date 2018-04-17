@@ -1,6 +1,5 @@
 package org.gbif.occurrence.cli.index;
 
-import org.gbif.common.messaging.MessageListener;
 import org.gbif.common.search.solr.SolrServerType;
 import org.gbif.common.search.solr.builders.CloudSolrServerBuilder;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
@@ -16,7 +15,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 class IndexUpdaterService extends AbstractIdleService {
 
   private final IndexingConfiguration configuration;
-  private MessageListener listener;
+  private IndexMessageListener listener;
 
   protected IndexUpdaterService(IndexingConfiguration configuration) {
     this.configuration = configuration;
@@ -35,7 +34,7 @@ class IndexUpdaterService extends AbstractIdleService {
 
     SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
                                                                          configuration.commitWithinMs);
-    listener = new MessageListener(configuration.messaging.getConnectionParameters());
+    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters());
     listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter));
   }
 
@@ -55,4 +54,5 @@ class IndexUpdaterService extends AbstractIdleService {
         idxConfiguration.solrServerType));
     }
   }
+
 }
