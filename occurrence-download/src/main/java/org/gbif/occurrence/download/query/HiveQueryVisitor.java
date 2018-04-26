@@ -421,7 +421,7 @@ public class HiveQueryVisitor {
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
       Throwables.propagate(e);
     } catch (InvocationTargetException e) {
       LOG.info("Exception thrown while building the query", e);

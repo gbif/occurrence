@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.file;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
+import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
@@ -119,8 +120,7 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Run the list of jobs. The amount of records is assigned evenly among the worker threads.
    * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among
-   * the
-   * first jobs.
+   * the first jobs.
    */
   private void runActors() {
     StopWatch stopwatch = new StopWatch();
@@ -132,7 +132,7 @@ public class DownloadMaster extends UntypedActor {
     downloadTempDir.mkdirs();
 
     final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
-    if( recordCount <= 0) { //now work to do: shutdown the system
+    if (recordCount <= 0) { // no work to do: shutdown the system
       aggregateAndShutdown();
     } else  {
       final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
@@ -213,6 +213,9 @@ public class DownloadMaster extends UntypedActor {
     public Actor create() throws Exception {
       if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
         return new SimpleCsvDownloadActor();
+      } else if (downloadFormat == DownloadFormat.SIMPLE_AVRO) {
+        throw new IllegalStateException("Small Avro downloads not yet supported.");
+        // return new SimpleAvroDownloadActor();
       } else if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
       }

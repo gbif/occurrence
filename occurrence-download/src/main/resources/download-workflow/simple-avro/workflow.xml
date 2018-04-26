@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-csv-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+<workflow-app name="${occurrence.environment}-avro-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -18,7 +18,7 @@
   <action name="from_hive_download">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-simple-csv-query.q</script>
+      <script>hive-scripts/execute-simple-avro-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
@@ -29,11 +29,10 @@
 
   <action name="archive_table">
     <java>
-      <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
       <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
       <arg>${download_key}</arg>
-      <arg>${is_small_download ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
       <capture-output/>
     </java>
 

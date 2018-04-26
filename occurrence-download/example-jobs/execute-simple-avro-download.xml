@@ -22,7 +22,7 @@
   </property>
   <property>
     <name>download_format</name>
-    <value>SIMPLE_CSV</value>
+    <value>SIMPLE_AVRO</value>
   </property>
   <property>
     <name>gbif_filter</name>

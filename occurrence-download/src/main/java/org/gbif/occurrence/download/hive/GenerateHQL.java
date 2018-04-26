@@ -26,7 +26,8 @@ public class GenerateHQL {
 
   private static final String CREATE_TABLES_DIR = "create-tables/hive-scripts";
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
-  private static final String SIMPLE_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
+  private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
+  private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
 
   public static void main(String[] args) {
     try {
@@ -37,10 +38,12 @@ public class GenerateHQL {
       // create the sub directories into which we will write
       File createTablesDir = new File(outDir, CREATE_TABLES_DIR);
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
-      File simpleDownloadDir = new File(outDir, SIMPLE_DOWNLOAD_DIR);
+      File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
+      File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
-      simpleDownloadDir.mkdirs();
+      simpleCsvDownloadDir.mkdirs();
+      simpleAvroDownloadDir.mkdirs();
 
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
@@ -52,7 +55,8 @@ public class GenerateHQL {
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
       generateQueryHQL(cfg, downloadDir);
-      generateSimpleQueryHQL(cfg, simpleDownloadDir);
+      generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
+      generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
@@ -109,9 +113,20 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for CSV downloads.
    */
-  private static void generateSimpleQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-query.q"))) {
-      Template template = cfg.getTemplate("simple-download/execute-simple-query.ftl");
+  private static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
+      Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
+      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", Queries.selectSimpleDownloadFields());
+      template.process(data, out);
+    }
+  }
+
+  /**
+   * Generates the Hive query file used for AVRO downloads.
+   */
+  private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
+      Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
       Map<String, Object> data = ImmutableMap.<String, Object>of("fields", Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
