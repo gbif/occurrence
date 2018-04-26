@@ -121,14 +121,14 @@
     <yammer.version>2.2.0</yammer.version>
 
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
-    <occurrence.environment>prod</occurrence.environment>
-    <occurrence.env_prefix>prod_b</occurrence.env_prefix>
+    <occurrence.environment>dev</occurrence.environment>
+    <occurrence.env_prefix>dev</occurrence.env_prefix>
     <!-- cluster -->
-    <zookeeper.quorum>prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181</zookeeper.quorum>
-    <hadoop.jobtracker>prodmaster3-vh.gbif.org:8021</hadoop.jobtracker>
-    <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
-    <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
-    <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
+    <zookeeper.quorum>c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181</zookeeper.quorum>
+    <hadoop.jobtracker>c3master2-vh.gbif.org:8032</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://ha-nn</hdfs.namenode>
+    <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
     <!-- cluster version -->
     <hadoop.version>2.6.0-cdh5.12.0</hadoop.version>
     <hbase.version>1.2.0-cdh5.12.0</hbase.version>
