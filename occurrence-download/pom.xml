@@ -13,7 +13,7 @@
   <distributionManagement>
     <site>
       <id>gh-pages</id>
-      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+      <url>https://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
 
@@ -45,8 +45,9 @@
           <include>conf/hive-default.xml</include>
           <include>**/workflow.xml</include>
           <include>**/config-default.xml</include>
-          <include>**/coordinator.xml</include>
+          <include>**/coordinator*.xml</include>
           <include>**/hbase-site.xml</include>
+          <include>**/regular-download-workflow/*.properties</include>
         </includes>
       </resource>
       <resource>

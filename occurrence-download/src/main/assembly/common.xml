@@ -122,6 +122,10 @@
       <outputDirectory>/download-workflow/</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${project.build.outputDirectory}/regular-download-workflow/</directory>
+      <outputDirectory>/regular-download-workflow/</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${project.build.outputDirectory}</directory>
       <outputDirectory>/</outputDirectory>
       <fileMode>0755</fileMode>

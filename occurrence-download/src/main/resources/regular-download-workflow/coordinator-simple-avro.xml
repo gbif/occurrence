@@ -1,0 +1,14 @@
+<!--
+  Regular (monthly) download in SIMPLE_AVRO format for storage in the GBIF Data Repository.
+
+  TODO:
+    1) template this for start time
+-->
+<coordinator-app name="Regular-Simple-Avro" frequency="${coord:months(1)}"
+                 start="2018-04-01T00:00Z" end="2050-05-28T00:00Z" timezone="UTC" xmlns="uri:oozie:coordinator:0.4">
+  <action>
+    <workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/regular-download-workflow</app-path>
+    </workflow>
+  </action>
+</coordinator-app>
