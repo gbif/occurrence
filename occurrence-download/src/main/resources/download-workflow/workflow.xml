@@ -36,15 +36,16 @@
 
   <decision name="download_size_decision">
     <switch>
+      <!-- All AVRO downloads are done through Hive queries -->
+      <case to="simple_avro_download">
+        ${(download_format eq 'SIMPLE_AVRO')}
+      </case>
       <!-- it's a small download -->
       <case to="from_solr_download">
         ${wf:actionData('download_prepare')['is_small_download']}
       </case>
       <case to="simple_csv_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'SIMPLE_CSV')}
-      </case>
-      <case to="simple_avro_download">
-        ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'SIMPLE_AVRO')}
       </case>
       <case to="dwca_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'DWCA')}

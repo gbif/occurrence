@@ -3,7 +3,6 @@ package org.gbif.occurrence.download.file;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
-import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
@@ -214,8 +213,7 @@ public class DownloadMaster extends UntypedActor {
       if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
         return new SimpleCsvDownloadActor();
       } else if (downloadFormat == DownloadFormat.SIMPLE_AVRO) {
-        throw new IllegalStateException("Small Avro downloads not yet supported.");
-        // return new SimpleAvroDownloadActor();
+        throw new IllegalStateException("Small Avro downloads not supported as small downloads.");
       } else if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
       }
