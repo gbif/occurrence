@@ -33,7 +33,10 @@ SELECT
 FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
--- creates the citations table
+-- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
+SET mapred.output.compress=false;
+SET hive.exec.compress.intermediate=false;
+SET hive.exec.compress.output=false;
 CREATE TABLE ${r"${occurrenceTable}"}_citation
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${occurrenceTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;

@@ -29,7 +29,7 @@ AS SELECT
 FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
--- creates the citations table, citation table is not compressed since it is read later
+-- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
 CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
