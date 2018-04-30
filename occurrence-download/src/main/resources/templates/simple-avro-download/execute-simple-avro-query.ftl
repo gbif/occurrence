@@ -23,7 +23,7 @@ CREATE TABLE ${r"${occurrenceTable}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-TBLPROPERTIES ('avro.schema.url'='hdfs://ha-nn/occurrence-download-workflows-dev/download-workflow/simple-avro/occurrence.avsc');
+TBLPROPERTIES ('avro.schema.url'='hdfs://ha-nn/occurrence-download-workflows-${occurrence.environment}/download-workflow/simple-avro/occurrence.avsc');
 
 INSERT INTO ${r"${occurrenceTable}"}
 SELECT

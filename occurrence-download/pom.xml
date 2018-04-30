@@ -49,6 +49,7 @@
           <include>**/coordinator*.xml</include>
           <include>**/hbase-site.xml</include>
           <include>**/regular-download-workflow/*.properties</include>
+          <include>**/simple-avro-download/execute-simple-avro-query.ftl</include>
         </includes>
       </resource>
       <resource>
