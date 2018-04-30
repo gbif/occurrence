@@ -14,6 +14,7 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -65,10 +66,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
-
-  //Next variables are used for the tryFileExist function
-  private static int FILE_EXISTS_RETRIES = 3;
-  private static long FILE_EXISTS_WAITING = 10000;
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -162,9 +159,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   }
 
-
   @Override
   public InputStream getResult(String downloadKey) {
+    String filename;
+
     // avoid check for download in the registry if we have secret non download files with a magic prefix!
     if (downloadKey == null || !downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
       Download d = occurrenceDownloadService.get(downloadKey);
@@ -180,9 +178,13 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (!d.isAvailable()) {
         throw new NotFoundException("Download " + downloadKey + " is not ready yet");
       }
+
+      filename = getDownloadFilename(d);
+    } else {
+      filename = downloadKey + ".zip";
     }
 
-    File localFile = new File(downloadMount, downloadKey + ".zip");
+    File localFile = new File(downloadMount, filename);
     try {
       return new FileInputStream(localFile);
 
@@ -246,8 +248,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   /**
    * Returns the download size in bytes.
    */
-  private Long getDownloadSize(String downloadKey) {
-    File downloadFile = new File(downloadMount, downloadKey + ".zip");
+  private Long getDownloadSize(Download download) {
+    File downloadFile = new File(downloadMount, getDownloadFilename(download));
     if (downloadFile.exists()) {
       return downloadFile.length();
     }
@@ -274,7 +276,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private void updateDownloadStatus(Download download, Download.Status newStatus) {
     download.setStatus(newStatus);
-    download.setSize(getDownloadSize(download.getKey()));
+    download.setSize(getDownloadSize(download));
     occurrenceDownloadService.update(download);
+  }
+
+  /**
+   * The download filename with extension.
+   */
+  private String getDownloadFilename(Download download) {
+    return download.getKey() + (download.getRequest().getFormat() == DownloadFormat.SIMPLE_AVRO ? ".avro" : ".zip");
   }
 }
