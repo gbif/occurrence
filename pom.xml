@@ -141,7 +141,7 @@
     <download-query-tools.version>1.18</download-query-tools.version>
     <dwc-api.version>1.17</dwc-api.version>
     <dwca-io.version>1.31</dwca-io.version>
-    <gbif-api.version>0.63</gbif-api.version>
+    <gbif-api.version>0.65</gbif-api.version>
     <gbif-common.version>0.37</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
@@ -149,7 +149,7 @@
     <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <geocode.version>0.10</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.31</gbif-parsers.version>
+    <gbif-parsers.version>0.33</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
     <gbif-registry.version>2.81</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
