@@ -154,7 +154,7 @@
     <gbif-registry.version>2.81</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.56</checklistbank-ws-client.version>
-    <name-parser.version>2.24</name-parser.version>
+    <name-parser.version>3.1.1</name-parser.version>
 
   </properties>
 
@@ -363,6 +363,11 @@
       <dependency>
         <groupId>org.gbif</groupId>
         <artifactId>name-parser</artifactId>
+        <version>${name-parser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>name-parser-v1</artifactId>
         <version>${name-parser.version}</version>
       </dependency>
       <dependency>

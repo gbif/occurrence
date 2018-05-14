@@ -5,6 +5,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.service.checklistbank.NameParser;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -43,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class TaxonomyInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
-  private static final NameParserGbifV1 PARSER = new NameParserGbifV1();
+  private static final NameParser PARSER = new NameParserGbifV1();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
   private static final String MATCH_PATH = "species/match";
 
