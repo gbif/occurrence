@@ -139,10 +139,10 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.18</download-query-tools.version>
-    <dwc-api.version>1.17</dwc-api.version>
-    <dwca-io.version>1.31</dwca-io.version>
+    <dwc-api.version>1.18</dwc-api.version>
+    <dwca-io.version>2.0-RC1</dwca-io.version>
     <gbif-api.version>0.65</gbif-api.version>
-    <gbif-common.version>0.37</gbif-common.version>
+    <gbif-common.version>0.38</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
