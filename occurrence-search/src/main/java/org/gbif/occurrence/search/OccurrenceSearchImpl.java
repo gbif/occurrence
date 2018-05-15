@@ -1,6 +1,5 @@
 package org.gbif.occurrence.search;
 
-
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.paging.Pageable;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
 import static org.gbif.common.search.solr.QueryUtils.buildTermQuery;
 import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
-import static org.gbif.common.search.solr.SolrConstants.SOLR_REQUEST_HANDLER;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
 /**
@@ -86,13 +84,12 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   private final NameUsageMatchingService nameUsageMatchingService;
 
   @Inject
-  public OccurrenceSearchImpl(SolrClient solrClient, @Named(SOLR_REQUEST_HANDLER) String requestHandler,
+  public OccurrenceSearchImpl(SolrClient solrClient,
                               OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
                               @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit,
                               @Named("facets.enable") boolean facetsEnable) {
     this.solrClient = solrClient;
-    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, SORT_ORDER,
-                                                                        maxOffset, maxLimit, facetsEnable);
+    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(SORT_ORDER, maxOffset, maxLimit, facetsEnable);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }

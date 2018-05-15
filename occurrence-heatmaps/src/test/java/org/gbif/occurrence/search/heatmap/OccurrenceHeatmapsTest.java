@@ -102,7 +102,7 @@ public class OccurrenceHeatmapsTest {
   public void heatmapSearchTest() throws IOException, SolrServerException {
     OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
       .buildOccurrenceHeatmapRequest(getMockRequest());
-    OccurrenceHeatmapsService heatmapsService = new OccurrenceHeatmapsService(getMockSolrClient(), "select");
+    OccurrenceHeatmapsService heatmapsService = new OccurrenceHeatmapsService(getMockSolrClient());
     OccurrenceHeatmapResponse heatmapSearchResponse = heatmapsService.searchHeatMap(heatmapRequest);
     assertMockResponse(heatmapSearchResponse);
   }

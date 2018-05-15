@@ -8,7 +8,6 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -16,8 +15,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.gbif.common.search.solr.SolrConstants.SOLR_REQUEST_HANDLER;
 
 public class OccurrenceHeatmapsService {
 
@@ -30,9 +27,9 @@ public class OccurrenceHeatmapsService {
   private final OccurrenceSearchRequestBuilder occurrenceSearchHeatmapRequestBuilder;
 
   @Inject
-  public OccurrenceHeatmapsService(SolrClient solrClient, @Named(SOLR_REQUEST_HANDLER) String requestHandler){
+  public OccurrenceHeatmapsService(SolrClient solrClient){
     this.solrClient = solrClient;
-    occurrenceSearchHeatmapRequestBuilder = new OccurrenceSearchRequestBuilder(requestHandler, null,1,1,true);
+    occurrenceSearchHeatmapRequestBuilder = new OccurrenceSearchRequestBuilder(null,1,1,true);
   }
 
   public OccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {

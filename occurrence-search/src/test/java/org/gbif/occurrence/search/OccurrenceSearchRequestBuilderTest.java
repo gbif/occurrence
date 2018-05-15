@@ -40,7 +40,7 @@ public class OccurrenceSearchRequestBuilderTest {
 
   @Test
   public void fullTextQueryTest() {
-    OccurrenceSearchRequestBuilder requestBuilder = new OccurrenceSearchRequestBuilder("search",SORT_ORDER,10000,20,true);
+    OccurrenceSearchRequestBuilder requestBuilder = new OccurrenceSearchRequestBuilder(SORT_ORDER,10000,20,true);
     OccurrenceSearchRequest request = new OccurrenceSearchRequest();
     request.setQ("cat");
     SolrQuery query  = requestBuilder.build(request);
