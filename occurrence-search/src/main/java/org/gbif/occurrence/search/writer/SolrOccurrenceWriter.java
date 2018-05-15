@@ -228,7 +228,7 @@ public class SolrOccurrenceWriter {
    */
   private static Set<String> buildMediaType(Occurrence occurrence) {
     Set<String> mediaTypes = null;
-    if (!occurrence.getMedia().isEmpty()) {
+    if (occurrence.getMedia() != null && !occurrence.getMedia().isEmpty()) {
       mediaTypes = Sets.newHashSetWithExpectedSize(occurrence.getMedia().size());
       for (MediaObject mediaObject : occurrence.getMedia()) {
         if (mediaObject.getType() != null) {
