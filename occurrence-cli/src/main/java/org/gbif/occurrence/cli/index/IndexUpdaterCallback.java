@@ -9,7 +9,7 @@ import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,13 +46,13 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
 
   private final List<Occurrence> updateBatch;
 
-  private LocalDate lastUpdate = LocalDate.now();
+  private LocalDateTime lastUpdate = LocalDateTime.now();
 
   private final ScheduledExecutorService updateTimer = Executors.newSingleThreadScheduledExecutor();
 
   private void atomicAddOrUpdate() throws IOException, SolrServerException {
     addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
-            || LocalDate.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
+            || LocalDateTime.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
   }
 
   /**
@@ -65,7 +65,7 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
                 solrOccurrenceWriter.update(updateBatch);
             } finally {
                 updateBatch.clear();
-                lastUpdate = LocalDate.now();
+                lastUpdate = LocalDateTime.now();
             }
         }
       }
@@ -134,4 +134,5 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
     }
     updateTimer.shutdownNow();
   }
+
 }
