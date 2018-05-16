@@ -60,7 +60,7 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
    */
   private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
       synchronized (updateBatch) {
-        if(onCondition) {
+        if(onCondition && !updateBatch.isEmpty()) {
             try {
                 solrOccurrenceWriter.update(updateBatch);
             } finally {
