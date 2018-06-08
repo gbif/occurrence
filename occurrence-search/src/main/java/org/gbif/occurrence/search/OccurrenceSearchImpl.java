@@ -60,7 +60,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchImpl.class);
 
   private static final Map<String, OccurrenceSearchParameter> FIELD_PARAMETER_MAPPING =
-    new HashMap<String, OccurrenceSearchParameter>(QUERY_FIELD_MAPPING.size());
+    new HashMap<>(QUERY_FIELD_MAPPING.size());
 
   static {
     for (Map.Entry<OccurrenceSearchParameter, OccurrenceSolrField> paramField : QUERY_FIELD_MAPPING.entrySet()) {

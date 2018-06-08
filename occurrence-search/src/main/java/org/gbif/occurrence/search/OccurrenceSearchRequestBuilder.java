@@ -164,6 +164,11 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceSolrField.ORGANISM_ID)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY)
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceSolrField.INSTALLATION_KEY)
+      .put(OccurrenceSearchParameter.GBIF_NETWORK, OccurrenceSolrField.NETWORK_KEY)
+      .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceSolrField.EVENT_ID)
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceSolrField.PARENT_EVENT_ID)
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceSolrField.SAMPLING_PROTOCOL)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s) distErrPct=0\"";
@@ -408,6 +413,26 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PUBLISHING_ORG).getFieldName(),
                                        OccurrenceSearchParameter.PUBLISHING_ORG, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTALLATION_KEY).getFieldName(),
+          OccurrenceSearchParameter.INSTALLATION_KEY, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.GBIF_NETWORK,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.GBIF_NETWORK).getFieldName(),
+          OccurrenceSearchParameter.GBIF_NETWORK, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.EVENT_ID,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.EVENT_ID).getFieldName(),
+          OccurrenceSearchParameter.EVENT_ID, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PARENT_EVENT_ID).getFieldName(),
+          OccurrenceSearchParameter.PARENT_EVENT_ID, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SAMPLING_PROTOCOL).getFieldName(),
+          OccurrenceSearchParameter.SAMPLING_PROTOCOL, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
       .build();
 
 
