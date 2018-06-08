@@ -27,19 +27,18 @@ public class DatasetInfoInterpreterTest {
 
   @Test
   public void testOrgLookup(){
-    Organization org = interpreter.getOrgByDataset(UUID.fromString(BOGART_DATASET_KEY));
-    assertEquals(BGBM_KEY, org.getKey().toString());
+    Organization org = interpreter.getDatasetData(UUID.fromString(BOGART_DATASET_KEY)).getOrganization();
+    assertEquals(BGBM_KEY, org.getKey());
   }
 
   @Test
   public void testCountryLookup() {
-    Country result = interpreter.getOrgCountry(UUID.fromString(BGBM_KEY));
+    Country result = interpreter.getDatasetData(UUID.fromString(BGBM_KEY)).getOrganization().getCountry();
     assertEquals(Country.GERMANY, result);
   }
 
   @Test
-  public void testBadCountryLookup() {
-    Country result = interpreter.getOrgCountry(UUID.randomUUID());
-    assertNull(result);
+  public void testBadLookup() {
+    assertNull(interpreter.getDatasetData(UUID.randomUUID()));
   }
 }

@@ -6,10 +6,7 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Joiner;
@@ -18,6 +15,7 @@ import com.google.common.collect.Sets;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import static org.gbif.common.search.solr.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
@@ -66,6 +64,11 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PROTOCOL;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LICENSE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CRAWL_ID;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.NETWORK_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PARENT_EVENT_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SAMPLING_PROTOCOL;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTALLATION_KEY;
 
 
 
@@ -205,7 +208,13 @@ public class SolrOccurrenceWriter {
     doc.setField(PUBLISHING_ORGANIZATION_KEY.getFieldName(),
                  occurrence.getPublishingOrgKey() == null ? null : occurrence.getPublishingOrgKey().toString());
     doc.setField(LICENSE.getFieldName(), occurrence.getLicense() == null ? null : occurrence.getLicense().name());
-
+    doc.setField(NETWORK_KEY.getFieldName(),
+      occurrence.getNetworkKeys() == null || occurrence.getNetworkKeys().isEmpty()? null : occurrence.getNetworkKeys().stream().map(UUID::toString).collect(Collectors.toList()));
+    doc.setField(INSTALLATION_KEY.getFieldName(),
+      occurrence.getInstallationKey() == null ? null : occurrence.getInstallationKey().toString());
+    doc.setField(EVENT_ID.getFieldName(),occurrence.getVerbatimField(DwcTerm.eventID));
+    doc.setField(PARENT_EVENT_ID.getFieldName(),occurrence.getVerbatimField(DwcTerm.parentEventID));
+    doc.setField(SAMPLING_PROTOCOL.getFieldName(),occurrence.getVerbatimField(DwcTerm.samplingProtocol));
     return doc;
   }
 

@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.hadoop.hbase.client.Delete;
@@ -219,6 +221,10 @@ public class RowUpdate {
 
   private static byte[] nullSafeBytes(UUID value) {
     return value == null ? null : Bytes.toBytes(value.toString());
+  }
+
+  private static byte[] nullSafeBytes(List<UUID> value) {
+    return value == null || value.isEmpty() ? null : Bytes.toBytes(value.stream().map(UUID::toString).collect(Collectors.joining(";")));
   }
 
   private static byte[] nullSafeBytes(URI value) {

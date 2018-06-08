@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.util;
 
+import com.google.common.base.Splitter;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -39,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 
@@ -60,6 +63,11 @@ public class OccurrenceBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceBuilder.class);
 
+  public static final String LIST_SEPARATOR = ";";
+
+  //Splits ; separate values
+  private static final Splitter LIST_SPLITTER =  Splitter.on(LIST_SEPARATOR).omitEmptyStrings().trimResults();
+
   // TODO: move these maps to Classification, Term or RankUtils
   public static final Map<Rank, Term> rank2taxonTerm =
     ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
@@ -74,6 +82,15 @@ public class OccurrenceBuilder {
 
   // should never be instantiated
   private OccurrenceBuilder() {
+  }
+
+  /**
+   * Transforms a String value into a list of UUIDs.
+   */
+  private static List<UUID> getListUuid(Result row, Term column) {
+    String uuids = ExtResultReader.getString(row, column);
+    return uuids == null ? null : StreamSupport.stream(LIST_SPLITTER.split(uuids).spliterator(), false)
+            .map(UUID::fromString).collect(Collectors.toList());
   }
 
   /**
@@ -179,6 +196,8 @@ public class OccurrenceBuilder {
       occ.setDatasetKey(ExtResultReader.getUuid(row, GbifTerm.datasetKey));
       occ.setPublishingOrgKey(ExtResultReader.getUuid(row, GbifInternalTerm.publishingOrgKey));
       occ.setPublishingCountry(Country.fromIsoCode(ExtResultReader.getString(row, GbifTerm.publishingCountry)));
+      occ.setInstallationKey(ExtResultReader.getUuid(row, GbifInternalTerm.installationKey));
+      occ.setNetworkKeys(getListUuid(row, GbifInternalTerm.gbifNetworkKey));
 
       occ.setLastInterpreted(ExtResultReader.getDate(row, GbifTerm.lastInterpreted));
       occ.setModified(ExtResultReader.getDate(row, DcTerm.modified));

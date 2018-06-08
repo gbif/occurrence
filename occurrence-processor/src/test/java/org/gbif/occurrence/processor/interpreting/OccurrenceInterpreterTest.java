@@ -1,7 +1,9 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import com.google.common.collect.Lists;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.License;
@@ -40,10 +42,14 @@ public class OccurrenceInterpreterTest {
       Organization organizationMock = new Organization();
       organizationMock.setKey(UUID.randomUUID());
       organizationMock.setTitle("Mock organization");
+      organizationMock.setCountry(Country.DENMARK);
+      Dataset mockDataset = new Dataset();
+      mockDataset.setPublishingOrganizationKey(organizationMock.getKey());
+      mockDataset.setInstallationKey(UUID.randomUUID());
+      mockDataset.setLicense(License.CC_BY_4_0);
       DatasetInfoInterpreter datasetInfoInterpreterMock = Mockito.mock(DatasetInfoInterpreter.class);
-      Mockito.when(datasetInfoInterpreterMock.getOrgCountry(Mockito.anyObject())).thenReturn(Country.DENMARK);
-      Mockito.when(datasetInfoInterpreterMock.getDatasetLicense(Mockito.anyObject())).thenReturn(License.CC_BY_4_0);
-      Mockito.when(datasetInfoInterpreterMock.getOrgByDataset(Mockito.anyObject())).thenReturn(organizationMock);
+      Mockito.when(datasetInfoInterpreterMock.getDatasetData(Mockito.anyObject())).thenReturn(
+              new DatasetInfoInterpreter.DatasetCacheData(mockDataset, Lists.newArrayList(), organizationMock));
       bind(DatasetInfoInterpreter.class).toInstance(datasetInfoInterpreterMock);
       install(new OccurrenceProcessorModule(cfg));
     }
