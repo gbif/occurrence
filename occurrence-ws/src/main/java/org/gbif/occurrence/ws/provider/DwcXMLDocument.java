@@ -29,9 +29,9 @@ public class DwcXMLDocument {
    */
   private enum DwcXmlNamespace {
 
-    DWC(DwcTerm.class, DwcTerm.PREFIX, DwcTerm.NS),
-    DC(DcTerm.class, DcTerm.PREFIX, DcTerm.NS),
-    GBIF(GbifTerm.class, GbifTerm.PREFIX, GbifTerm.NS);
+    DWC(DwcTerm.class, "dwc", "http://rs.tdwg.org/dwc/terms/"),
+    DC(DcTerm.class, "dcterms", "http://purl.org/dc/terms/"),
+    GBIF(GbifTerm.class, "gbif", "http://rs.gbif.org/terms/1.0/");
 
     private final Class<? extends Term> termClass;
     private final String prefix;

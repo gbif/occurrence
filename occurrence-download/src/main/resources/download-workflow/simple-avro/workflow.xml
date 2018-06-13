@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<workflow-app name="${occurrence.environment}-avro-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+
+  <global>
+    <job-tracker>${hadoop.jobtracker}</job-tracker>
+    <name-node>${hdfs.namenode}</name-node>
+    <configuration>
+      <property>
+        <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
+        <value>true</value>
+      </property>
+    </configuration>
+  </global>
+
+  <start to="from_hive_download"/>
+
+  <!-- Execute the query using sequential approach -->
+  <action name="from_hive_download">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/execute-simple-avro-query.q</script>
+      <param>hiveDB=${hive_db}</param>
+      <param>occurrenceTable=${download_table_name}</param>
+      <param>whereClause=${hive_query}</param>
+    </hive>
+    <ok to="archive_table"/>
+    <error to="drop_tables_failure"/>
+  </action>
+
+  <action name="archive_table">
+    <java>
+      <main-class>org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
+      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
+      <arg>${download_key}</arg>
+      <capture-output/>
+    </java>
+
+    <ok to="persist_usages"/>
+    <error to="kill"/>
+  </action>
+
+  <action name="persist_usages">
+    <java>
+      <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <arg>${download_key}</arg>
+      <capture-output/>
+    </java>
+
+    <ok to="drop_tables"/>
+    <error to="drop_tables_failure"/>
+  </action>
+
+  <action name="drop_tables">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${download_table_name}</param>
+      <param>hiveDB=${hive_db}</param>
+    </hive>
+
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+
+  <action name="drop_tables_failure">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/drop_tables.q</script>
+      <param>occurrenceTable=${download_table_name}</param>
+      <param>hiveDB=${hive_db}</param>
+    </hive>
+
+    <ok to="kill"/>
+    <error to="kill"/>
+  </action>
+
+  <kill name="kill">
+    <message>Occurrence download failed:[${wf:errorMessage(wf:lastErrorNode())}]</message>
+  </kill>
+
+  <end name="end"/>
+
+</workflow-app>

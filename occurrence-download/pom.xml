@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.80-SNAPSHOT</version>
+    <version>0.83-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -13,7 +13,7 @@
   <distributionManagement>
     <site>
       <id>gh-pages</id>
-      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+      <url>https://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
 
@@ -31,9 +31,10 @@
     <akka-actor.version>2.0.5</akka-actor.version>
     <gbif-common-mybatis.version>0.18</gbif-common-mybatis.version>
     <commons-beanutils-core>1.8.3</commons-beanutils-core>
-    <!-- the timestamp is used to set the start date for the Oozie coordinator job -->
+    <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
+    <!-- We want the coordinator to run at 01:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
-    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm'Z'</maven.build.timestamp.format>
+    <maven.build.timestamp.format>yyyy-MM-dd'T01:00Z'</maven.build.timestamp.format>
   </properties>
 
   <build>
@@ -45,8 +46,10 @@
           <include>conf/hive-default.xml</include>
           <include>**/workflow.xml</include>
           <include>**/config-default.xml</include>
-          <include>**/coordinator.xml</include>
+          <include>**/coordinator*.xml</include>
           <include>**/hbase-site.xml</include>
+          <include>**/regular-download-workflow/*.properties</include>
+          <include>**/simple-avro-download/execute-simple-avro-query.ftl</include>
         </includes>
       </resource>
       <resource>
@@ -88,7 +91,8 @@
           <descriptors>
             <descriptor>src/main/assembly/create-tables.xml</descriptor>
             <descriptor>src/main/assembly/download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-download.xml</descriptor>
+            <descriptor>src/main/assembly/simple-avro-download.xml</descriptor>
+            <descriptor>src/main/assembly/simple-csv-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>
         </configuration>

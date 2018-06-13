@@ -5,6 +5,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.service.checklistbank.NameParser;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -16,7 +17,7 @@ import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.nameparser.GBIFNameParser;
+import org.gbif.nameparser.NameParserGbifV1;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 
@@ -43,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class TaxonomyInterpreter implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
-  private static final GBIFNameParser PARSER = new GBIFNameParser();
+  private static final NameParser PARSER = new NameParserGbifV1();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
   private static final String MATCH_PATH = "species/match";
 

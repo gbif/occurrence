@@ -18,7 +18,7 @@
   <action name="from_hive_download">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/execute-simple-query.q</script>
+      <script>hive-scripts/execute-simple-csv-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>

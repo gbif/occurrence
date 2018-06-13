@@ -6,7 +6,7 @@
   <!-- See the install-workflow.sh which declares this location during development -->
   <property>
     <name>oozie.wf.application.path</name>
-    <value>hdfs://c1n1.gbif.org:8020/occurrence-download-workflows-dev/download-workflow/</value>
+    <value>hdfs://ha-nn/occurrence-download-workflows-dev/download-workflow/</value>
   </property>
 
   <!--
@@ -26,7 +26,7 @@
   </property>
   <property>
     <name>gbif_filter</name>
-    <value>{"type":"equals","key":"TAXON_KEY","value":"1"}</value>
+    <value>{"type":"equals","key":"TAXON_KEY","value":"5"}</value>
   </property>
 
   <property>

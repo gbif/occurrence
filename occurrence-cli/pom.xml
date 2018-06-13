@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.80-SNAPSHOT</version>
+    <version>0.83-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -255,6 +255,10 @@
           <groupId>com.fasterxml.jackson</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>name-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>

@@ -65,11 +65,18 @@ public final class BatchingDalWrapper {
         }
         for (Map.Entry<String, AtomicLong> entry : mutations.entrySet()) {
           try {
-            DistributedAtomicLong dal = new DistributedAtomicLong(client, entry.getKey(),
-              new RetryUntilElapsed((int) TimeUnit.MINUTES.toMillis(5), (int) TimeUnit.MILLISECONDS.toMillis(25)));
-            AtomicValue<Long> result = dal.add(entry.getValue().get());
-            if (!result.succeeded()) {
-              LOG.warn("Counter updates are failing and we've exhausted retry - counts will be wrong");
+            String path = entry.getKey();
+            String basePath = path.substring(0, 44); // TODO: UGLY!
+            LOG.debug("Path {} exists? {}", basePath, client.checkExists().forPath(basePath));
+            if (client.checkExists().forPath(basePath) == null) {
+              LOG.warn("Counter {} no longer exists, not changing it, counts will be wrong", path);
+            } else {
+              DistributedAtomicLong dal = new DistributedAtomicLong(client, path,
+                new RetryUntilElapsed((int) TimeUnit.MINUTES.toMillis(5), (int) TimeUnit.MILLISECONDS.toMillis(25)));
+              AtomicValue<Long> result = dal.add(entry.getValue().get());
+              if (!result.succeeded()) {
+                LOG.warn("Counter updates are failing and we've exhausted retry - counts will be wrong");
+              }
             }
           } catch (Exception e) {
             LOG.warn("Failed to update DALs during flush - counts will be wrong", e);

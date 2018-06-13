@@ -10,6 +10,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
+import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadAggregator;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
@@ -152,6 +153,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
         bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
       } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
         bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
+      } else if (DownloadFormat.SIMPLE_AVRO == downloadFormat) {
+        bind(DownloadAggregator.class).to(SimpleAvroDownloadAggregator.class);
       }
     }
   }

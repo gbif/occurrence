@@ -12,6 +12,8 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -80,14 +82,21 @@ public class DownloadResource {
   @Path("{key}")
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
   public InputStream getResult(@PathParam("key") String downloadKey, @Context HttpServletResponse response) {
-    // if key contains zip suffix remove it as we intend to work with the pure key
+    // if key contains avro or zip suffix remove it as we intend to work with the pure key
+    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ".avro");
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ".zip");
+
+    String extension = ".zip";
+    Download download = occurrenceDownloadService.get(downloadKey);
+    if (download != null) {
+      extension = (download.getRequest().getFormat() == DownloadFormat.SIMPLE_AVRO) ? ".avro" : ".zip";
+    }
+
     LOG.debug("Get download data: [{}]", downloadKey);
     // suggest filename for download in http headers
-    response.setHeader("Content-Disposition", "attachment; filename=" + downloadKey + ".zip");
+    response.setHeader("Content-Disposition", "attachment; filename=" + downloadKey + extension);
     return requestService.getResult(downloadKey);
   }
-
 
   @GET
   @Path("callback")

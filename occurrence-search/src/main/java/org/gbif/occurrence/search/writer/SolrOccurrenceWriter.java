@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.gbif.occurrence.search.writer;
 
 import org.gbif.api.model.common.MediaObject;
@@ -9,16 +6,16 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import static org.gbif.common.search.solr.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
@@ -67,6 +64,12 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PROTOCOL;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.LICENSE;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.CRAWL_ID;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.NETWORK_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PARENT_EVENT_ID;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SAMPLING_PROTOCOL;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTALLATION_KEY;
+
 
 
 /**
@@ -119,11 +122,23 @@ public class SolrOccurrenceWriter {
     solrClient.deleteById(input.getKey().toString(), commitWithinMs);
   }
 
+  public void delete(List<Occurrence> input) throws IOException, SolrServerException {
+     solrClient.deleteById(input.stream().map(occurrence -> occurrence.getKey().toString()).collect(Collectors.toList()),
+                           commitWithinMs);
+  }
+
   /**
    * Processes the occurrence object.
    */
   public void update(Occurrence input) throws IOException, SolrServerException {
-    solrClient.add(buildOccSolrDocument(input), commitWithinMs);
+    solrClient.add(buildOccSolrDocument(input));
+  }
+
+  /**
+    * Processes a batch of occurrence objects.
+   */
+  public void update(List<Occurrence> input) throws IOException, SolrServerException {
+    solrClient.add(input.stream().map(SolrOccurrenceWriter::buildOccSolrDocument).collect(Collectors.toList()));
   }
 
   /**
@@ -153,11 +168,8 @@ public class SolrOccurrenceWriter {
     doc.setField(CONTINENT.getFieldName(), occurrence.getContinent() == null ? null : occurrence.getContinent().name());
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
-    if (!taxonKey.isEmpty()) {
-      doc.setField(TAXON_KEY.getFieldName(), taxonKey);
-    } else {
-      doc.setField(TAXON_KEY.getFieldName(), null);
-    }
+    doc.setField(TAXON_KEY.getFieldName(), taxonKey.isEmpty()? null : taxonKey);
+
     doc.setField(KINGDOM_KEY.getFieldName(), occurrence.getKingdomKey());
     doc.setField(PHYLUM_KEY.getFieldName(), occurrence.getPhylumKey());
     doc.setField(CLASS_KEY.getFieldName(), occurrence.getClassKey());
@@ -178,28 +190,31 @@ public class SolrOccurrenceWriter {
                  occurrence.getEventDate() != null ? toDateQueryFormat(occurrence.getEventDate()) : null);
     doc.setField(LAST_INTERPRETED.getFieldName(),
                  occurrence.getLastInterpreted() != null ? toDateQueryFormat(occurrence.getLastInterpreted()) : null);
-    if (isValidCoordinate(latitude, longitude)) {
-      doc.setField(COORDINATE.getFieldName(), COORD_JOINER.join(latitude, longitude));
-    } else {
-      doc.setField(COORDINATE.getFieldName(), null);
-    }
+
+    doc.setField(COORDINATE.getFieldName(), isValidCoordinate(latitude, longitude)? COORD_JOINER.join(latitude, longitude) : null);
     doc.setField(MEDIA_TYPE.getFieldName(), buildMediaType(occurrence));
     doc.setField(ISSUE.getFieldName(), buildIssue(occurrence.getIssues()));
     doc.setField(ESTABLISHMENT_MEANS.getFieldName(),
                  occurrence.getEstablishmentMeans() == null ? null : occurrence.getEstablishmentMeans().name());
     doc.setField(OCCURRENCE_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.occurrenceID));
     doc.setField(FULL_TEXT.getFieldName(), FullTextFieldBuilder.buildFullTextField(occurrence));
-    doc.setField(REPATRIATED.getFieldName(),isRepatriated(occurrence).orNull());
+    doc.setField(REPATRIATED.getFieldName(), isRepatriated(occurrence).orElse(null));
     doc.setField(ORGANISM_ID.getFieldName(), occurrence.getVerbatimField(DwcTerm.organismID));
     doc.setField(STATE_PROVINCE.getFieldName(), occurrence.getStateProvince());
     doc.setField(WATER_BODY.getFieldName(), occurrence.getWaterBody());
     doc.setField(LOCALITY.getFieldName(), occurrence.getVerbatimField(DwcTerm.locality));
     doc.setField(PROTOCOL.getFieldName(), occurrence.getProtocol() == null ? null : occurrence.getProtocol().name());
-    doc.setField(CRAWL_ID.getFieldName(), occurrence.getCrawlId() == null ? null : occurrence.getCrawlId());
+    doc.setField(CRAWL_ID.getFieldName(), occurrence.getCrawlId());
     doc.setField(PUBLISHING_ORGANIZATION_KEY.getFieldName(),
                  occurrence.getPublishingOrgKey() == null ? null : occurrence.getPublishingOrgKey().toString());
     doc.setField(LICENSE.getFieldName(), occurrence.getLicense() == null ? null : occurrence.getLicense().name());
-
+    doc.setField(NETWORK_KEY.getFieldName(),
+      occurrence.getNetworkKeys() == null || occurrence.getNetworkKeys().isEmpty()? null : occurrence.getNetworkKeys().stream().map(UUID::toString).collect(Collectors.toList()));
+    doc.setField(INSTALLATION_KEY.getFieldName(),
+      occurrence.getInstallationKey() == null ? null : occurrence.getInstallationKey().toString());
+    doc.setField(EVENT_ID.getFieldName(),occurrence.getVerbatimField(DwcTerm.eventID));
+    doc.setField(PARENT_EVENT_ID.getFieldName(),occurrence.getVerbatimField(DwcTerm.parentEventID));
+    doc.setField(SAMPLING_PROTOCOL.getFieldName(),occurrence.getVerbatimField(DwcTerm.samplingProtocol));
     return doc;
   }
 
@@ -238,7 +253,7 @@ public class SolrOccurrenceWriter {
    */
   private static Set<Integer> buildTaxonKey(Occurrence occurrence) {
 
-    Set<Integer> taxonKey = new HashSet<Integer>();
+    Set<Integer> taxonKey = new HashSet<>();
 
     if (occurrence.getTaxonKey() != null) {
       taxonKey.add(occurrence.getTaxonKey());
@@ -285,7 +300,7 @@ public class SolrOccurrenceWriter {
     if (occurrence.getPublishingCountry() != null && occurrence.getCountry() !=  null) {
       return  Optional.of(!occurrence.getPublishingCountry().equals(occurrence.getCountry()));
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
 }

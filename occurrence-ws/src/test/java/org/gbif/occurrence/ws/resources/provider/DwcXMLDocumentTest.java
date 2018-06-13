@@ -38,7 +38,7 @@ public class DwcXMLDocumentTest {
     assertEquals("Occurrence element has only one child", 1, occurrenceElement.getChildNodes().getLength());
     Node firstChild = occurrenceElement.getFirstChild();
 
-    assertEquals(DwcTerm.PREFIX + ":" + DwcTerm.behavior.simpleName(), firstChild.getNodeName());
+    assertEquals("dwc" + ":" + DwcTerm.behavior.simpleName(), firstChild.getNodeName());
     assertEquals("calm", firstChild.getTextContent());
   }
 

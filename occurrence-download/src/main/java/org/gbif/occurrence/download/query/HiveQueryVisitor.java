@@ -148,6 +148,11 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
       .put(OccurrenceSearchParameter.CRAWL_ID, GbifInternalTerm.crawlId)
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY, GbifInternalTerm.installationKey)
+      .put(OccurrenceSearchParameter.GBIF_NETWORK, GbifInternalTerm.gbifNetworkKey)
+      .put(OccurrenceSearchParameter.EVENT_ID, DwcTerm.eventID)
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID, DwcTerm.parentEventID)
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, DwcTerm.samplingProtocol)
       .build();
 
   private StringBuilder builder;
@@ -421,7 +426,7 @@ public class HiveQueryVisitor {
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
       Throwables.propagate(e);
     } catch (InvocationTargetException e) {
       LOG.info("Exception thrown while building the query", e);

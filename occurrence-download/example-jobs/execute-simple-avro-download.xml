@@ -1,0 +1,45 @@
+<!--
+  Run this with:
+   oozie job -oozie http://c1n1.gbif.org:11000/oozie/ -config example-jobs/execute-download.xml -run
+-->
+<configuration>
+  <!-- See the install-workflow.sh which declares this location during development -->
+  <property>
+    <name>oozie.wf.application.path</name>
+    <value>hdfs://ha-nn/occurrence-download-workflows-dev/download-workflow/</value>
+  </property>
+
+  <!--
+    During development we overwrite defaults with our own values (!)
+  -->
+  <property>
+    <name>user.name</name>
+    <value>oozie</value>
+  </property>
+  <property>
+    <name>hive_db</name>
+    <value>dev</value>
+  </property>
+  <property>
+    <name>download_format</name>
+    <value>SIMPLE_AVRO</value>
+  </property>
+  <property>
+    <name>gbif_filter</name>
+    <value>{"type":"equals","key":"TAXON_KEY","value":"5"}</value>
+  </property>
+
+  <property>
+    <name>oozie.libpath</name>
+    <value>/occurrence-download-workflows-dev/lib/</value>
+  </property>
+  <property>
+    <name>oozie.use.system.libpath</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>mapreduce.job.user.classpath.first</name>
+    <value>true</value>
+  </property>
+
+</configuration>

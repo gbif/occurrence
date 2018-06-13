@@ -75,7 +75,7 @@ SET hive.auto.convert.join=true;
 --
 -- Creates the citation table
 -- At most this produces #datasets, so single reducer
--- creates the citations table, citation table is not compressed since it is read later
+-- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;

@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.80-SNAPSHOT</version>
+  <version>0.83-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -37,7 +37,6 @@
     <module>occurrence-common</module>
     <module>occurrence-deleter</module>
     <module>occurrence-index-builder-workflow</module>
-    <module>occurrence-hbase-solr-index</module>
     <module>occurrence-persistence</module>
     <module>occurrence-parser</module>
     <module>occurrence-processor</module>
@@ -78,7 +77,8 @@
     <commons-digester.version>2.1</commons-digester.version>
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.4</commmons-lang.version>
-    <curator.version>2.9.0</curator.version>
+    <curator.version>4.0.1</curator.version>
+    <curator-test.version>2.12.0</curator-test.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>12.1</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
@@ -102,10 +102,10 @@
      Jersey 1.18.3 comes with jackson 1.9.2, so its a minor update only -->
     <jackson.version>1.9.12</jackson.version>
     <jcommander.version>1.35</jcommander.version>
-    <jersey.version>1.18.3</jersey.version>
+    <jersey.version>1.18.6</jersey.version>
     <junit.version>4.12</junit.version>
     <logback.version>1.1.5</logback.version>
-    <logstash-encoder.version>4.11</logstash-encoder.version>
+    <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>1.9.0</mockito.version>
     <powermock-mockito.version>1.6.1</powermock-mockito.version>
@@ -122,14 +122,14 @@
     <yammer.version>2.2.0</yammer.version>
 
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
-    <occurrence.environment>prod</occurrence.environment>
-    <occurrence.env_prefix>prod_b</occurrence.env_prefix>
+    <occurrence.environment>dev</occurrence.environment>
+    <occurrence.env_prefix>dev</occurrence.env_prefix>
     <!-- cluster -->
-    <zookeeper.quorum>prodmaster1-vh.gbif.org:2181,prodmaster2-vh.gbif.org:2181,prodmaster3-vh.gbif.org:2181</zookeeper.quorum>
-    <hadoop.jobtracker>prodmaster3-vh.gbif.org:8021</hadoop.jobtracker>
-    <hdfs.namenode>hdfs://prodmaster1-vh.gbif.org:8020</hdfs.namenode>
-    <oozie.url>http://prodmaster1-vh.gbif.org:11000/oozie</oozie.url>
-    <hive.metastore.uris>thrift://prodmaster1-vh.gbif.org:9083</hive.metastore.uris>
+    <zookeeper.quorum>c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181</zookeeper.quorum>
+    <hadoop.jobtracker>c3master2-vh.gbif.org:8032</hadoop.jobtracker>
+    <hdfs.namenode>hdfs://ha-nn</hdfs.namenode>
+    <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
+    <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
     <!-- cluster version -->
     <hadoop.version>2.6.0-cdh5.12.0</hadoop.version>
     <hbase.version>1.2.0-cdh5.12.0</hbase.version>
@@ -140,22 +140,22 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.18</download-query-tools.version>
-    <dwc-api.version>1.17</dwc-api.version>
-    <dwca-io.version>1.31</dwca-io.version>
-    <gbif-api.version>0.59</gbif-api.version>
-    <gbif-common.version>0.37</gbif-common.version>
+    <dwc-api.version>1.19-SNAPSHOT</dwc-api.version>
+    <dwca-io.version>2.0-RC1</dwca-io.version>
+    <gbif-api.version>0.68-SNAPSHOT</gbif-api.version>
+    <gbif-common.version>0.38</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
     <gbif-common-ws.version>0.40</gbif-common-ws.version>
     <geocode.version>0.10</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.31</gbif-parsers.version>
+    <gbif-parsers.version>0.34</gbif-parsers.version>
     <gbif-postal-service.version>0.24</gbif-postal-service.version>
-    <gbif-registry.version>2.77</gbif-registry.version>
+    <gbif-registry.version>2.81</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.56</checklistbank-ws-client.version>
-    <name-parser.version>2.24</name-parser.version>
+    <name-parser.version>3.1.1</name-parser.version>
 
   </properties>
 
@@ -364,6 +364,11 @@
       <dependency>
         <groupId>org.gbif</groupId>
         <artifactId>name-parser</artifactId>
+        <version>${name-parser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>name-parser-v1</artifactId>
         <version>${name-parser.version}</version>
       </dependency>
       <dependency>
@@ -918,13 +923,31 @@
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>${zookeeper.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- curator for talking to zookeeper -->
+      <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.
+           Note especially the different (old) version used for curator-test. -->
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
         <version>${curator.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
@@ -933,13 +956,30 @@
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
-        <artifactId>curator-recipes</artifactId>
+        <artifactId>curator-x-discovery</artifactId>
         <version>${curator.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
-        <artifactId>curator-test</artifactId>
+        <artifactId>curator-recipes</artifactId>
         <version>${curator.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-test</artifactId>
+        <version>${curator-test.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+          </exclusion>
+        </exclusions>
         <scope>test</scope>
       </dependency>
 

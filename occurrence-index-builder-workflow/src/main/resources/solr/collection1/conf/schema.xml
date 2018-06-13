@@ -46,7 +46,7 @@
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="double" class="solr.TrieDoubleField"
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
-    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
+    <fieldType name="coordinate" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -86,6 +86,8 @@
   <fields>
     <field name="key" type="int" indexed="true" stored="true" required="true" docValues="true"/>
     <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/>
+    <field name="installation_key" type="string" indexed="true" stored="false" docValues="true"/>
+    <field name="network_key" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
     <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
     <field name="kingdom_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="phylum_key" type="int" indexed="true" stored="false" docValues="true"/>
@@ -130,6 +132,9 @@
     <field name="crawl_id" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="publishing_organization_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="repatriated" type="boolean" indexed="true" stored="false" />
+    <field name="event_id" type="string" indexed="true" stored="false" docValues="true"/>
+    <field name="parent_event_id" type="string" indexed="true" stored="false" docValues="true"/>
+    <field name="sampling_protocol" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <field name="_version_" type="long" indexed="true" stored="true"/>
   </fields>

@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -32,10 +33,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -255,6 +254,14 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!Objects.equals(oldVerb.getPublishingOrgKey(), occ.getPublishingOrgKey())) {
       upd.setInterpretedField(GbifInternalTerm.publishingOrgKey, occ.getPublishingOrgKey());
+    }
+    if (!Objects.equals(oldVerb.getInstallationKey(), occ.getInstallationKey())) {
+      upd.setInterpretedField(GbifInternalTerm.installationKey, occ.getInstallationKey());
+    }
+    if (!Objects.equals(oldVerb.getNetworkKeys(), occ.getNetworkKeys())) {
+      upd.setInterpretedField(GbifInternalTerm.gbifNetworkKey, occ.getNetworkKeys() == null ? null :
+              occ.getNetworkKeys().stream().map(UUID::toString)
+                      .collect(Collectors.joining(OccurrenceBuilder.LIST_SEPARATOR)));
     }
     if (!Objects.equals(oldVerb.getProtocol(), occ.getProtocol())) {
       upd.setInterpretedField(GbifTerm.protocol, occ.getProtocol());

@@ -2,9 +2,9 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.License;
 import org.gbif.common.parsers.CountryParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.dwc.terms.GbifTerm;
@@ -12,9 +12,12 @@ import org.gbif.registry.ws.client.DatasetWsClient;
 import org.gbif.registry.ws.client.OrganizationWsClient;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -35,25 +38,41 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DatasetInfoInterpreter implements Serializable {
 
+  @VisibleForTesting
+  protected static class DatasetCacheData {
+
+    private final Dataset dataset;
+    private final List<Network> networks;
+    private final Organization organization;
+
+    public DatasetCacheData(Dataset dataset, List<Network> networks, Organization organization) {
+      this.dataset = dataset;
+      this.networks = networks;
+      this.organization = organization;
+    }
+
+      public Dataset getDataset() {
+          return dataset;
+      }
+
+      public List<Network> getNetworks() {
+          return networks;
+      }
+
+      public Organization getOrganization() {
+          return organization;
+      }
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
 
-  private final UUID EBIRD_DATASET = UUID.fromString("4fa7b334-ce0d-4e88-aaae-2e0c138d049e");
+  private static final UUID EBIRD_DATASET = UUID.fromString("4fa7b334-ce0d-4e88-aaae-2e0c138d049e");
 
-  private CountryParser COUNTRY_PARSER = CountryParser.getInstance();
+  private static final CountryParser COUNTRY_PARSER = CountryParser.getInstance();
 
   private final DatasetWsClient datasetClient;
   private final OrganizationWsClient orgClient;
 
-  // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private final LoadingCache<UUID, Dataset> datasetCache =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
-      .build(new CacheLoader<UUID, Dataset>() {
-
-        @Override
-        public Dataset load(UUID key) throws Exception {
-          return datasetClient.get(key);
-        }
-      });
 
   private final LoadingCache<UUID, Organization> orgCache =
     CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
@@ -62,8 +81,26 @@ public class DatasetInfoInterpreter implements Serializable {
         @Override
         public Organization load(UUID key) throws Exception {
           return orgClient.get(key);
+       }
+    });
+
+  // The repetitive nature of our data encourages use of a light cache to reduce WS load
+  private final LoadingCache<UUID, DatasetCacheData> datasetCache =
+    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
+      .build(new CacheLoader<UUID, DatasetCacheData>() {
+
+        @Override
+        public DatasetCacheData load(UUID key) throws Exception {
+          Dataset dataset = datasetClient.get(key);
+          if (dataset != null) {
+            return new DatasetCacheData(dataset, datasetClient.listNetworks(key),
+                                        orgCache.get(dataset.getPublishingOrganizationKey()));
+          }
+          return null;
         }
       });
+
+
 
   @Inject
   public DatasetInfoInterpreter(WebResource apiWs) {
@@ -72,22 +109,27 @@ public class DatasetInfoInterpreter implements Serializable {
   }
 
   public void interpretDatasetInfo(Occurrence occ) {
-    Organization org = getOrgByDataset(occ.getDatasetKey());
-    // update the occurrence's publishing org if it's empty or out of sync
 
-    if (org != null && org.getKey() != null && !org.getKey().equals(occ.getPublishingOrgKey())) {
-      occ.setPublishingOrgKey(org.getKey());
+    DatasetCacheData datasetCacheData = getDatasetData(occ.getDatasetKey());
+    if (datasetCacheData == null) {
+      LOG.error("Couldn't find dataset key [{}] for occ id [{}]", occ.getKey(), occ.getDatasetKey());
+      return;
     }
 
+    // update the occurrence's publishing org if it's empty or out of sync
     if (occ.getPublishingOrgKey() == null) {
       LOG.info("Couldn't find publishing org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
     } else {
+      Organization org = datasetCacheData.organization;
       // Special case for eBird, use the supplied publishing country.
+      if (!occ.getPublishingOrgKey().equals(org.getKey())) {
+        occ.setPublishingOrgKey(org.getKey());
+      }
       Country country = null;
       if (occ.getDatasetKey().equals(EBIRD_DATASET)) {
         String verbatimPublishingCountryCode = occ.getVerbatimField(GbifTerm.publishingCountry);
 
-        OccurrenceParseResult<Country> result = new OccurrenceParseResult(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
+        OccurrenceParseResult<Country> result = new OccurrenceParseResult<>(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
 
         if (result.isSuccessful()) {
           country = result.getPayload();
@@ -95,7 +137,7 @@ public class DatasetInfoInterpreter implements Serializable {
           LOG.info("Couldn't find publishing country for eBird record [{}]", occ.getKey());
         }
       } else {
-        country = getOrgCountry(occ.getPublishingOrgKey());
+        country = org.getCountry();
       }
 
       if (country == null) {
@@ -105,10 +147,11 @@ public class DatasetInfoInterpreter implements Serializable {
       }
     }
 
-    License license = getDatasetLicense(occ.getDatasetKey());
-    if (license != null) {
-      occ.setLicense(license);
-    }
+    Optional.ofNullable(datasetCacheData.dataset.getLicense()).ifPresent(occ::setLicense);
+    Optional.ofNullable(datasetCacheData.dataset.getInstallationKey()).ifPresent(occ::setInstallationKey);
+    Optional.ofNullable(datasetCacheData.networks).ifPresent(networks ->
+        occ.setNetworkKeys(networks.stream().map(Network::getKey).collect(Collectors.toList()))
+    );
   }
 
   /**
@@ -119,65 +162,17 @@ public class DatasetInfoInterpreter implements Serializable {
    */
   @Nullable
   @VisibleForTesting
-  protected Organization getOrgByDataset(UUID datasetKey) {
+  protected DatasetCacheData getDatasetData(UUID datasetKey) {
     checkNotNull(datasetKey, "datasetKey can't be null");
-
-    Organization org = null;
+    DatasetCacheData datasetCacheData = null;
     try {
-      Dataset dataset = datasetCache.get(datasetKey);
-      if (dataset != null && dataset.getPublishingOrganizationKey() != null) {
-        org = orgCache.get(dataset.getPublishingOrganizationKey());
-      }
+      return datasetCache.get(datasetKey);
     } catch (UncheckedExecutionException | ExecutionException e) {
       LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);
     }
 
-    return org == null ? null : org;
+    return datasetCacheData;
   }
 
-  /**
-   * Find and return the organization which publishes the dataset for the given datasetKey.
-   *
-   * @param datasetKey the dataset publisher to find
-   * @return the dataset license
-   */
-  @Nullable
-  @VisibleForTesting
-  protected License getDatasetLicense(UUID datasetKey) {
-    checkNotNull(datasetKey, "datasetKey can't be null");
-
-    License license = null;
-    try {
-      Dataset dataset = datasetCache.get(datasetKey);
-      if (dataset != null && dataset.getLicense() != null) {
-        license = dataset.getLicense();
-      }
-    } catch (UncheckedExecutionException | ExecutionException e) {
-      LOG.warn("WS failure while looking up org for dataset [{}]", datasetKey, e);
-    }
-
-    return license == null ? null : license;
-  }
-
-  /**
-   * Find and return the country of the organization.
-   *
-   * @param organizationKey the organization for which to find the country
-   * @return the org's country (the "hostCountry") or null if the organization couldn't be found (or loaded)
-   */
-  @Nullable
-  @VisibleForTesting
-  protected Country getOrgCountry(UUID organizationKey) {
-    checkNotNull(organizationKey, "organizationKey can't be null");
-
-    Organization org = null;
-    try {
-      org = orgCache.get(organizationKey);
-    } catch (UncheckedExecutionException | ExecutionException e) {
-      LOG.warn("WS failure while looking up country for org [{}]", organizationKey, e);
-    }
-
-    return org == null ? null : org.getCountry();
-  }
 
 }

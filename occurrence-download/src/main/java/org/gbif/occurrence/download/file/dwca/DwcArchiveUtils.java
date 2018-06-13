@@ -3,10 +3,10 @@ package org.gbif.occurrence.download.file.dwca;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwca.io.Archive;
-import org.gbif.dwca.io.ArchiveField;
-import org.gbif.dwca.io.ArchiveFile;
-import org.gbif.dwca.io.MetaDescriptorWriter;
+import org.gbif.dwc.Archive;
+import org.gbif.dwc.ArchiveField;
+import org.gbif.dwc.ArchiveFile;
+import org.gbif.dwc.MetaDescriptorWriter;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 

@@ -164,6 +164,11 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceSolrField.ORGANISM_ID)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY)
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceSolrField.INSTALLATION_KEY)
+      .put(OccurrenceSearchParameter.GBIF_NETWORK, OccurrenceSolrField.NETWORK_KEY)
+      .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceSolrField.EVENT_ID)
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceSolrField.PARENT_EVENT_ID)
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceSolrField.SAMPLING_PROTOCOL)
       .build();
 
   public static final String GEO_INTERSECTS_QUERY_FMT = "\"Intersects(%s) distErrPct=0\"";
@@ -175,9 +180,6 @@ public class OccurrenceSearchRequestBuilder {
 
   // Holds the value used for an optional sort order applied to a search via param "sort"
   private final Map<String, SolrQuery.ORDER> sortOrder;
-
-  // Solr request handler.
-  private final String requestHandler;
 
   private final int maxOffset;
 
@@ -195,11 +197,10 @@ public class OccurrenceSearchRequestBuilder {
   /**
    * Default constructor.
    */
-  public OccurrenceSearchRequestBuilder(String requestHandler, Map<String, SolrQuery.ORDER> sortOrder, int maxOffset,
+  public OccurrenceSearchRequestBuilder(Map<String, SolrQuery.ORDER> sortOrder, int maxOffset,
                                         int maxLimit, boolean facetsEnable) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
-    this.requestHandler = requestHandler;
     this.sortOrder = sortOrder;
     this.maxOffset = Math.min(maxOffset, MAX_OFFSET);
     this.maxLimit = Math.min(maxLimit, MAX_PAGE_SIZE);
@@ -215,7 +216,7 @@ public class OccurrenceSearchRequestBuilder {
   protected static String parseGeometryParam(String wkt) {
     try {
       Geometry geometry = new WKTReader().read(wkt);
-      return geometry.isRectangle()? toBBoxQuery(geometry) : String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
+      return String.format(GEO_INTERSECTS_QUERY_FMT, geometry.toText());
     } catch (ParseException e) {
       throw new IllegalArgumentException(e);
     }
@@ -233,8 +234,6 @@ public class OccurrenceSearchRequestBuilder {
                            ? DEFAULT_SPELL_CHECK_COUNT
                            : Integer.toString(request.getSpellCheckCount()));
     }
-    // set the request handler
-    setRequestHandler(solrQuery, requestHandler);
     // q param
     if (Strings.isNullOrEmpty(request.getQ()) || SolrConstants.DEFAULT_FILTER_QUERY.equals(request.getQ())) {
       solrQuery.setQuery(DEFAULT_QUERY);
@@ -414,6 +413,26 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PUBLISHING_ORG).getFieldName(),
                                        OccurrenceSearchParameter.PUBLISHING_ORG, FacetField.Method.FIELD_CACHE,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTALLATION_KEY).getFieldName(),
+          OccurrenceSearchParameter.INSTALLATION_KEY, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.GBIF_NETWORK,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.GBIF_NETWORK).getFieldName(),
+          OccurrenceSearchParameter.GBIF_NETWORK, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.EVENT_ID,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.EVENT_ID).getFieldName(),
+          OccurrenceSearchParameter.EVENT_ID, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.PARENT_EVENT_ID).getFieldName(),
+          OccurrenceSearchParameter.PARENT_EVENT_ID, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.SAMPLING_PROTOCOL).getFieldName(),
+          OccurrenceSearchParameter.SAMPLING_PROTOCOL, FacetField.Method.FIELD_CACHE,
+          FacetField.SortOrder.COUNT, false))
       .build();
 
 
@@ -493,14 +512,6 @@ public class OccurrenceSearchRequestBuilder {
 
   public boolean isFacetsEnable() {
     return facetsEnable;
-  }
-
-  /**
-   * Generates BBox range query from the input geometry.
-   */
-  private static String toBBoxQuery(Geometry geometry) {
-    return String.format(BBOX_QUERY_FMT, geometry.getCoordinates()[0].y + "," + geometry.getCoordinates()[0].x,
-                         geometry.getCoordinates()[2].y + "," + geometry.getCoordinates()[2].x);
   }
 
 }
