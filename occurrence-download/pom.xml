@@ -32,9 +32,9 @@
     <gbif-common-mybatis.version>0.18</gbif-common-mybatis.version>
     <commons-beanutils-core>1.8.3</commons-beanutils-core>
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
-    <!-- We want the coordinator to run at 01:00 UTC -->
+    <!-- We want the coordinator to run at 21:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
-    <maven.build.timestamp.format>yyyy-MM-dd'T01:00Z'</maven.build.timestamp.format>
+    <maven.build.timestamp.format>yyyy-MM-dd'T21:00Z'</maven.build.timestamp.format>
   </properties>
 
   <build>
