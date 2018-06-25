@@ -56,17 +56,7 @@
         <include>com.zaxxer:HikariCP-java6:jar</include>
         <include>commons-logging:commons-logging:jar</include>
         <include>javax.validation:validation-api</include>
-        <include>org.apache.curator:curator-client:jar</include>
-        <include>org.apache.curator:curator-framework:jar</include>
-        <include>org.apache.curator:curator-recipes:jar</include>
-        <include>org.apache.hadoop:hadoop-common:jar</include>
-        <include>org.apache.hbase:hbase-client:jar</include>
-        <include>org.apache.hbase:hbase-common:jar</include>
-        <include>org.apache.hbase:hbase-server:jar</include>
-        <include>org.apache.hbase:hbase-protocol:jar</include>
-        <include>org.apache.hbase:hbase-hadoop-compat:jar</include>
         <include>com.yammer.metrics:metrics-core:jar</include>
-        <include>org.apache.hive:hive-hbase-handler</include>
         <include>org.apache.hive:hive-serde</include>
         <include>org.apache.htrace:htrace-core:jar</include>
         <include>org.apache.httpcomponents:httpclient</include>
@@ -80,11 +70,11 @@
         <include>org.codehaus.jackson:jackson-mapper-asl:jar</include>
         <include>org.codehaus.jackson:jackson-core-asl:jar</include>
         <include>org.gbif.hadoop:hadoop-compress:jar</include>
-        <include>org.gbif:hbase-utils:jar</include>
         <include>org.gbif.occurrence:occurrence-common:jar</include>
         <include>org.gbif.occurrence:occurrence-download:jar</include>
         <include>org.gbif.occurrence:download-query-tools:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>
+        <!-- Occurrence persistence includes several shaded JARs (Curator, HBase etc) -->
         <include>org.gbif.occurrence:occurrence-persistence:jar</include>
         <include>org.gbif.occurrence:occurrence-search:jar</include>
         <include>org.gbif.occurrence:occurrence-hdfs-table:jar</include>
