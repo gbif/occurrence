@@ -42,7 +42,7 @@ public class LocationInterpreterTest {
     assertNotNull(result);
     assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
   }
-  
+
   @Test
   public void testVerbCoordInterp() throws InterruptedException {
     verb = new VerbatimOccurrence();
@@ -77,7 +77,7 @@ public class LocationInterpreterTest {
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
     //assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
-    assertEquals(new BigDecimal(500), occ.getCoordinateUncertaintyInMeters());
+    assertEquals(new BigDecimal(500.0), occ.getCoordinateUncertaintyInMeters());
     assertEquals("0.2345", occ.getCoordinatePrecision().toString());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));

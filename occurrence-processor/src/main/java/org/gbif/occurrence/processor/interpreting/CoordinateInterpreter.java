@@ -1,17 +1,23 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import com.google.common.io.ByteStreams;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
+import org.gbif.geocode.api.cache.GeocodeBitmapCache;
 import org.gbif.geocode.api.model.Location;
+import org.gbif.geocode.api.service.GeocodeService;
+import org.gbif.geocode.ws.client.GeocodeWsClient;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -29,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.gbif.registry.ws.client.DatasetWsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +71,7 @@ public class CoordinateInterpreter {
     CacheBuilder.newBuilder().maximumSize(10000).expireAfterAccess(10, TimeUnit.MINUTES)
       .build(RetryingWebserviceClient.newInstance(Location[].class, NUM_RETRIES, RETRY_PERIOD_MSEC));
 
-  private final WebResource GEOCODE_WS;
+  private final GeocodeService geocodeService;
 
   /**
    * Should not be instantiated.
@@ -72,7 +79,15 @@ public class CoordinateInterpreter {
    */
   @Inject
   public CoordinateInterpreter(WebResource apiWs) {
-    GEOCODE_WS = apiWs.path("geocode/reverse");
+
+    GeocodeService realGeocodeService = new GeocodeWsClient(apiWs);
+
+    try {
+      byte[] bitmap = realGeocodeService.bitmap();
+      this.geocodeService = new GeocodeBitmapCache(realGeocodeService, ByteStreams.asByteSource(bitmap).openStream());
+    } catch (Exception e) {
+      throw new RuntimeException("Unable to initialize GeocodeService bitmap cache", e);
+    }
   }
 
   /**
@@ -247,10 +262,9 @@ public class CoordinateInterpreter {
     LOG.debug("Attempt to lookup coord {}", coord);
     WebResource res = null;
     try {
-      res = GEOCODE_WS.queryParams(queryParams);
-      Location[] lookups = CACHE.get(res);
-      if (lookups != null && lookups.length > 0) {
-        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
+      Collection<Location> lookups = geocodeService.get(coord.getLat(), coord.getLng(), null);
+      if (lookups != null && lookups.size() > 0) {
+        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.size(), coord);
         for (Location loc : lookups) {
           if (loc.getIsoCountryCode2Digit() != null) {
             countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
@@ -258,7 +272,7 @@ public class CoordinateInterpreter {
         }
         LOG.debug("Countries are {}", countries);
       }
-      else if (lookups.length == 0 && isAntarctica(coord.getLat(), null)) {
+      else if (lookups.size() == 0 && isAntarctica(coord.getLat(), null)) {
         // If no country is returned from the geocode, add Antarctica if we're sufficiently far south
         countries.add(Country.ANTARCTICA);
       }

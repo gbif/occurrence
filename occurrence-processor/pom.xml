@@ -168,7 +168,7 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.geocode</groupId>
-      <artifactId>geocode-api</artifactId>
+      <artifactId>geocode-ws-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>

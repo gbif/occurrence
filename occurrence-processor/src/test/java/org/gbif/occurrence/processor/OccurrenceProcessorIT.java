@@ -96,7 +96,7 @@ public class OccurrenceProcessorIT {
 
   @Before
   public void setUp() throws Exception {
-    ApiClientConfiguration cfg = new ApiClientConfiguration();;
+    ApiClientConfiguration cfg = new ApiClientConfiguration();
     cfg.url = URI.create("http://api.gbif-dev.org/v1/");
 
     ConnectionParameters connectionParams = new ConnectionParameters("localhost", 5672, "guest", "guest", "/");

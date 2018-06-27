@@ -27,8 +27,11 @@
   <logger name="org.apache.hadoop" level="WARN"/>
   <logger name="org.apache.http" level="WARN"/>
   <logger name="org.apache.zookeeper" level="WARN"/>
-  <!--<logger name="org.gbif.occurrence.parsing" level="WARN"/>-->
-  <!--<logger name="org.gbif.occurrence.model" level="WARN"/>-->
+
+  <logger name="org.gbif.common.parsers.utils.BlacklistedNames" level="INFO"/>
+
+  <logger name="org.gbif.occurrence.parsing" level="INFO"/>
+  <logger name="org.gbif.occurrence.model" level="INFO"/>
 
   <root level="DEBUG">
     <appender-ref ref="CONSOLE"/>

@@ -142,19 +142,19 @@
     <dwc-api.version>1.19</dwc-api.version>
     <dwca-io.version>2.0-RC1</dwca-io.version>
     <gbif-api.version>0.68</gbif-api.version>
-    <gbif-common.version>0.38</gbif-common.version>
+    <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
     <gbif-common-service.version>0.16</gbif-common-service.version>
-    <gbif-common-ws.version>0.40</gbif-common-ws.version>
-    <geocode.version>0.10</geocode.version>
+    <gbif-common-ws.version>0.42</gbif-common-ws.version>
+    <geocode.version>0.13-SNAPSHOT</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.34</gbif-parsers.version>
-    <gbif-postal-service.version>0.24</gbif-postal-service.version>
-    <gbif-registry.version>2.81</gbif-registry.version>
+    <gbif-parsers.version>0.35</gbif-parsers.version>
+    <gbif-postal-service.version>0.25</gbif-postal-service.version>
+    <gbif-registry.version>2.85</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
-    <checklistbank-ws-client.version>2.56</checklistbank-ws-client.version>
-    <name-parser.version>3.1.1</name-parser.version>
+    <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
+    <name-parser.version>3.1.6</name-parser.version>
 
   </properties>
 
@@ -220,7 +220,7 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.geocode</groupId>
-        <artifactId>geocode-api</artifactId>
+        <artifactId>geocode-ws-client</artifactId>
         <version>${geocode.version}</version>
       </dependency>
       <dependency>
