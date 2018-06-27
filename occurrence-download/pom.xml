@@ -143,24 +143,24 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <configuration>
+          <rules>
+            <bannedDependencies>
+              <excludes>
+                <!-- Ensure only Log4J binding -->
+                <exclude>ch.qos.logback</exclude>
+                <exclude>org.slf4j:log4j-over-slf4j</exclude>
+                <!-- We depend upon occurrence-processor, which has shaded these. -->
+                <exclude>org.apache.curator:curator-client</exclude>
+                <exclude>org.apache.curator:curator-framework</exclude>
+                <exclude>org.apache.curator:curator-recipes</exclude>
+              </excludes>
+            </bannedDependencies>
+          </rules>
+        </configuration>
         <executions>
           <execution>
             <id>enforce</id>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <excludes>
-                    <!-- Ensure only Log4J binding -->
-                    <exclude>ch.qos.logback</exclude>
-                    <exclude>org.slf4j:log4j-over-slf4j</exclude>
-                    <!-- We depend upon occurrence-processor, which has shaded these. -->
-                    <exclude>org.apache.curator:curator-client</exclude>
-                    <exclude>org.apache.curator:curator-framework</exclude>
-                    <exclude>org.apache.curator:curator-recipes</exclude>
-                  </excludes>
-                </bannedDependencies>
-              </rules>
-            </configuration>
             <goals>
               <goal>enforce</goal>
             </goals>
