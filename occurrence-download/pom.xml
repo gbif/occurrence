@@ -157,6 +157,7 @@
               </excludes>
             </bannedDependencies>
           </rules>
+          <fail>false</fail>
         </configuration>
         <executions>
           <execution>
