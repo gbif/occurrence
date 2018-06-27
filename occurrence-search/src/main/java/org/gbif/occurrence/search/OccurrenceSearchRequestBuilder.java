@@ -32,7 +32,6 @@ import org.apache.solr.client.solrj.SolrQuery;
 import static org.gbif.common.search.solr.QueryUtils.PARAMS_JOINER;
 import static org.gbif.common.search.solr.QueryUtils.PARAMS_OR_JOINER;
 import static org.gbif.common.search.solr.QueryUtils.setQueryPaging;
-import static org.gbif.common.search.solr.QueryUtils.setRequestHandler;
 import static org.gbif.common.search.solr.QueryUtils.setSortOrder;
 import static org.gbif.common.search.solr.QueryUtils.taggedField;
 import static org.gbif.common.search.solr.QueryUtils.toParenthesesQuery;
@@ -165,7 +164,7 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceSolrField.PUBLISHING_ORGANIZATION_KEY)
       .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceSolrField.CRAWL_ID)
       .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceSolrField.INSTALLATION_KEY)
-      .put(OccurrenceSearchParameter.GBIF_NETWORK, OccurrenceSolrField.NETWORK_KEY)
+      .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceSolrField.NETWORK_KEY)
       .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceSolrField.EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceSolrField.PARENT_EVENT_ID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceSolrField.SAMPLING_PROTOCOL)
@@ -417,9 +416,9 @@ public class OccurrenceSearchRequestBuilder {
         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.INSTALLATION_KEY).getFieldName(),
           OccurrenceSearchParameter.INSTALLATION_KEY, FacetField.Method.FIELD_CACHE,
           FacetField.SortOrder.COUNT, false))
-      .put(OccurrenceSearchParameter.GBIF_NETWORK,
-        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.GBIF_NETWORK).getFieldName(),
-          OccurrenceSearchParameter.GBIF_NETWORK, FacetField.Method.FIELD_CACHE,
+      .put(OccurrenceSearchParameter.NETWORK_KEY,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.NETWORK_KEY).getFieldName(),
+          OccurrenceSearchParameter.NETWORK_KEY, FacetField.Method.FIELD_CACHE,
           FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.EVENT_ID,
         new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.EVENT_ID).getFieldName(),

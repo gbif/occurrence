@@ -197,7 +197,7 @@ public class OccurrenceBuilder {
       occ.setPublishingOrgKey(ExtResultReader.getUuid(row, GbifInternalTerm.publishingOrgKey));
       occ.setPublishingCountry(Country.fromIsoCode(ExtResultReader.getString(row, GbifTerm.publishingCountry)));
       occ.setInstallationKey(ExtResultReader.getUuid(row, GbifInternalTerm.installationKey));
-      occ.setNetworkKeys(getListUuid(row, GbifInternalTerm.gbifNetworkKey));
+      occ.setNetworkKeys(getListUuid(row, GbifInternalTerm.networkKey));
 
       occ.setLastInterpreted(ExtResultReader.getDate(row, GbifTerm.lastInterpreted));
       occ.setModified(ExtResultReader.getDate(row, DcTerm.modified));
