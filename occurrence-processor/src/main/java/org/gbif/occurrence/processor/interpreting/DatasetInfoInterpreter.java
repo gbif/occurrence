@@ -75,7 +75,7 @@ public class DatasetInfoInterpreter implements Serializable {
 
 
   private final LoadingCache<UUID, Organization> orgCache =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
+    CacheBuilder.newBuilder().maximumSize(5000).expireAfterAccess(15, TimeUnit.MINUTES)
       .build(new CacheLoader<UUID, Organization>() {
 
         @Override
@@ -86,7 +86,7 @@ public class DatasetInfoInterpreter implements Serializable {
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private final LoadingCache<UUID, DatasetCacheData> datasetCache =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
+    CacheBuilder.newBuilder().maximumSize(50000).expireAfterAccess(15, TimeUnit.MINUTES)
       .build(new CacheLoader<UUID, DatasetCacheData>() {
 
         @Override
