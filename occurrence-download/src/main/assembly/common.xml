@@ -56,8 +56,11 @@
         <include>com.zaxxer:HikariCP-java6:jar</include>
         <include>commons-logging:commons-logging:jar</include>
         <include>javax.validation:validation-api</include>
+        <include>org.apache.hbase:hbase-server:jar</include>
+        <include>org.apache.hbase:hbase-hadoop-compat:jar</include>
         <include>com.yammer.metrics:metrics-core:jar</include>
         <include>org.apache.hive:hive-serde</include>
+        <include>org.apache.hive:hive-hbase-handler</include>
         <include>org.apache.htrace:htrace-core:jar</include>
         <include>org.apache.httpcomponents:httpclient</include>
         <include>org.apache.httpcomponents:httpcore</include>
