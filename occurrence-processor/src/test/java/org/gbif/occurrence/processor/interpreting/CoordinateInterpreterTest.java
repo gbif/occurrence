@@ -27,7 +27,7 @@ public class CoordinateInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final CoordinateInterpreter interpreter;
   static {
-    cfg.url = URI.create("http://api.gbif-uat.org/v1/");
+    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
     interpreter = new CoordinateInterpreter(cfg.newApiClient());
   }
 

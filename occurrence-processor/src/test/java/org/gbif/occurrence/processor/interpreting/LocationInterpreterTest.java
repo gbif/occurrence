@@ -25,7 +25,7 @@ public class LocationInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final LocationInterpreter interpreter;
   static {
-    cfg.url = URI.create("http://api.gbif-uat.org/v1/");
+    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
     interpreter = new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()));
   }
 
@@ -77,7 +77,7 @@ public class LocationInterpreterTest {
     assertEquals(33.333, occ.getDecimalLatitude(), 0.0001);
     assertEquals(66.666, occ.getDecimalLongitude(), 0.0001);
     //assertEquals(1.2345, occ.getCoordinateAccuracy(), 0.0001);
-    assertEquals(new BigDecimal(500.0), occ.getCoordinateUncertaintyInMeters());
+    assertEquals(new Double(500.0), occ.getCoordinateUncertaintyInMeters());
     assertEquals("0.2345", occ.getCoordinatePrecision().toString());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH));
     assertTrue(occ.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
@@ -172,7 +172,7 @@ public class LocationInterpreterTest {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
-    verb.setVerbatimField(DwcTerm.country, "Western Sahara");
+    verb.setVerbatimField(DwcTerm.country, "Royaume-Uni");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
@@ -180,7 +180,7 @@ public class LocationInterpreterTest {
     assertNull(occ.getDecimalLatitude());
     assertNull(occ.getDecimalLongitude());
     assertEquals(0, occ.getIssues().size());
-    assertEquals(Country.MOROCCO, occ.getCountry());
+    assertEquals(Country.UNITED_KINGDOM, occ.getCountry());
   }
 
   @Test
@@ -250,17 +250,17 @@ public class LocationInterpreterTest {
     verb = new VerbatimOccurrence();
     verb.setKey(1);
     verb.setDatasetKey(UUID.randomUUID());
-    verb.setVerbatimField(DwcTerm.country, "France");
-    verb.setVerbatimField(DwcTerm.decimalLatitude, "-17.65");
-    verb.setVerbatimField(DwcTerm.decimalLongitude, "-149.46");
+    verb.setVerbatimField(DwcTerm.country, "Ireland");
+    verb.setVerbatimField(DwcTerm.decimalLatitude, "54.59");
+    verb.setVerbatimField(DwcTerm.decimalLongitude, "-5.93");
     verb.setVerbatimField(DwcTerm.geodeticDatum, "EPSG:4326");
     occ = new Occurrence(verb);
 
     interpreter.interpretLocation(verb, occ);
     assertNotNull(occ);
-    assertEquals(-17.65, occ.getDecimalLatitude(), 0.0001);
-    assertEquals(-149.46, occ.getDecimalLongitude(), 0.0001);
-    assertEquals(Country.FRENCH_POLYNESIA, occ.getCountry());
+    assertEquals(54.59, occ.getDecimalLatitude(), 0.0001);
+    assertEquals(-5.93, occ.getDecimalLongitude(), 0.0001);
+    assertEquals(Country.UNITED_KINGDOM, occ.getCountry());
     assertEquals(1, occ.getIssues().size());
     assertTrue(occ.getIssues().contains(OccurrenceIssue.COUNTRY_DERIVED_FROM_COORDINATES));
   }
