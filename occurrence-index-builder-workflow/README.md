@@ -1,5 +1,29 @@
 # GBIF Occurrence Index Builder Workflow
 
+*This project is being phased out, replaced by use of real time indexing for full rebuild*
+
+## NEW APPROACH
+
+To create a new SOLR index (on UAT) you can copy the SOLR directory from the `src/main/resources` to the c4gateway-vh and then execute the following.  After which we use the real time indexing path to recreate the index.
+
+```
+/opt/cloudera/parcels/SOLR5/server/scripts/cloud-scripts/zkcli.sh -zkhost c4zk1.gbif-uat.org/solr5 -cmd upconfig -confname occurrence -confdir solr/collection1/conf/
+curl c4n1.gbif.org:8983/solr/admin/collections?action=CREATE&name=occurrence&collection.configName=occurrence&numShards=36&replicationFactor=2
+```
+
+The remainder of this README documents the original behaviour (i.e. Morphline and offline building approach) of rebuilding the index which will be removed.
+
+
+
+
+
+
+
+
+
+
+## ORIGINAL OFFLINE APPROACH
+
 This project contains the oozie workflow that builds and deploy and Occurrence Solr Index from scratch. The assembled
 project needs to be copied to hdfs so that each of the task trackers can find the workflow definition and supporting
 files. 
