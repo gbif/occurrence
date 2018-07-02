@@ -1,5 +1,6 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import com.google.common.cache.CacheLoader;
 import com.google.common.io.ByteStreams;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -12,10 +13,8 @@ import org.gbif.geocode.api.service.GeocodeService;
 import org.gbif.geocode.ws.client.GeocodeWsClient;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
-import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.gbif.registry.ws.client.DatasetWsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,9 +65,7 @@ public class CoordinateInterpreter {
   }
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private LoadingCache<WebResource, Location[]> CACHE =
-    CacheBuilder.newBuilder().maximumSize(10000).expireAfterAccess(10, TimeUnit.MINUTES)
-      .build(RetryingWebserviceClient.newInstance(Location[].class, NUM_RETRIES, RETRY_PERIOD_MSEC));
+  private final LoadingCache<LatLng, Collection<Location>> CACHE;
 
   private final GeocodeService geocodeService;
 
@@ -85,6 +81,31 @@ public class CoordinateInterpreter {
     try {
       byte[] bitmap = realGeocodeService.bitmap();
       this.geocodeService = new GeocodeBitmapCache(realGeocodeService, ByteStreams.asByteSource(bitmap).openStream());
+
+      CACHE = CacheBuilder.newBuilder().maximumSize(50000).expireAfterAccess(1, TimeUnit.HOURS).build(
+        new CacheLoader<LatLng, Collection<Location>>() {
+          @Override
+          public Collection<Location> load(LatLng ll) throws Exception {
+
+            for (int attempt = 1; attempt <= NUM_RETRIES; attempt++) {
+              try {
+                return geocodeService.get(ll.getLat(), ll.getLng(), null);
+              } catch (Exception e) {
+                LOG.debug("Error geocoding [{}], attempt[{}] of max[{}]", ll, attempt, NUM_RETRIES, e);
+                if (attempt >= NUM_RETRIES) {
+                  LOG.error("Error geocoding [{}] after {} attempts", ll, NUM_RETRIES, e);
+                  throw e;
+                }
+                if (RETRY_PERIOD_MSEC > 0) {
+                  TimeUnit.MILLISECONDS.sleep(RETRY_PERIOD_MSEC);
+                }
+              }
+            }
+            // Should not ever happen as we propagate the underlying exception above
+            throw new IllegalStateException("Retry count exhausted");
+          }
+        });
+
     } catch (Exception e) {
       throw new RuntimeException("Unable to initialize GeocodeService bitmap cache", e);
     }
@@ -260,9 +281,8 @@ public class CoordinateInterpreter {
     queryParams.add("lng", coord.getLng().toString());
 
     LOG.debug("Attempt to lookup coord {}", coord);
-    WebResource res = null;
     try {
-      Collection<Location> lookups = geocodeService.get(coord.getLat(), coord.getLng(), null);
+      Collection<Location> lookups = CACHE.get(coord);
       if (lookups != null && lookups.size() > 0) {
         LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.size(), coord);
         for (Location loc : lookups) {
@@ -278,7 +298,7 @@ public class CoordinateInterpreter {
       }
     } catch (Exception e) {
       // Log the error
-      LOG.error("Failed WS call with: {}", res.getURI());
+      LOG.error("Failed to lookup coordinate {}, {}", coord, e.getMessage());
       throw new RuntimeException(e);
     }
 
