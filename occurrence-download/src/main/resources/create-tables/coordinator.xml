@@ -1,5 +1,10 @@
 <!--
- Triggers the oozie workflow. NOTE: you have to set start date to the day after you are running the install script e.g. if today is 2015-02-18 you'd set start to "2015-02-19T03:00Z"
+  Triggers the oozie workflow.
+
+  NOTE: depending on the chosen hour, you may need to set the start date to today or tomorrow. (If the start time is
+  before now, the job will run as soon as it is installed.)
+
+  See https://github.com/gbif/infrastructure/wiki/Scheduled-tasks for the schedule.  Time is set in the POM.
 -->
 <coordinator-app name="OccurrenceHDFSBuild-${occurrence.environment}" frequency="${occurrence.hdfs.build.frequency}"
                  start="${timestamp}" end="2050-05-28T09:28Z" timezone="UTC" xmlns="uri:oozie:coordinator:0.2">

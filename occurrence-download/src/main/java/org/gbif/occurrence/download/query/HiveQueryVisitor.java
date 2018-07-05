@@ -149,7 +149,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
       .put(OccurrenceSearchParameter.CRAWL_ID, GbifInternalTerm.crawlId)
       .put(OccurrenceSearchParameter.INSTALLATION_KEY, GbifInternalTerm.installationKey)
-      .put(OccurrenceSearchParameter.GBIF_NETWORK, GbifInternalTerm.gbifNetworkKey)
+      .put(OccurrenceSearchParameter.NETWORK_KEY, GbifInternalTerm.networkKey)
       .put(OccurrenceSearchParameter.EVENT_ID, DwcTerm.eventID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, DwcTerm.parentEventID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, DwcTerm.samplingProtocol)

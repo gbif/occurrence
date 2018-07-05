@@ -1,17 +1,22 @@
 package org.gbif.occurrence.processor.interpreting;
 
+import com.google.common.cache.CacheLoader;
+import com.google.common.io.ByteStreams;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
+import org.gbif.geocode.api.cache.GeocodeBitmapCache;
 import org.gbif.geocode.api.model.Location;
+import org.gbif.geocode.api.service.GeocodeService;
+import org.gbif.geocode.ws.client.GeocodeWsClient;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
-import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -60,11 +65,9 @@ public class CoordinateInterpreter {
   }
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private LoadingCache<WebResource, Location[]> CACHE =
-    CacheBuilder.newBuilder().maximumSize(10000).expireAfterAccess(10, TimeUnit.MINUTES)
-      .build(RetryingWebserviceClient.newInstance(Location[].class, NUM_RETRIES, RETRY_PERIOD_MSEC));
+  private final LoadingCache<LatLng, Collection<Location>> CACHE;
 
-  private final WebResource GEOCODE_WS;
+  private final GeocodeService geocodeService;
 
   /**
    * Should not be instantiated.
@@ -72,7 +75,40 @@ public class CoordinateInterpreter {
    */
   @Inject
   public CoordinateInterpreter(WebResource apiWs) {
-    GEOCODE_WS = apiWs.path("geocode/reverse");
+
+    GeocodeService realGeocodeService = new GeocodeWsClient(apiWs);
+
+    try {
+      byte[] bitmap = realGeocodeService.bitmap();
+      this.geocodeService = new GeocodeBitmapCache(realGeocodeService, ByteStreams.asByteSource(bitmap).openStream());
+
+      CACHE = CacheBuilder.newBuilder().maximumSize(50000).expireAfterAccess(1, TimeUnit.HOURS).build(
+        new CacheLoader<LatLng, Collection<Location>>() {
+          @Override
+          public Collection<Location> load(LatLng ll) throws Exception {
+
+            for (int attempt = 1; attempt <= NUM_RETRIES; attempt++) {
+              try {
+                return geocodeService.get(ll.getLat(), ll.getLng(), null);
+              } catch (Exception e) {
+                LOG.debug("Error geocoding [{}], attempt[{}] of max[{}]", ll, attempt, NUM_RETRIES, e);
+                if (attempt >= NUM_RETRIES) {
+                  LOG.error("Error geocoding [{}] after {} attempts", ll, NUM_RETRIES, e);
+                  throw e;
+                }
+                if (RETRY_PERIOD_MSEC > 0) {
+                  TimeUnit.MILLISECONDS.sleep(RETRY_PERIOD_MSEC);
+                }
+              }
+            }
+            // Should not ever happen as we propagate the underlying exception above
+            throw new IllegalStateException("Retry count exhausted");
+          }
+        });
+
+    } catch (Exception e) {
+      throw new RuntimeException("Unable to initialize GeocodeService bitmap cache", e);
+    }
   }
 
   /**
@@ -245,12 +281,10 @@ public class CoordinateInterpreter {
     queryParams.add("lng", coord.getLng().toString());
 
     LOG.debug("Attempt to lookup coord {}", coord);
-    WebResource res = null;
     try {
-      res = GEOCODE_WS.queryParams(queryParams);
-      Location[] lookups = CACHE.get(res);
-      if (lookups != null && lookups.length > 0) {
-        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.length, coord);
+      Collection<Location> lookups = CACHE.get(coord);
+      if (lookups != null && lookups.size() > 0) {
+        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.size(), coord);
         for (Location loc : lookups) {
           if (loc.getIsoCountryCode2Digit() != null) {
             countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
@@ -258,13 +292,13 @@ public class CoordinateInterpreter {
         }
         LOG.debug("Countries are {}", countries);
       }
-      else if (lookups.length == 0 && isAntarctica(coord.getLat(), null)) {
+      else if (lookups.size() == 0 && isAntarctica(coord.getLat(), null)) {
         // If no country is returned from the geocode, add Antarctica if we're sufficiently far south
         countries.add(Country.ANTARCTICA);
       }
     } catch (Exception e) {
       // Log the error
-      LOG.error("Failed WS call with: {}", res.getURI());
+      LOG.error("Failed to lookup coordinate {}, {}", coord, e.getMessage());
       throw new RuntimeException(e);
     }
 

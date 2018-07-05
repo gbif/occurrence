@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.83-SNAPSHOT</version>
+    <version>0.84-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -32,9 +32,9 @@
     <gbif-common-mybatis.version>0.18</gbif-common-mybatis.version>
     <commons-beanutils-core>1.8.3</commons-beanutils-core>
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
-    <!-- We want the coordinator to run at 01:00 UTC -->
+    <!-- We want the coordinator to run at 21:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
-    <maven.build.timestamp.format>yyyy-MM-dd'T01:00Z'</maven.build.timestamp.format>
+    <maven.build.timestamp.format>yyyy-MM-dd'T21:00Z'</maven.build.timestamp.format>
   </properties>
 
   <build>
@@ -140,6 +140,34 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <configuration>
+          <rules>
+            <bannedDependencies>
+              <excludes>
+                <!-- Ensure only Log4J binding -->
+                <exclude>ch.qos.logback</exclude>
+                <exclude>org.slf4j:log4j-over-slf4j</exclude>
+                <!-- We depend upon occurrence-persistence, which has shaded these. -->
+                <exclude>org.apache.curator:curator-client</exclude>
+                <exclude>org.apache.curator:curator-framework</exclude>
+                <exclude>org.apache.curator:curator-recipes</exclude>
+              </excludes>
+            </bannedDependencies>
+          </rules>
+          <fail>false</fail>
+        </configuration>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -187,6 +215,12 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
+      <exclusions>
+      <exclusion>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>*</artifactId>
+      </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -258,14 +292,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-framework</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -353,6 +379,12 @@
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hbase</groupId>
@@ -414,6 +446,10 @@
           <artifactId>jersey-servlet</artifactId>
           <groupId>com.sun.jersey</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -421,6 +457,12 @@
       <artifactId>hive-serde</artifactId>
       <version>${hive.serde}</version>
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.yammer.metrics</groupId>
@@ -435,6 +477,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -456,14 +504,24 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-wrangler</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-search</artifactId>
       <exclusions>
         <exclusion>
-          <artifactId>slf4j-jdk14</artifactId>
           <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-jdk14</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.apache.hadoop</groupId>

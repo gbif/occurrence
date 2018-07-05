@@ -51,17 +51,17 @@ public class DatasetInfoInterpreter implements Serializable {
       this.organization = organization;
     }
 
-      public Dataset getDataset() {
-          return dataset;
-      }
+    public Dataset getDataset() {
+      return dataset;
+    }
 
-      public List<Network> getNetworks() {
-          return networks;
-      }
+    public List<Network> getNetworks() {
+      return networks;
+    }
 
-      public Organization getOrganization() {
-          return organization;
-      }
+    public Organization getOrganization() {
+      return organization;
+    }
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
@@ -73,9 +73,8 @@ public class DatasetInfoInterpreter implements Serializable {
   private final DatasetWsClient datasetClient;
   private final OrganizationWsClient orgClient;
 
-
   private final LoadingCache<UUID, Organization> orgCache =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
+    CacheBuilder.newBuilder().maximumSize(5000).expireAfterAccess(15, TimeUnit.MINUTES)
       .build(new CacheLoader<UUID, Organization>() {
 
         @Override
@@ -86,7 +85,7 @@ public class DatasetInfoInterpreter implements Serializable {
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
   private final LoadingCache<UUID, DatasetCacheData> datasetCache =
-    CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1, TimeUnit.MINUTES)
+    CacheBuilder.newBuilder().maximumSize(50000).expireAfterAccess(15, TimeUnit.MINUTES)
       .build(new CacheLoader<UUID, DatasetCacheData>() {
 
         @Override
@@ -99,8 +98,6 @@ public class DatasetInfoInterpreter implements Serializable {
           return null;
         }
       });
-
-
 
   @Inject
   public DatasetInfoInterpreter(WebResource apiWs) {
@@ -116,35 +113,33 @@ public class DatasetInfoInterpreter implements Serializable {
       return;
     }
 
+    Organization org = datasetCacheData.organization;
+
     // update the occurrence's publishing org if it's empty or out of sync
-    if (occ.getPublishingOrgKey() == null) {
-      LOG.info("Couldn't find publishing org for occ id [{}] of dataset [{}]", occ.getKey(), occ.getDatasetKey());
+    if (!org.getKey().equals(occ.getPublishingOrgKey())) {
+      occ.setPublishingOrgKey(org.getKey());
+    }
+
+    // Special case for eBird, use the supplied publishing country.
+    Country country = null;
+    if (occ.getDatasetKey().equals(EBIRD_DATASET)) {
+      String verbatimPublishingCountryCode = occ.getVerbatimField(GbifTerm.publishingCountry);
+
+      OccurrenceParseResult<Country> result = new OccurrenceParseResult<>(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
+
+      if (result.isSuccessful()) {
+        country = result.getPayload();
+      } else {
+        LOG.info("Couldn't find publishing country for eBird record [{}]", occ.getKey());
+      }
     } else {
-      Organization org = datasetCacheData.organization;
-      // Special case for eBird, use the supplied publishing country.
-      if (!occ.getPublishingOrgKey().equals(org.getKey())) {
-        occ.setPublishingOrgKey(org.getKey());
-      }
-      Country country = null;
-      if (occ.getDatasetKey().equals(EBIRD_DATASET)) {
-        String verbatimPublishingCountryCode = occ.getVerbatimField(GbifTerm.publishingCountry);
+      country = org.getCountry();
+    }
 
-        OccurrenceParseResult<Country> result = new OccurrenceParseResult<>(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
-
-        if (result.isSuccessful()) {
-          country = result.getPayload();
-        } else {
-          LOG.info("Couldn't find publishing country for eBird record [{}]", occ.getKey());
-        }
-      } else {
-        country = org.getCountry();
-      }
-
-      if (country == null) {
-        LOG.info("Couldn't find country for publishing org [{}]", occ.getPublishingOrgKey());
-      } else {
-        occ.setPublishingCountry(country);
-      }
+    if (country == null) {
+      LOG.info("Couldn't find country for publishing org [{}]", occ.getPublishingOrgKey());
+    } else {
+      occ.setPublishingCountry(country);
     }
 
     Optional.ofNullable(datasetCacheData.dataset.getLicense()).ifPresent(occ::setLicense);
@@ -173,6 +168,4 @@ public class DatasetInfoInterpreter implements Serializable {
 
     return datasetCacheData;
   }
-
-
 }

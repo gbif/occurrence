@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.83-SNAPSHOT</version>
+    <version>0.84-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-persistence</artifactId>
@@ -81,18 +81,10 @@
                   <include>org.apache.hadoop:hadoop-annotations</include>
                   <include>org.apache.hadoop:hadoop-auth</include>
                   <include>org.apache.hadoop:hadoop-common</include>
-                  <include>org.apache.hadoop:hadoop-core</include>
-                  <include>org.apache.hadoop:hadoop-client</include>
-                  <include>org.apache.hadoop:hadoop-protocol</include>
                   <include>org.apache.hbase:hbase-annotations</include>
                   <include>org.apache.hbase:hbase-client</include>
                   <include>org.apache.hbase:hbase-common</include>
-                  <include>org.apache.hbase:hbase-hadoop-compat</include>
-                  <include>org.apache.hbase:hbase-hadoop2-compat</include>
                   <include>org.apache.hbase:hbase-protocol</include>
-                  <include>org.apache.hbase:hbase-server</include>
-                  <include>org.apache.hbase:hbase-testing-util</include>
-                  <include>org.apache.hive:hive-hbase-handler</include>
                   <include>org.apache.zookeeper:zookeeper</include>
                   <include>org.gbif:hbase-utils</include>
                 </includes>

@@ -259,8 +259,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
       upd.setInterpretedField(GbifInternalTerm.installationKey, occ.getInstallationKey());
     }
     if (!Objects.equals(oldVerb.getNetworkKeys(), occ.getNetworkKeys())) {
-      upd.setInterpretedField(GbifInternalTerm.gbifNetworkKey, occ.getNetworkKeys() == null ? null :
-              occ.getNetworkKeys().stream().map(UUID::toString)
+      upd.setInterpretedField(GbifInternalTerm.networkKey, occ.getNetworkKeys() == null ? null :
+              occ.getNetworkKeys().stream().map(UUID::toString).sorted()
                       .collect(Collectors.joining(OccurrenceBuilder.LIST_SEPARATOR)));
     }
     if (!Objects.equals(oldVerb.getProtocol(), occ.getProtocol())) {
