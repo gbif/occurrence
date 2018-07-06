@@ -3,7 +3,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.83-SNAPSHOT</version>
+    <version>0.84-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -19,7 +19,7 @@
 
   <properties>
     <solr.version>5.5.4</solr.version>
-    <apache.beam.version>2.2.0</apache.beam.version>
+    <apache.beam.version>2.5.0</apache.beam.version>
     <google-auto-service.version>1.0-rc2</google-auto-service.version>
     <google-auto-value.version>1.4.1</google-auto-value.version>
 
