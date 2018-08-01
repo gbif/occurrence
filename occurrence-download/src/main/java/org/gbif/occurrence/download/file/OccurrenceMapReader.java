@@ -13,7 +13,7 @@ import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -212,7 +212,7 @@ public class OccurrenceMapReader {
    * Converts a date object into a String in IS0 8601 format.
    */
   public static String toISO8601Date(Date date) {
-    return date != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format(date) : null;
+    return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
   @Inject

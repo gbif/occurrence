@@ -16,7 +16,7 @@ import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -257,8 +257,7 @@ public class DownloadDwcaActor extends UntypedActor {
 
     @Override
     public String execute(Object value, CsvContext context) {
-      return value != null ? new SimpleDateFormat(DownloadUtils.ISO_8601_FORMAT).format((Date) value) : "";
+      return value != null ? DownloadUtils.ISO_8601_FORMAT.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
-
   }
 }

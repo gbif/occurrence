@@ -1,5 +1,6 @@
 package org.gbif.occurrence.common.download;
 
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 /**
@@ -15,7 +16,7 @@ public class DownloadUtils {
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
 
-  public static final String ISO_8601_FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
+  public static final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ISO_INSTANT;
 
   public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s.zip";
 
