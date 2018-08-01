@@ -94,6 +94,7 @@ public class DwcArchiveUtils {
       MetaDescriptorWriter.writeMetaFile(metaFile, downloadArchive);
     } catch (IOException e) {
       LOG.error("Error creating meta.xml file", e);
+      throw new RuntimeException(e);
     }
   }
 

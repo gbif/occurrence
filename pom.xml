@@ -68,7 +68,7 @@
 
     <!-- VERSIONS -->
     <amqp-client.version>3.0.2</amqp-client.version>
-    <freemarker.version>2.3.25-incubating</freemarker.version>
+    <freemarker.version>2.3.26-incubating</freemarker.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
     <bval.version>0.5</bval.version>
@@ -141,7 +141,7 @@
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.18</download-query-tools.version>
     <dwc-api.version>1.19</dwc-api.version>
-    <dwca-io.version>2.0-RC1</dwca-io.version>
+    <dwca-io.version>2.2</dwca-io.version>
     <gbif-api.version>0.68</gbif-api.version>
     <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
