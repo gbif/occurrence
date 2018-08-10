@@ -157,6 +157,7 @@
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
 
+    <elasticsearch.version>5.6.3</elasticsearch.version>
   </properties>
 
   <repositories>
@@ -1091,6 +1092,13 @@
         <scope>runtime</scope>
       </dependency>
 
+      <!-- ES -->
+      <dependency>
+        <groupId>org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-client</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+
       <!-- TEST PIECES -->
       <dependency>
         <groupId>com.sun.grizzly</groupId>
@@ -1154,4 +1162,67 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <!-- cluster -->
+        <zookeeper.quorum>c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181</zookeeper.quorum>
+        <hadoop.jobtracker>c1n2.gbif.org:8032</hadoop.jobtracker>
+        <hdfs.namenode>hdfs://c1n1.gbif.org:8020</hdfs.namenode>
+        <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie/</oozie.url>
+        <hive.metastore.uris>thrift://c1n1.gbif.org:9083</hive.metastore.uris>
+
+        <!-- determines how often the HDFS tables are built -->
+        <occurrence.hdfs.build.frequency>4</occurrence.hdfs.build.frequency>
+
+        <!-- webservices -->
+        <occurrence.search.solr.server>c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181/solr5c2</occurrence.search.solr.server>
+        <occurrence.search.solr.server.type>CLOUD</occurrence.search.solr.server.type>
+        <occurrence.search.solr.collection>occurrence</occurrence.search.solr.collection>
+        <occurrence.search.facets.enable>true</occurrence.search.facets.enable>
+
+        <occurrence.download.ws.url>http://api.gbif-dev.org/v1/</occurrence.download.ws.url>
+        <occurrence.download.hive.hdfs.out>/user/hive/warehouse/dev.db</occurrence.download.hive.hdfs.out>
+        <occurrence.download.ws.username>occdownload.gbif.org</occurrence.download.ws.username>
+        <occurrence.download.ws.password></occurrence.download.ws.password>
+        <occurrence.download.zookeeper.sleep_time>1000</occurrence.download.zookeeper.sleep_time>
+        <occurrence.download.zookeeper.max_retries>10</occurrence.download.zookeeper.max_retries>
+        <occurrence.download.zookeeper.lock_name>occDownloadJobsCounter</occurrence.download.zookeeper.lock_name>
+        <occurrence.download.max_global_threads>10</occurrence.download.max_global_threads>
+        <occurrence.download.job.max_threads>3</occurrence.download.job.max_threads>
+        <occurrence.download.job.min_records>200</occurrence.download.job.min_records>
+        <occurrence.download.file.max_records>1000</occurrence.download.file.max_records>
+        <occurrence.download.datause.url>http://www.gbif-dev.org/faq/datause</occurrence.download.datause.url>
+        <occurrence.download.portal.url>http://test</occurrence.download.portal.url>
+        <checklistbank.match.ws.url>http://api.gbif-dev.org/v1/species/match/</checklistbank.match.ws.url>
+        <checklistbank.ws.url>http://api.gbif-dev.org/v1/</checklistbank.ws.url>
+        <registry.ws.url>http://api.gbif-dev.org/v1/</registry.ws.url>
+        <geocode.ws.url>http://api.gbif.org/v1/geocode/reverse/</geocode.ws.url>
+        <api.url>http://api.gbif-dev.org/v1/</api.url>
+        <!-- security -->
+        <drupal.db.host>my1.gbif-dev.org</drupal.db.host>
+        <drupal.db.url>jdbc:mysql://my1.gbif-dev.org:3306/drupal_devel?useUnicode=true&amp;characterEncoding=UTF8&amp;characterSetResults=UTF8</drupal.db.url>
+        <drupal.db.name>drupal_dev</drupal.db.name>
+        <drupal.db.username>drupal_dev</drupal.db.username>
+        <drupal.db.password></drupal.db.password>
+        <drupal.db.poolSize>8</drupal.db.poolSize>
+        <drupal.db.connectionTimeout>2000</drupal.db.connectionTimeout>
+
+        <appkeys.file>/Users/rgz522/dev/appkeys.properties</appkeys.file>
+
+        <registry.db.host>localhost</registry.db.host>
+        <registry.db.name>registry</registry.db.name>
+        <registry.db.username>rgz522</registry.db.username>
+        <registry.db.password/>
+        <registry.db.connectionTimeout>3000</registry.db.connectionTimeout>
+        <registry.db.poolSize>5</registry.db.poolSize>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+  </profiles>
+
 </project>
