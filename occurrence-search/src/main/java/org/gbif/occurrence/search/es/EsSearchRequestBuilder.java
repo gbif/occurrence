@@ -1,37 +1,36 @@
 package org.gbif.occurrence.search.es;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
-import com.google.gson.JsonObject;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.entity.NStringEntity;
-import org.apache.http.protocol.HTTP;
-import org.apache.solr.search.QueryUtils;
+import org.apache.lucene.search.BooleanClause;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.util.SearchTypeValidator;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static org.gbif.api.util.SearchTypeValidator.*;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.api.util.SearchTypeValidator.isRange;
 
 public class EsSearchRequestBuilder {
+
+  // cords constants
+  private static final double MIN_DIFF = 0.000001;
+  private static final double MIN_LON = -180;
+  private static final double MAX_LON = 180;
+  private static final double MIN_LAT = -90;
+  private static final double MAX_LAT = 90;
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final ObjectWriter WRITER = MAPPER.writer();
@@ -66,11 +65,10 @@ public class EsSearchRequestBuilder {
       return query;
     }
 
-    //// coordinates params
-    // if (COORDINATES_CHECKER.test(params)) {
-    //  bool.put("filter", buildCoordinatesQuery(params));
-    // }
+    // coordinates query
+    buildCoordinatesQuery(params).ifPresent(q -> bool.put("filter", q));
 
+    // rest of the fields
     List<ObjectNode> mustMatches = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
       OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
@@ -124,42 +122,43 @@ public class EsSearchRequestBuilder {
         Optional.ofNullable(params.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE))
             .map(values -> values.iterator().next());
 
-    BiFunction<String, String, ObjectNode> coordsNode =
+    BiFunction<Double, Double, ObjectNode> pointNode =
         (lat, lon) -> {
           ObjectNode location = MAPPER.createObjectNode();
-          location.put("lat", Integer.valueOf(lat));
-          location.put("lon", Integer.valueOf(lon));
+          location.put("lat", lat);
+          location.put("lon", lon);
           return location;
         };
 
-    // check for geo distance query
-    if (isSinglePoint(latParam.orElse(""), lonParam.orElse(""))) {
+    // if it's a single point we perform a geo distance query
+    if (latParam.isPresent()
+        && !isRange(latParam.get())
+        && lonParam.isPresent()
+        && !isRange(lonParam.get())) {
       ObjectNode geoDistance = MAPPER.createObjectNode();
       geoDistance.put("distance", "1m");
-      geoDistance.put("location", coordsNode.apply(latParam.orElse(""), lonParam.orElse("")));
+      geoDistance.put(
+          "location",
+          pointNode.apply(
+              latParam.map(Double::valueOf).get(), lonParam.map(Double::valueOf).get()));
       ObjectNode filter = MAPPER.createObjectNode();
       filter.put("geo_distance", geoDistance);
       return Optional.of(filter);
     }
 
-    Function<String[], String> MIN_COORD = values -> values[0];
-    Function<String[], String> MAX_COORD = values -> values.length > 1 ? values[1] : values[0];
+    // converts string to a range
+    Function<String, CoordsRange> rangeConverter =
+        coord -> {
+          String[] values = coord.split(",");
+          double min = Double.valueOf(values[0]) - MIN_DIFF;
+          double max =
+              (values.length > 1 ? Double.valueOf(values[1]) : Double.valueOf(values[0]))
+                  + MIN_DIFF;
+          return new CoordsRange(min, max);
+        };
 
-    String minLat = MIN_LAT;
-    String maxLat = MAX_LAT;
-    if (latParam.isPresent()) {
-      String[] values = latParam.get().split(",");
-      minLat = MIN_COORD.apply(values);
-      maxLat = MAX_COORD.apply(values);
-    }
-
-    String minLon = MIN_LON;
-    String maxLon = MAX_LON;
-    if (lonParam.isPresent()) {
-      String[] values = lonParam.get().split(",");
-      minLon = MIN_COORD.apply(values);
-      maxLon = MAX_COORD.apply(values);
-    }
+    CoordsRange latRange = latParam.map(rangeConverter).orElse(new CoordsRange(MIN_LAT, MAX_LAT));
+    CoordsRange lonRange = lonParam.map(rangeConverter).orElse(new CoordsRange(MIN_LON, MAX_LON));
 
     ObjectNode geoBoundingBox = MAPPER.createObjectNode();
     ObjectNode location = MAPPER.createObjectNode();
@@ -168,15 +167,15 @@ public class EsSearchRequestBuilder {
     filter.put("geo_bounding_box", geoBoundingBox);
 
     // top left
-    location.put("top_left", coordsNode.apply(maxLat, minLon));
+    location.put("top_left", pointNode.apply(latRange.max, lonRange.min));
     // bottom right
-    location.put("bottom_right", coordsNode.apply(minLat, maxLon));
+    location.put("bottom_right", pointNode.apply(latRange.min, lonRange.max));
+
+    // clean params
+    params.removeAll(OccurrenceSearchParameter.DECIMAL_LATITUDE);
+    params.removeAll(OccurrenceSearchParameter.DECIMAL_LONGITUDE);
 
     return Optional.of(filter);
-  }
-
-  private static boolean isSinglePoint(String lat, String lon) {
-    return !isRange(lat) && !isRange(lon);
   }
 
   private static ObjectNode createMatch(OccurrenceEsField esField, String parsedValue) {
@@ -207,6 +206,16 @@ public class EsSearchRequestBuilder {
       return new NStringEntity(WRITER.writeValueAsString(json));
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
+    }
+  }
+
+  private static class CoordsRange {
+    double min;
+    double max;
+
+    CoordsRange(double min, double max) {
+      this.min = min;
+      this.max = max;
     }
   }
 

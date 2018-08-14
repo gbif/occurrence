@@ -17,6 +17,7 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.print.attribute.standard.Media;
 import javax.validation.constraints.Min;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -60,9 +62,23 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchESImpl.class);
 
   private static final ObjectReader JSON_READER = new ObjectMapper().reader(Map.class);
-  private static final DateFormat DATE_FORMAT =
+  private static final DateFormat DATE_PATTERN =
       new SimpleDateFormat(
           "yyyy-MM-dd'T'HH:mm'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+  private static final Function<JsonNode, Date> DATE_FORMAT =
+      (jsonNode) ->
+          Optional.ofNullable(jsonNode)
+              .map(JsonNode::asText)
+              .filter(dateAsString -> !Strings.isNullOrEmpty(dateAsString))
+              .map(
+                  dateAsString -> {
+                    try {
+                      return DATE_PATTERN.parse(dateAsString);
+                    } catch (ParseException e) {
+                      throw new IllegalStateException(e.getMessage(), e);
+                    }
+                  })
+              .orElse(null);
   private static final String BLANK = " ";
 
   // functions
@@ -122,22 +138,6 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       throw new IllegalStateException(e.getMessage(), e);
     }
 
-    // date format
-    Function<JsonNode, Date> dateFormat =
-        (jsonNode) ->
-            Optional.ofNullable(jsonNode)
-                .map(JsonNode::asText)
-                .filter(dateAsString -> !Strings.isNullOrEmpty(dateAsString))
-                .map(
-                    dateAsString -> {
-                      try {
-                        return DATE_FORMAT.parse(dateAsString);
-                      } catch (ParseException e) {
-                        throw new IllegalStateException(e.getMessage(), e);
-                      }
-                    })
-                .orElse(null);
-
     // parse results
     final JsonNode hits = resp.path("hits");
     List<Occurrence> occurrences = new ArrayList<>();
@@ -158,7 +158,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
           getValue(source, COORDINATE_UNCERTAINTY_METERS, JsonNode::asDouble));
       occ.setCountry(
           getValue(source, COUNTRY, (node -> Country.valueOf(node.asText().toUpperCase()))));
-      occ.setDateIdentified(dateFormat.apply(source.get(DATE_IDENTIFIED.getFieldName())));
+      occ.setDateIdentified(DATE_FORMAT.apply(source.get(DATE_IDENTIFIED.getFieldName())));
       occ.setDay(getValue(source, DAY, JsonNode::asInt));
       occ.setMonth(getValue(source, MONTH, JsonNode::asInt));
       occ.setYear(getValue(source, YEAR, JsonNode::asInt));
@@ -172,7 +172,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       occ.setEstablishmentMeans(
           getValue(
               source, ESTABLISHMENT_MEANS, (node -> EstablishmentMeans.valueOf(node.asText()))));
-      occ.setEventDate(dateFormat.apply(source.get(EVENT_DATE.getFieldName())));
+      occ.setEventDate(DATE_FORMAT.apply(source.get(EVENT_DATE.getFieldName())));
       // TODO: what are facts??
       // TODO: identifiers??
       occ.setIndividualCount(getValue(source, INDIVIDUAL_COUNT, JsonNode::asInt));
@@ -180,8 +180,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       // TODO: we dont have lastInterpreted, lastCrawled and lastParsed
       // TODO: we dont have license
       occ.setLifeStage(getValue(source, LIFE_STAGE, (node -> LifeStage.valueOf(node.asText()))));
-      // TODO: media. Parse the medatada interpretation
-      occ.setModified(dateFormat.apply(source.get(MODIFIED.getFieldName())));
+      occ.setModified(DATE_FORMAT.apply(source.get(MODIFIED.getFieldName())));
       occ.setReferences(getValue(source, REFERENCES, (node) -> URI.create(node.asText())));
       // TODO: what are relations??
       occ.setSex(getValue(source, SEX, (node -> Sex.valueOf(node.asText()))));
@@ -192,7 +191,11 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       occ.setTypeStatus(getValue(source, TYPE_STATUS, (node -> TypeStatus.valueOf(node.asText()))));
       occ.setWaterBody(getValue(source, WATER_BODY, JsonNode::asText));
 
+      // taxon
       setTaxonFields(occ, source);
+
+      // multimedia
+      occ.setMedia(parseMediaObjects(source));
 
       // metadata
       // TODO: add missing fields
@@ -215,18 +218,52 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
     return Optional.ofNullable(source.get(esField.getFieldName())).map(mapper).orElse(null);
   }
 
+  private List<MediaObject> parseMediaObjects(JsonNode source) {
+    List<MediaObject> mediaObjects = new ArrayList<>();
+
+    source
+        .path("multimediaItems")
+        .forEach(
+            multimedia -> {
+              MediaObject mediaObject = new MediaObject();
+
+              mediaObject.setFormat(multimedia.path("format").asText());
+              mediaObject.setTitle(multimedia.path("title").asText());
+              mediaObject.setDescription(multimedia.path("description").asText());
+              mediaObject.setSource(multimedia.path("source").asText());
+              mediaObject.setAudience(multimedia.path("audience").asText());
+              mediaObject.setCreated(DATE_FORMAT.apply(multimedia.path("created")));
+              mediaObject.setCreator(multimedia.path("creator").asText());
+              mediaObject.setContributor(multimedia.path("contributor").asText());
+              mediaObject.setPublisher(multimedia.path("publisher").asText());
+              mediaObject.setLicense(multimedia.path("license").asText());
+              mediaObject.setRightsHolder(multimedia.path("rightsHolder").asText());
+
+              Optional.ofNullable(multimedia.path("type"))
+                  .ifPresent(type -> mediaObject.setType(MediaType.valueOf(type.asText())));
+              Optional.ofNullable(multimedia.path("identifier"))
+                  .ifPresent(id -> mediaObject.setIdentifier(URI.create(id.asText())));
+              Optional.ofNullable(multimedia.path("references"))
+                  .ifPresent(ref -> mediaObject.setReferences(URI.create(ref.asText())));
+
+              mediaObjects.add(mediaObject);
+            });
+
+    return mediaObjects;
+  }
+
   private void setTaxonFields(Occurrence occ, JsonNode source) {
     // Taxon fields as map
     JsonNode classification = source.path("classification");
-    Map<Rank, JsonNode> taxonFieldsMap = new HashMap<>();
+    Map<Rank, JsonNode> taxonFieldsMap = new EnumMap<>(Rank.class);
     classification.forEach(
         node -> taxonFieldsMap.put(Rank.valueOf(node.get("rank").asText()), node));
 
     Function<JsonNode, Integer> keyExtractor =
-        (json) -> Optional.ofNullable(json).map(node -> node.get("key").asInt()).orElse(null);
+        json -> Optional.ofNullable(json).map(node -> node.get("key").asInt()).orElse(null);
 
     Function<JsonNode, String> nameExtractor =
-        (json) -> Optional.ofNullable(json).map(node -> node.get("name").asText()).orElse(null);
+        json -> Optional.ofNullable(json).map(node -> node.get("name").asText()).orElse(null);
 
     // class
     occ.setClassKey(keyExtractor.apply(taxonFieldsMap.get(Rank.CLASS)));
