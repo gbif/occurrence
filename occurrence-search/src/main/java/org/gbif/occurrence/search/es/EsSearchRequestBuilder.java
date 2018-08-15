@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
-import org.apache.lucene.search.BooleanClause;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.node.ArrayNode;
@@ -22,15 +21,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
-
-  // cords constants
-  private static final double MIN_DIFF = 0.000001;
-  private static final double MIN_LON = -180;
-  private static final double MAX_LON = 180;
-  private static final double MIN_LAT = -90;
-  private static final double MAX_LAT = 90;
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final ObjectWriter WRITER = MAPPER.writer();
@@ -46,7 +39,7 @@ public class EsSearchRequestBuilder {
 
     // create body
     ObjectNode request = MAPPER.createObjectNode();
-    request.put("query", buildQuery(searchRequest));
+    request.put(QUERY, buildQuery(searchRequest));
 
     return createEntity(request);
   }
@@ -57,7 +50,7 @@ public class EsSearchRequestBuilder {
     // create root nodes
     ObjectNode query = MAPPER.createObjectNode();
     ObjectNode bool = MAPPER.createObjectNode();
-    query.put("bool", bool);
+    query.put(BOOL, bool);
 
     // get query params
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
@@ -66,7 +59,7 @@ public class EsSearchRequestBuilder {
     }
 
     // coordinates query
-    buildCoordinatesQuery(params).ifPresent(q -> bool.put("filter", q));
+    buildCoordinatesQuery(params).ifPresent(q -> bool.put(FILTER, q));
 
     // rest of the fields
     List<ObjectNode> mustMatches = new ArrayList<>();
@@ -75,7 +68,7 @@ public class EsSearchRequestBuilder {
       if (esField != null) {
         for (String value : params.get(param)) {
           if (param == OccurrenceSearchParameter.TAXON_KEY) {
-            bool.put("should", buildTaxonKeyQuery(value));
+            bool.put(SHOULD, buildTaxonKeyQuery(value));
           } else if (param.type() != Date.class) {
             // TODO: check parsing when implementing full text search queries
             // String parsedValue = QueryUtils.parseQueryValue(value);
@@ -90,7 +83,7 @@ public class EsSearchRequestBuilder {
         if (!mustMatches.isEmpty()) {
           // bool must
           ArrayNode mustNode = MAPPER.createArrayNode();
-          bool.put("must", mustNode);
+          bool.put(MUST, mustNode);
           mustMatches.forEach(mustNode::add);
         }
       }
@@ -116,17 +109,23 @@ public class EsSearchRequestBuilder {
 
     Optional<String> latParam =
         Optional.ofNullable(params.get(OccurrenceSearchParameter.DECIMAL_LATITUDE))
+            .filter(p -> !p.isEmpty())
             .map(values -> values.iterator().next());
 
     Optional<String> lonParam =
         Optional.ofNullable(params.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE))
+            .filter(p -> !p.isEmpty())
             .map(values -> values.iterator().next());
+
+    // clear params
+    params.removeAll(OccurrenceSearchParameter.DECIMAL_LATITUDE);
+    params.removeAll(OccurrenceSearchParameter.DECIMAL_LONGITUDE);
 
     BiFunction<Double, Double, ObjectNode> pointNode =
         (lat, lon) -> {
           ObjectNode location = MAPPER.createObjectNode();
-          location.put("lat", lat);
-          location.put("lon", lon);
+          location.put(LAT, lat);
+          location.put(LON, lon);
           return location;
         };
 
@@ -136,13 +135,13 @@ public class EsSearchRequestBuilder {
         && lonParam.isPresent()
         && !isRange(lonParam.get())) {
       ObjectNode geoDistance = MAPPER.createObjectNode();
-      geoDistance.put("distance", "1m");
+      geoDistance.put(DISTANCE, "1mm");
       geoDistance.put(
-          "location",
+          LOCATION,
           pointNode.apply(
               latParam.map(Double::valueOf).get(), lonParam.map(Double::valueOf).get()));
       ObjectNode filter = MAPPER.createObjectNode();
-      filter.put("geo_distance", geoDistance);
+      filter.put(GEO_DISTANCE, geoDistance);
       return Optional.of(filter);
     }
 
@@ -162,18 +161,14 @@ public class EsSearchRequestBuilder {
 
     ObjectNode geoBoundingBox = MAPPER.createObjectNode();
     ObjectNode location = MAPPER.createObjectNode();
-    geoBoundingBox.put("location", location);
+    geoBoundingBox.put(LOCATION, location);
     ObjectNode filter = MAPPER.createObjectNode();
-    filter.put("geo_bounding_box", geoBoundingBox);
+    filter.put(GEO_BOUNDING_BOX, geoBoundingBox);
 
     // top left
-    location.put("top_left", pointNode.apply(latRange.max, lonRange.min));
+    location.put(TOP_LEFT, pointNode.apply(latRange.max, lonRange.min));
     // bottom right
-    location.put("bottom_right", pointNode.apply(latRange.min, lonRange.max));
-
-    // clean params
-    params.removeAll(OccurrenceSearchParameter.DECIMAL_LATITUDE);
-    params.removeAll(OccurrenceSearchParameter.DECIMAL_LONGITUDE);
+    location.put(BOTTOM_RIGHT, pointNode.apply(latRange.min, lonRange.max));
 
     return Optional.of(filter);
   }
@@ -182,7 +177,7 @@ public class EsSearchRequestBuilder {
     ObjectNode matchQuery = MAPPER.createObjectNode();
     matchQuery.put(esField.getFieldName(), parsedValue);
     ObjectNode match = MAPPER.createObjectNode();
-    match.put("match", matchQuery);
+    match.put(MATCH, matchQuery);
     return match;
   }
 
@@ -194,7 +189,7 @@ public class EsSearchRequestBuilder {
           ObjectNode termQuery = MAPPER.createObjectNode();
           termQuery.put(key.getFieldName(), taxonKey);
           ObjectNode term = MAPPER.createObjectNode();
-          term.put("term", termQuery);
+          term.put(TERM, termQuery);
           shouldNode.add(term);
         });
 
