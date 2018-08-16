@@ -73,7 +73,7 @@ public class OccurrenceSearchResource {
 
   @GET
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@Context OccurrenceSearchRequest request) {
-    LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
+     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);
   }

@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.common.search.solr.SolrConfig;
 import org.gbif.common.search.solr.SolrModule;
-import org.gbif.occurrence.search.OccurrenceSearchESImpl;
+import org.gbif.occurrence.search.es.OccurrenceSearchESImpl;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.service.guice.PrivateServiceModule;
 

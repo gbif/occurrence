@@ -8,7 +8,6 @@ import org.gbif.api.vocabulary.Country;
 import org.junit.Test;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.TAXON_KEYS_LIST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -54,39 +53,6 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(MUST)
             .findValue(OccurrenceEsField.COUNTRY_CODE.getFieldName())
             .asText());
-  }
-
-  @Test
-  public void taxonKeyQueryTest() {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addTaxonKeyFilter(6);
-
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    System.out.println(jsonQuery);
-
-    assertTrue(jsonQuery.path(BOOL).path(SHOULD).isArray());
-    assertEquals(TAXON_KEYS_LIST.size(), jsonQuery.path(BOOL).path(SHOULD).size());
-    assertEquals(
-        6,
-        jsonQuery.path(BOOL).path(SHOULD).findValue(TAXON_KEYS_LIST.get(0).getFieldName()).asInt());
-    assertEquals(
-        6,
-        jsonQuery.path(BOOL).path(SHOULD).findValue(TAXON_KEYS_LIST.get(1).getFieldName()).asInt());
-  }
-
-  @Test
-  public void mustAndTaxonKeyQueryTest() {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addTaxonKeyFilter(6);
-    searchRequest.addCountryFilter(Country.AFGHANISTAN);
-
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    System.out.println(jsonQuery);
-
-    assertTrue(jsonQuery.path(BOOL).path(SHOULD).isArray());
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertEquals(TAXON_KEYS_LIST.size(), jsonQuery.path(BOOL).path(SHOULD).size());
-    assertEquals(1, jsonQuery.path(BOOL).path(MUST).size());
   }
 
   @Test
