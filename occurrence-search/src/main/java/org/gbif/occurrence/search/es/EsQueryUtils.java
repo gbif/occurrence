@@ -6,13 +6,11 @@ import org.apache.http.Header;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-import org.codehaus.jackson.JsonNode;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -29,7 +27,7 @@ class EsQueryUtils {
   static final String TERM = "term";
   static final String SHOULD = "should";
   static final String FILTER = "filter";
-  static final String LOCATION = "location";
+  static final String COORDINATE = "coordinate";
   static final String DISTANCE = "distance";
   static final String GEO_DISTANCE = "geo_distance";
   static final String GEO_BOUNDING_BOX = "geo_bounding_box";
@@ -37,6 +35,9 @@ class EsQueryUtils {
   static final String LON = "lon";
   static final String TOP_LEFT = "top_left";
   static final String BOTTOM_RIGHT = "bottom_rigth";
+  static final String RANGE = "range";
+  static final String GTE = "gte";
+  static final String LTE = "lte";
 
   // cords constants
   static final double MIN_DIFF = 0.000001;
@@ -71,6 +72,8 @@ class EsQueryUtils {
 
   static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> QUERY_FIELD_MAPPING =
       ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
+          .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, OccurrenceEsField.LATITUDE)
+          .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, OccurrenceEsField.LONGITUDE)
           .put(OccurrenceSearchParameter.YEAR, OccurrenceEsField.YEAR)
           .put(OccurrenceSearchParameter.MONTH, OccurrenceEsField.MONTH)
           .put(OccurrenceSearchParameter.CATALOG_NUMBER, OccurrenceEsField.CATALOG_NUMBER)

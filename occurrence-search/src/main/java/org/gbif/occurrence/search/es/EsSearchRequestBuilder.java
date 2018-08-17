@@ -24,7 +24,7 @@ import java.util.function.Function;
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
-public class EsSearchRequestBuilder {
+class EsSearchRequestBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsSearchRequestBuilder.class);
 
@@ -35,7 +35,7 @@ public class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
-  public static HttpEntity buildRequestBody(OccurrenceSearchRequest searchRequest) {
+  static HttpEntity buildRequestBody(OccurrenceSearchRequest searchRequest) {
     // Preconditions.checkArgument(searchRequest.getOffset() <= maxOffset -
     // searchRequest.getLimit(),
     //  "maximum offset allowed is %s", this.maxOffset);
@@ -62,16 +62,15 @@ public class EsSearchRequestBuilder {
       return query;
     }
 
-    // coordinates query
-    buildCoordinatesQuery(params).ifPresent(q -> bool.put(FILTER, q));
-
     // rest of the fields
     List<ObjectNode> mustMatches = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
       OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
       if (esField != null) {
         for (String value : params.get(param)) {
-          if (param.type() != Date.class) {
+          if (isRange(value)) {
+            mustMatches.add(buildRangeQuery(esField, value));
+          } else if (param.type() != Date.class) {
             // TODO: check parsing when implementing full text search queries
             // String parsedValue = QueryUtils.parseQueryValue(value);
             if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
@@ -102,6 +101,27 @@ public class EsSearchRequestBuilder {
     return query;
   }
 
+  private static ObjectNode buildRangeQuery(OccurrenceEsField esField, String value) {
+    ObjectNode root = MAPPER.createObjectNode();
+
+    String[] values = value.split(RANGE_SEPARATOR);
+    if (values.length < 2) {
+      return root;
+    }
+
+    ObjectNode range = MAPPER.createObjectNode();
+    range.put(GTE, Double.valueOf(values[0]));
+    range.put(LTE, Double.valueOf(values[1]));
+
+    ObjectNode field = MAPPER.createObjectNode();
+    field.put(esField.getFieldName(), range);
+
+    root.put(RANGE, field);
+
+    return root;
+  }
+
+  // TODO: remove
   private static Optional<ObjectNode> buildCoordinatesQuery(
       Multimap<OccurrenceSearchParameter, String> params) {
     if (!params.containsKey(OccurrenceSearchParameter.DECIMAL_LATITUDE)
@@ -139,7 +159,7 @@ public class EsSearchRequestBuilder {
       ObjectNode geoDistance = MAPPER.createObjectNode();
       geoDistance.put(DISTANCE, DEFAULT_DISTANCE);
       geoDistance.put(
-          LOCATION,
+          COORDINATE,
           pointNode.apply(
               latParam.map(Double::valueOf).get(), lonParam.map(Double::valueOf).get()));
       ObjectNode filter = MAPPER.createObjectNode();
@@ -163,7 +183,7 @@ public class EsSearchRequestBuilder {
 
     ObjectNode geoBoundingBox = MAPPER.createObjectNode();
     ObjectNode location = MAPPER.createObjectNode();
-    geoBoundingBox.put(LOCATION, location);
+    geoBoundingBox.put(COORDINATE, location);
     ObjectNode filter = MAPPER.createObjectNode();
     filter.put(GEO_BOUNDING_BOX, geoBoundingBox);
 
