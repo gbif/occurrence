@@ -27,10 +27,10 @@ class EsQueryUtils {
   static final String TERM = "term";
   static final String SHOULD = "should";
   static final String FILTER = "filter";
-  static final String COORDINATE = "coordinate";
-  static final String DISTANCE = "distance";
-  static final String GEO_DISTANCE = "geo_distance";
-  static final String GEO_BOUNDING_BOX = "geo_bounding_box";
+  static final String GEO_SHAPE = "geo_shape";
+  static final String COORDINATES = "coordinates";
+  static final String TYPE = "type";
+  static final String SHAPE = "shape";
   static final String LAT = "lat";
   static final String LON = "lon";
   static final String TOP_LEFT = "top_left";

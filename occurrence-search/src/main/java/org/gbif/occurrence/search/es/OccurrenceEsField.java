@@ -83,7 +83,8 @@ public enum OccurrenceEsField {
   DEPTH_ACCURACY("depthaccuracy"),
   IDENTIFIER("identifier"),
   RELATION("relation"),
-  TYPIFIED_NAME("typifiedname");
+  TYPIFIED_NAME("typifiedname"),
+  COORDINATE("coordinate");
 
   private final String fieldName;
 

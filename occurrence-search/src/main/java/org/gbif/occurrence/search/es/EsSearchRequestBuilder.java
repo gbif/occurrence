@@ -2,6 +2,11 @@ package org.gbif.occurrence.search.es;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.nio.entity.NStringEntity;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -15,10 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
@@ -101,6 +105,76 @@ class EsSearchRequestBuilder {
     return query;
   }
 
+  @VisibleForTesting
+  static ObjectNode buildGeoShapeQuery(String wkt) {
+    Geometry geometry;
+    try {
+      geometry = new WKTReader().read(wkt);
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+
+    String type =
+        "LinearRing".equals(geometry.getGeometryType())
+            ? "LINESTRING"
+            : geometry.getGeometryType().toUpperCase();
+
+    Function<Coordinate, ArrayNode> coordinateToArray =
+        c -> {
+          ArrayNode node = MAPPER.createArrayNode();
+          node.add(c.x);
+          node.add(c.y);
+          return node;
+        };
+
+    Function<Geometry, ArrayNode> geometryToArray =
+        g -> {
+          ArrayNode node = MAPPER.createArrayNode();
+          Arrays.stream(g.getCoordinates()).forEach(c -> node.add(coordinateToArray.apply(c)));
+          return node;
+        };
+
+    Function<Polygon, List<ArrayNode>> polygonToArray =
+        p -> {
+          List<ArrayNode> nodes = new ArrayList<>();
+          nodes.add(geometryToArray.apply(p.getExteriorRing()));
+          for (int j = 0; j < p.getNumInteriorRing(); j++) {
+            nodes.add(geometryToArray.apply(p.getInteriorRingN(j)));
+          }
+          return nodes;
+        };
+
+    ArrayNode coordinates = MAPPER.createArrayNode();
+    for (int i = 0; i < geometry.getNumGeometries(); i++) {
+      Geometry geom = geometry.getGeometryN(i);
+
+      if ("POLYGON".equals(type)) {
+        polygonToArray.apply((Polygon) geom).forEach(n -> coordinates.add(n));
+      } else if ("MULTIPOLYGON".equals(type)) {
+        ArrayNode polygonArray = MAPPER.createArrayNode();
+        polygonToArray.apply((Polygon) geom).forEach(n -> polygonArray.add(n));
+        coordinates.add(polygonArray);
+      } else {
+        coordinates.add(geometryToArray.apply(geom));
+      }
+    }
+
+    ObjectNode shapeNode = MAPPER.createObjectNode();
+    shapeNode.put(TYPE, type);
+    shapeNode.put(COORDINATES, coordinates);
+
+    ObjectNode coordinateNote = MAPPER.createObjectNode();
+    coordinateNote.put(SHAPE, shapeNode);
+
+    ObjectNode geoShapeNode = MAPPER.createObjectNode();
+    geoShapeNode.put(OccurrenceEsField.COORDINATE.getFieldName(), coordinateNote);
+
+    ObjectNode root = MAPPER.createObjectNode();
+    root.put(GEO_SHAPE, geoShapeNode);
+
+    return root;
+  }
+
   private static ObjectNode buildRangeQuery(OccurrenceEsField esField, String value) {
     ObjectNode root = MAPPER.createObjectNode();
 
@@ -121,80 +195,6 @@ class EsSearchRequestBuilder {
     return root;
   }
 
-  // TODO: remove
-  private static Optional<ObjectNode> buildCoordinatesQuery(
-      Multimap<OccurrenceSearchParameter, String> params) {
-    if (!params.containsKey(OccurrenceSearchParameter.DECIMAL_LATITUDE)
-        && !params.containsKey(OccurrenceSearchParameter.DECIMAL_LONGITUDE)) {
-      return Optional.empty();
-    }
-
-    Optional<String> latParam =
-        Optional.ofNullable(params.get(OccurrenceSearchParameter.DECIMAL_LATITUDE))
-            .filter(p -> !p.isEmpty())
-            .map(values -> values.iterator().next());
-
-    Optional<String> lonParam =
-        Optional.ofNullable(params.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE))
-            .filter(p -> !p.isEmpty())
-            .map(values -> values.iterator().next());
-
-    // clear params
-    params.removeAll(OccurrenceSearchParameter.DECIMAL_LATITUDE);
-    params.removeAll(OccurrenceSearchParameter.DECIMAL_LONGITUDE);
-
-    BiFunction<Double, Double, ObjectNode> pointNode =
-        (lat, lon) -> {
-          ObjectNode location = MAPPER.createObjectNode();
-          location.put(LAT, lat);
-          location.put(LON, lon);
-          return location;
-        };
-
-    // if it's a single point we perform a geo distance query
-    if (latParam.isPresent()
-        && !isRange(latParam.get())
-        && lonParam.isPresent()
-        && !isRange(lonParam.get())) {
-      ObjectNode geoDistance = MAPPER.createObjectNode();
-      geoDistance.put(DISTANCE, DEFAULT_DISTANCE);
-      geoDistance.put(
-          COORDINATE,
-          pointNode.apply(
-              latParam.map(Double::valueOf).get(), lonParam.map(Double::valueOf).get()));
-      ObjectNode filter = MAPPER.createObjectNode();
-      filter.put(GEO_DISTANCE, geoDistance);
-      return Optional.of(filter);
-    }
-
-    // converts string to a range
-    Function<String, CoordsRange> rangeConverter =
-        coord -> {
-          String[] values = coord.split(RANGE_SEPARATOR);
-          double min = Double.valueOf(values[0]) - MIN_DIFF;
-          double max =
-              (values.length > 1 ? Double.valueOf(values[1]) : Double.valueOf(values[0]))
-                  + MIN_DIFF;
-          return new CoordsRange(min, max);
-        };
-
-    CoordsRange latRange = latParam.map(rangeConverter).orElse(new CoordsRange(MIN_LAT, MAX_LAT));
-    CoordsRange lonRange = lonParam.map(rangeConverter).orElse(new CoordsRange(MIN_LON, MAX_LON));
-
-    ObjectNode geoBoundingBox = MAPPER.createObjectNode();
-    ObjectNode location = MAPPER.createObjectNode();
-    geoBoundingBox.put(COORDINATE, location);
-    ObjectNode filter = MAPPER.createObjectNode();
-    filter.put(GEO_BOUNDING_BOX, geoBoundingBox);
-
-    // top left
-    location.put(TOP_LEFT, pointNode.apply(latRange.max, lonRange.min));
-    // bottom right
-    location.put(BOTTOM_RIGHT, pointNode.apply(latRange.min, lonRange.max));
-
-    return Optional.of(filter);
-  }
-
   private static ObjectNode createMatch(OccurrenceEsField esField, String parsedValue) {
     ObjectNode matchQuery = MAPPER.createObjectNode();
     matchQuery.put(esField.getFieldName(), parsedValue);
@@ -208,16 +208,6 @@ class EsSearchRequestBuilder {
       return new NStringEntity(WRITER.writeValueAsString(json));
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
-    }
-  }
-
-  private static class CoordsRange {
-    double min;
-    double max;
-
-    CoordsRange(double min, double max) {
-      this.min = min;
-      this.max = max;
     }
   }
 }
