@@ -185,5 +185,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertTrue(jsonQuery.path(BOOL).path(FILTER).get(0).has(GEO_SHAPE));
+    assertTrue(
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .get(0)
+            .path(GEO_SHAPE)
+            .path(OccurrenceEsField.COORDINATE.getFieldName())
+            .has(RELATION));
   }
 }

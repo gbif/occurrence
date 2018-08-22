@@ -24,28 +24,18 @@ class EsQueryUtils {
   static final String BOOL = "bool";
   static final String MUST = "must";
   static final String MATCH = "match";
-  static final String TERM = "term";
-  static final String SHOULD = "should";
   static final String FILTER = "filter";
-  static final String GEO_SHAPE = "geo_shape";
-  static final String COORDINATES = "coordinates";
-  static final String TYPE = "type";
-  static final String SHAPE = "shape";
-  static final String LAT = "lat";
-  static final String LON = "lon";
-  static final String TOP_LEFT = "top_left";
-  static final String BOTTOM_RIGHT = "bottom_rigth";
   static final String RANGE = "range";
   static final String GTE = "gte";
   static final String LTE = "lte";
 
-  // cords constants
-  static final double MIN_DIFF = 0.000001;
-  static final double MIN_LON = -180;
-  static final double MAX_LON = 180;
-  static final double MIN_LAT = -90;
-  static final double MAX_LAT = 90;
-  static final String DEFAULT_DISTANCE = "1mm";
+  // geo_shape
+  static final String GEO_SHAPE = "geo_shape";
+  static final String COORDINATES = "coordinates";
+  static final String TYPE = "type";
+  static final String SHAPE = "shape";
+  static final String RELATION = "relation";
+  static final String WITHIN = "within";
 
   static final String RANGE_SEPARATOR = ",";
 

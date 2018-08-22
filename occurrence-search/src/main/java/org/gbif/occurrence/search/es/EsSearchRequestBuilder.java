@@ -164,6 +164,7 @@ class EsSearchRequestBuilder {
 
     ObjectNode coordinateNote = MAPPER.createObjectNode();
     coordinateNote.put(SHAPE, shapeNode);
+    coordinateNote.put(RELATION, WITHIN);
     ObjectNode geoShapeNode = MAPPER.createObjectNode();
     geoShapeNode.put(OccurrenceEsField.COORDINATE.getFieldName(), coordinateNote);
     ObjectNode root = MAPPER.createObjectNode();
