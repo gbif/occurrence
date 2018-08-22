@@ -63,30 +63,15 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
   @Inject
   public OccurrenceSearchESImpl(
       EsConfig esConfig,
+      RestClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
       @Named("max.offset") int maxOffset,
       @Named("max.limit") int maxLimit,
       @Named("facets.enable") boolean facetsEnable) {
     this.esConfig = esConfig;
     // create ES client
-    esClient = RestClient.builder(createHosts(esConfig)).build();
+    this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-  }
-
-  private HttpHost[] createHosts(EsConfig esConfig) {
-    HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
-    int i = 0;
-    for (String host : esConfig.getHosts()) {
-      try {
-        URL url = new URL(host);
-        hosts[i] = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
-        i++;
-      } catch (MalformedURLException e) {
-        throw new IllegalArgumentException(e.getMessage(), e);
-      }
-    }
-
-    return hosts;
   }
 
   @Override
