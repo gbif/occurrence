@@ -117,26 +117,26 @@ class EsSearchRequestBuilder {
             : geometry.getGeometryType().toUpperCase();
 
     Function<Coordinate, ArrayNode> coordinateToArray =
-        c -> {
+        coordinate -> {
           ArrayNode node = MAPPER.createArrayNode();
-          node.add(c.x);
-          node.add(c.y);
+          node.add(coordinate.x);
+          node.add(coordinate.y);
           return node;
         };
 
     Function<Geometry, ArrayNode> geometryToArray =
-        g -> {
+        geom -> {
           ArrayNode node = MAPPER.createArrayNode();
-          Arrays.stream(g.getCoordinates()).forEach(c -> node.add(coordinateToArray.apply(c)));
+          Arrays.stream(geom.getCoordinates()).forEach(c -> node.add(coordinateToArray.apply(c)));
           return node;
         };
 
     Function<Polygon, ArrayNode> polygonToArray =
-        p -> {
+        polygon -> {
           ArrayNode nodes = MAPPER.createArrayNode();
-          nodes.add(geometryToArray.apply(p.getExteriorRing()));
-          for (int j = 0; j < p.getNumInteriorRing(); j++) {
-            nodes.add(geometryToArray.apply(p.getInteriorRingN(j)));
+          nodes.add(geometryToArray.apply(polygon.getExteriorRing()));
+          for (int j = 0; j < polygon.getNumInteriorRing(); j++) {
+            nodes.add(geometryToArray.apply(polygon.getInteriorRingN(j)));
           }
           return nodes;
         };

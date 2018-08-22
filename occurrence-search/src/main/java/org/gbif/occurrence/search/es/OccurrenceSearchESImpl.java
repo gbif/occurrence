@@ -44,6 +44,7 @@ import java.util.function.Function;
 import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
 
 /**
  * Occurrence search service. Executes {@link OccurrenceSearchRequest} by transforming the request
