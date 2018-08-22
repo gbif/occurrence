@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -32,14 +31,10 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -58,17 +53,17 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
 
   private final NameUsageMatchingService nameUsageMatchingService;
   private final RestClient esClient;
-  private final EsConfig esConfig;
+  private final String esIndex;
 
   @Inject
   public OccurrenceSearchESImpl(
-      EsConfig esConfig,
       RestClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
       @Named("max.offset") int maxOffset,
       @Named("max.limit") int maxLimit,
-      @Named("facets.enable") boolean facetsEnable) {
-    this.esConfig = esConfig;
+      @Named("facets.enable") boolean facetsEnable,
+      @Named("es.index") String esIndex) {
+    this.esIndex = esIndex;
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
@@ -88,7 +83,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
         response =
             esClient.performRequest(
                 "GET",
-                SEARCH_ENDPOINT.apply(esConfig.getIndex()),
+                SEARCH_ENDPOINT.apply(esIndex),
                 Collections.emptyMap(),
                 requestBody,
                 HEADERS.get());

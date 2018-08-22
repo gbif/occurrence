@@ -34,9 +34,7 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
   protected void configureService() {
     install(new SolrModule(solrConfig));
     bind(OccurrenceSearchService.class).to(OccurrenceSearchESImpl.class);
-    bind(EsConfig.class).toInstance(esConfig);
     expose(OccurrenceSearchService.class);
-    expose(EsConfig.class);
   }
 
   @Provides

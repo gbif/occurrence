@@ -1,10 +1,16 @@
 package org.gbif.occurrence.cli.index;
 
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.TimerContext;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,13 +22,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
