@@ -159,6 +159,23 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
+  public void linearringQueryTest() {
+    final String linestring = "LINEARRING (12 12, 14 10, 13 14, 12 12)";
+
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(linestring);
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(
+      jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    JsonNode shape =
+      jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+    assertEquals("LINESTRING", shape.get(TYPE).asText());
+    assertTrue(shape.get(COORDINATES).isArray());
+    assertEquals(4, shape.get(COORDINATES).size());
+    assertEquals(12, shape.get(COORDINATES).get(0).get(0).asDouble(), 0);
+  }
+
+  @Test
   public void pointQueryTest() {
     final String point = "POINT (-77.03653 38.897676)";
 

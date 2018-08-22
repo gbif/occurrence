@@ -112,9 +112,7 @@ class EsSearchRequestBuilder {
     }
 
     String type =
-        "LinearRing".equals(geometry.getGeometryType())
-            ? "LINESTRING"
-            : geometry.getGeometryType().toUpperCase();
+        "LinearRing".equals(geometry.getGeometryType()) ? "LINESTRING" : geometry.getGeometryType();
 
     Function<Coordinate, ArrayNode> coordinateToArray =
         coordinate -> {
