@@ -6,6 +6,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.Country;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.AssertTrue;
 
@@ -15,13 +17,16 @@ import static org.junit.Assert.assertTrue;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
+  private static final Logger LOG =
+      LoggerFactory.getLogger(OccurrenceEsSearchRequestBuilderTest.class);
+
   @Test
   public void matchQueryTest() {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter(6);
 
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    System.out.println(jsonQuery);
+    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(MUST).size());
@@ -41,7 +46,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
 
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    System.out.println(jsonQuery);
+    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
     assertEquals(2, jsonQuery.path(BOOL).path(MUST).size());
@@ -63,7 +68,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addParameter(OccurrenceSearchParameter.DECIMAL_LATITUDE, "12, 25");
 
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    System.out.println(jsonQuery);
+    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
     JsonNode latitudeNode =
@@ -78,16 +83,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
   @Test
   public void polygonQueryTest() {
-    String wkt =
-        "MULTIPOLYGON (((102.0 2.0, 103.0 2.0, 103.0 3.0, 102.0 3.0, 102.0 2.0)), ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0), (100.2 0.2, 100.8 0.2, 100.8 0.8, 100.2 0.8, 100.2 0.2)))";
     final String polygon = "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0))";
 
-    ObjectNode json = EsSearchRequestBuilder.buildGeoShapeQuery(polygon);
-    System.out.println(json);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(polygon);
+    LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    assertTrue(
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
     JsonNode shape =
-        json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
     assertEquals("POLYGON", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(5, shape.get(COORDINATES).get(0).size());
@@ -101,12 +105,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     final String polygonWithHole =
         "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0), (100.2 0.2, 100.8 0.2, 100.8 0.8, 100.2 0.8, 100.2 0.2))";
 
-    ObjectNode json = EsSearchRequestBuilder.buildGeoShapeQuery(polygonWithHole);
-    System.out.println(json);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(polygonWithHole);
+    LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    assertTrue(
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
     JsonNode shape =
-        json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
     assertEquals("POLYGON", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
@@ -119,12 +124,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     final String multipolygon =
         "MULTIPOLYGON (((102.0 2.0, 103.0 2.0, 103.0 3.0, 102.0 3.0, 102.0 2.0)), ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0), (100.2 0.2, 100.8 0.2, 100.8 0.8, 100.2 0.8, 100.2 0.2)))";
 
-    ObjectNode json = EsSearchRequestBuilder.buildGeoShapeQuery(multipolygon);
-    System.out.println(json);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(multipolygon);
+    LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    assertTrue(
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
     JsonNode shape =
-        json.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
     assertEquals("MULTIPOLYGON", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
@@ -133,5 +139,51 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(2, shape.get(COORDINATES).get(1).size());
     assertEquals(5, shape.get(COORDINATES).get(1).get(0).size());
     assertEquals(5, shape.get(COORDINATES).get(1).get(1).size());
+  }
+
+  @Test
+  public void linestringQueryTest() {
+    final String linestring = "LINESTRING (-77.03653 38.897676, -77.009051 38.889939)";
+
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(linestring);
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    JsonNode shape =
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+    assertEquals("LINESTRING", shape.get(TYPE).asText());
+    assertTrue(shape.get(COORDINATES).isArray());
+    assertEquals(2, shape.get(COORDINATES).size());
+    assertEquals(-77.03653, shape.get(COORDINATES).get(0).get(0).asDouble(), 0);
+  }
+
+  @Test
+  public void pointQueryTest() {
+    final String point = "POINT (-77.03653 38.897676)";
+
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildGeoShapeQuery(point);
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).has(SHAPE));
+    JsonNode shape =
+        jsonQuery.path(GEO_SHAPE).path(OccurrenceEsField.COORDINATE.getFieldName()).path(SHAPE);
+    assertEquals("POINT", shape.get(TYPE).asText());
+    assertTrue(shape.get(COORDINATES).isArray());
+    assertEquals(2, shape.get(COORDINATES).size());
+    assertEquals(-77.03653d, shape.get(COORDINATES).get(0).asDouble(), 0);
+  }
+
+  @Test
+  public void geometryQueryTest() {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addGeometryFilter("POINT (-77.03653 38.897676)");
+
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).get(0).has(GEO_SHAPE));
   }
 }

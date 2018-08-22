@@ -2,9 +2,7 @@ package org.gbif.occurrence.search.es;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.apache.http.HttpEntity;
@@ -66,7 +64,16 @@ class EsSearchRequestBuilder {
       return query;
     }
 
-    // rest of the fields
+    // geometry
+    if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
+      ArrayNode filterNode = MAPPER.createArrayNode();
+      bool.put(FILTER, filterNode);
+      params
+          .get(OccurrenceSearchParameter.GEOMETRY)
+          .forEach(wkt -> filterNode.add(buildGeoShapeQuery(wkt)));
+    }
+
+    // must match fields
     List<ObjectNode> mustMatches = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
       OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
@@ -75,8 +82,6 @@ class EsSearchRequestBuilder {
           if (isRange(value)) {
             mustMatches.add(buildRangeQuery(esField, value));
           } else if (param.type() != Date.class) {
-            // TODO: check parsing when implementing full text search queries
-            // String parsedValue = QueryUtils.parseQueryValue(value);
             if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
               value = value.toUpperCase();
             }
@@ -93,14 +98,6 @@ class EsSearchRequestBuilder {
         }
       }
     }
-    // TODO: dates, ranges and geo points
-    // addLocationQuery(params, solrQuery, isFacetedSearch);
-    // addDateQuery(params, OccurrenceSearchParameter.EVENT_DATE, OccurrenceEsField.EVENT_DATE,
-    // solrQuery,
-    //             isFacetedSearch);
-    // addDateQuery(params, OccurrenceSearchParameter.LAST_INTERPRETED,
-    // OccurrenceEsField.LAST_INTERPRETED, solrQuery,
-    //             isFacetedSearch);
 
     return query;
   }
@@ -134,9 +131,9 @@ class EsSearchRequestBuilder {
           return node;
         };
 
-    Function<Polygon, List<ArrayNode>> polygonToArray =
+    Function<Polygon, ArrayNode> polygonToArray =
         p -> {
-          List<ArrayNode> nodes = new ArrayList<>();
+          ArrayNode nodes = MAPPER.createArrayNode();
           nodes.add(geometryToArray.apply(p.getExteriorRing()));
           for (int j = 0; j < p.getNumInteriorRing(); j++) {
             nodes.add(geometryToArray.apply(p.getInteriorRingN(j)));
@@ -144,19 +141,21 @@ class EsSearchRequestBuilder {
           return nodes;
         };
 
+    // create coordinates node
     ArrayNode coordinates = MAPPER.createArrayNode();
-    for (int i = 0; i < geometry.getNumGeometries(); i++) {
-      Geometry geom = geometry.getGeometryN(i);
-
-      if ("POLYGON".equals(type)) {
-        polygonToArray.apply((Polygon) geom).forEach(n -> coordinates.add(n));
-      } else if ("MULTIPOLYGON".equals(type)) {
-        ArrayNode polygonArray = MAPPER.createArrayNode();
-        polygonToArray.apply((Polygon) geom).forEach(n -> polygonArray.add(n));
-        coordinates.add(polygonArray);
-      } else {
-        coordinates.add(geometryToArray.apply(geom));
+    if (geometry instanceof Point) {
+      coordinates = coordinateToArray.apply(geometry.getCoordinate());
+    } else if (geometry instanceof Polygon) {
+      polygonToArray.apply((Polygon) geometry).forEach(coordinates::add);
+    } else if (geometry instanceof MultiPolygon) {
+      // iterate thru the polygons
+      for (int i = 0; i < geometry.getNumGeometries(); i++) {
+        ArrayNode polygonList = MAPPER.createArrayNode();
+        polygonToArray.apply((Polygon) geometry.getGeometryN(i)).forEach(polygonList::add);
+        coordinates.add(polygonList);
       }
+    } else {
+      geometryToArray.apply(geometry).forEach(coordinates::add);
     }
 
     ObjectNode shapeNode = MAPPER.createObjectNode();
@@ -165,10 +164,8 @@ class EsSearchRequestBuilder {
 
     ObjectNode coordinateNote = MAPPER.createObjectNode();
     coordinateNote.put(SHAPE, shapeNode);
-
     ObjectNode geoShapeNode = MAPPER.createObjectNode();
     geoShapeNode.put(OccurrenceEsField.COORDINATE.getFieldName(), coordinateNote);
-
     ObjectNode root = MAPPER.createObjectNode();
     root.put(GEO_SHAPE, geoShapeNode);
 
