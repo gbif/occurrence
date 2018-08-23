@@ -223,7 +223,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       getValueText(source, INFRA_SPECIFIC_EPITHET).ifPresent(occ::setInfraspecificEpithet);
       getValueText(source, GENERIC_NAME).ifPresent(occ::setGenericName);
       getValueText(source, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-      getValue(source, UNIQUE_TAXON_KEY).ifPresent(v -> occ.setTaxonKey(v.asInt()));
+      getValue(source, TAXON_KEY).ifPresent(v -> occ.setTaxonKey(v.asInt()));
 
       // multimedia
       // TODO: change when we have the full info about multimedia

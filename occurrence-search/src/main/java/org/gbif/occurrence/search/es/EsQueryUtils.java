@@ -24,6 +24,7 @@ class EsQueryUtils {
   static final String BOOL = "bool";
   static final String MUST = "must";
   static final String MATCH = "match";
+  static final String TERM = "term";
   static final String FILTER = "filter";
   static final String RANGE = "range";
   static final String GTE = "gte";
@@ -82,7 +83,7 @@ class EsQueryUtils {
           .put(OccurrenceSearchParameter.COUNTRY, OccurrenceEsField.COUNTRY_CODE)
           .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceEsField.PUBLISHING_COUNTRY)
           .put(OccurrenceSearchParameter.CONTINENT, OccurrenceEsField.CONTINENT)
-          .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceEsField.TAXON_KEY)
+          .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceEsField.TAXA_KEY)
           .put(OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceEsField.KINGDOM_KEY)
           .put(OccurrenceSearchParameter.PHYLUM_KEY, OccurrenceEsField.PHYLUM_KEY)
           .put(OccurrenceSearchParameter.CLASS_KEY, OccurrenceEsField.CLASS_KEY)

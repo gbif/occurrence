@@ -73,28 +73,28 @@ class EsSearchRequestBuilder {
           .forEach(wkt -> filterNode.add(buildGeoShapeQuery(wkt)));
     }
 
-    // must match fields
-    List<ObjectNode> mustMatches = new ArrayList<>();
+    // must term fields
+    List<ObjectNode> termQueries = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
       OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
       if (esField != null) {
         for (String value : params.get(param)) {
           if (isRange(value)) {
-            mustMatches.add(buildRangeQuery(esField, value));
+            termQueries.add(buildRangeQuery(esField, value));
           } else if (param.type() != Date.class) {
             if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
               value = value.toUpperCase();
             }
-            mustMatches.add(createMatch(esField, value));
+            termQueries.add(createTermQuery(esField, value));
           }
         }
 
-        // build the must query
-        if (!mustMatches.isEmpty()) {
+        // build the term queries
+        if (!termQueries.isEmpty()) {
           // bool must
           ArrayNode mustNode = MAPPER.createArrayNode();
           bool.put(MUST, mustNode);
-          mustMatches.forEach(mustNode::add);
+          termQueries.forEach(mustNode::add);
         }
       }
     }
@@ -191,12 +191,12 @@ class EsSearchRequestBuilder {
     return root;
   }
 
-  private static ObjectNode createMatch(OccurrenceEsField esField, String parsedValue) {
-    ObjectNode matchQuery = MAPPER.createObjectNode();
-    matchQuery.put(esField.getFieldName(), parsedValue);
-    ObjectNode match = MAPPER.createObjectNode();
-    match.put(MATCH, matchQuery);
-    return match;
+  private static ObjectNode createTermQuery(OccurrenceEsField esField, String parsedValue) {
+    ObjectNode termQuery = MAPPER.createObjectNode();
+    termQuery.put(esField.getFieldName(), parsedValue);
+    ObjectNode term = MAPPER.createObjectNode();
+    term.put(TERM, termQuery);
+    return term;
   }
 
   private static HttpEntity createEntity(ObjectNode json) {
