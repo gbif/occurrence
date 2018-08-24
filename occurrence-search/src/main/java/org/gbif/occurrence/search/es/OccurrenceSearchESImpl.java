@@ -137,8 +137,8 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
           .ifPresent(v -> occ.setCoordinateUncertaintyInMeters(v.asDouble()));
       getValueText(source, COUNTRY)
           .ifPresent(v -> occ.setCountry(Country.valueOf(v.toUpperCase())));
-      getValueText(source, DATE_IDENTIFIED)
-          .ifPresent(v -> occ.setDateIdentified(DATE_FORMAT.apply(v, dateFormat)));
+      // TODO: date identified shouldnt be a timestamp
+      getValue(source, DATE_IDENTIFIED).ifPresent(v -> occ.setDateIdentified(new Date(v.asLong())));
       getValue(source, DAY).ifPresent(v -> occ.setDay(v.asInt()));
       getValue(source, MONTH).ifPresent(v -> occ.setMonth(v.asInt()));
       getValue(source, YEAR).ifPresent(v -> occ.setYear(v.asInt()));
@@ -191,9 +191,11 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
       getValueText(source, LAST_PARSED)
           .ifPresent(v -> occ.setLastParsed(DATE_FORMAT.apply(v, dateFormat)));
 
+      getValueText(source, EVENT_DATE)
+          .ifPresent(v -> occ.setEventDate(DATE_FORMAT.apply(v, dateFormat)));
       getValueText(source, LIFE_STAGE).ifPresent(v -> occ.setLifeStage(LifeStage.valueOf(v)));
-      getValueText(source, MODIFIED)
-          .ifPresent(v -> occ.setModified(DATE_FORMAT.apply(v, dateFormat)));
+      // TODO: modified shouldnt be a timestamp
+      getValue(source, MODIFIED).ifPresent(v -> occ.setModified(new Date(v.asLong())));
       getValueText(source, REFERENCES).ifPresent(v -> occ.setReferences(URI.create(v)));
       getValueText(source, SEX).ifPresent(v -> occ.setSex(Sex.valueOf(v)));
       getValueText(source, STATE_PROVINCE).ifPresent(occ::setStateProvince);

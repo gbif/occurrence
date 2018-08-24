@@ -25,6 +25,7 @@ class EsQueryUtils {
   static final String MUST = "must";
   static final String MATCH = "match";
   static final String TERM = "term";
+  static final String TERMS = "terms";
   static final String FILTER = "filter";
   static final String RANGE = "range";
   static final String GTE = "gte";

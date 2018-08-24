@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
@@ -77,25 +74,30 @@ class EsSearchRequestBuilder {
     List<ObjectNode> termQueries = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
       OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
-      if (esField != null) {
-        for (String value : params.get(param)) {
-          if (isRange(value)) {
-            termQueries.add(buildRangeQuery(esField, value));
-          } else if (param.type() != Date.class) {
-            if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
-              value = value.toUpperCase();
-            }
-            termQueries.add(createTermQuery(esField, value));
-          }
-        }
+      if (esField == null) {
+        continue;
+      }
 
-        // build the term queries
-        if (!termQueries.isEmpty()) {
-          // bool must
-          ArrayNode mustNode = MAPPER.createArrayNode();
-          bool.put(MUST, mustNode);
-          termQueries.forEach(mustNode::add);
+      List<String> termValues = new ArrayList<>();
+      for (String value : params.get(param)) {
+        if (isRange(value)) {
+          termQueries.add(buildRangeQuery(esField, value));
+        } else if (param.type() != Date.class) {
+          if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
+            value = value.toUpperCase();
+          }
+          termValues.add(value);
         }
+      }
+
+      createTermQuery(esField, termValues).ifPresent(termQueries::add);
+
+      // build the term queries
+      if (!termQueries.isEmpty()) {
+        // bool must
+        ArrayNode mustNode = MAPPER.createArrayNode();
+        bool.put(MUST, mustNode);
+        termQueries.forEach(mustNode::add);
       }
     }
 
@@ -112,7 +114,9 @@ class EsSearchRequestBuilder {
     }
 
     String type =
-        "LinearRing".equals(geometry.getGeometryType()) ? "LINESTRING" : geometry.getGeometryType();
+        "LinearRing".equals(geometry.getGeometryType())
+            ? "LINESTRING"
+            : geometry.getGeometryType().toUpperCase();
 
     Function<Coordinate, ArrayNode> coordinateToArray =
         coordinate -> {
@@ -164,7 +168,7 @@ class EsSearchRequestBuilder {
     coordinateNote.put(SHAPE, shapeNode);
     coordinateNote.put(RELATION, WITHIN);
     ObjectNode geoShapeNode = MAPPER.createObjectNode();
-    geoShapeNode.put(OccurrenceEsField.COORDINATE.getFieldName(), coordinateNote);
+    geoShapeNode.put(OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), coordinateNote);
     ObjectNode root = MAPPER.createObjectNode();
     root.put(GEO_SHAPE, geoShapeNode);
 
@@ -191,12 +195,37 @@ class EsSearchRequestBuilder {
     return root;
   }
 
-  private static ObjectNode createTermQuery(OccurrenceEsField esField, String parsedValue) {
+  private static Optional<ObjectNode> createTermQuery(
+      OccurrenceEsField esField, List<String> parsedValues) {
+    if (!parsedValues.isEmpty()) {
+      if (parsedValues.size() > 1) {
+        // multi term query
+        return Optional.of(createMultitermQuery(esField, parsedValues));
+      } else {
+        // single term
+        return Optional.of(createSingleTermQuery(esField, parsedValues.get(0)));
+      }
+    }
+    return Optional.empty();
+  }
+
+  private static ObjectNode createSingleTermQuery(OccurrenceEsField esField, String parsedValue) {
     ObjectNode termQuery = MAPPER.createObjectNode();
     termQuery.put(esField.getFieldName(), parsedValue);
     ObjectNode term = MAPPER.createObjectNode();
     term.put(TERM, termQuery);
     return term;
+  }
+
+  private static ObjectNode createMultitermQuery(
+      OccurrenceEsField esField, List<String> parsedValues) {
+    ObjectNode multitermQuery = MAPPER.createObjectNode();
+    ArrayNode termsArray = MAPPER.createArrayNode();
+    parsedValues.forEach(termsArray::add);
+    multitermQuery.put(esField.getFieldName(), termsArray);
+    ObjectNode terms = MAPPER.createObjectNode();
+    terms.put(TERMS, multitermQuery);
+    return terms;
   }
 
   private static HttpEntity createEntity(ObjectNode json) {
