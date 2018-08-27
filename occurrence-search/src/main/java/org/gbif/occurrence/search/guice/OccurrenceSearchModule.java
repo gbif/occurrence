@@ -7,7 +7,7 @@ import org.elasticsearch.client.RestClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.common.search.solr.SolrConfig;
 import org.gbif.common.search.solr.SolrModule;
-import org.gbif.occurrence.search.es.OccurrenceSearchESImpl;
+import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.service.guice.PrivateServiceModule;
 
@@ -33,7 +33,7 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
   @Override
   protected void configureService() {
     install(new SolrModule(solrConfig));
-    bind(OccurrenceSearchService.class).to(OccurrenceSearchESImpl.class);
+    bind(OccurrenceSearchService.class).to(OccurrenceSearchEsImpl.class);
     expose(OccurrenceSearchService.class);
   }
 

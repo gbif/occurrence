@@ -84,7 +84,8 @@ public enum OccurrenceEsField {
   IDENTIFIER("identifier"),
   RELATION("relation"),
   TYPIFIED_NAME("typifiedname"),
-  COORDINATE_SHAPE("coordinate_shape");
+  COORDINATE_SHAPE("coordinate_shape"),
+  COORDINATE_POINT("coordinate_point");
 
   private final String fieldName;
 

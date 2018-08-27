@@ -45,9 +45,9 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
  * Occurrence search service. Executes {@link OccurrenceSearchRequest} by transforming the request
  * into {@link SolrQuery}.
  */
-public class OccurrenceSearchESImpl implements OccurrenceSearchService {
+public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchESImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
   private static final ObjectReader JSON_READER = new ObjectMapper().reader(Map.class);
 
@@ -56,7 +56,7 @@ public class OccurrenceSearchESImpl implements OccurrenceSearchService {
   private final String esIndex;
 
   @Inject
-  public OccurrenceSearchESImpl(
+  public OccurrenceSearchEsImpl(
       RestClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
       @Named("max.offset") int maxOffset,

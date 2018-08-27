@@ -15,21 +15,30 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-class EsQueryUtils {
+public class EsQueryUtils {
 
   private EsQueryUtils() {}
 
   // ES fields for queries
-  static final String QUERY = "query";
-  static final String BOOL = "bool";
-  static final String MUST = "must";
-  static final String MATCH = "match";
-  static final String TERM = "term";
-  static final String TERMS = "terms";
-  static final String FILTER = "filter";
-  static final String RANGE = "range";
-  static final String GTE = "gte";
-  static final String LTE = "lte";
+  public static final String SIZE = "size";
+  public static final String QUERY = "query";
+  public static final String BOOL = "bool";
+  public static final String MUST = "must";
+  public static final String MATCH = "match";
+  public static final String TERM = "term";
+  public static final String TERMS = "terms";
+  public static final String FILTER = "filter";
+  public static final String RANGE = "range";
+  public static final String GTE = "gte";
+  public static final String LTE = "lte";
+
+  // Aggs
+  public static final String FIELD = "field";
+  public static final String AGGS = "aggs";
+  public static final String PRECISION = "precision";
+  public static final String GEOHASH_GRID = "geohash_grid";
+  public static final String GEO_BOUNDS = "geo_bounds";
+  public static final String GEO_BOUNDING_BOX = "geo_bounding_box";
 
   // geo_shape
   static final String GEO_SHAPE = "geo_shape";
@@ -55,8 +64,8 @@ class EsQueryUtils {
       };
 
   // functions
-  static final Function<String, String> SEARCH_ENDPOINT = index -> "/" + index + "/_search";
-  static final Supplier<Header[]> HEADERS =
+  public static final Function<String, String> SEARCH_ENDPOINT = index -> "/" + index + "/_search";
+  public static final Supplier<Header[]> HEADERS =
       () ->
           new Header[] {
             new BasicHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
