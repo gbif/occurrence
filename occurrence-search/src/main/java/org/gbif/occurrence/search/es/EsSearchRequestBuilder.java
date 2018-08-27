@@ -34,30 +34,28 @@ class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
-//  public static HttpEntity buildHeatmapRequestBody(OccurrenceSearchRequest request) {}
+  public static HttpEntity buildHeatmapRequestBody(OccurrenceSearchRequest searchRequest) {
+    return createEntity(buildQuery(searchRequest, true));
+  }
 
   static HttpEntity buildRequestBody(OccurrenceSearchRequest searchRequest) {
     // Preconditions.checkArgument(searchRequest.getOffset() <= maxOffset -
     // searchRequest.getLimit(),
     //  "maximum offset allowed is %s", this.maxOffset);
 
-
-    return createEntity(buildQuery(searchRequest));
+    return createEntity(buildQuery(searchRequest, false));
   }
 
   @VisibleForTesting
-  static ObjectNode buildQuery(OccurrenceSearchRequest request) {
-    // create root nodes
-    ObjectNode requestBody = MAPPER.createObjectNode();
-    ObjectNode query = MAPPER.createObjectNode();
-    ObjectNode bool = MAPPER.createObjectNode();
-    query.put(BOOL, bool);
-
+  static ObjectNode buildQuery(OccurrenceSearchRequest request, boolean filtered) {
     // get query params
     Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
     if (params == null || params.isEmpty()) {
-      return query;
+      return MAPPER.createObjectNode();
     }
+
+    // create bool node
+    ObjectNode bool = MAPPER.createObjectNode();
 
     // geometry
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
@@ -72,13 +70,18 @@ class EsSearchRequestBuilder {
     List<ObjectNode> termQueries = buildTermQueries(params);
     if (!termQueries.isEmpty()) {
       // bool must
-      ArrayNode mustNode = MAPPER.createArrayNode();
-      bool.put(MUST, mustNode);
-      termQueries.forEach(mustNode::add);
+      ArrayNode contextNode = MAPPER.createArrayNode();
+      bool.put(filtered ? FILTER : MUST, contextNode);
+      termQueries.forEach(contextNode::add);
     }
 
+    // build request
+    ObjectNode query = MAPPER.createObjectNode();
+    query.put(BOOL, bool);
+    ObjectNode requestBody = MAPPER.createObjectNode();
     requestBody.put(QUERY, query);
-    LOG.debug("ES query: {}", request);
+
+    LOG.debug("ES query: {}", requestBody);
 
     return requestBody;
   }
