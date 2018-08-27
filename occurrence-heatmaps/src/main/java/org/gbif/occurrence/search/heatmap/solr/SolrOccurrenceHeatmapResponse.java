@@ -1,4 +1,4 @@
-package org.gbif.occurrence.search.heatmap;
+package org.gbif.occurrence.search.heatmap.solr;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import com.google.common.base.Objects;
 /**
  * This class contains the response of a occurrence heat map search.
  */
-public class OccurrenceHeatmapResponse {
+public class SolrOccurrenceHeatmapResponse {
 
   private Integer columns;
   private Integer rows;
@@ -24,14 +24,14 @@ public class OccurrenceHeatmapResponse {
   /**
    * Default constructor, required for JSON serialization.
    */
-  public OccurrenceHeatmapResponse() {
+  public SolrOccurrenceHeatmapResponse() {
     //empty
   }
 
   /**
    * Full constructor.
    */
-  public OccurrenceHeatmapResponse(
+  public SolrOccurrenceHeatmapResponse(
     Integer columns,
     Integer rows,
     Long count,
@@ -221,11 +221,11 @@ public class OccurrenceHeatmapResponse {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof OccurrenceHeatmapResponse)) {
+    if (!(obj instanceof SolrOccurrenceHeatmapResponse)) {
       return false;
     }
 
-    OccurrenceHeatmapResponse that = (OccurrenceHeatmapResponse) obj;
+    SolrOccurrenceHeatmapResponse that = (SolrOccurrenceHeatmapResponse) obj;
     return Objects.equal(columns, that.columns)
            && Objects.equal(rows, that.rows)
            && Objects.equal(count, that.count)

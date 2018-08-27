@@ -1,7 +1,9 @@
-package org.gbif.occurrence.search.heatmap;
+package org.gbif.occurrence.search.heatmap.solr;
 
 import org.gbif.common.search.SearchException;
 import org.gbif.occurrence.search.OccurrenceSearchRequestBuilder;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
@@ -16,9 +18,9 @@ import org.apache.solr.common.params.FacetParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OccurrenceHeatmapsService {
+public class SolrOccurrenceHeatmapsService implements OccurrenceHeatmapService<SolrOccurrenceHeatmapResponse> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SolrOccurrenceHeatmapsService.class);
 
   private static final int MIN_GRID_LEVEL = 3;
 
@@ -27,12 +29,13 @@ public class OccurrenceHeatmapsService {
   private final OccurrenceSearchRequestBuilder occurrenceSearchHeatmapRequestBuilder;
 
   @Inject
-  public OccurrenceHeatmapsService(SolrClient solrClient){
+  public SolrOccurrenceHeatmapsService(SolrClient solrClient){
     this.solrClient = solrClient;
     occurrenceSearchHeatmapRequestBuilder = new OccurrenceSearchRequestBuilder(null,1,1,true);
   }
 
-  public OccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {
+  @Override
+  public SolrOccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {
     try {
       SolrQuery solrQuery = occurrenceSearchHeatmapRequestBuilder.build(request);
       solrQuery.setRows(0);

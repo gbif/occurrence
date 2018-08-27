@@ -1,6 +1,9 @@
 package org.gbif.occurrence.search.heatmap;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.search.heatmap.solr.OccurrenceHeatmapResponseBuilder;
+import org.gbif.occurrence.search.heatmap.solr.SolrOccurrenceHeatmapResponse;
+import org.gbif.occurrence.search.heatmap.solr.SolrOccurrenceHeatmapsService;
 import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import java.io.IOException;
@@ -86,12 +89,12 @@ public class OccurrenceHeatmapsTest {
 
   @Test
   public void heatmapResponseBuilderTest() {
-    OccurrenceHeatmapResponse heatmapSearchResponse = OccurrenceHeatmapResponseBuilder.build(getMockQueryResponse(),
+    SolrOccurrenceHeatmapResponse heatmapSearchResponse = OccurrenceHeatmapResponseBuilder.build(getMockQueryResponse(),
                                                                                              OccurrenceSolrField.COORDINATE.getFieldName());
     assertMockResponse(heatmapSearchResponse);
   }
 
-  private static void assertMockResponse(OccurrenceHeatmapResponse heatmapSearchResponse) {
+  private static void assertMockResponse(SolrOccurrenceHeatmapResponse heatmapSearchResponse) {
     assertEquals(heatmapSearchResponse.getColumns(),Integer.valueOf(4));
     assertEquals(heatmapSearchResponse.getRows(),Integer.valueOf(2));
     assertEquals(heatmapSearchResponse.getCountsInts2D().size(),2);
@@ -102,8 +105,8 @@ public class OccurrenceHeatmapsTest {
   public void heatmapSearchTest() throws IOException, SolrServerException {
     OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
       .buildOccurrenceHeatmapRequest(getMockRequest());
-    OccurrenceHeatmapsService heatmapsService = new OccurrenceHeatmapsService(getMockSolrClient());
-    OccurrenceHeatmapResponse heatmapSearchResponse = heatmapsService.searchHeatMap(heatmapRequest);
+    SolrOccurrenceHeatmapsService heatmapsService = new SolrOccurrenceHeatmapsService(getMockSolrClient());
+    SolrOccurrenceHeatmapResponse heatmapSearchResponse = heatmapsService.searchHeatMap(heatmapRequest);
     assertMockResponse(heatmapSearchResponse);
   }
 }

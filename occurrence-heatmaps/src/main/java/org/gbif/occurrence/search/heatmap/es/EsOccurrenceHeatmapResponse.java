@@ -6,7 +6,7 @@ import java.util.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /** ElasticSearch GeoHashGrid response object. */
-public class HeatmapResponse {
+public class EsOccurrenceHeatmapResponse {
 
   /** Latitude and longitude coordinates. */
   public static class Coordinate {
@@ -205,7 +205,7 @@ public class HeatmapResponse {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    HeatmapResponse that = (HeatmapResponse) o;
+    EsOccurrenceHeatmapResponse that = (EsOccurrenceHeatmapResponse) o;
     return Objects.equals(buckets, that.buckets);
   }
 

@@ -1,4 +1,4 @@
-package org.gbif.occurrence.search.heatmap;
+package org.gbif.occurrence.search.heatmap.solr;
 
 import java.util.List;
 
@@ -11,8 +11,8 @@ import org.apache.solr.common.util.NamedList;
  */
 public class OccurrenceHeatmapResponseBuilder {
 
-  public static final OccurrenceHeatmapResponse
-    EMPTY_RESPONSE  =  new OccurrenceHeatmapResponse(0, 0, 0L, 0d, 0d, 0d, 0d, null);
+  public static final SolrOccurrenceHeatmapResponse
+    EMPTY_RESPONSE  =  new SolrOccurrenceHeatmapResponse(0, 0, 0L, 0d, 0d, 0d, 0d, null);
 
   /**
    * Private constructor.
@@ -24,10 +24,10 @@ public class OccurrenceHeatmapResponseBuilder {
   /**
    * Creates an instance of a HeatMapResponse from Solr response.
    */
-  public static OccurrenceHeatmapResponse build(QueryResponse response, String ptrField) {
+  public static SolrOccurrenceHeatmapResponse build(QueryResponse response, String ptrField) {
     final NamedList heatmapSolrResponse = (NamedList)((NamedList)((NamedList)response.getResponse().get("facet_counts"))
       .get("facet_heatmaps")).get(ptrField);
-    return new OccurrenceHeatmapResponse((Integer)heatmapSolrResponse.get("columns"),
+    return new SolrOccurrenceHeatmapResponse((Integer)heatmapSolrResponse.get("columns"),
                                          (Integer)heatmapSolrResponse.get("rows"),
                                          response.getResults().getNumFound(),
                                          (Double)heatmapSolrResponse.get("minX"),
