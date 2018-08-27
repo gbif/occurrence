@@ -25,7 +25,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter(6);
 
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, false);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
@@ -46,7 +46,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addYearFilter(1999);
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
 
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, false);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
@@ -75,8 +75,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addMonthFilter(1);
     searchRequest.addMonthFilter(2);
 
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    LOG.debug("Query: {}", jsonQuery);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, false);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).has(TERMS));
@@ -93,12 +92,22 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
+  public void filteredQueryTest() {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addKingdomKeyFilter(6);
+
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, true);
+
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(FILTER).isArray());
+    assertEquals(1, jsonQuery.path(QUERY).path(BOOL).path(FILTER).size());
+  }
+
+  @Test
   public void rangeQueryTest() {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.DECIMAL_LATITUDE, "12, 25");
 
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    LOG.debug("Query: {}", jsonQuery);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, false);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
     JsonNode latitudeNode =
@@ -264,8 +273,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter("POINT (-77.03653 38.897676)");
 
-    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    LOG.debug("Query: {}", jsonQuery);
+    ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest, false);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(FILTER).isArray());
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(FILTER).get(0).has(GEO_SHAPE));

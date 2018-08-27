@@ -57,7 +57,7 @@ class EsSearchRequestBuilder {
     // create bool node
     ObjectNode bool = MAPPER.createObjectNode();
 
-    // geometry
+    // addind geometry to bool
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
       ArrayNode filterNode = MAPPER.createArrayNode();
       bool.put(FILTER, filterNode);
@@ -66,7 +66,7 @@ class EsSearchRequestBuilder {
           .forEach(wkt -> filterNode.add(buildGeoShapeQuery(wkt)));
     }
 
-    // term queries
+    // adding term queries to bool
     List<ObjectNode> termQueries = buildTermQueries(params);
     if (!termQueries.isEmpty()) {
       // bool must
@@ -75,7 +75,7 @@ class EsSearchRequestBuilder {
       termQueries.forEach(contextNode::add);
     }
 
-    // build request
+    // build request body
     ObjectNode query = MAPPER.createObjectNode();
     query.put(BOOL, bool);
     ObjectNode requestBody = MAPPER.createObjectNode();
