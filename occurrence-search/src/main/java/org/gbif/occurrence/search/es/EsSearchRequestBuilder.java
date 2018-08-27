@@ -34,23 +34,21 @@ class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
+//  public static HttpEntity buildHeatmapRequestBody(OccurrenceSearchRequest request) {}
+
   static HttpEntity buildRequestBody(OccurrenceSearchRequest searchRequest) {
     // Preconditions.checkArgument(searchRequest.getOffset() <= maxOffset -
     // searchRequest.getLimit(),
     //  "maximum offset allowed is %s", this.maxOffset);
 
-    // create body
-    ObjectNode request = MAPPER.createObjectNode();
-    request.put(QUERY, buildQuery(searchRequest));
 
-    LOG.debug("ES query: {}", request);
-
-    return createEntity(request);
+    return createEntity(buildQuery(searchRequest));
   }
 
   @VisibleForTesting
   static ObjectNode buildQuery(OccurrenceSearchRequest request) {
     // create root nodes
+    ObjectNode requestBody = MAPPER.createObjectNode();
     ObjectNode query = MAPPER.createObjectNode();
     ObjectNode bool = MAPPER.createObjectNode();
     query.put(BOOL, bool);
@@ -70,38 +68,19 @@ class EsSearchRequestBuilder {
           .forEach(wkt -> filterNode.add(buildGeoShapeQuery(wkt)));
     }
 
-    // must term fields
-    List<ObjectNode> termQueries = new ArrayList<>();
-    for (OccurrenceSearchParameter param : params.keySet()) {
-      OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
-      if (esField == null) {
-        continue;
-      }
-
-      List<String> termValues = new ArrayList<>();
-      for (String value : params.get(param)) {
-        if (isRange(value)) {
-          termQueries.add(buildRangeQuery(esField, value));
-        } else if (param.type() != Date.class) {
-          if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
-            value = value.toUpperCase();
-          }
-          termValues.add(value);
-        }
-      }
-
-      createTermQuery(esField, termValues).ifPresent(termQueries::add);
-
-      // build the term queries
-      if (!termQueries.isEmpty()) {
-        // bool must
-        ArrayNode mustNode = MAPPER.createArrayNode();
-        bool.put(MUST, mustNode);
-        termQueries.forEach(mustNode::add);
-      }
+    // term queries
+    List<ObjectNode> termQueries = buildTermQueries(params);
+    if (!termQueries.isEmpty()) {
+      // bool must
+      ArrayNode mustNode = MAPPER.createArrayNode();
+      bool.put(MUST, mustNode);
+      termQueries.forEach(mustNode::add);
     }
 
-    return query;
+    requestBody.put(QUERY, query);
+    LOG.debug("ES query: {}", request);
+
+    return requestBody;
   }
 
   @VisibleForTesting
@@ -193,6 +172,32 @@ class EsSearchRequestBuilder {
     root.put(RANGE, field);
 
     return root;
+  }
+
+  private static List<ObjectNode> buildTermQueries(
+      Multimap<OccurrenceSearchParameter, String> params) {
+    // must term fields
+    List<ObjectNode> termQueries = new ArrayList<>();
+    for (OccurrenceSearchParameter param : params.keySet()) {
+      OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
+      if (esField == null) {
+        continue;
+      }
+
+      List<String> termValues = new ArrayList<>();
+      for (String value : params.get(param)) {
+        if (isRange(value)) {
+          termQueries.add(buildRangeQuery(esField, value));
+        } else if (param.type() != Date.class) {
+          if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
+            value = value.toUpperCase();
+          }
+          termValues.add(value);
+        }
+      }
+      createTermQuery(esField, termValues).ifPresent(termQueries::add);
+    }
+    return termQueries;
   }
 
   private static Optional<ObjectNode> createTermQuery(

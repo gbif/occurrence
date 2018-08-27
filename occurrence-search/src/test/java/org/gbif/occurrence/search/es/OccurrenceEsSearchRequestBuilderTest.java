@@ -28,11 +28,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(MUST).size());
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
+    assertEquals(1, jsonQuery.path(QUERY).path(BOOL).path(MUST).size());
     assertEquals(
         6,
         jsonQuery
+            .path(QUERY)
             .path(BOOL)
             .path(MUST)
             .findValue(OccurrenceEsField.KINGDOM_KEY.getFieldName())
@@ -48,14 +49,20 @@ public class OccurrenceEsSearchRequestBuilderTest {
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertEquals(2, jsonQuery.path(BOOL).path(MUST).size());
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
+    assertEquals(2, jsonQuery.path(QUERY).path(BOOL).path(MUST).size());
     assertEquals(
         1999,
-        jsonQuery.path(BOOL).path(MUST).findValue(OccurrenceEsField.YEAR.getFieldName()).asInt());
+        jsonQuery
+            .path(QUERY)
+            .path(BOOL)
+            .path(MUST)
+            .findValue(OccurrenceEsField.YEAR.getFieldName())
+            .asInt());
     assertEquals(
         Country.AFGHANISTAN.getIso2LetterCode(),
         jsonQuery
+            .path(QUERY)
             .path(BOOL)
             .path(MUST)
             .findValue(OccurrenceEsField.COUNTRY_CODE.getFieldName())
@@ -71,11 +78,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertTrue(jsonQuery.path(BOOL).path(MUST).get(0).has(TERMS));
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).has(TERMS));
     assertEquals(
         2,
         jsonQuery
+            .path(QUERY)
             .path(BOOL)
             .path(MUST)
             .get(0)
@@ -92,9 +100,10 @@ public class OccurrenceEsSearchRequestBuilderTest {
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
     JsonNode latitudeNode =
         jsonQuery
+            .path(QUERY)
             .path(BOOL)
             .path(MUST)
             .findValue(RANGE)
@@ -258,10 +267,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertTrue(jsonQuery.path(BOOL).path(FILTER).get(0).has(GEO_SHAPE));
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(FILTER).isArray());
+    assertTrue(jsonQuery.path(QUERY).path(BOOL).path(FILTER).get(0).has(GEO_SHAPE));
     assertTrue(
         jsonQuery
+            .path(QUERY)
             .path(BOOL)
             .path(FILTER)
             .get(0)
