@@ -20,8 +20,6 @@ import static org.junit.Assert.assertTrue;
 
 public class EsHeatmapRequestBuilderTest {
 
-  // TODO: adapt tests!!
-
   @Test
   public void heatmapRequestTest() {
     OccurrenceHeatmapRequest request = new OccurrenceHeatmapRequest();

@@ -18,8 +18,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_ENDPOINT;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
 
 public class OccurrenceHeatmapsEsService
     implements OccurrenceHeatmapService<EsOccurrenceHeatmapResponse> {
@@ -43,12 +44,12 @@ public class OccurrenceHeatmapsEsService
     Response response = null;
     try {
       response =
-        esClient.performRequest(
-          "GET",
-          SEARCH_ENDPOINT.apply(esIndex),
-          Collections.emptyMap(),
-          requestBody,
-          HEADERS.get());
+          esClient.performRequest(
+              "GET",
+              SEARCH_ENDPOINT.apply(esIndex),
+              Collections.emptyMap(),
+              requestBody,
+              HEADERS.get());
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -57,7 +58,9 @@ public class OccurrenceHeatmapsEsService
     JsonNode jsonResponse = null;
     try {
       jsonResponse = JSON_READER.readTree(response.getEntity().getContent());
-      return JSON_READER.treeToValue(jsonResponse.path("aggregations").path("heatmap"), EsOccurrenceHeatmapResponse.class);
+      return JSON_READER.treeToValue(
+          jsonResponse.path(AGGS).path(BOX_AGGS).path(HEATMAP_AGGS),
+          EsOccurrenceHeatmapResponse.class);
     } catch (IOException e) {
       LOG.error("Error reading ES response", e);
       throw new IllegalArgumentException(e.getMessage(), e);

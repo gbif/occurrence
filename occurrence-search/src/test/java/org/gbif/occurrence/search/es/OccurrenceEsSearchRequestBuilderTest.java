@@ -26,7 +26,6 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addKingdomKeyFilter(6);
 
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
     assertEquals(1, jsonQuery.path(QUERY).path(BOOL).path(MUST).size());
@@ -47,7 +46,6 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
 
     ObjectNode jsonQuery = EsSearchRequestBuilder.buildQuery(searchRequest);
-    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).path(MUST).isArray());
     assertEquals(2, jsonQuery.path(QUERY).path(BOOL).path(MUST).size());
