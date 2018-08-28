@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.CELL_AGGS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
 import static org.junit.Assert.assertEquals;
@@ -31,37 +32,47 @@ public class EsHeatmapRequestBuilderTest {
     System.out.println(json.toString());
 
     assertEquals(0, json.get(SIZE).asInt());
-    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());
-    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(GEO_BOUNDING_BOX));
+
+    // aggs
+    assertTrue(json.path(AGGS).path(BOX_AGGS).path(FILTER).has(GEO_BOUNDING_BOX));
 
     // assert bbox
     JsonNode bbox =
-        json.path(QUERY)
-            .path(BOOL)
+        json.path(AGGS)
+            .path(BOX_AGGS)
             .path(FILTER)
-            .get(0)
             .path(GEO_BOUNDING_BOX)
             .path(OccurrenceEsField.COORDINATE_POINT.getFieldName());
     assertEquals("[-44.0, 54.0]", ((POJONode) bbox.path("top_left")).asText());
     assertEquals("[-32.0, 30.0]", ((POJONode) bbox.path("bottom_right")).asText());
 
-    // aggs
-    assertTrue(json.path(AGGS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
+    // geohash_grid
+    assertTrue(json.path(AGGS).path(BOX_AGGS).path(AGGS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
+    JsonNode jsonGeohashGrid =
+        json.path(AGGS).path(BOX_AGGS).path(AGGS).path(HEATMAP_AGGS).path(GEOHASH_GRID);
     assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(),
-        json.path(AGGS).path(HEATMAP_AGGS).path(GEOHASH_GRID).get(FIELD).asText());
-    assertEquals(1, json.path(AGGS).path(HEATMAP_AGGS).path(GEOHASH_GRID).get(PRECISION).asInt());
+        OccurrenceEsField.COORDINATE_POINT.getFieldName(), jsonGeohashGrid.get(FIELD).asText());
+    assertEquals(1, jsonGeohashGrid.get(PRECISION).asInt());
 
-    assertTrue(json.path(AGGS).path(HEATMAP_AGGS).path(AGGS).path(CELL_AGGS).has(GEO_BOUNDS));
-    assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(),
+    // geo_bounds
+    assertTrue(
         json.path(AGGS)
+            .path(BOX_AGGS)
+            .path(AGGS)
             .path(HEATMAP_AGGS)
             .path(AGGS)
             .path(CELL_AGGS)
-            .path(GEO_BOUNDS)
-            .get(FIELD)
-            .asText());
+            .has(GEO_BOUNDS));
+    JsonNode jsonGeobounds =
+        json.path(AGGS)
+            .path(BOX_AGGS)
+            .path(AGGS)
+            .path(HEATMAP_AGGS)
+            .path(AGGS)
+            .path(CELL_AGGS)
+            .path(GEO_BOUNDS);
+    assertEquals(
+        OccurrenceEsField.COORDINATE_POINT.getFieldName(), jsonGeobounds.get(FIELD).asText());
   }
 
   @Test
@@ -75,7 +86,7 @@ public class EsHeatmapRequestBuilderTest {
 
     assertEquals(0, json.get(SIZE).asInt());
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());
-    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(GEO_BOUNDING_BOX));
+    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(TERM));
 
     // taxon key
     assertEquals(
@@ -83,38 +94,25 @@ public class EsHeatmapRequestBuilderTest {
         json.path(QUERY)
             .path(BOOL)
             .path(FILTER)
-            .get(1)
+            .get(0)
             .path(TERM)
             .get(OccurrenceEsField.TAXA_KEY.getFieldName())
             .asInt());
 
-    // assert bbox
-    JsonNode bbox =
-        json.path(QUERY)
-            .path(BOOL)
-            .path(FILTER)
-            .get(0)
-            .path(GEO_BOUNDING_BOX)
-            .path(OccurrenceEsField.COORDINATE_POINT.getFieldName());
-    assertEquals("[-44.0, 54.0]", ((POJONode) bbox.path("top_left")).asText());
-    assertEquals("[-32.0, 30.0]", ((POJONode) bbox.path("bottom_right")).asText());
-
     // aggs
-    assertTrue(json.path(AGGS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
-    assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(),
-        json.path(AGGS).path(HEATMAP_AGGS).path(GEOHASH_GRID).get(FIELD).asText());
-    assertEquals(1, json.path(AGGS).path(HEATMAP_AGGS).path(GEOHASH_GRID).get(PRECISION).asInt());
+    assertTrue(json.path(AGGS).path(BOX_AGGS).path(FILTER).has(GEO_BOUNDING_BOX));
 
-    assertTrue(json.path(AGGS).path(HEATMAP_AGGS).path(AGGS).path(CELL_AGGS).has(GEO_BOUNDS));
-    assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(),
+    // geohash_grid
+    assertTrue(json.path(AGGS).path(BOX_AGGS).path(AGGS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
+
+    // geo_bounds
+    assertTrue(
         json.path(AGGS)
+            .path(BOX_AGGS)
+            .path(AGGS)
             .path(HEATMAP_AGGS)
             .path(AGGS)
             .path(CELL_AGGS)
-            .path(GEO_BOUNDS)
-            .get(FIELD)
-            .asText());
+            .has(GEO_BOUNDS));
   }
 }
