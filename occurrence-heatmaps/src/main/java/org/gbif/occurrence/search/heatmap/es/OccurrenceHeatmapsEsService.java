@@ -55,11 +55,10 @@ public class OccurrenceHeatmapsEsService
       throw new SearchException(e);
     }
 
-    JsonNode jsonResponse = null;
     try {
-      jsonResponse = JSON_READER.readTree(response.getEntity().getContent());
+      JsonNode jsonResponse = JSON_READER.readTree(response.getEntity().getContent());
       return JSON_READER.treeToValue(
-          jsonResponse.path(AGGS).path(BOX_AGGS).path(HEATMAP_AGGS),
+          jsonResponse.path(AGGREGATIONS).path(BOX_AGGS).path(HEATMAP_AGGS),
           EsOccurrenceHeatmapResponse.class);
     } catch (IOException e) {
       LOG.error("Error reading ES response", e);

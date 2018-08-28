@@ -34,6 +34,7 @@ public class EsQueryUtils {
 
   // Aggs
   public static final String FIELD = "field";
+  public static final String AGGREGATIONS = "aggregations";
   public static final String AGGS = "aggs";
   public static final String PRECISION = "precision";
   public static final String GEOHASH_GRID = "geohash_grid";
