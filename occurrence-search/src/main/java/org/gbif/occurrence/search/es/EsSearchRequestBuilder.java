@@ -65,10 +65,7 @@ class EsSearchRequestBuilder extends EsRequestBuilderBase {
             });
 
     // build request body
-    ObjectNode query = createObjectNode();
-    query.put(BOOL, bool);
-    ObjectNode requestBody = createObjectNode();
-    requestBody.put(QUERY, query);
+    ObjectNode requestBody = CREATE_NODE.apply(QUERY, CREATE_NODE.apply(BOOL, bool));
 
     LOG.debug("ES query: {}", requestBody);
 
@@ -137,11 +134,9 @@ class EsSearchRequestBuilder extends EsRequestBuilderBase {
     ObjectNode coordinateNote = createObjectNode();
     coordinateNote.put(SHAPE, shapeNode);
     coordinateNote.put(RELATION, WITHIN);
-    ObjectNode geoShapeNode = createObjectNode();
-    geoShapeNode.put(OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), coordinateNote);
-    ObjectNode root = createObjectNode();
-    root.put(GEO_SHAPE, geoShapeNode);
 
-    return root;
+    return CREATE_NODE.apply(
+        GEO_SHAPE,
+        CREATE_NODE.apply(OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), coordinateNote));
   }
 }

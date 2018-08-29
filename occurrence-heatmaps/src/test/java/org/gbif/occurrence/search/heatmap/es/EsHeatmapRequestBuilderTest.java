@@ -1,20 +1,14 @@
 package org.gbif.occurrence.search.heatmap.es;
 
-import org.apache.lucene.search.BooleanClause;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.POJONode;
-import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.CELL_AGGS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -27,7 +21,6 @@ public class EsHeatmapRequestBuilderTest {
     request.setZoom(1);
 
     ObjectNode json = EsHeatmapRequestBuilder.buildQuery(request);
-    System.out.println(json.toString());
 
     assertEquals(0, json.get(SIZE).asInt());
 
