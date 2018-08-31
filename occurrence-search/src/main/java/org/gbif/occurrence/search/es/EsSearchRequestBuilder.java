@@ -94,14 +94,16 @@ class EsSearchRequestBuilder {
 
     // adding geometry to bool
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      // TODO: this should be an OR
+      BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
       params
           .get(OccurrenceSearchParameter.GEOMETRY)
-          .forEach(wkt -> bool.filter(buildGeoShapeQuery(wkt)));
+          .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
+      bool.filter().add(shouldGeometry);
     }
 
     // adding term queries to bool
-    buildTermQueries(params).ifPresent(termQueries -> termQueries.forEach(q -> bool.must().add(q)));
+    buildTermQueries(params)
+        .ifPresent(termQueries -> termQueries.forEach(q -> bool.filter().add(q)));
 
     return Optional.of(bool);
   }
