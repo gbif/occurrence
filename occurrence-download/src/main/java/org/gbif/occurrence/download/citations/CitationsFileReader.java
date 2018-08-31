@@ -13,6 +13,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -59,6 +61,7 @@ public final class CitationsFileReader {
    */
   public static void readCitations(String nameNode, String citationPath, String downloadKey,
                                    Predicate<DatasetOccurrenceDownloadUsage>... predicates) throws IOException {
+    List<DatasetOccurrenceDownloadUsage> citationsList = new LinkedList<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
@@ -69,7 +72,7 @@ public final class CitationsFileReader {
               // catch all error to avoid breaking the loop
               try {
                 for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
-                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
+                  citationsList.add(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
                 }
               } catch (Exception e) {
                 LOG.info(String.format("Error processing citation line: %s", tsvLine), e);
@@ -100,7 +103,7 @@ public final class CitationsFileReader {
   /**
    * Persists the dataset usage into the Registry data base.
    */
-  public static class PersistUsage implements Predicate<DatasetOccurrenceDownloadUsage> {
+  public static class PersistUsage implements Predicate<List<DatasetOccurrenceDownloadUsage>> {
 
     private final DatasetService datasetService;
 
@@ -118,7 +121,8 @@ public final class CitationsFileReader {
     }
 
     @Override
-    public boolean apply(@Nullable DatasetOccurrenceDownloadUsage input) {
+    public boolean apply(@Nullable List<DatasetOccurrenceDownloadUsage> inputs) {
+      //To Do send the list of DatasetOccurrenceUsage as a bulk request.
       try {
         Dataset dataset = datasetService.get(input.getDatasetKey());
         if (dataset != null) { //the dataset still exists
