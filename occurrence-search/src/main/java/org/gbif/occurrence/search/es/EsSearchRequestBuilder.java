@@ -5,20 +5,26 @@ import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.apache.http.HttpEntity;
-import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.common.geo.ShapeRelation;
+import org.elasticsearch.common.geo.builders.*;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Function;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.api.util.SearchTypeValidator.isRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.QUERY_FIELD_MAPPING;
+import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
 
-class EsSearchRequestBuilder extends EsRequestBuilderBase {
+class EsSearchRequestBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsSearchRequestBuilder.class);
 
@@ -26,53 +32,81 @@ class EsSearchRequestBuilder extends EsRequestBuilderBase {
 
   private EsSearchRequestBuilder() {}
 
-  static HttpEntity buildRequestBody(OccurrenceSearchRequest searchRequest) {
-    // Preconditions.checkArgument(searchRequest.getOffset() <= maxOffset -
-    // searchRequest.getLimit(),
-    //  "maximum offset allowed is %s", this.maxOffset);
+  static SearchRequest buildSearchRequest(
+      OccurrenceSearchRequest searchRequest,
+      boolean facetsEnabled,
+      int maxOffset,
+      int maxLimit,
+      String index) {
 
-    return createEntity(buildQuery(searchRequest));
+    SearchRequest esRequest = new SearchRequest();
+    esRequest.indices(index);
+
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    esRequest.source(searchSourceBuilder);
+
+    // size and offset
+    searchSourceBuilder.size(Math.min(searchRequest.getLimit(), maxLimit));
+    int offset = (int) Math.min(maxOffset, searchRequest.getOffset());
+    searchSourceBuilder.from(offset);
+
+    // add query
+    buildQuery(searchRequest).ifPresent(searchSourceBuilder::query);
+
+    // TODO: multifacet con post-filter:
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-post-filter.html??
+    // si hay multifacet, esos facet se meten en post-filter
+
+    //    // add aggs
+    //    buildAggs(searchRequest, facetsEnabled, offset).ifPresent(n -> request.put(AGGS, n));
+    //
+    //    LOG.debug("ES query: {}", request);
+
+    return esRequest;
+  }
+
+  static Optional<ObjectNode> buildAggs(
+      OccurrenceSearchRequest searchRequest, boolean facetsEnabled, long offset) {
+    if (!facetsEnabled
+        || searchRequest.getFacetPages() == null
+        || searchRequest.getFacetPages().isEmpty()) {
+      return Optional.empty();
+    }
+
+    // TODO: sacar cardinality para el size del terms aggs?? de momento hardcoded
+    // TODO: facet paging hacerlo en java para coger a partir del offset que nos llegue??
+
+    // iterate thru facets and then check config
+
+    return null;
   }
 
   @VisibleForTesting
-  static ObjectNode buildQuery(OccurrenceSearchRequest request) {
+  static Optional<QueryBuilder> buildQuery(OccurrenceSearchRequest searchRequest) {
     // get query params
-    Multimap<OccurrenceSearchParameter, String> params = request.getParameters();
+    Multimap<OccurrenceSearchParameter, String> params = searchRequest.getParameters();
     if (params == null || params.isEmpty()) {
-      return createObjectNode();
+      return Optional.empty();
     }
 
     // create bool node
-    ObjectNode bool = createObjectNode();
+    BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
     // adding geometry to bool
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      ArrayNode filterNode = createArrayNode();
-      bool.put(FILTER, filterNode);
+      // TODO: this should be an OR
       params
           .get(OccurrenceSearchParameter.GEOMETRY)
-          .forEach(wkt -> filterNode.add(buildGeoShapeQuery(wkt)));
+          .forEach(wkt -> bool.filter(buildGeoShapeQuery(wkt)));
     }
 
     // adding term queries to bool
-    buildTermQueries(params)
-        .ifPresent(
-            termQueries -> {
-              // bool must
-              ArrayNode mustNode = createArrayNode();
-              bool.put(MUST, mustNode);
-              termQueries.forEach(mustNode::add);
-            });
+    buildTermQueries(params).ifPresent(termQueries -> termQueries.forEach(q -> bool.must().add(q)));
 
-    // build request body
-    ObjectNode requestBody = CREATE_NODE.apply(QUERY, CREATE_NODE.apply(BOOL, bool));
-
-    LOG.debug("ES query: {}", requestBody);
-
-    return requestBody;
+    return Optional.of(bool);
   }
 
-  private static ObjectNode buildGeoShapeQuery(String wkt) {
+  private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
       geometry = new WKTReader().read(wkt);
@@ -85,58 +119,102 @@ class EsSearchRequestBuilder extends EsRequestBuilderBase {
             ? "LINESTRING"
             : geometry.getGeometryType().toUpperCase();
 
-    Function<Coordinate, ArrayNode> coordinateToArray =
-        coordinate -> {
-          ArrayNode node = createArrayNode();
-          node.add(coordinate.x);
-          node.add(coordinate.y);
-          return node;
-        };
-
-    Function<Geometry, ArrayNode> geometryToArray =
-        geom -> {
-          ArrayNode node = createArrayNode();
-          Arrays.stream(geom.getCoordinates()).forEach(c -> node.add(coordinateToArray.apply(c)));
-          return node;
-        };
-
-    Function<Polygon, ArrayNode> polygonToArray =
+    Function<Polygon, PolygonBuilder> polygonToBuilder =
         polygon -> {
-          ArrayNode nodes = createArrayNode();
-          nodes.add(geometryToArray.apply(polygon.getExteriorRing()));
-          for (int j = 0; j < polygon.getNumInteriorRing(); j++) {
-            nodes.add(geometryToArray.apply(polygon.getInteriorRingN(j)));
+          PolygonBuilder polygonBuilder =
+              ShapeBuilders.newPolygon(Arrays.asList(polygon.getExteriorRing().getCoordinates()));
+          for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
+            polygonBuilder.hole(
+                ShapeBuilders.newLineString(
+                    Arrays.asList(polygon.getInteriorRingN(i).getCoordinates())));
           }
-          return nodes;
+          return polygonBuilder;
         };
 
-    // create coordinates node
-    ArrayNode coordinates = createArrayNode();
-    if (geometry instanceof Point) {
-      coordinates = coordinateToArray.apply(geometry.getCoordinate());
-    } else if (geometry instanceof Polygon) {
-      polygonToArray.apply((Polygon) geometry).forEach(coordinates::add);
-    } else if (geometry instanceof MultiPolygon) {
-      // iterate thru the polygons
+    ShapeBuilder shapeBuilder = null;
+    if (("POINT").equals(type)) {
+      shapeBuilder = ShapeBuilders.newPoint(geometry.getCoordinate());
+    } else if ("LINESTRING".equals(type)) {
+      ShapeBuilders.newLineString(Arrays.asList(geometry.getCoordinates()));
+    } else if ("POLYGON".equals(type)) {
+      shapeBuilder = polygonToBuilder.apply((Polygon) geometry);
+    } else if ("MULTIPOLYGON".equals(type)) {
+      // multipolygon
+      MultiPolygonBuilder multiPolygonBuilder = ShapeBuilders.newMultiPolygon();
       for (int i = 0; i < geometry.getNumGeometries(); i++) {
-        ArrayNode polygonList = createArrayNode();
-        polygonToArray.apply((Polygon) geometry.getGeometryN(i)).forEach(polygonList::add);
-        coordinates.add(polygonList);
+        multiPolygonBuilder.polygon(polygonToBuilder.apply((Polygon) geometry.getGeometryN(i)));
       }
-    } else {
-      geometryToArray.apply(geometry).forEach(coordinates::add);
+      shapeBuilder = multiPolygonBuilder;
     }
 
-    ObjectNode shapeNode = createObjectNode();
-    shapeNode.put(TYPE, type);
-    shapeNode.put(COORDINATES, coordinates);
+    if (shapeBuilder == null) {
+      throw new IllegalArgumentException(type + " shape is not supported");
+    }
 
-    ObjectNode coordinateNote = createObjectNode();
-    coordinateNote.put(SHAPE, shapeNode);
-    coordinateNote.put(RELATION, WITHIN);
+    try {
+      return QueryBuilders.geoShapeQuery(
+              OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), shapeBuilder)
+          .relation(ShapeRelation.WITHIN);
+    } catch (IOException e) {
+      throw new IllegalStateException(e.getMessage(), e);
+    }
+  }
 
-    return CREATE_NODE.apply(
-        GEO_SHAPE,
-        CREATE_NODE.apply(OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), coordinateNote));
+  private static Optional<RangeQueryBuilder> buildRangeQuery(
+      OccurrenceEsField esField, String value) {
+    String[] values = value.split(RANGE_SEPARATOR);
+    if (values.length < 2) {
+      return Optional.empty();
+    }
+
+    return Optional.of(
+        QueryBuilders.rangeQuery(esField.getFieldName())
+            .gte(Double.valueOf(values[0]))
+            .lte(Double.valueOf(values[1])));
+  }
+
+  private static Optional<List<QueryBuilder>> buildTermQueries(
+      Multimap<OccurrenceSearchParameter, String> params) {
+    if (params == null || params.isEmpty()) {
+      return Optional.empty();
+    }
+
+    // must term fields
+    List<QueryBuilder> termQueries = new ArrayList<>();
+    for (OccurrenceSearchParameter param : params.keySet()) {
+      OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
+      if (esField == null) {
+        continue;
+      }
+
+      List<String> termValues = new ArrayList<>();
+      for (String value : params.get(param)) {
+        if (isRange(value)) {
+          buildRangeQuery(esField, value).ifPresent(termQueries::add);
+        } else if (param.type() != Date.class) {
+          if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
+            value = value.toUpperCase();
+          }
+          termValues.add(value);
+        }
+      }
+      createTermQuery(esField, termValues).ifPresent(termQueries::add);
+    }
+
+    return termQueries.isEmpty() ? Optional.empty() : Optional.of(termQueries);
+  }
+
+  private static Optional<QueryBuilder> createTermQuery(
+      OccurrenceEsField esField, List<String> parsedValues) {
+    if (parsedValues.isEmpty()) {
+      return Optional.empty();
+    }
+
+    if (parsedValues.size() > 1) {
+      // multi term query
+      return Optional.of(QueryBuilders.termsQuery(esField.getFieldName(), parsedValues));
+    }
+    // single term
+    return Optional.of(QueryBuilders.termQuery(esField.getFieldName(), parsedValues.get(0)));
   }
 }

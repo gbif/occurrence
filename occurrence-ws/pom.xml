@@ -255,7 +255,31 @@
         <groupId>org.eclipse.jetty.orbit</groupId>
         <artifactId>javax.servlet</artifactId>
       </exclusion>
+      <!-- added to avoid conflicts with es client -->
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>log4j-over-slf4j</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.apache.solr</groupId>
+        <artifactId>solr-core</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+      </exclusion>
     </exclusions>
+    </dependency>
+    <!-- added to avoid conflicts with es client -->
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>6.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.8.11</version>
     </dependency>
 
     <!-- google -->

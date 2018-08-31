@@ -8,6 +8,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,7 @@ import java.util.function.BiFunction;
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
+@Deprecated
 public abstract class EsRequestBuilderBase {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsRequestBuilderBase.class);
@@ -27,19 +31,19 @@ public abstract class EsRequestBuilderBase {
   private static final ObjectWriter WRITER = MAPPER.writer();
 
   protected static final BiFunction<String, Object, ObjectNode> CREATE_NODE =
-      (key, value) -> {
-        ObjectNode node = createObjectNode();
+    (key, value) -> {
+      ObjectNode node = createObjectNode();
 
-        if (value instanceof JsonNode) {
-          node.put(key, (JsonNode) value);
-        } else if (value instanceof Integer) {
-          node.put(key, (Integer) value);
-        } else {
-          node.put(key, (String) value);
-        }
+      if (value instanceof JsonNode) {
+        node.put(key, (JsonNode) value);
+      } else if (value instanceof Integer) {
+        node.put(key, (Integer) value);
+      } else {
+        node.put(key, (String) value);
+      }
 
-        return node;
-      };
+      return node;
+    };
 
   protected static ObjectNode buildRangeQuery(OccurrenceEsField esField, String value) {
     String[] values = value.split(RANGE_SEPARATOR);
@@ -55,7 +59,7 @@ public abstract class EsRequestBuilderBase {
   }
 
   protected static Optional<List<ObjectNode>> buildTermQueries(
-      Multimap<OccurrenceSearchParameter, String> params) {
+    Multimap<OccurrenceSearchParameter, String> params) {
     Objects.requireNonNull(params);
     // must term fields
     List<ObjectNode> termQueries = new ArrayList<>();
@@ -83,7 +87,7 @@ public abstract class EsRequestBuilderBase {
   }
 
   protected static Optional<ObjectNode> createTermQuery(
-      OccurrenceEsField esField, List<String> parsedValues) {
+    OccurrenceEsField esField, List<String> parsedValues) {
     if (parsedValues.isEmpty()) {
       return Optional.empty();
     }
@@ -93,11 +97,11 @@ public abstract class EsRequestBuilderBase {
       ArrayNode termsArray = MAPPER.createArrayNode();
       parsedValues.forEach(termsArray::add);
       return Optional.of(
-          CREATE_NODE.apply(TERMS, CREATE_NODE.apply(esField.getFieldName(), termsArray)));
+        CREATE_NODE.apply(TERMS, CREATE_NODE.apply(esField.getFieldName(), termsArray)));
     }
     // single term
     return Optional.of(
-        CREATE_NODE.apply(TERM, CREATE_NODE.apply(esField.getFieldName(), parsedValues.get(0))));
+      CREATE_NODE.apply(TERM, CREATE_NODE.apply(esField.getFieldName(), parsedValues.get(0))));
   }
 
   protected static HttpEntity createEntity(ObjectNode json) {

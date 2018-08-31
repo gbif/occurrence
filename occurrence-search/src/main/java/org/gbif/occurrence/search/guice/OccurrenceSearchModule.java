@@ -4,6 +4,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.common.search.solr.SolrConfig;
 import org.gbif.common.search.solr.SolrModule;
@@ -39,7 +40,7 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
 
   @Provides
   @Singleton
-  private RestClient provideEsClient() {
+  private RestHighLevelClient provideEsClient() {
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
     for (String host : esConfig.getHosts()) {
@@ -51,6 +52,6 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
         throw new IllegalArgumentException(e.getMessage(), e);
       }
     }
-    return RestClient.builder(hosts).build();
+    return new RestHighLevelClient(RestClient.builder(hosts).build());
   }
 }

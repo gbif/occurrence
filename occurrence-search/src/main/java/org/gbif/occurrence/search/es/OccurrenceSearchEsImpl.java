@@ -8,8 +8,13 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.SearchHits;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.Identifier;
@@ -35,6 +40,7 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -52,17 +58,23 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
   private static final ObjectReader JSON_READER = new ObjectMapper().reader(Map.class);
 
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final RestClient esClient;
+  private final RestHighLevelClient esClient;
   private final String esIndex;
+  private final boolean facetsEnabled;
+  private final int maxOffset;
+  private final int maxLimit;
 
   @Inject
   public OccurrenceSearchEsImpl(
-      RestClient esClient,
+      RestHighLevelClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
       @Named("max.offset") int maxOffset,
       @Named("max.limit") int maxLimit,
       @Named("facets.enable") boolean facetsEnable,
       @Named("es.index") String esIndex) {
+    facetsEnabled = facetsEnable;
+    this.maxOffset = maxOffset;
+    this.maxLimit = maxLimit;
     this.esIndex = esIndex;
     // create ES client
     this.esClient = esClient;
@@ -77,16 +89,12 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
     }
 
     if (hasReplaceableScientificNames(request)) {
-      HttpEntity requestBody = EsSearchRequestBuilder.buildRequestBody(request);
-      Response response = null;
+      SearchRequest esRequest =
+          EsSearchRequestBuilder.buildSearchRequest(
+              request, facetsEnabled, maxOffset, maxLimit, esIndex);
+      org.elasticsearch.action.search.SearchResponse response = null;
       try {
-        response =
-            esClient.performRequest(
-                "GET",
-                SEARCH_ENDPOINT.apply(esIndex),
-                Collections.emptyMap(),
-                requestBody,
-                HEADERS.get());
+        response = esClient.search(esRequest, HEADERS.get());
       } catch (IOException e) {
         LOG.error("Error executing the search operation", e);
         throw new SearchException(e);
@@ -103,172 +111,168 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
    * @return a new instance of a SearchResponse.
    */
   private SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
-      Response esResponse, Pageable request) {
+      org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
 
-    JsonNode resp;
-    try {
-      resp = JSON_READER.readTree(esResponse.getEntity().getContent());
-    } catch (IOException e) {
-      LOG.error("Error reading ES response", e);
-      throw new IllegalStateException(e.getMessage(), e);
-    }
+    SearchHits hits = esResponse.getHits();
 
-    // parse results
-    final JsonNode hits = resp.path("hits");
     final DateFormat dateFormat =
         new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
 
     List<Occurrence> occurrences = new ArrayList<>();
-    for (JsonNode record : hits.path("hits")) {
-      final JsonNode source = record.path("_source");
+    hits.forEach(
+        hit -> {
+          // create occurrence
+          Occurrence occ = new Occurrence();
+          occurrences.add(occ);
 
-      // create occurrence
-      Occurrence occ = new Occurrence();
-      occurrences.add(occ);
+          // fill out fields
+          getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
+          getValue(hit, CONTINENT).ifPresent(v -> occ.setContinent(Continent.valueOf(v)));
+          getValue(hit, COORDINATE_ACCURACY, Double::valueOf).ifPresent(occ::setCoordinateAccuracy);
+          getValue(hit, COORDINATE_PRECISION, Double::valueOf)
+              .ifPresent(occ::setCoordinatePrecision);
+          getValue(hit, COORDINATE_UNCERTAINTY_METERS, Double::valueOf)
+              .ifPresent(occ::setCoordinateUncertaintyInMeters);
+          getValue(hit, COUNTRY, v -> Country.valueOf(v.toUpperCase())).ifPresent(occ::setCountry);
+          // TODO: date identified shouldnt be a timestamp
+          getValue(hit, DATE_IDENTIFIED, v -> new Date(Long.valueOf(v)))
+              .ifPresent(occ::setDateIdentified);
+          getValue(hit, DAY, Integer::valueOf).ifPresent(occ::setDay);
+          getValue(hit, MONTH, Integer::valueOf).ifPresent(occ::setMonth);
+          getValue(hit, YEAR, Integer::valueOf).ifPresent(occ::setYear);
+          getValue(hit, LATITUDE, Double::valueOf).ifPresent(occ::setDecimalLatitude);
+          getValue(hit, LONGITUDE, Double::valueOf).ifPresent(occ::setDecimalLongitude);
+          getValue(hit, DEPTH, Double::valueOf).ifPresent(occ::setDepth);
+          getValue(hit, DEPTH_ACCURACY, Double::valueOf).ifPresent(occ::setDepthAccuracy);
+          getValue(hit, ELEVATION, Double::valueOf).ifPresent(occ::setElevation);
+          getValue(hit, ELEVATION_ACCURACY, Double::valueOf).ifPresent(occ::setElevationAccuracy);
+          getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf)
+              .ifPresent(occ::setEstablishmentMeans);
 
-      // fill out fields
-      getValueText(source, BASIS_OF_RECORD)
-          .ifPresent(v -> occ.setBasisOfRecord(BasisOfRecord.valueOf(v)));
-      getValueText(source, CONTINENT).ifPresent(v -> occ.setContinent(Continent.valueOf(v)));
-      getValue(source, COORDINATE_ACCURACY).ifPresent(v -> occ.setCoordinateAccuracy(v.asDouble()));
-      getValue(source, COORDINATE_PRECISION)
-          .ifPresent(v -> occ.setCoordinatePrecision(v.asDouble()));
-      getValue(source, COORDINATE_UNCERTAINTY_METERS)
-          .ifPresent(v -> occ.setCoordinateUncertaintyInMeters(v.asDouble()));
-      getValueText(source, COUNTRY)
-          .ifPresent(v -> occ.setCountry(Country.valueOf(v.toUpperCase())));
-      // TODO: date identified shouldnt be a timestamp
-      getValue(source, DATE_IDENTIFIED).ifPresent(v -> occ.setDateIdentified(new Date(v.asLong())));
-      getValue(source, DAY).ifPresent(v -> occ.setDay(v.asInt()));
-      getValue(source, MONTH).ifPresent(v -> occ.setMonth(v.asInt()));
-      getValue(source, YEAR).ifPresent(v -> occ.setYear(v.asInt()));
-      getValue(source, LATITUDE).ifPresent(v -> occ.setDecimalLatitude(v.asDouble()));
-      getValue(source, LONGITUDE).ifPresent(v -> occ.setDecimalLongitude(v.asDouble()));
-      getValue(source, DEPTH).ifPresent(v -> occ.setDepth(v.asDouble()));
-      getValue(source, DEPTH_ACCURACY).ifPresent(v -> occ.setDepthAccuracy(v.asDouble()));
-      getValue(source, ELEVATION).ifPresent(v -> occ.setElevation(v.asDouble()));
-      getValue(source, ELEVATION_ACCURACY).ifPresent(v -> occ.setElevationAccuracy(v.asDouble()));
-      getValueText(source, ESTABLISHMENT_MEANS)
-          .ifPresent(v -> occ.setEstablishmentMeans(EstablishmentMeans.valueOf(v)));
+          // FIXME: should we have a list of identifiers in the schema?
+          getValue(hit, IDENTIFIER)
+              .ifPresent(
+                  v -> {
+                    Identifier identifier = new Identifier();
+                    identifier.setIdentifier(v);
+                    occ.setIdentifiers(Collections.singletonList(identifier));
+                  });
 
-      // FIXME: should we have a list of identifiers in the schema?
-      getValueText(source, IDENTIFIER)
-          .ifPresent(
-              v -> {
-                Identifier identifier = new Identifier();
-                identifier.setIdentifier(v);
-                occ.setIdentifiers(Collections.singletonList(identifier));
-              });
+          getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(occ::setIndividualCount);
+          getValue(hit, LICENSE, License::valueOf).ifPresent(occ::setLicense);
+          getValue(hit, ELEVATION, Double::valueOf).ifPresent(occ::setElevation);
 
-      getValue(source, INDIVIDUAL_COUNT).ifPresent(v -> occ.setIndividualCount(v.asInt()));
-      getValueText(source, LICENSE).ifPresent(v -> occ.setLicense(License.valueOf(v)));
-      getValue(source, ELEVATION).ifPresent(v -> occ.setElevation(v.asDouble()));
+          // TODO: facts??
 
-      // TODO: facts??
+          // issues
+          getValueList(hit, ISSUE)
+              .ifPresent(
+                  v -> {
+                    Set<OccurrenceIssue> issues = new HashSet<>();
+                    v.forEach(issue -> issues.add(OccurrenceIssue.valueOf(issue)));
+                    occ.setIssues(issues);
+                  });
 
-      // issues
-      getValue(source, ISSUE)
-          .ifPresent(
-              v -> {
-                Set<OccurrenceIssue> issues = new HashSet<>();
-                v.forEach(issue -> issues.add(OccurrenceIssue.valueOf(issue.asText())));
-                occ.setIssues(issues);
-              });
+          // FIXME: should we have a list in the schema and all the info of the enum?
+          getValue(hit, RELATION)
+              .ifPresent(
+                  v -> {
+                    OccurrenceRelation occRelation = new OccurrenceRelation();
+                    occRelation.setId(v);
+                    occ.setRelations(Collections.singletonList(occRelation));
+                  });
 
-      // FIXME: should we have a list in the schema and all the info of the enum?
-      getValueText(source, RELATION)
-          .ifPresent(
-              v -> {
-                OccurrenceRelation occRelation = new OccurrenceRelation();
-                occRelation.setId(v);
-                occ.setRelations(Collections.singletonList(occRelation));
-              });
+          getValue(hit, LAST_INTERPRETED, v -> DATE_FORMAT.apply(v, dateFormat))
+              .ifPresent(occ::setLastInterpreted);
+          getValue(hit, LAST_CRAWLED, v -> DATE_FORMAT.apply(v, dateFormat))
+              .ifPresent(occ::setLastCrawled);
+          getValue(hit, LAST_PARSED, v -> DATE_FORMAT.apply(v, dateFormat))
+              .ifPresent(occ::setLastParsed);
 
-      getValueText(source, LAST_INTERPRETED)
-          .ifPresent(v -> occ.setLastInterpreted(DATE_FORMAT.apply(v, dateFormat)));
-      getValueText(source, LAST_CRAWLED)
-          .ifPresent(v -> occ.setLastCrawled(DATE_FORMAT.apply(v, dateFormat)));
-      getValueText(source, LAST_PARSED)
-          .ifPresent(v -> occ.setLastParsed(DATE_FORMAT.apply(v, dateFormat)));
+          getValue(hit, EVENT_DATE, v -> DATE_FORMAT.apply(v, dateFormat))
+              .ifPresent(occ::setEventDate);
+          getValue(hit, LIFE_STAGE, LifeStage::valueOf).ifPresent(occ::setLifeStage);
+          // TODO: modified shouldnt be a timestamp
+          getValue(hit, MODIFIED, v -> new Date(Long.valueOf(v))).ifPresent(occ::setModified);
+          getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
+          getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
+          getValue(hit, STATE_PROVINCE).ifPresent(occ::setStateProvince);
+          getValue(hit, TYPE_STATUS, TypeStatus::valueOf).ifPresent(occ::setTypeStatus);
+          getValue(hit, WATER_BODY).ifPresent(occ::setWaterBody);
+          getValue(hit, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
 
-      getValueText(source, EVENT_DATE)
-          .ifPresent(v -> occ.setEventDate(DATE_FORMAT.apply(v, dateFormat)));
-      getValueText(source, LIFE_STAGE).ifPresent(v -> occ.setLifeStage(LifeStage.valueOf(v)));
-      // TODO: modified shouldnt be a timestamp
-      getValue(source, MODIFIED).ifPresent(v -> occ.setModified(new Date(v.asLong())));
-      getValueText(source, REFERENCES).ifPresent(v -> occ.setReferences(URI.create(v)));
-      getValueText(source, SEX).ifPresent(v -> occ.setSex(Sex.valueOf(v)));
-      getValueText(source, STATE_PROVINCE).ifPresent(occ::setStateProvince);
-      getValueText(source, TYPE_STATUS).ifPresent(v -> occ.setTypeStatus(TypeStatus.valueOf(v)));
-      getValueText(source, WATER_BODY).ifPresent(occ::setWaterBody);
-      getValueText(source, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
+          // taxon
+          getValue(hit, KINGDOM_KEY, Integer::valueOf).ifPresent(occ::setKingdomKey);
+          getValue(hit, KINGDOM).ifPresent(occ::setKingdom);
+          getValue(hit, PHYLUM_KEY, Integer::valueOf).ifPresent(occ::setPhylumKey);
+          getValue(hit, PHYLUM).ifPresent(occ::setPhylum);
+          getValue(hit, CLASS_KEY, Integer::valueOf).ifPresent(occ::setClassKey);
+          getValue(hit, CLASS).ifPresent(occ::setClazz);
+          getValue(hit, ORDER_KEY, Integer::valueOf).ifPresent(occ::setOrderKey);
+          getValue(hit, ORDER).ifPresent(occ::setOrder);
+          getValue(hit, FAMILY_KEY, Integer::valueOf).ifPresent(occ::setFamilyKey);
+          getValue(hit, FAMILY).ifPresent(occ::setFamily);
+          getValue(hit, GENUS_KEY, Integer::valueOf).ifPresent(occ::setGenusKey);
+          getValue(hit, GENUS).ifPresent(occ::setGenus);
+          getValue(hit, SUBGENUS_KEY, Integer::valueOf).ifPresent(occ::setSubgenusKey);
+          getValue(hit, SUBGENUS).ifPresent(occ::setSubgenus);
+          getValue(hit, SPECIES_KEY, Integer::valueOf).ifPresent(occ::setSpeciesKey);
+          getValue(hit, SPECIES).ifPresent(occ::setSpecies);
+          getValue(hit, SCIENTIFIC_NAME).ifPresent(occ::setScientificName);
+          getValue(hit, SPECIFIC_EPITHET).ifPresent(occ::setSpecificEpithet);
+          getValue(hit, INFRA_SPECIFIC_EPITHET).ifPresent(occ::setInfraspecificEpithet);
+          getValue(hit, GENERIC_NAME).ifPresent(occ::setGenericName);
+          getValue(hit, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
+          getValue(hit, TAXON_KEY, Integer::valueOf).ifPresent(occ::setTaxonKey);
 
-      // taxon
-      getValue(source, KINGDOM_KEY).ifPresent(v -> occ.setKingdomKey(v.asInt()));
-      getValueText(source, KINGDOM).ifPresent(occ::setKingdom);
-      getValue(source, PHYLUM_KEY).ifPresent(v -> occ.setPhylumKey(v.asInt()));
-      getValueText(source, PHYLUM).ifPresent(occ::setPhylum);
-      getValue(source, CLASS_KEY).ifPresent(v -> occ.setClassKey(v.asInt()));
-      getValueText(source, CLASS).ifPresent(occ::setClazz);
-      getValue(source, ORDER_KEY).ifPresent(v -> occ.setOrderKey(v.asInt()));
-      getValueText(source, ORDER).ifPresent(occ::setOrder);
-      getValue(source, FAMILY_KEY).ifPresent(v -> occ.setFamilyKey(v.asInt()));
-      getValueText(source, FAMILY).ifPresent(occ::setFamily);
-      getValue(source, GENUS_KEY).ifPresent(v -> occ.setGenusKey(v.asInt()));
-      getValueText(source, GENUS).ifPresent(occ::setGenus);
-      getValue(source, SUBGENUS_KEY).ifPresent(v -> occ.setSubgenusKey(v.asInt()));
-      getValueText(source, SUBGENUS).ifPresent(occ::setSubgenus);
-      getValue(source, SPECIES_KEY).ifPresent(v -> occ.setSpeciesKey(v.asInt()));
-      getValueText(source, SPECIES).ifPresent(occ::setSpecies);
-      getValueText(source, SCIENTIFIC_NAME).ifPresent(occ::setScientificName);
-      getValueText(source, SPECIFIC_EPITHET).ifPresent(occ::setSpecificEpithet);
-      getValueText(source, INFRA_SPECIFIC_EPITHET).ifPresent(occ::setInfraspecificEpithet);
-      getValueText(source, GENERIC_NAME).ifPresent(occ::setGenericName);
-      getValueText(source, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-      getValue(source, TAXON_KEY).ifPresent(v -> occ.setTaxonKey(v.asInt()));
+          // multimedia
+          // TODO: change when we have the full info about multimedia
+          getValue(hit, MEDIA_TYPE)
+              .ifPresent(
+                  mediaType -> {
+                    MediaObject mediaObject = new MediaObject();
+                    mediaObject.setType(MediaType.valueOf(mediaType));
+                    occ.setMedia(Collections.singletonList(mediaObject));
+                  });
 
-      // multimedia
-      // TODO: change when we have the full info about multimedia
-      getValueText(source, MEDIA_TYPE)
-          .ifPresent(
-              mediaType -> {
-                MediaObject mediaObject = new MediaObject();
-                mediaObject.setType(MediaType.valueOf(mediaType));
-                occ.setMedia(Collections.singletonList(mediaObject));
-              });
+          getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
+              .ifPresent(occ::setPublishingCountry);
+          getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(occ::setDatasetKey);
+          getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
+          getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
+              .ifPresent(occ::setPublishingOrgKey);
+          getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(occ::setCrawlId);
+          getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
-      getValueText(source, PUBLISHING_COUNTRY)
-          .ifPresent(v -> occ.setPublishingCountry(Country.fromIsoCode(v.toUpperCase())));
-      getValueText(source, DATASET_KEY).ifPresent(v -> occ.setDatasetKey(UUID.fromString(v)));
-      getValueText(source, INSTALLATION_KEY)
-          .ifPresent(v -> occ.setInstallationKey(UUID.fromString(v)));
-      getValueText(source, PUBLISHING_ORGANIZATION_KEY)
-          .ifPresent(v -> occ.setPublishingOrgKey(UUID.fromString(v)));
-      getValue(source, CRAWL_ID).ifPresent(v -> occ.setCrawlId(v.asInt()));
-      getValueText(source, PROTOCOL).ifPresent(v -> occ.setProtocol(EndpointType.fromString(v)));
-
-      // FIXME: shouldn't networkkey be a list in the schema?
-      getValueText(source, NETWORK_KEY)
-          .ifPresent(v -> occ.setNetworkKeys(Collections.singletonList(UUID.fromString(v))));
-    }
+          // FIXME: shouldn't networkkey be a list in the schema?
+          getValue(hit, NETWORK_KEY)
+              .ifPresent(v -> occ.setNetworkKeys(Collections.singletonList(UUID.fromString(v))));
+        });
 
     // create response
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
-    response.setCount(hits.get("total").asLong());
+    response.setCount(hits.totalHits);
     response.setResults(occurrences);
 
     return response;
   }
 
-  private Optional<JsonNode> getValue(JsonNode source, OccurrenceEsField esField) {
-    return Optional.ofNullable(source.get(esField.getFieldName())).filter(v -> !v.isNull());
+  private Optional<String> getValue(SearchHit hit, OccurrenceEsField esField) {
+    return getValue(hit, esField, Function.identity());
   }
 
-  private Optional<String> getValueText(JsonNode source, OccurrenceEsField esField) {
-    return Optional.ofNullable(source.get(esField.getFieldName()))
-        .filter(v -> !v.isNull())
-        .map(JsonNode::asText)
-        .filter(str -> !str.isEmpty());
+  private <T> Optional<T> getValue(
+      SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+        .map(String::valueOf)
+        .filter(v -> !v.isEmpty())
+        .map(mapper);
+  }
+
+  private Optional<List<String>> getValueList(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+        .map(v -> (List<String>) v)
+        .filter(v -> !v.isEmpty());
   }
 
   @Override

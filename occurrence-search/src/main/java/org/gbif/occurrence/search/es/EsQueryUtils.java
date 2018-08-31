@@ -21,6 +21,7 @@ public class EsQueryUtils {
 
   // ES fields for queries
   public static final String SIZE = "size";
+  public static final String FROM = "from";
   public static final String QUERY = "query";
   public static final String BOOL = "bool";
   public static final String MUST = "must";

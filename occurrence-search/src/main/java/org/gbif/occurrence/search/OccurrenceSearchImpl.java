@@ -48,28 +48,26 @@ import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
 import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
 /**
- * Occurrence search service.
- * Executes {@link OccurrenceSearchRequest} by transforming the request into {@link SolrQuery}.
+ * Occurrence search service. Executes {@link OccurrenceSearchRequest} by transforming the request
+ * into {@link SolrQuery}.
  */
 public class OccurrenceSearchImpl implements OccurrenceSearchService {
 
-  /**
-   * Default limit value for auto-suggest services.
-   */
-
+  /** Default limit value for auto-suggest services. */
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchImpl.class);
 
   private static final Map<String, OccurrenceSearchParameter> FIELD_PARAMETER_MAPPING =
-    new HashMap<>(QUERY_FIELD_MAPPING.size());
+      new HashMap<>(QUERY_FIELD_MAPPING.size());
 
   static {
-    for (Map.Entry<OccurrenceSearchParameter, OccurrenceSolrField> paramField : QUERY_FIELD_MAPPING.entrySet()) {
+    for (Map.Entry<OccurrenceSearchParameter, OccurrenceSolrField> paramField :
+        QUERY_FIELD_MAPPING.entrySet()) {
       FIELD_PARAMETER_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
     }
   }
 
   // Default order of results
-  private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<String, SolrQuery.ORDER>(2);
+  private static final Map<String, SolrQuery.ORDER> SORT_ORDER = new LinkedHashMap<>(2);
 
   private final OccurrenceService occurrenceService;
 
@@ -84,12 +82,16 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   private final NameUsageMatchingService nameUsageMatchingService;
 
   @Inject
-  public OccurrenceSearchImpl(SolrClient solrClient,
-                              OccurrenceService occurrenceService, NameUsageMatchingService nameUsageMatchingService,
-                              @Named("max.offset") int maxOffset, @Named("max.limit") int maxLimit,
-                              @Named("facets.enable") boolean facetsEnable) {
+  public OccurrenceSearchImpl(
+      SolrClient solrClient,
+      OccurrenceService occurrenceService,
+      NameUsageMatchingService nameUsageMatchingService,
+      @Named("max.offset") int maxOffset,
+      @Named("max.limit") int maxLimit,
+      @Named("facets.enable") boolean facetsEnable) {
     this.solrClient = solrClient;
-    occurrenceSearchRequestBuilder = new OccurrenceSearchRequestBuilder(SORT_ORDER, maxOffset, maxLimit, facetsEnable);
+    occurrenceSearchRequestBuilder =
+        new OccurrenceSearchRequestBuilder(SORT_ORDER, maxOffset, maxLimit, facetsEnable);
     this.occurrenceService = occurrenceService;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
@@ -99,11 +101,10 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    *
    * @return a new instance of a SearchResponse.
    */
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(QueryResponse queryResponse,
-                                                                             Pageable request) {
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
+      QueryResponse queryResponse, Pageable request) {
     // Create response
-    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
-      new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     SolrDocumentList results = queryResponse.getResults();
 
     // set total count
@@ -124,25 +125,28 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
       response.setLimit(OccurrenceSearchRequestBuilder.MAX_PAGE_SIZE);
     }
     if (queryResponse.getSpellCheckResponse() != null) {
-      response.setSpellCheckResponse(SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
+      response.setSpellCheckResponse(
+          SpellCheckResponseBuilder.build(queryResponse.getSpellCheckResponse()));
     }
     response.setResults(occurrences);
 
     if (occurrenceSearchRequestBuilder.isFacetsEnable()) {
-      response.setFacets(SolrQueryUtils.getFacetsFromResponse(queryResponse, FIELD_PARAMETER_MAPPING));
+      response.setFacets(
+          SolrQueryUtils.getFacetsFromResponse(queryResponse, FIELD_PARAMETER_MAPPING));
     }
     return response;
   }
 
   @Override
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(@Nullable OccurrenceSearchRequest request) {
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
+      @Nullable OccurrenceSearchRequest request) {
     try {
       if (hasReplaceableScientificNames(request)) {
         SolrQuery solrQuery = occurrenceSearchRequestBuilder.build(request);
         QueryResponse queryResponse = solrClient.query(solrQuery);
         return buildResponse(queryResponse, request);
       } else {
-        return new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
+        return new SearchResponse<>(request);
       }
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing the search operation", e);
@@ -159,7 +163,6 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   public List<String> suggestCollectionCodes(String prefix, @Nullable Integer limit) {
     return suggestTermByField(prefix, OccurrenceSearchParameter.COLLECTION_CODE, limit);
   }
-
 
   @Override
   public List<String> suggestRecordedBy(String prefix, @Nullable Integer limit) {
@@ -209,24 +212,29 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
    * @param limit of maximum matches
    * @return a list of elements that matched against the prefix
    */
-  public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
+  public List<String> suggestTermByField(
+      String prefix, OccurrenceSearchParameter parameter, Integer limit) {
     try {
       String solrField = QUERY_FIELD_MAPPING.get(parameter).getFieldName();
-      SolrQuery solrQuery = buildTermQuery(parseTermsQueryValue(prefix).toLowerCase(), solrField,
-                                           Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
+      SolrQuery solrQuery =
+          buildTermQuery(
+              parseTermsQueryValue(prefix).toLowerCase(),
+              solrField,
+              Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
       final QueryResponse queryResponse = solrClient.query(solrQuery);
       final TermsResponse termsResponse = queryResponse.getTermsResponse();
-      return termsResponse.getTerms(solrField).stream().map(Term::getTerm).collect(Collectors.toList());
+      return termsResponse
+          .getTerms(solrField)
+          .stream()
+          .map(Term::getTerm)
+          .collect(Collectors.toList());
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing/building the request", e);
       throw new SearchException(e);
     }
   }
 
-
-  /**
-   * Escapes a query value and transform it into a phrase query if necessary.
-   */
+  /** Escapes a query value and transform it into a phrase query if necessary. */
   private static String parseTermsQueryValue(final String q) {
     // return default query for empty queries
     String qValue = Strings.nullToEmpty(q).trim();
@@ -236,26 +244,27 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     // If default query was sent, must not be escaped
     if (!qValue.equals(DEFAULT_FILTER_QUERY)) {
       qValue = QueryUtils.clearConsecutiveBlanks(qValue);
-      qValue =QueryUtils. escapeQuery(qValue);
+      qValue = QueryUtils.escapeQuery(qValue);
     }
 
     return qValue;
   }
 
-
   /**
    * Tries to get the corresponding name usage keys from the scientific_name parameter values.
    *
-   * @return true: if the request doesn't contain any scientific_name parameter or if any scientific name was found
-   *         false: if none scientific name was found
+   * @return true: if the request doesn't contain any scientific_name parameter or if any scientific
+   *     name was found false: if none scientific name was found
    */
   private boolean hasReplaceableScientificNames(OccurrenceSearchRequest request) {
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      Collection<String> values  = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+      Collection<String> values =
+          request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
       for (String value : values) {
-        NameUsageMatch nameUsageMatch = nameUsageMatchingService.match(value, null, null, true, false);
+        NameUsageMatch nameUsageMatch =
+            nameUsageMatchingService.match(value, null, null, true, false);
         if (nameUsageMatch.getMatchType() == MatchType.EXACT) {
           hasValidReplaces = true;
           values.remove(value);
