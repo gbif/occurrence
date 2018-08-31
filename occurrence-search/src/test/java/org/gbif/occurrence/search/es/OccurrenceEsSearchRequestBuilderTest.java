@@ -33,13 +33,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(MUST).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         6,
         jsonQuery
             .path(BOOL)
-            .path(MUST)
+            .path(FILTER)
             .findValue(OccurrenceEsField.KINGDOM_KEY.getFieldName())
             .get(VALUE)
             .asInt());
@@ -56,13 +56,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertEquals(2, jsonQuery.path(BOOL).path(MUST).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertEquals(2, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         1999,
         jsonQuery
             .path(BOOL)
-            .path(MUST)
+            .path(FILTER)
             .findValue(OccurrenceEsField.YEAR.getFieldName())
             .get(VALUE)
             .asInt());
@@ -70,7 +70,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         Country.AFGHANISTAN.getIso2LetterCode(),
         jsonQuery
             .path(BOOL)
-            .path(MUST)
+            .path(FILTER)
             .findValue(OccurrenceEsField.COUNTRY_CODE.getFieldName())
             .get(VALUE)
             .asText());
@@ -87,13 +87,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
-    assertTrue(jsonQuery.path(BOOL).path(MUST).get(0).has(TERMS));
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).get(0).has(TERMS));
     assertEquals(
         2,
         jsonQuery
             .path(BOOL)
-            .path(MUST)
+            .path(FILTER)
             .get(0)
             .path(TERMS)
             .path(OccurrenceEsField.MONTH.getFieldName())
@@ -110,11 +110,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(BOOL).path(MUST).isArray());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     JsonNode latitudeNode =
         jsonQuery
             .path(BOOL)
-            .path(MUST)
+            .path(FILTER)
             .findValue(RANGE)
             .path(OccurrenceEsField.LATITUDE.getFieldName());
     assertEquals(12, latitudeNode.path(FROM).asDouble(), 0);
@@ -137,6 +137,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -144,6 +147,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
@@ -170,6 +176,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -177,6 +186,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
@@ -205,6 +217,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -212,6 +227,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
@@ -242,6 +260,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -249,6 +270,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
@@ -275,6 +299,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -282,6 +309,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
@@ -308,6 +338,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .get(0)
+            .path(BOOL)
+            .path(SHOULD)
+            .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
             .has(SHAPE));
@@ -315,6 +348,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
+            .get(0)
+            .path(BOOL)
+            .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
             .path(OccurrenceEsField.COORDINATE_SHAPE.getFieldName())
