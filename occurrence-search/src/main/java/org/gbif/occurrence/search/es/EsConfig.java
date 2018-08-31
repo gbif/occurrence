@@ -2,7 +2,6 @@ package org.gbif.occurrence.search.es;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.gbif.common.search.solr.SolrServerType;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import javax.annotation.Nullable;

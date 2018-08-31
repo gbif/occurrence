@@ -8,7 +8,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
-import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,86 +38,86 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
   private final Timer writeTimer = Metrics.newTimer(getClass(), "occurrenceIndexWrites", TimeUnit.MILLISECONDS,
                                                     TimeUnit.SECONDS);
 
-  private final Duration updateWithin;
+//  private final Duration updateWithin;
 
-  private final SolrOccurrenceWriter solrOccurrenceWriter;
+//  private final SolrOccurrenceWriter solrOccurrenceWriter;
 
-  private final List<Occurrence> updateBatch;
+//  private final List<Occurrence> updateBatch;
 
   private LocalDateTime lastUpdate = LocalDateTime.now();
 
   private final ScheduledExecutorService updateTimer = Executors.newSingleThreadScheduledExecutor();
 
   private void atomicAddOrUpdate() throws IOException, SolrServerException {
-    addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
-            || LocalDateTime.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
+//    addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
+//            || LocalDateTime.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
   }
 
-  /**
-   * Flushes all the updates/creates into Solr.
-   */
-  private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
-      synchronized (updateBatch) {
-        if(onCondition && !updateBatch.isEmpty()) {
-            try {
-                solrOccurrenceWriter.update(updateBatch);
-            } finally {
-                updateBatch.clear();
-                lastUpdate = LocalDateTime.now();
-            }
-        }
-      }
-  }
+//  /**
+//   * Flushes all the updates/creates into Solr.
+//   */
+//  private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
+//      synchronized (updateBatch) {
+//        if(onCondition && !updateBatch.isEmpty()) {
+//            try {
+//                solrOccurrenceWriter.update(updateBatch);
+//            } finally {
+//                updateBatch.clear();
+//                lastUpdate = LocalDateTime.now();
+//            }
+//        }
+//      }
+//  }
 
-  /**
-   * Default constructor.
-   */
-  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter, int solrUpdateBatchSize,
-                              long solrUpdateWithinMs) {
-    this.solrOccurrenceWriter = solrOccurrenceWriter;
-    updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
-    updateWithin = Duration.ofMillis(solrUpdateWithinMs);
-    updateTimer.scheduleWithFixedDelay(() -> {
-                try {
-                  atomicAddOrUpdate();
-                } catch (Exception ex){
-                  throw new RuntimeException(ex);
-                }
-            }, solrUpdateWithinMs, solrUpdateWithinMs, TimeUnit.MILLISECONDS);
-  }
+//  /**
+//   * Default constructor.
+//   */
+//  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter, int solrUpdateBatchSize,
+//                              long solrUpdateWithinMs) {
+//    this.solrOccurrenceWriter = solrOccurrenceWriter;
+//    updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
+//    updateWithin = Duration.ofMillis(solrUpdateWithinMs);
+//    updateTimer.scheduleWithFixedDelay(() -> {
+//                try {
+//                  atomicAddOrUpdate();
+//                } catch (Exception ex){
+//                  throw new RuntimeException(ex);
+//                }
+//            }, solrUpdateWithinMs, solrUpdateWithinMs, TimeUnit.MILLISECONDS);
+//  }
 
   @Override
   public void handleMessage(OccurrenceMutatedMessage message) {
-    LOG.debug("Handling [{}] occurrence", message.getStatus());
-    messageCount.inc();
-    TimerContext context = writeTimer.time();
-    try {
-      switch (message.getStatus()) {
-        case NEW:
-          // create occurrence
-          updateBatch.add(message.getNewOccurrence());
-          atomicAddOrUpdate();
-          newOccurrencesCount.inc();
-          break;
-        case UPDATED:
-          // update occurrence
-          updateBatch.add(message.getNewOccurrence());
-          atomicAddOrUpdate();
-          updatedOccurrencesCount.inc();
-          break;
-        case DELETED:
-          // delete occurrence
-          solrOccurrenceWriter.delete(message.getOldOccurrence());
-          deletedOccurrencesCount.inc();
-          break;
-        case UNCHANGED:
-          break;
-      }
-    } catch (Exception e) {
-      LOG.error("Error while updating occurrence index for [{}], error [{}]", message.getStatus(), e);
-    } finally {
-      context.stop();
-    }
+//    LOG.debug("Handling [{}] occurrence", message.getStatus());
+//    messageCount.inc();
+//    TimerContext context = writeTimer.time();
+//    try {
+//      switch (message.getStatus()) {
+//        case NEW:
+//          // create occurrence
+//          updateBatch.add(message.getNewOccurrence());
+//          atomicAddOrUpdate();
+//          newOccurrencesCount.inc();
+//          break;
+//        case UPDATED:
+//          // update occurrence
+//          updateBatch.add(message.getNewOccurrence());
+//          atomicAddOrUpdate();
+//          updatedOccurrencesCount.inc();
+//          break;
+//        case DELETED:
+//          // delete occurrence
+//          solrOccurrenceWriter.delete(message.getOldOccurrence());
+//          deletedOccurrencesCount.inc();
+//          break;
+//        case UNCHANGED:
+//          break;
+//      }
+//    } catch (Exception e) {
+//      LOG.error("Error while updating occurrence index for [{}], error [{}]", message.getStatus(), e);
+//    } finally {
+//      context.stop();
+//    }
   }
 
   /**
@@ -126,12 +125,12 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
    */
   @Override
   public void close() {
-    try {
-      addOrUpdate(true);
-    } catch (Exception e) {
-      LOG.error("Error closing callback", e);
-    }
-    updateTimer.shutdownNow();
+//    try {
+//      addOrUpdate(true);
+//    } catch (Exception e) {
+//      LOG.error("Error closing callback", e);
+//    }
+//    updateTimer.shutdownNow();
   }
 
 }

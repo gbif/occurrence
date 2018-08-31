@@ -419,10 +419,10 @@
       <groupId>com.yammer.metrics</groupId>
       <artifactId>metrics-ganglia</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.apache.solr</groupId>-->
+      <!--<artifactId>solr-solrj</artifactId>-->
+    <!--</dependency>-->
 
     <!-- logging -->
     <dependency>

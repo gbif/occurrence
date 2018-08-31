@@ -396,42 +396,42 @@
         <artifactId>amqp-client</artifactId>
         <version>${amqp-client.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-core</artifactId>
-        <version>${solr-lucene.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-map-reduce</artifactId>
-        <version>${solr-lucene.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-auth</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+      <!--<dependency>-->
+        <!--<groupId>org.apache.lucene</groupId>-->
+        <!--<artifactId>lucene-core</artifactId>-->
+        <!--<version>${solr-lucene.version}</version>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+        <!--<groupId>org.apache.solr</groupId>-->
+        <!--<artifactId>solr-map-reduce</artifactId>-->
+        <!--<version>${solr-lucene.version}</version>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-annotations</artifactId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-auth</artifactId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-common</artifactId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-hdfs</artifactId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<groupId>org.apache.hadoop</groupId>-->
+            <!--<artifactId>hadoop-mapreduce-client-core</artifactId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<groupId>com.google.guava</groupId>-->
+            <!--<artifactId>guava</artifactId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
       <dependency>
         <groupId>aopalliance</groupId>
         <artifactId>aopalliance</artifactId>
@@ -566,33 +566,33 @@
         <version>${logstash-encoder.version}</version>
         <scope>runtime</scope>
       </dependency>
-      <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-core</artifactId>
-        <version>${solr-lucene.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>commons-logging</artifactId>
-            <groupId>commons-logging</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>slf4j-jdk14</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-          <exclusion>
-          <artifactId>org.restlet</artifactId>
-          <groupId>org.restlet.jee</groupId>
-        </exclusion>
-          <exclusion>
-            <artifactId>org.restlet.ext.servlet</artifactId>
-            <groupId>org.restlet.jee</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>org.restlet.ext.servlet</artifactId>
-            <groupId>org.restlet.jee</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+      <!--<dependency>-->
+        <!--<groupId>org.apache.solr</groupId>-->
+        <!--<artifactId>solr-core</artifactId>-->
+        <!--<version>${solr-lucene.version}</version>-->
+        <!--<exclusions>-->
+          <!--<exclusion>-->
+            <!--<artifactId>commons-logging</artifactId>-->
+            <!--<groupId>commons-logging</groupId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<artifactId>slf4j-jdk14</artifactId>-->
+            <!--<groupId>org.slf4j</groupId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+          <!--<artifactId>org.restlet</artifactId>-->
+          <!--<groupId>org.restlet.jee</groupId>-->
+        <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<artifactId>org.restlet.ext.servlet</artifactId>-->
+            <!--<groupId>org.restlet.jee</groupId>-->
+          <!--</exclusion>-->
+          <!--<exclusion>-->
+            <!--<artifactId>org.restlet.ext.servlet</artifactId>-->
+            <!--<groupId>org.restlet.jee</groupId>-->
+          <!--</exclusion>-->
+        <!--</exclusions>-->
+      <!--</dependency>-->
       <dependency>
         <groupId>com.vividsolutions</groupId>
         <artifactId>jts</artifactId>
@@ -619,11 +619,11 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-solrj</artifactId>
-        <version>${solr-lucene.version}</version>
-      </dependency>
+      <!--<dependency>-->
+        <!--<groupId>org.apache.solr</groupId>-->
+        <!--<artifactId>solr-solrj</artifactId>-->
+        <!--<version>${solr-lucene.version}</version>-->
+      <!--</dependency>-->
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>

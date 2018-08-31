@@ -2,7 +2,6 @@ package org.gbif.occurrence.cli.index;
 
 import org.gbif.common.search.solr.SolrServerType;
 import org.gbif.common.search.solr.builders.CloudSolrServerBuilder;
-import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -32,11 +31,11 @@ class IndexUpdaterService extends AbstractIdleService {
   protected void startUp() throws Exception {
     configuration.ganglia.start();
 
-    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
-                                                                         configuration.commitWithinMs);
-    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters());
-    listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
-                    configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
+//    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
+//                                                                         configuration.commitWithinMs);
+//    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters());
+//    listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
+//                    configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
   }
 
   /**

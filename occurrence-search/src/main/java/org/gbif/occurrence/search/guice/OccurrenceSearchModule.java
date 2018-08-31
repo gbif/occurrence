@@ -6,10 +6,8 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.common.search.solr.SolrConfig;
-import org.gbif.common.search.solr.SolrModule;
-import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
 import org.gbif.service.guice.PrivateServiceModule;
 
 import java.net.MalformedURLException;
@@ -20,20 +18,16 @@ import java.util.Properties;
 public class OccurrenceSearchModule extends PrivateServiceModule {
 
   private static final String PREFIX = "occurrence.search.";
-  private static final String SOLR_PREFIX = PREFIX + "solr.";
   private static final String ES_PREFIX = "es.";
-  private final SolrConfig solrConfig;
   private final EsConfig esConfig;
 
   public OccurrenceSearchModule(Properties properties) {
     super(PREFIX, properties);
-    solrConfig = SolrConfig.fromProperties(properties, SOLR_PREFIX);
     esConfig = EsConfig.fromProperties(getProperties(), ES_PREFIX);
   }
 
   @Override
   protected void configureService() {
-    install(new SolrModule(solrConfig));
     bind(OccurrenceSearchService.class).to(OccurrenceSearchEsImpl.class);
     expose(OccurrenceSearchService.class);
   }

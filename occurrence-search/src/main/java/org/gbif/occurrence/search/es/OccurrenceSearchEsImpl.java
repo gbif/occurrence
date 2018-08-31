@@ -1,19 +1,12 @@
 package org.gbif.occurrence.search.es;
 
-import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.apache.http.HttpEntity;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
@@ -28,8 +21,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.vocabulary.*;
-import org.gbif.common.search.SearchException;
-import org.gbif.common.search.solr.QueryUtils;
+import org.gbif.occurrence.search.SearchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +34,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.gbif.common.search.solr.SolrConstants.DEFAULT_FILTER_QUERY;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.EsQueryUtils.DATE_FORMAT;
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
 
 /**
- * Occurrence search service. Executes {@link OccurrenceSearchRequest} by transforming the request
- * into {@link SolrQuery}.
+ * Occurrence search service.
  */
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
 
@@ -353,18 +343,19 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
 
   /** Escapes a query value and transform it into a phrase query if necessary. */
   private static String parseTermsQueryValue(final String q) {
-    // return default query for empty queries
-    String qValue = Strings.nullToEmpty(q).trim();
-    if (Strings.isNullOrEmpty(qValue)) {
-      return DEFAULT_FILTER_QUERY;
-    }
-    // If default query was sent, must not be escaped
-    if (!qValue.equals(DEFAULT_FILTER_QUERY)) {
-      qValue = QueryUtils.clearConsecutiveBlanks(qValue);
-      qValue = QueryUtils.escapeQuery(qValue);
-    }
-
-    return qValue;
+//    // return default query for empty queries
+//    String qValue = Strings.nullToEmpty(q).trim();
+//    if (Strings.isNullOrEmpty(qValue)) {
+//      return DEFAULT_FILTER_QUERY;
+//    }
+//    // If default query was sent, must not be escaped
+//    if (!qValue.equals(DEFAULT_FILTER_QUERY)) {
+//      qValue = QueryUtils.clearConsecutiveBlanks(qValue);
+//      qValue = QueryUtils.escapeQuery(qValue);
+//    }
+//
+//    return qValue;
+    return null;
   }
 
   /**

@@ -12,44 +12,26 @@
  */
 package org.gbif.occurrence.download.query;
 
-import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
-import org.gbif.api.model.occurrence.predicate.LikePredicate;
-import org.gbif.api.model.occurrence.predicate.NotPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.predicate.SimplePredicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import com.google.common.base.Throwables;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+import org.gbif.api.model.occurrence.predicate.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.common.search.solr.SearchDateUtils;
 import org.gbif.common.search.solr.SolrConstants;
-import org.gbif.occurrence.search.solr.OccurrenceSolrField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 
-import com.google.common.base.Throwables;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static org.gbif.common.search.solr.QueryUtils.PARAMS_JOINER;
 import static org.gbif.common.search.solr.QueryUtils.parseQueryValue;
 import static org.gbif.common.search.solr.SolrConstants.GEO_INTERSECTS_QUERY_FMT;
 import static org.gbif.common.search.solr.SolrConstants.RANGE_FORMAT;
-import static org.gbif.occurrence.search.OccurrenceSearchRequestBuilder.QUERY_FIELD_MAPPING;
 
 /**
  * This class builds clause for a Hive query from a {@link org.gbif.api.model.occurrence.predicate.Predicate} object.
@@ -120,7 +102,8 @@ public class SolrQueryVisitor {
   }
 
   public String getSolrField(OccurrenceSearchParameter parameter) {
-    return QUERY_FIELD_MAPPING.get(parameter).getFieldName();
+//    return QUERY_FIELD_MAPPING.get(parameter).getFieldName();
+    return null;
   }
 
   public void visit(ConjunctionPredicate predicate) throws QueryBuildingException {
@@ -186,8 +169,8 @@ public class SolrQueryVisitor {
   }
 
   public void visit(WithinPredicate within) {
-    builder.append(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
-                                      parseGeometryParam(within.getGeometry())));
+//    builder.append(PARAMS_JOINER.join(OccurrenceSolrField.COORDINATE.getFieldName(),
+//                                      parseGeometryParam(within.getGeometry())));
   }
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
@@ -231,9 +214,9 @@ public class SolrQueryVisitor {
   }
 
   private String toSolrField(OccurrenceSearchParameter param) {
-    if (QUERY_FIELD_MAPPING.containsKey(param)) {
-      return getSolrField(param);
-    }
+//    if (QUERY_FIELD_MAPPING.containsKey(param)) {
+//      return getSolrField(param);
+//    }
     // QueryBuildingException requires an underlying exception
     throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Solr");
   }

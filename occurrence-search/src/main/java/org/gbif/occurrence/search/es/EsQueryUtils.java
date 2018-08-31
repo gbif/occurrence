@@ -7,9 +7,12 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Country;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -22,6 +25,7 @@ public class EsQueryUtils {
   // ES fields for queries
   public static final String SIZE = "size";
   public static final String FROM = "from";
+  public static final String TO = "to";
   public static final String QUERY = "query";
   public static final String BOOL = "bool";
   public static final String MUST = "must";
@@ -32,6 +36,7 @@ public class EsQueryUtils {
   public static final String RANGE = "range";
   public static final String GTE = "gte";
   public static final String LTE = "lte";
+  public static final String VALUE = "value";
 
   // Aggs
   public static final String FIELD = "field";
@@ -126,5 +131,14 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceEsField.EVENT_ID)
           .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceEsField.PARENT_EVENT_ID)
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
+          .build();
+
+  static final ImmutableMap<OccurrenceEsField, Integer> CARDINALITY_FIELD_MAPPING =
+      ImmutableMap.<OccurrenceEsField, Integer>builder()
+          .put(OccurrenceEsField.MONTH, 12)
+          .put(OccurrenceEsField.DAY, 31)
+          .put(OccurrenceEsField.YEAR, LocalDate.now().getYear() - 1000)
+          .put(OccurrenceEsField.COUNTRY_CODE, Country.values().length)
+          .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
           .build();
 }

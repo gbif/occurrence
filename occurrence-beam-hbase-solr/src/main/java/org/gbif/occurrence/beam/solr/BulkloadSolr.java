@@ -16,7 +16,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.solr.common.SolrInputDocument;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
-import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 import org.joda.time.Duration;
 
 /** Executes a pipeline that reads HBase and loads SOLR. */
@@ -67,8 +66,8 @@ public class BulkloadSolr {
                     try {
                       Occurrence occurrence = OccurrenceBuilder.buildOccurrence(row);
                       if (occurrence.getKey() % d == r) {
-                        SolrInputDocument document = SolrOccurrenceWriter.buildOccSolrDocument(occurrence);
-                        c.output(document);
+//                        SolrInputDocument document = SolrOccurrenceWriter.buildOccSolrDocument(occurrence);
+//                        c.output(document);
                       }
                     } catch (NullPointerException e) {
                       // Expected for bad data

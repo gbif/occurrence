@@ -135,7 +135,7 @@ class EsSearchRequestBuilder {
     if (("POINT").equals(type)) {
       shapeBuilder = ShapeBuilders.newPoint(geometry.getCoordinate());
     } else if ("LINESTRING".equals(type)) {
-      ShapeBuilders.newLineString(Arrays.asList(geometry.getCoordinates()));
+      shapeBuilder = ShapeBuilders.newLineString(Arrays.asList(geometry.getCoordinates()));
     } else if ("POLYGON".equals(type)) {
       shapeBuilder = polygonToBuilder.apply((Polygon) geometry);
     } else if ("MULTIPOLYGON".equals(type)) {
