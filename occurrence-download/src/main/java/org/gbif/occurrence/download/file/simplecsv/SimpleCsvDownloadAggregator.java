@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -66,7 +65,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     outputFileName =
       configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    persistUsage = new CitationsFileReader.PersistUsage(datasetService, occurrenceDownloadUsageService);
+    persistUsage = new CitationsFileReader.PersistUsage(configuration.getDownloadKey(), occurrenceDownloadService);
   }
 
   public void init() {
@@ -116,7 +115,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
         datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
         DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName(), outputFileWriter);
       }
-      persistUsages(datasetUsagesCollector);
+      persistUsages(configuration.getDownloadKey(),datasetUsagesCollector);
       persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
     } catch (Exception e) {
       LOG.error("Error merging results", e);
@@ -127,14 +126,9 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
   /**
    * Persists the dataset usages collected in by the datasetUsagesCollector.
    */
-  private void persistUsages(DatasetUsagesCollector datasetUsagesCollector) {
-    for (Map.Entry<UUID, Long> usage : datasetUsagesCollector.getDatasetUsages().entrySet()) {
-      DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
-      datasetOccurrenceDownloadUsage.setNumberRecords(usage.getValue());
-      datasetOccurrenceDownloadUsage.setDatasetKey(usage.getKey());
-      datasetOccurrenceDownloadUsage.setDownloadKey(configuration.getDownloadKey());
-      persistUsage.apply(Collections.singletonList(datasetOccurrenceDownloadUsage));
-    }
+  private void persistUsages(String downloadkey,DatasetUsagesCollector datasetUsagesCollector) {
+    Map<UUID, Long> usage = datasetUsagesCollector.getDatasetUsages();
+    occurrenceDownloadService.createUsages(downloadkey, usage);
   }
 
   /**

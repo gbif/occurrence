@@ -1,7 +1,7 @@
 package org.gbif.occurrence.download.file.dwca;
 
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
@@ -30,7 +30,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   private static final Logger LOG = LoggerFactory.getLogger(DwcaDownloadAggregator.class);
 
   // Service that persist dataset usage information
-  private final DatasetOccurrenceDownloadUsageService datasetOccUsageService;
+  private final OccurrenceDownloadService occurrenceDownloadService;
 
   //Dataset service
   private final DatasetService datasetService;
@@ -75,13 +75,13 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   @Inject
   public DwcaDownloadAggregator(
-    DatasetOccurrenceDownloadUsageService datasetOccUsageService,
+    OccurrenceDownloadService occurrenceDownloadService,
     DatasetService datasetService,
     DownloadJobConfiguration configuration,
     RegistryClientUtil registryClientUtil
   ) {
     this.datasetService = datasetService;
-    this.datasetOccUsageService = datasetOccUsageService;
+    this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
     this.registryClientUtil = registryClientUtil;
   }
@@ -116,8 +116,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
         }
         CitationsFileWriter.createCitationFile(datasetUsagesCollector.getDatasetUsages(),
                                                configuration.getCitationDataFileName(),
-                                               datasetOccUsageService,
-                                               datasetService,
+                                               occurrenceDownloadService,
                                                configuration.getDownloadKey());
       }
       //Creates the DwcA zip file

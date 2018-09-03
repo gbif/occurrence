@@ -71,4 +71,10 @@ public class OccurrenceDownloadMockServices implements OccurrenceDownloadService
  // TODO: Write implementation
     throw new UnsupportedOperationException("Not implemented yet");
   }
+
+  @Override
+  public void createUsages(String downloadKey, Map<UUID, Long> datasetCitations) {
+    // TODO: Write implementation
+    throw new UnsupportedOperationException("Not implemented yet");
+  }
 }
