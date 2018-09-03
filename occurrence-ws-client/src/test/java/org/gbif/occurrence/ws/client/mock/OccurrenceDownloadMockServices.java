@@ -59,18 +59,16 @@ public class OccurrenceDownloadMockServices implements OccurrenceDownloadService
   }
 
   @Override
-  public Map<Integer, Map<Integer, Long>> getMonthlyStats(
-    @Nullable Date date, @Nullable Date date1, @Nullable Country country, @Nullable Country country1, @Nullable UUID uuid
-  ) {
-    // TODO: Write implementation
+  public Map<Integer, Map<Integer, Long>> getDownloadsByUserCountry(Date fromDate, Date toDate,
+      Country userCountry) {
+ // TODO: Write implementation
     throw new UnsupportedOperationException("Not implemented yet");
   }
 
   @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsStats(
-    @Nullable Date date, @Nullable Date date1, @Nullable Country country, @Nullable Country country1, @Nullable UUID uuid
-  ) {
-    // TODO: Write implementation
+  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsByDataset(Date fromDate, Date toDate,
+      Country publishingCountry, UUID datasetKey) {
+ // TODO: Write implementation
     throw new UnsupportedOperationException("Not implemented yet");
   }
 }

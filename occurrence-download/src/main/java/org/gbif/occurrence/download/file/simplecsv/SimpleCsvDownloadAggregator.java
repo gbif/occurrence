@@ -133,7 +133,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       datasetOccurrenceDownloadUsage.setNumberRecords(usage.getValue());
       datasetOccurrenceDownloadUsage.setDatasetKey(usage.getKey());
       datasetOccurrenceDownloadUsage.setDownloadKey(configuration.getDownloadKey());
-      persistUsage.apply(datasetOccurrenceDownloadUsage);
+      persistUsage.apply(Collections.singletonList(datasetOccurrenceDownloadUsage));
     }
   }
 

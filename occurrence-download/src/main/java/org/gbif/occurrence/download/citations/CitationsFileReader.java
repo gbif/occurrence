@@ -60,7 +60,7 @@ public final class CitationsFileReader {
    * @param predicates   list of predicates to apply while reading the file
    */
   public static void readCitations(String nameNode, String citationPath, String downloadKey,
-                                   Predicate<DatasetOccurrenceDownloadUsage>... predicates) throws IOException {
+                                   Predicate<List<DatasetOccurrenceDownloadUsage>> predicate) throws IOException {
     List<DatasetOccurrenceDownloadUsage> citationsList = new LinkedList<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
@@ -69,19 +69,15 @@ public final class CitationsFileReader {
                                                                                       Charsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
-              // catch all error to avoid breaking the loop
-              try {
-                for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
+              // prepare citation object and add it to list
                   citationsList.add(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
-                }
-              } catch (Exception e) {
-                LOG.info(String.format("Error processing citation line: %s", tsvLine), e);
-              }
+             
             }
           }
         }
       }
     }
+    predicate.apply(citationsList);
   }
 
   public static void main(String[] args) throws IOException {
@@ -122,8 +118,13 @@ public final class CitationsFileReader {
 
     @Override
     public boolean apply(@Nullable List<DatasetOccurrenceDownloadUsage> inputs) {
-      //To Do send the list of DatasetOccurrenceUsage as a bulk request.
-      try {
+      if(inputs==null || inputs.isEmpty()) {
+        LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
+        return true;
+      }
+      //enriching the list with doi,citation and title.
+      for(int i=0;i<inputs.size();i++) {
+        DatasetOccurrenceDownloadUsage input=inputs.get(i);
         Dataset dataset = datasetService.get(input.getDatasetKey());
         if (dataset != null) { //the dataset still exists
           input.setDatasetDOI(dataset.getDoi());
@@ -131,10 +132,13 @@ public final class CitationsFileReader {
             input.setDatasetCitation(dataset.getCitation().getText());
           }
           input.setDatasetTitle(dataset.getTitle());
-          datasetUsageService.create(input);
+          inputs.set(i, input);
         }
+      }
+      try {
+        datasetUsageService.bulkCreate(inputs);
       } catch (Exception e) {
-        LOG.error("Error persisting dataset usage information {}", input, e);
+        LOG.error("Error persisting dataset usage information {}", inputs, e);
         return false;
       }
       return true;

@@ -48,6 +48,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -588,7 +589,7 @@ public class DwcaArchiveBuilder {
           datasetUsage.setDatasetCitation(dataset.getCitation().getText());
         }
         datasetUsage.setDatasetTitle(dataset.getTitle());
-        datasetUsageService.create(datasetUsage);
+        datasetUsageService.bulkCreate(Collections.singletonList(datasetUsage));
       }
     } catch (Exception e) {
       LOG.error("Error persisting dataset usage information, downloadKey: {}, datasetKey: {}", downloadKey,

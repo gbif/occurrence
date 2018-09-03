@@ -7,6 +7,7 @@ import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -83,7 +84,7 @@ public final class CitationsFileWriter {
           datasetUsage.setDatasetCitation(dataset.getCitation().getText());
         }
         datasetUsage.setDatasetTitle(dataset.getTitle());
-        datasetOccUsageService.create(datasetUsage);
+        datasetOccUsageService.bulkCreate(Collections.singletonList(datasetUsage));
       }
     } catch (Exception e) {
       LOG.error("Error persisting dataset usage information", e);
