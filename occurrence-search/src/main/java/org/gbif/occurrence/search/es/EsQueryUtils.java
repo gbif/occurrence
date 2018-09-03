@@ -7,13 +7,12 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Country;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -79,7 +78,7 @@ public class EsQueryUtils {
             new BasicHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
           };
 
-  static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> QUERY_FIELD_MAPPING =
+  static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> SEARCH_TO_ES_MAPPING =
       ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
           .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, OccurrenceEsField.LATITUDE)
           .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, OccurrenceEsField.LONGITUDE)
@@ -134,12 +133,13 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
           .build();
 
-  static final ImmutableMap<OccurrenceEsField, Integer> CARDINALITY_FIELD_MAPPING =
-      ImmutableMap.<OccurrenceEsField, Integer>builder()
-          .put(OccurrenceEsField.MONTH, 12)
-          .put(OccurrenceEsField.DAY, 31)
-          .put(OccurrenceEsField.YEAR, LocalDate.now().getYear() - 1000)
-          .put(OccurrenceEsField.COUNTRY_CODE, Country.values().length)
-          .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
-          .build();
+  static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
+      new HashMap<>(SEARCH_TO_ES_MAPPING.size());
+
+  static {
+    for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
+        SEARCH_TO_ES_MAPPING.entrySet()) {
+      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
+    }
+  }
 }

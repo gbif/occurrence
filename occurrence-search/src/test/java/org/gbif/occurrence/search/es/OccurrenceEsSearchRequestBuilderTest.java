@@ -3,6 +3,7 @@ package org.gbif.occurrence.search.es;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.Country;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.junit.Assert.assertEquals;
@@ -360,4 +362,5 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(2, shape.get(COORDINATES).size());
     assertEquals(-77.03653d, shape.get(COORDINATES).get(0).asDouble(), 0);
   }
+
 }

@@ -5,12 +5,15 @@ import com.google.common.collect.Multimap;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.codehaus.jackson.node.ObjectNode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.geo.ShapeRelation;
 import org.elasticsearch.common.geo.builders.*;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.slf4j.Logger;
@@ -21,7 +24,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.QUERY_FIELD_MAPPING;
+import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
 import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
 
 class EsSearchRequestBuilder {
@@ -57,15 +60,16 @@ class EsSearchRequestBuilder {
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-post-filter.html??
     // si hay multifacet, esos facet se meten en post-filter
 
-    //    // add aggs
-    //    buildAggs(searchRequest, facetsEnabled, offset).ifPresent(n -> request.put(AGGS, n));
-    //
-    //    LOG.debug("ES query: {}", request);
+    // add aggs
+    buildAggs(searchRequest, facetsEnabled, offset)
+        .ifPresent(aggsList -> aggsList.forEach(searchSourceBuilder::aggregation));
+
+//    LOG.debug("ES query: {}", searchSourceBuilder);
 
     return esRequest;
   }
 
-  static Optional<ObjectNode> buildAggs(
+  static Optional<List<AggregationBuilder>> buildAggs(
       OccurrenceSearchRequest searchRequest, boolean facetsEnabled, long offset) {
     if (!facetsEnabled
         || searchRequest.getFacetPages() == null
@@ -73,12 +77,30 @@ class EsSearchRequestBuilder {
       return Optional.empty();
     }
 
-    // TODO: sacar cardinality para el size del terms aggs?? de momento hardcoded
-    // TODO: facet paging hacerlo en java para coger a partir del offset que nos llegue??
-
     // iterate thru facets and then check config
+    List<AggregationBuilder> aggs = new ArrayList<>(searchRequest.getFacets().size());
+    searchRequest
+        .getFacets()
+        .forEach(
+            param -> {
+              OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(param);
+              if (esField == null) {
+                return;
+              }
 
-    return null;
+              TermsAggregationBuilder termsAggsBuilder =
+                  AggregationBuilders.terms(esField.getFieldName()).field(esField.getFieldName());
+
+              Pageable facetPage = searchRequest.getFacetPage(param);
+              if (facetPage != null && facetPage.getLimit() > 0) {
+                termsAggsBuilder.size(facetPage.getLimit());
+              }
+              // TODO: offset not supported in ES. Implement workaround
+
+              aggs.add(termsAggsBuilder);
+            });
+
+    return Optional.of(aggs);
   }
 
   @VisibleForTesting
@@ -184,7 +206,7 @@ class EsSearchRequestBuilder {
     // must term fields
     List<QueryBuilder> termQueries = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
-      OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
+      OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(param);
       if (esField == null) {
         continue;
       }

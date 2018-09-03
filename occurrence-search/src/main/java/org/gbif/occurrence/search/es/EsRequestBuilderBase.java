@@ -8,9 +8,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +61,7 @@ public abstract class EsRequestBuilderBase {
     // must term fields
     List<ObjectNode> termQueries = new ArrayList<>();
     for (OccurrenceSearchParameter param : params.keySet()) {
-      OccurrenceEsField esField = QUERY_FIELD_MAPPING.get(param);
+      OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(param);
       if (esField == null) {
         continue;
       }
