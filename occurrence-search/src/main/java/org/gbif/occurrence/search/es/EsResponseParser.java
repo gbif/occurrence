@@ -39,40 +39,52 @@ public class EsResponseParser {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits());
-    response.setResults(parseHits(esResponse));
-    response.setFacets(parseFacets(esResponse));
+    parseHits(esResponse).ifPresent(response::setResults);
+    parseFacets(esResponse).ifPresent(response::setFacets);
 
     return response;
   }
 
-  private static List<Facet<OccurrenceSearchParameter>> parseFacets(
+  private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
       org.elasticsearch.action.search.SearchResponse esResponse) {
-    return esResponse
-        .getAggregations()
-        .asList()
-        .stream()
-        .map(
-            aggs -> {
-              List<? extends Terms.Bucket> buckets = ((Terms) aggs).getBuckets();
+    if (esResponse.getAggregations() == null) {
+      return Optional.empty();
+    }
 
-              // set counts
-              List<Facet.Count> counts = new ArrayList<>(buckets.size());
-              buckets.forEach(
-                  bucket ->
-                      counts.add(new Facet.Count(bucket.getKeyAsString(), bucket.getDocCount())));
+    return Optional.of(
+        esResponse
+            .getAggregations()
+            .asList()
+            .stream()
+            .map(
+                aggs -> {
+                  List<? extends Terms.Bucket> buckets = ((Terms) aggs).getBuckets();
 
-              // build facet
-              Facet<OccurrenceSearchParameter> facet =
-                  new Facet<>(ES_TO_SEARCH_MAPPING.get(aggs.getName()));
-              facet.setCounts(counts);
+                  // set counts
+                  List<Facet.Count> counts = new ArrayList<>(buckets.size());
+                  buckets.forEach(
+                      bucket ->
+                          counts.add(
+                              new Facet.Count(bucket.getKeyAsString(), bucket.getDocCount())));
 
-              return facet;
-            })
-        .collect(Collectors.toList());
+                  // build facet
+                  Facet<OccurrenceSearchParameter> facet =
+                      new Facet<>(ES_TO_SEARCH_MAPPING.get(aggs.getName()));
+                  facet.setCounts(counts);
+
+                  return facet;
+                })
+            .collect(Collectors.toList()));
   }
 
-  private static List<Occurrence> parseHits(
+  private static Optional<List<Occurrence>> parseHits(
       org.elasticsearch.action.search.SearchResponse esResponse) {
+    if (esResponse.getHits() == null
+        || esResponse.getHits().getHits() == null
+        || esResponse.getHits().getHits().length == 0) {
+      return Optional.empty();
+    }
+
     final DateFormat dateFormat =
         new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
 
@@ -208,7 +220,7 @@ public class EsResponseParser {
           getValue(hit, NETWORK_KEY)
               .ifPresent(v -> occ.setNetworkKeys(Collections.singletonList(UUID.fromString(v))));
         });
-    return occurrences;
+    return Optional.of(occurrences);
   }
 
   private static Optional<String> getValue(SearchHit hit, OccurrenceEsField esField) {
