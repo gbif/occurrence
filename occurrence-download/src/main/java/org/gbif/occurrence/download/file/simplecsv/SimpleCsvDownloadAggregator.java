@@ -1,12 +1,9 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
-import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
-import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -19,7 +16,6 @@ import org.gbif.utils.file.FileUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
@@ -54,9 +50,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
   public SimpleCsvDownloadAggregator(
     DownloadJobConfiguration configuration,
     WorkflowConfiguration workflowConfiguration,
-    OccurrenceDownloadService occurrenceDownloadService,
-    DatasetService datasetService,
-    DatasetOccurrenceDownloadUsageService occurrenceDownloadUsageService
+    OccurrenceDownloadService occurrenceDownloadService
   ) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
@@ -65,22 +59,12 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
 
-  public void init() {
-    try {
-      Files.createFile(Paths.get(outputFileName));
-    } catch (Throwable t) {
-      LOG.error("Error creating files", t);
-      throw Throwables.propagate(t);
-    }
-  }
-
   /**
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
   @Override
   public void aggregate(List<Result> results) {
-    //init();
     try {
       if (!results.isEmpty()) {
         mergeResults(results);
@@ -112,20 +96,12 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
         datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
         DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName(), outputFileWriter);
       }
-      persistUsages(configuration.getDownloadKey(),datasetUsagesCollector);
+      occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
       persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
     } catch (Exception e) {
       LOG.error("Error merging results", e);
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * Persists the dataset usages collected in by the datasetUsagesCollector.
-   */
-  private void persistUsages(String downloadkey,DatasetUsagesCollector datasetUsagesCollector) {
-    Map<UUID, Long> usage = datasetUsagesCollector.getDatasetUsages();
-    occurrenceDownloadService.createUsages(downloadkey, usage);
   }
 
   /**

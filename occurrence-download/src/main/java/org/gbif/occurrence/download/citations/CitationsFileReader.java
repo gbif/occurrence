@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,9 +37,9 @@ public final class CitationsFileReader {
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
-  private static SimpleImmutableEntry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
+  private static Map.Entry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
     Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
-    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()),Long.parseLong(tsvLineIterator.next()) );
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()), Long.parseLong(tsvLineIterator.next()));
   }
 
   /**
@@ -49,8 +48,7 @@ public final class CitationsFileReader {
    *
    * @param nameNode     Hadoop name node uri
    * @param citationPath path to the directory that contains the citation table files
-   * @param downloadKey  occurrence download key
-   * @param predicates   list of predicates to apply while reading the file
+   * @param predicates   predicate to apply after reading the file
    */
   public static void readCitations(String nameNode, String citationPath,
                                    Predicate<Map<UUID,Long>> predicate) throws IOException {
@@ -63,7 +61,7 @@ public final class CitationsFileReader {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // prepare citation object and add it to list
-                  SimpleImmutableEntry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
+                  Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
                   datasetsCitation.put(citationEntry.getKey(), citationEntry.getValue());
             }
           }
@@ -78,7 +76,7 @@ public final class CitationsFileReader {
 
     readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
                   Preconditions.checkNotNull(args[0]),
-                  new PersistUsage(Preconditions.checkNotNull(args[1]),properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+                  new PersistUsage(Preconditions.checkNotNull(args[1]), properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
 
   /**
@@ -97,20 +95,15 @@ public final class CitationsFileReader {
 
     private final OccurrenceDownloadService downloadService;
 
-    public PersistUsage(String downloadKey,String registryWsUrl) {
+    private PersistUsage(String downloadKey, String registryWsUrl) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
       this.downloadKey = downloadKey; 
       this.downloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsUrl);
     }
 
-    public PersistUsage(String downloadKey, OccurrenceDownloadService downloadService) {
-      this.downloadKey = downloadKey;
-      this.downloadService = downloadService;
-    }
-
     @Override
     public boolean apply(@Nullable Map<UUID,Long> datasetsCitation) {
-      if(datasetsCitation==null || datasetsCitation.isEmpty()) {
+      if(datasetsCitation == null || datasetsCitation.isEmpty()) {
         LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
         return true;
       }
