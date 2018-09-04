@@ -37,6 +37,7 @@ public class EsQueryUtils {
   public static final String GTE = "gte";
   public static final String LTE = "lte";
   public static final String VALUE = "value";
+  public static final String POST_FILTER = "post_filter";
 
   // Aggs
   public static final String FIELD = "field";
