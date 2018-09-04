@@ -1,13 +1,13 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import com.google.inject.Inject;
-import org.apache.http.HttpEntity;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
-import org.gbif.common.search.SearchException;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 import org.slf4j.Logger;
@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.EsQueryUtils.AGGREGATIONS;
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
 
@@ -28,11 +28,11 @@ public class OccurrenceHeatmapsEsService
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
   private static final ObjectReader JSON_READER = new ObjectMapper().reader(Map.class);
 
-  private final RestClient esClient;
+  private final RestHighLevelClient esClient;
   private final String esIndex;
 
   @Inject
-  public OccurrenceHeatmapsEsService(RestClient esClient, String esIndex) {
+  public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex) {
     this.esIndex = esIndex;
     this.esClient = esClient;
   }
@@ -40,23 +40,17 @@ public class OccurrenceHeatmapsEsService
   @Override
   public EsOccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {
 
-    HttpEntity requestBody = EsHeatmapRequestBuilder.buildRequestBody(request);
-    Response response = null;
+    SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
+    SearchResponse response = null;
     try {
-      response =
-          esClient.performRequest(
-              "GET",
-              SEARCH_ENDPOINT.apply(esIndex),
-              Collections.emptyMap(),
-              requestBody,
-              HEADERS.get());
+      response = esClient.search(searchRequest, HEADERS.get());
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
 
     try {
-      JsonNode jsonResponse = JSON_READER.readTree(response.getEntity().getContent());
+      JsonNode jsonResponse = JSON_READER.readTree(response.toString());
       return JSON_READER.treeToValue(
           jsonResponse.path(AGGREGATIONS).path(BOX_AGGS).path(HEATMAP_AGGS),
           EsOccurrenceHeatmapResponse.class);

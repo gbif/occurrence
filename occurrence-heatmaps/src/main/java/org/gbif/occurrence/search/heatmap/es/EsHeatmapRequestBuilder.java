@@ -2,21 +2,23 @@ package org.gbif.occurrence.search.heatmap.es;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import org.apache.http.HttpEntity;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.geobounds.GeoBoundsAggregationBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.common.shaded.com.google.common.collect.Iterables;
-import org.gbif.occurrence.search.es.EsRequestBuilderBase;
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-
-class EsHeatmapRequestBuilder extends EsRequestBuilderBase {
+class EsHeatmapRequestBuilder {
 
   static final String BOX_AGGS = "box";
   static final String HEATMAP_AGGS = "heatmap";
@@ -26,77 +28,57 @@ class EsHeatmapRequestBuilder extends EsRequestBuilderBase {
 
   private EsHeatmapRequestBuilder() {}
 
-  static HttpEntity buildRequestBody(OccurrenceHeatmapRequest searchRequest) {
-    return createEntity(buildQuery(searchRequest));
-  }
-
   @VisibleForTesting
-  static ObjectNode buildQuery(OccurrenceHeatmapRequest request) {
+  static SearchRequest buildRequest(OccurrenceHeatmapRequest request, String index) {
     // build request body
-    ObjectNode requestBody = createObjectNode();
-    requestBody.put(SIZE, 0);
-    requestBody.put(QUERY, CREATE_NODE.apply(BOOL, createFilteredQuery(request)));
-    requestBody.put(AGGS, createAggs(request));
+    SearchRequest esRequest = new SearchRequest();
+    esRequest.indices(index);
 
-    LOG.debug("ES query: {}", requestBody);
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    esRequest.source(searchSourceBuilder);
 
-    return requestBody;
+    // size 0
+    searchSourceBuilder.size(0);
+
+    // add query
+    EsSearchRequestBuilder.buildQuery(request.getParameters())
+        .ifPresent(searchSourceBuilder::query);
+
+    // add aggs
+    searchSourceBuilder.aggregation(buildAggs(request));
+
+    LOG.debug("ES query: {}", esRequest);
+
+    return esRequest;
   }
 
-  private static ObjectNode createFilteredQuery(OccurrenceHeatmapRequest request) {
-    // create bool node
-    ObjectNode bool = createObjectNode();
-
-    // create filters
-    ArrayNode filterNode = createArrayNode();
-
-    // TODO: add geometry parameter from params map
-
-    // adding term queries to bool
-    buildTermQueries(request.getParameters())
-        .ifPresent(termQueries -> termQueries.forEach(filterNode::add));
-
-    bool.put(FILTER, filterNode);
-
-    return bool;
-  }
-
-  private static ObjectNode createAggs(OccurrenceHeatmapRequest request) {
-
+  private static AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
     // adding bounding box filter
     String[] coords =
         Iterables.toArray(Splitter.on(",").split(request.getGeometry()), String.class);
 
-    ObjectNode bbox = createObjectNode();
-    bbox.putPOJO("top_left", Arrays.asList(Double.valueOf(coords[0]), Double.valueOf(coords[3])));
-    bbox.putPOJO(
-        "bottom_right", Arrays.asList(Double.valueOf(coords[2]), Double.valueOf(coords[1])));
+    GeoBoundingBoxQueryBuilder geoBoundingBoxQuery =
+        QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
+            .setCorners(
+                Double.valueOf(coords[3]),
+                Double.valueOf(coords[0]),
+                Double.valueOf(coords[1]),
+                Double.valueOf(coords[2]));
 
-    ObjectNode boxAggs =
-        CREATE_NODE.apply(
-            FILTER,
-            CREATE_NODE.apply(
-                GEO_BOUNDING_BOX,
-                CREATE_NODE.apply(OccurrenceEsField.COORDINATE_POINT.getFieldName(), bbox)));
+    FilterAggregationBuilder filterAggs = AggregationBuilders.filter(BOX_AGGS, geoBoundingBoxQuery);
 
-    // create geohash_grid aggrs
-    ObjectNode geohashGrid =
-        CREATE_NODE.apply(FIELD, OccurrenceEsField.COORDINATE_POINT.getFieldName());
-    geohashGrid.put(PRECISION, request.getZoom());
+    GeoGridAggregationBuilder geoGridAggs =
+        AggregationBuilders.geohashGrid(HEATMAP_AGGS)
+            .field(OccurrenceEsField.COORDINATE_POINT.getFieldName())
+            .precision(request.getZoom());
 
-    ObjectNode heatmapAggs = createObjectNode();
-    heatmapAggs.put(GEOHASH_GRID, geohashGrid);
-    heatmapAggs.put(
-        AGGS,
-        CREATE_NODE.apply(
-            CELL_AGGS,
-            CREATE_NODE.apply(
-                GEO_BOUNDS,
-                CREATE_NODE.apply(FIELD, OccurrenceEsField.COORDINATE_POINT.getFieldName()))));
+    GeoBoundsAggregationBuilder geoBoundsAggs =
+        AggregationBuilders.geoBounds(CELL_AGGS)
+            .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
 
-    boxAggs.put(AGGS, CREATE_NODE.apply(HEATMAP_AGGS, heatmapAggs));
+    geoGridAggs.subAggregation(geoBoundsAggs);
+    filterAggs.subAggregation(geoGridAggs);
 
-    // add heatmap aggs
-    return CREATE_NODE.apply(BOX_AGGS, boxAggs);
+    return filterAggs;
   }
 }

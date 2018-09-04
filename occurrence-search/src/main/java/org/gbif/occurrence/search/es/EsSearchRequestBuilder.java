@@ -29,7 +29,7 @@ import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
 import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
 
-class EsSearchRequestBuilder {
+public class EsSearchRequestBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsSearchRequestBuilder.class);
 
@@ -37,7 +37,7 @@ class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
-  static SearchRequest buildSearchRequest(
+  public static SearchRequest buildSearchRequest(
       OccurrenceSearchRequest searchRequest,
       boolean facetsEnabled,
       int maxOffset,
@@ -208,8 +208,8 @@ class EsSearchRequestBuilder {
     return termsAggsBuilder;
   }
 
-  @VisibleForTesting
-  static Optional<QueryBuilder> buildQuery(Multimap<OccurrenceSearchParameter, String> params) {
+  public static Optional<QueryBuilder> buildQuery(
+      Multimap<OccurrenceSearchParameter, String> params) {
     // get query params
     if (params == null || params.isEmpty()) {
       return Optional.empty();
