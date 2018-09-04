@@ -87,13 +87,17 @@ class EsSearchRequestBuilder {
     groupedParams.queryParams = ArrayListMultimap.create();
     groupedParams.postFilterParams = ArrayListMultimap.create();
 
-    searchRequest.getParameters().entries().forEach(entry -> {
-      if (searchRequest.getFacets().contains(entry.getKey())) {
-        groupedParams.postFilterParams.put(entry.getKey(), entry.getValue());
-      } else {
-        groupedParams.queryParams.put(entry.getKey(), entry.getValue());
-      }
-    });
+    searchRequest
+        .getParameters()
+        .asMap()
+        .forEach(
+            (k, v) -> {
+              if (searchRequest.getFacets().contains(k)) {
+                groupedParams.postFilterParams.putAll(k, v);
+              } else {
+                groupedParams.queryParams.putAll(k, v);
+              }
+            });
 
     return groupedParams;
   }

@@ -521,8 +521,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(2, jsonQuery.path(FROM).asInt());
     assertEquals(10, jsonQuery.path(SIZE).asInt());
 
-    request =
-      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 1, 2, INDEX);
+    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 1, 2, INDEX);
     jsonQuery = MAPPER.readTree(request.source().toString());
 
     assertEquals(1, jsonQuery.path(FROM).asInt());
@@ -535,7 +534,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addYearFilter(1999);
     searchRequest.addMonthFilter(2);
 
-    EsSearchRequestBuilder.GroupedParams groupedParams = EsSearchRequestBuilder.groupParameters(searchRequest);
+    EsSearchRequestBuilder.GroupedParams groupedParams =
+        EsSearchRequestBuilder.groupParameters(searchRequest);
 
     // only parameters
     assertEquals(2, groupedParams.queryParams.size());
@@ -552,5 +552,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
     groupedParams = EsSearchRequestBuilder.groupParameters(searchRequest);
     assertEquals(1, groupedParams.queryParams.size());
     assertEquals(1, groupedParams.postFilterParams.size());
+
+    searchRequest.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, 4);
+    searchRequest.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, 6);
+    groupedParams = EsSearchRequestBuilder.groupParameters(searchRequest);
+    assertEquals(2, groupedParams.queryParams.keySet().size());
+    assertEquals(3, groupedParams.queryParams.values().size());
+    assertEquals(2, groupedParams.queryParams.get(OccurrenceSearchParameter.KINGDOM_KEY).size());
   }
 }
