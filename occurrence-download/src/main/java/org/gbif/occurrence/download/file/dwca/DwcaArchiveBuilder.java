@@ -5,10 +5,8 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
-import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.ContactType;
@@ -113,7 +111,7 @@ public class DwcaArchiveBuilder {
   private static final EMLWriter EML_WRITER = EMLWriter.newInstance(true);
 
   private final DatasetService datasetService;
-  private final DatasetOccurrenceDownloadUsageService datasetUsageService;
+
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final TitleLookup titleLookup;
   private final Dataset dataset;
@@ -146,7 +144,6 @@ public class DwcaArchiveBuilder {
     String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-    DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
     Injector inj = Guice.createInjector(new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
@@ -159,7 +156,6 @@ public class DwcaArchiveBuilder {
 
     // build archive
     DwcaArchiveBuilder generator = new DwcaArchiveBuilder(datasetService,
-                                                          datasetUsageService,
                                                           occurrenceDownloadService,
                                                           sourceFs,
                                                           targetFs,
@@ -210,7 +206,6 @@ public class DwcaArchiveBuilder {
   @VisibleForTesting
   protected DwcaArchiveBuilder(
     DatasetService datasetService,
-    DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
     FileSystem sourceFs,
     FileSystem targetFs,
@@ -220,7 +215,6 @@ public class DwcaArchiveBuilder {
     WorkflowConfiguration workflowConfiguration
   ) {
     this.datasetService = datasetService;
-    this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.sourceFs = sourceFs;
     this.targetFs = targetFs;
@@ -451,7 +445,7 @@ public class DwcaArchiveBuilder {
       return licenseSelector.getSelectedLicense();
     }
 
-    Map<UUID, Integer> srcDatasets = readDatasetCounts(citationSrc);
+    Map<UUID, Long> srcDatasets = readDatasetCounts(citationSrc);
 
     File emlDir = new File(archiveDir, "dataset");
     if (!srcDatasets.isEmpty()) {
@@ -467,7 +461,7 @@ public class DwcaArchiveBuilder {
     citationWriter.write(CITATION_HEADER);
     // now iterate over constituent UUIDs
 
-    for (Entry<UUID, Integer> dsEntry : srcDatasets.entrySet()) {
+    for (Entry<UUID, Long> dsEntry : srcDatasets.entrySet()) {
       UUID constituentId = dsEntry.getKey();
       LOG.info("Processing constituent dataset: {}", constituentId);
       // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
@@ -483,7 +477,7 @@ public class DwcaArchiveBuilder {
         createEmlFile(constituentId, emlDir);
 
         // add as constituent for later
-        constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue()));
+        constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue().intValue()));
 
         // add original author as content provider to main dataset description
         Contact provider = DwcaContactsUtil.getContentProviderContact(srcDataset);
@@ -573,30 +567,6 @@ public class DwcaArchiveBuilder {
   }
 
   /**
-   * Persists the dataset usage information and swallows any exception to avoid an error during the file building.
-   */
-  private void persistDatasetUsage(Integer count, String downloadKey, UUID datasetKey) {
-    try {
-      Dataset dataset = datasetService.get(datasetKey);
-      if (dataset != null) { //the dataset still exists
-        DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-        datasetUsage.setDatasetKey(datasetKey);
-        datasetUsage.setNumberRecords(count);
-        datasetUsage.setDownloadKey(downloadKey);
-        datasetUsage.setDatasetDOI(dataset.getDoi());
-        if (dataset.getCitation() != null && dataset.getCitation().getText() != null) {
-          datasetUsage.setDatasetCitation(dataset.getCitation().getText());
-        }
-        datasetUsage.setDatasetTitle(dataset.getTitle());
-        datasetUsageService.create(datasetUsage);
-      }
-    } catch (Exception e) {
-      LOG.error("Error persisting dataset usage information, downloadKey: {}, datasetKey: {}", downloadKey,
-                datasetKey, e);
-    }
-  }
-
-  /**
    * Persist download license that was assigned to the occurrence download.
    *
    * @param downloadKey
@@ -615,9 +585,9 @@ public class DwcaArchiveBuilder {
   /**
    * Creates Map with dataset UUIDs and its record counts.
    */
-  private Map<UUID, Integer> readDatasetCounts(Path citationSrc) throws IOException {
+  private Map<UUID, Long> readDatasetCounts(Path citationSrc) throws IOException {
     // the hive query result is a directory with one or more files - read them all into a uuid set
-    Map<UUID, Integer> srcDatasets = Maps.newHashMap(); // map of uuids to occurrence counts
+    Map<UUID, Long> srcDatasets = Maps.newHashMap(); // map of uuids to occurrence counts
     FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
     int invalidUuids = 0;
     Closer closer = Closer.create();
@@ -635,12 +605,9 @@ public class DwcaArchiveBuilder {
                 Iterator<String> iter = TAB_SPLITTER.split(line).iterator();
                 // play safe and make sure we got a uuid - even though our api doesnt require it
                 UUID key = UUID.fromString(iter.next());
-                Integer count = Integer.parseInt(iter.next());
+                Long count = Long.parseLong(iter.next());
                 srcDatasets.put(key, count);
-                // small downloads persist dataset usages while builds the citations file
-                if (!configuration.isSmallDownload()) {
-                  persistDatasetUsage(count, configuration.getDownloadKey(), key);
-                }
+               
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
                 LOG.info("Found invalid UUID as datasetId {}", line);
@@ -658,6 +625,15 @@ public class DwcaArchiveBuilder {
       LOG.info("Found {} invalid dataset UUIDs", invalidUuids);
     } else {
       LOG.info("All {} dataset UUIDs are valid", srcDatasets.size());
+    }
+      // small downloads persist dataset usages while builds the citations file
+    if (!configuration.isSmallDownload()) {
+      try {
+        occurrenceDownloadService.createUsages(configuration.getDownloadKey(), srcDatasets);
+      }
+      catch(Exception e) {
+        LOG.error("Error persisting dataset usage information, downloadKey: {} for large download", configuration.getDownloadKey(), e);
+      }
     }
     return srcDatasets;
   }
