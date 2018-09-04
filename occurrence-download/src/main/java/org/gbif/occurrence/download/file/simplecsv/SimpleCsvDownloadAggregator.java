@@ -63,7 +63,6 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     outputFileName =
       configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    new CitationsFileReader.PersistUsage(configuration.getDownloadKey(), occurrenceDownloadService);
   }
 
   public void init() {
