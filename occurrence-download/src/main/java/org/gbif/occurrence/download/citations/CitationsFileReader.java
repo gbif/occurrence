@@ -38,9 +38,9 @@ public final class CitationsFileReader {
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
-  private static SimpleImmutableEntry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
+  private static SimpleImmutableEntry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
     Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
-    return new AbstractMap.SimpleImmutableEntry<UUID,Long>(UUID.fromString(tsvLineIterator.next()),Long.parseLong(tsvLineIterator.next()) );
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()),Long.parseLong(tsvLineIterator.next()) );
   }
 
   /**
@@ -52,7 +52,7 @@ public final class CitationsFileReader {
    * @param downloadKey  occurrence download key
    * @param predicates   list of predicates to apply while reading the file
    */
-  public static void readCitations(String nameNode, String citationPath,String downloadKey,
+  public static void readCitations(String nameNode, String citationPath,
                                    Predicate<Map<UUID,Long>> predicate) throws IOException {
     Map<UUID,Long> datasetsCitation = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
@@ -63,7 +63,7 @@ public final class CitationsFileReader {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // prepare citation object and add it to list
-                  SimpleImmutableEntry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey);
+                  SimpleImmutableEntry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
                   datasetsCitation.put(citationEntry.getKey(), citationEntry.getValue());
             }
           }
@@ -78,7 +78,6 @@ public final class CitationsFileReader {
 
     readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
                   Preconditions.checkNotNull(args[0]),
-                  Preconditions.checkNotNull(args[1]),
                   new PersistUsage(Preconditions.checkNotNull(args[1]),properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
 

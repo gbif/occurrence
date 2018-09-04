@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file.dwca;
 
-import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -31,9 +30,6 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   // Service that persist dataset usage information
   private final OccurrenceDownloadService occurrenceDownloadService;
-
-  //Dataset service
-  private final DatasetService datasetService;
 
   private final DownloadJobConfiguration configuration;
 
@@ -76,11 +72,9 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   @Inject
   public DwcaDownloadAggregator(
     OccurrenceDownloadService occurrenceDownloadService,
-    DatasetService datasetService,
     DownloadJobConfiguration configuration,
     RegistryClientUtil registryClientUtil
   ) {
-    this.datasetService = datasetService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
     this.registryClientUtil = registryClientUtil;

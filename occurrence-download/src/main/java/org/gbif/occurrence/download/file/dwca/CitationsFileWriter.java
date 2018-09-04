@@ -51,12 +51,7 @@ public final class CitationsFileWriter {
           }
         }
         beanWriter.flush();
-        try {
-          occDownloadService.createUsages(downloadKey, datasetUsages);
-        }
-        catch(Exception ex) {
-          LOG.error("Error persisting dataset usage information", ex);
-        }
+        occDownloadService.createUsages(downloadKey, datasetUsages);
       } catch (IOException e) {
         LOG.error("Error creating citations file", e);
         throw Throwables.propagate(e);

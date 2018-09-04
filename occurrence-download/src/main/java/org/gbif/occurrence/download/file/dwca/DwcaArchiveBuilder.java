@@ -7,7 +7,6 @@ import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.ContactType;
@@ -112,7 +111,7 @@ public class DwcaArchiveBuilder {
   private static final EMLWriter EML_WRITER = EMLWriter.newInstance(true);
 
   private final DatasetService datasetService;
-  private final DatasetOccurrenceDownloadUsageService datasetUsageService;
+
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final TitleLookup titleLookup;
   private final Dataset dataset;
@@ -145,7 +144,6 @@ public class DwcaArchiveBuilder {
     String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
     DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-    DatasetOccurrenceDownloadUsageService datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWs);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
 
     Injector inj = Guice.createInjector(new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
@@ -158,7 +156,6 @@ public class DwcaArchiveBuilder {
 
     // build archive
     DwcaArchiveBuilder generator = new DwcaArchiveBuilder(datasetService,
-                                                          datasetUsageService,
                                                           occurrenceDownloadService,
                                                           sourceFs,
                                                           targetFs,
@@ -209,7 +206,6 @@ public class DwcaArchiveBuilder {
   @VisibleForTesting
   protected DwcaArchiveBuilder(
     DatasetService datasetService,
-    DatasetOccurrenceDownloadUsageService datasetUsageService,
     OccurrenceDownloadService occurrenceDownloadService,
     FileSystem sourceFs,
     FileSystem targetFs,
@@ -219,7 +215,6 @@ public class DwcaArchiveBuilder {
     WorkflowConfiguration workflowConfiguration
   ) {
     this.datasetService = datasetService;
-    this.datasetUsageService = datasetUsageService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.sourceFs = sourceFs;
     this.targetFs = targetFs;

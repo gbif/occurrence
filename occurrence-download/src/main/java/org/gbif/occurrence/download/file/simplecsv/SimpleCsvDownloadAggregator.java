@@ -50,8 +50,6 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
 
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
-  private final CitationsFileReader.PersistUsage persistUsage;
-
   @Inject
   public SimpleCsvDownloadAggregator(
     DownloadJobConfiguration configuration,
@@ -65,7 +63,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
     outputFileName =
       configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    persistUsage = new CitationsFileReader.PersistUsage(configuration.getDownloadKey(), occurrenceDownloadService);
+    new CitationsFileReader.PersistUsage(configuration.getDownloadKey(), occurrenceDownloadService);
   }
 
   public void init() {
