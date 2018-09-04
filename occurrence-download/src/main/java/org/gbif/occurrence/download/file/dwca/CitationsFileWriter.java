@@ -37,7 +37,7 @@ public final class CitationsFileWriter {
    *
    * @param datasetUsages          record count per dataset
    * @param citationFileName       output file name
-   * @param datasetOccUsageService usage service
+   * @param occDownloadService     occurrence downlaod service
    * @param downloadKey            download key
    */
   public static void createCitationFile(Map<UUID, Long> datasetUsages, String citationFileName,

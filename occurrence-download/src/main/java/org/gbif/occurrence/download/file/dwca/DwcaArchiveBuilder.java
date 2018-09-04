@@ -639,17 +639,6 @@ public class DwcaArchiveBuilder {
   }
 
   /**
-   * Removes the file .occurrence.txt.crc that is created by the function FileUtil.copyMerge.
-   * This method is temporary change to fix the issue http://dev.gbif.org/issues/browse/OCC-306.
-   */
-  private void removeDataCRCFile(String destFileName) {
-    File occCRCDataFile = new File(archiveDir, String.format(CRC_FILE_FMT, destFileName));
-    if (occCRCDataFile.exists()) {
-      occCRCDataFile.delete();
-    }
-  }
-
-  /**
    * Simple, local representation for a constituent dataset.
    */
   static class Constituent {

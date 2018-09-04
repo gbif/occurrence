@@ -45,11 +45,9 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
   @Inject
-  public SimpleCsvDownloadAggregator(
-    DownloadJobConfiguration configuration,
-    WorkflowConfiguration workflowConfiguration,
-    OccurrenceDownloadService occurrenceDownloadService
-  ) {
+  public SimpleCsvDownloadAggregator(DownloadJobConfiguration configuration,
+                                     WorkflowConfiguration workflowConfiguration,
+                                     OccurrenceDownloadService occurrenceDownloadService) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
     outputFileName =
@@ -107,10 +105,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
    */
   private void persistDownloadLicense(String downloadKey, Set<License> licenses) {
     try {
-      for (License license : licenses) {
-        licenseSelector.collectLicense(license);
-      }
-
+      licenses.forEach(licenseSelector::collectLicense);
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(licenseSelector.getSelectedLicense());
       occurrenceDownloadService.update(download);
