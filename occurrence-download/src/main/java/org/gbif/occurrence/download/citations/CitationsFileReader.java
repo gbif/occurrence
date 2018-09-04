@@ -97,7 +97,7 @@ public final class CitationsFileReader {
 
     private final OccurrenceDownloadService downloadService;
 
-    public PersistUsage(String registryWsUrl,String downloadKey) {
+    public PersistUsage(String downloadKey,String registryWsUrl) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
       this.downloadKey = downloadKey; 
       this.downloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsUrl);
