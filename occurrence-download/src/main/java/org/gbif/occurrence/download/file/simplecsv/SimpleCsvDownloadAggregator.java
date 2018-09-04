@@ -19,9 +19,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import javax.inject.Inject;
 
 import com.google.common.base.Throwables;
