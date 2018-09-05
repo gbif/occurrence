@@ -60,21 +60,27 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
       return new SearchResponse<>();
     }
 
-    if (hasReplaceableScientificNames(request)) {
-      SearchRequest esRequest =
-          EsSearchRequestBuilder.buildSearchRequest(
-              request, facetsEnabled, maxOffset, maxLimit, esIndex);
-      org.elasticsearch.action.search.SearchResponse response = null;
-      try {
-        response = esClient.search(esRequest, HEADERS.get());
-      } catch (IOException e) {
-        LOG.error("Error executing the search operation", e);
-        throw new SearchException(e);
-      }
-
-      return EsResponseParser.buildResponse(response, request);
+    if (!hasReplaceableScientificNames(request)) {
+      return new SearchResponse<>(request);
     }
-    return new SearchResponse<>(request);
+
+    // build request
+    SearchRequest esRequest =
+        EsSearchRequestBuilder.buildSearchRequest(
+            request, facetsEnabled, maxOffset, maxLimit, esIndex);
+    LOG.debug("ES request: {}", esRequest);
+
+    // perform the search
+    org.elasticsearch.action.search.SearchResponse response = null;
+    try {
+      response = esClient.search(esRequest, HEADERS.get());
+    } catch (IOException e) {
+      LOG.error("Error executing the search operation", e);
+      throw new SearchException(e);
+    }
+
+    // parse response
+    return EsResponseParser.buildResponse(response, request);
   }
 
   @Override

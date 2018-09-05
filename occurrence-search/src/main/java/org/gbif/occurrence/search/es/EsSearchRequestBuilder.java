@@ -31,8 +31,6 @@ import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
 
 public class EsSearchRequestBuilder {
 
-  private static final Logger LOG = LoggerFactory.getLogger(EsSearchRequestBuilder.class);
-
   // TODO: sorting!!
 
   private EsSearchRequestBuilder() {}
@@ -52,8 +50,7 @@ public class EsSearchRequestBuilder {
 
     // size and offset
     searchSourceBuilder.size(Math.min(searchRequest.getLimit(), maxLimit));
-    int offset = (int) Math.min(maxOffset, searchRequest.getOffset());
-    searchSourceBuilder.from(offset);
+    searchSourceBuilder.from((int) Math.min(maxOffset, searchRequest.getOffset()));
 
     // group params
     GroupedParams groupedParams = groupParameters(searchRequest);
@@ -67,8 +64,6 @@ public class EsSearchRequestBuilder {
 
     // post-filter
     buildPostFilter(groupedParams.postFilterParams).ifPresent(searchSourceBuilder::postFilter);
-
-    LOG.debug("ES request: {}", esRequest);
 
     return esRequest;
   }
@@ -109,8 +104,12 @@ public class EsSearchRequestBuilder {
     }
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    createTermQueries(postFilterParams)
-        .ifPresent(termQueries -> termQueries.forEach(q -> bool.filter().add(q)));
+    postFilterParams
+        .asMap()
+        .forEach(
+            (k, v) ->
+                buildTermQuery(v, k, SEARCH_TO_ES_MAPPING.get(k))
+                    .forEach(q -> bool.filter().add(q)));
 
     return Optional.of(bool);
   }
@@ -149,18 +148,22 @@ public class EsSearchRequestBuilder {
         .filter(p -> SEARCH_TO_ES_MAPPING.get(p) != null)
         .map(
             facetParam -> {
-              OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
-
-              // get aggs filter params
-              Multimap<OccurrenceSearchParameter, String> aggsFilterParams =
-                  Multimaps.filterKeys(postFilterParams, key -> key != facetParam);
 
               // build filter aggs
               BoolQueryBuilder bool = QueryBuilders.boolQuery();
-              createTermQueries(aggsFilterParams)
-                  .ifPresent(termQueries -> termQueries.forEach(q -> bool.filter().add(q)));
+              postFilterParams
+                  .asMap()
+                  .entrySet()
+                  .stream()
+                  .filter(entry -> entry.getKey() != facetParam)
+                  .forEach(
+                      e ->
+                          buildTermQuery(
+                                  e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                              .forEach(q -> bool.filter().add(q)));
 
               // add filter to the aggs
+              OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
               FilterAggregationBuilder filterAggs =
                   AggregationBuilders.filter(esField.getFieldName(), bool);
 
@@ -228,10 +231,52 @@ public class EsSearchRequestBuilder {
     }
 
     // adding term queries to bool
-    createTermQueries(params)
-        .ifPresent(termQueries -> termQueries.forEach(q -> bool.filter().add(q)));
+    params
+        .asMap()
+        .entrySet()
+        .stream()
+        .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+        .forEach(
+            e ->
+                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                    .forEach(q -> bool.filter().add(q)));
 
     return Optional.of(bool);
+  }
+
+  private static List<QueryBuilder> buildTermQuery(
+      Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
+    List<QueryBuilder> queries = new ArrayList<>();
+
+    // collect queries for each value
+    List<String> parsedValues = new ArrayList<>();
+    for (String value : values) {
+      if (isRange(value)) {
+        queries.add(buildRangeQuery(esField, value));
+      } else if (param.type() != Date.class) {
+        if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
+          value = value.toUpperCase();
+        }
+        parsedValues.add(value);
+      }
+    }
+
+    if (parsedValues.size() == 1) {
+      // single term
+      queries.add(QueryBuilders.termQuery(esField.getFieldName(), parsedValues.get(0)));
+    } else if (parsedValues.size() > 1) {
+      // multi term query
+      queries.add(QueryBuilders.termsQuery(esField.getFieldName(), parsedValues));
+    }
+
+    return queries;
+  }
+
+  private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
+    String[] values = value.split(RANGE_SEPARATOR);
+    return QueryBuilders.rangeQuery(esField.getFieldName())
+        .gte(Double.valueOf(values[0]))
+        .lte(Double.valueOf(values[1]));
   }
 
   private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
@@ -241,11 +286,6 @@ public class EsSearchRequestBuilder {
     } catch (ParseException e) {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
-
-    String type =
-        "LinearRing".equals(geometry.getGeometryType())
-            ? "LINESTRING"
-            : geometry.getGeometryType().toUpperCase();
 
     Function<Polygon, PolygonBuilder> polygonToBuilder =
         polygon -> {
@@ -258,6 +298,11 @@ public class EsSearchRequestBuilder {
           }
           return polygonBuilder;
         };
+
+    String type =
+        "LinearRing".equals(geometry.getGeometryType())
+            ? "LINESTRING"
+            : geometry.getGeometryType().toUpperCase();
 
     ShapeBuilder shapeBuilder = null;
     if (("POINT").equals(type)) {
@@ -273,9 +318,7 @@ public class EsSearchRequestBuilder {
         multiPolygonBuilder.polygon(polygonToBuilder.apply((Polygon) geometry.getGeometryN(i)));
       }
       shapeBuilder = multiPolygonBuilder;
-    }
-
-    if (shapeBuilder == null) {
+    } else {
       throw new IllegalArgumentException(type + " shape is not supported");
     }
 
@@ -286,64 +329,6 @@ public class EsSearchRequestBuilder {
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }
-  }
-
-  private static Optional<RangeQueryBuilder> buildRangeQuery(
-      OccurrenceEsField esField, String value) {
-    String[] values = value.split(RANGE_SEPARATOR);
-    if (values.length < 2) {
-      return Optional.empty();
-    }
-
-    return Optional.of(
-        QueryBuilders.rangeQuery(esField.getFieldName())
-            .gte(Double.valueOf(values[0]))
-            .lte(Double.valueOf(values[1])));
-  }
-
-  private static Optional<List<QueryBuilder>> createTermQueries(
-      Multimap<OccurrenceSearchParameter, String> params) {
-    if (params == null || params.isEmpty()) {
-      return Optional.empty();
-    }
-
-    // must term fields
-    List<QueryBuilder> termQueries = new ArrayList<>();
-    for (OccurrenceSearchParameter param : params.keySet()) {
-      OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(param);
-      if (esField == null) {
-        continue;
-      }
-
-      List<String> termValues = new ArrayList<>();
-      for (String value : params.get(param)) {
-        if (isRange(value)) {
-          buildRangeQuery(esField, value).ifPresent(termQueries::add);
-        } else if (param.type() != Date.class) {
-          if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
-            value = value.toUpperCase();
-          }
-          termValues.add(value);
-        }
-      }
-      buildTermQuery(esField, termValues).ifPresent(termQueries::add);
-    }
-
-    return termQueries.isEmpty() ? Optional.empty() : Optional.of(termQueries);
-  }
-
-  private static Optional<QueryBuilder> buildTermQuery(
-      OccurrenceEsField esField, List<String> parsedValues) {
-    if (parsedValues.isEmpty()) {
-      return Optional.empty();
-    }
-
-    if (parsedValues.size() > 1) {
-      // multi term query
-      return Optional.of(QueryBuilders.termsQuery(esField.getFieldName(), parsedValues));
-    }
-    // single term
-    return Optional.of(QueryBuilders.termQuery(esField.getFieldName(), parsedValues.get(0)));
   }
 
   static class GroupedParams {
