@@ -1,13 +1,18 @@
 package org.gbif.occurrence.search.es;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
-import com.vividsolutions.jts.geom.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.*;
+import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
+import org.elasticsearch.common.geo.builders.PolygonBuilder;
+import org.elasticsearch.common.geo.builders.ShapeBuilder;
+import org.elasticsearch.common.geo.builders.ShapeBuilders;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -17,8 +22,6 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,8 +29,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
 import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
+import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
 
 public class EsSearchRequestBuilder {
 
@@ -69,7 +72,7 @@ public class EsSearchRequestBuilder {
   }
 
   public static Optional<QueryBuilder> buildQuery(
-    Multimap<OccurrenceSearchParameter, String> params) {
+      Multimap<OccurrenceSearchParameter, String> params) {
     // get query params
     if (params == null || params.isEmpty()) {
       return Optional.empty();
@@ -82,22 +85,22 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
       BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
       params
-        .get(OccurrenceSearchParameter.GEOMETRY)
-        .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
+          .get(OccurrenceSearchParameter.GEOMETRY)
+          .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
       bool.filter().add(shouldGeometry);
     }
 
     // adding term queries to bool
     params
-      .asMap()
-      .entrySet()
-      .stream()
-      .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
-      .flatMap(
-        e ->
-          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-            .stream())
-      .forEach(q -> bool.filter().add(q));
+        .asMap()
+        .entrySet()
+        .stream()
+        .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+        .flatMap(
+            e ->
+                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                    .stream())
+        .forEach(q -> bool.filter().add(q));
 
     return Optional.of(bool);
   }

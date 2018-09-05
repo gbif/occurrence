@@ -361,6 +361,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request =
         EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
     assertFalse(jsonQuery.has(POST_FILTER));
@@ -380,6 +381,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request =
         EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).has(FILTER));
     JsonNode queryFilter = jsonQuery.path(QUERY).path(BOOL).path(FILTER);
@@ -399,6 +401,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request =
         EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
 
     // assert aggs
     assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
@@ -434,6 +437,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request =
         EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
 
     // assert query
     assertEquals(
@@ -517,6 +521,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request =
         EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(2, jsonQuery.path(FROM).asInt());
     assertEquals(10, jsonQuery.path(SIZE).asInt());

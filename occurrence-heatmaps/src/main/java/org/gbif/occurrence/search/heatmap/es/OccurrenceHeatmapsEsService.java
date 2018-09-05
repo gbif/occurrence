@@ -7,6 +7,9 @@ import org.codehaus.jackson.map.ObjectReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
+import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
+import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
@@ -15,11 +18,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.AGGREGATIONS;
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.CELL_AGGS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
 
 public class OccurrenceHeatmapsEsService
@@ -40,7 +47,11 @@ public class OccurrenceHeatmapsEsService
   @Override
   public EsOccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {
 
+    // build request
     SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
+    LOG.debug("ES query: {}", searchRequest);
+
+    // perform search
     SearchResponse response = null;
     try {
       response = esClient.search(searchRequest, HEADERS.get());
@@ -49,14 +60,56 @@ public class OccurrenceHeatmapsEsService
       throw new SearchException(e);
     }
 
-    try {
-      JsonNode jsonResponse = JSON_READER.readTree(response.toString());
-      return JSON_READER.treeToValue(
-          jsonResponse.path(AGGREGATIONS).path(BOX_AGGS).path(HEATMAP_AGGS),
-          EsOccurrenceHeatmapResponse.class);
-    } catch (IOException e) {
-      LOG.error("Error reading ES response", e);
-      throw new IllegalArgumentException(e.getMessage(), e);
-    }
+    // parse response
+    return parseResponse(response);
+  }
+
+  private static EsOccurrenceHeatmapResponse parseResponse(SearchResponse response) {
+    ParsedFilter boxAggs = response.getAggregations().get(BOX_AGGS);
+    ParsedGeoHashGrid heatmapAggs = boxAggs.getAggregations().get(HEATMAP_AGGS);
+
+    List<EsOccurrenceHeatmapResponse.GeoGridBucket> buckets =
+        heatmapAggs
+            .getBuckets()
+            .stream()
+            .map(
+                b -> {
+                  // build bucket
+                  EsOccurrenceHeatmapResponse.GeoGridBucket bucket =
+                      new EsOccurrenceHeatmapResponse.GeoGridBucket();
+                  bucket.setKey(b.getKeyAsString());
+                  bucket.setDocCount((int) b.getDocCount());
+
+                  // build bounds
+                  EsOccurrenceHeatmapResponse.Bounds bounds =
+                      new EsOccurrenceHeatmapResponse.Bounds();
+                  ParsedGeoBounds cellAggs = b.getAggregations().get(CELL_AGGS);
+                  // topLeft
+                  EsOccurrenceHeatmapResponse.Coordinate topLeft =
+                      new EsOccurrenceHeatmapResponse.Coordinate();
+                  topLeft.setLat(cellAggs.topLeft().getLat());
+                  topLeft.setLon(cellAggs.topLeft().getLon());
+                  bounds.setTopLeft(topLeft);
+                  // bottomRight
+                  EsOccurrenceHeatmapResponse.Coordinate bottomRight =
+                      new EsOccurrenceHeatmapResponse.Coordinate();
+                  bottomRight.setLat(cellAggs.bottomRight().getLat());
+                  bottomRight.setLon(cellAggs.bottomRight().getLon());
+                  bounds.setBottomRight(bottomRight);
+
+                  // build cell
+                  EsOccurrenceHeatmapResponse.Cell cell = new EsOccurrenceHeatmapResponse.Cell();
+                  cell.setBounds(bounds);
+                  bucket.setCell(cell);
+
+                  return bucket;
+                })
+            .collect(Collectors.toList());
+
+    // build result
+    EsOccurrenceHeatmapResponse result = new EsOccurrenceHeatmapResponse();
+    result.setBuckets(buckets);
+
+    return result;
   }
 }

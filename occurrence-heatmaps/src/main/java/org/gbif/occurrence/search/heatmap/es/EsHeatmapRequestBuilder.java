@@ -15,16 +15,12 @@ import org.gbif.common.shaded.com.google.common.collect.Iterables;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class EsHeatmapRequestBuilder {
 
   static final String BOX_AGGS = "box";
   static final String HEATMAP_AGGS = "heatmap";
   static final String CELL_AGGS = "cell";
-
-  private static final Logger LOG = LoggerFactory.getLogger(EsHeatmapRequestBuilder.class);
 
   private EsHeatmapRequestBuilder() {}
 
@@ -40,14 +36,13 @@ class EsHeatmapRequestBuilder {
     // size 0
     searchSourceBuilder.size(0);
 
-    // add query
+    // add hasCoordinate to the filter and create query
+    request.addHasCoordinateFilter(true);
     EsSearchRequestBuilder.buildQuery(request.getParameters())
         .ifPresent(searchSourceBuilder::query);
 
     // add aggs
     searchSourceBuilder.aggregation(buildAggs(request));
-
-    LOG.debug("ES query: {}", esRequest);
 
     return esRequest;
   }
