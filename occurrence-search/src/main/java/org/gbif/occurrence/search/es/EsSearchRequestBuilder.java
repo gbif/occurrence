@@ -106,10 +106,13 @@ public class EsSearchRequestBuilder {
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     postFilterParams
         .asMap()
-        .forEach(
-            (k, v) ->
-                buildTermQuery(v, k, SEARCH_TO_ES_MAPPING.get(k))
-                    .forEach(q -> bool.filter().add(q)));
+        .entrySet()
+        .stream()
+        .flatMap(
+            e ->
+                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                    .stream())
+        .forEach(q -> bool.filter().add(q));
 
     return Optional.of(bool);
   }
