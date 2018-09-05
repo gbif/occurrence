@@ -68,6 +68,40 @@ public class EsSearchRequestBuilder {
     return esRequest;
   }
 
+  public static Optional<QueryBuilder> buildQuery(
+    Multimap<OccurrenceSearchParameter, String> params) {
+    // get query params
+    if (params == null || params.isEmpty()) {
+      return Optional.empty();
+    }
+
+    // create bool node
+    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+
+    // adding geometry to bool
+    if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
+      BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
+      params
+        .get(OccurrenceSearchParameter.GEOMETRY)
+        .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
+      bool.filter().add(shouldGeometry);
+    }
+
+    // adding term queries to bool
+    params
+      .asMap()
+      .entrySet()
+      .stream()
+      .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+      .flatMap(
+        e ->
+          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+            .stream())
+      .forEach(q -> bool.filter().add(q));
+
+    return Optional.of(bool);
+  }
+
   @VisibleForTesting
   static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
     GroupedParams groupedParams = new GroupedParams();
@@ -215,40 +249,6 @@ public class EsSearchRequestBuilder {
     return termsAggsBuilder;
   }
 
-  public static Optional<QueryBuilder> buildQuery(
-      Multimap<OccurrenceSearchParameter, String> params) {
-    // get query params
-    if (params == null || params.isEmpty()) {
-      return Optional.empty();
-    }
-
-    // create bool node
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-
-    // adding geometry to bool
-    if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
-      params
-          .get(OccurrenceSearchParameter.GEOMETRY)
-          .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
-      bool.filter().add(shouldGeometry);
-    }
-
-    // adding term queries to bool
-    params
-        .asMap()
-        .entrySet()
-        .stream()
-        .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
-        .flatMap(
-            e ->
-                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                    .stream())
-        .forEach(q -> bool.filter().add(q));
-
-    return Optional.of(bool);
-  }
-
   private static List<QueryBuilder> buildTermQuery(
       Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
     List<QueryBuilder> queries = new ArrayList<>();
@@ -336,6 +336,7 @@ public class EsSearchRequestBuilder {
     }
   }
 
+  @VisibleForTesting
   static class GroupedParams {
     Multimap<OccurrenceSearchParameter, String> postFilterParams;
     Multimap<OccurrenceSearchParameter, String> queryParams;
