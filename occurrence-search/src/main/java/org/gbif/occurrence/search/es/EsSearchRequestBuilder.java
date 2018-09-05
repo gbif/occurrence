@@ -156,11 +156,12 @@ public class EsSearchRequestBuilder {
                   .entrySet()
                   .stream()
                   .filter(entry -> entry.getKey() != facetParam)
-                  .forEach(
+                  .flatMap(
                       e ->
                           buildTermQuery(
                                   e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                              .forEach(q -> bool.filter().add(q)));
+                              .stream())
+                  .forEach(q -> bool.filter().add(q));
 
               // add filter to the aggs
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
@@ -236,10 +237,11 @@ public class EsSearchRequestBuilder {
         .entrySet()
         .stream()
         .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
-        .forEach(
+        .flatMap(
             e ->
                 buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                    .forEach(q -> bool.filter().add(q)));
+                    .stream())
+        .forEach(q -> bool.filter().add(q));
 
     return Optional.of(bool);
   }
