@@ -37,7 +37,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +55,6 @@ import java.util.zip.ZipInputStream;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -92,7 +90,6 @@ public class DwcaArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaArchiveBuilder.class);
   // The CRC is created by the function FileSystem.copyMerge function
-  private static final String CRC_FILE_FMT = ".%s.crc";
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
   private static final String METADATA_DESC_HEADER_FMT =
@@ -122,20 +119,15 @@ public class DwcaArchiveBuilder {
   private final DownloadJobConfiguration configuration;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
   private final List<Constituent> constituents = Lists.newArrayList();
-  private final Ordering<Constituent> constituentsOrder =
-    Ordering.natural().onResultOf(new Function<Constituent, Integer>() {
+  private final Ordering<Constituent> constituentsOrder = Ordering.natural().onResultOf(c -> c.records);
 
-      public Integer apply(Constituent c) {
-        return c.records;
-      }
-    });
-
-  public static void buildArchive(DownloadJobConfiguration configuration, RegistryClientUtil registryClientUtil) throws IOException {
-    buildArchive(configuration, new WorkflowConfiguration(), registryClientUtil);
+  public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
+    buildArchive(configuration, new WorkflowConfiguration());
   }
 
-  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration, RegistryClientUtil registryClientUtil)
+  public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
     throws IOException {
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
     String tmpDir = workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
@@ -177,7 +169,7 @@ public class DwcaArchiveBuilder {
         citationWriter.write(citationLink);
       }
     } else {
-      LOG.error(String.format("Constituent dataset misses mandatory citation for id: %s", constituentId));
+      LOG.error("Constituent dataset misses mandatory citation for id: {}", constituentId);
     }
     if (dataset.getDoi() != null) {
       citationWriter.write(" " + dataset.getDoi());
@@ -204,16 +196,9 @@ public class DwcaArchiveBuilder {
   }
 
   @VisibleForTesting
-  protected DwcaArchiveBuilder(
-    DatasetService datasetService,
-    OccurrenceDownloadService occurrenceDownloadService,
-    FileSystem sourceFs,
-    FileSystem targetFs,
-    File archiveDir,
-    TitleLookup titleLookup,
-    DownloadJobConfiguration configuration,
-    WorkflowConfiguration workflowConfiguration
-  ) {
+  protected DwcaArchiveBuilder(DatasetService datasetService, OccurrenceDownloadService occurrenceDownloadService,
+                               FileSystem sourceFs, FileSystem targetFs, File archiveDir, TitleLookup titleLookup,
+                               DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration) {
     this.datasetService = datasetService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.sourceFs = sourceFs;
@@ -258,7 +243,7 @@ public class DwcaArchiveBuilder {
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
       // zip up
-      LOG.info("Zipping archive {}", archiveDir.toString());
+      LOG.info("Zipping archive {}", archiveDir);
       CompressionUtil.zipDir(archiveDir, zipFile, true);
 
       // add the large download data files to the zip stream
@@ -280,9 +265,8 @@ public class DwcaArchiveBuilder {
 
   public void createEmlFile(UUID constituentId, File emlDir) throws IOException {
     Closer closer = Closer.create();
-    try {
+    try (InputStream in = datasetService.getMetadataDocument(constituentId)) {
       // store dataset EML as constituent metadata
-      InputStream in = closer.register(datasetService.getMetadataDocument(constituentId));
       if (in != null) {
         // copy into archive, reading stream from registry services
         OutputStream out = closer.register(new FileOutputStream(new File(emlDir, constituentId + ".xml")));
@@ -290,9 +274,6 @@ public class DwcaArchiveBuilder {
       } else {
         LOG.error("Found no EML for datasetId {}", constituentId);
       }
-
-    } catch (FileNotFoundException ex) {
-      LOG.error("Error creating eml file", ex);
     } catch (IOException ex) {
       LOG.error("Error creating eml file", ex);
     } finally {
@@ -317,10 +298,10 @@ public class DwcaArchiveBuilder {
     }
 
     description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
-    List<Constituent> byRecords = constituentsOrder.sortedCopy(constituents);
-    for (Constituent c : byRecords) {
-      description.append(c.records + " records from " + c.title + '\n');
-    }
+    constituents.stream()
+      .sorted(constituentsOrder)
+      .map(c -> c.records + " records from " + c.title + '\n')
+      .forEach(description::append);
     return description.toString();
   }
 
@@ -333,8 +314,7 @@ public class DwcaArchiveBuilder {
     try {
       dataDescription.setUrl(new URI(workflowConfiguration.getDownloadLink(configuration.getDownloadKey())));
     } catch (URISyntaxException e) {
-      LOG.error(String.format("Wrong url %s", workflowConfiguration.getDownloadLink(configuration.getDownloadKey())),
-                e);
+      LOG.error("Wrong url {}", workflowConfiguration.getDownloadLink(configuration.getDownloadKey()), e);
     }
     return dataDescription;
   }
@@ -344,14 +324,13 @@ public class DwcaArchiveBuilder {
    */
   private void appendPreCompressedFiles(File zipFile) throws IOException {
 
-    LOG.info("Appending pre-compressed occurrence content to the Zip: " + zipFile.getAbsolutePath());
+    LOG.info("Appending pre-compressed occurrence content to the Zip: {}", zipFile.getAbsolutePath());
 
     File tempZip = new File(archiveDir, zipFile.getName() + ".part");
     boolean renameOk = zipFile.renameTo(tempZip);
     if (renameOk) {
-      try (
-        ZipInputStream zin = new ZipInputStream(new FileInputStream(tempZip));
-        ModalZipOutputStream out = new ModalZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+      try (ZipInputStream zin = new ZipInputStream(new FileInputStream(tempZip));
+           ModalZipOutputStream out = new ModalZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)))
       ) {
 
         // copy existing entries
@@ -407,7 +386,7 @@ public class DwcaArchiveBuilder {
       LocatedFileStatus fs = files.next();
       Path path = fs.getPath();
       if (path.toString().endsWith(D2Utils.FILE_EXTENSION)) {
-        LOG.info("Deflated content to merge: " + path);
+        LOG.info("Deflated content to merge: {} ", path);
         parts.add(sourceFs.open(path));
       }
     }
@@ -451,49 +430,42 @@ public class DwcaArchiveBuilder {
     if (!srcDatasets.isEmpty()) {
       emlDir.mkdir();
     }
-    Closer closer = Closer.create();
 
-    Writer rightsWriter = closer.register(FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME)));
-    Writer citationWriter = closer.register(FileUtils.startNewUtf8File(new File(archiveDir, CITATIONS_FILENAME)));
+    try(Writer rightsWriter = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
+        Writer citationWriter = FileUtils.startNewUtf8File(new File(archiveDir, CITATIONS_FILENAME))) {
+        // write fixed citations header
+        citationWriter.write(CITATION_HEADER);
+        // now iterate over constituent UUIDs
 
-    closer.register(citationWriter);
-    // write fixed citations header
-    citationWriter.write(CITATION_HEADER);
-    // now iterate over constituent UUIDs
+        for (Entry<UUID, Long> dsEntry : srcDatasets.entrySet()) {
+          UUID constituentId = dsEntry.getKey();
+          LOG.info("Processing constituent dataset: {}", constituentId);
+          // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
+          try {
+            Dataset srcDataset = datasetService.get(constituentId);
 
-    for (Entry<UUID, Long> dsEntry : srcDatasets.entrySet()) {
-      UUID constituentId = dsEntry.getKey();
-      LOG.info("Processing constituent dataset: {}", constituentId);
-      // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
-      try {
-        Dataset srcDataset = datasetService.get(constituentId);
+            licenseSelector.collectLicense(srcDataset.getLicense());
+            // citation
+            String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
+            // rights
+            writeRights(rightsWriter, srcDataset, citationLink);
+            // eml file
+            createEmlFile(constituentId, emlDir);
 
-        licenseSelector.collectLicense(srcDataset.getLicense());
-        // citation
-        String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
-        // rights
-        writeRights(rightsWriter, srcDataset, citationLink);
-        // eml file
-        createEmlFile(constituentId, emlDir);
+            // add as constituent for later
+            constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue().intValue()));
 
-        // add as constituent for later
-        constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue().intValue()));
-
-        // add original author as content provider to main dataset description
-        Contact provider = DwcaContactsUtil.getContentProviderContact(srcDataset);
-        if (provider != null) {
-          dataset.getContacts().add(provider);
+            // add original author as content provider to main dataset description
+            DwcaContactsUtil.getContentProviderContact(srcDataset).ifPresent(provider -> dataset.getContacts().add(provider));
+          } catch (UniformInterfaceException e) {
+            LOG.error("Registry client http exception: {} \n {}", e.getResponse().getStatus(),
+                       e.getResponse().getEntity(String.class), e);
+          } catch (Exception e) {
+            LOG.error("Error creating download file", e);
+            return licenseSelector.getSelectedLicense();
+          }
         }
-      } catch (UniformInterfaceException e) {
-        LOG.error(String.format("Registry client http exception: %d \n %s",
-                                e.getResponse().getStatus(),
-                                e.getResponse().getEntity(String.class)), e);
-      } catch (Exception e) {
-        LOG.error("Error creating download file", e);
-        return licenseSelector.getSelectedLicense();
-      }
     }
-    closer.close();
     return licenseSelector.getSelectedLicense();
   }
 
@@ -590,13 +562,11 @@ public class DwcaArchiveBuilder {
     Map<UUID, Long> srcDatasets = Maps.newHashMap(); // map of uuids to occurrence counts
     FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
     int invalidUuids = 0;
-    Closer closer = Closer.create();
     for (FileStatus fs : citFiles) {
       if (!fs.isDirectory()) {
-        BufferedReader citationReader =
-          new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), Charsets.UTF_8));
-        closer.register(citationReader);
-        try {
+        try (BufferedReader citationReader =
+               new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), Charsets.UTF_8))) {
+
           String line = citationReader.readLine();
           while (line != null) {
             if (!Strings.isNullOrEmpty(line)) {
@@ -607,7 +577,7 @@ public class DwcaArchiveBuilder {
                 UUID key = UUID.fromString(iter.next());
                 Long count = Long.parseLong(iter.next());
                 srcDatasets.put(key, count);
-               
+
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
                 LOG.info("Found invalid UUID as datasetId {}", line);
@@ -616,8 +586,6 @@ public class DwcaArchiveBuilder {
             }
             line = citationReader.readLine();
           }
-        } finally {
-          closer.close();
         }
       }
     }

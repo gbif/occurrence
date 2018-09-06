@@ -341,27 +341,22 @@ public class HiveQueryVisitor {
   }
 
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
-    if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
-      // ignore - there's no way to actually request this in the interface, nor is it indexed in solr
-    } else {
-      if (Date.class.isAssignableFrom(predicate.getKey().type())) {
-        if (SearchTypeValidator.isRange(predicate.getValue())) {
-          visit(toDateRangePredicate(IsoDateParsingUtils.parseDateRange(predicate.getValue()), predicate.getKey()));
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      if (SearchTypeValidator.isRange(predicate.getValue())) {
+        visit(toDateRangePredicate(IsoDateParsingUtils.parseDateRange(predicate.getValue()), predicate.getKey()));
+        return;
+      } else {
+        IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(predicate.getValue());
+        if (IsoDateFormat.FULL != isoDateFormat) {
+          visit(toDatePredicateQuery(predicate.getKey(), predicate.getValue(), isoDateFormat));
           return;
-        } else {
-          IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(predicate.getValue());
-          if (IsoDateFormat.FULL != isoDateFormat) {
-            visit(toDatePredicateQuery(predicate.getKey(), predicate.getValue(), isoDateFormat));
-            return;
-          }
         }
-
       }
-      builder.append(toHiveField(predicate.getKey()));
-      builder.append(op);
-      builder.append(toHiveValue(predicate.getKey(), predicate.getValue()));
 
     }
+    builder.append(toHiveField(predicate.getKey()));
+    builder.append(op);
+    builder.append(toHiveValue(predicate.getKey(), predicate.getValue()));
   }
 
   /**

@@ -265,7 +265,7 @@ public class SolrQueryVisitor {
   private void visit(Object object) throws QueryBuildingException {
     Method method = null;
     try {
-      method = getClass().getMethod("visit", new Class[] {object.getClass()});
+      method = getClass().getMethod("visit", object.getClass());
     } catch (NoSuchMethodException e) {
       LOG.warn("Visit method could not be found. That means a unknown Predicate has been passed", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
@@ -273,7 +273,7 @@ public class SolrQueryVisitor {
     try {
       method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
       Throwables.propagate(e);
     } catch (InvocationTargetException e) {
       LOG.info("Exception thrown while building the query", e);

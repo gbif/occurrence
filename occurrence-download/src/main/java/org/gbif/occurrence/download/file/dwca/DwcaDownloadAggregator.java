@@ -33,7 +33,6 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   private final DownloadJobConfiguration configuration;
 
-  private final RegistryClientUtil registryClientUtil;
 
   /**
    * Utility method that creates a file, if the files exists it is deleted.
@@ -77,7 +76,6 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   ) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
-    this.registryClientUtil = registryClientUtil;
   }
 
   public void init() {
@@ -114,7 +112,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                configuration.getDownloadKey());
       }
       //Creates the DwcA zip file
-      DwcaArchiveBuilder.buildArchive(configuration, registryClientUtil);
+      DwcaArchiveBuilder.buildArchive(configuration);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
