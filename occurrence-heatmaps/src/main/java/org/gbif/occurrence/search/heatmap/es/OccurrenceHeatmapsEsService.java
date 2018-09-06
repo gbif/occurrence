@@ -1,8 +1,6 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import com.google.inject.Inject;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -18,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
@@ -28,7 +26,6 @@ public class OccurrenceHeatmapsEsService
     implements OccurrenceHeatmapService<EsOccurrenceHeatmapResponse> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
-  private static final ObjectReader JSON_READER = new ObjectMapper().reader(Map.class);
 
   private final RestHighLevelClient esClient;
   private final String esIndex;
@@ -41,6 +38,7 @@ public class OccurrenceHeatmapsEsService
 
   @Override
   public EsOccurrenceHeatmapResponse searchHeatMap(@Nullable OccurrenceHeatmapRequest request) {
+    Objects.requireNonNull(request);
 
     // build request
     SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
