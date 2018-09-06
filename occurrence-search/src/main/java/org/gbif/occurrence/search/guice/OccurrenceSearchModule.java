@@ -3,7 +3,9 @@ package org.gbif.occurrence.search.guice;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.search.es.EsConfig;
@@ -46,6 +48,13 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
         throw new IllegalArgumentException(e.getMessage(), e);
       }
     }
-    return new RestHighLevelClient(RestClient.builder(hosts).build());
+
+    RestClientBuilder builder =
+        RestClient.builder(hosts)
+            .setRequestConfigCallback(
+              requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(6000).setSocketTimeout(90000))
+            .setMaxRetryTimeoutMillis(90000);
+
+    return new RestHighLevelClient(builder.build());
   }
 }
