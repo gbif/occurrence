@@ -11,6 +11,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -132,4 +134,13 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
           .build();
 
+  static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
+      new HashMap<>(SEARCH_TO_ES_MAPPING.size());
+
+  static {
+    for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
+        SEARCH_TO_ES_MAPPING.entrySet()) {
+      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
+    }
+  }
 }
