@@ -2,6 +2,9 @@ package org.gbif.occurrence.search.es;
 
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
@@ -58,7 +61,21 @@ public class EsResponseParser {
             .stream()
             .map(
                 aggs -> {
-                  List<? extends Terms.Bucket> buckets = ((Terms) aggs).getBuckets();
+                  List<? extends Terms.Bucket> buckets = null;
+                  if (aggs instanceof Terms) {
+                    buckets = ((Terms) aggs).getBuckets();
+                  } else if (aggs instanceof Filter) {
+                    buckets =
+                        ((Filter) aggs)
+                            .getAggregations()
+                            .asList()
+                            .stream()
+                            .flatMap(agg -> ((Terms) agg).getBuckets().stream())
+                            .collect(Collectors.toList());
+                  } else {
+                    throw new IllegalArgumentException(
+                        aggs.getClass() + " aggregation not supported");
+                  }
 
                   // set counts
                   List<Facet.Count> counts = new ArrayList<>(buckets.size());
