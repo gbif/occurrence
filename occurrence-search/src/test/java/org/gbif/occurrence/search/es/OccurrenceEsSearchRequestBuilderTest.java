@@ -27,12 +27,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
 
   @Test
-  public void matchQueryTest() throws IOException {
+  public void termQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter(6);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -45,13 +45,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void multiMatchQueryTest() throws IOException {
+  public void multiTermQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addYearFilter(1999);
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -71,13 +71,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void multiTermQueryTest() throws IOException {
+  public void multivalueTermQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addMonthFilter(1);
     searchRequest.addMonthFilter(2);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -94,7 +94,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addParameter(OccurrenceSearchParameter.DECIMAL_LATITUDE, "12, 25");
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -113,7 +113,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(polygon);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -153,7 +153,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(polygonWithHole);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -195,7 +195,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(multipolygon);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -239,7 +239,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(linestring);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -279,7 +279,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(linearring);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
@@ -319,7 +319,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeometryFilter(point);
 
     QueryBuilder query =
-        EsSearchRequestBuilder.buildQuery(searchRequest.getParameters())
+        EsSearchRequestBuilder.buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);

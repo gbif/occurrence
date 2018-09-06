@@ -38,8 +38,7 @@ class EsHeatmapRequestBuilder {
 
     // add hasCoordinate to the filter and create query
     request.addHasCoordinateFilter(true);
-    EsSearchRequestBuilder.buildQuery(request.getParameters())
-        .ifPresent(searchSourceBuilder::query);
+    EsSearchRequestBuilder.buildQueryNode(request).ifPresent(searchSourceBuilder::query);
 
     // add aggs
     searchSourceBuilder.aggregation(buildAggs(request));

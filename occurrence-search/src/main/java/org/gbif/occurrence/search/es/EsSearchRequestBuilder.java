@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
 import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
 import org.elasticsearch.common.geo.builders.PolygonBuilder;
@@ -38,7 +39,11 @@ public class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
-  public static SearchRequest buildSearchRequest(
+  public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
+    return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
+  }
+
+  static SearchRequest buildSearchRequest(
       OccurrenceSearchRequest searchRequest,
       boolean facetsEnabled,
       int maxOffset,
@@ -59,7 +64,8 @@ public class EsSearchRequestBuilder {
     GroupedParams groupedParams = groupParameters(searchRequest);
 
     // add query
-    buildQuery(groupedParams.queryParams).ifPresent(searchSourceBuilder::query);
+    buildQuery(groupedParams.queryParams, searchRequest.getQ())
+        .ifPresent(searchSourceBuilder::query);
 
     // add aggs
     buildAggs(searchRequest, groupedParams.postFilterParams, facetsEnabled)
@@ -71,8 +77,8 @@ public class EsSearchRequestBuilder {
     return esRequest;
   }
 
-  public static Optional<QueryBuilder> buildQuery(
-      Multimap<OccurrenceSearchParameter, String> params) {
+  private static Optional<QueryBuilder> buildQuery(
+      Multimap<OccurrenceSearchParameter, String> params, String qParam) {
     // get query params
     if (params == null || params.isEmpty()) {
       return Optional.empty();
@@ -80,6 +86,12 @@ public class EsSearchRequestBuilder {
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
+
+    // adding full text search parameter
+    // TODO: tests pending
+    if (!Strings.isNullOrEmpty(qParam)) {
+      bool.must(QueryBuilders.matchQuery("_all", qParam));
+    }
 
     // adding geometry to bool
     if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
