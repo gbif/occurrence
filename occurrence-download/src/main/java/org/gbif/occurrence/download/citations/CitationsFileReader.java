@@ -1,32 +1,30 @@
 package org.gbif.occurrence.download.citations;
 
-import org.gbif.api.model.registry.Dataset;
-import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
-import org.gbif.api.service.registry.DatasetService;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import javax.annotation.Nullable;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.UUID;
-import javax.annotation.Nullable;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Reads a datasets citations file and optionally persists the data usages and return the usages into a Map object.
@@ -39,13 +37,9 @@ public final class CitationsFileReader {
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
-  private static DatasetOccurrenceDownloadUsage toDatasetOccurrenceDownloadUsage(String tsvLine, String downloadKey) {
+  private static Map.Entry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
     Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
-    DatasetOccurrenceDownloadUsage datasetUsage = new DatasetOccurrenceDownloadUsage();
-    datasetUsage.setDatasetKey(UUID.fromString(tsvLineIterator.next()));
-    datasetUsage.setDownloadKey(downloadKey);
-    datasetUsage.setNumberRecords(Long.parseLong(tsvLineIterator.next()));
-    return datasetUsage;
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()), Long.parseLong(tsvLineIterator.next()));
   }
 
   /**
@@ -54,11 +48,11 @@ public final class CitationsFileReader {
    *
    * @param nameNode     Hadoop name node uri
    * @param citationPath path to the directory that contains the citation table files
-   * @param downloadKey  occurrence download key
-   * @param predicates   list of predicates to apply while reading the file
+   * @param predicates   predicate to apply after reading the file
    */
-  public static void readCitations(String nameNode, String citationPath, String downloadKey,
-                                   Predicate<DatasetOccurrenceDownloadUsage>... predicates) throws IOException {
+  public static void readCitations(String nameNode, String citationPath,
+                                   Predicate<Map<UUID,Long>> predicate) throws IOException {
+    Map<UUID,Long> datasetsCitation = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
@@ -66,19 +60,15 @@ public final class CitationsFileReader {
                                                                                       Charsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
-              // catch all error to avoid breaking the loop
-              try {
-                for (Predicate<DatasetOccurrenceDownloadUsage> predicate : predicates) {
-                  predicate.apply(toDatasetOccurrenceDownloadUsage(tsvLine, downloadKey));
-                }
-              } catch (Exception e) {
-                LOG.info(String.format("Error processing citation line: %s", tsvLine), e);
-              }
+              // prepare citation object and add it to list
+                  Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
+                  datasetsCitation.put(citationEntry.getKey(), citationEntry.getValue());
             }
           }
         }
       }
     }
+    predicate.apply(datasetsCitation);
   }
 
   public static void main(String[] args) throws IOException {
@@ -86,8 +76,7 @@ public final class CitationsFileReader {
 
     readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
                   Preconditions.checkNotNull(args[0]),
-                  Preconditions.checkNotNull(args[1]),
-                  new PersistUsage(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+                  new PersistUsage(Preconditions.checkNotNull(args[1]), properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
 
   /**
@@ -100,37 +89,28 @@ public final class CitationsFileReader {
   /**
    * Persists the dataset usage into the Registry data base.
    */
-  public static class PersistUsage implements Predicate<DatasetOccurrenceDownloadUsage> {
+  public static class PersistUsage implements Predicate<Map<UUID,Long>> {
 
-    private final DatasetService datasetService;
+    private final String downloadKey;
 
-    private final DatasetOccurrenceDownloadUsageService datasetUsageService;
+    private final OccurrenceDownloadService downloadService;
 
-    public PersistUsage(String registryWsUrl) {
+    private PersistUsage(String downloadKey, String registryWsUrl) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
-      datasetService = registryClientUtil.setupDatasetService(registryWsUrl);
-      datasetUsageService = registryClientUtil.setupDatasetUsageService(registryWsUrl);
-    }
-
-    public PersistUsage(DatasetService datasetService, DatasetOccurrenceDownloadUsageService datasetUsageService) {
-      this.datasetService = datasetService;
-      this.datasetUsageService = datasetUsageService;
+      this.downloadKey = downloadKey; 
+      this.downloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsUrl);
     }
 
     @Override
-    public boolean apply(@Nullable DatasetOccurrenceDownloadUsage input) {
+    public boolean apply(@Nullable Map<UUID,Long> datasetsCitation) {
+      if(datasetsCitation == null || datasetsCitation.isEmpty()) {
+        LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
+        return true;
+      }
       try {
-        Dataset dataset = datasetService.get(input.getDatasetKey());
-        if (dataset != null) { //the dataset still exists
-          input.setDatasetDOI(dataset.getDoi());
-          if (dataset.getCitation() != null && dataset.getCitation().getText() != null) {
-            input.setDatasetCitation(dataset.getCitation().getText());
-          }
-          input.setDatasetTitle(dataset.getTitle());
-          datasetUsageService.create(input);
-        }
+        downloadService.createUsages(downloadKey, datasetsCitation);
       } catch (Exception e) {
-        LOG.error("Error persisting dataset usage information {}", input, e);
+        LOG.error("Error persisting dataset usage information {}", datasetsCitation, e);
         return false;
       }
       return true;
