@@ -3,8 +3,6 @@ package org.gbif.occurrence.search.es;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
-import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
-import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
@@ -26,7 +24,6 @@ import java.util.stream.Collectors;
 import static org.gbif.occurrence.search.es.EsQueryUtils.DATE_FORMAT;
 import static org.gbif.occurrence.search.es.EsQueryUtils.ES_TO_SEARCH_MAPPING;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.NETWORK_KEY;
 
 public class EsResponseParser {
 

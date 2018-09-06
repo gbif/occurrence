@@ -1,7 +1,6 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import com.google.inject.Inject;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.elasticsearch.action.search.SearchRequest;
@@ -18,16 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.AGGREGATIONS;
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.BOX_AGGS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.CELL_AGGS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.HEATMAP_AGGS;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 
 public class OccurrenceHeatmapsEsService
     implements OccurrenceHeatmapService<EsOccurrenceHeatmapResponse> {
