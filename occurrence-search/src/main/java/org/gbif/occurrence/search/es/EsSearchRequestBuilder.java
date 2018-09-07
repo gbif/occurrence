@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
 import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
+import static org.gbif.occurrence.search.es.EsQueryUtils._ALL;
 
 public class EsSearchRequestBuilder {
 
@@ -39,11 +40,7 @@ public class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
-  public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
-    return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
-  }
-
-  static SearchRequest buildSearchRequest(
+  public static SearchRequest buildSearchRequest(
       OccurrenceSearchRequest searchRequest,
       boolean facetsEnabled,
       int maxOffset,
@@ -77,44 +74,44 @@ public class EsSearchRequestBuilder {
     return esRequest;
   }
 
+  public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
+    return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
+  }
+
   private static Optional<QueryBuilder> buildQuery(
       Multimap<OccurrenceSearchParameter, String> params, String qParam) {
-    // get query params
-    if (params == null || params.isEmpty()) {
-      return Optional.empty();
-    }
-
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
     // adding full text search parameter
-    // TODO: tests pending
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery("_all", qParam));
+      bool.must(QueryBuilders.matchQuery(_ALL, qParam));
     }
 
-    // adding geometry to bool
-    if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-      BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
+    if (params != null && !params.isEmpty()) {
+      // adding geometry to bool
+      if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
+        BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
+        params
+            .get(OccurrenceSearchParameter.GEOMETRY)
+            .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
+        bool.filter().add(shouldGeometry);
+      }
+
+      // adding term queries to bool
       params
-          .get(OccurrenceSearchParameter.GEOMETRY)
-          .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
-      bool.filter().add(shouldGeometry);
+          .asMap()
+          .entrySet()
+          .stream()
+          .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+          .flatMap(
+              e ->
+                  buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                      .stream())
+          .forEach(q -> bool.filter().add(q));
     }
 
-    // adding term queries to bool
-    params
-        .asMap()
-        .entrySet()
-        .stream()
-        .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
-        .flatMap(
-            e ->
-                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                    .stream())
-        .forEach(q -> bool.filter().add(q));
-
-    return Optional.of(bool);
+    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
   @VisibleForTesting

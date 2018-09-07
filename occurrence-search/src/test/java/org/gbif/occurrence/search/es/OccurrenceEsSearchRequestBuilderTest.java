@@ -565,4 +565,19 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(3, groupedParams.queryParams.values().size());
     assertEquals(2, groupedParams.queryParams.get(OccurrenceSearchParameter.KINGDOM_KEY).size());
   }
+
+  @Test
+  public void matchQueryTest() throws IOException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setQ("puma");
+
+    SearchRequest request =
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    JsonNode matchNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).path(MATCH);
+    assertTrue(matchNode.has(_ALL));
+    assertEquals("puma", matchNode.path(_ALL).path(QUERY).asText());
+  }
 }
