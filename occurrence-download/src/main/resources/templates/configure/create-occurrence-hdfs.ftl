@@ -27,6 +27,7 @@ CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UD
 CREATE TEMPORARY FUNCTION from_json AS 'brickhouse.udf.json.FromJsonUDF';
 
 -- re-create the HDFS view of the HBase table
+DROP TABLE IF EXISTS occurrence_hdfs_tmp;
 CREATE TABLE IF NOT EXISTS occurrence_hdfs_tmp (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
