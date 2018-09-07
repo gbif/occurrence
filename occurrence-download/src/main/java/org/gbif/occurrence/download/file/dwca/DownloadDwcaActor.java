@@ -26,7 +26,6 @@ import akka.actor.UntypedActor;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.BeanUtils;
@@ -126,9 +125,7 @@ public class DownloadDwcaActor extends UntypedActor {
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
                                                                                         Charsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
-      SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
-        @Override
-        public boolean apply(@Nullable Integer occurrenceKey) {
+      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
           try {
             // Writes the occurrence record obtained from HBase as Map<String,Object>.
             org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
@@ -139,20 +136,17 @@ public class DownloadDwcaActor extends UntypedActor {
               intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
               verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
               writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
-              return true;
             } else {
               LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
             }
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }
-          return false;
-        }
-      });
+        });
     } finally {
       // Unlock the assigned lock.
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work.toString());
+      LOG.info("Lock released, job detail: {} ", work);
     }
     getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
   }

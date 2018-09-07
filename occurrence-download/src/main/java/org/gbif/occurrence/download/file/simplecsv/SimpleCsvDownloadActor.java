@@ -10,16 +10,12 @@ import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 import akka.actor.UntypedActor;
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Collections2;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
@@ -43,14 +39,9 @@ public class SimpleCsvDownloadActor extends UntypedActor {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private static final String[] COLUMNS =
-    Collections2.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
-                             @Nullable
-                             @Override
-                             public String apply(@Nullable Term input) {
-                               return input.simpleName();
-                             }
-                           }).toArray(new String[DownloadTerms.SIMPLE_DOWNLOAD_TERMS.size()]);
+  private static final String[] COLUMNS = DownloadTerms.SIMPLE_DOWNLOAD_TERMS.stream()
+    .map(Term::simpleName).toArray(String[]::new);
+
 
   @Override
   public void onReceive(Object message) throws Exception {
@@ -69,12 +60,10 @@ public class SimpleCsvDownloadActor extends UntypedActor {
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
     try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName(),
-                                                                                  Charsets.UTF_8),
+                                                                                  StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      SolrQueryProcessor.processQuery(work, new Predicate<Integer>() {
-        @Override
-        public boolean apply(@Nullable Integer occurrenceKey) {
+      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
           try {
             org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
             Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
@@ -84,23 +73,21 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                       occurrenceRecordMap.get(DcTerm.license.simpleName()));
               //write results
               csvMapWriter.write(occurrenceRecordMap, COLUMNS);
-              return true;
             } else {
               LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
             }
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }
-          return false;
         }
-      });
+      );
     } finally {
       // Release the lock
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work.toString());
+      LOG.info("Lock released, job detail: {} ", work);
     }
     getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
-            datasetUsagesCollector.getDatasetLicenses()), getSelf());
+      datasetUsagesCollector.getDatasetLicenses()), getSelf());
   }
 
 }

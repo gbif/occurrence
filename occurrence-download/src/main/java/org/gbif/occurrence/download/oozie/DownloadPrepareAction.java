@@ -189,9 +189,7 @@ public class DownloadPrepareAction {
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      LOG.error(String.format("Error updating record count for download workflow %s, reported count is %,d",
-                              downloadKey,
-                              recordCount), ex);
+      LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
     }
   }
 

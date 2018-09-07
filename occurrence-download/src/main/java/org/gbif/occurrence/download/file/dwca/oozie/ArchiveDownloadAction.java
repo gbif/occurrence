@@ -3,11 +3,9 @@ package org.gbif.occurrence.download.file.dwca.oozie;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
-import org.gbif.occurrence.download.util.RegistryClientUtil;
 
 import java.io.IOException;
 
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +42,8 @@ public class ArchiveDownloadAction {
       .withDownloadFormat(workflowConfiguration.getDownloadFormat())
       .build();
 
-    LOG.info("DwcaArchiveBuilder instance created with parameters:{}", Joiner.on(" ").skipNulls().join(args));
-    DwcaArchiveBuilder.buildArchive(configuration, workflowConfiguration, new RegistryClientUtil());
+    LOG.info("DwcaArchiveBuilder instance created with parameters:{}", (Object)args);
+    DwcaArchiveBuilder.buildArchive(configuration, workflowConfiguration);
   }
 
   /**

@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
-import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -20,17 +19,12 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nullable;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
@@ -52,28 +46,23 @@ public class SimpleCsvArchiveBuilder {
   //Header file is named '0' to appear first when listing the content of the directory.
   private static final String HEADER_FILE_NAME = "0";
   //String that contains the file HEADER for the simple table format.
-  private static final String HEADER =
-    Joiner.on('\t').join(Iterables.transform(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, new Function<Term, String>() {
-                                               @Nullable
-                                               @Override
-                                               public String apply(@Nullable Term input) {
-                                                 return HiveColumns.columnFor(input).replaceAll("_", "");
-                                               }
-                                             })) + '\n';
+  private static final String HEADER = buildHeader();
 
+  /**
+   * Creates the file HEADER.
+   * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
+   */
+  private static String buildHeader() {
+    return DownloadTerms.SIMPLE_DOWNLOAD_TERMS.stream()
+      .map(term -> HiveColumns.columnFor(term).replaceAll("_", ""))
+      .collect(Collectors.joining("\t")) + '\n';
+  }
   /**
    * Merges the content of sourceFS:sourcePath into targetFS:outputPath in a file called downloadKey.zip.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
-  public static void mergeToZip(
-    final FileSystem sourceFS,
-    FileSystem targetFS,
-    String sourcePath,
-    String targetPath,
-    String downloadKey,
-    ModalZipOutputStream.MODE mode
-  ) throws IOException {
-
+  public static void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+                                String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
       //Use hadoop-compress for pre_deflated files
@@ -82,19 +71,13 @@ public class SimpleCsvArchiveBuilder {
       //Use standard Java libraries for uncompressed input
       zipDefault(sourceFS, targetFS, sourcePath, outputPath, downloadKey);
     }
-
   }
 
   /**
    * Merges the file using the standard java libraries java.util.zip.
    */
-  private static void zipDefault(
-    final FileSystem sourceFS,
-    final FileSystem targetFS,
-    String sourcePath,
-    Path outputPath,
-    String downloadKey
-  ) {
+  private static void zipDefault(final FileSystem sourceFS, final FileSystem targetFS, String sourcePath,
+                                 Path outputPath,String downloadKey) {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
       ZipOutputStream zos = new ZipOutputStream(zipped);
@@ -122,13 +105,8 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the pre-deflated content using the hadoop-compress library.
    */
-  private static void zipPreDeflated(
-    final FileSystem sourceFS,
-    FileSystem targetFS,
-    String sourcePath,
-    Path outputPath,
-    String downloadKey
-  ) throws IOException {
+  private static void zipPreDeflated(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+                                     Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
       ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
@@ -140,18 +118,13 @@ public class SimpleCsvArchiveBuilder {
       //Get all the files inside the directory and creates a list of InputStreams.
       try {
         D2CombineInputStream in =
-          new D2CombineInputStream(Lists.transform(Lists.newArrayList(sourceFS.listStatus(inputPath)),
-                                                   new Function<FileStatus, InputStream>() {
-                                                     @Nullable
-                                                     @Override
-                                                     public InputStream apply(@Nullable FileStatus input) {
-                                                       try {
-                                                         return sourceFS.open(input.getPath());
-                                                       } catch (IOException ex) {
-                                                         throw Throwables.propagate(ex);
-                                                       }
-                                                     }
-                                                   }));
+          new D2CombineInputStream(Arrays.stream(sourceFS.listStatus(inputPath)).map(fileStatus -> {
+            try {
+              return sourceFS.open(fileStatus.getPath());
+            } catch (IOException ex) {
+              throw Throwables.propagate(ex);
+            }
+          }).collect(Collectors.toList()));
         ZipEntry ze = new ZipEntry(Paths.get(downloadKey + CSV_EXTENSION).toString());
         zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
         ByteStreams.copy(in, zos);

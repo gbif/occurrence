@@ -34,13 +34,8 @@ public class SimpleAvroArchiveBuilder {
   /**
    * Merges the content of sourceFS:sourcePath into targetFS:outputPath in a file called downloadKey.avro.
    */
-  public static void mergeToSingleAvro(
-    final FileSystem sourceFS,
-    FileSystem targetFS,
-    String sourcePath,
-    String targetPath,
-    String downloadKey
-  ) throws IOException {
+  public static void mergeToSingleAvro(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+                                       String targetPath, String downloadKey) throws IOException {
 
     Path outputPath = new Path(targetPath, downloadKey + AVRO_EXTENSION);
 
@@ -50,7 +45,7 @@ public class SimpleAvroArchiveBuilder {
 
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
-      DataFileWriter<GenericContainer> dfw = new DataFileWriter(rdw)
+      DataFileWriter<GenericContainer> dfw = new DataFileWriter<>(rdw)
     ) {
 
       final Path inputPath = new Path(sourcePath);
@@ -58,17 +53,18 @@ public class SimpleAvroArchiveBuilder {
       FileStatus[] hdfsFiles = sourceFS.listStatus(inputPath);
 
       for (FileStatus fs : hdfsFiles) {
-        InputStream is = sourceFS.open(fs.getPath());
-        DataFileStream<GenericContainer> dfs = new DataFileStream(is, rdr);
+        try(InputStream is = sourceFS.open(fs.getPath());
+            DataFileStream<GenericContainer> dfs = new DataFileStream<>(is, rdr)) {
+          if (!first) {
+            dfw.setCodec(CodecFactory.deflateCodec(-1));
+            dfw.setFlushOnEveryBlock(false);
+            dfw.create(dfs.getSchema(), zipped);
+            first = true;
+          }
 
-        if (!first) {
-          dfw.setCodec(CodecFactory.deflateCodec(-1));
-          dfw.setFlushOnEveryBlock(false);
-          dfw.create(dfs.getSchema(), zipped);
-          first = true;
+          dfw.appendAllFrom(dfs, false);
         }
 
-        dfw.appendAllFrom(dfs, false);
       }
 
       dfw.flush();

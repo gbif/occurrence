@@ -3,13 +3,14 @@ package org.gbif.occurrence.download.citations;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -20,9 +21,7 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 
@@ -48,16 +47,16 @@ public final class CitationsFileReader {
    *
    * @param nameNode     Hadoop name node uri
    * @param citationPath path to the directory that contains the citation table files
-   * @param predicates   predicate to apply after reading the file
+   * @param consumer   consumer that processes bulk of usages
    */
   public static void readCitations(String nameNode, String citationPath,
-                                   Predicate<Map<UUID,Long>> predicate) throws IOException {
+                                   Consumer<Map<UUID,Long>> consumer) throws IOException {
     Map<UUID,Long> datasetsCitation = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
         try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
-                                                                                      Charsets.UTF_8))) {
+                                                                                      StandardCharsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // prepare citation object and add it to list
@@ -68,7 +67,7 @@ public final class CitationsFileReader {
         }
       }
     }
-    predicate.apply(datasetsCitation);
+    consumer.accept(datasetsCitation);
   }
 
   public static void main(String[] args) throws IOException {
@@ -89,7 +88,7 @@ public final class CitationsFileReader {
   /**
    * Persists the dataset usage into the Registry data base.
    */
-  public static class PersistUsage implements Predicate<Map<UUID,Long>> {
+  public static class PersistUsage implements Consumer<Map<UUID,Long>> {
 
     private final String downloadKey;
 
@@ -102,18 +101,15 @@ public final class CitationsFileReader {
     }
 
     @Override
-    public boolean apply(@Nullable Map<UUID,Long> datasetsCitation) {
+    public void accept(Map<UUID,Long> datasetsCitation) {
       if(datasetsCitation == null || datasetsCitation.isEmpty()) {
         LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
-        return true;
       }
       try {
         downloadService.createUsages(downloadKey, datasetsCitation);
       } catch (Exception e) {
         LOG.error("Error persisting dataset usage information {}", datasetsCitation, e);
-        return false;
       }
-      return true;
     }
   }
 }

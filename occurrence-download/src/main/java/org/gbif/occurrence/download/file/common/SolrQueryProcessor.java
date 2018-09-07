@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.file.common;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -11,6 +10,7 @@ import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * Executes a Solr query and applies a predicate to each result.
@@ -27,7 +27,7 @@ public class SolrQueryProcessor {
    * @param downloadFileWork it's used to determine how to page through the results and the Solr query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
-  public static void processQuery(DownloadFileWork downloadFileWork, Predicate<Integer> resultHandler) {
+  public static void processQuery(DownloadFileWork downloadFileWork, Consumer<Integer> resultHandler) {
 
     // Calculates the amount of output records
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
@@ -45,7 +45,7 @@ public class SolrQueryProcessor {
         solrQuery.setRows(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
         for (SolrDocument solrDocument : response.getResults()) {
-          resultHandler.apply((Integer) solrDocument.getFieldValue(KEY_FIELD));
+          resultHandler.accept((Integer) solrDocument.getFieldValue(KEY_FIELD));
         }
         recordCount += response.getResults().size();
       }
