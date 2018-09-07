@@ -261,7 +261,18 @@ public class EsSearchRequestBuilder {
     Optional.ofNullable(facetPage).ifPresent(p -> termsAggsBuilder.size(p.getLimit()));
     Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
 
-    // TODO: offset not supported in ES. Implement workaround
+    Optional.ofNullable(facetPage)
+        .ifPresent(
+            p -> {
+              if (LOW_CARDINALITY_TYPES.contains(esField)) {
+                // size will be the lowest of the cardinality or the maximum element requested
+                termsAggsBuilder.size(
+                    (int) Math.min(CARDINALITIES.get(esField), p.getOffset() + p.getLimit()));
+              } else {
+                // for high cardinality fields we use hardcoded values
+                // TODO
+              }
+            });
 
     return termsAggsBuilder;
   }
@@ -275,7 +286,7 @@ public class EsSearchRequestBuilder {
     for (String value : values) {
       if (isRange(value)) {
         queries.add(buildRangeQuery(esField, value));
-      } else if (param.type() != Date.class) {
+      } else if (param.type() != Date.class) { // TODO: dates!
         if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
           value = value.toUpperCase();
         }

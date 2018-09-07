@@ -1,17 +1,22 @@
 package org.gbif.occurrence.search.es;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.Header;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.vocabulary.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -133,6 +138,37 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceEsField.EVENT_ID)
           .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceEsField.PARENT_EVENT_ID)
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
+          .build();
+
+  static final List<OccurrenceEsField> LOW_CARDINALITY_TYPES =
+      ImmutableList.of(
+          OccurrenceEsField.BASIS_OF_RECORD,
+          OccurrenceEsField.COUNTRY_CODE,
+          OccurrenceEsField.PUBLISHING_COUNTRY,
+          OccurrenceEsField.CONTINENT,
+          OccurrenceEsField.ESTABLISHMENT_MEANS,
+          OccurrenceEsField.ISSUE,
+          OccurrenceEsField.LICENSE,
+          OccurrenceEsField.MEDIA_TYPE,
+          OccurrenceEsField.TYPE_STATUS,
+          OccurrenceEsField.MONTH,
+          OccurrenceEsField.YEAR,
+          OccurrenceEsField.KINGDOM_KEY);
+
+  static final Map<OccurrenceEsField, Integer> CARDINALITIES =
+      ImmutableMap.<OccurrenceEsField, Integer>builder()
+          .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
+          .put(OccurrenceEsField.COUNTRY_CODE, Country.values().length)
+          .put(OccurrenceEsField.PUBLISHING_COUNTRY, Country.values().length)
+          .put(OccurrenceEsField.CONTINENT, Continent.values().length)
+          .put(OccurrenceEsField.ESTABLISHMENT_MEANS, EstablishmentMeans.values().length)
+          .put(OccurrenceEsField.ISSUE, OccurrenceIssue.values().length)
+          .put(OccurrenceEsField.LICENSE, License.values().length)
+          .put(OccurrenceEsField.MEDIA_TYPE, MediaType.values().length)
+          .put(OccurrenceEsField.TYPE_STATUS, TypeStatus.values().length)
+          .put(OccurrenceEsField.MONTH, 12)
+          .put(OccurrenceEsField.YEAR, LocalDate.now().getYear() - 1500)
+          .put(OccurrenceEsField.KINGDOM_KEY, 10)
           .build();
 
   static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
