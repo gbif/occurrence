@@ -20,6 +20,8 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -30,13 +32,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
-import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
-import static org.gbif.occurrence.search.es.EsQueryUtils._ALL;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
-
-  // TODO: sorting!!
 
   private EsSearchRequestBuilder() {}
 
@@ -56,6 +54,13 @@ public class EsSearchRequestBuilder {
     // size and offset
     searchSourceBuilder.size(Math.min(searchRequest.getLimit(), maxLimit));
     searchSourceBuilder.from((int) Math.min(maxOffset, searchRequest.getOffset()));
+
+    // sort
+    if (Strings.isNullOrEmpty(searchRequest.getQ())) {
+      searchSourceBuilder.sort(SortBuilders.fieldSort("_doc").order(SortOrder.DESC));
+    } else {
+      searchSourceBuilder.sort(SortBuilders.scoreSort());
+    }
 
     // group params
     GroupedParams groupedParams = groupParameters(searchRequest);

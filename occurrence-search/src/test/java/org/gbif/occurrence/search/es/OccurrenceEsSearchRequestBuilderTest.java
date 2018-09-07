@@ -580,4 +580,30 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertTrue(matchNode.has(_ALL));
     assertEquals("puma", matchNode.path(_ALL).path(QUERY).asText());
   }
+
+  @Test
+  public void sortQueryTest() throws IOException {
+    // sort by score desc for q param
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setQ("puma");
+
+    SearchRequest request =
+      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
+
+    // sort by _doc desc if q param is not present
+    searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addKingdomKeyFilter(4);
+
+    request =
+      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals("desc", jsonQuery.path("sort").get(0).path("_doc").path("order").asText());
+  }
+
 }
