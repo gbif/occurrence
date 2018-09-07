@@ -66,7 +66,7 @@ LOCK TABLE occurrence_multimedia EXCLUSIVE;
 
 !sudo -u hdfs hdfs dfs -rm -r /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_multimedia/*;
 
-!sudo -u hdfs hdfs dfs -mv /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_multimedia_tmp/*  /user/hive/warehouse/${hiveDB}.db/occurrence_multimedia/;
+!sudo -u hdfs hdfs dfs -mv /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_multimedia_tmp/*  /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_multimedia/;
 
 DROP TABLE occurrence_multimedia_tmp;
 
@@ -78,7 +78,7 @@ LOCK TABLE occurrence_hdfs EXCLUSIVE;
 
 !sudo -u hdfs hdfs dfs -rm -r /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_hdfs/*;
 
-!sudo -u hdfs hdfs dfs -mv /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_hdfs_tmp/*  /user/hive/warehouse/${hiveDB}.db/occurrence_hdfs/;
+!sudo -u hdfs hdfs dfs -mv /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_hdfs_tmp/*  /user/hive/warehouse/${r"${hiveDB}"}.db/occurrence_hdfs/;
 
 DROP TABLE occurrence_hdfs_tmp;
 
