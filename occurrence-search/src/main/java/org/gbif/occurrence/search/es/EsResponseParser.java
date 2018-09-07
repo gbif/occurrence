@@ -218,7 +218,11 @@ public class EsResponseParser {
               .ifPresent(
                   mediaType -> {
                     MediaObject mediaObject = new MediaObject();
-                    mediaObject.setType(MediaType.valueOf(mediaType));
+                    // media type has to be compared ignoring the case
+                    Arrays.stream(MediaType.values())
+                        .filter(v -> v.name().equalsIgnoreCase(mediaType))
+                        .findFirst()
+                        .ifPresent(mediaObject::setType);
                     occ.setMedia(Collections.singletonList(mediaObject));
                   });
 
