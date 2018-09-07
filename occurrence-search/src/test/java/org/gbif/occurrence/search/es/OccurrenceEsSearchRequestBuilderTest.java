@@ -591,7 +591,14 @@ public class OccurrenceEsSearchRequestBuilderTest {
       EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
+    assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
 
+    // mix with q param and term
+    searchRequest.addMonthFilter(1);
+    request =
+      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
 
     // sort by _doc desc if q param is not present

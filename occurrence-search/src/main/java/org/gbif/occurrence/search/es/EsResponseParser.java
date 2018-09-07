@@ -112,6 +112,7 @@ public class EsResponseParser {
           occurrences.add(occ);
 
           // fill out fields
+          getValue(hit, GBIF_ID, Integer::valueOf).ifPresent(occ::setKey);
           getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
           getValue(hit, CONTINENT).ifPresent(v -> occ.setContinent(Continent.valueOf(v)));
           getValue(hit, COORDINATE_ACCURACY, Double::valueOf).ifPresent(occ::setCoordinateAccuracy);
