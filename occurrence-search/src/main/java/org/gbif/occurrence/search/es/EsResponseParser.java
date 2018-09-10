@@ -117,6 +117,7 @@ public class EsResponseParser {
 
     final DateFormat dateFormat =
         new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     SearchHits hits = esResponse.getHits();
 
