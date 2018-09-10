@@ -588,15 +588,14 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setQ("puma");
 
     SearchRequest request =
-      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
 
     // mix with q param and term
     searchRequest.addMonthFilter(1);
-    request =
-      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
     jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
@@ -605,12 +604,61 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter(4);
 
-    request =
-      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
     jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_doc").path("order").asText());
   }
 
+  @Test
+  public void pagingFacetsTest() throws IOException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addFacets(OccurrenceSearchParameter.BASIS_OF_RECORD);
+    searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 3, 5);
+
+    SearchRequest request =
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        8,
+        jsonQuery
+            .path(AGGREGATIONS)
+            .path(OccurrenceEsField.BASIS_OF_RECORD.getFieldName())
+            .path(TERMS)
+            .path(SIZE)
+            .asInt());
+  }
+
+  @Test
+  public void maxLimitPagingFacetsTest() throws IOException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addFacets(OccurrenceSearchParameter.MONTH);
+    searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 10, 5);
+
+    SearchRequest request =
+      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+      12,
+      jsonQuery
+        .path(AGGREGATIONS)
+        .path(OccurrenceEsField.MONTH.getFieldName())
+        .path(TERMS)
+        .path(SIZE)
+        .asInt());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void wringPagingFacetsTest() throws IOException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addFacets(OccurrenceSearchParameter.MONTH);
+    searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 14, 3);
+
+    EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+  }
 }

@@ -12,6 +12,7 @@ import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
 import java.net.URI;
@@ -35,18 +36,18 @@ public class EsResponseParser {
    * @return a new instance of a SearchResponse.
    */
   static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
-      org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
+      org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits());
     parseHits(esResponse).ifPresent(response::setResults);
-    parseFacets(esResponse).ifPresent(response::setFacets);
+    parseFacets(esResponse, request).ifPresent(response::setFacets);
 
     return response;
   }
 
   private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
-      org.elasticsearch.action.search.SearchResponse esResponse) {
+      org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
     if (esResponse.getAggregations() == null) {
       return Optional.empty();
     }
@@ -58,6 +59,7 @@ public class EsResponseParser {
             .stream()
             .map(
                 aggs -> {
+                  // get buckets
                   List<? extends Terms.Bucket> buckets = null;
                   if (aggs instanceof Terms) {
                     buckets = ((Terms) aggs).getBuckets();
@@ -74,6 +76,21 @@ public class EsResponseParser {
                         aggs.getClass() + " aggregation not supported");
                   }
 
+                  // get facet of the agg
+                  OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
+
+                  // check for paging in facets
+                  Pageable facetPage = request.getFacetPage(facet);
+                  if (facetPage != null && facetPage.getOffset() < buckets.size()) {
+                    // take only the buckets requested according to the paging params
+                    buckets =
+                        buckets.subList(
+                            (int) facetPage.getOffset(),
+                            (int)
+                                Math.min(
+                                    facetPage.getOffset() + facetPage.getLimit(), buckets.size()));
+                  }
+
                   // set counts
                   List<Facet.Count> counts = new ArrayList<>(buckets.size());
                   buckets.forEach(
@@ -81,12 +98,11 @@ public class EsResponseParser {
                           counts.add(
                               new Facet.Count(bucket.getKeyAsString(), bucket.getDocCount())));
 
-                  // build facet
-                  Facet<OccurrenceSearchParameter> facet =
-                      new Facet<>(ES_TO_SEARCH_MAPPING.get(aggs.getName()));
-                  facet.setCounts(counts);
+                  // build facet response
+                  Facet<OccurrenceSearchParameter> facetResult = new Facet<>(facet);
+                  facetResult.setCounts(counts);
 
-                  return facet;
+                  return facetResult;
                 })
             .collect(Collectors.toList()));
   }

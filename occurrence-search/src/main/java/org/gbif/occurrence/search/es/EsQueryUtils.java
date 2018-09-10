@@ -140,21 +140,6 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
           .build();
 
-  static final List<OccurrenceEsField> LOW_CARDINALITY_TYPES =
-      ImmutableList.of(
-          OccurrenceEsField.BASIS_OF_RECORD,
-          OccurrenceEsField.COUNTRY_CODE,
-          OccurrenceEsField.PUBLISHING_COUNTRY,
-          OccurrenceEsField.CONTINENT,
-          OccurrenceEsField.ESTABLISHMENT_MEANS,
-          OccurrenceEsField.ISSUE,
-          OccurrenceEsField.LICENSE,
-          OccurrenceEsField.MEDIA_TYPE,
-          OccurrenceEsField.TYPE_STATUS,
-          OccurrenceEsField.MONTH,
-          OccurrenceEsField.YEAR,
-          OccurrenceEsField.KINGDOM_KEY);
-
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
       ImmutableMap.<OccurrenceEsField, Integer>builder()
           .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
@@ -167,8 +152,6 @@ public class EsQueryUtils {
           .put(OccurrenceEsField.MEDIA_TYPE, MediaType.values().length)
           .put(OccurrenceEsField.TYPE_STATUS, TypeStatus.values().length)
           .put(OccurrenceEsField.MONTH, 12)
-          .put(OccurrenceEsField.YEAR, LocalDate.now().getYear() - 1500)
-          .put(OccurrenceEsField.KINGDOM_KEY, 10)
           .build();
 
   static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =

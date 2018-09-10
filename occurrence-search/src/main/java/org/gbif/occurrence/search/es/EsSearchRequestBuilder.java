@@ -36,6 +36,8 @@ import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
 
+  private static final int MAX_SIZE_TERMS_AGGS = 20000;
+
   private EsSearchRequestBuilder() {}
 
   public static SearchRequest buildSearchRequest(
@@ -258,20 +260,31 @@ public class EsSearchRequestBuilder {
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggsName).field(esField.getFieldName());
 
-    Optional.ofNullable(facetPage).ifPresent(p -> termsAggsBuilder.size(p.getLimit()));
     Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
-
     Optional.ofNullable(facetPage)
         .ifPresent(
             p -> {
-              if (LOW_CARDINALITY_TYPES.contains(esField)) {
-                // size will be the lowest of the cardinality or the maximum element requested
-                termsAggsBuilder.size(
-                    (int) Math.min(CARDINALITIES.get(esField), p.getOffset() + p.getLimit()));
-              } else {
-                // for high cardinality fields we use hardcoded values
-                // TODO
+              int maxCardinality = CARDINALITIES.getOrDefault(esField, Integer.MAX_VALUE);
+
+              // offset cannot be greater than the max cardinality
+              if (p.getOffset() >= maxCardinality) {
+                throw new IllegalArgumentException(
+                    "facet paging for "
+                        + esField.getFieldName()
+                        + " exceeds the cardinality of the field: "
+                        + CARDINALITIES.get(esField));
               }
+
+              // the limit is bounded by the max cardinality of the field
+              int limit = Math.min((int) p.getOffset() + p.getLimit(), maxCardinality);
+
+              // we set a maximum limit for performance reasons
+              if (limit > MAX_SIZE_TERMS_AGGS) {
+                throw new IllegalArgumentException(
+                    "Facets paging is only supported up to " + MAX_SIZE_TERMS_AGGS + " elements");
+              }
+
+              termsAggsBuilder.size(limit);
             });
 
     return termsAggsBuilder;
