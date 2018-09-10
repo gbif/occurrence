@@ -28,6 +28,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -294,17 +295,18 @@ public class EsSearchRequestBuilder {
       Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
     List<QueryBuilder> queries = new ArrayList<>();
 
+    BiFunction<String, OccurrenceSearchParameter, String> parser =
+        (v, p) -> Enum.class.isAssignableFrom(p.type()) ? v.toUpperCase() : v;
+
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
     for (String value : values) {
       if (isRange(value)) {
         queries.add(buildRangeQuery(esField, value));
-      } else if (param.type() != Date.class) { // TODO: dates!
-        if (Enum.class.isAssignableFrom(param.type())) { // enums are capitalized
-          value = value.toUpperCase();
-        }
-        parsedValues.add(value);
+        continue;
       }
+
+      parsedValues.add(parser.apply(value, param));
     }
 
     if (parsedValues.size() == 1) {
@@ -320,9 +322,7 @@ public class EsSearchRequestBuilder {
 
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
     String[] values = value.split(RANGE_SEPARATOR);
-    return QueryBuilders.rangeQuery(esField.getFieldName())
-        .gte(Double.valueOf(values[0]))
-        .lte(Double.valueOf(values[1]));
+    return QueryBuilders.rangeQuery(esField.getFieldName()).gte(values[0]).lte(values[1]);
   }
 
   private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {

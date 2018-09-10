@@ -1,7 +1,6 @@
 package org.gbif.occurrence.search.es;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.Header;
 import org.apache.http.entity.ContentType;
@@ -12,11 +11,8 @@ import org.gbif.api.vocabulary.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
