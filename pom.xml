@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+1<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -142,7 +142,7 @@
     <download-query-tools.version>1.18</download-query-tools.version>
     <dwc-api.version>1.19</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
-    <gbif-api.version>0.70</gbif-api.version>
+    <gbif-api.version>0.71-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.33</gbif-common-search.version>
