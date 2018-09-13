@@ -1,16 +1,23 @@
 package org.gbif.occurrence.download.file.common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
-
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +51,20 @@ public final class DownloadFileUtils {
     } finally {
       inputFile.delete();
     }
+  }
+  
+  public static long readSpeciesCount(String nameNode,String path) throws NumberFormatException, IOException {
+    FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
+    for (FileStatus fs : hdfs.listStatus(new Path(path))) {
+      if (!fs.isDirectory()) {
+        try (BufferedReader countReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
+                                                                                      StandardCharsets.UTF_8))) {
+          return Long.parseLong(countReader.readLine());
+        }
+      }
+    }
+    LOG.warn("Could not read count in {}",path);
+    return 0;
   }
 
   /**

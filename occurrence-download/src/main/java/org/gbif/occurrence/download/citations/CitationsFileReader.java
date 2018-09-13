@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
@@ -72,12 +73,36 @@ public final class CitationsFileReader {
 
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-
-    readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
-                  Preconditions.checkNotNull(args[0]),
-                  new PersistUsage(Preconditions.checkNotNull(args[1]), properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+    String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
+    String citationPath = Preconditions.checkNotNull(args[0]);
+    String downloadKey = Preconditions.checkNotNull(args[1]);
+    String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
+    readCitations(nameNode,
+                  citationPath,
+                  new PersistUsage( downloadKey, registryWsURL));
+    updateTotalRecordsCount(downloadKey, DownloadFileUtils.readSpeciesCount(nameNode, citationPath.replace("citation", "count")), registryWsURL);
   }
 
+  /**
+   * Updates the record count of the download entity.
+   */
+  private static void updateTotalRecordsCount(String downloadKey, long recordCount,String registryWsURL) {
+    try {
+      RegistryClientUtil registryClientUtil = new RegistryClientUtil();
+      OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsURL);
+      LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
+      Download download = occurrenceDownloadService.get(downloadKey);
+      if (download == null) {
+        LOG.error("Download {} was not found!", downloadKey);
+      } else {
+        download.setTotalRecords(recordCount);
+        occurrenceDownloadService.update(download);
+      }
+    } catch (Exception ex) {
+      LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
+    }
+  }
+  
   /**
    * Private constructor.
    */

@@ -40,3 +40,5 @@ CREATE TABLE ${r"${speciesListTable}"}_citation ROW FORMAT DELIMITED FIELDS TERM
 AS SELECT
 datasetkey, count(datasetkey) as citation
 FROM ${r"${speciesListTable}"}_tmp WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
+
+CREATE TABLE ${r"${speciesListTable}"}_count AS SELECT count(*) FROM ${r"${speciesListTable}"};
