@@ -53,7 +53,14 @@ public final class DownloadFileUtils {
     }
   }
   
-  public static long readSpeciesCount(String nameNode,String path) throws NumberFormatException, IOException {
+  /**
+   * reads species count from species list count table path.
+   * @param nameNode namenode of hdfs.
+   * @param path species count table path.
+   * @return species count.
+   * @throws IOException
+   */
+  public static long readSpeciesCount(String nameNode,String path) throws IOException {
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(path))) {
       if (!fs.isDirectory()) {
@@ -63,7 +70,7 @@ public final class DownloadFileUtils {
         }
       }
     }
-    LOG.warn("Could not read count in {}",path);
+    LOG.warn("Could not read species count in {}",path);
     return 0;
   }
 

@@ -48,6 +48,19 @@
       <capture-output/>
     </java>
 
+    <ok to="update_species_count"/>
+    <error to="drop_tables_failure"/>
+  </action>
+
+
+  <action name="update_species_count">
+    <java>
+      <main-class>org.gbif.occurrence.download.file.specieslist.SpeciesCount</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
+      <arg>${download_key}</arg>
+      <capture-output/>
+     </java>
+
     <ok to="drop_tables"/>
     <error to="drop_tables_failure"/>
   </action>
