@@ -13,6 +13,7 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadAggregator;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.wrangler.lock.LockFactory;
@@ -155,6 +156,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
         bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
       } else if (DownloadFormat.SIMPLE_AVRO == downloadFormat) {
         bind(DownloadAggregator.class).to(SimpleAvroDownloadAggregator.class);
+      } else if (DownloadFormat.SPECIES_LIST == downloadFormat) {
+        bind(DownloadAggregator.class).to(SpeciesListDownloadAggregator.class);
       }
     }
   }

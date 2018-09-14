@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Properties;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
@@ -15,7 +14,7 @@ import com.google.common.base.Preconditions;
 
 public class SpeciesCount {
 
-  private static final Logger LOG = LoggerFactory.getLogger(CitationsFileReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SpeciesCount.class);
 
   public static void main(String[] args) throws IOException {
     String countPath = Preconditions.checkNotNull(args[0]);
@@ -29,7 +28,7 @@ public class SpeciesCount {
   /**
    * Updates the species record count of the download entity.
    */
-  private static void updateCount(String downloadKey, long recordCount, String registryWsURL) {
+  static void updateCount(String downloadKey, long recordCount, String registryWsURL) {
     try {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
       OccurrenceDownloadService occurrenceDownloadService =
