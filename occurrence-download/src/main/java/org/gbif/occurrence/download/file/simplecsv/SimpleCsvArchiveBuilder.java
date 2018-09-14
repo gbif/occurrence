@@ -26,6 +26,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
+import org.apache.curator.shaded.com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -164,18 +165,15 @@ public class SimpleCsvArchiveBuilder {
    * 1. targetPath: HDFS path where the resulting file will be copied.
    * 2. downloadKey: occurrence download key.
    * 3. MODE: ModalZipOutputStream.MODE of input files.
+   * 4. download-format : Download format
    */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    String downloadFormat=properties.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY);
+    String downloadFormat=Preconditions.checkNotNull(args[4]).trim();
+    Set<Term> downloadTerms = DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST) ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS :DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    SimpleCsvArchiveBuilder archiveBuilder;
-    if(DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST))
-      archiveBuilder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS);
-    else
-      archiveBuilder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
-    archiveBuilder.mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
+    SimpleCsvArchiveBuilder.withHeader(downloadTerms).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 
   /**

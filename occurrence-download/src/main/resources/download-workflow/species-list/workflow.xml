@@ -33,6 +33,7 @@
       <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
       <arg>${download_key}</arg>
       <arg>PRE_DEFLATED</arg>
+      <arg>${download_format}</arg>
       <capture-output/>
     </java>
 
