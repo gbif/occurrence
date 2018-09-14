@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
@@ -166,10 +167,15 @@ public class SimpleCsvArchiveBuilder {
    */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    String downloadFormat=properties.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY);
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS)
-    .mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
+    SimpleCsvArchiveBuilder archiveBuilder;
+    if(DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST))
+      archiveBuilder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS);
+    else
+      archiveBuilder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+    archiveBuilder.mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 
   /**

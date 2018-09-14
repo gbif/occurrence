@@ -117,7 +117,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
         persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
         Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
         String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-        SpeciesCount.updateCount(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
+        SpeciesCount.persistCount(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
       }  
      catch (Exception e) {
       LOG.error("Error merging results", e);
