@@ -16,10 +16,6 @@
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>${zookeeper.quorum}</value>
-  </property>
-  <property>
-    <name>hbase.client.scanner.caching</name>
-    <value>200</value>
+    <value>c5zk1.gbif.org,c5zk2.gbif.org,c5zk3.gbif.org</value>
   </property>
 </configuration>
