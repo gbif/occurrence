@@ -44,31 +44,32 @@ public class SpeciesListDownloadActor extends UntypedActor{
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     final SpeciesListCollector speciesCollector = SpeciesListCollector.getInstance();
 
+    try {
+      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+        try {
+          org.apache.hadoop.hbase.client.Result result =
+              work.getOccurrenceMapReader().get(occurrenceKey);
+          Map<String, String> occurrenceRecordMap =
+              buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);
+          if (occurrenceRecordMap != null) {
+            // collect usages
+            datasetUsagesCollector.collectDatasetUsage(
+                occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+                occurrenceRecordMap.get(DcTerm.license.simpleName()));
 
-    SolrQueryProcessor.processQuery(work, occurrenceKey -> {
-      try {
-        org.apache.hadoop.hbase.client.Result result =
-            work.getOccurrenceMapReader().get(occurrenceKey);
-        Map<String, String> occurrenceRecordMap =
-            buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);
-        if (occurrenceRecordMap != null) {
-          // collect usages
-          datasetUsagesCollector.collectDatasetUsage(
-              occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-              occurrenceRecordMap.get(DcTerm.license.simpleName()));
-        
-          speciesCollector.collectResult(occurrenceRecordMap);
-        } else {
-          LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
+            speciesCollector.collectResult(occurrenceRecordMap);
+          } else {
+            LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
+          }
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
         }
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      } finally {
-        // Release the lock
-        work.getLock().unlock();
-        LOG.info("Lock released, job detail: {} ", work);
-      }
-    });
+      });
+    } finally {
+      // Release the lock
+      work.getLock().unlock();
+      LOG.info("Lock released, job detail: {} ", work);
+    }
 
     getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
         datasetUsagesCollector.getDatasetLicenses()), getSelf());
