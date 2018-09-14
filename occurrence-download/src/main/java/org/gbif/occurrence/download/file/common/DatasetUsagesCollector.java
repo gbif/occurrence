@@ -5,6 +5,8 @@ import org.gbif.api.vocabulary.License;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
@@ -26,12 +28,7 @@ public class DatasetUsagesCollector {
    */
   public void incrementDatasetUsage(String datasetKey) {
     if (datasetKey != null) {
-      UUID datasetUUID = UUID.fromString(datasetKey);
-      if (datasetUsages.containsKey(datasetUUID)) {
-        datasetUsages.put(datasetUUID, datasetUsages.get(datasetUUID) + 1);
-      } else {
-        datasetUsages.put(datasetUUID, 1L);
-      }
+      datasetUsages.compute(UUID.fromString(datasetKey), (key, count) -> (count == null) ? 1L : count +1);
     }
   }
 
@@ -58,17 +55,8 @@ public class DatasetUsagesCollector {
    * Sums all the dataset usages to current instance.
    */
   public void sumUsages(Map<UUID, Long> fromDatasetUsages) {
-    Map<UUID, Long> result = Maps.newHashMap();
-    for (Map.Entry<UUID, Long> entry : datasetUsages.entrySet()) {
-      Long valueIn2 = fromDatasetUsages.get(entry.getKey());
-      if (valueIn2 == null) {
-        result.put(entry.getKey(), entry.getValue());
-      } else {
-        result.put(entry.getKey(), entry.getValue() + valueIn2);
-      }
-    }
-    result.putAll(Maps.difference(datasetUsages, fromDatasetUsages).entriesOnlyOnRight());
-    datasetUsages = result;
+    datasetUsages = Stream.concat(datasetUsages.entrySet().stream(), fromDatasetUsages.entrySet().stream())
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Long::sum));
   }
 
   public void mergeLicenses(Set<License> licenses){

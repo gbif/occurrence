@@ -7,7 +7,6 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
-import org.gbif.occurrence.download.util.RegistryClientUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,12 +53,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   /**
    * Appends the result files to the output file.
    */
-  private static void appendResult(
-    Result result,
-    OutputStream interpretedFileWriter,
-    OutputStream verbatimFileWriter,
-    OutputStream multimediaFileWriter
-  ) throws IOException {
+  private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
+                                   OutputStream multimediaFileWriter) throws IOException {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
@@ -69,11 +64,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   }
 
   @Inject
-  public DwcaDownloadAggregator(
-    OccurrenceDownloadService occurrenceDownloadService,
-    DownloadJobConfiguration configuration,
-    RegistryClientUtil registryClientUtil
-  ) {
+  public DwcaDownloadAggregator(OccurrenceDownloadService occurrenceDownloadService,
+                                DownloadJobConfiguration configuration) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
   }

@@ -8,8 +8,13 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -29,15 +34,9 @@ import com.google.common.collect.Sets;
  */
 public class TermUtils {
 
-  private static final Set<Term> EXTENSION_TERMS =
-    ImmutableSet.copyOf(Iterables.transform(ImmutableList.copyOf(Extension.values()), new Function<Extension, Term>() {
+  private static final Set<Term> EXTENSION_TERMS = Arrays.stream(Extension.values())
+    .map(ext -> TermFactory.instance().findTerm(ext.getRowType())).collect(Collectors.toSet());
 
-        @Nullable
-        @Override
-        public Term apply(@Nullable Extension e) {
-          return TermFactory.instance().findTerm(e.getRowType());
-        }
-      }));
 
   private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(DwcTerm.eventDate,
                                                                                DwcTerm.dateIdentified,
@@ -79,7 +78,7 @@ public class TermUtils {
                                                                                 DwcTerm.coordinatePrecision);
 
   private static final Set<? extends Term> NON_OCCURRENCE_TERMS =
-    (Set<? extends Term>) ImmutableSet.copyOf(Iterables.concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
+    ImmutableSet.copyOf(Iterables.concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
                                                                DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP),
                                                                Sets.newHashSet(GbifTerm.infraspecificMarker,
                                                                                GbifTerm.isExtinct,
@@ -170,7 +169,7 @@ public class TermUtils {
    * TODO: is this correct? -> Terms used during interpretation and superseded by an interpreted property
    */
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS =
-    (Set<? extends Term>) ImmutableSet.copyOf(Iterables.concat(JAVA_PROPERTY_TERMS,
+                          ImmutableSet.copyOf(Iterables.concat(JAVA_PROPERTY_TERMS,
                                                                Lists.newArrayList(DwcTerm.decimalLatitude,
                                                                                   DwcTerm.decimalLongitude,
                                                                                   DwcTerm.verbatimLatitude,
@@ -261,30 +260,18 @@ public class TermUtils {
    * Lists all terms relevant for an interpreted occurrence record, starting with occurrenceID as the key.
    * UnknownTerms are not included as they are open ended.
    */
-  public static Iterable<? extends Term> interpretedTerms() {
-    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
-      Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
+  public static Collection<Term> interpretedTerms() {
+    Stream<? extends Term> dwcTerms  = Lists.newArrayList(DwcTerm.values()).stream().filter(t ->
+      !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && (!INTERPRETED_SOURCE_TERMS.contains(t)
+        || JAVA_PROPERTY_TERMS.contains(t)));
+    Stream<? extends Term> gbifTerms  = Lists.newArrayList(GbifTerm.values()).stream().filter(t ->
+      !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t && GbifTerm.coordinateAccuracy !=t);
 
-        @Override
-        public boolean apply(@Nullable DcTerm t) {
-          return !t.isClass() && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t));
-        }
-      }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
+    Stream<? extends Term> dcTerms = Lists.newArrayList(DcTerm.values()).stream().filter(t ->
+      !t.isClass() && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t)));
 
-        @Override
-        public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && (!INTERPRETED_SOURCE_TERMS.contains(t)
-                                                                       || JAVA_PROPERTY_TERMS.contains(t));
-        }
-      }), Iterables.filter(Lists.newArrayList(GbifTerm.values()), new Predicate<GbifTerm>() {
 
-        @Override
-        public boolean apply(@Nullable GbifTerm t) {
-          // GbifTerm.coordinateAccuracy is deprecated
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t
-                  && GbifTerm.coordinateAccuracy !=t;
-        }
-      }));
+    return  Stream.concat(dwcTerms, gbifTerms, dcTerms).collect(Collectors.toList());
   }
 
   /**
@@ -292,28 +279,23 @@ public class TermUtils {
    * gbifID is included and comes first as its the foreign key to the core record.
    * UnknownTerms are not included as they are open ended.
    */
-  public static Iterable<? extends Term> verbatimTerms() {
+  public static Iterable<Term> verbatimTerms() {
+    List<DcTerm> dcTerms = Lists.newArrayList(DcTerm.values());
+    dcTerms.removeIf(DcTerm::isClass);
+
+    List<DwcTerm> dwcTerms = Lists.newArrayList(DwcTerm.values());
+    dwcTerms.removeIf(term -> term.isClass() && NON_OCCURRENCE_TERMS.contains(term));
+
     return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
-      Iterables.filter(Lists.newArrayList(DcTerm.values()), new Predicate<DcTerm>() {
-
-        @Override
-        public boolean apply(@Nullable DcTerm t) {
-          return !t.isClass();
-        }
-      }), Iterables.filter(Lists.newArrayList(DwcTerm.values()), new Predicate<DwcTerm>() {
-
-        @Override
-        public boolean apply(@Nullable DwcTerm t) {
-          return !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t);
-        }
-      }));
+      dcTerms,
+      dwcTerms);
   }
 
   /**
    * Lists all terms relevant for a multimedia extension record.
    * gbifID is included and comes first as its the foreign key to the core record.
    */
-  public static Iterable<? extends Term> multimediaTerms() {
+  public static Iterable<Term> multimediaTerms() {
     return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
   }
 
