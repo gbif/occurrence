@@ -74,7 +74,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
         
       }
       
-      SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
+      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS).mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
                                          configuration.getDownloadTempDir(),
                                          workflowConfiguration.getHdfsOutputPath(),

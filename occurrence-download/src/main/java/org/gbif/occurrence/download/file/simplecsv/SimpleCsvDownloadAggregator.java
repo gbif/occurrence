@@ -10,6 +10,7 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.utils.file.FileUtils;
@@ -65,7 +66,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       if (!results.isEmpty()) {
         mergeResults(results);
       }
-      SimpleCsvArchiveBuilder.mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
+      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS).mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
                                          configuration.getDownloadTempDir(),
                                          workflowConfiguration.getHdfsOutputPath(),
