@@ -97,9 +97,9 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
    */
-  public void doWork(final DownloadFileWork work) throws IOException {
+  public void doWork(DownloadFileWork work) throws IOException {
 
-    final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
+    DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
     try (
       ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()

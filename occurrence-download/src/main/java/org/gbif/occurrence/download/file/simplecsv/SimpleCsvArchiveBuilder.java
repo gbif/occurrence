@@ -61,7 +61,7 @@ public class SimpleCsvArchiveBuilder {
    * Merges the content of sourceFS:sourcePath into targetFS:outputPath in a file called downloadKey.zip.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
-  public static void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+  public static void mergeToZip(FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                 String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
@@ -76,7 +76,7 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the file using the standard java libraries java.util.zip.
    */
-  private static void zipDefault(final FileSystem sourceFS, final FileSystem targetFS, String sourcePath,
+  private static void zipDefault(FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                  Path outputPath,String downloadKey) {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
@@ -105,13 +105,13 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the pre-deflated content using the hadoop-compress library.
    */
-  private static void zipPreDeflated(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+  private static void zipPreDeflated(FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                      Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
       ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
     ) {
-      final Path inputPath = new Path(sourcePath);
+      Path inputPath = new Path(sourcePath);
       //appends the header file
       appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED);
 

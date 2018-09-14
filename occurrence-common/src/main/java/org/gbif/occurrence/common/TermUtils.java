@@ -9,16 +9,11 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -34,7 +29,7 @@ import com.google.common.collect.Sets;
  */
 public class TermUtils {
 
-  private static final Set<Term> EXTENSION_TERMS = Arrays.stream(Extension.values())
+  private static final Set<? extends Term> EXTENSION_TERMS = Arrays.stream(Extension.values())
     .map(ext -> TermFactory.instance().findTerm(ext.getRowType())).collect(Collectors.toSet());
 
 
@@ -260,18 +255,16 @@ public class TermUtils {
    * Lists all terms relevant for an interpreted occurrence record, starting with occurrenceID as the key.
    * UnknownTerms are not included as they are open ended.
    */
-  public static Collection<Term> interpretedTerms() {
-    Stream<? extends Term> dwcTerms  = Lists.newArrayList(DwcTerm.values()).stream().filter(t ->
-      !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && (!INTERPRETED_SOURCE_TERMS.contains(t)
-        || JAVA_PROPERTY_TERMS.contains(t)));
-    Stream<? extends Term> gbifTerms  = Lists.newArrayList(GbifTerm.values()).stream().filter(t ->
-      !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t) && GbifTerm.gbifID != t && GbifTerm.coordinateAccuracy !=t);
-
-    Stream<? extends Term> dcTerms = Lists.newArrayList(DcTerm.values()).stream().filter(t ->
-      !t.isClass() && (!INTERPRETED_SOURCE_TERMS.contains(t) || JAVA_PROPERTY_TERMS.contains(t)));
-
-
-    return  Stream.concat(dwcTerms, gbifTerms, dcTerms).collect(Collectors.toList());
+  public static Iterable<? extends Term> interpretedTerms() {
+    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
+      Arrays.stream(DcTerm.values()).filter(t -> !t.isClass() && (!INTERPRETED_SOURCE_TERMS.contains(t)
+                                                 || JAVA_PROPERTY_TERMS.contains(t))).collect(Collectors.toList()),
+      Arrays.stream(DwcTerm.values()).filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)
+                                                  && (!INTERPRETED_SOURCE_TERMS.contains(t)
+            || JAVA_PROPERTY_TERMS.contains(t))).collect(Collectors.toList()),
+      // GbifTerm.coordinateAccuracy is deprecated
+      Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)
+                                                    && GbifTerm.gbifID != t && GbifTerm.coordinateAccuracy !=t).collect(Collectors.toList()));
   }
 
   /**
@@ -279,16 +272,11 @@ public class TermUtils {
    * gbifID is included and comes first as its the foreign key to the core record.
    * UnknownTerms are not included as they are open ended.
    */
-  public static Iterable<Term> verbatimTerms() {
-    List<DcTerm> dcTerms = Lists.newArrayList(DcTerm.values());
-    dcTerms.removeIf(DcTerm::isClass);
-
-    List<DwcTerm> dwcTerms = Lists.newArrayList(DwcTerm.values());
-    dwcTerms.removeIf(term -> term.isClass() && NON_OCCURRENCE_TERMS.contains(term));
-
-    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID),
-      dcTerms,
-      dwcTerms);
+  public static Iterable<? extends Term> verbatimTerms() {
+    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID),
+                         Arrays.stream(DcTerm.values()).filter(t -> !t.isClass()).collect(Collectors.toList()),
+                         Arrays.stream(DwcTerm.values())
+                           .filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)).collect(Collectors.toList()));
   }
 
   /**
@@ -296,7 +284,7 @@ public class TermUtils {
    * gbifID is included and comes first as its the foreign key to the core record.
    */
   public static Iterable<Term> multimediaTerms() {
-    return Iterables.concat(Lists.newArrayList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
+    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
   }
 
   /**

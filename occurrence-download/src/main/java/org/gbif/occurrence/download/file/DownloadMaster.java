@@ -54,14 +54,9 @@ public class DownloadMaster extends UntypedActor {
    * Default constructor.
    */
   @Inject
-  public DownloadMaster(
-    LockFactory lockFactory,
-    Configuration configuration,
-    SolrClient solrClient,
-    OccurrenceMapReader occurrenceMapReader,
-    DownloadJobConfiguration jobConfiguration,
-    DownloadAggregator aggregator
-  ) {
+  public DownloadMaster(LockFactory lockFactory, Configuration configuration, SolrClient solrClient,
+                        OccurrenceMapReader occurrenceMapReader, DownloadJobConfiguration jobConfiguration,
+                        DownloadAggregator aggregator) {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
@@ -130,11 +125,11 @@ public class DownloadMaster extends UntypedActor {
     }
     downloadTempDir.mkdirs();
 
-    final int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
+    int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
     if (recordCount <= 0) { // no work to do: shutdown the system
       aggregateAndShutdown();
     } else  {
-      final int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
+      int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
       // Calculates the required workers.
       calcNrOfWorkers =
         conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
@@ -212,9 +207,11 @@ public class DownloadMaster extends UntypedActor {
     public Actor create() throws Exception {
       if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
         return new SimpleCsvDownloadActor();
-      } else if (downloadFormat == DownloadFormat.SIMPLE_AVRO) {
+      }
+      if (downloadFormat == DownloadFormat.SIMPLE_AVRO) {
         throw new IllegalStateException("Small Avro downloads not supported as small downloads.");
-      } else if (downloadFormat == DownloadFormat.DWCA) {
+      }
+      if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
       }
       throw new IllegalStateException("Unsupported download format");
@@ -243,12 +240,10 @@ public class DownloadMaster extends UntypedActor {
      * Default/full constructor.
      */
     @Inject
-    public Configuration(
-      @Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
-      @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
-      @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
-      @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName
-    ) {
+    public Configuration(@Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
+                         @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
+                         @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
+                         @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName) {
       this.nrOfWorkers = nrOfWorkers;
       this.minNrOfRecords = minNrOfRecords;
       this.maximumNrOfRecords = maximumNrOfRecords;
