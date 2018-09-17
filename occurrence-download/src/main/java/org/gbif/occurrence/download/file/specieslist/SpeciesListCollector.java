@@ -25,16 +25,16 @@ public class SpeciesListCollector {
    * @return distinct species
    */
   public static List<Map<String,String>> getDistinctSpecies(List<Map<String,String>> collectedResults) {
-    Map<String,List<Map<String,String>>> groupByTaxonKey = collectedResults.stream().collect(Collectors.groupingBy((occMap) -> occMap.get(GbifTerm.taxonKey.simpleName())));
-    List<Map<String,String>> results = new ArrayList<>();
+    Map<String, List<Map<String, String>>> groupByTaxonKey = collectedResults.stream()
+        .collect(Collectors.groupingBy((occMap) -> occMap.get(GbifTerm.taxonKey.simpleName())));
+    List<Map<String, String>> results = new ArrayList<>();
     groupByTaxonKey.values().iterator().forEachRemaining(groupedResult -> {
-      Map<String,String> orderedResults = new LinkedHashMap<>();
-      //takes reference values for the download value 
-      Map<String,String> referenceResult =new LinkedHashMap<>(groupedResult.get(0));
+      Map<String, String> orderedResults = new LinkedHashMap<>();
+      // takes reference values for the download value
+      Map<String, String> referenceResult = new LinkedHashMap<>(groupedResult.get(0));
       referenceResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), Long.toString(groupedResult.size()));
-      DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.iterator().forEachRemaining( term ->
-        orderedResults.put(term.simpleName(),referenceResult.get(term.simpleName()))
-      );
+      // order the map according to download terms declaration
+      DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.iterator().forEachRemaining( term -> orderedResults.put(term.simpleName(), referenceResult.get(term.simpleName())));
       results.add(orderedResults);
     });
     return results;

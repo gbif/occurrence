@@ -49,14 +49,10 @@ public class SpeciesListDownloadActor extends UntypedActor{
         try {
           org.apache.hadoop.hbase.client.Result result =
               work.getOccurrenceMapReader().get(occurrenceKey);
-          Map<String, String> occurrenceRecordMap =
-              buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);
+          Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);
           if (occurrenceRecordMap != null) {
             // collect usages
-            datasetUsagesCollector.collectDatasetUsage(
-                occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-                occurrenceRecordMap.get(DcTerm.license.simpleName()));
-
+            datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()), occurrenceRecordMap.get(DcTerm.license.simpleName()));
             speciesCollector.collectResult(occurrenceRecordMap);
           } else {
             LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));

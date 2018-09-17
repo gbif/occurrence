@@ -94,34 +94,37 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
    * Merges the files of each job into a single CSV file.
    */
   private void mergeResults(List<Result> results) {
-      // Results are sorted to respect the original ordering
-      Collections.sort(results);
-      DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-      List<Map<String,String>> aggregateSpeciesList = new ArrayList<>();
-      for (Result result : results) {
-        datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-        datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
-        aggregateSpeciesList.addAll(result.getSpeciesListCollector().getCollectedResults());
-      }
-      
-      try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(outputFileName,
-          StandardCharsets.UTF_8),CsvPreference.TAB_PREFERENCE)) {
-        List<Map<String,String>> distinctSpecies = SpeciesListCollector.getDistinctSpecies(aggregateSpeciesList);
-        distinctSpecies.iterator().forEachRemaining( speciesInfo -> {
-          try {
-            csvMapWriter.write(speciesInfo, COLUMNS);
-          } catch (IOException e) {
-            LOG.error("Error merging results", e);
-            throw Throwables.propagate(e);
-          }
-        });
-        occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
-        persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
-        Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-        String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-        SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
-      }  
-     catch (Exception e) {
+    // Results are sorted to respect the original ordering
+    Collections.sort(results);
+    DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
+    List<Map<String, String>> aggregateSpeciesList = new ArrayList<>();
+    for (Result result : results) {
+      datasetUsagesCollector.sumUsages(result.getDatasetUsages());
+      datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
+      aggregateSpeciesList.addAll(result.getSpeciesListCollector().getCollectedResults());
+    }
+
+    try (ICsvMapWriter csvMapWriter =
+        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8),
+            CsvPreference.TAB_PREFERENCE)) {
+      List<Map<String, String>> distinctSpecies = SpeciesListCollector.getDistinctSpecies(aggregateSpeciesList);
+      distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
+        try {
+          csvMapWriter.write(speciesInfo, COLUMNS);
+        } catch (IOException e) {
+          LOG.error("Error merging results", e);
+          throw Throwables.propagate(e);
+        }
+      });
+      occurrenceDownloadService.createUsages(configuration.getDownloadKey(),
+          datasetUsagesCollector.getDatasetUsages());
+      persistDownloadLicense(configuration.getDownloadKey(),
+          datasetUsagesCollector.getDatasetLicenses());
+      Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+      String registryWsURL =
+          properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
+      SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
+    } catch (Exception e) {
       LOG.error("Error merging results", e);
       throw Throwables.propagate(e);
     }
