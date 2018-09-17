@@ -101,13 +101,13 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
     for (Result result : results) {
       datasetUsagesCollector.sumUsages(result.getDatasetUsages());
       datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
-      aggregateSpeciesList.addAll(result.getSpeciesListCollector().getCollectedResults());
+      aggregateSpeciesList.addAll(result.getSpeciesListCollector().getDistinctSpecies());
     }
 
     try (ICsvMapWriter csvMapWriter =
         new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8),
             CsvPreference.TAB_PREFERENCE)) {
-      List<Map<String, String>> distinctSpecies = SpeciesListCollector.getDistinctSpecies(aggregateSpeciesList);
+      List<Map<String, String>> distinctSpecies = new SpeciesListCollector().computeDistinctSpecies(aggregateSpeciesList).getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);

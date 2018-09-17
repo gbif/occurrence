@@ -10,34 +10,33 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 
 public class SpeciesListCollector {
   
-  private List<Map<String,String>> collectedResults = new ArrayList<>();
-  
-  public List<Map<String, String>> getCollectedResults() {
-    return collectedResults;
-  }
-  
-  public void collectResult(Map<String,String> result) {
-    collectedResults.add(result);    
+  private final List<Map<String,String>> distinctSpeciesRecord = new ArrayList<>();
+  /**
+   * @return list of records of distinct species.
+   */
+  public List<Map<String, String>> getDistinctSpecies() {
+    return distinctSpeciesRecord;
   }
   
   /**
    * group results by taxon key and order them in {@link DownloadTerms} species list download order.
    * @return distinct species
    */
-  public static List<Map<String,String>> getDistinctSpecies(List<Map<String,String>> collectedResults) {
-    Map<String, List<Map<String, String>>> groupByTaxonKey = collectedResults.stream()
-        .collect(Collectors.groupingBy((occMap) -> occMap.get(GbifTerm.taxonKey.simpleName())));
-    List<Map<String, String>> results = new ArrayList<>();
+  public SpeciesListCollector computeDistinctSpecies(List<Map<String,String>> filteredResult) {
+    if(!distinctSpeciesRecord.isEmpty())
+      distinctSpeciesRecord.clear();
+    Map<String, List<Map<String, String>>> groupByTaxonKey = filteredResult.stream()
+        .collect(Collectors.groupingBy( occMap -> occMap.get(GbifTerm.taxonKey.simpleName())));
     groupByTaxonKey.values().iterator().forEachRemaining(groupedResult -> {
       Map<String, String> orderedResults = new LinkedHashMap<>();
-      // takes reference values for the download value
+      // takes reference values for the download results
       Map<String, String> referenceResult = new LinkedHashMap<>(groupedResult.get(0));
-      referenceResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), Long.toString(groupedResult.size()));
+      referenceResult.put(GbifTerm.numOfOccurrences.simpleName(), Long.toString(groupedResult.size()));
       // order the map according to download terms declaration
       DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.iterator().forEachRemaining( term -> orderedResults.put(term.simpleName(), referenceResult.get(term.simpleName())));
-      results.add(orderedResults);
+      distinctSpeciesRecord.add(orderedResults);
     });
-    return results;
+    return this;
   }
   
 }

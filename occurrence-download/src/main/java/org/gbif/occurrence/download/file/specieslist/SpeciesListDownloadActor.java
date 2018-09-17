@@ -2,7 +2,10 @@ package org.gbif.occurrence.download.file.specieslist;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -43,7 +46,7 @@ public class SpeciesListDownloadActor extends UntypedActor{
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     final SpeciesListCollector speciesCollector = new SpeciesListCollector();
-
+    final List<Map<String,String>> filteredResult = new ArrayList<>();
     try {
       SolrQueryProcessor.processQuery(work, occurrenceKey -> {
         try {
@@ -53,7 +56,7 @@ public class SpeciesListDownloadActor extends UntypedActor{
           if (occurrenceRecordMap != null) {
             // collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()), occurrenceRecordMap.get(DcTerm.license.simpleName()));
-            speciesCollector.collectResult(occurrenceRecordMap);
+            filteredResult.add(occurrenceRecordMap);
           } else {
             LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
           }
@@ -66,6 +69,7 @@ public class SpeciesListDownloadActor extends UntypedActor{
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
     }
+    speciesCollector.computeDistinctSpecies(filteredResult);
     Result result = new Result(work, datasetUsagesCollector.getDatasetUsages(),
         datasetUsagesCollector.getDatasetLicenses());
     result.setSpeciesListCollector(speciesCollector);
