@@ -1,16 +1,14 @@
 package org.gbif.occurrence.download.file.specieslist;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.gbif.dwc.terms.GbifTerm;
 
 public enum SpeciesListCollector {
-  INSTANCE;
-  
-  private static final String NUM_OF_OCCURRENCES = "no_of_occurrences";
-  
+  INSTANCE;  
   
   public static SpeciesListCollector getInstance() {
     return INSTANCE;
@@ -26,8 +24,8 @@ public enum SpeciesListCollector {
     Map<String,List<Map<String,String>>> groupByTaxonKey = collectedResults.stream().collect(Collectors.groupingBy((occMap) -> occMap.get(GbifTerm.taxonKey.simpleName())));
     List<Map<String,String>> results = new ArrayList<>();
     groupByTaxonKey.values().iterator().forEachRemaining(groupedResult -> {
-      Map<String,String> interResult = groupedResult.get(0);
-      interResult.put(NUM_OF_OCCURRENCES, String.format("{}",groupedResult.size()));
+      Map<String,String> interResult = new LinkedHashMap<>(groupedResult.get(0));
+      interResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), String.format("{}",groupedResult.size()));
       results.add(interResult);
     });
     return results;
