@@ -19,11 +19,12 @@ import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.Executors;
+
 
 import akka.dispatch.ExecutionContextExecutorService;
 import akka.dispatch.ExecutionContexts;
-import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -52,7 +53,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
-  private final Optional<DownloadJobConfiguration> configuration;
+  private final DownloadJobConfiguration configuration;
 
   private final WorkflowConfiguration workflowConfiguration;
 
@@ -60,16 +61,15 @@ public final class DownloadWorkflowModule extends AbstractModule {
    * Loads the default configuration file name and copies the additionalProperties into it.
    */
   public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    this.configuration = Optional.fromNullable(configuration);
     this.workflowConfiguration = workflowConfiguration;
+    this.configuration = configuration;
   }
 
   /**
    * Loads the default configuration file name 'occurrence-download.properties'.
    */
   public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration) {
-    this.workflowConfiguration = workflowConfiguration;
-    configuration = Optional.absent();
+    this(workflowConfiguration,null);
   }
 
   @Override
@@ -80,9 +80,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
     bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
-    if (configuration.isPresent()) {
-      bind(DownloadJobConfiguration.class).toInstance(configuration.get());
-    }
+    Optional.ofNullable(configuration).ifPresent(conf -> bind(DownloadJobConfiguration.class).toInstance(conf));
     bind(RegistryClientUtil.class).toInstance(new RegistryClientUtil(workflowConfiguration.getDownloadSettings()));
     bindDownloadFilesBuilding();
   }
@@ -104,8 +102,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Provides
   @Singleton
   DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil
-  ) {
+    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetUsageService(registryWsUri);
   }
 
@@ -125,14 +122,12 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   @Provides
   ExecutionContextExecutorService provideExecutionContextExecutorService(
-    @Named(PROPERTIES_PREFIX + "job.max_threads") int maxThreads
-  ) {
+    @Named(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
     return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
   }
 
   @Provides
-  Connection provideHBaseConnection()
-    throws IOException {
+  Connection provideHBaseConnection() throws IOException {
     return ConnectionFactory.createConnection(HBaseConfiguration.create());
   }
 
