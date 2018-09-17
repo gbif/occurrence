@@ -1,0 +1,15 @@
+{
+  "creator": "MattBlissett",
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "SPECIES_LIST",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "TAXON_KEY",
+        "value": "5"
+      }
+    ]
+  }
+}
