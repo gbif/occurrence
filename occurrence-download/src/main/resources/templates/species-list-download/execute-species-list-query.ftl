@@ -27,7 +27,7 @@ WHERE ${r"${whereClause}"};
 CREATE TABLE ${r"${speciesListTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
-taxonkey , scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey, count(taxonkey) as no_of_occurrences
+taxonkey , scientificname, count(taxonkey) as no_of_occurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey
 FROM ${r"${speciesListTable}"}_tmp
 GROUP BY 
 taxonkey, scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey,phylum, phylumkey, class,classkey,order_, orderkey, family, familykey, genus, genuskey , subgenus, subgenuskey, species, specieskey;
