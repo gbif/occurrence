@@ -42,7 +42,7 @@ public class SpeciesListDownloadActor extends UntypedActor{
   private void doWork(final DownloadFileWork work) throws IOException {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-    final SpeciesListCollector speciesCollector = SpeciesListCollector.getInstance();
+    final SpeciesListCollector speciesCollector = new SpeciesListCollector();
 
     try {
       SolrQueryProcessor.processQuery(work, occurrenceKey -> {
@@ -70,8 +70,9 @@ public class SpeciesListDownloadActor extends UntypedActor{
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
     }
-
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
-        datasetUsagesCollector.getDatasetLicenses()), getSelf());
+    Result result = new Result(work, datasetUsagesCollector.getDatasetUsages(),
+        datasetUsagesCollector.getDatasetLicenses());
+    result.setSpeciesListCollector(speciesCollector);
+    getSender().tell(result, getSelf());
   }
 }

@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.file.specieslist;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -96,15 +97,16 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
       // Results are sorted to respect the original ordering
       Collections.sort(results);
       DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-      
+      List<Map<String,String>> aggregateSpeciesList = new ArrayList<>();
       for (Result result : results) {
         datasetUsagesCollector.sumUsages(result.getDatasetUsages());
         datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
+        aggregateSpeciesList.addAll(result.getSpeciesListCollector().getCollectedResults());
       }
       
       try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(outputFileName,
           StandardCharsets.UTF_8),CsvPreference.TAB_PREFERENCE)) {
-        List<Map<String,String>> distinctSpecies = SpeciesListCollector.getInstance().groupByTaxonKey();
+        List<Map<String,String>> distinctSpecies = SpeciesListCollector.getDistinctSpecies(aggregateSpeciesList);
         distinctSpecies.iterator().forEachRemaining( speciesInfo -> {
           try {
             csvMapWriter.write(speciesInfo, COLUMNS);
@@ -117,7 +119,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
         persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
         Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
         String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-        SpeciesCount.persistCount(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
+        SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
       }  
      catch (Exception e) {
       LOG.error("Error merging results", e);

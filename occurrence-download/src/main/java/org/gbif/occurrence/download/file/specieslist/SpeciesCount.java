@@ -22,13 +22,13 @@ public class SpeciesCount {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-    persistCount(downloadKey, DownloadFileUtils.readSpeciesCount(nameNode, countPath),registryWsURL);
+    persist(downloadKey, DownloadFileUtils.readSpeciesCount(nameNode, countPath),registryWsURL);
   }
 
   /**
    * Updates the species record count of the download entity.
    */
-  static void persistCount(String downloadKey, long recordCount, String registryWsURL) {
+  static void persist(String downloadKey, long recordCount, String registryWsURL) {
     try {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil();
       OccurrenceDownloadService occurrenceDownloadService =
