@@ -22,7 +22,7 @@ public class SpeciesCount {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-    persist(downloadKey, DownloadFileUtils.readSpeciesCount(nameNode, countPath),registryWsURL);
+    persist(downloadKey, DownloadFileUtils.readSpeciesCount(nameNode, countPath), registryWsURL);
   }
 
   /**
