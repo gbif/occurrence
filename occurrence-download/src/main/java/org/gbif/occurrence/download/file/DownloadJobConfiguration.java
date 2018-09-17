@@ -31,16 +31,9 @@ public class DownloadJobConfiguration {
    * Private constructor.
    * Instances must be created using the Builder class.
    */
-  private DownloadJobConfiguration(
-    String downloadKey,
-    String downloadTableName,
-    String filter,
-    String user,
-    boolean isSmallDownload,
-    String sourceDir,
-    String solrQuery,
-    DownloadFormat downloadFormat
-  ) {
+  private DownloadJobConfiguration(String downloadKey, String downloadTableName, String filter, String user,
+                                   boolean isSmallDownload, String sourceDir, String solrQuery,
+                                   DownloadFormat downloadFormat) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;

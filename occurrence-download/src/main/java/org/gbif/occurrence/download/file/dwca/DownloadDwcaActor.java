@@ -20,11 +20,9 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 import akka.actor.UntypedActor;
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -57,21 +55,12 @@ public class DownloadDwcaActor extends UntypedActor {
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  private final static Function<Term, String> SIMPLE_NAME_FUNC = new Function<Term, String>() {
-
-    @Nullable
-    @Override
-    public String apply(@Nullable Term input) {
-      return input.simpleName();
-    }
-  };
-
   private static final String[] INT_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+    Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] VERB_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+    Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] MULTIMEDIA_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), SIMPLE_NAME_FUNC).toArray(new String[0]);
+    Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), Term::simpleName).toArray(new String[0]);
   private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {new NotNull(), // coreid
     new MediaTypeProcessor(), // type
     new CleanStringProcessor(), // format
@@ -108,9 +97,9 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
    */
-  public void doWork(final DownloadFileWork work) throws IOException {
+  public void doWork(DownloadFileWork work) throws IOException {
 
-    final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
+    DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
     try (
       ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()

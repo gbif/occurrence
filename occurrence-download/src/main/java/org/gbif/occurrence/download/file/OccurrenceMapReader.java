@@ -55,7 +55,7 @@ public class OccurrenceMapReader {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
-      Map<String, String> occurrence = new HashMap<String, String>();
+      Map<String, String> occurrence = new HashMap<>();
       for (Term term : TermUtils.interpretedTerms()) {
         if (TermUtils.isInterpretedDate(term)) {
           occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));

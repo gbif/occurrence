@@ -109,13 +109,14 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the pre-deflated content using the hadoop-compress library.
    */
+
   private void zipPreDeflated(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                      Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
       ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
     ) {
-      final Path inputPath = new Path(sourcePath);
+      Path inputPath = new Path(sourcePath);
       //appends the header file
       appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED);
 
