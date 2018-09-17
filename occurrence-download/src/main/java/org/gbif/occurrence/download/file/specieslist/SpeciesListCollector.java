@@ -25,7 +25,7 @@ public enum SpeciesListCollector {
     List<Map<String,String>> results = new ArrayList<>();
     groupByTaxonKey.values().iterator().forEachRemaining(groupedResult -> {
       Map<String,String> interResult = new LinkedHashMap<>(groupedResult.get(0));
-      interResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), String.format("{}",groupedResult.size()));
+      interResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), groupedResult.size()+"");
       results.add(interResult);
     });
     return results;
