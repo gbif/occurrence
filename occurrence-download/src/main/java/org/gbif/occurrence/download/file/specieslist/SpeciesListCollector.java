@@ -27,7 +27,7 @@ public enum SpeciesListCollector {
     groupByTaxonKey.values().iterator().forEachRemaining(groupedResult -> {
       Map<String,String> orderedResults = new LinkedHashMap<>();
       Map<String,String> referenceResult =new LinkedHashMap<>(groupedResult.get(0));
-      referenceResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), referenceResult.size()+"");
+      referenceResult.put(GbifTerm.NUM_OF_OCCURRENCES.simpleName(), groupedResult.size()+"");
       DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.iterator().forEachRemaining( term ->
         orderedResults.put(term.simpleName(),referenceResult.get(term.simpleName()))
       );
