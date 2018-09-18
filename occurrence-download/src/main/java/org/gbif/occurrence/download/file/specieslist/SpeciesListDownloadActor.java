@@ -1,10 +1,11 @@
 package org.gbif.occurrence.download.file.specieslist;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -19,6 +20,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
+import com.google.common.io.Files;
 import akka.actor.UntypedActor;
 
 public class SpeciesListDownloadActor extends UntypedActor{
@@ -44,9 +46,9 @@ public class SpeciesListDownloadActor extends UntypedActor{
    */
   private void doWork(final DownloadFileWork work) throws IOException {
 
-    final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-    final SpeciesListCollector speciesCollector = new SpeciesListCollector();
-    final List<Map<String,String>> filteredResult = new ArrayList<>();
+    DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
+    SpeciesListCollector speciesCollector = new SpeciesListCollector();
+    List<Map<String,String>> filteredResult = new ArrayList<>();
     try {
       SolrQueryProcessor.processQuery(work, occurrenceKey -> {
         try {
@@ -70,9 +72,9 @@ public class SpeciesListDownloadActor extends UntypedActor{
       LOG.info("Lock released, job detail: {} ", work);
     }
     speciesCollector.computeDistinctSpecies(filteredResult);
-    Result result = new Result(work, datasetUsagesCollector.getDatasetUsages(),
-        datasetUsagesCollector.getDatasetLicenses());
-    result.setSpeciesListCollector(speciesCollector);
-    getSender().tell(result, getSelf());
+    //persist distinct species from this job to file
+    speciesCollector.persist(new File(work.getJobDataFileName()));
+    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
+        datasetUsagesCollector.getDatasetLicenses()), getSelf());
   }
 }

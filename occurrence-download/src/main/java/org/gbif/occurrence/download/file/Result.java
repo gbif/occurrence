@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.vocabulary.License;
-import org.gbif.occurrence.download.file.specieslist.SpeciesListCollector;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +18,6 @@ public class Result implements Comparable<Result> {
 
   private final Map<UUID, Long> datasetUsages;
   private final Set<License> datasetLicenses;
-  private SpeciesListCollector speciesListCollector;
 
   /**
    * Default constructor.
@@ -63,14 +61,6 @@ public class Result implements Comparable<Result> {
    */
   public DownloadFileWork getDownloadFileWork() {
     return downloadFileWork;
-  }
-  
-  public SpeciesListCollector getSpeciesListCollector() {
-    return speciesListCollector;
-  }
-
-  public void setSpeciesListCollector(SpeciesListCollector speciesListCollector) {
-    this.speciesListCollector = speciesListCollector;
   }
 
   @Override

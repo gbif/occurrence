@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.specieslist;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -38,8 +39,11 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import com.google.common.base.Throwables;
-
-public class SpeciesListDownloadAggregator implements DownloadAggregator{
+/**
+ * Aggregates multiple files from different jobs and merge there result to final file.
+ *
+ */
+public class SpeciesListDownloadAggregator implements DownloadAggregator {
 
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadAggregator.class);
 
@@ -98,16 +102,24 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
     Collections.sort(results);
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     List<Map<String, String>> aggregateSpeciesList = new ArrayList<>();
+    SpeciesListCollector speciesListCollector = new SpeciesListCollector();
+    
     for (Result result : results) {
       datasetUsagesCollector.sumUsages(result.getDatasetUsages());
       datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
-      aggregateSpeciesList.addAll(result.getSpeciesListCollector().getDistinctSpecies());
+      try {
+        aggregateSpeciesList.addAll(SpeciesListCollector.read(new File(result.getDownloadFileWork().getJobDataFileName())));
+      } catch (IOException e) {
+        LOG.error("Error reading results from file {}", result.getDownloadFileWork().getJobDataFileName());
+        throw Throwables.propagate(e);
+      }
     }
-
+    speciesListCollector.computeDistinctSpecies(aggregateSpeciesList);
+    
     try (ICsvMapWriter csvMapWriter =
         new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8),
             CsvPreference.TAB_PREFERENCE)) {
-      List<Map<String, String>> distinctSpecies = new SpeciesListCollector().computeDistinctSpecies(aggregateSpeciesList).getDistinctSpecies();
+      List<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);
@@ -120,10 +132,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator{
           datasetUsagesCollector.getDatasetUsages());
       persistDownloadLicense(configuration.getDownloadKey(),
           datasetUsagesCollector.getDatasetLicenses());
-      Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-      String registryWsURL =
-          properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
-      SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), registryWsURL);
+      SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), occurrenceDownloadService);
     } catch (Exception e) {
       LOG.error("Error merging results", e);
       throw Throwables.propagate(e);

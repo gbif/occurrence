@@ -120,7 +120,7 @@ public class DownloadTerms {
   public static final Set<Term> SPECIES_LIST_DOWNLOAD_TERMS = ImmutableSet.<Term>of(
                                                                               GbifTerm.taxonKey,
                                                                               DwcTerm.scientificName,
-                                                                              GbifTerm.NUM_OF_OCCURRENCES,
+                                                                              GbifTerm.numOfOccurrences,
                                                                               DwcTerm.taxonRank,
                                                                               DwcTerm.taxonomicStatus,
                                                                               DwcTerm.kingdom,

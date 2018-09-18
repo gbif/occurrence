@@ -214,9 +214,10 @@ public class DownloadMaster extends UntypedActor {
       }
       if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
-      } else if (downloadFormat == DownloadFormat.SPECIES_LIST) {
-      return new SpeciesListDownloadActor();
-    }
+      } 
+      if (downloadFormat == DownloadFormat.SPECIES_LIST) {
+        return new SpeciesListDownloadActor();
+      }
       throw new IllegalStateException("Unsupported download format");
     }
   }

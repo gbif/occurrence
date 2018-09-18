@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -156,8 +157,8 @@ public class DownloadPrepareAction {
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
-    if (recordCount >= 0) {
-      updateTotalRecordsCount(downloadKey, recordCount);
+    if (recordCount >= 0 && workflowConfiguration.getDownloadFormat() != DownloadFormat.SPECIES_LIST) {
+        updateTotalRecordsCount(downloadKey, recordCount);
     }
   }
 

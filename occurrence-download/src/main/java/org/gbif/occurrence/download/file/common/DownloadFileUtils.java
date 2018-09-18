@@ -8,11 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.UUID;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.io.ByteStreams;
+import java.util.Arrays;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileStatus;
@@ -20,6 +16,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Throwables;
+import com.google.common.io.ByteStreams;
 
 /**
  * Utility class for file operation in occurrence downloads.
@@ -54,24 +52,23 @@ public final class DownloadFileUtils {
   }
   
   /**
-   * reads species count from species list count table path.
+   * Reads species count from species list count table path.
    * @param nameNode namenode of hdfs.
    * @param path species count table path.
    * @return species count.
    * @throws IOException
    */
-  public static long readSpeciesCount(String nameNode,String path) throws IOException {
-    FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
-    for (FileStatus fs : hdfs.listStatus(new Path(path))) {
-      if (!fs.isDirectory()) {
-        try (BufferedReader countReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
-                                                                                      StandardCharsets.UTF_8))) {
-          return Long.parseLong(countReader.readLine());
-        }
-      }
-    }
-    LOG.warn("Could not read species count in {}",path);
-    return 0;
+  public static long readSpeciesCount(String nameNode, String path) throws IOException {
+    FileSystem fs = getHdfs(nameNode);
+    return Arrays.stream(fs.listStatus(new Path(path))).filter(FileStatus::isFile).findFirst()
+        .map(file -> {
+          try (BufferedReader countReader = new BufferedReader(new InputStreamReader(fs.open(file.getPath()), StandardCharsets.UTF_8))) {
+            return Long.parseLong(countReader.readLine());
+          } catch (IOException e) {
+            LOG.error("Couldnot read count from table", e);
+            throw Throwables.propagate(e);
+          }
+        }).orElse(0L);
   }
 
   /**

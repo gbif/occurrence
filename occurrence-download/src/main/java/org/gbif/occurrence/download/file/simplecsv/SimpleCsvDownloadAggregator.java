@@ -66,7 +66,8 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       if (!results.isEmpty()) {
         mergeResults(results);
       }
-      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS).mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
+      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS)
+                             .mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
                                          DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
                                          configuration.getDownloadTempDir(),
                                          workflowConfiguration.getHdfsOutputPath(),

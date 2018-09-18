@@ -49,7 +49,7 @@ public class SimpleCsvArchiveBuilder {
   //Header file is named '0' to appear first when listing the content of the directory.
   private static final String HEADER_FILE_NAME = "0";
   //String that contains the file HEADER for the simple table format.
-  private final String HEADER;
+  private final String header;
   
   /**
    * Creates the file HEADER.
@@ -152,9 +152,9 @@ public class SimpleCsvArchiveBuilder {
     throws IOException {
     try (FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(dir, HEADER_FILE_NAME))) {
       if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
-        D2Utils.compress(new ByteArrayInputStream(HEADER.getBytes()), fsDataOutputStream);
+        D2Utils.compress(new ByteArrayInputStream(header.getBytes()), fsDataOutputStream);
       } else {
-        fsDataOutputStream.write(HEADER.getBytes());
+        fsDataOutputStream.write(header.getBytes());
       }
     }
   }
@@ -181,6 +181,6 @@ public class SimpleCsvArchiveBuilder {
    * Private constructor.
    */
   private SimpleCsvArchiveBuilder(String header) {
-    this.HEADER = header;
+    this.header = header;
   }
 }
