@@ -77,6 +77,7 @@ public class DownloadTerms {
                                                                               DwcTerm.catalogNumber,
                                                                               DwcTerm.recordNumber,
                                                                               DwcTerm.identifiedBy,
+                                                                              DwcTerm.dateIdentified,
                                                                               DcTerm.license,
                                                                               DcTerm.rightsHolder,
                                                                               DwcTerm.recordedBy,
