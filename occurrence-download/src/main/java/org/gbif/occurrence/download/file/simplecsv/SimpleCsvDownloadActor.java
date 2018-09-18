@@ -55,7 +55,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
    */
-  private void doWork(final DownloadFileWork work) throws IOException {
+  private void doWork(DownloadFileWork work) throws IOException {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 

@@ -9,6 +9,7 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import com.google.common.base.Preconditions;
+
 /**
  * 
  * Oozie action persists meta information of species list download to registry.

@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * 
  * Oozie action for Species list download, helps with counts of the number of distinct species. 

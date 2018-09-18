@@ -14,9 +14,14 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import com.google.common.io.Files;
 
+/**
+ * 
+ * Utility class which collects distinct species info and read/write them from file.
+ *
+ */
 public class SpeciesListCollector {
 
-  private ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
   private final List<Map<String,String>> distinctSpeciesRecord = new ArrayList<>();
   
   /**
@@ -50,23 +55,24 @@ public class SpeciesListCollector {
   
   /**
    * Serializes the species list to String.
+   * @param persistFile provide file to persist the distinct species info.
    * @return species list in json.
-   * @throws IOException
+   * @throws IOException thrown if there is a problem writing to file.
    */
   public void persist(File persistFile) throws IOException {
-    Files.write(mapper.writer().writeValueAsString(this.distinctSpeciesRecord), persistFile, StandardCharsets.UTF_8);
+    Files.write(MAPPER.writer().writeValueAsString(this.distinctSpeciesRecord), persistFile, StandardCharsets.UTF_8);
   }
   
   /**
    * Parse unique species list from the json.
-   * @param jsonString
-   * @return
-   * @throws IOException
+   * @param dataFile provide file to read the distinct species info.
+   * @return list of distinct species info.
+   * @throws IOException thrown if there is problem reading the provided file.
    */
   public static List<Map<String, String>> read(File dataFile) throws IOException {
     String serializedJson = Files.toString(dataFile, StandardCharsets.UTF_8);
     TypeReference<List<Map<String, String>>> typeRef = new TypeReference<List<Map<String, String>>>() {};
-    return new ObjectMapper().readValue(serializedJson, typeRef);
+    return MAPPER.readValue(serializedJson, typeRef);
   }
   
 }

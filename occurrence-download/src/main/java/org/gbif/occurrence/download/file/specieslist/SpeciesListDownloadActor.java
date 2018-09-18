@@ -3,7 +3,6 @@ package org.gbif.occurrence.download.file.specieslist;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +19,6 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
-import com.google.common.io.Files;
 import akka.actor.UntypedActor;
 
 public class SpeciesListDownloadActor extends UntypedActor{
@@ -44,7 +42,7 @@ public class SpeciesListDownloadActor extends UntypedActor{
   /**
    * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
    */
-  private void doWork(final DownloadFileWork work) throws IOException {
+  private void doWork(DownloadFileWork work) throws IOException {
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();
