@@ -87,7 +87,7 @@ public class DownloadPrepareAction {
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The solr query argument hasn't been specified");
     DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
-    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]));
+    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
   }
 
   /**
@@ -133,7 +133,7 @@ public class DownloadPrepareAction {
    *
    * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
-  public void updateDownloadData(String rawPredicate, String downloadKey) throws IOException, QueryBuildingException {
+  public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat) throws IOException, QueryBuildingException {
     Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
     String solrQuery = new SolrQueryVisitor().getQuery(predicate);
     long recordCount = getRecordCount(solrQuery);
@@ -157,7 +157,7 @@ public class DownloadPrepareAction {
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
-    if (recordCount >= 0 && workflowConfiguration.getDownloadFormat() != DownloadFormat.SPECIES_LIST) {
+    if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
         updateTotalRecordsCount(downloadKey, recordCount);
     }
   }

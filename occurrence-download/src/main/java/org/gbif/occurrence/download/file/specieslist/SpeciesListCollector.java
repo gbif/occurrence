@@ -10,7 +10,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 
 /**
  * 
- * Utility class which collects distinct species info and read/write them from file.
+ * Utility class which collects distinct species info.
  *
  */
 public class SpeciesListCollector {
@@ -18,7 +18,7 @@ public class SpeciesListCollector {
   private final Map<String,Map<String,String>> distinctSpeciesRecord = new HashMap<>();
   
   /**
-   * @return list of records of distinct species.
+   * @return set of records of distinct species.
    */
   public Set<Map<String, String>> getDistinctSpecies() {
     return new HashSet<>(distinctSpeciesRecord.values());
