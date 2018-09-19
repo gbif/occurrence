@@ -1,10 +1,8 @@
 package org.gbif.occurrence.download.file.specieslist;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +34,7 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import com.google.common.base.Throwables;
+
 /**
  * Aggregates multiple files from different jobs and merge there result to final file.
  *
@@ -46,51 +45,42 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
 
   private static final String CSV_EXTENSION = ".csv";
 
-  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream()
-      .map(Term::simpleName).toArray(String[]::new);
-  
+  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream().map(Term::simpleName).toArray(String[]::new);
+
   private final DownloadJobConfiguration configuration;
   private final WorkflowConfiguration workflowConfiguration;
   private final String outputFileName;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
-  
+
   @Inject
-  public SpeciesListDownloadAggregator(DownloadJobConfiguration configuration,
-                                     WorkflowConfiguration workflowConfiguration,
-                                     OccurrenceDownloadService occurrenceDownloadService) {
+  public SpeciesListDownloadAggregator(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,
+      OccurrenceDownloadService occurrenceDownloadService) {
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
-    outputFileName =
-      configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
+    outputFileName = configuration.getDownloadTempDir() + Path.SEPARATOR + configuration.getDownloadKey() + CSV_EXTENSION;
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
 
-  
   @Override
   public void aggregate(List<Result> results) {
     try {
       if (!results.isEmpty()) {
         mergeResults(results);
-        
       }
-      
-      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS).mergeToZip(FileSystem.getLocal(new Configuration()).getRawFileSystem(),
-                                         DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
-                                         configuration.getDownloadTempDir(),
-                                         workflowConfiguration.getHdfsOutputPath(),
-                                         configuration.getDownloadKey(),
-                                         ModalZipOutputStream.MODE.DEFAULT);
-      //Delete the temp directory
+      SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS).mergeToZip(
+          FileSystem.getLocal(new Configuration()).getRawFileSystem(), DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode()),
+          configuration.getDownloadTempDir(), workflowConfiguration.getHdfsOutputPath(), configuration.getDownloadKey(),
+          ModalZipOutputStream.MODE.DEFAULT);
+      // Delete the temp directory
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
       LOG.error("Error aggregating download files", ex);
       throw Throwables.propagate(ex);
     }
-    
   }
-  
+
   /**
    * Merges the files of each job into a single CSV file.
    */
@@ -98,25 +88,19 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
     // Results are sorted to respect the original ordering
     Collections.sort(results);
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
-    List<Map<String, String>> aggregateSpeciesList = new ArrayList<>();
     SpeciesListCollector speciesListCollector = new SpeciesListCollector();
-    
+
     for (Result result : results) {
-      datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-      datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
-      try {
-        aggregateSpeciesList.addAll(SpeciesListCollector.read(new File(result.getDownloadFileWork().getJobDataFileName())));
-      } catch (IOException e) {
-        LOG.error("Error reading results from file {}", result.getDownloadFileWork().getJobDataFileName());
-        throw Throwables.propagate(e);
-      }
+      SpeciesListResult speciesResult = (SpeciesListResult) result;
+      datasetUsagesCollector.sumUsages(speciesResult.getDatasetUsages());
+      datasetUsagesCollector.mergeLicenses(speciesResult.getDatasetLicenses());
+      speciesResult.getDistinctSpecies().iterator()
+          .forEachRemaining(distinctSpeciesRecord -> speciesListCollector.computeDistinctSpecies(distinctSpeciesRecord));
     }
-    speciesListCollector.computeDistinctSpecies(aggregateSpeciesList);
-    
+
     try (ICsvMapWriter csvMapWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8),
-            CsvPreference.TAB_PREFERENCE)) {
-      List<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
+        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE)) {
+      Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);
@@ -125,10 +109,8 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
           throw Throwables.propagate(e);
         }
       });
-      occurrenceDownloadService.createUsages(configuration.getDownloadKey(),
-          datasetUsagesCollector.getDatasetUsages());
-      persistDownloadLicense(configuration.getDownloadKey(),
-          datasetUsagesCollector.getDatasetLicenses());
+      occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
+      persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
       SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), occurrenceDownloadService);
     } catch (Exception e) {
       LOG.error("Error merging results", e);
@@ -146,8 +128,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       download.setLicense(licenseSelector.getSelectedLicense());
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses,
-                ex);
+      LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
     }
   }
 

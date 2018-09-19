@@ -2,9 +2,7 @@ package org.gbif.occurrence.download.file.specieslist;
 
 
 import static org.junit.Assert.assertEquals;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +15,7 @@ public class SpeciesListCollectorTest {
 
 
   /**
-   * test serialization results
+   * test groupby results
    * 
    * @throws IOException
    */
@@ -32,18 +30,11 @@ public class SpeciesListCollectorTest {
       speciesRecord.put(GbifTerm.numOfOccurrences.simpleName(), Long.toString(i * 2));
       speciesRecord.put(DwcTerm.taxonRank.simpleName(), "ANIMALIA");
       filteredResult.add(speciesRecord);
-
     }
-    File file = new File("xyz");
 
     SpeciesListCollector collector = new SpeciesListCollector();
-    collector.computeDistinctSpecies(filteredResult);
-    collector.persist(file);
-    assertEquals(true, Files.exists(file.toPath()));
-    
-    List<Map<String, String>> read = SpeciesListCollector.read(file);
-    assertEquals(3, read.size());
+    filteredResult.iterator().forEachRemaining(record -> collector.computeDistinctSpecies(record));
 
-    Files.delete(file.toPath());
+    assertEquals(3, collector.getDistinctSpecies().size());
   }
 }
