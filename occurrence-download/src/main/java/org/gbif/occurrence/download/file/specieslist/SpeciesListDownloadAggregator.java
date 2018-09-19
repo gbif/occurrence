@@ -94,8 +94,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       SpeciesListResult speciesResult = (SpeciesListResult) result;
       datasetUsagesCollector.sumUsages(speciesResult.getDatasetUsages());
       datasetUsagesCollector.mergeLicenses(speciesResult.getDatasetLicenses());
-      speciesResult.getDistinctSpecies().iterator()
-          .forEachRemaining(distinctSpeciesRecord -> speciesListCollector.computeDistinctSpecies(distinctSpeciesRecord));
+      speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::computeDistinctSpecies);
     }
 
     try (ICsvMapWriter csvMapWriter =
