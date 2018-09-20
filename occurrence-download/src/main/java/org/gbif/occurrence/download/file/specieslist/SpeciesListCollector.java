@@ -5,9 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 /**
@@ -41,7 +39,8 @@ public class SpeciesListCollector {
       } else {
         occurrenceRecord.put(GbifTerm.numOfOccurrences.simpleName(), Long.toString(1L));
         // order the results according to download
-        return new LinkedHashMap<>(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream().collect(Collectors.toMap(Term::simpleName, term -> occurrenceRecord.get(term.simpleName()))));
+        return new LinkedHashMap<>(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream()
+            .collect(LinkedHashMap::new, (m,val) -> m.put(val.simpleName(), occurrenceRecord.get(val.simpleName())), LinkedHashMap::putAll));
       }
     }));
   }
