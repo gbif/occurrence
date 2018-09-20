@@ -21,7 +21,7 @@ public class SpeciesListCollectorTest {
    */
   @Test
   public void testReadAndWrite() throws IOException {
-    List<Map<String, String>> filteredResult = new ArrayList<>();
+    List<Map<String, String>> occurrenceRecords = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
       Map<String, String> speciesRecord = new HashMap<String, String>();
@@ -29,11 +29,11 @@ public class SpeciesListCollectorTest {
       speciesRecord.put(DwcTerm.scientificName.simpleName(), "xxxx");
       speciesRecord.put(GbifTerm.numOfOccurrences.simpleName(), Long.toString(i * 2));
       speciesRecord.put(DwcTerm.taxonRank.simpleName(), "ANIMALIA");
-      filteredResult.add(speciesRecord);
+      occurrenceRecords.add(speciesRecord);
     }
 
     SpeciesListCollector collector = new SpeciesListCollector();
-    filteredResult.iterator().forEachRemaining(record -> collector.computeDistinctSpecies(record));
+    occurrenceRecords.iterator().forEachRemaining(record -> collector.collect(record));
 
     assertEquals(3, collector.getDistinctSpecies().size());
   }

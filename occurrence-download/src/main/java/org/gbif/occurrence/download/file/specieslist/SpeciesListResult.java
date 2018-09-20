@@ -25,29 +25,4 @@ public class SpeciesListResult extends Result {
   public Set<Map<String, String>> getDistinctSpecies() {
     return distinctSpecies;
   }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((distinctSpecies == null) ? 0 : distinctSpecies.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (!super.equals(obj))
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    SpeciesListResult other = (SpeciesListResult) obj;
-    if (distinctSpecies == null) {
-      if (other.distinctSpecies != null)
-        return false;
-    } else if (!distinctSpecies.equals(other.distinctSpecies))
-      return false;
-    return true;
-  }
 }

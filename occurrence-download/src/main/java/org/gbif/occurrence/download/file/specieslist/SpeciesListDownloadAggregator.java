@@ -94,9 +94,15 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       SpeciesListResult speciesResult = (SpeciesListResult) result;
       datasetUsagesCollector.sumUsages(speciesResult.getDatasetUsages());
       datasetUsagesCollector.mergeLicenses(speciesResult.getDatasetLicenses());
-      speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::computeDistinctSpecies);
+      speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::collect);
     }
+    exportToFile(outputFileName, speciesListCollector);
+    occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
+    persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
+    SpeciesCount.persist(configuration.getDownloadKey(), speciesListCollector.getDistinctSpecies().size(), occurrenceDownloadService);
+  }
 
+  private void exportToFile(String outputFileName, SpeciesListCollector speciesListCollector) {
     try (ICsvMapWriter csvMapWriter =
         new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE)) {
       Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
@@ -108,15 +114,12 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
           throw Throwables.propagate(e);
         }
       });
-      occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
-      persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
-      SpeciesCount.persist(configuration.getDownloadKey(), distinctSpecies.size(), occurrenceDownloadService);
     } catch (Exception e) {
       LOG.error("Error merging results", e);
       throw Throwables.propagate(e);
     }
   }
-
+  
   /**
    * Persist download license that was assigned to the occurrence download.
    */

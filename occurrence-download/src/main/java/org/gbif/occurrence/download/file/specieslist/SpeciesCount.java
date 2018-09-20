@@ -7,19 +7,21 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * Oozie action for Species list download, helps with counts of the number of distinct species. 
+ * Oozie action for Species list download, helps with counts of the number of distinct species.
  *
  */
 public class SpeciesCount {
 
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesCount.class);
 
+  private SpeciesCount() {}
+
   /**
    * Updates the species record count of the download entity.
    */
   static void persist(String downloadKey, long recordCount, OccurrenceDownloadService occurrenceDownloadService) {
     try {
-      
+
       LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
       Download download = occurrenceDownloadService.get(downloadKey);
       if (download == null) {
@@ -29,8 +31,7 @@ public class SpeciesCount {
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      LOG.error("Error updating record count for download workflow {}, reported count is {}",
-          downloadKey, recordCount, ex);
+      LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
     }
-  } 
+  }
 }

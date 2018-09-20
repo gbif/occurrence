@@ -52,7 +52,7 @@ public class SpeciesListDownloadActor extends UntypedActor {
             // collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
                 occurrenceRecordMap.get(DcTerm.license.simpleName()));
-            speciesCollector.computeDistinctSpecies(occurrenceRecordMap);
+            speciesCollector.collect(occurrenceRecordMap);
           } else {
             LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
           }
