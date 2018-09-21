@@ -28,7 +28,10 @@ public class GenerateHQL {
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
-
+  private static final String SPECIES_LIST_DOWNLOAD_DIR = "download-workflow/species-list/hive-scripts";
+  
+  private static final String FIELDS = "fields";
+  
   public static void main(String[] args) {
     try {
       Preconditions.checkState(1 == args.length, "Output path for HQL files is required");
@@ -40,11 +43,14 @@ public class GenerateHQL {
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
+      File speciesListDownloadDir = new File(outDir, SPECIES_LIST_DOWNLOAD_DIR);
+      
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
-
+      speciesListDownloadDir.mkdirs();
+      
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
@@ -57,6 +63,7 @@ public class GenerateHQL {
       generateQueryHQL(cfg, downloadDir);
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
+      generateSpeciesListQueryHQL(cfg, speciesListDownloadDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
@@ -77,7 +84,7 @@ public class GenerateHQL {
   private static void generateHBaseTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hbase.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-hbase.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", OccurrenceHBaseTableDefinition.definition());
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHBaseTableDefinition.definition());
       template.process(data, out);
     }
   }
@@ -89,7 +96,7 @@ public class GenerateHQL {
 
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hdfs.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-hdfs.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", OccurrenceHDFSTableDefinition.definition());
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHDFSTableDefinition.definition());
       template.process(data, out);
     }
   }
@@ -116,7 +123,18 @@ public class GenerateHQL {
   private static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
       Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", Queries.selectSimpleDownloadFields());
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
+      template.process(data, out);
+    }
+  }
+  
+  /**
+   * Generates the Hive query file used for Species list downloads.
+   */
+  private static void generateSpeciesListQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-species-list-query.q"))) {
+      Template template = cfg.getTemplate("species-list-download/execute-species-list-query.ftl");
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
   }
@@ -127,7 +145,7 @@ public class GenerateHQL {
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("fields", Queries.selectSimpleDownloadFields());
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
   }
