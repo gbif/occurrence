@@ -27,6 +27,7 @@
       <main-class>org.gbif.occurrence.download.oozie.DownloadPrepareAction</main-class>
       <arg>${gbif_filter}</arg>
       <arg>${wf:id()}</arg>
+      <arg>${download_format}</arg>
       <capture-output/>
     </java>
 
@@ -49,6 +50,9 @@
       </case>
       <case to="dwca_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'DWCA')}
+      </case>
+      <case to="species_list_download">
+      	${(download_format eq 'SPECIES_LIST')}
       </case>
       <default to="kill"/>
     </switch>
@@ -134,6 +138,37 @@
   <action name="dwca_download">
     <sub-workflow>
       <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+  
+  <action name="species_list_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/species-list</app-path>
       <propagate-configuration/>
       <configuration>
         <property>

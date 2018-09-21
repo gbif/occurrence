@@ -1,7 +1,6 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.vocabulary.License;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;

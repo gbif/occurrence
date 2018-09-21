@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
@@ -213,6 +214,9 @@ public class DownloadMaster extends UntypedActor {
       }
       if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
+      } 
+      if (downloadFormat == DownloadFormat.SPECIES_LIST) {
+        return new SpeciesListDownloadActor();
       }
       throw new IllegalStateException("Unsupported download format");
     }

@@ -86,6 +86,60 @@ public class DownloadTerms {
                                                                               GbifTerm.lastInterpreted,
                                                                               GbifTerm.mediaType,
                                                                               GbifTerm.issue);
+  
+  /**
+   * The terms that will be included in the species list
+   */
+  public static final Set<Term> SPECIES_LIST_TERMS = ImmutableSet.<Term>of(GbifTerm.gbifID,
+                                                                              GbifTerm.datasetKey,
+                                                                              DwcTerm.occurrenceID,
+                                                                              GbifTerm.taxonKey,
+                                                                              DwcTerm.scientificName,
+                                                                              DwcTerm.taxonRank,
+                                                                              DwcTerm.taxonomicStatus,
+                                                                              DwcTerm.kingdom,
+                                                                              GbifTerm.kingdomKey,
+                                                                              DwcTerm.phylum,
+                                                                              GbifTerm.phylumKey,
+                                                                              DwcTerm.class_,
+                                                                              GbifTerm.classKey,
+                                                                              DwcTerm.order,
+                                                                              GbifTerm.orderKey,
+                                                                              DwcTerm.family,
+                                                                              GbifTerm.familyKey,
+                                                                              DwcTerm.genus,
+                                                                              GbifTerm.genusKey,
+                                                                              DwcTerm.subgenus,
+                                                                              GbifTerm.subgenusKey,
+                                                                              GbifTerm.species,
+                                                                              GbifTerm.speciesKey,
+                                                                              DcTerm.license);
+  
+  /**
+   * The terms that will be included in the species list for downloads
+   */
+  public static final Set<Term> SPECIES_LIST_DOWNLOAD_TERMS = ImmutableSet.<Term>of(
+                                                                              GbifTerm.taxonKey,
+                                                                              DwcTerm.scientificName,
+                                                                              GbifTerm.numOfOccurrences,
+                                                                              DwcTerm.taxonRank,
+                                                                              DwcTerm.taxonomicStatus,
+                                                                              DwcTerm.kingdom,
+                                                                              GbifTerm.kingdomKey,
+                                                                              DwcTerm.phylum,
+                                                                              GbifTerm.phylumKey,
+                                                                              DwcTerm.class_,
+                                                                              GbifTerm.classKey,
+                                                                              DwcTerm.order,
+                                                                              GbifTerm.orderKey,
+                                                                              DwcTerm.family,
+                                                                              GbifTerm.familyKey,
+                                                                              DwcTerm.genus,
+                                                                              GbifTerm.genusKey,
+                                                                              DwcTerm.subgenus,
+                                                                              GbifTerm.subgenusKey,
+                                                                              GbifTerm.species,
+                                                                              GbifTerm.speciesKey);
 }
 
 
