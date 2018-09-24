@@ -46,9 +46,10 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are used in the interpreted context
    */
   private static List<HBaseField> interpretedFields() {
-    Set<Term> exclusions = ImmutableSet.<Term>of(GbifTerm.gbifID, // treated as a special field (primary key)
-                                                 GbifTerm.mediaType, // stripped explicitly as it is handled as an array
-                                                 GbifTerm.issue // stripped explicitly as it is handled as an array
+    Set<Term> exclusions = ImmutableSet.of(GbifTerm.gbifID, // treated as a special field (primary key)
+                                           GbifTerm.mediaType, // stripped explicitly as it is handled as an array
+                                           GbifTerm.issue, // stripped explicitly as it is handled as an array
+                                           GbifTerm.numOfOccurrences //used for species aggregations only
     );
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
