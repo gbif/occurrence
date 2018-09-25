@@ -34,7 +34,7 @@ public class SpeciesListCollectorTest {
     }
 
     SpeciesListCollector collector = new SpeciesListCollector();
-    occurrenceRecords.iterator().forEachRemaining(record -> collector.collect(record));
+    occurrenceRecords.forEach(collector::collect);
 
     assertEquals(3, collector.getDistinctSpecies().size());
   }
