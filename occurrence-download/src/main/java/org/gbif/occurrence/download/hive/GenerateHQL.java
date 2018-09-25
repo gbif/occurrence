@@ -84,7 +84,7 @@ public class GenerateHQL {
   private static void generateHBaseTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hbase.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-hbase.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHBaseTableDefinition.definition());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHBaseTableDefinition.definition());
       template.process(data, out);
     }
   }
