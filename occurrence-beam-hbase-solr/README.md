@@ -14,11 +14,20 @@ solrctl --solr http://c4n1.gbif.org:8983/solr --zk c4master1-vh.gbif.org:2181,c4
 ```
 
 #### Run the Solr index
-The following is used on the UAT environment (6.5hrs for 1B records). Note that with 1 replicas (i.e. no copies) it is 2x faster than with 2 replicas. Solr _appears_ to be more stable in writing in this configuration as well. 
+The following is used on the UAT environment (6.5hrs for 1B records). Note that with 1 replicas (i.e. no copies) it is 2x faster than with 2 replicas. Solr _appears_ to be more stable in writing in this configuration as well.
 ```
 scp target/occurrence-beam-hbase-solr-0.84-SNAPSHOT-shaded.jar trobertson@c4gateway-vh.gbif.org:.
 nohup sudo -u hdfs spark-submit --conf spark.default.parallelism=1000 --conf spark.yarn.executor.memoryOverhead=2048 --class org.gbif.occurrence.beam.solr.BulkloadSolr --master yarn --executor-memory 4G --executor-cores 4 --num-executors 18 /home/trobertson/occurrence-beam-hbase-solr-0.84-SNAPSHOT-shaded.jar --runner=SparkRunner &
 ```
+
+For the prod environment, it was apparently (we've forgotten a bit) necessary to run a tenth of the index at a time:
+```
+for i in `seq 0 9`; do
+    sudo -u hdfs spark2-submit --conf spark.default.parallelism=50 --conf spark.dynamicAllocation.enabled=true --conf spark.yarn.executor.memoryOverhead=2048 --class org.gbif.occurrence.beam.solr.BulkloadSolr --master yarn --executor-memory 8G --executor-cores 10 --num-executors 10 /home/mblissett/occurrence-beam-hbase-solr-0.84-SNAPSHOT-shaded.jar --runner=SparkRunner --solrCollection=occurrence_2018_07_08 --keyDivisor=10 --keyRemainder=$i
+    sleep 15m
+done
+```
+From the `sleep 15m`, I think running everything together caused a problem with SOLR; the sleep let SOLR finish some internal processing and settle down before starting the next batch.
 
 ### Add replicas
 Adding replicas requires that you name the target node (or else it CAN put them on the same machine):
@@ -68,4 +77,4 @@ The Solr logs might show the following which can be ignored:
 PeerSync: core=tim-occurrence_shard9_replica2 url=http://c4n5.gbif.org:8983/solr ERROR, update log not in ACTIVE or REPLAY state. HDFSUpdateLog{state=BUFFERING, tlog=null}
 ```
 
-Seemingly the replicas will be rebuilt as new lucene indexes on each machine taking >1hr. During this time Solr cloud will show `recovering` on the shards, and CPU and network will be reasonably high on the cluster. 
+Seemingly the replicas will be rebuilt as new lucene indexes on each machine taking >1hr. During this time Solr cloud will show `recovering` on the shards, and CPU and network will be reasonably high on the cluster.
