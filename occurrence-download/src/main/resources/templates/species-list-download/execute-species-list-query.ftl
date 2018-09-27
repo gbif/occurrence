@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS ${r"${speciesListTable}"}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${speciesListTable}"}_tmp STORED AS ORC 
 AS SELECT
-taxonkey , scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey , datasetkey
+taxonkey , scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey , datasetkey, license
 FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
@@ -38,7 +38,7 @@ SET hive.exec.compress.output=false;
 
 CREATE TABLE ${r"${speciesListTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT
-datasetkey, count(datasetkey) as citation
-FROM ${r"${speciesListTable}"}_tmp WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
+datasetkey, count(datasetkey) as citation, license
+FROM ${r"${speciesListTable}"}_tmp WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
 CREATE TABLE ${r"${speciesListTable}"}_count AS SELECT count(*) FROM ${r"${speciesListTable}"};

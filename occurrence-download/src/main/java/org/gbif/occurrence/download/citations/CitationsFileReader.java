@@ -10,17 +10,22 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.license.LicenseSelector;
+import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -32,13 +37,26 @@ public final class CitationsFileReader {
 
   private static final Logger LOG = LoggerFactory.getLogger(CitationsFileReader.class);
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
-
+  
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
   private static Map.Entry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
     Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
     return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()), Long.parseLong(tsvLineIterator.next()));
+  }
+  
+  /**
+   * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
+   */
+  private static Map.Entry<UUID,License> toDatasetOccurrenceDownloadLicense(String tsvLine) {
+    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+    String datasetKey = tsvLineIterator.next();
+    tsvLineIterator.next();
+    String licenseStr = tsvLineIterator.next();
+    Optional<License> license = License.fromString(licenseStr);
+    
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(datasetKey), license.isPresent()? license.get(): null);
   }
 
   /**
@@ -49,9 +67,10 @@ public final class CitationsFileReader {
    * @param citationPath path to the directory that contains the citation table files
    * @param consumer   consumer that processes bulk of usages
    */
-  public static void readCitations(String nameNode, String citationPath,
-                                   Consumer<Map<UUID,Long>> consumer) throws IOException {
+  public static void readCitationsAndUpdateLicense(String nameNode, String citationPath,
+                                   BiConsumer<Map<UUID,Long>,Map<UUID,License>> consumer) throws IOException {
     Map<UUID,Long> datasetsCitation = new HashMap<>();
+    Map<UUID, License> datasetLicenseCollector = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
@@ -61,19 +80,21 @@ public final class CitationsFileReader {
             if (!Strings.isNullOrEmpty(tsvLine)) {
               // prepare citation object and add it to list
                   Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
+                  Map.Entry<UUID, License> licenseEntry = toDatasetOccurrenceDownloadLicense(tsvLine);
                   datasetsCitation.put(citationEntry.getKey(), citationEntry.getValue());
+                  datasetLicenseCollector.put(licenseEntry.getKey(), licenseEntry.getValue());
             }
           }
         }
       }
     }
-    consumer.accept(datasetsCitation);
+    consumer.accept(datasetsCitation, datasetLicenseCollector);
   }
 
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
 
-    readCitations(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
+    readCitationsAndUpdateLicense(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
                   Preconditions.checkNotNull(args[0]),
                   new PersistUsage(Preconditions.checkNotNull(args[1]), properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
@@ -86,12 +107,12 @@ public final class CitationsFileReader {
   }
 
   /**
-   * Persists the dataset usage into the Registry data base.
+   * Persists the dataset usage and license info into the Registry data base.
    */
-  public static class PersistUsage implements Consumer<Map<UUID,Long>> {
+  public static class PersistUsage implements BiConsumer<Map<UUID,Long>,Map<UUID,License>> {
 
     private final String downloadKey;
-
+    private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
     private final OccurrenceDownloadService downloadService;
 
     public PersistUsage(String downloadKey, String registryWsUrl) {
@@ -101,8 +122,8 @@ public final class CitationsFileReader {
     }
 
     @Override
-    public void accept(Map<UUID,Long> datasetsCitation) {
-      if(datasetsCitation == null || datasetsCitation.isEmpty()) {
+    public void accept(Map<UUID, Long> datasetsCitation, Map<UUID, License> datasetLicenses) {
+      if (datasetsCitation == null || datasetsCitation.isEmpty()) {
         LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
       }
       try {
@@ -110,6 +131,16 @@ public final class CitationsFileReader {
       } catch (Exception e) {
         LOG.error("Error persisting dataset usage information {}", datasetsCitation, e);
       }
+      try {
+        datasetLicenses.values().forEach(licenseSelector::collectLicense);
+        Download download = downloadService.get(downloadKey);
+        download.setLicense(licenseSelector.getSelectedLicense());
+        downloadService.update(download);
+      } catch (Exception ex) {
+        LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, datasetLicenses.values(),
+            ex);
+      }
     }
+
   }
 }
