@@ -33,4 +33,4 @@ WHERE ${r"${whereClause}"};
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
 CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${occurrenceTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
+AS SELECT datasetkey, count(*) as num_occurrences, license FROM occurrence_hdfs WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;

@@ -38,7 +38,7 @@ SET hive.exec.compress.output=false;
 
 CREATE TABLE ${r"${speciesListTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT
-datasetkey, count(datasetkey) as citation
-FROM ${r"${speciesListTable}"}_tmp WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
+datasetkey, count(datasetkey) as citation, license
+FROM ${r"${speciesListTable}"}_tmp WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
 CREATE TABLE ${r"${speciesListTable}"}_count AS SELECT count(*) FROM ${r"${speciesListTable}"};
