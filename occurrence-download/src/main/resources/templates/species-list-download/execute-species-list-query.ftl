@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS ${r"${speciesListTable}"}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${speciesListTable}"}_tmp STORED AS ORC 
 AS SELECT
-taxonkey , scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey , datasetkey
+taxonkey , scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey,class,classkey, order_, orderkey, family,familykey, genus,genuskey, subgenus, subgenuskey, species, specieskey , datasetkey, license
 FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
