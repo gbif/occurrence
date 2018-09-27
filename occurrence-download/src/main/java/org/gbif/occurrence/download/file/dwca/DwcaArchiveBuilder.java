@@ -3,7 +3,6 @@ package org.gbif.occurrence.download.file.dwca;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
-import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Identifier;
 import org.gbif.api.model.registry.eml.DataDescription;
@@ -45,10 +44,11 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -59,9 +59,8 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -98,11 +97,10 @@ public class DwcaArchiveBuilder {
     "\nThe dataset includes records from the following constituent datasets. "
     + "The full metadata for each constituent is also included in this archive:\n";
   private static final String CITATION_HEADER =
-    "Please cite this data as follows, and pay attention to the rights documented in the rights.txt:\n"
-    + "Please respect the rights declared for each dataset in the download: ";
+    "When using this dataset please use the following citation and pay attention to the rights documented in the rights.txt:";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String RIGHTS =
-    "The data included in this download are provided to the user under a %s license (%s), please read the license terms and conditions to understand the implications of its usage and sharing.\n\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
+    "The data included in this download are provided to the user under a %s license (%s), please read the license terms and conditions to understand the implications of its usage and sharing.\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
   private static final EMLWriter EML_WRITER = EMLWriter.newInstance(true);
@@ -118,8 +116,10 @@ public class DwcaArchiveBuilder {
   private final FileSystem targetFs;
   private final DownloadJobConfiguration configuration;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
-  private final List<Constituent> constituents = Lists.newArrayList();
-  private final Ordering<Constituent> constituentsOrder = Ordering.natural().onResultOf(c -> c.records);
+
+  //constituents and citation are basically the same info, are keep in 2 separate collections to avoid rebuilding them
+  private Set<Constituent> constituents = Sets.newTreeSet();
+  private Map<UUID,Long> citations = Maps.newHashMap();
 
   public static void buildArchive(DownloadJobConfiguration configuration) throws IOException {
     buildArchive(configuration, new WorkflowConfiguration());
@@ -158,7 +158,7 @@ public class DwcaArchiveBuilder {
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
-  private static String writeCitation(Writer citationWriter, Dataset dataset, UUID constituentId)
+  private static String writeCitation(Writer citationWriter, Dataset dataset)
     throws IOException {
     // citation
     String citationLink = null;
@@ -169,7 +169,7 @@ public class DwcaArchiveBuilder {
         citationWriter.write(citationLink);
       }
     } else {
-      LOG.error("Constituent dataset misses mandatory citation for id: {}", constituentId);
+      LOG.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
     }
     if (dataset.getDoi() != null) {
       citationWriter.write(" " + dataset.getDoi());
@@ -183,7 +183,7 @@ public class DwcaArchiveBuilder {
   private static void writeRights(Writer rightsWriter, Dataset dataset, String citationLink)
     throws IOException {
     // write rights
-    rightsWriter.write("\n\nDataset: " + dataset.getTitle());
+    rightsWriter.write("\nDataset: " + dataset.getTitle());
     if (!Strings.isNullOrEmpty(citationLink)) {
       rightsWriter.write(citationLink);
     }
@@ -263,21 +263,19 @@ public class DwcaArchiveBuilder {
 
   }
 
-  public void createEmlFile(UUID constituentId, File emlDir) throws IOException {
-    Closer closer = Closer.create();
+  public void createEmlFile(UUID constituentId, File emlDir) {
     try (InputStream in = datasetService.getMetadataDocument(constituentId)) {
       // store dataset EML as constituent metadata
       if (in != null) {
         // copy into archive, reading stream from registry services
-        OutputStream out = closer.register(new FileOutputStream(new File(emlDir, constituentId + ".xml")));
-        ByteStreams.copy(in, out);
+        try(OutputStream out = new FileOutputStream(new File(emlDir, constituentId + ".xml"))) {
+          ByteStreams.copy(in, out);
+        }
       } else {
         LOG.error("Found no EML for datasetId {}", constituentId);
       }
     } catch (IOException ex) {
       LOG.error("Error creating eml file", ex);
-    } finally {
-      closer.close();
     }
   }
 
@@ -299,8 +297,7 @@ public class DwcaArchiveBuilder {
 
     description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
     constituents.stream()
-      .sorted(constituentsOrder)
-      .map(c -> c.records + " records from " + c.title + '\n')
+      .map(c -> c.getRecords() + " records from " + c.getDataset().getTitle() + '\n')
       .forEach(description::append);
     return description.toString();
   }
@@ -424,10 +421,10 @@ public class DwcaArchiveBuilder {
       return licenseSelector.getSelectedLicense();
     }
 
-    Map<UUID, Long> srcDatasets = readDatasetCounts(citationSrc);
+    constituents = loadCitations(citationSrc);
 
     File emlDir = new File(archiveDir, "dataset");
-    if (!srcDatasets.isEmpty()) {
+    if (!constituents.isEmpty()) {
       emlDir.mkdir();
     }
 
@@ -437,26 +434,23 @@ public class DwcaArchiveBuilder {
         citationWriter.write(CITATION_HEADER);
         // now iterate over constituent UUIDs
 
-        for (Entry<UUID, Long> dsEntry : srcDatasets.entrySet()) {
-          UUID constituentId = dsEntry.getKey();
-          LOG.info("Processing constituent dataset: {}", constituentId);
+        for (Constituent constituent : constituents) {
+          LOG.info("Processing constituent dataset: {}", constituent.getKey());
           // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
           try {
-            Dataset srcDataset = datasetService.get(constituentId);
 
-            licenseSelector.collectLicense(srcDataset.getLicense());
+
+            licenseSelector.collectLicense(constituent.getDataset().getLicense());
             // citation
-            String citationLink = writeCitation(citationWriter, srcDataset, constituentId);
+            String citationLink = writeCitation(citationWriter, constituent.getDataset());
             // rights
-            writeRights(rightsWriter, srcDataset, citationLink);
+            writeRights(rightsWriter, constituent.getDataset(), citationLink);
             // eml file
-            createEmlFile(constituentId, emlDir);
-
-            // add as constituent for later
-            constituents.add(new Constituent(srcDataset.getTitle(), dsEntry.getValue().intValue()));
+            createEmlFile(dataset.getKey(), emlDir);
 
             // add original author as content provider to main dataset description
-            DwcaContactsUtil.getContentProviderContact(srcDataset).ifPresent(provider -> dataset.getContacts().add(provider));
+            DwcaContactsUtil.getContentProviderContact(constituent.getDataset())
+              .ifPresent(provider -> dataset.getContacts().add(provider));
           } catch (UniformInterfaceException e) {
             LOG.error("Registry client http exception: {} \n {}", e.getResponse().getStatus(),
                        e.getResponse().getEntity(String.class), e);
@@ -557,9 +551,9 @@ public class DwcaArchiveBuilder {
   /**
    * Creates Map with dataset UUIDs and its record counts.
    */
-  private Map<UUID, Long> readDatasetCounts(Path citationSrc) throws IOException {
+  private Set<Constituent> loadCitations(Path citationSrc) throws IOException {
     // the hive query result is a directory with one or more files - read them all into a uuid set
-    Map<UUID, Long> srcDatasets = Maps.newHashMap(); // map of uuids to occurrence counts
+    Set<Constituent> datasets = Sets.newTreeSet(); // list of constituents datasets
     FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
     int invalidUuids = 0;
     for (FileStatus fs : citFiles) {
@@ -575,9 +569,9 @@ public class DwcaArchiveBuilder {
                 Iterator<String> iter = TAB_SPLITTER.split(line).iterator();
                 // play safe and make sure we got a uuid - even though our api doesnt require it
                 UUID key = UUID.fromString(iter.next());
-                Long count = Long.parseLong(iter.next());
-                srcDatasets.put(key, count);
-
+                long count = Long.parseLong(iter.next());
+                datasets.add(new Constituent(key, count, datasetService.get(key)));
+                citations.put(key, count);
               } catch (IllegalArgumentException e) {
                 // ignore invalid UUIDs
                 LOG.info("Found invalid UUID as datasetId {}", line);
@@ -592,31 +586,53 @@ public class DwcaArchiveBuilder {
     if (invalidUuids > 0) {
       LOG.info("Found {} invalid dataset UUIDs", invalidUuids);
     } else {
-      LOG.info("All {} dataset UUIDs are valid", srcDatasets.size());
+      LOG.info("All {} dataset UUIDs are valid", datasets.size());
     }
       // small downloads persist dataset usages while builds the citations file
     if (!configuration.isSmallDownload()) {
       try {
-        occurrenceDownloadService.createUsages(configuration.getDownloadKey(), srcDatasets);
+        occurrenceDownloadService.createUsages(configuration.getDownloadKey(), citations);
       }
       catch(Exception e) {
         LOG.error("Error persisting dataset usage information, downloadKey: {} for large download", configuration.getDownloadKey(), e);
       }
     }
-    return srcDatasets;
+    return datasets;
   }
 
   /**
    * Simple, local representation for a constituent dataset.
    */
-  static class Constituent {
+  static class Constituent implements  Comparable<Constituent> {
 
-    private final String title;
-    private final int records;
+    //Comparator based on number of records and then key
+    private static final Comparator<Constituent> CONSTITUENT_COMPARATOR = Comparator.comparingLong(Constituent::getRecords).thenComparing(Constituent::getKey);
 
-    Constituent(String title, int records) {
-      this.title = title;
+    private final UUID key;
+    private final long records;
+    private final Dataset dataset;
+
+    Constituent(UUID key, long records, Dataset dataset) {
+      this.key = key;
       this.records = records;
+      this.dataset = dataset;
+    }
+
+    public UUID getKey() {
+      return key;
+    }
+
+    public long getRecords() {
+      return records;
+    }
+
+    public Dataset getDataset() {
+      return dataset;
+    }
+
+    @Override
+    public int compareTo(Constituent other) {
+      return CONSTITUENT_COMPARATOR.compare(this, other);
     }
   }
 }
