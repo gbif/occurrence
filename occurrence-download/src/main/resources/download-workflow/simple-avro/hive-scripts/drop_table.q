@@ -1,2 +1,2 @@
-USE ${hiveDB}";
+USE ${hiveDB};
 DROP TABLE IF EXISTS ${occurrenceTable};
