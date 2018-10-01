@@ -27,7 +27,7 @@ public class OccurrenceHBaseTableDefinition {
    */
   private static List<HBaseField> verbatimFields() {
     Set<Term> exclusions =
-      ImmutableSet.<Term>of(GbifTerm.gbifID, GbifTerm.mediaType // stripped explicitly as it is handled as an array
+      ImmutableSet.of(GbifTerm.gbifID, GbifTerm.mediaType // stripped explicitly as it is handled as an array
       );
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();

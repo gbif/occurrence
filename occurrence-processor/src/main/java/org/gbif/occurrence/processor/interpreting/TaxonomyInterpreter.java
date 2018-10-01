@@ -175,6 +175,7 @@ public class TaxonomyInterpreter implements Serializable {
     occ.setTaxonKey(match.getUsageKey());
     occ.setScientificName(match.getScientificName());
     occ.setTaxonRank(match.getRank());
+    occ.setTaxonomicStatus(match.getStatus());
 
     // copy issues
     occ.getIssues().addAll(issues);
@@ -209,31 +210,6 @@ public class TaxonomyInterpreter implements Serializable {
 
     // try core taxon fields first
     OccurrenceParseResult<NameUsageMatch> matchPR = match(verbatim.getVerbatimFields());
-
-    // try the identification extension if no core match
-    if (!matchPR.isSuccessful() && verbatim.getExtensions().containsKey(Extension.IDENTIFICATION)) {
-      // there may be many identifications but we only want the latest, current one
-      //TODO: use latest identification only sorting records by their dwc:dateIdentified
-      for (Map<Term, String> rec : verbatim.getExtensions().get(Extension.IDENTIFICATION)) {
-        matchPR = match(rec);
-        if (matchPR.isSuccessful()) {
-          // TODO: copy other identification terms to core???
-          // identifiedBy
-          // dateIdentified
-          // identificationReferences
-          // identificationRemarks
-          // identificationQualifier
-          // identificationVerificationStatus
-          // typeStatus
-          // taxonID
-          // taxonConceptID
-          // nameAccordingTo
-          // nameAccordingToID
-          // taxonRemarks
-          break;
-        }
-      }
-    }
 
     // apply taxonomy if we got a match
     if (matchPR.isSuccessful()) {

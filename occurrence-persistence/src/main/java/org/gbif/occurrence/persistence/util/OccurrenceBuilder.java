@@ -20,6 +20,7 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceSchemaType;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.api.vocabulary.Sex;
+import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -179,6 +180,7 @@ public class OccurrenceBuilder {
       occ.setSpecificEpithet(ExtResultReader.getString(row, DwcTerm.specificEpithet));
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));
       occ.setTaxonRank(ExtResultReader.getEnum(row, DwcTerm.taxonRank, Rank.class));
+      occ.setTaxonomicStatus(ExtResultReader.getEnum(row, DwcTerm.taxonomicStatus, TaxonomicStatus.class));
       for (Rank r : Rank.DWC_RANKS) {
         ClassificationUtils
           .setHigherRankKey(occ, r, ExtResultReader.getInteger(row, OccurrenceBuilder.rank2KeyTerm.get(r)));

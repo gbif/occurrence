@@ -373,6 +373,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
       upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
     }
+    if (!Objects.equals(oldOcc.getTaxonomicStatus(), occ.getTaxonomicStatus())) {
+      upd.setInterpretedField(DwcTerm.taxonomicStatus, occ.getTaxonomicStatus());
+    }
     if (!Objects.equals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
       upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
     }
