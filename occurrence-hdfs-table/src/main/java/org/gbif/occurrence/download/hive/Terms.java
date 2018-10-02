@@ -105,7 +105,8 @@ public final class Terms {
                                                      GbifTerm.canonicalName,
                                                      GbifTerm.nameType,
                                                      GbifTerm.verbatimLabel,
-                                                     GbifTerm.infraspecificMarker);
+                                                     GbifTerm.infraspecificMarker,
+                                                     GbifTerm.acceptedScientificName);
 
     //We should handle deprecated terms here. Waiting for GBIF-132
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
@@ -157,6 +158,7 @@ public final class Terms {
                            DwcTerm.subgenus,
                            GbifTerm.species,
                            DwcTerm.scientificName,
+                           GbifTerm.acceptedScientificName,
                            DwcTerm.taxonRank,
                            DwcTerm.taxonomicStatus,
                            // DwcTerm.verbatimCoordinates,
@@ -169,6 +171,7 @@ public final class Terms {
                            DwcTerm.lifeStage,
                            DwcTerm.establishmentMeans,
                            GbifTerm.taxonKey,
+                           GbifTerm.acceptedTaxonKey,
                            DwcTerm.typeStatus,
                            GbifTerm.typifiedName,
                            GbifTerm.kingdomKey,

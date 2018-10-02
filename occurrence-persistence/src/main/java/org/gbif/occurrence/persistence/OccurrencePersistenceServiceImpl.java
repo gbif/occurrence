@@ -361,6 +361,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldOcc.getScientificName(), occ.getScientificName())) {
       upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
     }
+    if (!Objects.equals(oldOcc.getAcceptedScientificName(), occ.getAcceptedScientificName())) {
+      upd.setInterpretedField(GbifTerm.acceptedScientificName, occ.getAcceptedScientificName());
+    }
     if (!Objects.equals(oldOcc.getGenericName(), occ.getGenericName())) {
       upd.setInterpretedField(GbifTerm.genericName, occ.getGenericName());
     }
@@ -375,6 +378,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!Objects.equals(oldOcc.getTaxonomicStatus(), occ.getTaxonomicStatus())) {
       upd.setInterpretedField(DwcTerm.taxonomicStatus, occ.getTaxonomicStatus());
+    }
+    if (!Objects.equals(oldOcc.getAcceptedTaxonKey(), occ.getAcceptedTaxonKey())) {
+      upd.setInterpretedField(GbifTerm.acceptedTaxonKey, occ.getAcceptedTaxonKey());
     }
     if (!Objects.equals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
       upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
