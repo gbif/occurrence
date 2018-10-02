@@ -250,7 +250,7 @@ public class TemporalInterpreter {
       OccurrenceParseResult<TemporalAccessor> result = new OccurrenceParseResult(TEXTDATE_PARSER.parse(dateString));
       // check year makes sense
       if (result.isSuccessful()) {
-        if(!isValidDate(result.getPayload(), false, likelyRange)) {
+        if (!isValidDate(result.getPayload(), true, likelyRange)) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           result.addIssue(unlikelyIssue);
         }
