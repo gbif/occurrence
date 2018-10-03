@@ -24,6 +24,7 @@ import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
@@ -189,13 +190,18 @@ public class TaxonomyInterpreter implements Serializable {
 
     // copy issues
     occ.getIssues().addAll(issues);
-    Optional.ofNullable(match.getAcceptedUsageKey())
-      .flatMap(this::getNameUsage)
-      .ifPresent(acceptedUsage -> {
-        occ.setAcceptedTaxonKey(acceptedUsage.getKey());
-        occ.setAcceptedScientificName(acceptedUsage.getScientificName());
-      });
 
+    //has an AcceptedUsageKey?
+    if(Objects.nonNull(match.getAcceptedUsageKey())) {
+       getNameUsage(match.getAcceptedUsageKey()).ifPresent(acceptedUsage -> {
+         occ.setAcceptedTaxonKey(acceptedUsage.getKey());
+         occ.setAcceptedScientificName(acceptedUsage.getScientificName());
+       });
+    } else {
+      //By default use taxonKey and scientificName as the accepted values
+      occ.setAcceptedTaxonKey(match.getUsageKey());
+      occ.setAcceptedScientificName(match.getScientificName());
+    }
 
     // parse name into pieces - we dont get them from the nub lookup
     try {
