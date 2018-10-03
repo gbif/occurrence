@@ -49,7 +49,11 @@ public class OccurrenceHBaseTableDefinition {
     Set<Term> exclusions = ImmutableSet.of(GbifTerm.gbifID, // treated as a special field (primary key)
                                            GbifTerm.mediaType, // stripped explicitly as it is handled as an array
                                            GbifTerm.issue, // stripped explicitly as it is handled as an array
-                                           GbifTerm.numOfOccurrences //used for species aggregations only
+                                           GbifTerm.numOfOccurrences, //used for species aggregations only
+                                           //Boolean flags calculated from HBase data
+                                           GbifTerm.hasCoordinate,
+                                           GbifTerm.hasGeospatialIssues,
+                                           GbifTerm.repatriated
     );
 
     ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
