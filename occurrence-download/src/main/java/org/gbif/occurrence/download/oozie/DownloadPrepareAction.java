@@ -147,7 +147,7 @@ public class DownloadPrepareAction {
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-      if (downloadFormat.equals(DownloadFormat.SQL)) {
+      if (DownloadFormat.valueOf(downloadFormat.trim()).equals(DownloadFormat.SQL)) {
         props.setProperty(SQL, sql);
       } else {
         Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);

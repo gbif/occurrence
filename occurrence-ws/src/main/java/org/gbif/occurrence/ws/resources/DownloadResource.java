@@ -45,6 +45,7 @@ import org.gbif.occurrence.ws.provider.hive.HiveSQL;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -131,6 +132,7 @@ public class DownloadResource {
       downloadRequest = DownloadFormat.valueOf(request.get("format").asText()).equals(DownloadFormat.SQL) ? new ObjectMapper().readValue(request, SQLDownloadRequest.class) : new ObjectMapper().readValue(request, PredicateDownloadRequest.class);
     } catch (IOException e) {
       LOG.error(String.format("Syntax error : Couldnot parse request to appropriate download request because of %s", e.getMessage()) , e);
+      Throwables.propagate(e);
     }
     // assert authenticated user is the same as in download
     assertLoginMatches(downloadRequest, security);
