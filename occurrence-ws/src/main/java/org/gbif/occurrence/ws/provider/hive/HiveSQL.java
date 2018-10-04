@@ -59,7 +59,25 @@ public class HiveSQL {
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
     
     private static final String COMPILATION_ERROR = "COMPILATION ERROR";
+    
+    private enum Issue {
+      EMPTY_SQL("SQL cannot be empty"),
+      ONLY_ONE_SELECT_ALLOWED("SQL query should be a SELECT query with only one SELECT"),
+      DDL_JOINS_UNION_NOT_ALLOWED("SQL cannot have INSERT, UPDATE, DELETE, UNION, CREATE or JOIN keywords"),
+      DATASET_AND_LICENSE_REQUIRED("SQL should select on 'datasetkey' and 'license' fields as they are required for citations"),
+      CANNOT_EXECUTE("Query cannot be executed because of %s");
+      
+      private Issue(String description){
+        this.description = description;
+      }
+      
+      private final String description;
 
+      public String description() {
+        return description;
+      }
+    }
+    
     public static class Result {
       private final String sql;
       private final List<String> issues;
@@ -134,27 +152,27 @@ public class HiveSQL {
       Objects.requireNonNull(sql);
       
       //SQL cannot be empty.
-      checkArgument(!sql.isEmpty(), () -> issues.add("SQL cannot be empty"));
+      checkArgument(!sql.isEmpty(), () -> issues.add(Issue.EMPTY_SQL.description));
       
       //SQL should have only 1 select keyword.
       Stream<String> sqlStream1 = Pattern.compile(" ").splitAsStream(sql);
       checkArgument(sqlStream1.filter(x -> x.equalsIgnoreCase("select")).count() == 1,
-          () -> issues.add("SQL query should be a SELECT query with only one SELECT"));
+          () -> issues.add(Issue.ONLY_ONE_SELECT_ALLOWED.description()));
       
       //SQL should have NO insert, update, delete, create, join and union keyword.
       List<String> notAllowedKeywords = Arrays.asList("insert", "update", "delete", "join", "union", "create");
       Stream<String> sqlStream2 = Pattern.compile(" ").splitAsStream(sql);
       checkArgument(sqlStream2.filter(x -> notAllowedKeywords.contains(x.toLowerCase().trim())).count() == 0,
-          () -> issues.add("SQL cannot have INSERT, UPDATE, DELETE, UNION, CREATE or JOIN keywords"));
+          () -> issues.add(Issue.DDL_JOINS_UNION_NOT_ALLOWED.description()));
       
       //SQL should have keywords fields to be selected.
       List<String> importantKeyWords = Arrays.asList("license", "datasetkey");
-      String sqlFROM = Pattern.compile("FROM").split(sql)[0];
+      String sqlFROM = Pattern.compile("FROM", Pattern.CASE_INSENSITIVE).split(sql)[0];
       checkArgument(importantKeyWords.stream().filter(x -> sqlFROM.contains(x.toLowerCase())).count() == importantKeyWords.size(),
-          () -> issues.add("SQL should select on 'datasetkey' and 'license' fields as they are required for citations"));
+          () -> issues.add(Issue.DATASET_AND_LICENSE_REQUIRED.description()));
       
       //SQL should be executable.
-      String explanation = explain(sql, ex -> issues.add(String.format("Query cannot be executed because of %s", ex)));
+      String explanation = explain(sql, ex -> issues.add(String.format(Issue.CANNOT_EXECUTE.description(), ex)));
 
       return new Result(sql, issues, explanation, issues.isEmpty());
     }
