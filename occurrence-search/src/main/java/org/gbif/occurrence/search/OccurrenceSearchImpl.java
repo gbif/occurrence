@@ -102,8 +102,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
   public SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(QueryResponse queryResponse,
                                                                              Pageable request) {
     // Create response
-    SearchResponse<Occurrence, OccurrenceSearchParameter> response =
-      new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     SolrDocumentList results = queryResponse.getResults();
 
     // set total count
@@ -142,7 +141,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
         QueryResponse queryResponse = solrClient.query(solrQuery);
         return buildResponse(queryResponse, request);
       } else {
-        return new SearchResponse<Occurrence, OccurrenceSearchParameter>(request);
+        return new SearchResponse<>(request);
       }
     } catch (SolrServerException | IOException e) {
       LOG.error("Error executing the search operation", e);
