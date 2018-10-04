@@ -1,8 +1,11 @@
 package org.gbif.occurrence.ws.resources;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -29,6 +32,7 @@ public class DownloadResourceTest {
   private DownloadResource resource;
   private DownloadRequest dl;
   private SecurityContext sec;
+  private JsonNode request;
 
   @Test
   public void testCallback() {
@@ -40,14 +44,14 @@ public class DownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    String jobId = resource.startDownload(dl, sec);
+    String jobId = resource.startDownload(request, sec);
     assertThat(jobId, equalTo(JOB_ID));
   }
 
   @Test(expected = NotAllowedException.class)
   public void testStartDownloadNotAuthenticated() {
     prepareMocks("foo");
-    resource.startDownload(dl, sec);
+    resource.startDownload(request, sec);
   }
 
   private void prepareMocks(String user) {
@@ -60,8 +64,9 @@ public class DownloadResourceTest {
     when(sec.getUserPrincipal()).thenReturn(userP);
 
     resource = new DownloadResource(service, callbackService, downloadService);
-    dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
+    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
       DownloadFormat.DWCA);
+    request = new ObjectMapper().valueToTree(dl);
     when(service.create(dl)).thenReturn(JOB_ID);
   }
 

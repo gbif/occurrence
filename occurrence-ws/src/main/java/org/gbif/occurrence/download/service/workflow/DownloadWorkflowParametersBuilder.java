@@ -1,10 +1,13 @@
 package org.gbif.occurrence.download.service.workflow;
 
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SQLDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
-
+import org.gbif.occurrence.query.HumanFilterBuilder;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
@@ -38,9 +41,12 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, getJsonStringPredicate(request.getPredicate()));
+    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? "" : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
+    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SQLDownloadRequest)request).getSQL() : "";
+    properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
+    properties.setProperty(DownloadWorkflowParameters.SQL_STRING, sql);
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
     }

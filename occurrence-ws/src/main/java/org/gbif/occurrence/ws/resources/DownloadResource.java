@@ -12,15 +12,8 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.ws.util.ExtraMediaTypes;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-
+import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -36,13 +29,24 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.download.service.CallbackService;
+import org.gbif.occurrence.ws.provider.hive.HiveSQL;
+import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Path("occurrence/download/request")
 @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
@@ -60,6 +64,8 @@ public class DownloadResource {
   private final OccurrenceDownloadService occurrenceDownloadService;
 
   private final CallbackService callbackService;
+  
+  private final HiveSQL.Validate sqlValidator;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -67,6 +73,7 @@ public class DownloadResource {
     requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.sqlValidator = new HiveSQL.Validate();
   }
 
   @DELETE
@@ -106,13 +113,35 @@ public class DownloadResource {
     return Response.ok().build();
   }
 
+  @GET
+  @Path("sql/validate")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response validateSQL(@QueryParam("sql") String sqlquery) {
+    LOG.debug("Received validation request for sql query [{}]",sqlquery);
+    HiveSQL.Validate.Result result = sqlValidator.apply(sqlquery);
+    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result.toString()).build();
+  }
+  
   @POST
   @Validate
-  public String startDownload(@Valid DownloadRequest request, @Context SecurityContext security) {
+  public String startDownload(@Valid JsonNode request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
+    DownloadRequest downloadRequest = null;
+    try {
+      downloadRequest = DownloadFormat.valueOf(request.get("format").asText()).equals(DownloadFormat.SQL) ? new ObjectMapper().readValue(request, SQLDownloadRequest.class) : new ObjectMapper().readValue(request, PredicateDownloadRequest.class);
+    } catch (IOException e) {
+      LOG.error(String.format("Syntax error : Couldnot parse request to appropriate download request because of %s", e.getMessage()) , e);
+    }
     // assert authenticated user is the same as in download
-    assertLoginMatches(request, security);
-    String downloadKey = requestService.create(request);
+    assertLoginMatches(downloadRequest, security);
+    
+    if(downloadRequest instanceof SQLDownloadRequest) {
+      HiveSQL.Validate.Result result = sqlValidator.apply(((SQLDownloadRequest) downloadRequest).getSQL());
+      if(!result.isOk())
+        return result.toString();
+    }
+      
+    String downloadKey = requestService.create(downloadRequest);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
   }

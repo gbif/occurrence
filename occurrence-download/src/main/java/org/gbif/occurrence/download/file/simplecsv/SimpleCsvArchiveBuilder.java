@@ -174,7 +174,7 @@ public class SimpleCsvArchiveBuilder {
     Set<Term> downloadTerms = DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST) ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS :DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    SimpleCsvArchiveBuilder.withHeader(downloadTerms).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],ModalZipOutputStream.MODE.valueOf(args[3]));
+    SimpleCsvArchiveBuilder.withHeader(downloadTerms).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2], ModalZipOutputStream.MODE.valueOf(args[3]));
   }
 
   /**

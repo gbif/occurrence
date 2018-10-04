@@ -29,6 +29,7 @@ public class GenerateHQL {
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
   private static final String SPECIES_LIST_DOWNLOAD_DIR = "download-workflow/species-list/hive-scripts";
+  private static final String SQL_DOWNLOAD_DIR = "download-workflow/sql-download/hive-scripts";
   
   private static final String FIELDS = "fields";
   
@@ -44,12 +45,14 @@ public class GenerateHQL {
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
       File speciesListDownloadDir = new File(outDir, SPECIES_LIST_DOWNLOAD_DIR);
+      File sqlDownloadDir = new File(outDir, SQL_DOWNLOAD_DIR);
       
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
       speciesListDownloadDir.mkdirs();
+      sqlDownloadDir.mkdirs();
       
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
@@ -64,6 +67,7 @@ public class GenerateHQL {
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
       generateSpeciesListQueryHQL(cfg, speciesListDownloadDir);
+      generateSQLDownloadQueryHQL(cfg, sqlDownloadDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
@@ -145,6 +149,17 @@ public class GenerateHQL {
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
+      template.process(data, out);
+    }
+  }
+  
+  /**
+   * Generates the Hive query file used for SQL downloads.
+   */
+  private static void generateSQLDownloadQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-sql-query.q"))) {
+      Template template = cfg.getTemplate("simple-sql-download/execute-simple-sql-query.ftl");
       Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
