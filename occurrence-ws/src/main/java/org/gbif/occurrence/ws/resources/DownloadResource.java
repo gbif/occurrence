@@ -139,8 +139,10 @@ public class DownloadResource {
     
     if(downloadRequest instanceof SQLDownloadRequest) {
       HiveSQL.Validate.Result result = sqlValidator.apply(((SQLDownloadRequest) downloadRequest).getSQL());
-      if(!result.isOk())
-        return result.toString();
+      if(!result.isOk()) {
+        throw new RuntimeException(result.toString());
+      }
+        
     }
       
     String downloadKey = requestService.create(downloadRequest);
