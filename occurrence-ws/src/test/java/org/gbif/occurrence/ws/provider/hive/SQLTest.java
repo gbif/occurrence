@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import com.cloudera.org.codehaus.jackson.JsonGenerationException;
 import com.cloudera.org.codehaus.jackson.map.JsonMappingException;
-import com.cloudera.org.codehaus.jackson.map.ObjectMapper;
 
 
 public class SQLTest {
@@ -32,7 +31,7 @@ public class SQLTest {
 
   @Test
   public void testValid() {
-    Result result = new HiveSQL.Validate().apply("SELECT * from occurrence_hdfs");
+    Result result = new HiveSQL.Validate().apply("SELECT gbifid, datasetkey, license from occurrence_hdfs");
     Assert.assertEquals(true, result.isOk());
     Assert.assertNotEquals(COMPILATION_ERROR, result.explain());
     Assert.assertEquals(0, result.issues().size());
@@ -43,7 +42,7 @@ public class SQLTest {
     Result result = new HiveSQL.Validate().apply("SELECT * from occ");
     Assert.assertEquals(false, result.isOk());
     Assert.assertEquals(COMPILATION_ERROR, result.explain());
-    Assert.assertEquals(1, result.issues().size());
+    Assert.assertEquals(2, result.issues().size());
   }
 
   @Test
@@ -51,7 +50,7 @@ public class SQLTest {
     Result result = new HiveSQL.Validate().apply("SELECT col\n" + "FROM (\n" + "  SELECT a+b AS col\n" + "  FROM t1\n" + ") t2");
     Assert.assertEquals(false, result.isOk());
     Assert.assertEquals(COMPILATION_ERROR, result.explain());
-    Assert.assertEquals(2, result.issues().size());
+    Assert.assertEquals(3, result.issues().size());
   }
 
   @Test
@@ -59,7 +58,7 @@ public class SQLTest {
     Result result = new HiveSQL.Validate().apply("SELECT a.* FROM a JOIN b ON (a.id = b.id)");
     Assert.assertEquals(false, result.isOk());
     Assert.assertEquals(COMPILATION_ERROR, result.explain());
-    Assert.assertEquals(2, result.issues().size());
+    Assert.assertEquals(3, result.issues().size());
   }
 
   @Test
@@ -68,7 +67,7 @@ public class SQLTest {
         + "    SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)subq2");
     Assert.assertEquals(false, result.isOk());
     Assert.assertEquals(COMPILATION_ERROR, result.explain());
-    Assert.assertEquals(3, result.issues().size());
+    Assert.assertEquals(4, result.issues().size());
   }
 
 

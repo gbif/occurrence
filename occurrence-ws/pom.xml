@@ -24,6 +24,7 @@
     <gbif-microservice.version>0.7</gbif-microservice.version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <javassist.version>3.19.0-GA</javassist.version>
+    <nifi.version>1.7.1</nifi.version>
     <!-- because ws accesses hbase directly this must match cluster-expected guava -->
 
   </properties>
@@ -440,7 +441,31 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
-
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-processors</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-framework-core</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-services-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-dbcp-service-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-kerberos-credentials-service-api</artifactId>
+		<version>${nifi.version}</version>
+	</dependency>
     <!-- GBIF microservice dependencies -->
     <dependency>
       <groupId>org.gbif</groupId>

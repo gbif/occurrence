@@ -3,12 +3,15 @@ package org.gbif.occurrence.ws.provider.hive;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import org.apache.nifi.processor.exception.ProcessException;
+import org.apache.nifi.reporting.InitializationException;
 import org.junit.Test;
 
 public class HiveConnectionPoolTest {
+  
   @Test
-  public void test1(){
-    try(Connection conn= HiveConnectionPool.fromDefaultProperties().getConnection()){
+  public void test1() throws ProcessException, InitializationException{
+    try(Connection conn= ConnectionPool.nifiPoolFromDefaultProperties().getConnection()){
       System.out.println(conn.isReadOnly());
     } catch (IllegalArgumentException e) {
       System.err.println(e.getMessage());
@@ -18,6 +21,5 @@ public class HiveConnectionPoolTest {
       System.err.println(e.getMessage());
     }
   }
-  
   
 }

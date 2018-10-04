@@ -12,7 +12,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.apache.commons.compress.utils.Lists;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
@@ -34,19 +33,19 @@ public class HiveSQL {
     @Override
     public String apply(String query) {
       String newQuery = "EXPLAIN ".concat(query);
-      try (Connection conn = HiveConnectionPool.fromDefaultProperties().getConnection();
+      try (Connection conn = ConnectionPool.nifiPoolFromDefaultProperties().getConnection();
           Statement stmt = conn.createStatement();
           ResultSet result = stmt.executeQuery(newQuery);) {
-        return getExplainQueryResult(result);
+        return explanation(result);
       } catch (Exception ex) {
         throw Throwables.propagate(ex);
       }
     }
 
-    private String getExplainQueryResult(ResultSet result) throws SQLException {
+    private String explanation(ResultSet resultset) throws SQLException {
       StringBuilder sb = new StringBuilder();
-      while (result.next()) {
-        sb.append(result.getString("Explain") + "\n");
+      while (resultset.next()) {
+        sb.append(resultset.getString("Explain") + "\n");
       }
       return sb.toString();
     }
