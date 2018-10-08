@@ -259,6 +259,10 @@ public class SolrOccurrenceWriter {
       taxonKey.add(occurrence.getTaxonKey());
     }
 
+    if (occurrence.getAcceptedTaxonKey() != null) {
+      taxonKey.add(occurrence.getAcceptedTaxonKey());
+    }
+
     if (occurrence.getKingdomKey() != null) {
       taxonKey.add(occurrence.getKingdomKey());
     }
