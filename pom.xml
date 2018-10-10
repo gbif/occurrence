@@ -140,19 +140,19 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.18</download-query-tools.version>
-    <dwc-api.version>1.20-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>1.20</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
-    <gbif-api.version>0.71-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.71</gbif-api.version>
     <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.34-SNAPSHOT</gbif-common-search.version>
-    <gbif-common-service.version>0.17-SNAPSHOT</gbif-common-service.version>
-    <gbif-common-ws.version>0.43-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-search.version>0.34</gbif-common-search.version>
+    <gbif-common-service.version>0.17</gbif-common-service.version>
+    <gbif-common-ws.version>0.43</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.36</gbif-parsers.version>
     <gbif-postal-service.version>0.25</gbif-postal-service.version>
-    <gbif-registry.version>2.89</gbif-registry.version>
+    <gbif-registry.version>2.91</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
