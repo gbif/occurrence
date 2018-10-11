@@ -572,7 +572,7 @@ public class DwcaArchiveBuilder {
                 long count = Long.parseLong(iter.next());
                 datasets.add(new Constituent(key, count, datasetService.get(key)));
                 citations.put(key, count);
-              } catch (IllegalArgumentException e) {
+              } catch (Exception e) {
                 // ignore invalid UUIDs
                 LOG.info("Found invalid UUID as datasetId {}", line);
                 invalidUuids++;
