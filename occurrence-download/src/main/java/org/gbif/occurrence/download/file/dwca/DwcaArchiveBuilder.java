@@ -434,7 +434,7 @@ public class DwcaArchiveBuilder {
         // now iterate over constituent UUIDs
 
         for (Constituent constituent : constituents) {
-          LOG.info("Processing constituent dataset: {}", constituent);
+          LOG.info("Processing constituent dataset: {}", constituent.getKey());
           // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
           try {
             Dataset dataset = constituent.getDataset();
