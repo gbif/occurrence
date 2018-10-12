@@ -140,6 +140,8 @@ public class OccurrenceSearchRequestBuilder {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceSolrField.PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.CONTINENT, OccurrenceSolrField.CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceSolrField.TAXON_KEY)
+      .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, OccurrenceSolrField.ACCEPTED_TAXON_KEY)
+      .put(OccurrenceSearchParameter.TAXONOMIC_STATUS, OccurrenceSolrField.TAXONOMIC_STATUS)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceSolrField.KINGDOM_KEY)
       .put(OccurrenceSearchParameter.PHYLUM_KEY, OccurrenceSolrField.PHYLUM_KEY)
       .put(OccurrenceSearchParameter.CLASS_KEY, OccurrenceSolrField.CLASS_KEY)
