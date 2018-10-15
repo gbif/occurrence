@@ -139,6 +139,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.GENUS_KEY, GbifTerm.genusKey)
       .put(OccurrenceSearchParameter.SUBGENUS_KEY, GbifTerm.subgenusKey)
       .put(OccurrenceSearchParameter.SPECIES_KEY, GbifTerm.speciesKey)
+      .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, GbifTerm.acceptedTaxonKey)
+      .put(OccurrenceSearchParameter.TAXONOMIC_STATUS, DwcTerm.taxonomicStatus)
       .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.repatriated)
       .put(OccurrenceSearchParameter.ORGANISM_ID, DwcTerm.organismID)
       .put(OccurrenceSearchParameter.LOCALITY, DwcTerm.locality)
