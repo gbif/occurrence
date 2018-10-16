@@ -13,10 +13,10 @@
 package org.gbif.occurrence.ws.resources;
 
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,11 +31,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SQLDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -45,7 +42,6 @@ import org.gbif.occurrence.ws.provider.hive.HiveSQL;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -65,8 +61,6 @@ public class DownloadResource {
   private final OccurrenceDownloadService occurrenceDownloadService;
 
   private final CallbackService callbackService;
-  
-  private final HiveSQL.Validate sqlValidator;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -74,7 +68,6 @@ public class DownloadResource {
     requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.sqlValidator = new HiveSQL.Validate();
   }
 
   @DELETE
@@ -119,33 +112,45 @@ public class DownloadResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response validateSQL(@QueryParam("sql") String sqlquery) {
     LOG.debug("Received validation request for sql query [{}]",sqlquery);
-    HiveSQL.Validate.Result result = sqlValidator.apply(sqlquery);
+    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlquery);
     return Response.ok().type(MediaType.APPLICATION_JSON).entity(result.toString()).build();
+  }
+  
+  @GET
+  @Path("sql/describe")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response describeSQL() {
+    LOG.debug("Received describe request for sql ");
+    String result = new HiveSQL.Execute().describe("occurrence_hdfs");
+    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
   }
   
   @POST
   @Validate
-  public String startDownload(@Valid JsonNode request, @Context SecurityContext security) {
+  @Path("sql")
+  public String startDownload(@Valid SQLDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
-    DownloadRequest downloadRequest = null;
-    try {
-      downloadRequest = DownloadFormat.valueOf(request.get("format").asText()).equals(DownloadFormat.SQL) ? new ObjectMapper().readValue(request, SQLDownloadRequest.class) : new ObjectMapper().readValue(request, PredicateDownloadRequest.class);
-    } catch (IOException e) {
-      LOG.error(String.format("Syntax error : Couldnot parse request to appropriate download request because of %s", e.getMessage()) , e);
-      Throwables.propagate(e);
-    }
+
     // assert authenticated user is the same as in download
-    assertLoginMatches(downloadRequest, security);
-    
-    if(downloadRequest instanceof SQLDownloadRequest) {
-      HiveSQL.Validate.Result result = sqlValidator.apply(((SQLDownloadRequest) downloadRequest).getSQL());
-      if(!result.isOk()) {
-        throw new RuntimeException(result.toString());
-      }
-        
+    assertLoginMatches(request, security);
+
+    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(request.getSQL());
+    if (!result.isOk()) {
+      throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
     }
-      
-    String downloadKey = requestService.create(downloadRequest);
+
+    String downloadKey = requestService.create(request);
+    LOG.info("Created new download job with key [{}]", downloadKey);
+    return downloadKey;
+  }
+  
+  @POST
+  @Validate
+  public String startDownload(@Valid PredicateDownloadRequest request, @Context SecurityContext security) {
+    LOG.debug("Download: [{}]", request);
+    // assert authenticated user is the same as in download
+    assertLoginMatches(request, security);
+    String downloadKey = requestService.create(request);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
   }
