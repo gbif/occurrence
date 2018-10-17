@@ -33,7 +33,7 @@ public class ConnectionPool{
   
   private ConnectionPool() {}
   
-  static HiveConnectionPool cp;
+  private static HiveConnectionPool cp;
   
   /**
    * Creates {@linkplain org.apache.nifi.dbcp.hive.HiveConnectionPool} from provided default properties.
