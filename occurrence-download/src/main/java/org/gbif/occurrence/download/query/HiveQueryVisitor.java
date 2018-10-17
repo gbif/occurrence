@@ -205,7 +205,7 @@ public class HiveQueryVisitor {
     } else {
       // quote value, escape existing quotes
       String strVal =  '\'' + APOSTROPHE_MATCHER.replaceFrom(value, "\\\'") + '\'';
-      if (OccurrenceSearchParameter.GEOMETRY != param) {
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param) {
         return toHiveLower(strVal);
       }
       return strVal;
