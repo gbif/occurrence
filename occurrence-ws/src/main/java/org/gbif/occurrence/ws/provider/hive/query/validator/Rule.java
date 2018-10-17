@@ -8,9 +8,9 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  * rule conditions.
  */
 @FunctionalInterface
-public interface Rule<T> {
+public interface Rule {
 
-  public RuleContext apply(T value);
+  public RuleContext apply(QueryContext value);
 
   public static RuleContext violated(Issue issue) {
     return new RuleContext(true, issue);
@@ -26,7 +26,6 @@ public interface Rule<T> {
     private final Query.Issue issue;
 
     private RuleContext(boolean isViolated, Query.Issue issue) {
-      super();
       this.isViolated = isViolated;
       this.issue = issue;
     }

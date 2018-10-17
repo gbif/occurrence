@@ -6,7 +6,7 @@ package org.gbif.occurrence.ws.provider.hive.query.validator;
  *
  */
 public class Query {
-  private static final String FORMAT = "Format of LEGAL query is : SELECT ... \n" + "FROM occurrence \n" + "WHERE ... \n" + "GROUP BY ... HAVING ...";
+  private static final String FORMAT = "Format of LEGAL query is : SELECT ... \nFROM occurrence \nWHERE ... \nGROUP BY ... HAVING ...";
 
   public enum Issue {
     NO_ISSUE("No Issue"), 

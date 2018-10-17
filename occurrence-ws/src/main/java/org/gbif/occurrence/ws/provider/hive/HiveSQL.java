@@ -16,7 +16,7 @@ import org.gbif.occurrence.ws.provider.hive.Result.Read;
 import org.gbif.occurrence.ws.provider.hive.Result.ReadDescribe;
 import org.gbif.occurrence.ws.provider.hive.Result.ReadExplain;
 import org.gbif.occurrence.ws.provider.hive.query.validator.DatasetKeyAndLicenseRequiredRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.NoDDLJoinsAndUnionAllowedRule;
+import org.gbif.occurrence.ws.provider.hive.query.validator.OnlyPureSelectQueriesAllowedRule;
 import org.gbif.occurrence.ws.provider.hive.query.validator.OnlyOneSelectAllowedRule;
 import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
 import org.gbif.occurrence.ws.provider.hive.query.validator.QueryContext;
@@ -69,6 +69,8 @@ public class HiveSQL {
    */
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
 
+    private static final List<Rule> ruleBase = Arrays.asList(new OnlyPureSelectQueriesAllowedRule(), new OnlyOneSelectAllowedRule(), new DatasetKeyAndLicenseRequiredRule(), new TableNameShouldBeOccurrenceRule());
+    
     public static class Result {
       private final String sql;
       private final List<Issue> issues;
@@ -76,7 +78,6 @@ public class HiveSQL {
       private final String explain;
 
       Result(String sql, List<Issue> issues, String queryExplanation, boolean ok) {
-        super();
         this.sql = sql;
         this.issues = issues;
         this.ok = ok;
@@ -120,8 +121,8 @@ public class HiveSQL {
       if (context.hasParseIssue())
         return new Result(context.sql(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR, issues.isEmpty());
 
-      List<Rule> rules = Arrays.asList(new NoDDLJoinsAndUnionAllowedRule(), new OnlyOneSelectAllowedRule(), new DatasetKeyAndLicenseRequiredRule(), new TableNameShouldBeOccurrenceRule());
-      rules.forEach(rule -> rule.apply(context).onViolation(issues::add));
+      
+      ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));
 
       // SQL should be executable.
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();

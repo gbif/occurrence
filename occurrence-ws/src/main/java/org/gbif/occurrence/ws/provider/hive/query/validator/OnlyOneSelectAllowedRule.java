@@ -10,7 +10,7 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  * raised.
  *
  */
-public class OnlyOneSelectAllowedRule implements Rule<QueryContext> {
+public class OnlyOneSelectAllowedRule implements Rule {
   @Override
   public RuleContext apply(QueryContext context) {
     Stream<String> sqlStream1 = Pattern.compile(" ").splitAsStream(context.sql());

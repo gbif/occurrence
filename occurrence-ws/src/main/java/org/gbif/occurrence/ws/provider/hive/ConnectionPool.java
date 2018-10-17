@@ -33,6 +33,8 @@ public class ConnectionPool{
   
   private ConnectionPool() {}
   
+  static HiveConnectionPool cp;
+  
   /**
    * Creates {@linkplain org.apache.nifi.dbcp.hive.HiveConnectionPool} from provided default properties.
    * @return HiveConnectionPool from default properties.
@@ -40,8 +42,10 @@ public class ConnectionPool{
    * @throws InitializationException error initializing connection pool.
    */
   public static synchronized HiveConnectionPool nifiPoolFromDefaultProperties() throws IOException, InitializationException {
+    if (cp != null)
+      return cp;
     
-    HiveConnectionPool cp =  new HiveConnectionPool();
+    cp =  new HiveConnectionPool();
     Properties jdbcProperties = PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE));
     
     Objects.requireNonNull(jdbcProperties.getProperty(JDBC_URL));

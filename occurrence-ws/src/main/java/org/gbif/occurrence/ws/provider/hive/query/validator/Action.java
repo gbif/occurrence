@@ -9,5 +9,5 @@ package org.gbif.occurrence.ws.provider.hive.query.validator;
 
 @FunctionalInterface
 public interface Action {
-  public void apply(Query.Issue issue);
+  void apply(Query.Issue issue);
 }

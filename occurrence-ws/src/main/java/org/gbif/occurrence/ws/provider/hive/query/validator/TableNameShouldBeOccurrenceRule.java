@@ -2,7 +2,7 @@ package org.gbif.occurrence.ws.provider.hive.query.validator;
 
 import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
 
-public class TableNameShouldBeOccurrenceRule implements Rule<QueryContext> {
+public class TableNameShouldBeOccurrenceRule implements Rule {
 
   @Override
   public RuleContext apply(QueryContext value) {

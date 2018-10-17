@@ -1,10 +1,8 @@
 package org.gbif.occurrence.ws.provider.hive;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import org.codehaus.jackson.map.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -22,7 +20,7 @@ public class Result {
       StringBuilder sb = new StringBuilder();
       try {
         while (resultset.next()) {
-          sb.append(resultset.getString("Explain") + "\n");
+          sb.append(resultset.getString("Explain") + '\n');
         }
       } catch (SQLException e) {
         Throwables.propagate(e);
@@ -71,6 +69,13 @@ public class Result {
         this.comment = comment;
       }
 
+      @Override
+      public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"columnName\"=").append(columnName).append(", \"dataType\"=").append(dataType).append(", \"comment\"=")
+            .append(comment).append("}");
+        return builder.toString();
+      }
     }
 
     @Override
@@ -84,14 +89,11 @@ public class Result {
           String comment = resultset.getString("comment");
           results.add(new DescribeResult(columnName, dataType, comment));
         }
-        return new ObjectMapper().writeValueAsString(results);
-      } catch (SQLException | IOException e) {
+        return results.toString();
+      } catch (SQLException e) {
         Throwables.propagate(e);
       }
       return "";
-
     }
   }
-
-
 }

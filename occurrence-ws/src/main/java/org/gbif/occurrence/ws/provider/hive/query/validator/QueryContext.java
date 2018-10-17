@@ -29,7 +29,6 @@ public class QueryContext {
   private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
 
   private QueryContext(String sql) {
-    super();
     this.sql = sql;
     try {
       this.selectQueryObject = (SqlSelect) SqlParser.create(sql).parseQuery();
@@ -40,8 +39,7 @@ public class QueryContext {
   }
 
   private void update() {
-    if (!parseIssue.equals(Issue.NO_ISSUE))
-      return;
+    if (!parseIssue.equals(Issue.NO_ISSUE)) { return; }
 
     this.from = selectQueryObject.getFrom();
     this.selectFieldNames = selectQueryObject.getSelectList().getList().stream().map(SqlNode::toString).collect(Collectors.toList());

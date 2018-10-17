@@ -8,7 +8,7 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  * Rule checks if the provided query is executable else through {@linkplain Query.Issue}
  *
  */
-public class SQLShouldBeExecutableRule implements Rule<QueryContext> {
+public class SQLShouldBeExecutableRule implements Rule {
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
   private String explain;
 

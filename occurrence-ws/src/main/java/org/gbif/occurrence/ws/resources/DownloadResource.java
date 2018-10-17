@@ -61,6 +61,8 @@ public class DownloadResource {
   private final OccurrenceDownloadService occurrenceDownloadService;
 
   private final CallbackService callbackService;
+  
+  private String describeResponseCache = "";
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -121,8 +123,8 @@ public class DownloadResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response describeSQL() {
     LOG.debug("Received describe request for sql ");
-    String result = new HiveSQL.Execute().describe("occurrence_hdfs");
-    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
+    if (describeResponseCache.isEmpty())  { describeResponseCache = new HiveSQL.Execute().describe("occurrence_hdfs"); }
+    return Response.ok().type(MediaType.APPLICATION_JSON).entity(describeResponseCache).build();
   }
   
   @POST

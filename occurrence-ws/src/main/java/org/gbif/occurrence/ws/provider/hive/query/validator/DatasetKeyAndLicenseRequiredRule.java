@@ -11,7 +11,7 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  * Rule is failed {@linkplain Query.Issue} is raised.
  *
  */
-public class DatasetKeyAndLicenseRequiredRule implements Rule<QueryContext> {
+public class DatasetKeyAndLicenseRequiredRule implements Rule {
 
   @Override
   public RuleContext apply(QueryContext value) {

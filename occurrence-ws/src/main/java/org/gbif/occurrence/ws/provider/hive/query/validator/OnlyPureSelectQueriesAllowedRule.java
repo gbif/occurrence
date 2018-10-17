@@ -13,13 +13,13 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  * the rule is violated and {@linkplain Query.Issue} is raised.
  *
  */
-public class NoDDLJoinsAndUnionAllowedRule implements Rule<QueryContext> {
+public class OnlyPureSelectQueriesAllowedRule implements Rule {
+  
+  private static final Set<SqlKind> notAllowedKinds = Stream.concat(Stream.concat(SqlKind.DML.stream(), SqlKind.SET_QUERY.stream()), EnumSet.of(SqlKind.JOIN, SqlKind.AS).stream())
+                                                      .collect(Collectors.toSet());
 
   @Override
   public RuleContext apply(QueryContext context) {
-    Set<SqlKind> notAllowedKinds =
-        Stream.concat(Stream.concat(SqlKind.DML.stream(), SqlKind.SET_QUERY.stream()), EnumSet.of(SqlKind.JOIN, SqlKind.AS).stream())
-            .collect(Collectors.toSet());
     return context.from().isA(notAllowedKinds) ? Rule.violated(Issue.DDL_JOINS_UNION_NOT_ALLOWED) : Rule.preserved();
   }
 }
