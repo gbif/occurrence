@@ -72,8 +72,8 @@ public class Result {
       @Override
       public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"columnName\"=").append(columnName).append(", \"dataType\"=").append(dataType).append(", \"comment\"=")
-            .append(comment).append("}");
+        builder.append("{\"columnName\":\"").append(columnName).append("\", \"dataType\":\"").append(dataType).append("\", \"comment\":\"")
+            .append(comment).append("\"}");
         return builder.toString();
       }
     }

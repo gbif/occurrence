@@ -76,9 +76,11 @@ public class HiveSQL {
       private final List<Issue> issues;
       private final boolean ok;
       private final String explain;
-
-      Result(String sql, List<Issue> issues, String queryExplanation, boolean ok) {
+      private final String transsql;
+      
+      Result(String sql, String transsql, List<Issue> issues, String queryExplanation, boolean ok) {
         this.sql = sql;
+        this.transsql = transsql;
         this.issues = issues;
         this.ok = ok;
         this.explain = queryExplanation;
@@ -98,6 +100,10 @@ public class HiveSQL {
 
       public String explain() {
         return explain;
+      }
+      
+      public String transsql() {
+        return transsql;
       }
 
       @Override
@@ -119,7 +125,7 @@ public class HiveSQL {
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
       if (context.hasParseIssue())
-        return new Result(context.sql(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR, issues.isEmpty());
+        return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR, issues.isEmpty());
 
       
       ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));
@@ -128,7 +134,7 @@ public class HiveSQL {
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();
       executableRule.apply(context).onViolation(issues::add);
 
-      return new Result(context.sql(), issues, executableRule.explainValue(), issues.isEmpty());
+      return new Result(context.sql(), context.translatedQuery(), issues, executableRule.explainValue(), issues.isEmpty());
     }
 
   }

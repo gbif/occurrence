@@ -140,7 +140,7 @@ public class DownloadResource {
     if (!result.isOk()) {
       throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
     }
-
+    request.setSQL(result.transsql());
     String downloadKey = requestService.create(request);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
