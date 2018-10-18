@@ -21,7 +21,7 @@
       <script>hive-scripts/execute-simple-sql-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
-      <param>sql=${hive_query}</param>
+      <param>sql=${sql}</param>
     </hive>
     <ok to="archive_table"/>
     <error to="drop_tables_failure"/>

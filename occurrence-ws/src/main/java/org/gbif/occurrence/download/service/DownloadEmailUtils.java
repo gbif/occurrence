@@ -1,7 +1,15 @@
 package org.gbif.occurrence.download.service;
 
-import static freemarker.template.Configuration.VERSION_2_3_25;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.service.common.IdentityAccessService;
+import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
+import org.gbif.occurrence.query.HumanFilterBuilder;
+import org.gbif.occurrence.query.TitleLookup;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
@@ -18,14 +26,7 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import org.gbif.api.model.common.GbifUser;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.service.common.IdentityAccessService;
-import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
-import org.gbif.occurrence.query.HumanFilterBuilder;
-import org.gbif.occurrence.query.TitleLookup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -35,6 +36,12 @@ import com.google.inject.name.Named;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
+
+import static freemarker.template.Configuration.VERSION_2_3_25;
 
 
 /**
@@ -102,7 +109,8 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return new HumanFilterBuilder(titleLookup).humanFilterString(download.getRequest().getPredicate());
+    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SQLDownloadRequest) download.getRequest()).getSQL()
+        : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 
   /**

@@ -9,7 +9,7 @@ import java.util.Date;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.query.TitleLookup;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -35,7 +35,7 @@ public class DownloadEmailUtilsTest {
     d.setTotalRecords(8792);
     d.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
 
-    DownloadRequest req = new DownloadRequest();
+    PredicateDownloadRequest req = new PredicateDownloadRequest();
     req.setFormat(DownloadFormat.SIMPLE_CSV);
     req.setCreator("markus");
     d.setRequest(req);

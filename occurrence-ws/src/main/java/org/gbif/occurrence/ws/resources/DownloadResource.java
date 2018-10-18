@@ -33,8 +33,8 @@ import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.predicate.SQLPredicate;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SQLDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.CallbackService;
@@ -130,17 +130,17 @@ public class DownloadResource {
   @POST
   @Validate
   @Path("sql")
-  public String startSQLDownload(@Valid DownloadRequest request, @Context SecurityContext security) {
+  public String startDownload(@Valid SQLDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
 
     // assert authenticated user is the same as in download
     assertLoginMatches(request, security);
 
-    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(((SQLPredicate)request.getPredicate()).getValue());
+    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(request.getSQL());
     if (!result.isOk()) {
       throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
     }
-    request.setPredicate(new SQLPredicate(result.transsql()));
+    request.setSQL(result.transsql());
     String downloadKey = requestService.create(request);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
@@ -148,7 +148,7 @@ public class DownloadResource {
   
   @POST
   @Validate
-  public String startDownload(@Valid DownloadRequest request, @Context SecurityContext security) {
+  public String startDownload(@Valid PredicateDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
     // assert authenticated user is the same as in download
     assertLoginMatches(request, security);
