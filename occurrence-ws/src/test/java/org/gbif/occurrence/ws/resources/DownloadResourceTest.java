@@ -8,7 +8,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -24,7 +24,7 @@ public class DownloadResourceTest {
   private static final String STATUS = "SUCCEEDED";
 
   private DownloadResource resource;
-  private PredicateDownloadRequest dl;
+  private DownloadRequest dl;
   private SecurityContext sec;
 
   @Test
@@ -57,7 +57,7 @@ public class DownloadResourceTest {
     when(sec.getUserPrincipal()).thenReturn(userP);
 
     resource = new DownloadResource(service, callbackService, downloadService);
-    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
+    dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
       DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);
   }

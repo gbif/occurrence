@@ -28,7 +28,6 @@
       <arg>${gbif_filter}</arg>
       <arg>${wf:id()}</arg>
       <arg>${download_format}</arg>
-      <arg>${sql}</arg>
       <capture-output/>
     </java>
 
@@ -124,7 +123,7 @@
         </property>
         <property>
           <name>sql</name>
-          <value>${wf:actionData('download_prepare')['sql']}</value>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
         <property>
           <name>hive_db</name>

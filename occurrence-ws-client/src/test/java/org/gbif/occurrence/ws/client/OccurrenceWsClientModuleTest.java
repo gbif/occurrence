@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -51,7 +50,7 @@ public class OccurrenceWsClientModuleTest {
     DownloadRequestService client = inj.getInstance(DownloadRequestService.class);
 
     DownloadRequest d =
-      new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
+      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
                           DownloadFormat.DWCA);
 
     client.create(d);

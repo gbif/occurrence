@@ -1,8 +1,22 @@
 package org.gbif.occurrence.download.oozie;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.predicate.SQLPredicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -10,30 +24,14 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.HiveQueryVisitor;
 import org.gbif.occurrence.download.query.QueryBuildingException;
 import org.gbif.occurrence.download.query.SolrQueryVisitor;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Properties;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * This class sets the following parameters required by the download workflow:
@@ -67,8 +65,6 @@ public class DownloadPrepareAction {
   private static final String HIVE_QUERY = "hive_query";
 
   private static final String DOWNLOAD_KEY = "download_key";
-  
-  private static final String SQL = "sql";
 
 
   //'-' is not allowed in a Hive table name.
@@ -147,10 +143,12 @@ public class DownloadPrepareAction {
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-      if (DownloadFormat.valueOf(downloadFormat.trim()) == DownloadFormat.SQL) {
-        props.setProperty(SQL, sql);
+    
+      Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
+      
+      if (downloadFormat.toUpperCase().trim().equals(DownloadFormat.SQL.name())) {
+        props.setProperty(HIVE_QUERY, ((SQLPredicate)predicate).getValue());
       } else {
-        Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
         String solrQuery = new SolrQueryVisitor().getQuery(predicate);
         long recordCount = getRecordCount(solrQuery);
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
@@ -160,6 +158,8 @@ public class DownloadPrepareAction {
           updateTotalRecordsCount(downloadKey, recordCount);
         }
       }
+      
+      
       persist(oozieProp, props);
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
