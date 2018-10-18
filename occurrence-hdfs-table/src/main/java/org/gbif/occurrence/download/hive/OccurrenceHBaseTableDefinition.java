@@ -7,11 +7,14 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.persistence.hbase.Columns;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * This provides the definition of the HBase occurrence table, for use as a Hive table.
@@ -26,17 +29,13 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are used in the verbatim context
    */
   private static List<HBaseField> verbatimFields() {
-    Set<Term> exclusions =
-      ImmutableSet.of(GbifTerm.gbifID, GbifTerm.mediaType // stripped explicitly as it is handled as an array
-      );
+    Set<Term> exclusions = Stream.of(GbifTerm.gbifID,
+                                     GbifTerm.mediaType // stripped explicitly as it is handled as an array
+                                    ).collect(Collectors.toSet());
 
-    ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
-    for (Term t : Terms.verbatimTerms()) {
-      if (!exclusions.contains(t)) {
-        builder.add(verbatimField(t));
-      }
-    }
-    return builder.build();
+    return Terms.verbatimTerms().stream().filter(t  -> !exclusions.contains(t))
+      .map(OccurrenceHBaseTableDefinition::verbatimField)
+      .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
   /**
@@ -46,19 +45,20 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are used in the interpreted context
    */
   private static List<HBaseField> interpretedFields() {
-    Set<Term> exclusions = ImmutableSet.of(GbifTerm.gbifID, // treated as a special field (primary key)
-                                           GbifTerm.mediaType, // stripped explicitly as it is handled as an array
-                                           GbifTerm.issue, // stripped explicitly as it is handled as an array
-                                           GbifTerm.numOfOccurrences //used for species aggregations only
-    );
+    Set<Term> exclusions = Stream.of(GbifTerm.gbifID, // treated as a special field (primary key)
+                                     GbifTerm.mediaType, // stripped explicitly as it is handled as an array
+                                     GbifTerm.issue, // stripped explicitly as it is handled as an array
+                                     GbifTerm.numOfOccurrences, //used for species aggregations only
+                                     //Boolean flags calculated from HBase data
+                                     GbifTerm.hasCoordinate,
+                                     GbifTerm.hasGeospatialIssues,
+                                     GbifTerm.repatriated
+                                     ).collect(Collectors.toSet());
 
-    ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
-    for (Term t : Terms.interpretedTerms()) {
-      if (!exclusions.contains(t)) {
-        builder.add(interpretedField(t));
-      }
-    }
-    return builder.build();
+    return Terms.interpretedTerms().stream()
+            .filter(t  -> !exclusions.contains(t))
+            .map(OccurrenceHBaseTableDefinition::interpretedField)
+            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
   /**
@@ -68,16 +68,13 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<HBaseField> internalFields() {
-    Set<GbifInternalTerm> exclusions = ImmutableSet.of(GbifInternalTerm.fragmentHash, GbifInternalTerm.fragment);
+    Set<GbifInternalTerm> exclusions = Stream.of(GbifInternalTerm.fragmentHash, GbifInternalTerm.fragment)
+                                        .collect(Collectors.toSet());
 
-    ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
-    for (GbifInternalTerm t : GbifInternalTerm.values()) {
-      if (!exclusions.contains(t)) {
-        // they are mapped the same as interpreted terms in HBase
-        builder.add(interpretedField(t));
-      }
-    }
-    return builder.build();
+    return Arrays.stream(GbifInternalTerm.values())
+            .filter(t  -> !exclusions.contains(t))
+            .map(OccurrenceHBaseTableDefinition::interpretedField)
+            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
   /**
@@ -86,13 +83,11 @@ public class OccurrenceHBaseTableDefinition {
    * @return the list of issue fields that are exposed through Hive
    */
   private static List<HBaseField> issueFields() {
-    ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
-    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      builder.add(new HBaseField(GbifTerm.issue, // repeated for all, as they become an array
-                                 HiveColumns.columnFor(issue), HiveDataTypes.TYPE_INT, // always
-                                 Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(issue)));
-    }
-    return builder.build();
+    return Arrays.stream(OccurrenceIssue.values())
+            .map(issue -> new HBaseField(GbifTerm.issue, // repeated for all, as they become an array
+                                         HiveColumns.columnFor(issue), HiveDataTypes.TYPE_INT, // always
+                            Columns.OCCURRENCE_COLUMN_FAMILY + ":" + Columns.column(issue)))
+            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
   /**
@@ -102,17 +97,11 @@ public class OccurrenceHBaseTableDefinition {
    */
   private static List<HBaseField> extensions() {
     // only MULTIMEDIA is supported
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
-
-    ImmutableList.Builder<HBaseField> builder = ImmutableList.builder();
-    for (Extension e : extensions) {
-      builder.add(new HBaseField(GbifTerm.Multimedia,
-                                 HiveColumns.columnFor(e),
-                                 HiveDataTypes.TYPE_STRING,
-                                 // always, as it has a custom serialization
-                                 Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(e)));
-    }
-    return builder.build();
+    return Collections.unmodifiableList(
+      Collections.singletonList(
+        new HBaseField(GbifTerm.Multimedia, HiveColumns.columnFor(Extension.MULTIMEDIA), HiveDataTypes.TYPE_STRING,
+                       // always, as it has a custom serialization
+           Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(Extension.MULTIMEDIA))));
   }
 
   /**

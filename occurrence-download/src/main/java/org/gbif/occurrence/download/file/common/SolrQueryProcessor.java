@@ -12,7 +12,6 @@ import com.google.common.base.Throwables;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
 
 /**
  * Executes a Solr query and applies a predicate to each result.

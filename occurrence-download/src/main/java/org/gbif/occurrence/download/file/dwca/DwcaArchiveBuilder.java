@@ -55,6 +55,7 @@ import java.util.zip.ZipInputStream;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -109,7 +110,6 @@ public class DwcaArchiveBuilder {
 
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final TitleLookup titleLookup;
-  private final Dataset dataset;
   private final File archiveDir;
   private final WorkflowConfiguration workflowConfiguration;
   private final FileSystem sourceFs;
@@ -205,7 +205,6 @@ public class DwcaArchiveBuilder {
     this.targetFs = targetFs;
     this.archiveDir = archiveDir;
     this.titleLookup = titleLookup;
-    dataset = new Dataset();
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
   }
@@ -438,7 +437,7 @@ public class DwcaArchiveBuilder {
           LOG.info("Processing constituent dataset: {}", constituent.getKey());
           // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
           try {
-
+            Dataset dataset = constituent.getDataset();
 
             licenseSelector.collectLicense(constituent.getDataset().getLicense());
             // citation
@@ -469,6 +468,7 @@ public class DwcaArchiveBuilder {
    */
   private void generateMetadata() {
     LOG.info("Add query dataset metadata to archive");
+    Dataset dataset = new Dataset();
     try {
       // Random UUID use because the downloadKey is not a string in UUID format
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
@@ -572,7 +572,7 @@ public class DwcaArchiveBuilder {
                 long count = Long.parseLong(iter.next());
                 datasets.add(new Constituent(key, count, datasetService.get(key)));
                 citations.put(key, count);
-              } catch (IllegalArgumentException e) {
+              } catch (Exception e) {
                 // ignore invalid UUIDs
                 LOG.info("Found invalid UUID as datasetId {}", line);
                 invalidUuids++;
@@ -634,5 +634,14 @@ public class DwcaArchiveBuilder {
     public int compareTo(Constituent other) {
       return CONSTITUENT_COMPARATOR.compare(this, other);
     }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+              .add("key", key)
+              .add("records", records)
+              .add("dataset", dataset).toString();
+    }
   }
+
 }

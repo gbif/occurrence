@@ -51,11 +51,22 @@ public final class CitationsFileWriter {
           }
         }
         beanWriter.flush();
-        occDownloadService.createUsages(downloadKey, datasetUsages);
+        persistUsages(occDownloadService, downloadKey, datasetUsages);
       } catch (IOException e) {
         LOG.error("Error creating citations file", e);
         throw Throwables.propagate(e);
       }
+    }
+  }
+
+  /**
+   * Persist dataset usages and swallow the any exception.
+   */
+  private static void persistUsages(OccurrenceDownloadService occDownloadService, String downloadKey, Map<UUID, Long> datasetUsages) {
+    try {
+      occDownloadService.createUsages(downloadKey, datasetUsages);
+    } catch (Exception ex) {
+      LOG.error("Error persisting usages for download {}", downloadKey, ex);
     }
   }
 

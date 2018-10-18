@@ -109,9 +109,9 @@ public class OccurrenceInterpreter implements Serializable {
    */
   public OccurrenceInterpretationResult interpret(VerbatimOccurrence verbatim, Occurrence original) {
     Occurrence occ = new Occurrence(verbatim);
-    interpreters.stream().forEach(interpreter ->  {
+    interpreters.forEach(interpreter ->  {
       try {
-        interpreter.interpret(verbatim,occ);
+        interpreter.interpret(verbatim, occ);
       } catch (Exception e) {
         LOG.warn("Caught a runtime exception during interpretation", e);
         occ.addIssue(OccurrenceIssue.INTERPRETATION_ERROR);

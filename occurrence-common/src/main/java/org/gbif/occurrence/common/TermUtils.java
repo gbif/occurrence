@@ -54,6 +54,7 @@ public class TermUtils {
                                                                              GbifTerm.genusKey,
                                                                              GbifTerm.subgenusKey,
                                                                              GbifTerm.speciesKey,
+                                                                             GbifTerm.acceptedTaxonKey,
                                                                              GbifInternalTerm.crawlId,
                                                                              GbifInternalTerm.identifierCount);
 
@@ -123,6 +124,7 @@ public class TermUtils {
                                                                                  DwcTerm.scientificName,
                                                                                  DwcTerm.taxonRank,
                                                                                  DwcTerm.taxonomicStatus,
+                                                                                 GbifTerm.acceptedScientificName,
                                                                                  GbifTerm.genericName,
                                                                                  DwcTerm.specificEpithet,
                                                                                  DwcTerm.infraspecificEpithet,
@@ -132,6 +134,7 @@ public class TermUtils {
                                                                                  DwcTerm.lifeStage,
                                                                                  DwcTerm.establishmentMeans,
                                                                                  GbifTerm.taxonKey,
+                                                                                 GbifTerm.acceptedTaxonKey,
                                                                                  DwcTerm.typeStatus,
                                                                                  GbifTerm.typifiedName,
                                                                                  GbifTerm.kingdomKey,

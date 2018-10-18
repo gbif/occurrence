@@ -175,7 +175,9 @@ public class OccurrenceBuilder {
 
       // taxonomy terms
       occ.setTaxonKey(ExtResultReader.getInteger(row, GbifTerm.taxonKey));
+      occ.setAcceptedTaxonKey(ExtResultReader.getInteger(row, GbifTerm.acceptedTaxonKey));
       occ.setScientificName(ExtResultReader.getString(row, DwcTerm.scientificName));
+      occ.setAcceptedScientificName(ExtResultReader.getString(row, GbifTerm.acceptedScientificName));
       occ.setGenericName(ExtResultReader.getString(row, GbifTerm.genericName));
       occ.setSpecificEpithet(ExtResultReader.getString(row, DwcTerm.specificEpithet));
       occ.setInfraspecificEpithet(ExtResultReader.getString(row, DwcTerm.infraspecificEpithet));

@@ -26,7 +26,7 @@ public class LicenseSelectors {
 
       @Override
       public void collectLicense(License license) {
-        this.license = License.getMostRestrictive(defaultLicense, license, defaultLicense);
+        this.license = License.getMostRestrictive(this.license, license, defaultLicense);
       }
 
       @Override

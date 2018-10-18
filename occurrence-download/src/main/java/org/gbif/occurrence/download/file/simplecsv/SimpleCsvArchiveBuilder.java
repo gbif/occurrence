@@ -8,7 +8,6 @@ import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.HiveColumns;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -57,7 +56,7 @@ public class SimpleCsvArchiveBuilder {
    */
   public static SimpleCsvArchiveBuilder withHeader(Set<Term> downloadTermsHeader) {
     String header =  downloadTermsHeader.stream()
-      .map(term -> HiveColumns.columnFor(term).replaceAll("_", ""))
+      .map(term -> term.simpleName().replaceAll("_", ""))
       .collect(Collectors.joining("\t")) + '\n';
     return new SimpleCsvArchiveBuilder(header);
   }

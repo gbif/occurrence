@@ -46,8 +46,7 @@
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="double" class="solr.TrieDoubleField"
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
-    <fieldType name="coordinate"     class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" normWrapLongitude="true"/>
-    <fieldType name="coordinate_map" class="solr.SpatialRecursivePrefixTreeFieldType" geo="false" spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="degrees" autoIndex="true"  sortMissingLast="true" prefixTree="packedQuad" normWrapLongitude="true"/>
+    <fieldType name="coordinate" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -78,8 +77,8 @@
       <analyzer type="query">
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.TrimFilterFactory"/>
         <filter class="solr.PatternReplaceFilterFactory" pattern="\s+{2,}" replacement=" " replace="all" />
+        <filter class="solr.TrimFilterFactory"/>
       </analyzer>
     </fieldType>
 
@@ -87,9 +86,8 @@
   <fields>
     <field name="key" type="int" indexed="true" stored="true" required="true" docValues="true"/>
     <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/>
-    <field name="installation_key" type="string" indexed="true" stored="false" docValues="true"/>
-    <field name="network_key" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
     <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
+    <field name="accepted_taxon_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="kingdom_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="phylum_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="class_key" type="int" indexed="true" stored="false" docValues="true"/>
@@ -98,6 +96,7 @@
     <field name="genus_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="subgenus_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="species_key" type="int" indexed="true" stored="false" docValues="true"/>
+    <field name="taxonomic_status" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="basis_of_record" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="year" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="month" type="int" indexed="true" stored="false" docValues="true"/>
@@ -112,7 +111,6 @@
     <field name="continent" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="publishing_country" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="coordinate" type="coordinate" indexed="true" stored="false" />
-    <field name="coordinate_map" type="coordinate_map" indexed="true" stored="false" />
     <field name="spatial_issues" type="boolean" indexed="true" stored="false" />
     <field name="has_coordinate" type="boolean" indexed="true" stored="false" />
     <field name="latitude" type="double" indexed="true" stored="false" />
@@ -134,9 +132,6 @@
     <field name="crawl_id" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="publishing_organization_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="repatriated" type="boolean" indexed="true" stored="false" />
-    <field name="event_id" type="string" indexed="true" stored="false" docValues="true"/>
-    <field name="parent_event_id" type="string" indexed="true" stored="false" docValues="true"/>
-    <field name="sampling_protocol" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <field name="_version_" type="long" indexed="true" stored="true"/>
   </fields>
