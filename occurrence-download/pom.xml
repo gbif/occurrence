@@ -93,8 +93,8 @@
             <descriptor>src/main/assembly/create-tables.xml</descriptor>
             <descriptor>src/main/assembly/download.xml</descriptor>
             <descriptor>src/main/assembly/simple-avro-download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-csv-download.xml</descriptor> 
-            <descriptor>src/main/assembly/species-list-download.xml</descriptor> 
+            <descriptor>src/main/assembly/simple-csv-download.xml</descriptor>
+            <descriptor>src/main/assembly/species-list-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>
         </configuration>
@@ -135,8 +135,7 @@
         <configuration>
           <excludes>
             <exclude>conf/</exclude>
-            <exclude>create-tables/config-default.xml</exclude>
-            <exclude>download/config-default.xml</exclude>
+            <exclude>**/config-default.xml</exclude>
             <exclude>hbase-site.xml</exclude>
           </excludes>
         </configuration>
