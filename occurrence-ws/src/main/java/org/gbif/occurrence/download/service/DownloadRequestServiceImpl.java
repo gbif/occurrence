@@ -37,7 +37,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -271,7 +271,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(downloadLink(wsUrl, downloadId));
     if (request.getFormat().equals(DownloadFormat.SQL)) {
-      download.setFilter(((SQLDownloadRequest)request).getSQL());
+      download.setFilter(((SqlDownloadRequest)request).getSQL());
     }
     else {
       try {

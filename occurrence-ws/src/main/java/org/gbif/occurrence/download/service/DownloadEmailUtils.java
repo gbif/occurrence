@@ -4,7 +4,7 @@ import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
 import org.gbif.occurrence.query.HumanFilterBuilder;
@@ -109,7 +109,7 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SQLDownloadRequest) download.getRequest()).getSQL()
+    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest) download.getRequest()).getSQL()
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 

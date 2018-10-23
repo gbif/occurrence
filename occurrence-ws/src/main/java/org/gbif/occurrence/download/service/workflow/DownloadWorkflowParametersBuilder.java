@@ -9,7 +9,7 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class DownloadWorkflowParametersBuilder {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
     String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? "*" : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
-    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SQLDownloadRequest)request).getSQL() : "*";
+    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSQL() : "*";
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());

@@ -33,7 +33,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -109,7 +109,7 @@ public class OccurrenceSearchResource {
     if (downloadFormat.equals(DownloadFormat.SQL)) {
       String sql = httpRequest.getParameterMap().get("sql")[0];
       LOG.info("SQL build for passing to download [{}]", sql);
-      return new SQLDownloadRequest(sql, creator, notificationAddress, true, downloadFormat);
+      return new SqlDownloadRequest(sql, creator, notificationAddress, true, downloadFormat);
     }
     else {
       Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());

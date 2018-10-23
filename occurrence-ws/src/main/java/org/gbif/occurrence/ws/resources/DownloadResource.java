@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SQLDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.CallbackService;
@@ -130,7 +130,7 @@ public class DownloadResource {
   @POST
   @Validate
   @Path("sql")
-  public String startDownload(@Valid SQLDownloadRequest request, @Context SecurityContext security) {
+  public String startDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
 
     // assert authenticated user is the same as in download
