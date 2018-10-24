@@ -112,6 +112,8 @@ public class CoordinateInterpreterTest {
   @Test
   public void testLookupLatLngSwapped() {
     assertCountry(6.17, 49.75, Country.LUXEMBOURG, 49.75, 6.17, Country.LUXEMBOURG, OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE);
+    // With a latitude > 90°, the swap is done by the parser.
+    assertCountry(138.86, 36.27, Country.JAPAN, 36.27, 138.86, Country.JAPAN, OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE);
   }
 
   @Test
