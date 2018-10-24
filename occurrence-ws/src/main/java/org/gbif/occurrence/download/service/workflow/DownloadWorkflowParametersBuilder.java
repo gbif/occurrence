@@ -40,7 +40,7 @@ public class DownloadWorkflowParametersBuilder {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
     String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? "*" : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
-    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSQL() : "*";
+    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : "*";
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());

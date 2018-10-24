@@ -109,7 +109,7 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest) download.getRequest()).getSQL()
+    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest) download.getRequest()).getSql()
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 

@@ -109,7 +109,7 @@ public class OccurrenceSearchResource {
     if (downloadFormat.equals(DownloadFormat.SQL)) {
       String sql = httpRequest.getParameterMap().get("sql")[0];
       LOG.info("SQL build for passing to download [{}]", sql);
-      return new SqlDownloadRequest(sql, creator, notificationAddress, true, downloadFormat);
+      return new SqlDownloadRequest(sql, creator, notificationAddress, true);
     }
     else {
       Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
