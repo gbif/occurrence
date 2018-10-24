@@ -18,14 +18,17 @@ import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.gbif.common.parsers.core.ParseResult.CONFIDENCE.DEFINITE;
+import static org.gbif.common.parsers.core.ParseResult.CONFIDENCE.PROBABLE;
 
 /**
  * Interprets date representations into a Date.
@@ -98,8 +101,8 @@ public class TemporalInterpreter {
   public static OccurrenceParseResult<AtomizedLocalDate> interpretEventDate(String year, String month, String day,
                                                                               String dateString) {
     OccurrenceParseResult<TemporalAccessor> ta = interpretRecordedDate(year,  month,  day, dateString);
-    return new OccurrenceParseResult<AtomizedLocalDate>(ta.getStatus(), ta.getConfidence(),
-            AtomizedLocalDate.fromTemporalAccessor(ta.getPayload()), ta.getError());
+    return new OccurrenceParseResult<>(ta.getStatus(), ta.getConfidence(),
+      AtomizedLocalDate.fromTemporalAccessor(ta.getPayload()), null, ta.getError());
   }
 
   /**
@@ -136,37 +139,46 @@ public class TemporalInterpreter {
     ParseResult.CONFIDENCE confidence = null;
 
     ParseResult<TemporalAccessor> parsedYMDResult = atomizedDateProvided ? TEXTDATE_PARSER.parse(year, month, day) :
-            ParseResult.<TemporalAccessor>fail();
+            ParseResult.fail();
     ParseResult<TemporalAccessor> parsedDateResult = dateStringProvided ? TEXTDATE_PARSER.parse(dateString) :
-            ParseResult.<TemporalAccessor>fail();
+            ParseResult.fail();
+    TemporalAccessor parsedYmdTa = parsedYMDResult.getPayload();
+    TemporalAccessor parsedDateTa = parsedDateResult.getPayload();
 
-    // If both inputs exist verify that they match
-    if(atomizedDateProvided && dateStringProvided &&
-            !(TemporalAccessorUtils.representsSameYMD(parsedYMDResult.getPayload(),  parsedDateResult.getPayload())
-                    || ObjectUtils.equals(parsedYMDResult.getPayload(), parsedDateResult.getPayload()))){
+    // If both inputs exist handle the case when they don't match
+    if (atomizedDateProvided && dateStringProvided && !TemporalAccessorUtils.sameOrContained(parsedYmdTa, parsedDateTa)) {
 
-      issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
-
-      LOG.debug("Date mismatch: [{} vs {}].", parsedYMDResult.getPayload(), parsedDateResult.getPayload());
-
-      TemporalAccessor bestResolution =
-              TemporalAccessorUtils.getBestResolutionTemporalAccessor(parsedYMDResult.getPayload(), parsedDateResult.getPayload());
-      if(bestResolution != null){
-        parsedTemporalAccessor = bestResolution;
-        // if one of the 2 result is null we can not set the confidence to DEFINITE
-        confidence = (parsedYMDResult.getPayload() == null || parsedDateResult.getPayload() == null) ?
-                ParseResult.CONFIDENCE.PROBABLE :ParseResult.CONFIDENCE.DEFINITE;
+      // eventDate could be ambiguous (5/4/2014), but disambiguated by year-month-day.
+      boolean ambiguityResolved = false;
+      if (parsedDateResult.getAlternativePayloads() != null) {
+        for (TemporalAccessor possibleTa : parsedDateResult.getAlternativePayloads()) {
+          if (TemporalAccessorUtils.sameOrContained(parsedYmdTa, possibleTa)) {
+            parsedDateTa = possibleTa;
+            ambiguityResolved = true;
+            LOG.debug("Ambiguous date {} matches year-month-day date {}-{}-{} for {}", dateString, year, month, day, parsedDateTa);
+          }
+        }
       }
-      else{
+
+      // still a conflict
+      if (!ambiguityResolved) {
+        issues.add(OccurrenceIssue.RECORDED_DATE_MISMATCH);
+        LOG.debug("Date mismatch: [{} vs {}].", parsedYmdTa, parsedDateTa);
+      }
+
+      // choose the one with better resolution
+      Optional<TemporalAccessor> bestResolution = TemporalAccessorUtils.bestResolution(parsedYmdTa, parsedDateTa);
+      if (bestResolution.isPresent()) {
+        parsedTemporalAccessor = bestResolution.get();
+        // if one of the two results is null we can not set the confidence to DEFINITE
+        confidence = (parsedYmdTa == null || parsedDateTa == null) ? PROBABLE : DEFINITE;
+      } else {
         return OccurrenceParseResult.fail(issues);
       }
-    }
-    else{
-      // prioritized parsedDateResult because it can hold higher resolution date
-      parsedTemporalAccessor = parsedDateResult.getPayload() != null ? parsedDateResult.getPayload() :
-              parsedYMDResult.getPayload();
-      confidence = parsedDateResult.getPayload() != null ? parsedDateResult.getConfidence() :
-              parsedYMDResult.getConfidence();
+    } else {
+      // they match, or we only have one anyway, choose the one with better resolution.
+      parsedTemporalAccessor = TemporalAccessorUtils.bestResolution(parsedYmdTa, parsedDateTa).orElse(null);
+      confidence = parsedDateTa != null ? parsedDateResult.getConfidence() : parsedYMDResult.getConfidence();
     }
 
     if(!isValidDate(parsedTemporalAccessor, true)){
@@ -250,7 +262,7 @@ public class TemporalInterpreter {
       OccurrenceParseResult<TemporalAccessor> result = new OccurrenceParseResult(TEXTDATE_PARSER.parse(dateString));
       // check year makes sense
       if (result.isSuccessful()) {
-        if (!isValidDate(result.getPayload(), true, likelyRange)) {
+        if(!isValidDate(result.getPayload(), true, likelyRange)) {
           LOG.debug("Unlikely date parsed, ignore [{}].", dateString);
           result.addIssue(unlikelyIssue);
         }

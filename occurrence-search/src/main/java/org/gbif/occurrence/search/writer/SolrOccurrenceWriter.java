@@ -15,7 +15,6 @@ import com.google.common.collect.Sets;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 
 import static org.gbif.common.search.solr.QueryUtils.toDateQueryFormat;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.BASIS_OF_RECORD;
@@ -69,6 +68,8 @@ import static org.gbif.occurrence.search.solr.OccurrenceSolrField.EVENT_ID;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.PARENT_EVENT_ID;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.SAMPLING_PROTOCOL;
 import static org.gbif.occurrence.search.solr.OccurrenceSolrField.INSTALLATION_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.ACCEPTED_TAXON_KEY;
+import static org.gbif.occurrence.search.solr.OccurrenceSolrField.TAXONOMIC_STATUS;
 
 
 
@@ -169,6 +170,8 @@ public class SolrOccurrenceWriter {
     doc.setField(DATASET_KEY.getFieldName(), occurrence.getDatasetKey().toString());
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     doc.setField(TAXON_KEY.getFieldName(), taxonKey.isEmpty()? null : taxonKey);
+    doc.setField(ACCEPTED_TAXON_KEY.getFieldName(), occurrence.getAcceptedTaxonKey());
+    doc.setField(TAXONOMIC_STATUS.getFieldName(), occurrence.getTaxonomicStatus());
 
     doc.setField(KINGDOM_KEY.getFieldName(), occurrence.getKingdomKey());
     doc.setField(PHYLUM_KEY.getFieldName(), occurrence.getPhylumKey());

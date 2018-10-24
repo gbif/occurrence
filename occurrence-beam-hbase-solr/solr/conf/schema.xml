@@ -47,7 +47,6 @@
     <fieldType name="double" class="solr.TrieDoubleField"
                precisionStep="0" omitNorms="true" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="coordinate" class="solr.SpatialRecursivePrefixTreeFieldType" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
-    <fieldType name="coordinate2" class="solr.RptWithGeometrySpatialField" geo="true"  spatialContextFactory="com.spatial4j.core.context.jts.JtsSpatialContextFactory" distanceUnits="kilometers" autoIndex="true" sortMissingLast="true" datelineRule="ccwRect" normWrapLongitude="true"/>
     <fieldType name="date" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" sortMissingLast="true"/>
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -88,6 +87,7 @@
     <field name="key" type="int" indexed="true" stored="true" required="true" docValues="true"/>
     <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="taxon_key" type="int" indexed="true" stored="false" multiValued="true" docValues="true"/>
+    <field name="accepted_taxon_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="kingdom_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="phylum_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="class_key" type="int" indexed="true" stored="false" docValues="true"/>
@@ -96,6 +96,7 @@
     <field name="genus_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="subgenus_key" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="species_key" type="int" indexed="true" stored="false" docValues="true"/>
+    <field name="taxonomic_status" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="basis_of_record" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="year" type="int" indexed="true" stored="false" docValues="true"/>
     <field name="month" type="int" indexed="true" stored="false" docValues="true"/>
@@ -133,9 +134,6 @@
     <field name="repatriated" type="boolean" indexed="true" stored="false" />
     <field name="full_text" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <field name="_version_" type="long" indexed="true" stored="true"/>
-
-    <!-- indexed differently -->
-    <copyField source="coordinate" dest="coordinate2" />
   </fields>
   <!-- Field to use to determine and enforce document uniqueness. Unless this
     field is marked with required="false", it will be a required field -->
