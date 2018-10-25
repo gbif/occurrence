@@ -7,14 +7,10 @@
 USE ${r"${hiveDB}"};
 
 -- setup for our custom, combinable deflated compression
--- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
-SET hive.merge.mapfiles=false;
-SET hive.merge.mapredfiles=false;
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${speciesListTable}"};
@@ -31,6 +27,9 @@ WHERE ${r"${whereClause}"};
 
 
 -- Creates the species tables, the use of COALESCE is to code defensively against possible null values
+-- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
+SET hive.merge.mapfiles=false;
+SET hive.merge.mapredfiles=false;
 CREATE TABLE ${r"${speciesListTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT taxonkey, scientificname, COUNT(taxonkey) AS no_of_occurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey,
@@ -38,6 +37,9 @@ AS SELECT taxonkey, scientificname, COUNT(taxonkey) AS no_of_occurrences, taxonr
 FROM ${r"${speciesListTable}"}_tmp
 GROUP BY taxonkey, scientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey,phylum, phylumkey, class, classkey,
          order_, orderkey, family, familykey, genus, genuskey, subgenus, subgenuskey, species, specieskey;
+
+-- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
+SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
