@@ -38,15 +38,16 @@
       <capture-output/>
     </java>
 
-    <ok to="persist_usages"/>
+    <ok to="persist_sql_meta"/>
     <error to="kill"/>
   </action>
 
-  <action name="persist_usages">
+  <action name="persist_sql_meta">
     <java>
-      <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <main-class>org.gbif.occurrence.download.file.sql.SqlDownloadMetaPersistence</main-class>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
       <capture-output/>
     </java>
 

@@ -22,6 +22,7 @@ import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
+import org.gbif.occurrence.download.file.common.DownloadCount;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -99,7 +100,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
     exportToFile(outputFileName, speciesListCollector);
     occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
     persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
-    SpeciesCount.persist(configuration.getDownloadKey(), speciesListCollector.getDistinctSpecies().size(), occurrenceDownloadService);
+    DownloadCount.persist(configuration.getDownloadKey(), speciesListCollector.getDistinctSpecies().size(), occurrenceDownloadService);
   }
 
   private void exportToFile(String outputFileName, SpeciesListCollector speciesListCollector) {

@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.file.specieslist;
+package org.gbif.occurrence.download.file.sql;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -13,10 +13,10 @@ import com.google.common.base.Preconditions;
 
 /**
  * 
- * Oozie action persists meta information of species list download to registry.
+ * Oozie action persists meta information of sql download to registry.
  *
  */
-public class SpeciesDownloadMetaPersistence {
+public class SqlDownloadMetaPersistence {
 
   public static void main(String[] args) throws IOException {
     String countPath = Preconditions.checkNotNull(args[0]);
