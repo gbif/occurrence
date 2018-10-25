@@ -12,7 +12,6 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
@@ -38,6 +37,10 @@ WHERE ${r"${whereClause}"};
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
+
+-- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
+SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
+
 CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license
 FROM ${r"${occurrenceTable}"}
