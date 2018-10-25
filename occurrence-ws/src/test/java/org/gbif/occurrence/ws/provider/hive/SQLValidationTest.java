@@ -25,6 +25,7 @@ public class SQLValidationTest {
       {"SELECT gbifid, datasetkey, license from occurrence", true, false, 0}, 
       {"SELECT * from occurrence", true, false, 0},
       {"SELECT * from occurrence where countrycode='US'", true, false, 0},
+      {"SELECT * FROM `OCCURRENCE` WHERE `month`=3 AND `year` = 2018", true, false, 0},
       {"SELECT COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true, false, 0},
       {"SELECT COUNT(datasetkey), countrycode ,datasetkey, license FROM occurrence GROUP BY countrycode, license, datasetkey HAVING count(datasetkey) > 5", true, false, 0},
       {"SELECT col  FROM (  SELECT a+b AS col  FROM t1) t2", false, true, 5},

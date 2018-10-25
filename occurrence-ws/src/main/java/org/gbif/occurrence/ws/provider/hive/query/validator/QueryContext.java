@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.calcite.avatica.util.Quoting;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlSelect;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.parser.SqlParser.Config;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.gbif.common.shaded.com.google.common.base.Preconditions;
 import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
@@ -31,7 +33,8 @@ public class QueryContext {
   private QueryContext(String sql) {
     this.sql = sql;
     try {
-      this.selectQueryObject = (SqlSelect) SqlParser.create(sql).parseQuery();
+      Config config = SqlParser.configBuilder().setCaseSensitive(false).setQuoting(Quoting.BACK_TICK).build();
+      this.selectQueryObject = (SqlSelect) SqlParser.create(sql, config).parseQuery();
     } catch (Exception e) {
       parseIssue = Issue.PARSE_FAILED.withComment(e.getMessage());
     }
