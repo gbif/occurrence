@@ -11,6 +11,9 @@ SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
+SET hive.merge.mapfiles=false;
+SET hive.merge.mapredfiles=false;
+
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
@@ -27,6 +30,9 @@ AS ${r"${sql}"};
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
+SET mapred.reduce.tasks=1;
+SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
+
 CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${r"${occurrenceTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
