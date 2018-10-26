@@ -210,7 +210,7 @@ public class TermUtils {
                                                                                   DwcTerm.associatedMedia)));
 
   /**
-   * Term list of the extension exluding the coreid just as defined by:
+   * Term list of the extension excluding the coreid just as defined by:
    * http://rs.gbif.org/extension/gbif/1.0/multimedia.xml
    */
   private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(DcTerm.type,

@@ -115,6 +115,10 @@ public class TemporalInterpreterTest {
     TemporalInterpreter.interpretTemporal(v, o);
     assertEquals(0, o.getIssues().size());
 
+    v.setVerbatimField(DwcTerm.dateIdentified, "1997");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+
     Calendar cal = Calendar.getInstance();
     v.setVerbatimField(DwcTerm.dateIdentified, (cal.get(Calendar.YEAR)+1) + "-01-11");
     TemporalInterpreter.interpretTemporal(v, o);
