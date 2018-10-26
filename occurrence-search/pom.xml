@@ -42,6 +42,25 @@
 
     <plugins>
       <plugin>
+        <artifactId>maven-remote-resources-plugin</artifactId>
+        <version>${maven-remote-resources-plugin.version}</version>
+        <configuration>
+          <resourceBundles>
+            <resourceBundle>org.gbif.occurrence:occurrence-solr:${project.version}</resourceBundle>
+          </resourceBundles>
+          <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+          <excludeArtifactIds>solr.xml,core.properties,solrconfig.xml</excludeArtifactIds>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
