@@ -84,7 +84,6 @@ public class OccurrenceProcessorIT {
   private static final String BOGART_DATASET_KEY = "85697f04-f762-11e1-a439-00145eb45e9a";
   private static final String PONTAURUS_DATASET_KEY = "8575f23e-f762-11e1-a439-00145eb45e9a";
 
-
   @BeforeClass
   public static void preClass() throws IOException {
     abcd206Single = Resources.toString(Resources.getResource("abcd206_single.xml"), Charsets.UTF_8);
@@ -122,7 +121,7 @@ public class OccurrenceProcessorIT {
       new OccurrenceInterpreter(new DatasetInfoInterpreter(cfg.newApiClient()),
       new TaxonomyInterpreter(cfg.newApiClient()),
       new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()))),
-        fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector
+        fragmentPersister, occurrenceService, messagePublisher, zookeeperConnector, cfg.newApiClient()
     );
     verbatimPersistedListener = new VerbatimPersistedListener(interpretedProcessor);
     messageListener.listen("verb_persisted_test_" + now, 1, verbatimPersistedListener);
@@ -136,7 +135,7 @@ public class OccurrenceProcessorIT {
   }
 
   @Test
-  public void testEndToEndDwca() throws IOException, InterruptedException, URISyntaxException {
+  public void testEndToEndDwca() throws IOException, InterruptedException {
     UUID datasetKey = UUID.fromString(PONTAURUS_DATASET_KEY);
     OccurrenceSchemaType xmlSchema = OccurrenceSchemaType.DWCA;
     Integer crawlId = 1;
@@ -205,7 +204,7 @@ public class OccurrenceProcessorIT {
     assertEquals("AlgaTerra", got.getVerbatimField(DwcTerm.collectionCode));
     assertEquals("5834", got.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals(datasetKey, got.getDatasetKey());
-    assertEquals("Tetraedron caudatum (Corda) Hansgirg, 1888", got.getScientificName());
+    assertEquals("Tetraëdron caudatum (Corda) Hansg.", got.getScientificName());
     assertEquals(52.123456, got.getDecimalLatitude().doubleValue(), 0.000001);
     assertEquals(13.123456, got.getDecimalLongitude().doubleValue(), 0.000001);
     assertEquals("WGS84", got.getGeodeticDatum());
@@ -232,6 +231,9 @@ public class OccurrenceProcessorIT {
     assertEquals(2, got.getMedia().size());
     assertEquals(new URI("http://www.tierstimmenarchiv.de/recordings/Ailuroedus_buccoides_V2010_04_short.mp3"),
       got.getMedia().get(0).getIdentifier());
+
+    // from default value set in machine tag
+    assertEquals("1", got.getVerbatimField(DwcTerm.individualCount));
   }
 
   @Test
