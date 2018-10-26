@@ -136,8 +136,7 @@
         <configuration>
           <excludes>
             <exclude>conf/</exclude>
-            <exclude>create-tables/config-default.xml</exclude>
-            <exclude>download/config-default.xml</exclude>
+            <exclude>**/config-default.xml</exclude>
             <exclude>hbase-site.xml</exclude>
           </excludes>
         </configuration>
