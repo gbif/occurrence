@@ -99,7 +99,7 @@ public class MultiMediaInterpreter {
         if (uri == null) {
           occ.getIssues().add(OccurrenceIssue.MULTIMEDIA_URI_INVALID);
         } else {
-          // only try to build the object if we don't already got it from the extension
+          // only try to build the object if we don't already have it from the extension
           if(!mediaUri.contains(uri)) {
             MediaObject m = new MediaObject();
             m.setIdentifier(uri);
