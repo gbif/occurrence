@@ -149,6 +149,7 @@ public class OccurrenceInterpreter implements Serializable {
 
       ParseResult<String> parsedName = TYPE_NAME_PARSER.parse(verbatim.getVerbatimField(DwcTerm.typeStatus));
       occ.setTypifiedName(parsedName.getPayload());
+      //TODO: flag value invalid issue (new API enum value to be created)
     }
     if (verbatim.hasVerbatimField(GbifTerm.typifiedName)) {
       occ.setTypifiedName(verbatim.getVerbatimField(GbifTerm.typifiedName));
@@ -191,6 +192,7 @@ public class OccurrenceInterpreter implements Serializable {
     if (parsed.isSuccessful()) {
       occ.setLifeStage(parsed.getPayload());
     } else {
+      //TODO: flag value invalid issue (new API enum value to be created)
       LOG.debug("Unknown lifeStage [{}]", verbatim.getVerbatimField(DwcTerm.lifeStage));
     }
   }
