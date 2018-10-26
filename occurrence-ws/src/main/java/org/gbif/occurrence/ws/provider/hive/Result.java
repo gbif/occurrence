@@ -3,6 +3,7 @@ package org.gbif.occurrence.ws.provider.hive;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -30,8 +31,8 @@ public class Result {
   }
 
   static class ReadDescribe implements Read {
-
-    private class DescribeResult {
+    
+    class DescribeResult {
       private String columnName;
       private String dataType;
       private String comment;
@@ -77,6 +78,7 @@ public class Result {
         return builder.toString();
       }
     }
+
 
     @Override
     public String apply(ResultSet resultset) {

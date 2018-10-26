@@ -53,6 +53,8 @@ public class SQLValidationTest {
     Assert.assertEquals(isResultOk, result.isOk());
     Assert.assertEquals(isCompilationError, result.explain().equals(COMPILATION_ERROR));
     Assert.assertEquals(numberOfIssues, result.issues().size());  
+    if (result.isOk())
+      System.out.println(result.sqlHeader());
   }
 
 }

@@ -39,12 +39,13 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? "*" : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
-    String sql = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : "*";
+    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    properties.setProperty(DownloadWorkflowParameters.SQL_STRING, sql);
+    if(request.getFormat().equals(DownloadFormat.SQL)) {
+      properties.setProperty(DownloadWorkflowParameters.SQL_HEADER,((SqlDownloadRequest)request).getSqlHeader());
+    }
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
     }

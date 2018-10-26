@@ -35,6 +35,7 @@
       <arg>${download_key}</arg>
       <arg>PRE_DEFLATED</arg>
       <arg>${download_format}</arg>
+      <arg>${sql_header}</arg>
       <capture-output/>
     </java>
 
@@ -44,7 +45,7 @@
 
   <action name="persist_sql_meta">
     <java>
-      <main-class>org.gbif.occurrence.download.file.sql.SqlDownloadMetaPersistence</main-class>
+      <main-class>org.gbif.occurrence.download.file.common.DownloadMetaPersistence</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>

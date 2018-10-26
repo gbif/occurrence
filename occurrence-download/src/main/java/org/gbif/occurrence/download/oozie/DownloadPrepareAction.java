@@ -67,8 +67,6 @@ public class DownloadPrepareAction {
   private static final String HIVE_QUERY = "hive_query";
 
   private static final String DOWNLOAD_KEY = "download_key";
-  
-  private static final String SQL = "sql";
 
 
   //'-' is not allowed in a Hive table name.
@@ -90,7 +88,7 @@ public class DownloadPrepareAction {
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The solr query argument hasn't been specified");
     DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
-    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2], args[3]);
+    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
   }
 
   /**
@@ -136,7 +134,7 @@ public class DownloadPrepareAction {
    *
    * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
-  public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat, String sql)
+  public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat)
       throws IOException, QueryBuildingException {
 
     Properties props = new Properties();
@@ -148,7 +146,7 @@ public class DownloadPrepareAction {
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
       if (DownloadFormat.valueOf(downloadFormat.trim()) == DownloadFormat.SQL) {
-        props.setProperty(SQL, sql);
+        props.setProperty(HIVE_QUERY, rawPredicate); //is sql
       } else {
         Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
         String solrQuery = new SolrQueryVisitor().getQuery(predicate);

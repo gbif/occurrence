@@ -1,11 +1,9 @@
-package org.gbif.occurrence.download.file.sql;
+package org.gbif.occurrence.download.file.common;
 
 import java.io.IOException;
 import java.util.Properties;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
-import org.gbif.occurrence.download.file.common.DownloadCount;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -13,10 +11,10 @@ import com.google.common.base.Preconditions;
 
 /**
  * 
- * Oozie action persists meta information of sql download to registry.
+ * Oozie action persists meta information of download to registry. It currently support species list and sql download.
  *
  */
-public class SqlDownloadMetaPersistence {
+public class DownloadMetaPersistence {
 
   public static void main(String[] args) throws IOException {
     String countPath = Preconditions.checkNotNull(args[0]);
