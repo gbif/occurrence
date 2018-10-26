@@ -98,7 +98,7 @@ public class DwcaArchiveBuilder {
     "\nThe dataset includes records from the following constituent datasets. "
     + "The full metadata for each constituent is also included in this archive:\n";
   private static final String CITATION_HEADER =
-    "When using this dataset please use the following citation and pay attention to the rights documented in the rights.txt:";
+    "When using this dataset please use the following citation and pay attention to the rights documented in rights.txt:\n";
   private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
   private static final String RIGHTS =
     "The data included in this download are provided to the user under a %s license (%s), please read the license terms and conditions to understand the implications of its usage and sharing.\nData from some individual datasets included in this download may be licensed under less restrictive terms; review the details below.";
@@ -163,16 +163,10 @@ public class DwcaArchiveBuilder {
     // citation
     String citationLink = null;
     if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
-      citationWriter.write('\n' + dataset.getCitation().getText());
-      if (!Strings.isNullOrEmpty(dataset.getCitation().getIdentifier())) {
-        citationLink = ", " + dataset.getCitation().getIdentifier();
-        citationWriter.write(citationLink);
-      }
+      citationWriter.write(dataset.getCitation().getText());
+      citationWriter.write('\n');
     } else {
       LOG.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
-    }
-    if (dataset.getDoi() != null) {
-      citationWriter.write(" " + dataset.getDoi());
     }
     return citationLink;
   }
