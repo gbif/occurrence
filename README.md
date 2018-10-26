@@ -17,3 +17,22 @@ Run unit and integration tests:
 ```bash
 mvn -Pdev clean verify
 ```
+
+## Other documentation in this project
+
+* [Occurrence persistence](occurrence-persistence/README.md)
+* [Occurrence deleter](occurrence-deleter/README.md)
+* [Occurrence WS](occurrence-ws/README.md)
+* [Occurrence CLI](occurrence-cli/README.md)
+* [Occurrence CLI – Previous Crawl Manager](occurrence-cli/doc/PreviousCrawlManager.md)
+* [Occurrence download](occurrence-download/README.md)
+* [Occurrence parser](occurrence-parser/README.md)
+* [Occurrence common](occurrence-common/README.md)
+* [Occurrence registry sync](occurrence-registry-sync/README.md)
+* [Occurrence Hive](occurrence-hive/README.md)
+* [Occurrence search](occurrence-search/README.md)
+* [Occurrence processor](occurrence-processor/README.md)
+* [Occurrence processor](occurrence-processor/doc/DefaultValues.md)
+* [Occurrence index builder workflow](occurrence-index-builder-workflow/README.md)
+* [Occurrence index builder workflow](occurrence-index-builder-workflow/bin/solr/README.md)
+* [Occurrence Beam HBase SOLR](occurrence-beam-hbase-solr/README.md)
