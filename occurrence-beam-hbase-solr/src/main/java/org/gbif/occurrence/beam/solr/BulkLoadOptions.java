@@ -28,7 +28,7 @@ public interface BulkLoadOptions extends PipelineOptions {
   @Description("Batch size of documents to be sent to Solr")
   @Default.Integer(10000)
   int getBatchSize();
-  void setBatchSize(String batchSize);
+  void setBatchSize(int batchSize);
 
   @Description("Maximum number of retries when writing to Solr")
   @Default.Integer(10000)
