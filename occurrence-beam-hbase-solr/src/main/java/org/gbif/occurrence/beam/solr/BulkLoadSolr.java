@@ -44,11 +44,12 @@ public class BulkLoadSolr {
 
     int keyDivisor = options.getKeyDivisor();
     int keyReminder = options.getKeyRemainder();
+    String table =  options.getTable();
 
     PCollection<Result> rows =
         p.apply(
             "read",
-            HBaseIO.read().withConfiguration(hbaseConfig).withScan(scan).withTableId(options.getTable()));
+            HBaseIO.read().withConfiguration(hbaseConfig).withScan(scan).withTableId(table));
 
     PCollection<SolrInputDocument> docs =
         rows.apply(
