@@ -9,7 +9,18 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
+  <name>Occurrence Solr</name>
+  <description>Occurrence Solr Shared configuration and resources</description>
   <artifactId>occurrence-solr</artifactId>
+
+  <packaging>jar</packaging>
+
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+    </site>
+  </distributionManagement>
 
   <build>
     <plugins>
