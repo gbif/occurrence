@@ -111,7 +111,7 @@ public class HiveSQL {
         return explain;
       }
       
-      public String transsql() {
+      public String transSql() {
         return transSql;
       }
       
