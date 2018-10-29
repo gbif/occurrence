@@ -42,10 +42,14 @@ public class BulkLoadSolr {
     scan.setBatch(options.getBatchSize()); // for safety
     scan.addFamily("o".getBytes());
 
+    int keyDivisor = options.getKeyDivisor();
+    int keyReminder = options.getKeyRemainder();
+    String table =  options.getTable();
+
     PCollection<Result> rows =
         p.apply(
             "read",
-            HBaseIO.read().withConfiguration(hbaseConfig).withScan(scan).withTableId(options.getTable()));
+            HBaseIO.read().withConfiguration(hbaseConfig).withScan(scan).withTableId(table));
 
     PCollection<SolrInputDocument> docs =
         rows.apply(
@@ -58,7 +62,7 @@ public class BulkLoadSolr {
                     Result row = c.element();
                     try {
                       Occurrence occurrence = OccurrenceBuilder.buildOccurrence(row);
-                      if (occurrence.getKey() % options.getKeyDivisor() == options.getKeyRemainder()) {
+                      if (occurrence.getKey() % keyDivisor == keyReminder) {
                         SolrInputDocument document = SolrOccurrenceWriter.buildOccSolrDocument(occurrence);
                         c.output(document);
                         docsIndexed.inc();
