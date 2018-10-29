@@ -42,6 +42,25 @@
 
     <plugins>
       <plugin>
+        <artifactId>maven-remote-resources-plugin</artifactId>
+        <version>${maven-remote-resources-plugin.version}</version>
+        <configuration>
+          <resourceBundles>
+            <resourceBundle>org.gbif.occurrence:occurrence-solr:${project.version}</resourceBundle>
+          </resourceBundles>
+          <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+          <excludeArtifactIds>solr.xml,core.properties,solrconfig.xml</excludeArtifactIds>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
@@ -89,6 +108,12 @@
           <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-solr</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
