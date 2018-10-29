@@ -10,13 +10,13 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
 @FunctionalInterface
 public interface Rule {
 
-  public RuleContext apply(QueryContext value);
+  RuleContext apply(QueryContext value);
 
-  public static RuleContext violated(Issue issue) {
+  static RuleContext violated(Issue issue) {
     return new RuleContext(true, issue);
   }
 
-  public static RuleContext preserved() {
+  static RuleContext preserved() {
     return new RuleContext(false, Issue.NO_ISSUE);
   }
 

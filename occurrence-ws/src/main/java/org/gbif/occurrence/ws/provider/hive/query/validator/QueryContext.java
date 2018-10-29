@@ -51,7 +51,7 @@ public class QueryContext {
         .map(list -> list.getList().stream().map(SqlNode::toString).collect(Collectors.toList()));
     this.having = Optional.ofNullable(selectQueryObject.getHaving()).map(SqlNode::toString);
     this.transsql = selectQueryObject.toSqlString(SqlDialect.DatabaseProduct.HIVE.getDialect()).getSql();
-  }
+}
 
   public static QueryContext from(String sql) {
     Objects.requireNonNull(sql);
