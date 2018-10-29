@@ -18,7 +18,9 @@ public class DatasetKeyAndLicenseRequiredRule implements Rule {
 
     Predicate<List<String>> condition1 = x -> (x.size() == 1 && x.get(0).equals("*"));
     Predicate<List<String>> condition2 = y -> y.containsAll(Arrays.asList("DATASETKEY", "LICENSE"));
-    return condition1.or(condition2).test(value.selectFieldNames()) ? Rule.preserved() : Rule.violated(Issue.DATASET_AND_LICENSE_REQUIRED);
+    Predicate<List<String>> condition3 = y -> y.containsAll(Arrays.asList("datasetkey", "license"));
+    
+    return condition1.or(condition2).or(condition3).test(value.selectFieldNames()) ? Rule.preserved() : Rule.violated(Issue.DATASET_AND_LICENSE_REQUIRED);
   }
 
 }

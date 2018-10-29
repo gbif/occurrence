@@ -50,6 +50,10 @@
           <stopKey>stop</stopKey>
           <stopPort>15327</stopPort>
           <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webAppConfig>
+      		<contextPath>/</contextPath>
+      		<webInfIncludeJarPattern>.*/classes/.*</webInfIncludeJarPattern>
+    	  </webAppConfig>
         </configuration>
       </plugin>
       <plugin>
@@ -300,10 +304,6 @@
     <dependency>
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
-    </dependency>
-	<dependency>
-        <groupId>com.zaxxer</groupId>
-        <artifactId>HikariCP</artifactId>
     </dependency>
     <dependency>
       <!-- dependency:analyze reports a false positive here -->

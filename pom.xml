@@ -120,7 +120,6 @@
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
-	<hikaricp.version>2.4.7</hikaricp.version>
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
@@ -668,11 +667,6 @@
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${findbugs-jsr305.version}</version>
-      </dependency>
-	  <dependency>
-        <groupId>com.zaxxer</groupId>
-        <artifactId>HikariCP</artifactId>
-        <version>${hikaricp.version}</version>
       </dependency>
       <!-- hbase -->
       <dependency>

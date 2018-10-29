@@ -16,8 +16,8 @@ public class Query {
     DATASET_AND_LICENSE_REQUIRED("SQL should select on 'datasetkey' and 'license' fields as they are required for citations"), 
     CANNOT_EXECUTE("Query cannot be executed because of "), 
     TABLE_NAME_NOT_OCCURRENCE("Query should have table name as occurrence"), 
-    PARSE_FAILED(String.format("Cannot parse the query, Provided query should follow the format %n %s", FORMAT));
-
+    PARSE_FAILED(String.format("Cannot parse the query, Make sure all the identifiers are used withing \"`\" and Provided query should follow the format %n %s", FORMAT)),
+    CANNOT_USE_ALLFIELDS("* for select fields not allowed, please explicitly add the desired fields, refer the fields from sql/describe endpoint");
 
     private Issue(String description) {
       this.description = description;

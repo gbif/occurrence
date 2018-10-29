@@ -22,12 +22,12 @@ public class SQLValidationTest {
   @Parameters
   public static Collection<Object[]> inputs() {
     return Arrays.asList( new Object[][] {
-      {"SELECT gbifid, datasetkey, license from occurrence", true, false, 0}, 
-      {"SELECT * from occurrence", true, false, 0},
-      {"SELECT * from occurrence where countrycode='US'", true, false, 0},
-      {"SELECT * FROM `OCCURRENCE` WHERE `month`=3 AND `year` = 2018", true, false, 0},
-      {"SELECT COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true, false, 0},
-      {"SELECT COUNT(datasetkey), countrycode ,datasetkey, license FROM occurrence GROUP BY countrycode, license, datasetkey HAVING count(datasetkey) > 5", true, false, 0},
+      {"SELECT `gbifid`, `datasetkey`, `license` from occurrence", true, false, 0}, 
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from occurrence", true, false, 0},
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from `occurrence` where `countrycode`='US'", true, false, 0},
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license`, `month`, `year` FROM `occurrence` WHERE `month`=3 AND `year` = 2018", true, false, 0},
+      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey` ,`license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey`", true, false, 0},
+      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", true, false, 0},
       {"SELECT col  FROM (  SELECT a+b AS col  FROM t1) t2", false, true, 5},
       {"SELECT a.* FROM a JOIN b ON (a.id = b.id)", false, true, 4},
       {"SELECT key FROM (SELECT key FROM src ORDER BY key LIMIT 10) UNION SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)", false, true ,1}
