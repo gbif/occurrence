@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.service.workflow;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.exception.ServiceUnavailableException;
@@ -36,7 +37,7 @@ public class DownloadWorkflowParametersBuilder {
   /**
    * Use the request.format to build the workflow parameters.
    */
-  public Properties buildWorkflowParameters(DownloadRequest request) {
+  public Properties buildWorkflowParameters(DownloadRequest request, Optional<String> sqlHeader) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
     String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
@@ -44,7 +45,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
     if(request.getFormat().equals(DownloadFormat.SQL)) {
-      properties.setProperty(DownloadWorkflowParameters.SQL_HEADER,((SqlDownloadRequest)request).getSqlHeader());
+      sqlHeader.ifPresent( header -> properties.setProperty(DownloadWorkflowParameters.SQL_HEADER, header));
     }
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));

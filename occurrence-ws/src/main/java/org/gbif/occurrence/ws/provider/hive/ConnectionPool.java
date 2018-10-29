@@ -16,6 +16,8 @@ import org.apache.nifi.mock.MockControllerServiceInitializationContext;
 import org.apache.nifi.reporting.InitializationException;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.app.ConfUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -30,6 +32,7 @@ public class ConnectionPool{
   private static final String APP_CONF_FILE = "occurrence.properties";
   private static final String JDBC_POOL_SIZE = "occurrence.hive.jdbc.poolsize";
   private static final String JDBC_WAIT_TIME = "occurrence.hive.jdbc.maxWaitTime";
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectionPool.class);
   
   private ConnectionPool() {}
   
@@ -42,8 +45,10 @@ public class ConnectionPool{
    * @throws InitializationException error initializing connection pool.
    */
   public static synchronized HiveConnectionPool nifiPoolFromDefaultProperties() throws IOException, InitializationException {
-    if (cp != null)
+    if (cp != null) {
+      LOG.info("Cached connection pool for Hive JDBC connections, {}", cp);
       return cp;
+    }
     
     cp =  new HiveConnectionPool();
     Properties jdbcProperties = PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE));
@@ -63,6 +68,7 @@ public class ConnectionPool{
     NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username).withPassword(password).withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime);
     cp.initialize(new MockControllerServiceInitializationContext());
     cp.onConfigured(context);
+    LOG.info("Creating connection pool for Hive JDBC connections, using jdbc properties {}, {}",jdbcProperties, cp);
     return cp;
   }
   /**

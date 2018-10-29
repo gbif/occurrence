@@ -135,13 +135,6 @@ public class DownloadResource {
 
     // assert authenticated user is the same as in download
     assertLoginMatches(request, security);
-
-    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(request.getSql());
-    if (!result.isOk()) {
-      throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
-    }
-    request.setSql(result.transsql());
-    request.setSqlHeader(result.sqlHeader());
     String downloadKey = requestService.create(request);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;

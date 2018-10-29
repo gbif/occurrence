@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
+import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.apache.oozie.client.Job;
@@ -34,10 +35,12 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
+import org.gbif.occurrence.ws.provider.hive.HiveSQL;
 import org.gbif.ws.response.GbifResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +149,19 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
         throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
       }
-      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
+      String jobId;
+      if(request.getFormat().equals(DownloadFormat.SQL)) {
+        SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
+        HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
+        if (!result.isOk()) {
+          throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
+        }
+        sqlRequest.setSql(result.transsql());
+        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,java.util.Optional.of(result.sqlHeader())));
+      }
+      else {
+        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,java.util.Optional.empty()));
+      }
       LOG.debug("oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);

@@ -4,7 +4,7 @@
   TODO: document when we actually know something accurate to write here...
 -->
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
-USE ${r"${hiveDB}"};
+USE ${hiveDB};
 
 -- setup for our custom, combinable deflated compression
 SET hive.exec.compress.output=true;
@@ -19,13 +19,13 @@ CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF'
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
 -- in case this job is relaunched
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
+DROP TABLE IF EXISTS ${occurrenceTable};
+DROP TABLE IF EXISTS ${occurrenceTable}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
-CREATE TABLE ${r"${occurrenceTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${occurrenceTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
-AS ${r"${sql}"};
+AS ${sql};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
@@ -33,7 +33,7 @@ SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
-CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${r"${occurrenceTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
+CREATE TABLE ${occurrenceTable}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${occurrenceTable} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
-CREATE TABLE ${r"${occurrenceTable}"}_count AS SELECT count(*) FROM ${r"${occurrenceTable}"};
+CREATE TABLE ${occurrenceTable}_count AS SELECT count(*) FROM ${occurrenceTable};

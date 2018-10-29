@@ -16,6 +16,11 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.gbif.common.shaded.com.google.common.base.Preconditions;
 import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
 
+/**
+ * 
+ * Container class of SQL query based context information.
+ *
+ */
 public class QueryContext {
 
   private final String sql;
