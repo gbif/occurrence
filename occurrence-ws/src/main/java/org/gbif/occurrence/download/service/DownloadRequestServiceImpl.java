@@ -156,7 +156,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         if (!result.isOk()) {
           throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
         }
-        sqlRequest.setSql(result.transsql());
+        sqlRequest.setSql(result.transSql());
         jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,java.util.Optional.of(result.sqlHeader())));
       }
       else {

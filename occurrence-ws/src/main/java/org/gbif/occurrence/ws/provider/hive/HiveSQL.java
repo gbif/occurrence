@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.compress.utils.Lists;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -73,19 +72,23 @@ public class HiveSQL {
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
 
     private static final String TAB = "\t";
-    private static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),new OnlyPureSelectQueriesAllowedRule(), new OnlyOneSelectAllowedRule(), new DatasetKeyAndLicenseRequiredRule(), new TableNameShouldBeOccurrenceRule());
+    private static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),
+                                                             new OnlyPureSelectQueriesAllowedRule(),
+                                                             new OnlyOneSelectAllowedRule(),
+                                                             new DatasetKeyAndLicenseRequiredRule(),
+                                                             new TableNameShouldBeOccurrenceRule());
     
     public static class Result {
       private final String sql;
       private final List<Issue> issues;
       private final boolean ok;
       private final String explain;
-      private final String transsql;
+      private final String transSql;
       private final String sqlHeader;
       
-      Result(String sql, String transsql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
+      Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
         this.sql = sql;
-        this.transsql = transsql;
+        this.transSql = transSql;
         this.issues = issues;
         this.ok = ok;
         this.sqlHeader = sqlHeader;
@@ -108,8 +111,8 @@ public class HiveSQL {
         return explain;
       }
       
-      public String transsql() {
-        return transsql;
+      public String transSql() {
+        return transSql;
       }
       
       public String sqlHeader() {
@@ -137,14 +140,13 @@ public class HiveSQL {
       if (context.hasParseIssue())
         return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR,"", issues.isEmpty());
 
-      
+
       ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));
 
       // SQL should be executable.
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();
       executableRule.apply(context).onViolation(issues::add);
-      
-      String sqlHeader = context.selectFieldNames().stream().collect(Collectors.joining(TAB));
+      String sqlHeader = String.join(TAB, context.selectFieldNames());
       return new Result(context.sql(), context.translatedQuery(), issues, executableRule.explainValue(), sqlHeader, issues.isEmpty());
     }
 

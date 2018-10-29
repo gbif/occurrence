@@ -6,10 +6,7 @@ public class TableNameShouldBeOccurrenceRule implements Rule {
 
   @Override
   public RuleContext apply(QueryContext value) {
-    if (value.tableName().isPresent()) {
-      return value.tableName().get().equalsIgnoreCase("OCCURRENCE") ? Rule.preserved() : Rule.violated(Issue.TABLE_NAME_NOT_OCCURRENCE);
-    } else {
-      return Rule.violated(Issue.TABLE_NAME_NOT_OCCURRENCE.withComment(Issue.PARSE_FAILED.comment()));
-    }
+    return value.tableName().map(tableName -> tableName.equalsIgnoreCase("OCCURRENCE") ? Rule.preserved() : Rule.violated(Issue.TABLE_NAME_NOT_OCCURRENCE))
+      .orElse(Rule.violated(Issue.TABLE_NAME_NOT_OCCURRENCE.withComment(Issue.PARSE_FAILED.comment())));
   }
 }

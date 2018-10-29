@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * ConnectionPool for Hive JDBC connection.
  *
  */
-public class ConnectionPool{
+public class ConnectionPool {
 
   private static final String JDBC_URL = "occurrence.hive.jdbc.url";
   private static final String JDBC_USER = "occurrence.hive.jdbc.username";
@@ -52,20 +52,15 @@ public class ConnectionPool{
     
     cp =  new HiveConnectionPool();
     Properties jdbcProperties = PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE));
-    
-    Objects.requireNonNull(jdbcProperties.getProperty(JDBC_URL));
-    Objects.requireNonNull(jdbcProperties.getProperty(JDBC_USER));
-    Objects.requireNonNull(jdbcProperties.getProperty(JDBC_PASS));
-    Objects.requireNonNull(jdbcProperties.getProperty(JDBC_WAIT_TIME));
-    Objects.requireNonNull(Integer.parseInt(jdbcProperties.getProperty(JDBC_POOL_SIZE)));
-    
-    String jdbcURL = jdbcProperties.getProperty(JDBC_URL);
-    String username = jdbcProperties.getProperty(JDBC_USER);
-    String password = jdbcProperties.getProperty(JDBC_PASS);
-    String maxWaitTime = jdbcProperties.getProperty(JDBC_WAIT_TIME);
-    int poolSize = Integer.parseInt(jdbcProperties.getProperty(JDBC_POOL_SIZE));
-    
-    NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username).withPassword(password).withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime);
+
+    String jdbcURL = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_URL));
+    String username = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_USER));
+    String password = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_PASS));
+    String maxWaitTime = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_WAIT_TIME));
+    int poolSize = Integer.parseInt(Objects.requireNonNull(jdbcProperties.getProperty(JDBC_POOL_SIZE)));
+
+    NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username)
+      .withPassword(password).withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime);
     cp.initialize(new MockControllerServiceInitializationContext());
     cp.onConfigured(context);
     LOG.info("Creating connection pool for Hive JDBC connections, using jdbc properties {}, {}",jdbcProperties, cp);
@@ -77,6 +72,7 @@ public class ConnectionPool{
    *
    */
   private static class NifiConfigurationContext implements ConfigurationContext {
+
     private final Map<PropertyDescriptor,String> properties = new HashMap<>(); 
     
     private NifiConfigurationContext(){}

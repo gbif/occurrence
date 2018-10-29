@@ -19,7 +19,7 @@ public class Query {
     PARSE_FAILED(String.format("Cannot parse the query, Make sure all the identifiers are used withing \"`\" and Provided query should follow the format %n %s", FORMAT)),
     CANNOT_USE_ALLFIELDS("* for select fields not allowed, please explicitly add the desired fields, refer the fields from sql/describe endpoint");
 
-    private Issue(String description) {
+    Issue(String description) {
       this.description = description;
     }
 

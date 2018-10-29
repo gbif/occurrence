@@ -9,6 +9,7 @@ import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
  *
  */
 public class SQLShouldBeExecutableRule implements Rule {
+
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
   private String explain;
 
