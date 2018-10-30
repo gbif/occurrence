@@ -16,7 +16,6 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLo
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.ValidationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -38,7 +37,7 @@ import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.ws.provider.hive.HiveSQL;
+import org.gbif.occurrence.download.service.hive.HiveSQL;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

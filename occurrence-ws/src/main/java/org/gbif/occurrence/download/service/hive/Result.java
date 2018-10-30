@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive;
+package org.gbif.occurrence.download.service.hive;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

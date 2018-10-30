@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive.query.validator;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,7 +14,7 @@ import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.parser.SqlParser.Config;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.gbif.common.shaded.com.google.common.base.Preconditions;
-import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
 /**
  * 

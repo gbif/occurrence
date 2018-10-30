@@ -1,9 +1,3 @@
-<#--
-  This is a freemarker template which will generate an HQL script which is run at download time.
-  When run in Hive as a parameterized query, this will create a set of tables ...
-  TODO: document when we actually know something accurate to write here...
--->
-<#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${hiveDB};
 
 -- setup for our custom, combinable deflated compression

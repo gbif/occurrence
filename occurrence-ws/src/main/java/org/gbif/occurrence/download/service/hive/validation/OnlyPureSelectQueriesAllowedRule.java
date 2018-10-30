@@ -1,11 +1,11 @@
-package org.gbif.occurrence.ws.provider.hive.query.validator;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.calcite.sql.SqlKind;
-import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
 /**
  * 

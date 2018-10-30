@@ -1,8 +1,8 @@
-package org.gbif.occurrence.ws.provider.hive;
+package org.gbif.occurrence.download.service.hive;
 
 import java.util.Arrays;
 import java.util.Collection;
-import org.gbif.occurrence.ws.provider.hive.HiveSQL.Validate.Result;
+import org.gbif.occurrence.download.service.hive.HiveSQL.Validate.Result;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

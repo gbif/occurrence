@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive.query.validator;
+package org.gbif.occurrence.download.service.hive.validation;
 
 public class StarForFieldsNotAllowedRule implements Rule{
 

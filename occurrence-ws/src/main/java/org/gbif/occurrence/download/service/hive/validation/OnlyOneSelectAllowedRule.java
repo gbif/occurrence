@@ -1,8 +1,8 @@
-package org.gbif.occurrence.ws.provider.hive.query.validator;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
 /**
  * 
