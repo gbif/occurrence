@@ -161,8 +161,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         sqlRequest.setSql(result.transSql());
         jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,
           Collections.singletonMap(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader())));
-      }
-      else {
+      } else {
         jobId =  client.run(parametersBuilder.buildWorkflowParameters(request));
       }
       LOG.debug("oozie job id is: [{}]", jobId);

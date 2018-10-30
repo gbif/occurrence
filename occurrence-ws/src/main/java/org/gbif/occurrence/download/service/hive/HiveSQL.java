@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.commons.compress.utils.Lists;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.TextNode;
 import org.gbif.occurrence.download.service.hive.Result.Read;
 import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
 import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
@@ -117,18 +113,6 @@ public class HiveSQL {
       
       public String sqlHeader() {
         return sqlHeader;
-      }
-
-      @Override
-      public String toString() {
-        ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("sql", sql);
-        ArrayNode issuesNode = JsonNodeFactory.instance.arrayNode();
-        issues.forEach(issue -> issuesNode.add(issue.description().concat(issue.comment())));
-        node.put("issues", issuesNode);
-        node.put("explain", new TextNode(explain));
-        node.put("ok", isOk());
-        return node.toString();
       }
     }
 

@@ -14,6 +14,7 @@ package org.gbif.occurrence.ws.resources;
 
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import java.io.InputStream;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -61,7 +62,7 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
   
-  private String describeResponseCache = "";
+  private Response describeCachedResponse;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -114,7 +115,7 @@ public class DownloadResource {
   public Response validateSQL(@QueryParam("sql") String sqlquery) {
     LOG.debug("Received validation request for sql query [{}]",sqlquery);
     HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlquery);
-    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result.toString()).build();
+    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
   }
   
   @GET
@@ -122,14 +123,17 @@ public class DownloadResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response describeSQL() {
     LOG.debug("Received describe request for sql ");
-    if (describeResponseCache.isEmpty())  { describeResponseCache = new HiveSQL.Execute().describe("occurrence_hdfs"); }
-    return Response.ok().type(MediaType.APPLICATION_JSON).entity(describeResponseCache).build();
+    if (Objects.isNull(describeCachedResponse))  {
+      this.describeCachedResponse = Response.ok().type(MediaType.APPLICATION_JSON)
+                                      .entity(new HiveSQL.Execute().describe("occurrence_hdfs")).build();
+    }
+    return describeCachedResponse;
   }
   
   @POST
   @Validate
   @Path("sql")
-  public String startDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {
+  public String startSqlDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
 
     // assert authenticated user is the same as in download
