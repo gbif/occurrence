@@ -76,8 +76,10 @@ public class HiveSQL {
                                                              new OnlyOneSelectAllowedRule(),
                                                              new DatasetKeyAndLicenseRequiredRule(),
                                                              new TableNameShouldBeOccurrenceRule());
-    
-    
+
+    /**
+     * Result of a SQL Query Validation.
+     */
     public static class Result {
       private final String sql;
       private final List<Issue> issues;
@@ -85,7 +87,10 @@ public class HiveSQL {
       private final String explain;
       private final String transSql;
       private final String sqlHeader;
-      
+
+      /**
+       * Full constructor.
+       */
       public Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
         this.sql = sql;
         this.transSql = transSql;
@@ -99,14 +104,17 @@ public class HiveSQL {
       public String sql() {
         return sql;
       }
+
       @JsonProperty("issues")
       public List<Issue> issues() {
         return issues;
       }
+
       @JsonProperty("isOk")
       public boolean isOk() {
         return ok;
       }
+
       @JsonProperty("explain")
       public String explain() {
         return explain;

@@ -15,7 +15,9 @@ import org.junit.rules.ExpectedException;
  *
  */
 public class SQLDescribeAndExplainTest {
+
   private static final ObjectMapper mapper = new ObjectMapper();
+
   @Rule
   public ExpectedException expectedEx = ExpectedException.none();
   

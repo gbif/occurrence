@@ -115,9 +115,9 @@ public class DownloadResource {
   @GET
   @Path("sql/validate")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response validateSQL(@QueryParam("sql") String sqlquery) {
-    LOG.debug("Received validation request for sql query [{}]",sqlquery);
-    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlquery);
+  public Response validateSQL(@QueryParam("sql") String sqlQuery) {
+    LOG.debug("Received validation request for sql query [{}]",sqlQuery);
+    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlQuery);
     return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
   }
   

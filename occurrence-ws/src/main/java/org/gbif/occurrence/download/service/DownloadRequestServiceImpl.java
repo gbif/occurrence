@@ -24,14 +24,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
-import org.codehaus.jackson.map.DeserializationConfig.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -66,10 +65,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
 
-  public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
+  protected static final Set<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
-  private final ObjectMapper objectMapper = new ObjectMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
    */
@@ -151,27 +150,30 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
         throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
       }
-      String jobId;
-      if(request.getFormat().equals(DownloadFormat.SQL)) {
-        SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
-        HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
-        if (!result.isOk()) {
-          throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
-        }
-        sqlRequest.setSql(result.transSql());
-        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,
-          Collections.singletonMap(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader())));
-      } else {
-        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request));
-      }
-      LOG.debug("oozie job id is: [{}]", jobId);
+      String jobId = request.getFormat().equals(DownloadFormat.SQL)?
+                        runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
+      LOG.debug("Oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
       return downloadId;
     } catch (OozieClientException e) {
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
+  }
 
+
+  /**
+   * Executes the request as SQLDownload.
+   */
+  private String runSqlDownload(DownloadRequest request) throws OozieClientException {
+    SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
+    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
+    if (!result.isOk()) {
+      throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
+    }
+    sqlRequest.setSql(result.transSql());
+    return client.run(parametersBuilder.buildWorkflowParameters(request,
+      Collections.singletonMap(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader())));
   }
 
   @Override
@@ -214,8 +216,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   @Override
   public void processCallback(String jobId, String status) {
-    Preconditions.checkNotNull(Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
-    Preconditions.checkNotNull(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
+    Preconditions.checkArgument(Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
+    Preconditions.checkArgument(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
@@ -225,7 +227,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      LOG.info(String.format("Download [%s] not found [Oozie may be issuing callback before download persisted]", downloadId));
+      LOG.info("Download {} not found [Oozie may be issuing callback before download persisted]", downloadId);
       return;
     }
 

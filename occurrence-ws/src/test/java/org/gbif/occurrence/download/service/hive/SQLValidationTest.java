@@ -34,14 +34,13 @@ public class SQLValidationTest {
   });
   } 
   
-  private String query;
-  private boolean isResultOk;
-  private boolean isCompilationError;
-  private int numberOfIssues;
-  private String sqlHeader;
+  private final String query;
+  private final boolean isResultOk;
+  private final boolean isCompilationError;
+  private final int numberOfIssues;
+  private final String sqlHeader;
   
   public SQLValidationTest(String query, boolean isResultOk, boolean isCompilationError, int numberOfIssues, String sqlHeader) {
-    super();
     this.query = query;
     this.isResultOk = isResultOk;
     this.isCompilationError = isCompilationError;

@@ -52,14 +52,23 @@ public class Result {
       return results;
     }
   }
-  
+
+  /**
+   * Describe HDFS table response.
+   */
   public static class DescribeResult {
     private String columnName;
     private String dataType;
     private String comment;
 
+    /**
+     * Empty constructor, required for serialization.
+     */
     public DescribeResult() {}
 
+    /**
+     * Full constructor.
+     */
     public DescribeResult(String columnName, String dataType, String comment) {
       this.columnName = columnName;
       this.dataType = dataType;

@@ -18,11 +18,7 @@ public class HiveConnectionPoolTest {
   public void test1() throws ProcessException, InitializationException{
     try(Connection conn= ConnectionPool.fromDefaultProperties().getConnection()){
       System.out.println(conn.isReadOnly());
-    } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
-    } catch (SQLException e) {
-      System.err.println(e.getMessage());
-    } catch (IOException e) {
+    } catch (IllegalArgumentException | SQLException | IOException e) {
       System.err.println(e.getMessage());
     }
   }
