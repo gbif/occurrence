@@ -216,8 +216,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   @Override
   public void processCallback(String jobId, String status) {
-    Preconditions.checkArgument(Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
-    Preconditions.checkArgument(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
