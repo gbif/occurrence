@@ -119,12 +119,12 @@ public class HiveSQL {
       public String explain() {
         return explain;
       }
-      
+
       @JsonIgnore
       public String transSql() {
         return transSql;
       }
-      
+
       @JsonIgnore
       public String sqlHeader() {
         return sqlHeader;
