@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.commons.compress.utils.Lists;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.gbif.occurrence.download.service.hive.Result.DescribeResult;
 import org.gbif.occurrence.download.service.hive.Result.Read;
 import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
 import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
@@ -74,6 +77,7 @@ public class HiveSQL {
                                                              new DatasetKeyAndLicenseRequiredRule(),
                                                              new TableNameShouldBeOccurrenceRule());
     
+    
     public static class Result {
       private final String sql;
       private final List<Issue> issues;
@@ -82,7 +86,7 @@ public class HiveSQL {
       private final String transSql;
       private final String sqlHeader;
       
-      Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
+      public Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
         this.sql = sql;
         this.transSql = transSql;
         this.issues = issues;
@@ -90,27 +94,30 @@ public class HiveSQL {
         this.sqlHeader = sqlHeader;
         this.explain = queryExplanation;
       }
-
+      
+      @JsonProperty("sql")
       public String sql() {
         return sql;
       }
-
+      @JsonProperty("issues")
       public List<Issue> issues() {
         return issues;
       }
-
+      @JsonProperty("isOk")
       public boolean isOk() {
         return ok;
       }
-
+      @JsonProperty("explain")
       public String explain() {
         return explain;
       }
       
+      @JsonIgnore
       public String transSql() {
         return transSql;
       }
       
+      @JsonIgnore
       public String sqlHeader() {
         return sqlHeader;
       }

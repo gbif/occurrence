@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.service.hive;
 import java.io.IOException;
 import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.gbif.occurrence.download.service.hive.Result.DescribeResult;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

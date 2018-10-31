@@ -13,7 +13,6 @@
 package org.gbif.occurrence.ws.resources;
 
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
@@ -32,8 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -46,7 +43,6 @@ import org.gbif.occurrence.download.service.hive.HiveSQL;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -55,6 +51,8 @@ import com.google.inject.Singleton;
 @Consumes(MediaType.APPLICATION_JSON)
 @Singleton
 public class DownloadResource {
+
+  private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadResource.class);
 
@@ -129,12 +127,8 @@ public class DownloadResource {
   public Response describeSQL() {
     LOG.debug("Received describe request for sql ");
     if (Objects.isNull(describeCachedResponse)) {
-      try {
         this.describeCachedResponse = Response.ok().type(MediaType.APPLICATION_JSON)
-                                      .entity(mapper.writeValueAsString(HiveSQL.Execute.describe("occurrence_hdfs"))).build();
-      } catch (Exception e) {
-        Throwables.propagate(e);
-      }
+                                      .entity(HiveSQL.Execute.describe(OCCURRENCE_TABLE)).build();
     }
     return describeCachedResponse;
   }
