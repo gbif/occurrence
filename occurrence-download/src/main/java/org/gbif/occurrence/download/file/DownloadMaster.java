@@ -198,6 +198,10 @@ public class DownloadMaster extends UntypedActor {
    */
   private static class DownloadActorsFactory implements UntypedActorFactory {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final DownloadFormat downloadFormat;
 
     DownloadActorsFactory(DownloadFormat downloadFormat) {

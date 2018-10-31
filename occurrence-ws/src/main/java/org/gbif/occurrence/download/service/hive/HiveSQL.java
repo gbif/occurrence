@@ -70,8 +70,8 @@ public class HiveSQL {
    */
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
 
-    private static final String TAB = "\t";
-    private static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),
+    protected static final String TAB = "\t";
+    protected static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),
                                                              new OnlyPureSelectQueriesAllowedRule(),
                                                              new OnlyOneSelectAllowedRule(),
                                                              new DatasetKeyAndLicenseRequiredRule(),

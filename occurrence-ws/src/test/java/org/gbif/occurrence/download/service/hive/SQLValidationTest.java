@@ -1,8 +1,15 @@
 package org.gbif.occurrence.download.service.hive;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import org.apache.commons.compress.utils.Lists;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.gbif.occurrence.download.service.hive.HiveSQL.Validate.Result;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.QueryContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +25,25 @@ public class SQLValidationTest {
 
   private static final String COMPILATION_ERROR = "COMPILATION ERROR";
 
+  /**
+   * 
+   * Custom implementation to validate Rules on SQL query.
+   *
+   */
+  static class ValidateTest extends HiveSQL.Validate{
+    @Override
+    public HiveSQL.Validate.Result apply(String sql) {
+      List<Issue> issues = Lists.newArrayList();
+
+      QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
+      if (context.hasParseIssue())
+        return new Result(context.sql(), context.translatedQuery(), issues, COMPILATION_ERROR,"", issues.isEmpty());
+
+      ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));      
+      String sqlHeader = String.join(TAB, context.selectFieldNames());
+      return new Result(context.sql(), context.translatedQuery(), issues, "", sqlHeader, issues.isEmpty());
+    }
+  }
 
   @Parameters
   public static Collection<Object[]> inputs() {
@@ -28,8 +54,6 @@ public class SQLValidationTest {
       {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license`, `month`, `year` FROM `occurrence` WHERE `month`=3 AND `year` = 2018", true, false, 0, "gbifid,countrycode,datasetkey,license,month,year"},
       {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey` ,`license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey`", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
       {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
-      {"SELECT col  FROM (  SELECT a+b AS col  FROM t1) t2", false, true, 5, "COL"},
-      {"SELECT a.* FROM a JOIN b ON (a.id = b.id)", false, true, 4, "A.*"},
       {"SELECT key FROM (SELECT key FROM src ORDER BY key LIMIT 10) UNION SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)", false, true ,1, ""}
   });
   } 
@@ -48,10 +72,10 @@ public class SQLValidationTest {
     this.numberOfIssues = numberOfIssues;
     this.sqlHeader = sqlHeader;
   }
-
+  
   @Test
-  public void testValidInvalidQueries() {
-    Result result = new HiveSQL.Validate().apply(query);
+  public void testValidInvalidQueries() throws JsonGenerationException, JsonMappingException, IOException {
+    Result result = new ValidateTest().apply(query);
     Assert.assertEquals(isResultOk, result.isOk());
     Assert.assertEquals(isCompilationError, result.explain().equals(COMPILATION_ERROR));
     Assert.assertEquals(numberOfIssues, result.issues().size());  

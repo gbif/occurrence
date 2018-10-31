@@ -18,7 +18,7 @@ public class SQLShouldBeExecutableRule implements Rule {
   }
 
   private String explain(String sql) {
-    return new HiveSQL.Execute().explain(sql);
+    return HiveSQL.Execute.explain(sql);
   }
 
   @Override

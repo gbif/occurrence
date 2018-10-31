@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.reporting.InitializationException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -12,6 +13,7 @@ import org.junit.Test;
  * ConnectionPool test.
  *
  */
+@Ignore
 public class HiveConnectionPoolTest {
   
   @Test

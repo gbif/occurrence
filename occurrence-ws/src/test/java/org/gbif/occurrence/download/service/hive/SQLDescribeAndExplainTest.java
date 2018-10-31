@@ -5,6 +5,7 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.occurrence.download.service.hive.Result.DescribeResult;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,6 +15,7 @@ import org.junit.rules.ExpectedException;
  * Test for legal and illegal explain and describe SQL commands.
  *
  */
+@Ignore
 public class SQLDescribeAndExplainTest {
   private static final ObjectMapper mapper = new ObjectMapper();
   @Rule

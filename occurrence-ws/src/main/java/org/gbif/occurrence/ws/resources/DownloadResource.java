@@ -31,7 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;

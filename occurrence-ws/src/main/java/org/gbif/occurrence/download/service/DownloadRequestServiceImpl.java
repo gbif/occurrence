@@ -30,8 +30,6 @@ import javax.ws.rs.core.Response;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
-import org.codehaus.jackson.map.DeserializationConfig.Feature;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -69,7 +67,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
-  private final ObjectMapper objectMapper = new ObjectMapper().configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
    */
