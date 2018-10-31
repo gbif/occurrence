@@ -39,7 +39,7 @@ public class SQLValidationTest {
       if (context.hasParseIssue())
         return new Result(context.sql(), context.translatedQuery(), issues, COMPILATION_ERROR,"", issues.isEmpty());
 
-      ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));      
+      RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));      
       String sqlHeader = String.join(TAB, context.selectFieldNames());
       return new Result(context.sql(), context.translatedQuery(), issues, "", sqlHeader, issues.isEmpty());
     }
@@ -58,14 +58,13 @@ public class SQLValidationTest {
   });
   } 
   
-  private String query;
-  private boolean isResultOk;
-  private boolean isCompilationError;
-  private int numberOfIssues;
-  private String sqlHeader;
+  private final String query;
+  private final boolean isResultOk;
+  private final boolean isCompilationError;
+  private final int numberOfIssues;
+  private final String sqlHeader;
   
   public SQLValidationTest(String query, boolean isResultOk, boolean isCompilationError, int numberOfIssues, String sqlHeader) {
-    super();
     this.query = query;
     this.isResultOk = isResultOk;
     this.isCompilationError = isCompilationError;

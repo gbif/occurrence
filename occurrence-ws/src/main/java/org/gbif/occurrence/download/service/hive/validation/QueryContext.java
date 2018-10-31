@@ -31,7 +31,7 @@ public class QueryContext {
   private Optional<String> where;
   private Optional<List<String>> groupByFields;
   private Optional<String> having;
-  private String transsql;
+  private String transSql;
 
   private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
 
@@ -55,7 +55,7 @@ public class QueryContext {
     this.groupByFields = Optional.ofNullable(selectQueryObject.getGroup())
         .map(list -> list.getList().stream().map(SqlNode::toString).collect(Collectors.toList()));
     this.having = Optional.ofNullable(selectQueryObject.getHaving()).map(SqlNode::toString);
-    this.transsql = selectQueryObject.toSqlString(SqlDialect.DatabaseProduct.HIVE.getDialect()).getSql();
+    this.transSql = selectQueryObject.toSqlString(SqlDialect.DatabaseProduct.HIVE.getDialect()).getSql();
 }
 
   public static QueryContext from(String sql) {
@@ -93,7 +93,7 @@ public class QueryContext {
   }
 
   public String translatedQuery() {
-    return transsql;
+    return transSql;
   }
 
   public Optional<String> tableName() {

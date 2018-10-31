@@ -15,6 +15,7 @@ package org.gbif.occurrence.ws.resources;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -50,6 +51,9 @@ import com.google.inject.Singleton;
 @Consumes(MediaType.APPLICATION_JSON)
 @Singleton
 public class DownloadResource {
+
+  private static final String ZIP_EXT = ".zip";
+  private static final String AVRO_EXT = ".avro";
 
   private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
 
@@ -88,14 +92,12 @@ public class DownloadResource {
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
   public InputStream getResult(@PathParam("key") String downloadKey, @Context HttpServletResponse response) {
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
-    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ".avro");
-    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ".zip");
+    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
+    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
 
-    String extension = ".zip";
-    Download download = occurrenceDownloadService.get(downloadKey);
-    if (download != null) {
-      extension = (download.getRequest().getFormat() == DownloadFormat.SIMPLE_AVRO) ? ".avro" : ".zip";
-    }
+    String extension = Optional.ofNullable(occurrenceDownloadService.get(downloadKey))
+                        .map(download -> (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat())? AVRO_EXT : ZIP_EXT)
+                        .orElse(ZIP_EXT);
 
     LOG.debug("Get download data: [{}]", downloadKey);
     // suggest filename for download in http headers
@@ -114,9 +116,9 @@ public class DownloadResource {
   @GET
   @Path("sql/validate")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response validateSQL(@QueryParam("sql") String sqlquery) {
-    LOG.debug("Received validation request for sql query [{}]",sqlquery);
-    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlquery);
+  public Response validateSQL(@QueryParam("sql") String sqlQuery) {
+    LOG.debug("Received validation request for sql query [{}]",sqlQuery);
+    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlQuery);
     return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
   }
   

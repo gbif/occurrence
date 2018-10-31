@@ -69,15 +69,17 @@ public class HiveSQL {
    *
    */
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
-
+        
     protected static final String TAB = "\t";
-    protected static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),
-                                                             new OnlyPureSelectQueriesAllowedRule(),
-                                                             new OnlyOneSelectAllowedRule(),
-                                                             new DatasetKeyAndLicenseRequiredRule(),
-                                                             new TableNameShouldBeOccurrenceRule());
-    
-    
+    protected static final List<Rule> RULES = Arrays.asList(new StarForFieldsNotAllowedRule(),
+                                                          new OnlyPureSelectQueriesAllowedRule(),
+                                                          new OnlyOneSelectAllowedRule(),
+                                                          new DatasetKeyAndLicenseRequiredRule(),
+                                                          new TableNameShouldBeOccurrenceRule());
+
+    /**
+     * Result of a SQL Query Validation.
+     */
     public static class Result {
       private final String sql;
       private final List<Issue> issues;
@@ -85,7 +87,10 @@ public class HiveSQL {
       private final String explain;
       private final String transSql;
       private final String sqlHeader;
-      
+
+      /**
+       * Full constructor.
+       */
       public Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
         this.sql = sql;
         this.transSql = transSql;
@@ -131,11 +136,12 @@ public class HiveSQL {
       List<Issue> issues = Lists.newArrayList();
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
-      if (context.hasParseIssue())
+      if (context.hasParseIssue()) {
         return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR,"", issues.isEmpty());
+      }
 
 
-      ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));
+      RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));
 
       // SQL should be executable.
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();
