@@ -58,7 +58,7 @@ public class DownloadResource {
 
   // low quality of source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
-  private static final ObjectMapper mapper = new ObjectMapper();
+  
   private final DownloadRequestService requestService;
 
   private final OccurrenceDownloadService occurrenceDownloadService;

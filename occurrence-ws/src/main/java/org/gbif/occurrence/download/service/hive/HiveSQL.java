@@ -99,24 +99,27 @@ public class HiveSQL {
       public String sql() {
         return sql;
       }
+
       @JsonProperty("issues")
       public List<Issue> issues() {
         return issues;
       }
+
       @JsonProperty("isOk")
       public boolean isOk() {
         return ok;
       }
+
       @JsonProperty("explain")
       public String explain() {
         return explain;
       }
-      
+
       @JsonIgnore
       public String transSql() {
         return transSql;
       }
-      
+
       @JsonIgnore
       public String sqlHeader() {
         return sqlHeader;
