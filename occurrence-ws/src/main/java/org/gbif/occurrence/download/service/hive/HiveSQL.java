@@ -71,7 +71,7 @@ public class HiveSQL {
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
 
     private static final String TAB = "\t";
-    private static final List<Rule> ruleBase = Arrays.asList(new StarForFieldsNotAllowedRule(),
+    private static final List<Rule> RULES = Arrays.asList(new StarForFieldsNotAllowedRule(),
                                                              new OnlyPureSelectQueriesAllowedRule(),
                                                              new OnlyOneSelectAllowedRule(),
                                                              new DatasetKeyAndLicenseRequiredRule(),
@@ -140,7 +140,7 @@ public class HiveSQL {
         return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR,"", issues.isEmpty());
 
 
-      ruleBase.forEach(rule -> rule.apply(context).onViolation(issues::add));
+      RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));
 
       // SQL should be executable.
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();
