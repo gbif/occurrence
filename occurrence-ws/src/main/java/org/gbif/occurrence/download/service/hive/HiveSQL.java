@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive;
+package org.gbif.occurrence.download.service.hive;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -8,22 +8,18 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.commons.compress.utils.Lists;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.TextNode;
-import org.gbif.occurrence.ws.provider.hive.Result.Read;
-import org.gbif.occurrence.ws.provider.hive.Result.ReadDescribe;
-import org.gbif.occurrence.ws.provider.hive.Result.ReadExplain;
-import org.gbif.occurrence.ws.provider.hive.query.validator.DatasetKeyAndLicenseRequiredRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.OnlyOneSelectAllowedRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.OnlyPureSelectQueriesAllowedRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
-import org.gbif.occurrence.ws.provider.hive.query.validator.QueryContext;
-import org.gbif.occurrence.ws.provider.hive.query.validator.Rule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.SQLShouldBeExecutableRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.StarForFieldsNotAllowedRule;
-import org.gbif.occurrence.ws.provider.hive.query.validator.TableNameShouldBeOccurrenceRule;
+import org.gbif.occurrence.download.service.hive.Result.Read;
+import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
+import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
+import org.gbif.occurrence.download.service.hive.validation.DatasetKeyAndLicenseRequiredRule;
+import org.gbif.occurrence.download.service.hive.validation.OnlyOneSelectAllowedRule;
+import org.gbif.occurrence.download.service.hive.validation.OnlyPureSelectQueriesAllowedRule;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.QueryContext;
+import org.gbif.occurrence.download.service.hive.validation.Rule;
+import org.gbif.occurrence.download.service.hive.validation.SQLShouldBeExecutableRule;
+import org.gbif.occurrence.download.service.hive.validation.StarForFieldsNotAllowedRule;
+import org.gbif.occurrence.download.service.hive.validation.TableNameShouldBeOccurrenceRule;
 import com.google.common.base.Throwables;
 
 /**
@@ -54,7 +50,7 @@ public class HiveSQL {
 
     @Override
     public T apply(String query, Read<T> read) {
-      try (Connection conn = ConnectionPool.nifiPoolFromDefaultProperties().getConnection();
+      try (Connection conn = ConnectionPool.fromDefaultProperties().getConnection();
           Statement stmt = conn.createStatement();
           ResultSet result = stmt.executeQuery(query);) {
         return read.apply(result);
@@ -117,18 +113,6 @@ public class HiveSQL {
       
       public String sqlHeader() {
         return sqlHeader;
-      }
-
-      @Override
-      public String toString() {
-        ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("sql", sql);
-        ArrayNode issuesNode = JsonNodeFactory.instance.arrayNode();
-        issues.forEach(issue -> issuesNode.add(issue.description().concat(issue.comment())));
-        node.put("issues", issuesNode);
-        node.put("explain", new TextNode(explain));
-        node.put("ok", isOk());
-        return node.toString();
       }
     }
 

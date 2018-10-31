@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive;
+package org.gbif.occurrence.download.service.hive;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,7 +44,7 @@ public class ConnectionPool {
    * @throws IOException when default occurrence.properties file not available.
    * @throws InitializationException error initializing connection pool.
    */
-  public static synchronized HiveConnectionPool nifiPoolFromDefaultProperties() throws IOException, InitializationException {
+  public static synchronized HiveConnectionPool fromDefaultProperties() throws IOException, InitializationException {
     if (cp != null) {
       LOG.info("Cached connection pool for Hive JDBC connections, {}", cp);
       return cp;
@@ -66,6 +66,7 @@ public class ConnectionPool {
     LOG.info("Creating connection pool for Hive JDBC connections, using jdbc properties {}, {}",jdbcProperties, cp);
     return cp;
   }
+
   /**
    * 
    * Nifi Configuration Context containing jdbc related properties.

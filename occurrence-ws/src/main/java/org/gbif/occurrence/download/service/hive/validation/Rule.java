@@ -1,6 +1,6 @@
-package org.gbif.occurrence.ws.provider.hive.query.validator;
+package org.gbif.occurrence.download.service.hive.validation;
 
-import org.gbif.occurrence.ws.provider.hive.query.validator.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
 /**
  * 

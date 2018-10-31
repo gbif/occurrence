@@ -3,7 +3,6 @@ package org.gbif.occurrence.download.service.workflow;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.exception.ServiceUnavailableException;
@@ -37,21 +36,29 @@ public class DownloadWorkflowParametersBuilder {
   /**
    * Use the request.format to build the workflow parameters.
    */
-  public Properties buildWorkflowParameters(DownloadRequest request, Optional<String> sqlHeader) {
+  public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
     String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    if(request.getFormat().equals(DownloadFormat.SQL)) {
-      sqlHeader.ifPresent( header -> properties.setProperty(DownloadWorkflowParameters.SQL_HEADER, header));
-    }
     if (request.getNotificationAddresses() != null && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
     }
 
     LOG.debug("job properties: {}", properties);
+
+    return properties;
+  }
+
+  /**
+   * Use the request.format to build the workflow parameters.
+   */
+  public Properties buildWorkflowParameters(DownloadRequest request, Map<String, String> additionalSettings) {
+    Properties properties = buildWorkflowParameters(request);
+    properties.putAll(additionalSettings);
+    LOG.debug("job  with additional settings: {}", additionalSettings);
 
     return properties;
   }

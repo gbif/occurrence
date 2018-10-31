@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
@@ -39,8 +40,9 @@ import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
-import org.gbif.occurrence.ws.provider.hive.HiveSQL;
+import org.gbif.occurrence.download.service.hive.HiveSQL;
 import org.gbif.ws.response.GbifResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,10 +159,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
         }
         sqlRequest.setSql(result.transSql());
-        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,java.util.Optional.of(result.sqlHeader())));
-      }
-      else {
-        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,java.util.Optional.empty()));
+        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request,
+          Collections.singletonMap(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader())));
+      } else {
+        jobId =  client.run(parametersBuilder.buildWorkflowParameters(request));
       }
       LOG.debug("oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);

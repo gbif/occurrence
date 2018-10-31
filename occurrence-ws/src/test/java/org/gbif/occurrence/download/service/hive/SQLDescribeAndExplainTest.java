@@ -1,4 +1,4 @@
-package org.gbif.occurrence.ws.provider.hive;
+package org.gbif.occurrence.download.service.hive;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,7 +8,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-
+/**
+ * 
+ * Test for legal and illegal explain and describe SQL commands.
+ *
+ */
 public class SQLDescribeAndExplainTest {
   private static final ObjectMapper mapper = new ObjectMapper();
   @Rule
