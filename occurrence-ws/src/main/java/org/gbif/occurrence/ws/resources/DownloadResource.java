@@ -16,7 +16,6 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLo
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.ValidationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -42,6 +42,7 @@ import org.gbif.occurrence.ws.provider.hive.HiveSQL;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -55,7 +56,7 @@ public class DownloadResource {
 
   // low quality of source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
-
+  private static final ObjectMapper mapper = new ObjectMapper();
   private final DownloadRequestService requestService;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
@@ -123,7 +124,13 @@ public class DownloadResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response describeSQL() {
     LOG.debug("Received describe request for sql ");
-    if (describeResponseCache.isEmpty())  { describeResponseCache = new HiveSQL.Execute().describe("occurrence_hdfs"); }
+    if (describeResponseCache.isEmpty()) {
+      try {
+        describeResponseCache = mapper.writeValueAsString(HiveSQL.Execute.describe("occurrence_hdfs"));
+      } catch (Exception ex) {
+        Throwables.propagate(ex);
+      }
+    }
     return Response.ok().type(MediaType.APPLICATION_JSON).entity(describeResponseCache).build();
   }
   

@@ -37,22 +37,23 @@ public class HiveSQL {
   
   /**
    * Explains the query, in case it is not compilable throws RuntimeException.
+   * @param <T>
    */
-  public static class Execute implements BiFunction<String, Read, String> {
+  public static class Execute<T> implements BiFunction<String, Read<T>, T> {
 
     private static final String DESCRIBE = "DESCRIBE ";
     private static final String EXPLAIN = "EXPLAIN ";
 
-    public String explain(String query) {
-      return apply(EXPLAIN.concat(query), new ReadExplain());
+    public static String explain(String query) {
+      return new Execute<String>().apply(EXPLAIN.concat(query), new ReadExplain());
     }
 
-    public String describe(String tableName) {
-      return apply(DESCRIBE.concat(tableName), new ReadDescribe());
+    public static List<DescribeResult> describe(String tableName) {
+      return new Execute<List<DescribeResult>>().apply(DESCRIBE.concat(tableName), new ReadDescribe());
     }
 
     @Override
-    public String apply(String query, Read read) {
+    public T apply(String query, Read<T> read) {
       try (Connection conn = ConnectionPool.nifiPoolFromDefaultProperties().getConnection();
           Statement stmt = conn.createStatement();
           ResultSet result = stmt.executeQuery(query);) {
@@ -61,7 +62,6 @@ public class HiveSQL {
         throw Throwables.propagate(ex);
       }
     }
-
   }
 
   /**

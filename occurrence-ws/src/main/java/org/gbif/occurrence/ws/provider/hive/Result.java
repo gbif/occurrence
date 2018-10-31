@@ -6,14 +6,19 @@ import java.util.List;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
+/**
+ * 
+ * Contains classes to Read {@link java.sql.ResultSet}  of different types.
+ *
+ */
 public class Result {
 
   @FunctionalInterface
-  interface Read {
-    String apply(ResultSet resultset);
+  interface Read<T> {
+    T apply(ResultSet resultset);
   }
 
-  static class ReadExplain implements Read {
+  static class ReadExplain implements Read<String> {
 
     @Override
     public String apply(ResultSet resultset) {
@@ -29,74 +34,22 @@ public class Result {
     }
   }
 
-  static class ReadDescribe implements Read {
+  static class ReadDescribe implements Read<List<DescribeResult>> {
     
-    class DescribeResult {
-      private String columnName;
-      private String dataType;
-      private String comment;
-
-      public DescribeResult() {}
-
-      public DescribeResult(String columnName, String dataType, String comment) {
-        super();
-        this.columnName = columnName;
-        this.dataType = dataType;
-        this.comment = comment;
-      }
-
-      public String getColumnName() {
-        return columnName;
-      }
-
-      public void setColumnName(String columnName) {
-        this.columnName = columnName;
-      }
-
-      public String getDataType() {
-        return dataType;
-      }
-
-      public void setDataType(String dataType) {
-        this.dataType = dataType;
-      }
-
-      public String getComment() {
-        return comment;
-      }
-
-      public void setComment(String comment) {
-        this.comment = comment;
-      }
-
-      @Override
-      public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"columnName\":\"").append(columnName)
-               .append("\", \"dataType\":\"").append(dataType)
-               .append("\", \"comment\":\"").append(comment)
-               .append("\"}");
-        return builder.toString();
-      }
-    }
-
-
     @Override
-    public String apply(ResultSet resultset) {
-
+    public List<DescribeResult> apply(ResultSet resultset) {
+      List<DescribeResult> results = Lists.newArrayList();
       try {
-        List<DescribeResult> results = Lists.newArrayList();
         while (resultset.next()) {
           String columnName = resultset.getString("col_name");
           String dataType = resultset.getString("data_type");
           String comment = resultset.getString("comment");
           results.add(new DescribeResult(columnName, dataType, comment));
         }
-        return results.toString();
       } catch (SQLException e) {
         Throwables.propagate(e);
       }
-      return "";
+      return results;
     }
   }
 }
