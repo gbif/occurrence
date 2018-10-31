@@ -72,10 +72,10 @@ public class HiveSQL {
 
     private static final String TAB = "\t";
     private static final List<Rule> RULES = Arrays.asList(new StarForFieldsNotAllowedRule(),
-                                                             new OnlyPureSelectQueriesAllowedRule(),
-                                                             new OnlyOneSelectAllowedRule(),
-                                                             new DatasetKeyAndLicenseRequiredRule(),
-                                                             new TableNameShouldBeOccurrenceRule());
+                                                          new OnlyPureSelectQueriesAllowedRule(),
+                                                          new OnlyOneSelectAllowedRule(),
+                                                          new DatasetKeyAndLicenseRequiredRule(),
+                                                          new TableNameShouldBeOccurrenceRule());
 
     /**
      * Result of a SQL Query Validation.
@@ -136,8 +136,9 @@ public class HiveSQL {
       List<Issue> issues = Lists.newArrayList();
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
-      if (context.hasParseIssue())
+      if (context.hasParseIssue()) {
         return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR,"", issues.isEmpty());
+      }
 
 
       RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));
