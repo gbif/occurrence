@@ -2,6 +2,7 @@ package org.gbif.occurrence.download.service.hive;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -18,19 +19,19 @@ public class Result {
     T apply(ResultSet resultset);
   }
 
-  static class ReadExplain implements Read<String> {
+  static class ReadExplain implements Read<List<String>> {
 
     @Override
-    public String apply(ResultSet resultset) {
-      StringBuilder sb = new StringBuilder();
+    public List<String> apply(ResultSet resultset) {
+      List<String> sb = new ArrayList<>();
       try {
         while (resultset.next()) {
-          sb.append(resultset.getString("Explain") + '\n');
+          sb.add(resultset.getString("Explain"));
         }
       } catch (SQLException e) {
         Throwables.propagate(e);
       }
-      return sb.toString();
+      return sb;
     }
   }
 

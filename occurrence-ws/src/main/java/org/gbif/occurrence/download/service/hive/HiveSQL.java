@@ -43,8 +43,8 @@ public class HiveSQL {
     private static final String DESCRIBE = "DESCRIBE ";
     private static final String EXPLAIN = "EXPLAIN ";
 
-    public static String explain(String query) {
-      return new Execute<String>().apply(EXPLAIN.concat(query), new ReadExplain());
+    public static List<String> explain(String query) {
+      return new Execute<List<String>>().apply(EXPLAIN.concat(query), new ReadExplain());
     }
 
     public static List<DescribeResult> describe(String tableName) {
@@ -84,14 +84,14 @@ public class HiveSQL {
       private final String sql;
       private final List<Issue> issues;
       private final boolean ok;
-      private final String explain;
+      private final List<String> explain;
       private final String transSql;
       private final String sqlHeader;
 
       /**
        * Full constructor.
        */
-      public Result(String sql, String transSql, List<Issue> issues, String queryExplanation, String sqlHeader, boolean ok) {
+      public Result(String sql, String transSql, List<Issue> issues, List<String> queryExplanation, String sqlHeader, boolean ok) {
         this.sql = sql;
         this.transSql = transSql;
         this.issues = issues;
@@ -116,7 +116,7 @@ public class HiveSQL {
       }
 
       @JsonProperty("explain")
-      public String explain() {
+      public List<String> explain() {
         return explain;
       }
 
@@ -137,7 +137,7 @@ public class HiveSQL {
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
       if (context.hasParseIssue()) {
-        return new Result(context.sql(), context.translatedQuery(), issues, SQLShouldBeExecutableRule.COMPILATION_ERROR,"", issues.isEmpty());
+        return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(SQLShouldBeExecutableRule.COMPILATION_ERROR),"", issues.isEmpty());
       }
 
 

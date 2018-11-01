@@ -1,5 +1,7 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
+import java.util.Collections;
+import java.util.List;
 import org.gbif.occurrence.download.service.hive.HiveSQL;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
@@ -11,13 +13,13 @@ import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 public class SQLShouldBeExecutableRule implements Rule {
 
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
-  private String explain;
+  private List<String> explain;
 
-  public String explainValue() {
+  public List<String> explainValue() {
     return explain;
   }
 
-  private String explain(String sql) {
+  private List<String> explain(String sql) {
     return HiveSQL.Execute.explain(sql);
   }
 
@@ -27,7 +29,7 @@ public class SQLShouldBeExecutableRule implements Rule {
       context.ensureTableName();
       explain = explain(context.translatedQuery());
     } catch (RuntimeException e) {
-      explain = COMPILATION_ERROR;
+      explain = Collections.singletonList(COMPILATION_ERROR);
       return Rule.violated(Issue.CANNOT_EXECUTE.withComment(e.getMessage()));
     }
     return Rule.preserved();

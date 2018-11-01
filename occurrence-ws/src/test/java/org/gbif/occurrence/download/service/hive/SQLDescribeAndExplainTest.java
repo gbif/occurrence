@@ -25,14 +25,15 @@ public class SQLDescribeAndExplainTest {
   
   @Test
   public void testLegalExplain() {
-    String result = HiveSQL.Execute.explain("SELECT * FROM occurrence_hdfs");
+    List<String> result = HiveSQL.Execute.explain("SELECT * FROM occurrence_hdfs");
     Assert.assertTrue(!result.isEmpty());
+    System.out.println(result);
   }
 
   @Test
   public void testIllLegalExplain() {
     expectedEx.expect(RuntimeException.class);
-    String result = HiveSQL.Execute.explain("SELECT * FROM occurre");
+    List<String> result = HiveSQL.Execute.explain("SELECT * FROM occurre");
     System.out.println(result);
   }
   
