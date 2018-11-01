@@ -135,6 +135,16 @@
     <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-jdbc</artifactId>
+        <exclusions>
+        	<exclusion>
+        		<groupId>asm</groupId>
+        		<artifactId>asm-commons</artifactId>
+        	</exclusion>
+        	<exclusion>
+        		<groupId>org.eclipse.jetty.aggregate</groupId>
+        		<artifactId>jetty-all</artifactId>
+        	</exclusion>
+        </exclusions>
     </dependency>
     <dependency>
 		<groupId>org.apache.calcite</groupId>
@@ -155,6 +165,12 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>asm</groupId>
+      		<artifactId>asm</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
@@ -272,7 +288,7 @@
         <groupId>org.eclipse.jetty.orbit</groupId>
         <artifactId>javax.servlet</artifactId>
       </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
 
     <!-- google -->
@@ -458,6 +474,28 @@
     	<groupId>org.apache.nifi</groupId>
     	<artifactId>nifi-framework-core</artifactId>
     	<version>${nifi.version}</version>
+    	<exclusions>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-common</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.ext</groupId>
+    			<artifactId>jersey-entity-filtering</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.inject</groupId>
+    			<artifactId>jersey-hk2</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.media</groupId>
+    			<artifactId>jersey-media-json-jackson</artifactId>
+    		</exclusion>
+    	</exclusions>
 	</dependency>
 	<dependency>
     	<groupId>org.apache.nifi</groupId>
