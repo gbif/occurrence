@@ -9,6 +9,8 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
 import java.text.MessageFormat;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -61,8 +63,26 @@ public class RegistryBasedOccurrenceMutator {
    * @return
    */
   public boolean requiresUpdate(Dataset currentDataset, Dataset newDataset) {
-    return !(Objects.equals(currentDataset.getPublishingOrganizationKey(), newDataset.getPublishingOrganizationKey())
-            && Objects.equals(currentDataset.getLicense(), newDataset.getLicense()));
+    // A change in publishing organization requires an update
+    if (!Objects.equals(currentDataset.getPublishingOrganizationKey(), newDataset.getPublishingOrganizationKey())) {
+      return true;
+    }
+
+    // A change in license requires an update.
+    if (currentDataset.getLicense() != null && !Objects.equals(currentDataset.getLicense(), newDataset.getLicense())) {
+
+      // New datasets are created as CC_BY_4_0, and very quickly updated to the actual license. This is odd, see
+      // https://github.com/gbif/registry/issues/71
+      // Until that is resolved, we don't create m/r sync jobs for datasets that are under 3 minutes old.
+      Instant threeMinutesAgo = Instant.now().minusSeconds(180);
+      if (currentDataset.getCreated().toInstant().isAfter(threeMinutesAgo)) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -118,4 +138,23 @@ public class RegistryBasedOccurrenceMutator {
     return joiner.length() > 0 ? Optional.of(joiner.toString()) : Optional.empty();
   }
 
+  /**
+   * Generates a message about what changed in the mutation. Mostly use for logging.
+   *
+   * @param currentOrg
+   * @param newOrg
+   * @param currentDataset
+   * @param newDataset
+   * @return
+   */
+  public Optional<String> generateUpdateMessage(Dataset currentDataset, Dataset newDataset) {
+    StringJoiner joiner = new StringJoiner(",");
+    if(requiresUpdate(currentDataset, newDataset)) {
+      joiner.add(MessageFormat.format("Dataset [{0}]: Publishing Organization [{1}] -> [{2}], " +
+          "License [{3}] -> [{4}]", currentDataset.getKey(), currentDataset.getPublishingOrganizationKey(),
+        newDataset.getPublishingOrganizationKey(), currentDataset.getLicense(), newDataset.getLicense()));
+    }
+
+    return joiner.length() > 0 ? Optional.of(joiner.toString()) : Optional.empty();
+  }
 }
