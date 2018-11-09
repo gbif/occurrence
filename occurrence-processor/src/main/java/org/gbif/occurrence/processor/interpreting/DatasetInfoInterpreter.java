@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.gbif.api.model.Constants.EBIRD_DATASET_KEY;
 
 /**
  * This is not an Interpreter. It's just a wrapper around the webservice calls to look up dataset info that is included
@@ -65,8 +66,6 @@ public class DatasetInfoInterpreter implements Serializable {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(DatasetInfoInterpreter.class);
-
-  private static final UUID EBIRD_DATASET = UUID.fromString("4fa7b334-ce0d-4e88-aaae-2e0c138d049e");
 
   private static final CountryParser COUNTRY_PARSER = CountryParser.getInstance();
 
@@ -122,7 +121,7 @@ public class DatasetInfoInterpreter implements Serializable {
 
     // Special case for eBird, use the supplied publishing country.
     Country country = null;
-    if (occ.getDatasetKey().equals(EBIRD_DATASET)) {
+    if (occ.getDatasetKey().equals(EBIRD_DATASET_KEY)) {
       String verbatimPublishingCountryCode = occ.getVerbatimField(GbifTerm.publishingCountry);
 
       OccurrenceParseResult<Country> result = new OccurrenceParseResult<>(COUNTRY_PARSER.parse(verbatimPublishingCountryCode));
@@ -142,6 +141,7 @@ public class DatasetInfoInterpreter implements Serializable {
       occ.setPublishingCountry(country);
     }
 
+    // By GBIF policy, records are licensed at dataset level (i.e. don't change this to use dwc:license).
     Optional.ofNullable(datasetCacheData.dataset.getLicense()).ifPresent(occ::setLicense);
     Optional.ofNullable(datasetCacheData.dataset.getInstallationKey()).ifPresent(occ::setInstallationKey);
     Optional.ofNullable(datasetCacheData.networks).ifPresent(networks ->
