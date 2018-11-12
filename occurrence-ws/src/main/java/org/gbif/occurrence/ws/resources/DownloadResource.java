@@ -146,6 +146,7 @@ public class DownloadResource {
   }
   
   @POST
+  @Produces({MediaType.TEXT_PLAIN})
   @Validate
   public String startDownload(@Valid PredicateDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
@@ -155,5 +156,4 @@ public class DownloadResource {
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
   }
-
 }
