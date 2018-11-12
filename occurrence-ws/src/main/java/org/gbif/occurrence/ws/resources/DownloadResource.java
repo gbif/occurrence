@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
@@ -139,7 +138,6 @@ public class DownloadResource {
   @Path("sql")
   public String startSqlDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {
     LOG.debug("Download: [{}]", request);
-
     // assert authenticated user is the same as in download
     assertLoginMatches(request, security);
     String downloadKey = requestService.create(request);

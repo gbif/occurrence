@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -71,11 +72,11 @@ public class HiveSQL {
   public static class Validate implements Function<String, HiveSQL.Validate.Result> {
         
     protected static final String TAB = "\t";
-    protected static final List<Rule> RULES = Arrays.asList(new StarForFieldsNotAllowedRule(),
+    protected static final List<Rule> RULES = Collections.unmodifiableList(Arrays.asList(new StarForFieldsNotAllowedRule(),
                                                           new OnlyPureSelectQueriesAllowedRule(),
                                                           new OnlyOneSelectAllowedRule(),
                                                           new DatasetKeyAndLicenseRequiredRule(),
-                                                          new TableNameShouldBeOccurrenceRule());
+                                                          new TableNameShouldBeOccurrenceRule()));
 
     /**
      * Result of a SQL Query Validation.
