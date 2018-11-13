@@ -43,7 +43,7 @@
 
   <action name="persist_species_meta">
     <java>
-      <main-class>org.gbif.occurrence.download.file.specieslist.SpeciesDownloadMetaPersistence</main-class>
+      <main-class>org.gbif.occurrence.download.file.common.DownloadMetaPersistence</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>

@@ -37,6 +37,10 @@
 
   <decision name="download_size_decision">
     <switch>
+      <!-- All SQL downloads are done through Hive queries -->
+      <case to="simple_sql_download">
+        ${(download_format eq 'SQL')}
+      </case>
       <!-- All AVRO downloads are done through Hive queries -->
       <case to="simple_avro_download">
         ${(download_format eq 'SIMPLE_AVRO')}
@@ -92,6 +96,33 @@
         </property>
         <property>
           <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+
+  <action name="simple_sql_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/sql-download</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>sql</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
         <property>

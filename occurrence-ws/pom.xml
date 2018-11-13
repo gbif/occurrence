@@ -24,6 +24,7 @@
     <gbif-microservice.version>0.7</gbif-microservice.version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <javassist.version>3.19.0-GA</javassist.version>
+    <nifi.version>1.7.1</nifi.version>
     <!-- because ws accesses hbase directly this must match cluster-expected guava -->
 
   </properties>
@@ -49,6 +50,10 @@
           <stopKey>stop</stopKey>
           <stopPort>15327</stopPort>
           <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webAppConfig>
+      		<contextPath>/</contextPath>
+      		<webInfIncludeJarPattern>.*/classes/.*</webInfIncludeJarPattern>
+    	  </webAppConfig>
         </configuration>
       </plugin>
       <plugin>
@@ -128,6 +133,28 @@
   <dependencies>
     <!-- GBIF -->
     <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
+        <exclusions>
+        	<exclusion>
+        		<groupId>asm</groupId>
+        		<artifactId>asm-commons</artifactId>
+        	</exclusion>
+        	<exclusion>
+        		<groupId>org.eclipse.jetty.aggregate</groupId>
+        		<artifactId>jetty-all</artifactId>
+        	</exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-core</artifactId>
+	  </dependency>
+	  <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-avatica</artifactId>
+	  </dependency>
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
     </dependency>
@@ -138,6 +165,12 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>asm</groupId>
+      		<artifactId>asm</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
@@ -255,7 +288,7 @@
         <groupId>org.eclipse.jetty.orbit</groupId>
         <artifactId>javax.servlet</artifactId>
       </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
 
     <!-- google -->
@@ -288,7 +321,6 @@
       <groupId>com.vividsolutions</groupId>
       <artifactId>jts</artifactId>
     </dependency>
-
     <dependency>
       <!-- dependency:analyze reports a false positive here -->
       <groupId>com.google.inject.extensions</groupId>
@@ -433,7 +465,53 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
-
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-processors</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-framework-core</artifactId>
+    	<version>${nifi.version}</version>
+    	<exclusions>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-common</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.ext</groupId>
+    			<artifactId>jersey-entity-filtering</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.inject</groupId>
+    			<artifactId>jersey-hk2</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.media</groupId>
+    			<artifactId>jersey-media-json-jackson</artifactId>
+    		</exclusion>
+    	</exclusions>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-services-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-dbcp-service-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-kerberos-credentials-service-api</artifactId>
+		<version>${nifi.version}</version>
+	</dependency>
     <!-- GBIF microservice dependencies -->
     <dependency>
       <groupId>org.gbif</groupId>

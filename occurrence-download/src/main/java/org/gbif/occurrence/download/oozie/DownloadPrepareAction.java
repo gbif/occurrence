@@ -68,6 +68,7 @@ public class DownloadPrepareAction {
 
   private static final String DOWNLOAD_KEY = "download_key";
 
+
   //'-' is not allowed in a Hive table name.
   // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
   private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
@@ -133,35 +134,46 @@ public class DownloadPrepareAction {
    *
    * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
    */
-  public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat) throws IOException, QueryBuildingException {
-    Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-    String solrQuery = new SolrQueryVisitor().getQuery(predicate);
-    long recordCount = getRecordCount(solrQuery);
+  public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat)
+      throws IOException, QueryBuildingException {
+
+    Properties props = new Properties();
     String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
+
     if (oozieProp != null) {
-      File propFile = new File(oozieProp);
-      Properties props = new Properties();
-      try (OutputStream os = new FileOutputStream(propFile)) {
+      props.setProperty(DOWNLOAD_KEY, downloadKey);
+      // '-' is replaced by '_' because it's not allowed in hive table names
+      props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
+      props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
+      if (DownloadFormat.valueOf(downloadFormat.trim()) == DownloadFormat.SQL) {
+        props.setProperty(HIVE_QUERY, rawPredicate); //is sql
+      } else {
+        Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
+        String solrQuery = new SolrQueryVisitor().getQuery(predicate);
+        long recordCount = getRecordCount(solrQuery);
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
         props.setProperty(SOLR_QUERY, solrQuery);
         props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
-        props.setProperty(DOWNLOAD_KEY, downloadKey);
-        // '-' is replaced by '_' because it's not allowed in hive table names
-        props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
-        props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-        props.store(os, "");
-      } catch (FileNotFoundException e) {
-        LOG.error("Error reading properties file", e);
-        throw Throwables.propagate(e);
+        if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
+          updateTotalRecordsCount(downloadKey, recordCount);
+        }
       }
+      persist(oozieProp, props);
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
-    if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
-        updateTotalRecordsCount(downloadKey, recordCount);
-    }
+
   }
 
+  private void persist(String propPath, Properties properties) throws IOException {
+    try (OutputStream os = new FileOutputStream(new File(propPath))) {
+      properties.store(os, "");
+    } catch (FileNotFoundException e) {
+      LOG.error("Error reading properties file", e);
+      throw Throwables.propagate(e);
+    }
+  }
+  
   /**
    * Executes the Solr query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.

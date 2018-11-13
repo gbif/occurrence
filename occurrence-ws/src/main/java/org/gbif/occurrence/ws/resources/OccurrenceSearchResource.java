@@ -1,23 +1,23 @@
 package org.gbif.occurrence.ws.resources;
 
 
-import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.occurrence.download.service.PredicateFactory;
-import org.gbif.ws.util.ExtraMediaTypes;
-
-import java.util.HashSet;
+import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
+import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
+import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -28,28 +28,25 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
+import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.occurrence.download.service.PredicateFactory;
+import org.gbif.ws.util.ExtraMediaTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
-import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
-import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 
 /**
@@ -109,11 +106,18 @@ public class OccurrenceSearchResource {
     String creator = getUserName(securityContext);
     Set<String> notificationAddress = asSet(emails);
     DownloadFormat downloadFormat = Objects.isNull(format) ? DownloadFormat.SIMPLE_CSV : DownloadFormat.valueOf(format.toUpperCase());
-    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
-    LOG.info("Predicate build for passing to download [{}]", predicate);
-    return new DownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
+    if (downloadFormat.equals(DownloadFormat.SQL)) {
+      String sql = httpRequest.getParameterMap().get("sql")[0];
+      LOG.info("SQL build for passing to download [{}]", sql);
+      return new SqlDownloadRequest(sql, creator, notificationAddress, true);
+    }
+    else {
+      Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
+      LOG.info("Predicate build for passing to download [{}]", predicate);
+      return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
+    }
   }
-
+  
   /**
    * Gets the user name from the security context.
    */

@@ -52,13 +52,13 @@ public final class DownloadFileUtils {
   }
   
   /**
-   * Reads species count from species list count table path.
+   * Reads count from table path. Helps in utilities for Species list download and SQL Download.
    * @param nameNode namenode of hdfs.
    * @param path species count table path.
    * @return species count.
    * @throws IOException
    */
-  public static long readSpeciesCount(String nameNode, String path) throws IOException {
+  public static long readCount(String nameNode, String path) throws IOException {
     FileSystem fs = getHdfs(nameNode);
     return Arrays.stream(fs.listStatus(new Path(path))).filter(FileStatus::isFile).findFirst()
         .map(file -> {
