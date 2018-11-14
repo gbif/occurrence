@@ -134,6 +134,7 @@ public class DownloadResource {
   }
   
   @POST
+  @Produces({MediaType.TEXT_PLAIN})
   @Validate
   @Path("sql")
   public String startSqlDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {

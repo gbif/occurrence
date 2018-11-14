@@ -169,7 +169,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
     HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
     if (!result.isOk()) {
-      throw new ValidationException(String.format("SQL validation failed : %s", result.toString()));
+      throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
     }
     sqlRequest.setSql(result.transSql());
     return client.run(parametersBuilder.buildWorkflowParameters(request,
