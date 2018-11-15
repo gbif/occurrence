@@ -9,7 +9,7 @@ import org.gbif.occurrence.download.service.hive.jackson.serde.QueryIssueSerde;
  *
  */
 public class Query {
-  private static final String FORMAT = "Format of LEGAL query is : SELECT ... \nFROM occurrence \nWHERE ... \nGROUP BY ... HAVING ...";
+  private static final String FORMAT = "Format of LEGAL query is : SELECT ... \nFROM occurrence \nWHERE ... \nGROUP BY ...";
   
   @JsonSerialize(using=QueryIssueSerde.class)
   public enum Issue {
@@ -21,8 +21,9 @@ public class Query {
     CANNOT_EXECUTE("Query cannot be executed because of"), 
     TABLE_NAME_NOT_OCCURRENCE("Query should have table name as `occurrence`."), 
     PARSE_FAILED(String.format("Cannot parse the query, Make sure all the identifiers are quoted with ` and provided query should follow the format %n %s.", FORMAT)),
-    CANNOT_USE_ALLFIELDS("Usage of '*' for selecting all fields not allowed, Please explicitly add the desired fields, refer the fields from occurrence/download/request/sql/describe endpoint.");
-
+    CANNOT_USE_ALLFIELDS("Usage of '*' for selecting all fields not allowed, Please explicitly add the desired fields, refer the fields from occurrence/download/request/sql/describe endpoint."),
+    HAVING_CLAUSE_NOT_SUPPORTED("SQL Download API donot support query with HAVING clause");
+    
     Issue(String description) {
       this.description = description;
     }

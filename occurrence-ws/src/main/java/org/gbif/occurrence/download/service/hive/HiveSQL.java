@@ -16,6 +16,7 @@ import org.gbif.occurrence.download.service.hive.Result.Read;
 import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
 import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
 import org.gbif.occurrence.download.service.hive.validation.DatasetKeyAndLicenseRequiredRule;
+import org.gbif.occurrence.download.service.hive.validation.HavingClauseNotSupportedRule;
 import org.gbif.occurrence.download.service.hive.validation.OnlyOneSelectAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.OnlyPureSelectQueriesAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
@@ -73,6 +74,7 @@ public class HiveSQL {
         
     protected static final String TAB = "\t";
     protected static final List<Rule> RULES = Collections.unmodifiableList(Arrays.asList(new StarForFieldsNotAllowedRule(),
+                                                          new HavingClauseNotSupportedRule(),
                                                           new OnlyPureSelectQueriesAllowedRule(),
                                                           new OnlyOneSelectAllowedRule(),
                                                           new DatasetKeyAndLicenseRequiredRule(),

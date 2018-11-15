@@ -1,13 +1,9 @@
 package org.gbif.occurrence.download.service.hive;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.compress.utils.Lists;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.occurrence.download.service.hive.HiveSQL.Validate.Result;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 import org.gbif.occurrence.download.service.hive.validation.QueryContext;
@@ -54,7 +50,7 @@ public class SQLValidationTest {
       {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from `occurrence` where `countrycode`='US'", true, false, 0, "gbifid,countrycode,datasetkey,license"},
       {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license`, `month`, `year` FROM `occurrence` WHERE `month`=3 AND `year` = 2018", true, false, 0, "gbifid,countrycode,datasetkey,license,month,year"},
       {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey` ,`license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey`", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
-      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
+      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", false, false, 1, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
       {"SELECT key FROM (SELECT key FROM src ORDER BY key LIMIT 10) UNION SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)", false, true ,1, ""}
   });
   } 
