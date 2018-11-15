@@ -5,9 +5,11 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.common.parsers.LicenseUriParser;
 import org.gbif.common.parsers.MediaParser;
 import org.gbif.common.parsers.UrlParser;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.AcTerm;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -34,6 +36,7 @@ import static org.gbif.common.parsers.date.TemporalAccessorUtils.toDate;
 public class MultiMediaInterpreter {
 
   private static final MediaParser MEDIA_PARSER = MediaParser.getInstance();
+  private static final LicenseUriParser LICENSE_URI_PARSER = LicenseUriParser.getInstance();
 
   // Order is important in case more than one extension is provided. The order will define the precedence.
   private static final Set<Extension> SUPPORTED_MEDIA_EXTENSIONS = ImmutableSet.of(
@@ -68,7 +71,7 @@ public class MultiMediaInterpreter {
           m.setReferences(link);
           m.setTitle(rec.get(DcTerm.title));
           m.setDescription(Terms.getValueOfFirst(rec, DcTerm.description, AcTerm.caption));
-          m.setLicense(Terms.getValueOfFirst(rec, DcTerm.license, DcTerm.rights));
+          m.setLicense(parseButRetainLicense(Terms.getValueOfFirst(rec, DcTerm.license, DcTerm.rights)));
           m.setPublisher(rec.get(DcTerm.publisher));
           m.setContributor(rec.get(DcTerm.contributor));
           m.setSource(Terms.getValueOfFirst(rec, DcTerm.source, AcTerm.derivedFrom));
@@ -158,4 +161,18 @@ public class MultiMediaInterpreter {
     return Lists.newArrayList(media.values());
   }
 
+  /**
+   * Parse a license into a machine-readable URI if possible, but otherwise retain the verbatim license value.
+   * @param value The verbatim license
+   * @return A parsed URI (as a String) or else the verbatim value
+   */
+  private static String parseButRetainLicense(String value) {
+    ParseResult<URI> result = LICENSE_URI_PARSER.parse(value);
+
+    if (result.isSuccessful()) {
+      return result.getPayload().toString();
+    } else {
+      return value;
+    }
+  }
 }
