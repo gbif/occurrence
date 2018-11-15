@@ -140,7 +140,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.20-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>1.21</download-query-tools.version>
     <dwc-api.version>1.20</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
     <gbif-api.version>0.75-SNAPSHOT</gbif-api.version>
@@ -148,10 +148,10 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.34</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
-    <gbif-common-ws.version>0.44-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-ws.version>0.44</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.37-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.37</gbif-parsers.version>
     <gbif-postal-service.version>0.25</gbif-postal-service.version>
     <gbif-registry.version>2.96-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
@@ -946,7 +946,7 @@
 		<artifactId>calcite-avatica</artifactId>
 		<version>${calcite.version}</version>
 	  </dependency>
-		
+
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.
            Note especially the different (old) version used for curator-test. -->
