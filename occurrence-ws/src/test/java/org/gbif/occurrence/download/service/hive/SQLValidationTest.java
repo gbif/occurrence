@@ -34,11 +34,11 @@ public class SQLValidationTest {
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
       if (context.hasParseIssue())
-        return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(COMPILATION_ERROR),"", issues.isEmpty());
+        return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(COMPILATION_ERROR), "", context, issues.isEmpty());
 
       RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));      
       String sqlHeader = String.join(TAB, context.selectFieldNames());
-      return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(""), sqlHeader, issues.isEmpty());
+      return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(""), sqlHeader, context, issues.isEmpty());
     }
   }
 
@@ -71,7 +71,7 @@ public class SQLValidationTest {
   
   @Test
   public void testValidInvalidQueries() {
-    Result result = new ValidateTest().apply(query);
+    Result result = new ValidateTest().apply(query);   
     Assert.assertEquals(isResultOk, result.isOk());
     Assert.assertEquals(isCompilationError, result.explain().equals(Arrays.asList(COMPILATION_ERROR)));
     Assert.assertEquals(numberOfIssues, result.issues().size());  

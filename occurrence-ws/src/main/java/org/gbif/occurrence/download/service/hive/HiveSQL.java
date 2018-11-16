@@ -15,7 +15,6 @@ import org.gbif.occurrence.download.service.hive.Result.DescribeResult;
 import org.gbif.occurrence.download.service.hive.Result.Read;
 import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
 import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
-import org.gbif.occurrence.download.service.hive.validation.DatasetKeyAndLicenseRequiredRule;
 import org.gbif.occurrence.download.service.hive.validation.HavingClauseNotSupportedRule;
 import org.gbif.occurrence.download.service.hive.validation.OnlyOneSelectAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.OnlyPureSelectQueriesAllowedRule;
@@ -77,7 +76,6 @@ public class HiveSQL {
                                                           new HavingClauseNotSupportedRule(),
                                                           new OnlyPureSelectQueriesAllowedRule(),
                                                           new OnlyOneSelectAllowedRule(),
-                                                          new DatasetKeyAndLicenseRequiredRule(),
                                                           new TableNameShouldBeOccurrenceRule()));
 
     /**
@@ -90,17 +88,18 @@ public class HiveSQL {
       private final List<String> explain;
       private final String transSql;
       private final String sqlHeader;
-
+      private final QueryContext context;
       /**
        * Full constructor.
        */
-      public Result(String sql, String transSql, List<Issue> issues, List<String> queryExplanation, String sqlHeader, boolean ok) {
+      public Result(String sql, String transSql, List<Issue> issues, List<String> queryExplanation, String sqlHeader, QueryContext context, boolean ok) {
         this.sql = sql;
         this.transSql = transSql;
         this.issues = issues;
         this.ok = ok;
         this.sqlHeader = sqlHeader;
         this.explain = queryExplanation;
+        this.context = context;
       }
       
       @JsonProperty("sql")
@@ -132,6 +131,11 @@ public class HiveSQL {
       public String sqlHeader() {
         return sqlHeader;
       }
+      
+      @JsonIgnore
+      public QueryContext queryContext() {
+        return context;
+      }
     }
 
     @Override
@@ -140,9 +144,8 @@ public class HiveSQL {
 
       QueryContext context = QueryContext.from(sql).onParseFail(issues::add);
       if (context.hasParseIssue()) {
-        return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(SQLShouldBeExecutableRule.COMPILATION_ERROR),"", issues.isEmpty());
+        return new Result(context.sql(), context.translatedQuery(), issues, Arrays.asList(SQLShouldBeExecutableRule.COMPILATION_ERROR), "", context, issues.isEmpty());
       }
-
 
       RULES.forEach(rule -> rule.apply(context).onViolation(issues::add));
 
@@ -150,9 +153,7 @@ public class HiveSQL {
       SQLShouldBeExecutableRule executableRule = new SQLShouldBeExecutableRule();
       executableRule.apply(context).onViolation(issues::add);
       String sqlHeader = String.join(TAB, context.selectFieldNames());
-      return new Result(context.sql(), context.translatedQuery(), issues, executableRule.explainValue(), sqlHeader, issues.isEmpty());
+      return new Result(context.sql(), context.translatedQuery(), issues, executableRule.explainValue(), sqlHeader, context, issues.isEmpty());
     }
-
   }
-
 }
