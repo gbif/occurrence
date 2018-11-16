@@ -31,6 +31,8 @@ public class DownloadWorkflowParameters {
   
 
   public static final String SQL_HEADER = "sql_header";
+  
+  public static final String SQL_WHERE = "sql_where";
 
   /**
    * Private default constructor.

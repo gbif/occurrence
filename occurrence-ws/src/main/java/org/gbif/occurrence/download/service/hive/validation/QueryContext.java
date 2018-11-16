@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,10 +28,10 @@ public class QueryContext {
   private Issue parseIssue = Issue.NO_ISSUE;
   private SqlSelect selectQueryObject;
   private SqlNode from;
-  private List<String> selectFieldNames;
-  private Optional<String> where;
-  private Optional<List<String>> groupByFields;
-  private Optional<String> having;
+  private List<String> selectFieldNames = new ArrayList<>();
+  private Optional<String> where = Optional.empty();
+  private Optional<List<String>> groupByFields = Optional.empty();
+  private Optional<String> having = Optional.empty();
   private String transSql;
 
   private static final String OCCURRENCE_TABLE = "occurrence_hdfs";

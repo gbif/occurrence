@@ -20,11 +20,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -61,6 +65,7 @@ import com.yammer.metrics.core.Counter;
 @Singleton
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
+  private static final String EMPTY = "EMPTY";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
@@ -160,8 +165,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
-
-
+  
   /**
    * Executes the request as SQLDownload.
    */
@@ -172,8 +176,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
     }
     sqlRequest.setSql(result.transSql());
+    BiFunction<String, String, Map.Entry<String, String>> entry = (key, value) -> new AbstractMap.SimpleEntry<>(key, value);
     return client.run(parametersBuilder.buildWorkflowParameters(request,
-      Collections.singletonMap(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader())));
+        Collections.unmodifiableMap(Stream
+            .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
+                entry.apply(DownloadWorkflowParameters.SQL_WHERE, result.queryContext().where().orElse(EMPTY)))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())))));
   }
 
   @Override
