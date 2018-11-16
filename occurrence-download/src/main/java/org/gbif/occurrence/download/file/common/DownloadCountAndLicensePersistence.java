@@ -28,8 +28,9 @@ public class DownloadCountAndLicensePersistence {
   
     RegistryClientUtil registryClientUtil = new RegistryClientUtil();
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsURL);
-    // persists species count information.
+    // persists download count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
+    // persist license information.
     Download download = occurrenceDownloadService.get(downloadKey);
     download.setLicense(License.valueOf(license));
     occurrenceDownloadService.update(download);
