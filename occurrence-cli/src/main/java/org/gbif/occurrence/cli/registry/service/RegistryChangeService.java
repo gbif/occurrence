@@ -38,7 +38,7 @@ public class RegistryChangeService extends AbstractIdleService {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     listener = new MessageListener(configuration.messaging.getConnectionParameters(), new DefaultMessageRegistry(),
-      objectMapper);
+      objectMapper, 1);
     listener.listen(configuration.registryChangeQueueName, 1,
       new RegistryChangeListener(new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
         orgClient));

@@ -31,7 +31,7 @@ public class DatasetMutationConfiguration {
 
   @Parameter(names = "--msg-pool-size")
   @Min(1)
-  public int msgPoolSize = 10;
+  public int msgPoolSize = 1;
 
   @Parameter(names = "--delete-dataset-queue-name")
   @NotNull
