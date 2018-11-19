@@ -26,9 +26,13 @@ class IndexingConfiguration {
   @NotNull
   public GangliaConfiguration ganglia = new GangliaConfiguration();
 
-  @Parameter(names = "--messaging-pool-size")
+  @Parameter(names = "--pool-size")
   @Min(1)
   public int poolSize = 5;
+
+  @Parameter(names = "--msg-pool-size")
+  @Min(1)
+  public int msgPoolSize = 50;
 
   @Parameter(names = "--commit-within")
   @NotNull

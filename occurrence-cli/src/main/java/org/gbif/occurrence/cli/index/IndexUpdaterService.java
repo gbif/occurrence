@@ -34,7 +34,7 @@ class IndexUpdaterService extends AbstractIdleService {
 
     SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
                                                                          configuration.commitWithinMs);
-    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters());
+    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters(), configuration.msgPoolSize);
     listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
                     configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
   }

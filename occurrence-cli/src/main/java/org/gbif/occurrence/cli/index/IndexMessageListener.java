@@ -14,12 +14,13 @@ public class IndexMessageListener extends MessageListener {
 
     List<IndexUpdaterCallback> callbacks = new ArrayList<>();
 
-    public IndexMessageListener(ConnectionParameters connectionParameters) throws IOException {
-        super(connectionParameters);
+    public IndexMessageListener(ConnectionParameters connectionParameters, int prefetchCount) throws IOException {
+        super(connectionParameters, prefetchCount);
     }
 
     public void listen(String queue, int numberOfThreads, IndexUpdaterCallback callback) throws IOException {
         super.listen(queue, numberOfThreads, callback);
+
         callbacks.add(callback);
     }
 
