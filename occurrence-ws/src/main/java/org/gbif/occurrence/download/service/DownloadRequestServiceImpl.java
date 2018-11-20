@@ -288,7 +288,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private void persistDownload(DownloadRequest request, String downloadId) {
     Download download = new Download();
     download.setKey(downloadId);
-    download.setRequest(request);
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(downloadLink(wsUrl, downloadId));
