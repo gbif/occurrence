@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -48,6 +49,9 @@ import static freemarker.template.Configuration.VERSION_2_3_25;
  * Utility class that sends notification emails of occurrence downloads.
  */
 public class DownloadEmailUtils {
+  private static final String OCCURRENCE = "occurrence";
+  private static final String OCCURRENCE_HDFS = "occurrence_hdfs";
+  private static final String CASE_INSENSITIVE_REGEX = "(?i)";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
   private static final String SUCCESS_SUBJECT = "Your GBIF data download is ready";
@@ -109,7 +113,8 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest) download.getRequest()).getSql()
+    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? 
+        ((SqlDownloadRequest) download.getRequest()).getSql().replaceAll(CASE_INSENSITIVE_REGEX + Pattern.quote(OCCURRENCE_HDFS), OCCURRENCE)
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 
