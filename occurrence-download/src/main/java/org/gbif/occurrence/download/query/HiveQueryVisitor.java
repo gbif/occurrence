@@ -270,9 +270,8 @@ public class HiveQueryVisitor {
     while (iterator.hasNext()) {
       String value = iterator.next();
       builder.append('(');
-      builder.append(toHiveField(predicate.getKey()));
-      builder.append(EQUALS_OPERATOR);
-      builder.append(toHiveValue(predicate.getKey(), value));
+      // Use the equals predicate to get the behaviour for taxon key etc.
+      visit(new EqualsPredicate(predicate.getKey(), value));
       builder.append(')');
       if (iterator.hasNext()) {
         builder.append(DISJUNCTION_OPERATOR);
