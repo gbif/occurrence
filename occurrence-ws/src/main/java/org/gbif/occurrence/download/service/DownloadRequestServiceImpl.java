@@ -155,7 +155,13 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
     try {
       if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
-        throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
+        Response calm = Response
+          .status(GbifResponseStatus.ENHANCE_YOUR_CALM)
+          .entity("Too many simultaneous downloads, please wait for some to complete.\n\n"
+            + "Usually this is too many downloads from a single user, but it can be too many downloads overall.\n"
+            + "See your user page, or the GBIF health status page.\n")
+          .build();
+        throw new WebApplicationException(calm);
       }
       String jobId = request.getFormat().equals(DownloadFormat.SQL)?
                         runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
@@ -167,7 +173,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
-  
+
   /**
    * Executes the request as SQLDownload.
    */
