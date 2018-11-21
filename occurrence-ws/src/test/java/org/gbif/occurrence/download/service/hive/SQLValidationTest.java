@@ -45,13 +45,13 @@ public class SQLValidationTest {
   @Parameters
   public static Collection<Object[]> inputs() {
     return Arrays.asList( new Object[][] {
-      {"SELECT `gbifid`, `datasetkey`, `license` from occurrence", true, false, 0, "gbifid,datasetkey,license"}, 
-      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from occurrence", true, false, 0, "gbifid,countrycode,datasetkey,license"},
-      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from `occurrence` where `countrycode`='US'", true, false, 0, "gbifid,countrycode,datasetkey,license"},
-      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license`, `month`, `year` FROM `occurrence` WHERE `month`=3 AND `year` = 2018", true, false, 0, "gbifid,countrycode,datasetkey,license,month,year"},
-      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey` ,`license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey`", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
-      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", false, false, 1, "COUNT(`datasetkey`),countrycode,datasetkey,license"},
-      {"SELECT key FROM (SELECT key FROM src ORDER BY key LIMIT 10) UNION SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)", false, true ,1, ""}
+      {"SELECT `gbifid`, `datasetkey`, `license` from occurrence", true, false, 0, "gbifid,datasetkey,license", false}, 
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from occurrence", true, false, 0, "gbifid,countrycode,datasetkey,license", false},
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license` from `occurrence` where `countrycode`='US'", true, false, 0, "gbifid,countrycode,datasetkey,license", false},
+      {"SELECT `gbifid`, `countrycode`, `datasetkey`, `license`, `month`, `year` FROM `occurrence` WHERE `month`=3 AND `year` = 2018", true, false, 0, "gbifid,countrycode,datasetkey,license,month,year", false},
+      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey` ,`license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey`", true, false, 0, "COUNT(`datasetkey`),countrycode,datasetkey,license", true},
+      {"SELECT COUNT(`datasetkey`), `countrycode` ,`datasetkey`, `license` FROM `occurrence` GROUP BY `countrycode`, `license`, `datasetkey` HAVING count(`datasetkey`) > 5", false, false, 1, "COUNT(`datasetkey`),countrycode,datasetkey,license", true},
+      {"SELECT key FROM (SELECT key FROM src ORDER BY key LIMIT 10) UNION SELECT key FROM (SELECT key FROM src1 ORDER BY key LIMIT 10)", false, true ,1, "", false}
   });
   } 
   
@@ -60,13 +60,15 @@ public class SQLValidationTest {
   private final boolean isCompilationError;
   private final int numberOfIssues;
   private final String sqlHeader;
+  private final boolean hasFunction;
   
-  public SQLValidationTest(String query, boolean isResultOk, boolean isCompilationError, int numberOfIssues, String sqlHeader) {
+  public SQLValidationTest(String query, boolean isResultOk, boolean isCompilationError, int numberOfIssues, String sqlHeader, boolean hasFunction) {
     this.query = query;
     this.isResultOk = isResultOk;
     this.isCompilationError = isCompilationError;
     this.numberOfIssues = numberOfIssues;
     this.sqlHeader = sqlHeader;
+    this.hasFunction = hasFunction;
   }
   
   @Test
@@ -76,6 +78,7 @@ public class SQLValidationTest {
     Assert.assertEquals(isCompilationError, result.explain().equals(Arrays.asList(COMPILATION_ERROR)));
     Assert.assertEquals(numberOfIssues, result.issues().size());  
     Assert.assertEquals(sqlHeader, result.sqlHeader().replaceAll("\t", ",").trim()); 
+    Assert.assertEquals(hasFunction, result.queryContext().hasFunctionsInSelectFields());
   }
 
 }

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -66,6 +67,7 @@ import com.yammer.metrics.core.Counter;
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
   private static final String EMPTY = "EMPTY";
+  private static final String ALL = "1 = 1";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
@@ -176,12 +178,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
     }
     sqlRequest.setSql(result.transSql());
-    BiFunction<String, String, Map.Entry<String, String>> entry = (key, value) -> new AbstractMap.SimpleEntry<>(key, value);
+    BiFunction<String, String, Map.Entry<String, String>> entry = AbstractMap.SimpleEntry::new;
+    //if where clause is not there, then send empty when no functions used else send all rows for where clause(this is for citation).
     return client.run(parametersBuilder.buildWorkflowParameters(request,
         Collections.unmodifiableMap(Stream
             .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
-                entry.apply(DownloadWorkflowParameters.SQL_WHERE, result.queryContext().where().orElse(EMPTY)))
-            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())))));
+                entry.apply(DownloadWorkflowParameters.SQL_WHERE,
+                    result.queryContext().where().orElse(result.queryContext().hasFunctionsInSelectFields() ? EMPTY : ALL)))
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 
   @Override

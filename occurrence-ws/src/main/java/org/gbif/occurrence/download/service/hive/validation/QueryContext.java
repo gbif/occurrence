@@ -33,7 +33,8 @@ public class QueryContext {
   private Optional<List<String>> groupByFields = Optional.empty();
   private Optional<String> having = Optional.empty();
   private String transSql;
-
+  private boolean hasFunctionsInSelectFields = false;
+  
   private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
 
   private QueryContext(String sql) {
@@ -52,6 +53,7 @@ public class QueryContext {
 
     this.from = selectQueryObject.getFrom();
     this.selectFieldNames = selectQueryObject.getSelectList().getList().stream().map(SqlNode::toString).collect(Collectors.toList());
+    this.hasFunctionsInSelectFields = selectQueryObject.getSelectList().getList().stream().map(SqlNode::getKind).filter(SqlKind.FUNCTION::contains).count() > 0;
     this.where = selectQueryObject.hasWhere() ? Optional.of(selectQueryObject.getWhere().toString()) : Optional.empty();
     this.groupByFields = Optional.ofNullable(selectQueryObject.getGroup())
         .map(list -> list.getList().stream().map(SqlNode::toString).collect(Collectors.toList()));
@@ -99,6 +101,10 @@ public class QueryContext {
 
   public Optional<String> tableName() {
     return from.getKind().equals(SqlKind.IDENTIFIER) ? Optional.of(from.toString()) : Optional.empty();
+  }
+
+  public boolean hasFunctionsInSelectFields() {
+    return hasFunctionsInSelectFields;
   }
 
   public void ensureTableName() {
