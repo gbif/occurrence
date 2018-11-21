@@ -1,9 +1,7 @@
 package org.gbif.occurrence.ws.resources;
 
-
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
@@ -16,38 +14,26 @@ import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-
 
 /**
  * Occurrence resource.
@@ -57,15 +43,12 @@ import com.google.inject.Inject;
 public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
-  private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
   private final OccurrenceSearchService searchService;
-  private final DownloadRequestService downloadRequestService;
 
   @Inject
   public OccurrenceSearchResource(OccurrenceSearchService searchService, DownloadRequestService downloadRequestService) {
     this.searchService = searchService;
-    this.downloadRequestService = downloadRequestService;
   }
 
   @GET
@@ -75,73 +58,36 @@ public class OccurrenceSearchResource {
     return searchService.search(request);
   }
 
-
+  /**
+   * Remove after the portal is updated, e.g. during or after December 2018.
+   *
+   * Old location for a GET download, doesn't make sense to be within occurrence search.
+   */
   @GET
   @Path("download")
-  public String download(@Context HttpServletRequest httpRequest,
+  @Deprecated
+  public Response download(@Context HttpServletRequest httpRequest,
                          @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format,
-                         @Context SecurityContext securityContext) {
-    String creator = assertUserAuthenticated(securityContext).getName();
-    checkNotNullParameter("format", format);
-    checkNotNullParameter("creator", creator);
-    DownloadRequest download = downloadPredicate(httpRequest, emails, format, securityContext);
-    LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, downloadRequestService);
-    try {
-      String downloadKey = downloadRequestService.create(download);
-      LOG.debug("Got key [{}] for new download", downloadKey);
-      return downloadKey;
-    } catch(Exception ex) {
-      LOG.error("Error processing search-to-download request", ex);
-      throw new WebApplicationException(Response.serverError().build());
-    }
+                         @Context UriInfo uriInfo) {
+    LOG.warn("Deprecated internal API used! (download)");
+    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request?"+uriInfo.getRequestUri().getQuery())).build();
   }
 
+  /**
+   * Remove after the portal is updated, e.g. during or after December 2018.
+   *
+   * Old location for a GET download predicate request, doesn't make sense to be within occurrence search.
+   */
   @GET
   @Path("predicate")
-  public DownloadRequest downloadPredicate(@Context HttpServletRequest httpRequest,
+  @Deprecated
+  public Response downloadPredicate(@Context HttpServletRequest httpRequest,
                          @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format,
-                         @Context SecurityContext securityContext) {
-    String creator = getUserName(securityContext);
-    Set<String> notificationAddress = asSet(emails);
-    DownloadFormat downloadFormat = Objects.isNull(format) ? DownloadFormat.SIMPLE_CSV : DownloadFormat.valueOf(format.toUpperCase());
-    if (downloadFormat.equals(DownloadFormat.SQL)) {
-      String sql = httpRequest.getParameterMap().get("sql")[0];
-      LOG.info("SQL build for passing to download [{}]", sql);
-      return new SqlDownloadRequest(sql, creator, notificationAddress, true);
-    }
-    else {
-      Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
-      LOG.info("Predicate build for passing to download [{}]", predicate);
-      return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
-    }
-  }
-  
-  /**
-   * Gets the user name from the security context.
-   */
-  private static String getUserName(SecurityContext securityContext) {
-    return Objects.nonNull(securityContext.getUserPrincipal()) ? securityContext.getUserPrincipal().getName() : null;
-  }
-
-  /**
-   * Transforms a String that contains elements split by ',' into a Set of strings.
-   */
-  private static Set<String> asSet(String cvsString) {
-    return Objects.nonNull(cvsString) ? Sets.newHashSet(COMMA_SPLITTER.split(cvsString)) : null;
-  }
-
-
-
-  /**
-   * Validates that a parameter is not null or empty.
-   */
-  private static void checkNotNullParameter(String paramName, String paramValue) {
-    if (Strings.isNullOrEmpty(paramValue)) {
-      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                                          .entity("Parameter " + paramName + " can't be null").build());
-    }
+                         @Context UriInfo uriInfo) {
+    LOG.warn("Deprecated internal API used! (predicate)");
+    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request?"+uriInfo.getRequestUri().getQuery())).build();
   }
 
   @GET
@@ -166,14 +112,12 @@ public class OccurrenceSearchResource {
     return searchService.suggestRecordedBy(prefix, limit);
   }
 
-
   @GET
   @Path(RECORD_NUMBER_PATH)
   public List<String> suggestRecordNumbers(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing record number suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestRecordNumbers(prefix, limit);
   }
-
 
   @GET
   @Path(INSTITUTION_CODE_PATH)
@@ -217,5 +161,4 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestWaterBodies(prefix, limit);
   }
-
 }
