@@ -1,4 +1,4 @@
-#SQL Download API
+# SQL Download API
 
 ## Table of Contents
 1. [Motivation](#motivation)
@@ -12,24 +12,24 @@
 6. [Open Questions](#open-questions)
 7. [Conclusion](#conclusion)
 
-##Motivation
+## Motivation
 GBIF has been providing gbif data snapshots based on selected criteria for downloads in different format SIMPLE CSV, DWCA and  AVRO. However it has been observed that they are of limited use to various gbif users as they need to re-process these download for analytical relevance or textual brevity. Performing these operations is quite cumbersome on MS Excel at the user end, and when the downloads are big it is very difficult due to lack of access to computation resources and softwares. 
 
-##Introduction
+## Introduction
 SQL queries are one of the most popular ways to query the data. It enables various functions or transformations to access the fields or data as user desires. SQL Download API will help gbif users to download the gbif occurrence data as a simple plain SQL query.  This feature helps the advanced users to get the relevant data in simple CSV format carrying out textual transformations and analytical processing on gbif infrastructure. 
 
-##Feature
+## Feature
 The SQL download is supported by 3 different types of services: 
 1. _SQL Describe service_: This service describe all the queryable fields, there types and description. 
 2. _SQL Validation service_: Validate the SQL query before executing the query for download. This helps user to create a proper SQL query before performing download on gbif infrastructure. 
 3. _SQL Download service_: This service helps to create the SQL download at gbif infrastructure and returns the downloadkey which can be used to see the progress of gbif downloads.  
 
-###API Endpoints
+### API Endpoints
 
-####SQL Describe
+#### SQL Describe
 No Authorization needed
 
-#####Request 
+##### Request 
 
 ```
 GET /v1/occurrence/download/request/sql/describe HTTP/1.1
@@ -37,7 +37,7 @@ Host: api.gbif-dev.org
 cache-control: no-cache
 ```
 
-#####Response 
+##### Response 
 ```
 [
     {
@@ -48,11 +48,11 @@ cache-control: no-cache
 ]
 ```
 
-####SQL Validation
+#### SQL Validation
 
 No Authorization needed
 
-#####Sample Request
+##### Sample Request
 
 ```
 GET /v1/occurrence/download/request/sql/validate?sql=select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`, count(`species`) `count` from `occurrence` GROUP BY `decimallatitude`/10, `decimallongitude`/10 HTTP/1.1
@@ -61,7 +61,7 @@ Content-Type: application/json
 cache-control: no-cache 
 ```
 
-#####Sample Response
+##### Sample Response
 ```
 {
     "sql": "select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`, count(`species`) `count` from `occurrence` GROUP BY `decimallatitude`/10, `decimallongitude`/10",
@@ -121,11 +121,11 @@ cache-control: no-cache
 } 
 ```
 
-####SQL Download 
+#### SQL Download 
 
 Authorization needed
 
-#####Sample Request
+##### Sample Request
 
 ```
 POST /v1/occurrence/download/request/sql HTTP/1.1
@@ -144,11 +144,11 @@ cache-control: no-cache
 }
 ```
 
-#####Sample Response
+##### Sample Response
 
 0001041-180611120914121
 
-###Rules for SQL query
+### Rules for SQL query
 
 SQL query supported by GBIF API need to follow some rules, they are :
 1. Sql query supported format: <br/>
@@ -159,15 +159,15 @@ SQL query supported by GBIF API need to follow some rules, they are :
 5. ‘*’ can’t be used, provide fields for selection explicitly.
 6. HAVING clause not supported.
 
-###SQL Functions supported
+### SQL Functions supported
 
 [SQL Download API supports all built in functions of hive 1.1. Please refer](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF#LanguageManualUDF-Built-inFunctions)
 
-###Citation and Licenses for Downloads
+### Citation and Licenses for Downloads
 
 License for the query which produces new data from old ones, i.e those which has functions and aggregations from entire datasets in gbif are licensed as CC by 4.0 and cites gbif. All other queries has restrictive download license based on the datasets used, and cites them as usual.
 
-##Getting started
+## Getting started
 
 Prerequisite :
 1. gbif-account
@@ -220,12 +220,12 @@ you get download key which can be tracked online for downloads or turn on notifi
 For example to track the download for downloadkey= 0000015-181121175518854, open the web browser in your computer and navigate to <br/>
 [https://www.gbif.org/occurrence/download/0000015-181121175518854](https://www.gbif-dev.org/occurrence/download/0000015-181121175518854)
 
-##Future Works
+## Future Works
 
 1. Removing back quotes(`) from identifiers.
 2. Supporting HAVING clause
 
-##Open Questions
+## Open Questions
 
-##Conclusion
+## Conclusion
 SQL Download API help creating, transforming and downloading GBIF occurrence data as SQL queries. 
