@@ -104,6 +104,14 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testInPredicateTaxonKey() throws QueryBuildingException {
+    Predicate p = new InPredicate(OccurrenceSearchParameter.TAXON_KEY, Lists.newArrayList("1", "2"));
+    String query = visitor.getHiveQuery(p);
+    assertThat(query,
+      equalTo("(((taxonkey = 1 OR kingdomkey = 1 OR phylumkey = 1 OR classkey = 1 OR orderkey = 1 OR familykey = 1 OR genuskey = 1 OR subgenuskey = 1 OR specieskey = 1)) OR ((taxonkey = 2 OR kingdomkey = 2 OR phylumkey = 2 OR classkey = 2 OR orderkey = 2 OR familykey = 2 OR genuskey = 2 OR subgenuskey = 2 OR specieskey = 2)))"));
+  }
+
+  @Test
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getHiveQuery(p);

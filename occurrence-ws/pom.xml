@@ -21,13 +21,12 @@
 
   <properties>
     <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
-    <gbif-microservice.version>0.7</gbif-microservice.version>
+    <gbif-microservice.version>0.8</gbif-microservice.version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <javassist.version>3.19.0-GA</javassist.version>
     <nifi.version>1.7.1</nifi.version>
     <hadoop.core.version>2.6.0-mr1-cdh5.12.0</hadoop.core.version>
-    <!-- because ws accesses hbase directly this must match cluster-expected guava -->
-
+    <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
   </properties>
 
   <build>
