@@ -16,12 +16,15 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLo
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 import java.io.InputStream;
+import java.security.Principal;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -30,12 +33,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -48,9 +51,11 @@ import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.occurrence.download.service.hive.HiveSQL;
+import org.gbif.occurrence.download.service.hive.Result;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +86,7 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
 
-  private Response describeCachedResponse;
+  private List<Result.DescribeResult> describeCachedResponse;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -109,8 +114,8 @@ public class DownloadResource {
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
 
     String extension = Optional.ofNullable(occurrenceDownloadService.get(downloadKey))
-                        .map(download -> (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat())? AVRO_EXT : ZIP_EXT)
-                        .orElse(ZIP_EXT);
+      .map(download -> (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat())? AVRO_EXT : ZIP_EXT)
+      .orElse(ZIP_EXT);
 
     LOG.debug("Get download data: [{}]", downloadKey);
     // suggest filename for download in http headers
@@ -129,20 +134,18 @@ public class DownloadResource {
   @GET
   @Path("sql/validate")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response validateSQL(@QueryParam("sql") String sqlQuery) {
-    LOG.debug("Received validation request for sql query [{}]",sqlQuery);
-    HiveSQL.Validate.Result result =  new HiveSQL.Validate().apply(sqlQuery);
-    return Response.ok().type(MediaType.APPLICATION_JSON).entity(result).build();
+  public HiveSQL.Validate.Result validateSQL(@QueryParam("sql") String sqlQuery) {
+    LOG.debug("Received validation request for sql query [{}]", sqlQuery);
+    return new HiveSQL.Validate().apply(sqlQuery);
   }
 
   @GET
   @Path("sql/describe")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response describeSQL() {
+  public List<Result.DescribeResult> describeSQL() {
     LOG.debug("Received describe request for sql ");
     if (Objects.isNull(describeCachedResponse)) {
-        this.describeCachedResponse = Response.ok().type(MediaType.APPLICATION_JSON)
-                                      .entity(HiveSQL.Execute.describe(OCCURRENCE_TABLE)).build();
+      this.describeCachedResponse = HiveSQL.Execute.describe(OCCURRENCE_TABLE);
     }
     return describeCachedResponse;
   }
@@ -151,13 +154,8 @@ public class DownloadResource {
   @Produces({MediaType.TEXT_PLAIN})
   @Validate
   @Path("sql")
-  public String startSqlDownload(@Valid SqlDownloadRequest request, @Context SecurityContext security) {
-    LOG.debug("Download: [{}]", request);
-    // assert authenticated user is the same as in download
-    assertLoginMatches(request, security);
-    String downloadKey = requestService.create(request);
-    LOG.info("Created new download job with key [{}]", downloadKey);
-    return downloadKey;
+  public String startSqlDownload(@NotNull @Valid SqlDownloadRequest request, @Context SecurityContext security) {
+    return createDownload(request, security);
   }
 
   /**
@@ -166,11 +164,22 @@ public class DownloadResource {
   @POST
   @Produces({MediaType.TEXT_PLAIN})
   @Validate
-  public String startDownload(@Valid PredicateDownloadRequest request, @Context SecurityContext security) {
-    LOG.debug("Download: [{}]", request);
+  public String startDownload(@NotNull @Valid PredicateDownloadRequest request, @Context SecurityContext security) {
+    return createDownload(request, security);
+  }
+
+  /**
+   * Creates/Starts an occurrence download.
+   */
+  private String createDownload(DownloadRequest downloadRequest, @Context SecurityContext securityContext) {
+    Principal userAuthenticated = assertUserAuthenticated(securityContext);
+    if (Objects.isNull(downloadRequest.getCreator())) {
+      downloadRequest.setCreator(userAuthenticated.getName());
+    }
+    LOG.debug("Download: [{}]", downloadRequest);
     // assert authenticated user is the same as in download
-    assertLoginMatches(request, security);
-    String downloadKey = requestService.create(request);
+    assertLoginMatches(downloadRequest, userAuthenticated);
+    String downloadKey = requestService.create(downloadRequest);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
   }
@@ -180,26 +189,10 @@ public class DownloadResource {
    */
   @GET
   @Produces({MediaType.TEXT_PLAIN})
-  public Response download(@Context HttpServletRequest httpRequest,
-                         @QueryParam("notification_address") String emails,
-                         @QueryParam("format") String format,
-                         @Context SecurityContext securityContext) {
-    String creator = assertUserAuthenticated(securityContext).getName();
-    checkNotNullParameter("format", format);
-    checkNotNullParameter("creator", creator);
-    DownloadRequest download = downloadPredicate(httpRequest, emails, format, securityContext);
-    LOG.debug("Creating download with DownloadRequest [{}] from service [{}]", download, requestService);
-    try {
-      String downloadKey = requestService.create(download);
-      LOG.debug("Got key [{}] for new download", downloadKey);
-      return Response.ok(downloadKey).build();
-    } catch (WebApplicationException ex) {
-      LOG.error("Error processing search-to-download request", ex);
-      return ex.getResponse();
-    } catch (Exception ex) {
-      LOG.error("Unexpected error processing search-to-download request", ex);
-      throw new WebApplicationException(Response.serverError().build());
-    }
+  public String download(@Context HttpServletRequest httpRequest, @QueryParam("notification_address") String emails,
+                         @QueryParam("format") String format, @Context SecurityContext securityContext) {
+    Preconditions.checkArgument(Strings.isNullOrEmpty(format), "Format can't be null");
+    return createDownload(downloadPredicate(httpRequest, emails, format, securityContext), securityContext);
   }
 
   @GET
@@ -208,15 +201,15 @@ public class DownloadResource {
                                            @QueryParam("notification_address") String emails,
                                            @QueryParam("format") String format,
                                            @Context SecurityContext securityContext) {
+    DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format,DownloadFormat.class);
+    Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = getUserName(securityContext);
     Set<String> notificationAddress = asSet(emails);
-    DownloadFormat downloadFormat = Objects.isNull(format) ? DownloadFormat.SIMPLE_CSV : DownloadFormat.valueOf(format.toUpperCase());
-    if (downloadFormat.equals(DownloadFormat.SQL)) {
-      String sql = httpRequest.getParameterMap().get("sql")[0];
+    if (DownloadFormat.SQL == downloadFormat) {
+      String sql = httpRequest.getParameter("sql");
       LOG.info("SQL build for passing to download [{}]", sql);
       return new SqlDownloadRequest(sql, creator, notificationAddress, true);
-    }
-    else {
+    } else {
       Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
       LOG.info("Predicate build for passing to download [{}]", predicate);
       return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
@@ -235,15 +228,5 @@ public class DownloadResource {
    */
   private static Set<String> asSet(String cvsString) {
     return Objects.nonNull(cvsString) ? Sets.newHashSet(COMMA_SPLITTER.split(cvsString)) : null;
-  }
-
-  /**
-   * Validates that a parameter is not null or empty.
-   */
-  private static void checkNotNullParameter(String paramName, String paramValue) {
-    if (Strings.isNullOrEmpty(paramValue)) {
-      throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-        .entity("Parameter " + paramName + " can't be null").build());
-    }
   }
 }
