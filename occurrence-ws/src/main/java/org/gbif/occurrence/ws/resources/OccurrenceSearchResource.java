@@ -87,7 +87,7 @@ public class OccurrenceSearchResource {
                          @QueryParam("format") String format,
                          @Context UriInfo uriInfo) {
     LOG.warn("Deprecated internal API used! (predicate)");
-    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request?"+uriInfo.getRequestUri().getQuery())).build();
+    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request/predicate?"+uriInfo.getRequestUri().getQuery())).build();
   }
 
   @GET
