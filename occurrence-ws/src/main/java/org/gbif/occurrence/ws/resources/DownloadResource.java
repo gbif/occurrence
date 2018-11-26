@@ -191,7 +191,7 @@ public class DownloadResource {
   @Produces({MediaType.TEXT_PLAIN})
   public String download(@Context HttpServletRequest httpRequest, @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format, @Context SecurityContext securityContext) {
-    Preconditions.checkArgument(Strings.isNullOrEmpty(format), "Format can't be null");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     return createDownload(downloadPredicate(httpRequest, emails, format, securityContext), securityContext);
   }
 
