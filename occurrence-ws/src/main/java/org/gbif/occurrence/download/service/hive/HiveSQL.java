@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import org.apache.commons.compress.utils.Lists;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.gbif.occurrence.download.service.hive.Result.DescribeResult;
@@ -25,6 +24,7 @@ import org.gbif.occurrence.download.service.hive.validation.SQLShouldBeExecutabl
 import org.gbif.occurrence.download.service.hive.validation.StarForFieldsNotAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.TableNameShouldBeOccurrenceRule;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 /**
  * 

@@ -3,7 +3,6 @@ package org.gbif.occurrence.download.service.hive;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import org.apache.commons.compress.utils.Lists;
 import org.gbif.occurrence.download.service.hive.HiveSQL.Validate.Result;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 import org.gbif.occurrence.download.service.hive.validation.QueryContext;
@@ -12,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import com.google.common.collect.Lists;
 
 /**
  * Testing validation queries.
