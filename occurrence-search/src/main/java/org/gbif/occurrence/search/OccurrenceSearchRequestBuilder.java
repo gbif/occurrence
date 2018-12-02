@@ -278,6 +278,10 @@ public class OccurrenceSearchRequestBuilder {
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXON_KEY).getFieldName(),
                                        OccurrenceSearchParameter.TAXON_KEY, FacetField.Method.ENUM,
                                        FacetField.SortOrder.COUNT, false))
+      .put(OccurrenceSearchParameter.TAXONOMIC_STATUS,
+        new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.TAXONOMIC_STATUS).getFieldName(),
+          OccurrenceSearchParameter.TAXONOMIC_STATUS, FacetField.Method.ENUM,
+          FacetField.SortOrder.COUNT, false))
       .put(OccurrenceSearchParameter.COUNTRY,
            new FacetFieldConfiguration(QUERY_FIELD_MAPPING.get(OccurrenceSearchParameter.COUNTRY).getFieldName(),
                                        OccurrenceSearchParameter.COUNTRY, FacetField.Method.ENUM,
