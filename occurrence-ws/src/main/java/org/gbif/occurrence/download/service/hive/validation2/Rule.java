@@ -13,7 +13,7 @@ import org.gbif.occurrence.download.service.hive.validation2.Hive.QueryContext;
 @FunctionalInterface
 public interface Rule {
 
-  RuleContext apply(QueryContext queryContext, RuleBase.Context ruleBaseContext);
+  RuleContext apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext);
 
   static RuleContext violated(Issue issue) {
     return new RuleContext(true, issue);

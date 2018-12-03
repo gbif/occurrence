@@ -1,10 +1,9 @@
 package org.gbif.occurrence.download.service.hive.validation2;
 
-import org.gbif.occurrence.download.service.hive.HiveSQLValidator;
 import org.gbif.occurrence.download.service.hive.validation.Query;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation2.DownloadsQueryRuleBase.Context;
 import org.gbif.occurrence.download.service.hive.validation2.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation2.RuleBase.Context;
 
 /**
  * 
@@ -16,12 +15,11 @@ public class OnlyPureSelectQueriesAllowedRule implements Rule {
 
   @Override
   public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {
-    HiveSQLValidator sqlValidator = new HiveSQLValidator();
+    UnionDDLJoinsValidator sqlValidator = new UnionDDLJoinsValidator();
     try {
-    sqlValidator.validateQuery(queryContext.sql());
-    return Rule.preserved();
-    }
-    catch(IllegalArgumentException ex) {
+      sqlValidator.validateQuery(queryContext.sql());
+      return Rule.preserved();
+    } catch (IllegalArgumentException ex) {
       return Rule.violated(Issue.DDL_JOINS_UNION_NOT_ALLOWED);
     }
   }

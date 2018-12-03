@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.service.hive;
 import java.util.Arrays;
 import java.util.Collection;
+import org.gbif.occurrence.download.service.hive.validation2.UnionDDLJoinsValidator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ public class HiveSQLValidatorTest {
   
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidQueries() {
-      HiveSQLValidator hiveSQLValidator = new HiveSQLValidator();
+      UnionDDLJoinsValidator hiveSQLValidator = new UnionDDLJoinsValidator();
       hiveSQLValidator.validateQuery(query);
       if (!valid) {
         Assert.fail("An invalid query has been accepted");

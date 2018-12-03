@@ -10,9 +10,52 @@ import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
+import org.gbif.occurrence.download.service.hive.validation2.HiveQuery.SQLSelectFields;
 
 public class Hive {
 
+  private Hive() {}
+
+  /**
+   * 
+   * Data structure representing parts or fragments of SQL Query.
+   *
+   */
+  public static class QueryFragments {
+    private final String from;
+    private final List<String> fields;
+    private final String where;
+    private final boolean hasFunctions;
+
+    public QueryFragments(String from, List<String> fields, String where, boolean hasFunctions) {
+      this.from = from;
+      this.fields = fields;
+      this.where = where;
+      this.hasFunctions = hasFunctions;
+    }
+
+    public String getFrom() {
+      return from;
+    }
+
+    public List<String> getFields() {
+      return fields;
+    }
+
+    public String getWhere() {
+      return where;
+    }
+
+    public boolean hasFunctionsOnSqlFields() {
+      return hasFunctions;
+    }
+  }
+
+  /**
+   * 
+   * Data structure keeping the context of SQL Query and related info;
+   *
+   */
   public static class QueryContext {
     private final String sql;
     private final Optional<ASTNode> queryNode;
@@ -47,6 +90,28 @@ public class Hive {
       return parseException;
     }
 
+    public Optional<QueryFragments> fragments(DownloadsQueryRuleBase ruleBase) {
+      if (hasParseIssues())
+        throw new IllegalStateException("Query has parsing errors");
+      if (ruleBase.getRuleBaseContext().hasIssues())
+        throw new IllegalStateException(
+            "QueryParseObject cannot be retrieved as it has following issues " + ruleBase.getRuleBaseContext().issues());
+
+      return queryNode.map(node -> {
+        String from = HiveQuery.Extract.tableName(ruleBase, node);
+        SQLSelectFields selectFields = HiveQuery.Extract.fieldNames(ruleBase, node);
+        String where = HiveQuery.Extract.whereClause(ruleBase, sql());
+        return new QueryFragments(from, selectFields.fields(), where, selectFields.hasFunction());
+      });
+    }
+
+    /**
+     * utility to search for a particular token in the {@link ASTNode}.
+     * 
+     * @param node node to search from.
+     * @param token token to search for.
+     * @return first occurrence of the token in the provided ASTNode.
+     */
     public static Optional<Node> search(ASTNode node, String token) {
       LinkedList<Node> list = new LinkedList<>(node.getChildren());
       while (!list.isEmpty()) {
@@ -59,6 +124,13 @@ public class Hive {
       return Optional.empty();
     }
 
+    /**
+     * utility to search for a particular token in the {@link ASTNode}.
+     * 
+     * @param node node to search from.
+     * @param token token to search for.
+     * @return all the occurrences of the provided ASTNode.
+     */
     public static List<Node> searchMulti(ASTNode node, String token) {
       LinkedList<Node> list = new LinkedList<>(node.getChildren());
       ArrayList<Node> listOfSearchedNode = new ArrayList<>();
@@ -73,8 +145,20 @@ public class Hive {
     }
   }
 
+  /**
+   * 
+   * Hive Parser parses the SQL query.
+   *
+   */
   public static class Parser {
     private Parser() {}
+
+    /**
+     * parses SQL query.
+     * 
+     * @param sql
+     * @return {@link QueryContext} containing the parse info.
+     */
     public static QueryContext parse(String sql) {
       ParseDriver driver = new ParseDriver();
       try {
@@ -85,6 +169,4 @@ public class Hive {
       }
     }
   }
-
-
 }
