@@ -67,7 +67,9 @@ public class TemporalInterpreter {
       Range<LocalDate> validModifiedDateRange = Range.closed(MIN_EPOCH_LOCAL_DATE, upperBound);
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DcTerm.modified),
               validModifiedDateRange, OccurrenceIssue.MODIFIED_DATE_UNLIKELY);
-      occ.setModified(TemporalAccessorUtils.toDate(parsed.getPayload()));
+      if (parsed.isSuccessful()) {
+        occ.setModified(TemporalAccessorUtils.toDate(parsed.getPayload()));
+      }
       occ.getIssues().addAll(parsed.getIssues());
     }
 
@@ -75,7 +77,7 @@ public class TemporalInterpreter {
       Range<LocalDate> validRecordedDateRange = Range.closed(MIN_LOCAL_DATE, upperBound);
       OccurrenceParseResult<TemporalAccessor> parsed = interpretLocalDate(verbatim.getVerbatimField(DwcTerm.dateIdentified),
               validRecordedDateRange, OccurrenceIssue.IDENTIFIED_DATE_UNLIKELY);
-      if(parsed.isSuccessful()) {
+      if (parsed.isSuccessful()) {
         occ.setDateIdentified(TemporalAccessorUtils.toDate(parsed.getPayload()));
       }
       occ.getIssues().addAll(parsed.getIssues());

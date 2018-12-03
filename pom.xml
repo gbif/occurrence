@@ -151,7 +151,7 @@
     <gbif-common-ws.version>0.45</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.38</gbif-parsers.version>
+    <gbif-parsers.version>0.39</gbif-parsers.version>
     <gbif-postal-service.version>0.25</gbif-postal-service.version>
     <gbif-registry.version>2.96</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
