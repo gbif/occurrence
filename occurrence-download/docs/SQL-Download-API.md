@@ -56,7 +56,7 @@ No Authorization needed
 ##### Sample Request
 
 ```
-GET /v1/occurrence/download/request/sql/validate?sql=select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`, count(`species`) `count` from `occurrence` GROUP BY `decimallatitude`/10, `decimallongitude`/10 HTTP/1.1
+GET /v1/occurrence/download/request/sql/validate?sql=SELECT decimallatitude/10 lat, decimallongitude/10 lon, count(species) AS speciesRichness FROM occurrence GROUP BY decimallatitude/10, decimallongitude/10 HTTP/1.1
 Host: api.gbif.org
 Content-Type: application/json
 cache-control: no-cache 
@@ -65,7 +65,7 @@ cache-control: no-cache
 ##### Sample Response
 ```
 {
-    "sql": "select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`, count(`species`) `count` from `occurrence` GROUP BY `decimallatitude`/10, `decimallongitude`/10",
+    "sql": "SELECT decimallatitude/10 lat, decimallongitude/10 lon, count(species) AS speciesRichness FROM occurrence GROUP BY decimallatitude/10, decimallongitude/10",
     "issues": [],
     "explain": [
         "STAGE DEPENDENCIES:",
@@ -141,7 +141,7 @@ cache-control: no-cache
   ],
   "send_notification": "true",
   "format": "SQL",
-  "sql": "select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`, count(`species`) `count` from `occurrence` GROUP BY `decimallatitude`/10, `decimallongitude`/10"
+  "sql": "SELECT decimallatitude/10 lat, decimallongitude/10 lon, count(species) AS speciesRichness FROM occurrence GROUP BY decimallatitude/10, decimallongitude/10"
 }
 ```
 
@@ -153,12 +153,17 @@ cache-control: no-cache
 
 SQL query supported by GBIF API need to follow some rules, they are :
 1. Sql query supported format: <br/>
-   SELECT `<field1>`,`<field2>`,`<field3>`,`<field4>` FROM occurrence WHERE `<condition1>` AND `<condition2>` OR `<condition3>` …  GROUP BY …
-2. All the identifier in query should be quoted by ` (back quotes). It is not hard requirement but there are conflicts with SQL keywords and DWCA fields. So it is important that these fields are back quoted to be parsed correctly. The reserved keywords for SQL are mentioned [here](#sql-keywords).  
+   SELECT `<field1>`,`<field2>`,`<field3>`,`<field4>` FROM occurrence WHERE `<condition1>` AND `<condition2>` OR `<condition3>` …  GROUP BY … .
+2. All the identifier in query should be quoted by \` (back quotes). It is not hard requirement but there are conflicts with SQL keywords and DWCA fields. So it is important that these fields are back quoted to be parsed correctly. The reserved keywords for SQL are mentioned [here](#sql-keywords).  
 3. ORDER BY, DML queries, SET queries (UNION, INTERSECT), Subqueries (AS), JOINS not allowed.
 4. Table name should always be “occurrence”.	
 5. ‘*’ can’t be used, provide fields for selection explicitly.
 6. HAVING clause not supported.
+
+**Note**:
+For example : A query using month and year for Downloads will not work as MONTH and YEAR are keywords in SQL and fields in GBIF schema. 
+  ~~``` SELECT gbifid, countrycode, datasetkey, license, month, year FROM occurrence WHERE month=3 AND year = 2018 ```~~ to   quote month and year will solve the problem 
+  ```SELECT gbifid, countrycode, datasetkey, license, `month`, `year` FROM occurrence WHERE `month`=3 AND `year`= 2018```.
 
 ### SQL Functions supported
 
@@ -187,21 +192,30 @@ curl -X GET \
 For example, we want to know the count of species available in 10*10 square grid of the world map.
 
 ```
-select `decimallatitude`/10`lat`, `decimallongitude`/10 `lon`,  count(`species`) `count` from `occurrence` group by `decimallatitude`/10, `decimallongitude`/10 
+SELECT 
+  decimallatitude/10 AS lat, 
+  decimallongitude/10 AS lon, 
+  count(species) AS speciesRichness 
+FROM occurrence 
+GROUP BY 
+  decimallatitude/10, 
+  decimallongitude/10
 ```
 Validate the query with SQL validation service
 
 ```
-curl -X GET \
-  'http://api.gbif.org/v1/occurrence/download/request/sql/validate?sql=select%20`decimallatitude`/10`lat`,%20`decimallongitude`/10%20`lon`,%20%20count%28`species`%29%20`count`%20from%20`occurrence`%20group%20by%20`decimallatitude`/10,%20`decimallongitude`/10' \
-  -H 'Content-Type: application/json' \
-  -H 'cache-control: no-cache'
+curl -G -i https://api.gbif.org/v1/occurrence/download/request/sql/validate --data-urlencode \
+"sql=SELECT 
+  DISTINCT(countrycode) 
+FROM occurrence
+WHERE
+taxonKey=6"
 ```
 
 You get a json response, and check for -> "issues": []. If you have issues they will be highlighted and described here.
 
 **Step 3.** When the query is finalised, Create a download request using following steps
-
+Note: Provide your username, password, valid notification address and user name in creator field before using the command below.
 
 ```
 curl -X POST   http://api.gbif.org/v1/occurrence/download/request/sql   --user <username>:<password>   -H 'Content-Type: application/json'   -H 'cache-control: no-cache'   -d '{
@@ -211,7 +225,8 @@ curl -X POST   http://api.gbif.org/v1/occurrence/download/request/sql   --user <
   ],
   "send_notification": "true",
   "format": "SQL",
-  "sql": "select `decimallatitude`/10 `lat`, `decimallongitude`/10 `lon`,  count(`species`) `count` from `occurrence` group by `decimallatitude`/10, `decimallongitude`/10"
+  "sql": "SELECT decimallatitude/10 lat, decimallongitude/10 lon, count(species) AS speciesRichness 
+  FROM occurrence GROUP BY decimallatitude/10, decimallongitude/10"
 }
  '
 ```
