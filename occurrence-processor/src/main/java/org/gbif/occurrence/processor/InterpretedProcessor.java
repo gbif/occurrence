@@ -157,6 +157,7 @@ public class InterpretedProcessor {
         return;
       }
       localAttemptId = fragment.getCrawlId();
+      datasetKey = fragment.getDatasetKey();
     }
 
     VerbatimOccurrence verbatim = occurrencePersister.getVerbatim(occurrenceKey);
@@ -188,7 +189,7 @@ public class InterpretedProcessor {
         return;
       }
     } else {
-      LOG.info("Can't find verbatim defaults without a dataset key");
+      LOG.info("Can't find verbatim defaults without a dataset key; occurrenceKey {}", occurrenceKey);
     }
 
     OccurrenceInterpretationResult interpretationResult;
