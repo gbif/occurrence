@@ -151,7 +151,7 @@ public class DownloadResource {
   }
 
   @POST
-  @Produces({MediaType.TEXT_PLAIN})
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Validate
   @Path("sql")
   public String startSqlDownload(@NotNull @Valid SqlDownloadRequest request, @Context SecurityContext security) {
@@ -162,7 +162,7 @@ public class DownloadResource {
    * Request a new predicate download (POST method, public API).
    */
   @POST
-  @Produces({MediaType.TEXT_PLAIN})
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Validate
   public String startDownload(@NotNull @Valid PredicateDownloadRequest request, @Context SecurityContext security) {
     return createDownload(request, security);
@@ -188,7 +188,7 @@ public class DownloadResource {
    * Request a new download (GET method, internal API used by the portal).
    */
   @GET
-  @Produces({MediaType.TEXT_PLAIN})
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   public String download(@Context HttpServletRequest httpRequest, @QueryParam("notification_address") String emails,
                          @QueryParam("format") String format, @Context SecurityContext securityContext) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
