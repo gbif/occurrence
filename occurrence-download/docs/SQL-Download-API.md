@@ -34,7 +34,7 @@ No Authorization needed
 
 ```
 GET /v1/occurrence/download/request/sql/describe HTTP/1.1
-Host: api.gbif.org
+Host: api.gbif-uat.org
 cache-control: no-cache
 ```
 
@@ -57,7 +57,7 @@ No Authorization needed
 
 ```
 GET /v1/occurrence/download/request/sql/validate?sql=SELECT decimallatitude/10 lat, decimallongitude/10 lon, count(species) AS speciesRichness FROM occurrence GROUP BY decimallatitude/10, decimallongitude/10 HTTP/1.1
-Host: api.gbif.org
+Host: api.gbif-uat.org
 Content-Type: application/json
 cache-control: no-cache 
 ```
@@ -130,7 +130,7 @@ Authorization needed
 
 ```
 POST /v1/occurrence/download/request/sql HTTP/1.1
-Host: api.gbif.org
+Host: api.gbif-uat.org
 Content-Type: application/json
 Authorization: Basic cnBhdGhhazptZXJwYXRoYWs=
 cache-control: no-cache
@@ -184,7 +184,7 @@ Prerequisite :
 
 ```
 curl -X GET \
-  https://api.gbif.org/v1/occurrence/download/request/sql/describe \
+  https://api.gbif-uat.org/v1/occurrence/download/request/sql/describe \
   -H 'cache-control: no-cache'
 ```
 
@@ -204,7 +204,7 @@ GROUP BY
 Validate the query with SQL validation service
 
 ```
-curl -G -i https://api.gbif.org/v1/occurrence/download/request/sql/validate --data-urlencode \
+curl -G -i https://api.gbif-uat.org/v1/occurrence/download/request/sql/validate --data-urlencode \
 "sql=SELECT 
   DISTINCT(countrycode) 
 FROM occurrence
@@ -218,7 +218,7 @@ You get a json response, and check for -> "issues": []. If you have issues they 
 Note: Provide your username, password, valid notification address and user name in creator field before using the command below.
 
 ```
-curl -X POST   http://api.gbif.org/v1/occurrence/download/request/sql   --user <username>:<password>   -H 'Content-Type: application/json'   -H 'cache-control: no-cache'   -d '{
+curl -X POST   http://api.gbif-uat.org/v1/occurrence/download/request/sql   --user <username>:<password>   -H 'Content-Type: application/json'   -H 'cache-control: no-cache'   -d '{
   "creator": "<user>",
   "notification_address": [
     "user@lab.edu"
@@ -234,7 +234,7 @@ curl -X POST   http://api.gbif.org/v1/occurrence/download/request/sql   --user <
 you get download key which can be tracked online for downloads or turn on notification by making send_notification: true and adding your email id in notification_address field of above curl statement.
 
 For example to track the download for downloadkey= 0000015-181121175518854, open the web browser in your computer and navigate to <br/>
-[https://www.gbif.org/occurrence/download/0000015-181121175518854](https://www.gbif-dev.org/occurrence/download/0000015-181121175518854)
+[https://www.gbif-uat.org/occurrence/download/0000015-181121175518854](https://www.gbif-dev.org/occurrence/download/0000015-181121175518854)
 
 ## Future Works
 
