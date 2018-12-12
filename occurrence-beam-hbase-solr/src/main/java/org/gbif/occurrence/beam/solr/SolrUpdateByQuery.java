@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import org.apache.beam.runners.spark.SparkRunner;
@@ -54,13 +55,31 @@ public class SolrUpdateByQuery {
     String tableName = options.getTable();
 
     PCollection<SolrInputDocument> docsOut = docsIn.apply("Convert to Occurrence", ParDo.of(
+
       new DoFn<SolrDocument, SolrInputDocument>() {
+
+        private Connection connection;
+        private Table table;
+
+        @Setup
+        public void setup() throws IOException {
+          Configuration hbaseConfig = HBaseConfiguration.create();
+          hbaseConfig.set("hbase.zookeeper.quorum", hbaseZk);
+          connection = ConnectionFactory.createConnection(hbaseConfig);
+          table = connection.getTable(TableName.valueOf(tableName));
+        }
+
+        @Teardown
+        public void tearDown() throws IOException {
+          if(Objects.nonNull(table)) {
+            table.close();
+            connection.close();
+          }
+        }
+
         @ProcessElement
         public void processElement(ProcessContext c) {
-            Configuration hbaseConfig = HBaseConfiguration.create();
-            hbaseConfig.set("hbase.zookeeper.quorum", hbaseZk);
-            try (Connection connection = ConnectionFactory.createConnection(hbaseConfig);
-                 Table table = connection.getTable(TableName.valueOf(tableName))) {
+          try {
               SolrDocument solrDocument = c.element();
               Get get = new Get(Bytes.toBytes((Integer)solrDocument.get("key")));
               Result row = table.get(get);
