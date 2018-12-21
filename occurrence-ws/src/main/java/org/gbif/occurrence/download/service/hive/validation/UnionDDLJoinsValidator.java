@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.service.hive.validation2;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.io.IOException;
 import java.util.regex.Pattern;

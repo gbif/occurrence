@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.service.hive.validation2;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
-import org.gbif.occurrence.download.service.hive.validation2.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation2.Rule.RuleContext;
+import org.gbif.occurrence.download.service.hive.validation.Rule.RuleContext;
 
 
 /**
@@ -21,7 +21,7 @@ import org.gbif.occurrence.download.service.hive.validation2.Rule.RuleContext;
 public class DownloadsQueryRuleBase {
 
   private static final List<Rule> RULES = Arrays.asList(new OnlyOneSelectAllowedRule(), new StarForFieldsNotAllowedRule(),
-      new OnlyPureSelectQueriesAllowedRule(), new TableNameShouldBeOccurrenceRule(), new HavingClauseNotSupportedRule());
+      new OnlyPureSelectQueriesAllowedRule(), new TableNameShouldBeOccurrenceRule(), new HavingClauseNotSupportedRule(), new SQLShouldBeExecutableRule());
 
   /**
    * 
@@ -30,11 +30,9 @@ public class DownloadsQueryRuleBase {
    */
   public static class Context {
     private Optional<DownloadsQueryRuleBase> ruleBase = Optional.empty();
-    private Map<Rule, RuleContext> ruleContext = new HashMap<>();
+    private Map<String, RuleContext> ruleContext = new HashMap<>();
     private List<Issue> issues = new ArrayList<>();
     private List<String> firedRules = new ArrayList<>();
-
-    Context() {}
 
     Context(DownloadsQueryRuleBase base) {
       this.ruleBase = Optional.of(base);
@@ -45,7 +43,7 @@ public class DownloadsQueryRuleBase {
     }
 
     void addFiredRule(Rule rule, RuleContext context) {
-      ruleContext.put(rule, context);
+      ruleContext.put(rule.getClass().getSimpleName(), context);
       firedRules.add(rule.getClass().getSimpleName());
     }
 
@@ -56,13 +54,13 @@ public class DownloadsQueryRuleBase {
     public List<String> firedRulesByName() {
       return firedRules;
     }
+    
+    public Optional<RuleContext> lookupRuleContextFor(Rule rule){
+      return Optional.ofNullable(ruleContext.get(rule.getClass().getSimpleName()));  
+    }
 
     public Optional<DownloadsQueryRuleBase> ruleBase() {
       return ruleBase;
-    }
-
-    public void attachRuleBase(DownloadsQueryRuleBase ruleBase) {
-      this.ruleBase = Optional.of(ruleBase);
     }
 
     public boolean hasIssues() {
@@ -75,7 +73,6 @@ public class DownloadsQueryRuleBase {
 
   private DownloadsQueryRuleBase(List<Rule> rulesToFire) {
     this.rulesToFire = rulesToFire;
-    this.ruleBaseContext = new Context();
   }
 
   /**
@@ -87,11 +84,9 @@ public class DownloadsQueryRuleBase {
     return DownloadsQueryRuleBase.create(RULES);
   }
 
-  private static DownloadsQueryRuleBase create(List<Rule> rulesToFire) {
+  public static DownloadsQueryRuleBase create(List<Rule> rulesToFire) {
     Objects.requireNonNull(rulesToFire);
-    DownloadsQueryRuleBase rb = new DownloadsQueryRuleBase(rulesToFire);
-    rb.getRuleBaseContext().attachRuleBase(rb);
-    return rb;
+    return new DownloadsQueryRuleBase(rulesToFire);
   }
 
   /**
@@ -100,7 +95,8 @@ public class DownloadsQueryRuleBase {
    * @param context
    */
   public void fireAllRules(QueryContext context) {
-    rulesToFire.stream().forEach(rule -> fireRule(context, rule));
+    ruleBaseContext = new Context(this);
+    rulesToFire.stream().forEach(rule -> fireRule(context, rule)); 
   }
 
   private void fireRule(QueryContext context, Rule rule) {
@@ -124,7 +120,7 @@ public class DownloadsQueryRuleBase {
     return rulesToFire;
   }
 
-  public Context getRuleBaseContext() {
+  public Context context() {
     return ruleBaseContext;
   }
 }

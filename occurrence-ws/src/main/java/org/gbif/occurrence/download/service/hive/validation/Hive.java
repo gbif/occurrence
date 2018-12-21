@@ -1,16 +1,21 @@
-package org.gbif.occurrence.download.service.hive.validation2;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.apache.hadoop.hive.ql.parse.ParseException;
+import org.gbif.occurrence.download.service.hive.validation.HiveQuery.SQLSelectFields;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
-import org.gbif.occurrence.download.service.hive.validation2.HiveQuery.SQLSelectFields;
+import org.gbif.occurrence.download.service.hive.validation.Rule.PayloadRuleContext;
 
 public class Hive {
 
@@ -25,13 +30,15 @@ public class Hive {
     private final String from;
     private final List<String> fields;
     private final String where;
+    private final List<String> groupBy;
     private final boolean hasFunctions;
 
-    public QueryFragments(String from, List<String> fields, String where, boolean hasFunctions) {
+    public QueryFragments(String from, List<String> fields, String where, boolean hasFunctions,List<String> groupBy) {
       this.from = from;
       this.fields = fields;
       this.where = where;
       this.hasFunctions = hasFunctions;
+      this.groupBy = groupBy;
     }
 
     public String getFrom() {
@@ -44,6 +51,10 @@ public class Hive {
 
     public String getWhere() {
       return where;
+    }
+    
+    public List<String> groupBy() {
+      return groupBy;
     }
 
     public boolean hasFunctionsOnSqlFields() {
@@ -61,7 +72,10 @@ public class Hive {
     private final Optional<ASTNode> queryNode;
     private final Issue issue;
     private final Optional<ParseException> parseException;
-
+    private Optional<QueryFragments> fragments = Optional.empty();
+    private Optional<String> translatedSQL = Optional.empty();
+    private Optional<List<String>> explainQuery = Optional.empty();
+    
     private QueryContext(String sql, Optional<ASTNode> queryNode, Issue issue, Optional<ParseException> parseException) {
       this.sql = sql;
       this.issue = issue;
@@ -89,20 +103,63 @@ public class Hive {
     public Optional<ParseException> getParseException() {
       return parseException;
     }
-
-    public Optional<QueryFragments> fragments(DownloadsQueryRuleBase ruleBase) {
+    
+    private Supplier<IllegalStateException> getExceptionOnInvalidState = () -> { 
       if (hasParseIssues())
         throw new IllegalStateException("Query has parsing errors");
-      if (ruleBase.getRuleBaseContext().hasIssues())
+      else
+        throw new IllegalStateException("Query do not comply with all rules, can't fetch query fragments.");
+    };
+    
+    public void computeFragmentsAndTranslateSQL(@Nonnull DownloadsQueryRuleBase ruleBase) {
+      Objects.requireNonNull(ruleBase);
+      explainQuery = ruleBase.context().lookupRuleContextFor(new SQLShouldBeExecutableRule()).filter( context -> context instanceof PayloadRuleContext ).map( context -> ((PayloadRuleContext<List<String>>)context).payload());
+      if (hasParseIssues())
+        throw new IllegalStateException("Query has parsing errors");
+      if (ruleBase.context().hasIssues())
         throw new IllegalStateException(
-            "QueryParseObject cannot be retrieved as it has following issues " + ruleBase.getRuleBaseContext().issues());
-
-      return queryNode.map(node -> {
+            "Query Fragments cannot be retrieved as it has following issues " + ruleBase.context().issues());
+      if(!translatedSQL.isPresent()) {translatedSQL();}
+      fragments = queryNode.map(node -> {
         String from = HiveQuery.Extract.tableName(ruleBase, node);
         SQLSelectFields selectFields = HiveQuery.Extract.fieldNames(ruleBase, node);
         String where = HiveQuery.Extract.whereClause(ruleBase, sql());
-        return new QueryFragments(from, selectFields.fields(), where, selectFields.hasFunction());
-      });
+        String groupBy = HiveQuery.Extract.groupByClause(ruleBase, sql());
+        return new QueryFragments(from, selectFields.fields(), where, selectFields.hasFunction(), Arrays.asList(groupBy.split(",")));
+      });  
+    }
+    
+    /**
+     * explanation of query
+     * @return
+     */
+    public List<String> explainQuery(){
+      return explainQuery.orElse(Arrays.asList());
+    }
+    
+    /**
+     * transform sql with tablename occurrence_hdfs
+     * @param ruleBase
+     * @return
+     */
+    public QueryFragments fragments() {
+      return fragments.orElseThrow(getExceptionOnInvalidState); 
+    }
+    
+    /**
+     * transform sql with tablename occurrence_hdfs
+     * @param ruleBase
+     * @return
+     */
+    public String translatedSQL() {
+      if (translatedSQL.isPresent()) return translatedSQL.get();
+      
+      String transformTableName = "occurrence_hdfs";
+      int indexTable = sql.toUpperCase().indexOf("OCCURRENCE");
+      String substring1 = sql.substring(0,indexTable);
+      String substring2 = sql.substring(indexTable+10);
+      translatedSQL= Optional.ofNullable(substring1+ transformTableName + substring2);
+      return translatedSQL.get();
     }
 
     /**

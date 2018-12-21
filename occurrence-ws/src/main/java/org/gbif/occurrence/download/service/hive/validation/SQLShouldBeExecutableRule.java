@@ -1,8 +1,10 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.gbif.occurrence.download.service.hive.HiveSQL;
+import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
 /**
@@ -10,29 +12,20 @@ import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
  * Rule checks if the provided query is executable else through {@linkplain Query.Issue}
  *
  */
-public class SQLShouldBeExecutableRule implements Rule {
+public class SQLShouldBeExecutableRule implements Rule{
 
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
-  private List<String> explain;
-
-  public List<String> explainValue() {
-    return explain;
-  }
-
-  private List<String> explain(String sql) {
-    return HiveSQL.Execute.explain(sql);
-  }
-
+  
   @Override
-  public RuleContext apply(QueryContext context) {
-    try {
-      context.ensureTableName();
-      explain = explain(context.translatedQuery());
+  public RuleContext apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+    List<String> explain = new ArrayList<>();
+    try {      
+      explain = HiveSQL.Execute.explain(queryContext.translatedSQL());
     } catch (RuntimeException e) {
       explain = Collections.singletonList(COMPILATION_ERROR);
-      return Rule.violated(Issue.CANNOT_EXECUTE.withComment(e.getMessage()));
+      return Rule.violated(explain, Issue.CANNOT_EXECUTE.withComment(e.getMessage()));
     }
-    return Rule.preserved();
+    return Rule.preserved(explain);
   }
 
 }

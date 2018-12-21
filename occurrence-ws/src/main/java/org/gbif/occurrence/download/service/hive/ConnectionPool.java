@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -52,12 +53,13 @@ public class ConnectionPool {
     
     cp =  new HiveConnectionPool();
     Properties jdbcProperties = PropertiesUtil.readFromFile(ConfUtils.getAppConfFile(APP_CONF_FILE));
-
-    String jdbcURL = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_URL));
-    String username = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_USER));
-    String password = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_PASS));
-    String maxWaitTime = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_WAIT_TIME));
-    int poolSize = Integer.parseInt(Objects.requireNonNull(jdbcProperties.getProperty(JDBC_POOL_SIZE)));
+    Function<String,String> messageTemplate = config -> String.format("%s is missing in configuration.", config);
+    
+    String jdbcURL = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_URL), messageTemplate.apply(JDBC_URL) );
+    String username = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_USER), messageTemplate.apply(JDBC_USER));
+    String password = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_PASS), messageTemplate.apply(JDBC_PASS));
+    String maxWaitTime = Objects.requireNonNull(jdbcProperties.getProperty(JDBC_WAIT_TIME), messageTemplate.apply(JDBC_WAIT_TIME));
+    int poolSize = Integer.parseInt(Objects.requireNonNull(jdbcProperties.getProperty(JDBC_POOL_SIZE , messageTemplate.apply(JDBC_POOL_SIZE))));
 
     NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username)
       .withPassword(password).withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime);

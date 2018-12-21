@@ -20,7 +20,7 @@ public class Query {
     DATASET_AND_LICENSE_REQUIRED("SQL query should select on 'datasetkey' and 'license' fields as they are required for citations."), 
     CANNOT_EXECUTE("Query cannot be executed because of"), 
     TABLE_NAME_NOT_OCCURRENCE("Query should have table name as `occurrence`."), 
-    PARSE_FAILED(String.format("Cannot parse the query, Make sure all the identifiers are quoted with ` and provided query should follow the format %n %s.", FORMAT)),
+    PARSE_FAILED(String.format("Cannot parse the query, the sql query is invalid, Make sure provided query should follow the format %n %s.", FORMAT)),
     CANNOT_USE_ALLFIELDS("Usage of '*' for selecting all fields not allowed, Please explicitly add the desired fields, refer the fields from occurrence/download/request/sql/describe endpoint."),
     HAVING_CLAUSE_NOT_SUPPORTED("SQL Download API donot support query with HAVING clause");
     

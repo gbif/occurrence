@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -52,7 +53,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -185,12 +185,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
     sqlRequest.setSql(result.transSql());
     BiFunction<String, String, Map.Entry<String, String>> entry = AbstractMap.SimpleEntry::new;
+    
     //if where clause is not there, then send empty when no functions used else send all rows for where clause(this is for citation).
+    Optional<String> optionalWhere = Optional.of(result.queryContext().fragments().getWhere());
+    String where = optionalWhere.filter( String::isEmpty).map( x -> result.queryContext().fragments().hasFunctionsOnSqlFields() ? EMPTY : ALL).orElse(optionalWhere.get());
+    
     return client.run(parametersBuilder.buildWorkflowParameters(request,
         Collections.unmodifiableMap(Stream
             .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
-                entry.apply(DownloadWorkflowParameters.SQL_WHERE,
-                    result.queryContext().where().orElse(result.queryContext().hasFunctionsInSelectFields() ? EMPTY : ALL)))
+                entry.apply(DownloadWorkflowParameters.SQL_WHERE, where))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 
@@ -236,7 +239,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public void processCallback(String jobId, String status) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(status), "<status> may not be null or empty");
-    Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
+    com.google.common.base.Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 

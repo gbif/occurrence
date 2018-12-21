@@ -1,7 +1,7 @@
 package org.gbif.occurrence.download.service.hive;
 import java.util.Arrays;
 import java.util.Collection;
-import org.gbif.occurrence.download.service.hive.validation2.UnionDDLJoinsValidator;
+import org.gbif.occurrence.download.service.hive.validation.UnionDDLJoinsValidator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.service.hive.validation2;
+package org.gbif.occurrence.download.service.hive.validation;
 
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
-import org.gbif.occurrence.download.service.hive.validation2.Hive.QueryContext;
+import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import com.google.common.base.Preconditions;
 
 public class HiveQuery {
@@ -70,7 +70,7 @@ public class HiveQuery {
     }
 
     /**
-     * where clause from ASTNode.
+     * where clause from SQL.
      * 
      * @param rb
      * @param sql
@@ -80,6 +80,17 @@ public class HiveQuery {
       return new HiveQuery.Extract<String, String>(rb).apply(sql, new SimpleWhereClauseExtractor());
     }
 
+    /**
+     * GROUP BY clause from SQL.
+     * 
+     * @param rb
+     * @param sql
+     * @return where clause
+     */
+    public static String groupByClause(DownloadsQueryRuleBase rb, String sql) {
+      return new HiveQuery.Extract<String, String>(rb).apply(sql, new SimpleGroupByClauseExtractor());
+    }
+    
     @Override
     public T apply(U t, Extractor<U, T> u) {
       return u.apply(rb, t);
@@ -91,10 +102,10 @@ public class HiveQuery {
     abstract T apply(U u);
 
     public T apply(DownloadsQueryRuleBase ruleBase, U u) {
-      if (ruleBase.getRuleBaseContext().hasIssues())
+      if (ruleBase.context().hasIssues())
         throw new IllegalStateException("Rule base has issues cannot execute..");
-      ruleBase.getRuleBaseContext().ruleBase().ifPresent(rb -> {
-        Preconditions.checkArgument(rb.getRulesToFire().size() == rb.getRuleBaseContext().firedRulesByName().size(),
+      ruleBase.context().ruleBase().ifPresent(rb -> {
+        Preconditions.checkArgument(rb.getRulesToFire().size() == rb.context().firedRulesByName().size(),
             "Please fire all rules in rule base before using extract");
       });
       return apply(u);
@@ -191,6 +202,24 @@ public class HiveQuery {
       } else {
         return sql.substring(whereIndex).substring(5).trim();
       }
+    }
+  }
+  
+  /**
+   * 
+   * Implementation of GROUP BY clause extractor.
+   *
+   */
+  static class SimpleGroupByClauseExtractor extends Extractor<String, String> {
+    private static final String TOK_GROUP_BY = "GROUP BY";
+
+    @Override
+    public String apply(@Nonnull String sql) {
+      if (!sql.toUpperCase().contains(TOK_GROUP_BY))
+        return "";
+
+      int groupByIndex = sql.toUpperCase().indexOf(TOK_GROUP_BY);
+      return sql.substring(groupByIndex).substring(8).trim();
     }
   }
 }

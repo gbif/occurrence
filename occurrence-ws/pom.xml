@@ -158,43 +158,8 @@
     <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-exec</artifactId>
+        <scope>compile</scope>
     </dependency>
-    <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-core</artifactId>
-		<exclusions>
-			<exclusion>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>commons-dbcp</groupId>
-				<artifactId>commons-dbcp</artifactId>
-			</exclusion>
-		</exclusions>
-    </dependency>
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-avatica</artifactId>
-		<exclusions>
-			<exclusion>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-			</exclusion>
-			<exclusion>
-				<groupId>commons-dbcp</groupId>
-				<artifactId>commons-dbcp</artifactId>
-			</exclusion>
-		</exclusions>
-	  </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
