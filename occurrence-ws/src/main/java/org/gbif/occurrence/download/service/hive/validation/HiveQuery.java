@@ -90,7 +90,7 @@ public class HiveQuery {
     public static String groupByClause(DownloadsQueryRuleBase rb, String sql) {
       return new HiveQuery.Extract<String, String>(rb).apply(sql, new SimpleGroupByClauseExtractor());
     }
-    
+
     @Override
     public T apply(U t, Extractor<U, T> u) {
       return u.apply(rb, t);
@@ -204,7 +204,7 @@ public class HiveQuery {
       }
     }
   }
-  
+
   /**
    * 
    * Implementation of GROUP BY clause extractor.

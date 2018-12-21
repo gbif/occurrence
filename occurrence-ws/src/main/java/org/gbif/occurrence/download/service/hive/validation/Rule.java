@@ -21,8 +21,8 @@ public interface Rule {
   static RuleContext preserved() {
     return new RuleContext(false, Issue.NO_ISSUE);
   }
-  
-  static <T> RuleContext violated( T payload, Issue issue) {
+
+  static <T> RuleContext violated(T payload, Issue issue) {
     return new PayloadRuleContext<T>(payload, true, issue);
   }
 
@@ -52,17 +52,19 @@ public interface Rule {
     }
 
   }
-  
-  class PayloadRuleContext<T> extends RuleContext{
+
+  class PayloadRuleContext<T> extends RuleContext {
     private final T payload;
-    
-    private PayloadRuleContext( @Nonnull T payload, boolean isViolated, Query.Issue issue) {
+
+    private PayloadRuleContext(@Nonnull T payload, boolean isViolated, Query.Issue issue) {
       super(isViolated, issue);
       this.payload = payload;
     }
-    
-    public T payload() {return payload; }
-    
+
+    public T payload() {
+      return payload;
+    }
+
   }
 
 }

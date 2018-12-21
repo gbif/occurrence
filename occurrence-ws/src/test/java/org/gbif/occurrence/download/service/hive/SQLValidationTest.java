@@ -72,7 +72,6 @@ public class SQLValidationTest {
     
     @Override
     public Result apply(String sql) {
-      
       DownloadsQueryRuleBase ruleBase = DownloadsQueryRuleBase.create(RULES);
       QueryContext queryContext = Hive.Parser.parse(sql);
       if (queryContext.hasParseIssues())

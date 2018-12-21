@@ -42,7 +42,7 @@ public class HiveSQL {
     private static final String DESCRIBE = "DESCRIBE ";
     private static final String EXPLAIN = "EXPLAIN ";
     private static final Logger LOG = LoggerFactory.getLogger(Execute.class);
-    
+
     public static List<String> explain(String query) {
       return new Execute<List<String>>().apply(EXPLAIN.concat(query), new ReadExplain());
     }
@@ -58,7 +58,7 @@ public class HiveSQL {
           ResultSet result = stmt.executeQuery(query);) {
         return read.apply(result);
       } catch (Exception ex) {
-        LOG.error(String.format("Cannot execute query: %s , because %s", query, ex.getMessage()));
+        LOG.error(String.format("Cannot execute query: %s , because %s", query, ex.getMessage()), ex);
         throw Throwables.propagate(ex);
       }
     }
@@ -148,21 +148,24 @@ public class HiveSQL {
       LOG.debug("Validating {}", sql);
       DownloadsQueryRuleBase ruleBase = DownloadsQueryRuleBase.create();
       QueryContext queryContext = Hive.Parser.parse(sql);
-      if (queryContext.hasParseIssues()) return parseFailedResultTemplate.apply(queryContext);
+      if (queryContext.hasParseIssues())
+        return parseFailedResultTemplate.apply(queryContext);
 
       ruleBase.fireAllRules(queryContext);
       LOG.debug("All rules fired {}, issues : {}", sql, ruleBase.context().issues());
 
-      if (ruleBase.context().hasIssues()) return ruleFailedResultTemplate.apply(queryContext, ruleBase.context());
+      if (ruleBase.context().hasIssues())
+        return ruleFailedResultTemplate.apply(queryContext, ruleBase.context());
 
       queryContext.computeFragmentsAndTranslateSQL(ruleBase);
       QueryFragments fragments = queryContext.fragments();
       String sqlHeader = String.join(TAB, fragments.getFields());
       String translatedQuery = queryContext.translatedSQL();
-      
-      LOG.debug(" Query fragments are: table : {}, explain: {}, sqlHeader : {}, translatedQuery: {} ", fragments.getFrom(), queryContext.explainQuery(), sqlHeader, translatedQuery);
-      return new Result(queryContext.sql(), translatedQuery, ruleBase.context().issues(), queryContext.explainQuery(), sqlHeader, queryContext,
-          ruleBase.context().issues().isEmpty());
+
+      LOG.debug(" Query fragments are: table : {}, explain: {}, sqlHeader : {}, translatedQuery: {} ", fragments.getFrom(),
+          queryContext.explainQuery(), sqlHeader, translatedQuery);
+      return new Result(queryContext.sql(), translatedQuery, ruleBase.context().issues(), queryContext.explainQuery(), sqlHeader,
+          queryContext, ruleBase.context().issues().isEmpty());
     }
   }
 }

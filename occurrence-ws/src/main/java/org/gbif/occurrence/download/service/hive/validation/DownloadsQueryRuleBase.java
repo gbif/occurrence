@@ -20,8 +20,9 @@ import org.gbif.occurrence.download.service.hive.validation.Rule.RuleContext;
  */
 public class DownloadsQueryRuleBase {
 
-  private static final List<Rule> RULES = Arrays.asList(new OnlyOneSelectAllowedRule(), new StarForFieldsNotAllowedRule(),
-      new OnlyPureSelectQueriesAllowedRule(), new TableNameShouldBeOccurrenceRule(), new HavingClauseNotSupportedRule(), new SQLShouldBeExecutableRule());
+  private static final List<Rule> RULES =
+      Arrays.asList(new OnlyOneSelectAllowedRule(), new StarForFieldsNotAllowedRule(), new OnlyPureSelectQueriesAllowedRule(),
+          new TableNameShouldBeOccurrenceRule(), new HavingClauseNotSupportedRule(), new SQLShouldBeExecutableRule());
 
   /**
    * 
@@ -54,9 +55,9 @@ public class DownloadsQueryRuleBase {
     public List<String> firedRulesByName() {
       return firedRules;
     }
-    
-    public Optional<RuleContext> lookupRuleContextFor(Rule rule){
-      return Optional.ofNullable(ruleContext.get(rule.getClass().getSimpleName()));  
+
+    public Optional<RuleContext> lookupRuleContextFor(Rule rule) {
+      return Optional.ofNullable(ruleContext.get(rule.getClass().getSimpleName()));
     }
 
     public Optional<DownloadsQueryRuleBase> ruleBase() {
@@ -96,7 +97,7 @@ public class DownloadsQueryRuleBase {
    */
   public void fireAllRules(QueryContext context) {
     ruleBaseContext = new Context(this);
-    rulesToFire.stream().forEach(rule -> fireRule(context, rule)); 
+    rulesToFire.stream().forEach(rule -> fireRule(context, rule));
   }
 
   private void fireRule(QueryContext context, Rule rule) {
