@@ -1,6 +1,9 @@
 package org.gbif.occurrence.download.service.hive;
 import java.util.Arrays;
 import java.util.Collection;
+import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.apache.hadoop.hive.ql.parse.ParseDriver;
+import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.gbif.occurrence.download.service.hive.validation.UnionDDLJoinsValidator;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,9 +30,10 @@ public class HiveSQLValidatorTest {
     }
   
     @Test(expected = IllegalArgumentException.class)
-    public void testInvalidQueries() {
+    public void testInvalidQueries() throws ParseException {
+      ASTNode node = new ParseDriver().parse(query);
       UnionDDLJoinsValidator hiveSQLValidator = new UnionDDLJoinsValidator();
-      hiveSQLValidator.validateQuery(query);
+      hiveSQLValidator.validateNode(node);
       if (!valid) {
         Assert.fail("An invalid query has been accepted");
       }

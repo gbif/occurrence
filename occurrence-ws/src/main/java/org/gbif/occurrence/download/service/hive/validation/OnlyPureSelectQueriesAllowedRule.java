@@ -13,13 +13,12 @@ import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 public class OnlyPureSelectQueriesAllowedRule implements Rule {
 
   @Override
-  public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {
-    UnionDDLJoinsValidator sqlValidator = new UnionDDLJoinsValidator();
+  public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {    
     try {
-      sqlValidator.validateQuery(queryContext.sql());
+      new UnionDDLJoinsValidator().validateNode(queryContext.queryNode().orElse(null));
       return Rule.preserved();
     } catch (IllegalArgumentException ex) {
-      return Rule.violated(Issue.DDL_JOINS_UNION_NOT_ALLOWED);
+      return Rule.violated(Issue.DDL_JOINS_UNION_NOT_ALLOWED.withComment(ex.getMessage()));
     }
   }
 }

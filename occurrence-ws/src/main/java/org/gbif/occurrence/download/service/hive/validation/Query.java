@@ -16,7 +16,7 @@ public class Query {
     NO_ISSUE("No Issue."), 
     EMPTY_SQL("SQL query cannot be empty."), 
     ONLY_ONE_SELECT_ALLOWED("SQL query should be a SELECT query with SELECT keyword used only once."), 
-    DDL_JOINS_UNION_NOT_ALLOWED("SQL query cannot use INSERT, UPDATE, DELETE, MERGE, PROCEDURE_CALL, EXCEPT, INTERSECT, UNION, JOIN or AS."), 
+    DDL_JOINS_UNION_NOT_ALLOWED("SQL query cannot use ORDER BY, INSERT, UPDATE, DELETE, MERGE, PROCEDURE_CALL, EXCEPT, INTERSECT, UNION, JOIN or AS."), 
     DATASET_AND_LICENSE_REQUIRED("SQL query should select on 'datasetkey' and 'license' fields as they are required for citations."), 
     CANNOT_EXECUTE("Query cannot be executed because of"), 
     TABLE_NAME_NOT_OCCURRENCE("Query should have table name as 'occurrence'."),

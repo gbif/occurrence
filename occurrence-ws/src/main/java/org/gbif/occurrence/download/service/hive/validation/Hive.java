@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
-import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.gbif.occurrence.download.service.hive.validation.HiveQuery.SQLSelectFields;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 import org.gbif.occurrence.download.service.hive.validation.Rule.PayloadRuleContext;
@@ -71,12 +70,12 @@ public class Hive {
     private final String sql;
     private final Optional<ASTNode> queryNode;
     private final Issue issue;
-    private final Optional<ParseException> parseException;
+    private final Optional<Exception> parseException;
     private Optional<QueryFragments> fragments = Optional.empty();
     private Optional<String> translatedSQL = Optional.empty();
     private Optional<List<String>> explainQuery = Optional.empty();
 
-    private QueryContext(String sql, Optional<ASTNode> queryNode, Issue issue, Optional<ParseException> parseException) {
+    private QueryContext(String sql, Optional<ASTNode> queryNode, Issue issue, Optional<Exception> parseException) {
       this.sql = sql;
       this.issue = issue;
       this.queryNode = queryNode;
@@ -100,7 +99,7 @@ public class Hive {
       return !issue.equals(Issue.NO_ISSUE);
     }
 
-    public Optional<ParseException> getParseException() {
+    public Optional<Exception> getParseException() {
       return parseException;
     }
 
@@ -227,8 +226,8 @@ public class Hive {
       try {
         ASTNode queryNode = driver.parse(sql);
         return new QueryContext(sql, Optional.of(queryNode), Issue.NO_ISSUE, Optional.empty());
-      } catch (ParseException e) {
-        return new QueryContext(sql, Optional.empty(), Issue.PARSE_FAILED, Optional.of(e));
+      } catch (Exception e) {
+        return new QueryContext(sql, Optional.empty(), Issue.PARSE_FAILED, Optional.of(new RuntimeException(String.format("Could not parse query %s", sql), e)));
       }
     }
   }

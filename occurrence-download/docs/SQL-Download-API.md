@@ -153,17 +153,12 @@ cache-control: no-cache
 
 SQL query supported by GBIF API need to follow some rules, they are :
 1. Sql query supported format: <br/>
-   SELECT `<field1>`,`<field2>`,`<field3>`,`<field4>` FROM occurrence WHERE `<condition1>` AND `<condition2>` OR `<condition3>` …  GROUP BY … .
-2. All the identifier in query should be quoted by \` (back quotes). It is not hard requirement but there are conflicts with SQL keywords and DWCA fields. So it is important that these fields are back quoted to be parsed correctly. The reserved keywords for SQL are mentioned [here](#sql-keywords).  
-3. ORDER BY, DML queries, SET queries (UNION, INTERSECT), Subqueries (AS), JOINS not allowed.
-4. Table name should always be “occurrence”.	
-5. ‘*’ can’t be used, provide fields for selection explicitly.
-6. HAVING clause not supported.
+   SELECT `<field1>`,`<field2>`,`<field3>`,`<field4>` FROM occurrence WHERE `<condition1>` AND `<condition2>` OR `<condition3>` …  GROUP BY … .  
+2. ORDER BY, DML queries, SET queries (UNION, INTERSECT), Subqueries (AS), JOINS not allowed.
+3. Table name should always be “occurrence”.	
+4. ‘*’ can’t be used, provide fields for selection explicitly.
+5. HAVING clause not supported.
 
-**Note**:
-For example : A query using month and year for Downloads will not work as MONTH and YEAR are keywords in SQL and fields in GBIF schema. 
-  ~~``` SELECT gbifid, countrycode, datasetkey, license, month, year FROM occurrence WHERE month=3 AND year = 2018 ```~~ to   quote month and year will solve the problem 
-  ```SELECT gbifid, countrycode, datasetkey, license, `month`, `year` FROM occurrence WHERE `month`=3 AND `year`= 2018```.
 
 ### SQL Functions supported
 
@@ -238,8 +233,7 @@ For example to track the download for downloadkey= 0000015-181121175518854, open
 
 ## Future Works
 
-1. Removing back quotes(`) from identifiers.
-2. Supporting HAVING clause
+1. Supporting HAVING clause
 
 ## Open Questions
 

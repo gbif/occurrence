@@ -97,7 +97,7 @@ public class SQLValidationTest {
     HiveSQL.Validate.Result result = new QueryTestValidate().apply(query); 
     Assert.assertEquals(isResultOk, result.isOk());
     Assert.assertEquals(parseError, result.issues().contains(Issue.PARSE_FAILED));
-    Assert.assertEquals(numberOfIssues, result.issues().size());  
+    Assert.assertEquals(numberOfIssues, result.issues().size());
     if(numberOfIssues == 0) {
       Assert.assertEquals(sqlHeader, String.join(COMMA, result.queryContext().fragments().getFields()).trim()); 
       Assert.assertEquals(hasFunction, result.queryContext().fragments().hasFunctionsOnSqlFields());
