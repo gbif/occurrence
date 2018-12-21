@@ -139,22 +139,30 @@ public class TemporalInterpreterTest {
     v.setVerbatimField(DwcTerm.day, "1");
     v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
     v.setVerbatimField(DwcTerm.dateIdentified, "1987-01-31");
-    Occurrence o = new Occurrence();
 
+    Occurrence o = new Occurrence();
     v.setVerbatimField(DcTerm.modified, "2014-01-11");
     TemporalInterpreter.interpretTemporal(v, o);
     assertEquals(0, o.getIssues().size());
 
+    o = new Occurrence();
     Calendar cal = Calendar.getInstance();
     v.setVerbatimField(DcTerm.modified, (cal.get(Calendar.YEAR) + 1) + "-01-11");
     TemporalInterpreter.interpretTemporal(v, o);
     assertEquals(1, o.getIssues().size());
     assertEquals(OccurrenceIssue.MODIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
 
+    o = new Occurrence();
     v.setVerbatimField(DcTerm.modified, "1969-12-31");
     TemporalInterpreter.interpretTemporal(v, o);
     assertEquals(1, o.getIssues().size());
     assertEquals(OccurrenceIssue.MODIFIED_DATE_UNLIKELY, o.getIssues().iterator().next());
+
+    o = new Occurrence();
+    v.setVerbatimField(DcTerm.modified, "2018-10-15 16:21:48");
+    TemporalInterpreter.interpretTemporal(v, o);
+    assertEquals(0, o.getIssues().size());
+    assertDate("2018-10-15", o.getModified());
   }
 
   @Test

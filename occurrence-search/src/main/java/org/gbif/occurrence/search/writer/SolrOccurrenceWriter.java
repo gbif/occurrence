@@ -171,7 +171,7 @@ public class SolrOccurrenceWriter {
     Set<Integer> taxonKey = buildTaxonKey(occurrence);
     doc.setField(TAXON_KEY.getFieldName(), taxonKey.isEmpty()? null : taxonKey);
     doc.setField(ACCEPTED_TAXON_KEY.getFieldName(), occurrence.getAcceptedTaxonKey());
-    doc.setField(TAXONOMIC_STATUS.getFieldName(), occurrence.getTaxonomicStatus());
+    doc.setField(TAXONOMIC_STATUS.getFieldName(), occurrence.getTaxonomicStatus() == null ? null : occurrence.getTaxonomicStatus().name());
 
     doc.setField(KINGDOM_KEY.getFieldName(), occurrence.getKingdomKey());
     doc.setField(PHYLUM_KEY.getFieldName(), occurrence.getPhylumKey());

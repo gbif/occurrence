@@ -25,7 +25,7 @@ fi
 
 echo "Assembling jar for $ENV"
 #Oozie uses timezone UTC
-mvn --settings profiles.xml -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
+mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
