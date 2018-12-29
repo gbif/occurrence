@@ -123,7 +123,7 @@ public class Hive {
       }
       fragments = queryNode.map(node -> {
         String from = HiveQuery.Extract.tableName(ruleBase, node);
-        SQLSelectFields selectFields = HiveQuery.Extract.fieldNames2(ruleBase, sql);
+        SQLSelectFields selectFields = HiveQuery.Extract.fieldNames(ruleBase, sql);
         String where = HiveQuery.Extract.whereClause(ruleBase, sql());
         String groupBy = HiveQuery.Extract.groupByClause(ruleBase, sql());
         return new QueryFragments(from, selectFields.fields(), where, selectFields.hasFunction(), Arrays.asList(groupBy.split(",")));

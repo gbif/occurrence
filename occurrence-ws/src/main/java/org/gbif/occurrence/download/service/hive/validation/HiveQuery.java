@@ -3,17 +3,14 @@ package org.gbif.occurrence.download.service.hive.validation;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import org.apache.hadoop.hive.ql.lib.Node;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import com.google.common.base.Preconditions;
 
@@ -82,22 +79,11 @@ public class HiveQuery {
      * field names from AST node.
      * 
      * @param rb rule base
-     * @param queryNode AST node of query
+     * @param SQL query
      * @return SelectFields information.
      */
-    public static SQLSelectFields fieldNames(DownloadsQueryRuleBase rb, ASTNode queryNode) {
-      return new HiveQuery.Extract<ASTNode, SQLSelectFields>(rb).apply(queryNode, new FieldsNameExtractor());
-    }
-
-    /**
-     * field names from AST node.
-     * 
-     * @param rb rule base
-     * @param queryNode AST node of query
-     * @return SelectFields information.
-     */
-    public static SQLSelectFields fieldNames2(DownloadsQueryRuleBase rb, String sql) {
-      return new HiveQuery.Extract<String, SQLSelectFields>(rb).apply(sql, new FieldsNameExtractor2());
+    public static SQLSelectFields fieldNames(DownloadsQueryRuleBase rb, String sql) {
+      return new HiveQuery.Extract<String, SQLSelectFields>(rb).apply(sql, new FieldsNameExtractor());
     }
 
     /**
@@ -164,59 +150,7 @@ public class HiveQuery {
   /**
    * Implementation of {@link SQLSelectFields} extractor.
    */
-  static class FieldsNameExtractor extends Extractor<ASTNode, SQLSelectFields> {
-    private static final String TOK_SELEXPR = "TOK_SELEXPR";
-    private static final String TOK_TABLE_OR_COL = "TOK_TABLE_OR_COL";
-    private static final String TOK_FUNCTION = "TOK_FUNCTION";
-    private static final String TOK_FUNCTIONDI = "TOK_FUNCTIONDI";
-
-    private boolean hasFunction = false;
-
-    @Override
-    public SQLSelectFields apply(ASTNode node) {
-      List<Node> fields = QueryContext.searchMulti(node, TOK_SELEXPR);
-
-      List<String> selectFields = fields.stream().map(fieldNode -> {
-        hasFunction = hasFunction || QueryContext.search((ASTNode) fieldNode, TOK_FUNCTION).map(searchNode -> true).orElse(false)
-            || QueryContext.search((ASTNode) fieldNode, TOK_FUNCTIONDI).map(searchNode -> true).orElse(false);
-        int count = fieldNode.getChildren().size();
-        if (count == 2)
-          return (((ASTNode) fieldNode.getChildren().get(1)).getText());
-        else {
-          if (((ASTNode) fieldNode.getChildren().get(0)).getText().equals(TOK_FUNCTION)) {
-            StringBuilder builder = new StringBuilder();
-            parseFunction((ASTNode) fieldNode.getChildren().get(0), builder);
-            return (builder.toString());
-          } else {
-            return (((ASTNode) fieldNode.getChildren().get(0).getChildren().get(0)).getText());
-          }
-        }
-      }).collect(Collectors.toList());
-      return new SQLSelectFields(selectFields, hasFunction);
-    }
-
-    private void parseFunction(ASTNode node, StringBuilder builder) {
-      if (node == null)
-        return;
-
-      builder.append(((ASTNode) node.getChildren().get(0)).getText() + " (");
-      for (int i = 1; i < node.getChildCount(); i++) {
-        ASTNode astNode = (ASTNode) node.getChildren().get(i);
-        if (astNode.getText().equals(TOK_TABLE_OR_COL)) {
-          builder.append(((ASTNode) astNode.getChildren().get(0)).getText() + (i < node.getChildCount() - 1 ? " ," : ""));
-        }
-        if (astNode.getText().equals(TOK_FUNCTION)) {
-          parseFunction(astNode, builder);
-        }
-      }
-      builder.append(")");
-    }
-  }
-
-  /**
-   * Implementation of {@link SQLSelectFields} extractor.
-   */
-  static class FieldsNameExtractor2 extends Extractor<String, SQLSelectFields> {
+  static class FieldsNameExtractor extends Extractor<String, SQLSelectFields> {
 
     private static final String SELECT_DISTINCT_REGEX = "(?i)SELECT\\s+DISTINCT";
     private static final String SELECT_DISTINCT = "SELECT DISTINCT";
