@@ -14,13 +14,11 @@ import org.gbif.occurrence.download.service.hive.Result.Read;
 import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
 import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
 import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase;
-import org.gbif.occurrence.download.service.hive.validation.Hive;
+import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
+import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 import org.gbif.occurrence.download.service.hive.validation.SQLShouldBeExecutableRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation.Hive.QueryFragments;
-import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 import com.google.common.base.Throwables;
 
 /**
@@ -136,36 +134,23 @@ public class HiveSQL {
       }
     }
 
-    protected Function<QueryContext, Result> parseFailedResultTemplate = queryContext -> new Result(queryContext.sql(), queryContext.sql(),
+    protected Function<QueryContext, Result> orOnParseFail = queryContext -> new Result(queryContext.sql(), queryContext.sql(),
         Arrays.asList(Issue.PARSE_FAILED), Arrays.asList(SQLShouldBeExecutableRule.COMPILATION_ERROR), "", queryContext, false);
 
-    protected BiFunction<QueryContext, DownloadsQueryRuleBase.Context, Result> ruleFailedResultTemplate =
+    protected BiFunction<QueryContext, DownloadsQueryRuleBase.Context, Result> orOnValidationFail =
         (queryContext, rulebaseContext) -> new Result(queryContext.sql(), queryContext.sql(), rulebaseContext.issues(),
             Arrays.asList(QUERY_NOT_SUPPORTED), "", queryContext, false);
+
+    protected BiFunction<QueryContext, DownloadsQueryRuleBase.Context, Result> onValidationSuccess = (queryContext, rulebaseContext) -> {
+      String sqlHeader = String.join(TAB, queryContext.fragments().getFields());
+      return new Result(queryContext.sql(), queryContext.translatedSQL(), rulebaseContext.issues(), queryContext.explainQuery(), sqlHeader,
+          queryContext, rulebaseContext.issues().isEmpty());
+    };
 
     @Override
     public Result apply(String sql) {
       LOG.debug("Validating {}", sql);
-      DownloadsQueryRuleBase ruleBase = DownloadsQueryRuleBase.create();
-      QueryContext queryContext = Hive.Parser.parse(sql);
-      if (queryContext.hasParseIssues())
-        return parseFailedResultTemplate.apply(queryContext);
-
-      ruleBase.fireAllRules(queryContext);
-      LOG.debug("All rules fired {}, issues : {}", sql, ruleBase.context().issues());
-
-      if (ruleBase.context().hasIssues())
-        return ruleFailedResultTemplate.apply(queryContext, ruleBase.context());
-
-      queryContext.computeFragmentsAndTranslateSQL(ruleBase);
-      QueryFragments fragments = queryContext.fragments();
-      String sqlHeader = String.join(TAB, fragments.getFields());
-      String translatedQuery = queryContext.translatedSQL();
-
-      LOG.debug(" Query fragments are: table : {}, explain: {}, sqlHeader : {}, translatedQuery: {} ", fragments.getFrom(),
-          queryContext.explainQuery(), sqlHeader, translatedQuery);
-      return new Result(queryContext.sql(), translatedQuery, ruleBase.context().issues(), queryContext.explainQuery(), sqlHeader,
-          queryContext, ruleBase.context().issues().isEmpty());
+      return DownloadsQueryRuleBase.create().thenValidate(sql).andReturnResponse(onValidationSuccess, orOnValidationFail, orOnParseFail);
     }
   }
 }

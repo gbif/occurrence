@@ -19,7 +19,7 @@ public class Query {
     DDL_JOINS_UNION_NOT_ALLOWED("SQL query cannot use ORDER BY, INSERT, UPDATE, DELETE, MERGE, PROCEDURE_CALL, EXCEPT, INTERSECT, UNION, JOIN or AS."), 
     DATASET_AND_LICENSE_REQUIRED("SQL query should select on 'datasetkey' and 'license' fields as they are required for citations."), 
     CANNOT_EXECUTE("Query cannot be executed because of"), 
-    TABLE_NAME_NOT_OCCURRENCE("Query should have table name as 'occurrence'."),
+    TABLE_NAME_NOT_OCCURRENCE("Query should have table name as 'occurrence'."), 
     PARSE_FAILED(String.format("Cannot parse the query, the sql query is invalid, Make sure provided query should follow the format %n %s.", FORMAT)), 
     CANNOT_USE_ALLFIELDS("Usage of '*' for selecting all fields not allowed, Please explicitly add the desired fields, refer the fields from occurrence/download/request/sql/describe endpoint."), 
     HAVING_CLAUSE_NOT_SUPPORTED("SQL Download API donot support query with HAVING clause");

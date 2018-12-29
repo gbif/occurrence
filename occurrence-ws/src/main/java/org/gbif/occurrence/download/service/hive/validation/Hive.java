@@ -14,7 +14,6 @@ import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.gbif.occurrence.download.service.hive.validation.HiveQuery.SQLSelectFields;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
-import org.gbif.occurrence.download.service.hive.validation.Rule.PayloadRuleContext;
 
 public class Hive {
 
@@ -110,10 +109,11 @@ public class Hive {
         throw new IllegalStateException("Query do not comply with all rules, can't fetch query fragments.");
     };
 
-    public void computeFragmentsAndTranslateSQL(@Nonnull DownloadsQueryRuleBase ruleBase) {
+    void computeFragmentsAndTranslateSQL(@Nonnull DownloadsQueryRuleBase ruleBase) {
       Objects.requireNonNull(ruleBase);
       explainQuery = ruleBase.context().lookupRuleContextFor(new SQLShouldBeExecutableRule())
-          .filter(context -> context instanceof PayloadRuleContext).map(context -> ((PayloadRuleContext<List<String>>) context).payload());
+          .filter(context -> context instanceof Rule.PayloadedContext)
+          .map(context -> ((Rule.PayloadedContext<List<String>>) context).payload());
       if (hasParseIssues())
         throw new IllegalStateException("Query has parsing errors");
       if (ruleBase.context().hasIssues())
@@ -123,7 +123,7 @@ public class Hive {
       }
       fragments = queryNode.map(node -> {
         String from = HiveQuery.Extract.tableName(ruleBase, node);
-        SQLSelectFields selectFields = HiveQuery.Extract.fieldNames(ruleBase, node);
+        SQLSelectFields selectFields = HiveQuery.Extract.fieldNames2(ruleBase, sql);
         String where = HiveQuery.Extract.whereClause(ruleBase, sql());
         String groupBy = HiveQuery.Extract.groupByClause(ruleBase, sql());
         return new QueryFragments(from, selectFields.fields(), where, selectFields.hasFunction(), Arrays.asList(groupBy.split(",")));
@@ -227,7 +227,8 @@ public class Hive {
         ASTNode queryNode = driver.parse(sql);
         return new QueryContext(sql, Optional.of(queryNode), Issue.NO_ISSUE, Optional.empty());
       } catch (Exception e) {
-        return new QueryContext(sql, Optional.empty(), Issue.PARSE_FAILED, Optional.of(new RuntimeException(String.format("Could not parse query %s", sql), e)));
+        return new QueryContext(sql, Optional.empty(), Issue.PARSE_FAILED,
+            Optional.of(new RuntimeException(String.format("Could not parse query %s", sql), e)));
       }
     }
   }

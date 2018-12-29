@@ -12,31 +12,58 @@ import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 @FunctionalInterface
 public interface Rule {
 
-  RuleContext apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext);
+  Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext);
 
-  static RuleContext violated(Issue issue) {
-    return new RuleContext(true, issue);
+  /**
+   * creates rule context with issue, when rule was violated.
+   * 
+   * @param issue
+   * @return rule context
+   */
+  static Rule.Context violated(Issue issue) {
+    return new Context(true, issue);
   }
 
-  static RuleContext preserved() {
-    return new RuleContext(false, Issue.NO_ISSUE);
+  /**
+   * creates rule context when rule is followed.
+   * 
+   * @return rule context
+   */
+  static Rule.Context preserved() {
+    return new Context(false, Issue.NO_ISSUE);
   }
 
-  static <T> RuleContext violated(T payload, Issue issue) {
-    return new PayloadRuleContext<T>(payload, true, issue);
+  /**
+   * creates rule context with issue and another payload, when rule was violated.
+   * 
+   * @param payload
+   * @param issue
+   * @return rule context
+   */
+  static <T> Rule.Context violated(T payload, Issue issue) {
+    return new PayloadedContext<T>(payload, true, issue);
   }
 
-  static <T> RuleContext preserved(T payload) {
-    return new PayloadRuleContext<T>(payload, false, Issue.NO_ISSUE);
+  /**
+   * creates rule context with a payload, when rule is followed.
+   * 
+   * @return rule context
+   */
+  static <T> Rule.Context preserved(T payload) {
+    return new PayloadedContext<T>(payload, false, Issue.NO_ISSUE);
   }
 
-
-  class RuleContext {
+  /**
+   * 
+   * Rule related information, created after applying rule.
+   *
+   */
+  class Context {
 
     private final boolean isViolated;
     private final Query.Issue issue;
 
-    private RuleContext(boolean isViolated, Query.Issue issue) {
+    private Context(boolean isViolated, Query.Issue issue) {
       this.isViolated = isViolated;
       this.issue = issue;
     }
@@ -45,7 +72,7 @@ public interface Rule {
       return isViolated;
     }
 
-    public RuleContext onViolation(Action action) {
+    public Context onViolation(Action action) {
       if (isViolated)
         action.apply(issue);
       return this;
@@ -53,10 +80,16 @@ public interface Rule {
 
   }
 
-  class PayloadRuleContext<T> extends RuleContext {
+  /**
+   * 
+   * Rule Context with additional information.
+   *
+   * @param <T>
+   */
+  class PayloadedContext<T> extends Context {
     private final T payload;
 
-    private PayloadRuleContext(@Nonnull T payload, boolean isViolated, Query.Issue issue) {
+    private PayloadedContext(@Nonnull T payload, boolean isViolated, Query.Issue issue) {
       super(isViolated, issue);
       this.payload = payload;
     }

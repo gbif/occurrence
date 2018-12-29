@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
-import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase.Context;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
@@ -15,7 +14,7 @@ public class HavingClauseNotSupportedRule implements Rule {
   private static final String TOK_HAVING = "TOK_HAVING";
 
   @Override
-  public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {
+  public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
     return QueryContext.search(queryContext.queryNode().orElse(null), TOK_HAVING).isPresent()
         ? Rule.violated(Issue.HAVING_CLAUSE_NOT_SUPPORTED)
         : Rule.preserved();

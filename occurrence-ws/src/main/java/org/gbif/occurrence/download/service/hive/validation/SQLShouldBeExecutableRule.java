@@ -17,7 +17,7 @@ public class SQLShouldBeExecutableRule implements Rule {
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
 
   @Override
-  public RuleContext apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
     List<String> explain = new ArrayList<>();
     try {
       explain = HiveSQL.Execute.explain(queryContext.translatedSQL());

@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
-import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase.Context;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 
 /**
@@ -13,7 +12,7 @@ public class StarForFieldsNotAllowedRule implements Rule {
   private static final String ALL_ROWS = "TOK_ALLCOLREF";
 
   @Override
-  public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {
+  public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
     return QueryContext.search(queryContext.queryNode().orElse(null), ALL_ROWS).isPresent()
         ? Rule.violated(Query.Issue.CANNOT_USE_ALLFIELDS)
         : Rule.preserved();

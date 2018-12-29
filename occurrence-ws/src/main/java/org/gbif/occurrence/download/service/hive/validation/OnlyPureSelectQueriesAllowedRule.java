@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
-import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase.Context;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
@@ -13,7 +12,7 @@ import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 public class OnlyPureSelectQueriesAllowedRule implements Rule {
 
   @Override
-  public RuleContext apply(QueryContext queryContext, Context ruleBaseContext) {    
+  public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
     try {
       new UnionDDLJoinsValidator().validateNode(queryContext.queryNode().orElse(null));
       return Rule.preserved();

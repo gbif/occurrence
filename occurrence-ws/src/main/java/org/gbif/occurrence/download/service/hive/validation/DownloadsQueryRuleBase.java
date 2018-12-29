@@ -7,9 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
-import org.gbif.occurrence.download.service.hive.validation.Rule.RuleContext;
 
 
 /**
@@ -31,7 +32,7 @@ public class DownloadsQueryRuleBase {
    */
   public static class Context {
     private Optional<DownloadsQueryRuleBase> ruleBase = Optional.empty();
-    private Map<String, RuleContext> ruleContext = new HashMap<>();
+    private Map<String, Rule.Context> ruleContext = new HashMap<>();
     private List<Issue> issues = new ArrayList<>();
     private List<String> firedRules = new ArrayList<>();
 
@@ -43,7 +44,7 @@ public class DownloadsQueryRuleBase {
       issues.add(issue);
     }
 
-    void addFiredRule(Rule rule, RuleContext context) {
+    void addFiredRule(Rule rule, Rule.Context context) {
       ruleContext.put(rule.getClass().getSimpleName(), context);
       firedRules.add(rule.getClass().getSimpleName());
     }
@@ -56,7 +57,7 @@ public class DownloadsQueryRuleBase {
       return firedRules;
     }
 
-    public Optional<RuleContext> lookupRuleContextFor(Rule rule) {
+    public Optional<Rule.Context> lookupRuleContextFor(Rule rule) {
       return Optional.ofNullable(ruleContext.get(rule.getClass().getSimpleName()));
     }
 
@@ -70,7 +71,8 @@ public class DownloadsQueryRuleBase {
   }
 
   private final List<Rule> rulesToFire;
-  private Context ruleBaseContext;
+  private DownloadsQueryRuleBase.Context ruleBaseContext;
+  private QueryContext queryContext;
 
   private DownloadsQueryRuleBase(List<Rule> rulesToFire) {
     this.rulesToFire = rulesToFire;
@@ -95,9 +97,21 @@ public class DownloadsQueryRuleBase {
    * 
    * @param context
    */
-  public void fireAllRules(QueryContext context) {
-    ruleBaseContext = new Context(this);
-    rulesToFire.stream().forEach(rule -> fireRule(context, rule));
+  public DownloadsQueryRuleBase thenValidate(String sql) {
+    queryContext = Hive.Parser.parse(sql);
+
+    if (queryContext.hasParseIssues())
+      return this;
+
+
+    ruleBaseContext = new DownloadsQueryRuleBase.Context(this);
+    rulesToFire.stream().forEach(rule -> fireRule(queryContext, rule));
+
+    if (ruleBaseContext.hasIssues())
+      return this;
+
+    queryContext.computeFragmentsAndTranslateSQL(this);
+    return this;
   }
 
   private void fireRule(QueryContext context, Rule rule) {
@@ -108,7 +122,7 @@ public class DownloadsQueryRuleBase {
     if (ruleBaseContext.firedRulesByName().contains(rule.getClass().getSimpleName()))
       return;
 
-    RuleContext ruleContext = rule.apply(context, ruleBaseContext).onViolation(ruleBaseContext::addIssue);
+    Rule.Context ruleContext = rule.apply(context, ruleBaseContext).onViolation(ruleBaseContext::addIssue);
     ruleBaseContext.addFiredRule(rule, ruleContext);
   }
 
@@ -121,7 +135,20 @@ public class DownloadsQueryRuleBase {
     return rulesToFire;
   }
 
-  public Context context() {
+  public DownloadsQueryRuleBase.Context context() {
     return ruleBaseContext;
+  }
+
+  public QueryContext queryContext() {
+    return queryContext;
+  }
+
+  public <R> R andReturnResponse(BiFunction<QueryContext, DownloadsQueryRuleBase.Context, R> onSuccess,
+      BiFunction<QueryContext, DownloadsQueryRuleBase.Context, R> onValidationError, Function<QueryContext, R> onParseFail) {
+    if (queryContext.hasParseIssues())
+      return onParseFail.apply(queryContext);
+    if (ruleBaseContext.hasIssues())
+      return onValidationError.apply(queryContext, ruleBaseContext);
+    return onSuccess.apply(queryContext, ruleBaseContext);
   }
 }

@@ -7,9 +7,6 @@ import org.gbif.common.shaded.com.fasterxml.jackson.core.JsonProcessingException
 import org.gbif.occurrence.download.service.hive.HiveSQL.Validate;
 import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase;
 import org.gbif.occurrence.download.service.hive.validation.HavingClauseNotSupportedRule;
-import org.gbif.occurrence.download.service.hive.validation.Hive;
-import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation.Hive.QueryFragments;
 import org.gbif.occurrence.download.service.hive.validation.OnlyOneSelectAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.OnlyPureSelectQueriesAllowedRule;
 import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
@@ -34,17 +31,34 @@ public class SQLValidationTest {
         {"SELECT gbifid, countrycode, datasetkey, license from occurrence", true, false, 0, "gbifid,countrycode,datasetkey,license", false},
         {"SELECT gbifid, countrycode, datasetkey, license from occurrence where countrycode='US'", true, false, 0, "gbifid,countrycode,datasetkey,license", false},
         {"SELECT gbifid, countrycode, datasetkey, license, month, year FROM occurrence WHERE month=3 AND year = 2018", true, false, 0,"gbifid,countrycode,datasetkey,license,month,year", false},
-        {"SELECT COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "COUNT (datasetkey),countrycode,datasetkey,license", true},
+        {"SELECT COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "COUNT(datasetkey),countrycode,datasetkey,license", true},
         {"SELECT 5*COUNT(datasetkey) count, countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "count,countrycode,datasetkey,license", true},
-        {"SELECT START(COUNT(datasetkey)), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "START (COUNT (datasetkey)),countrycode,datasetkey,license", true},
-        {"SELECT START(COUNT(datasetkey, age)), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "START (COUNT (datasetkey ,age)),countrycode,datasetkey,license", true},        
+        {"SELECT 5*4* 8*7COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "5*4* 8*7COUNT(datasetkey),countrycode,datasetkey,license", true},
+        {"SELECT 5*COUNT(datasetkey), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "5*COUNT(datasetkey),countrycode,datasetkey,license", true},
+        {"SELECT START(COUNT(datasetkey)), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "START(COUNT(datasetkey)),countrycode,datasetkey,license", true},
+        {"SELECT START(COUNT(datasetkey, age)), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "START(COUNT(datasetkey, age)),countrycode,datasetkey,license", true},       
+        {"SELECT START(COUNT(datasetkey, age)) count, countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "count,countrycode,datasetkey,license", true},       
+        {"SELECT STOP(START(COUNT(datasetkey, age))), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "STOP(START(COUNT(datasetkey, age))),countrycode,datasetkey,license", true},       
+        {"SELECT STOP(START(COUNT(datasetkey, age, month))), countrycode ,datasetkey ,license FROM occurrence GROUP BY countrycode, license, datasetkey", true,false, 0, "STOP(START(COUNT(datasetkey, age, month))),countrycode,datasetkey,license", true},       
         {"SELECT gbifid, countrycode, datasetkey, license FROM occurrence WHERE month=3 or (UPPER(datasetkey)='SAME' and year=2004)", true,false, 0, "gbifid,countrycode,datasetkey,license", false},
         {"SELECT COUNT(datasetkey) count, countrycode country,datasetkey ,license licenseType FROM occurrence  WHERE month=3 AND year = 2018 GROUP BY countrycode, license, datasetkey", true, false, 0, "count,country,datasetkey,licenseType", true},
         {"SELECT COUNT(datasetkey), countrycode ,datasetkey, license FROM occurrence GROUP BY countrycode, license, datasetkey HAVING count(datasetkey) > 5", false, false, 1, "", false},
         {"SELECT loc, cnt FROM (select a.loc as loc, a.cnt13 cnt from crimeloc13 a UNION ALL select b.loc as loc, b.cnt14 as cnt from crimeloc14 b ) a",false, false, 3, "", false},
         {"SELECT max(year) FROM occurrence GROUP BY year HAVING year > 2000", false, false, 1, "", true},
         {"SELECT COUNT(countrycode) CODE FROM occurrence_hdfs WHERE month IN (Select month from occurrence)  and year=2004 HAVING countrycode='CO'",false, false, 3, "", true},
-        {"SELECT * from occurrence", false, false, 1, "", false}});
+        {"SELECT * from occurrence", false, false, 1, "", false},
+        {"SELECT DISTINCT(countrycode) FROM occurrence", true, false, 0, "(countrycode)", true},
+        {"SELECT DISTINCT(COUNTRYCODE) FROM occurrence", true, false, 0, "(COUNTRYCODE)", true},
+        {"SELECT DISTINCT(COUNT(countrycode)) FROM occurrence", true, false, 0, "(COUNT(countrycode))", true},
+        {"SELECT  DISTINCT(COUNT(countrycode)) FROM occurrence", true, false, 0, "(COUNT(countrycode))", true},
+        {"SELECT DISTINCT countrycode, month, year, date FROM occurrence", true, false, 0, "countrycode,month,year,date", false},
+        {"SELECT DISTINCT countrYcode, month, yeAr, dAte FROM occurrence", true, false, 0, "countrYcode,month,yeAr,dAte", false},
+        {"SELECT   COUNT(DISTINCT(countrycode)) FROM occurrence", true, false, 0, "COUNT(DISTINCT(countrycode))", true},
+        {"SELECT VAL(COUNT(DISTINCT(countrycode))) count FROM occurrence", true, false, 0, "count", true},
+        {"SELECT VAL(COUNT(DISTINCT(countrycode)) ) count FROM occurrence", true, false, 0, "count", true},
+        {"SELECT VAL(COUNT(DISTINCT(countrycode)) ) FROM occurrence", true, false, 0, "VAL(COUNT(DISTINCT(countrycode)) )", true},
+        {"SELECT DISTINCT countrycode cc, month m, year y FROM occurrence", true, false, 0, "cc,m,y", false}
+      });
   }
 
   private final String query;
@@ -72,23 +86,7 @@ public class SQLValidationTest {
     
     @Override
     public Result apply(String sql) {
-      DownloadsQueryRuleBase ruleBase = DownloadsQueryRuleBase.create(RULES);
-      QueryContext queryContext = Hive.Parser.parse(sql);
-      if (queryContext.hasParseIssues())
-        return parseFailedResultTemplate.apply(queryContext);
-
-      ruleBase.fireAllRules(queryContext);
-      
-      if (ruleBase.context().hasIssues())
-        return ruleFailedResultTemplate.apply(queryContext, ruleBase.context());
-
-      queryContext.computeFragmentsAndTranslateSQL(ruleBase);
-      QueryFragments fragments = queryContext.fragments();
-      List<String> explain = queryContext.explainQuery();
-      String sqlHeader = String.join(TAB, fragments.getFields());
-      String translatedQuery = queryContext.translatedSQL();
-      return new Result(queryContext.sql(), translatedQuery, ruleBase.context().issues(), explain, sqlHeader, queryContext,
-          ruleBase.context().issues().isEmpty());
+      return DownloadsQueryRuleBase.create(RULES).thenValidate(sql).andReturnResponse(onValidationSuccess, orOnValidationFail, orOnParseFail);
     }
   }
   
