@@ -162,6 +162,7 @@ public class HiveQuery {
     private Function<String, Integer> indexOfFrom = sql -> sql.toUpperCase().indexOf(FROM);
 
     private Function<String, String> fieldSegmentWithDistinct = sql -> {
+      hasFunction = true;
       sql = sql.replaceAll(SELECT_DISTINCT_REGEX, SELECT_DISTINCT).trim();
       return sql.substring(15, indexOfFrom.apply(sql));
     };
