@@ -196,15 +196,19 @@ GROUP BY
   decimallatitude/10, 
   decimallongitude/10
 ```
+
 Validate the query with SQL validation service
 
 ```
-curl -G -i https://api.gbif-uat.org/v1/occurrence/download/request/sql/validate --data-urlencode \
+  curl -G -i http://localhost:8080/occurrence/download/request/sql/validate --data-urlencode \
 "sql=SELECT 
-  DISTINCT(countrycode) 
-FROM occurrence
-WHERE
-taxonKey=6"
+  decimallatitude/10 AS lat, 
+  decimallongitude/10 AS lon, 
+  count(species) AS speciesRichness 
+FROM occurrence 
+GROUP BY 
+  decimallatitude/10, 
+  decimallongitude/10"
 ```
 
 You get a json response, and check for -> "issues": []. If you have issues they will be highlighted and described here.
