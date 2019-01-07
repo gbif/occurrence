@@ -72,7 +72,6 @@
                    <artifact>org.jruby:jruby-complete</artifact>
                   <artifact>org.mortbay.jetty:jetty</artifact>
                   <artifact>org.mortbay.jetty:jetty-util</artifact>
-                  <artifact>com.fasterxml.jackson.core:*</artifact>
                 </excludes>
               </artifactSet>
               <createDependencyReducedPom>true</createDependencyReducedPom>
