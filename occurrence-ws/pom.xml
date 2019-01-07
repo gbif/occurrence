@@ -89,7 +89,6 @@
                   <artifact>org.jruby:jruby-complete</artifact>
                   <excludes>
                     <exclude>org/joda/**</exclude>
-                    <exclude>com/fasterxml/**</exclude>
                   </excludes>
                 </filter>
                 <filter>
