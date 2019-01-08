@@ -1,5 +1,9 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
+import org.gbif.api.model.occurrence.sql.Query.Issue;
+import org.gbif.common.shaded.com.google.common.annotations.VisibleForTesting;
+import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,37 +11,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
 
+import org.apache.nifi.dbcp.hive.HiveConnectionPool;
 
 /**
- * 
  * Rule base of all the checks required for SQL Query to run against Hive. This is entry class for
  * SQL Download Query validation.
- *
  */
 public class DownloadsQueryRuleBase {
 
-  private static final List<Rule> RULES =
-      Arrays.asList(new OnlyOneSelectAllowedRule(), new StarForFieldsNotAllowedRule(), new OnlyPureSelectQueriesAllowedRule(),
-          new TableNameShouldBeOccurrenceRule(), new HavingClauseNotSupportedRule(), new SQLShouldBeExecutableRule());
+  private static final Function<HiveConnectionPool, List<Rule>> RULES =
+    cp -> new ArrayList<>(Arrays.asList(new OnlyOneSelectAllowedRule(),
+                                        new StarForFieldsNotAllowedRule(),
+                                        new OnlyPureSelectQueriesAllowedRule(),
+                                        new TableNameShouldBeOccurrenceRule(),
+                                        new HavingClauseNotSupportedRule(),
+                                        new SqlShouldBeExecutableRule(cp)));
 
   /**
-   * 
    * This Class keeps the context information of rules fired from rule base.
-   *
    */
   public static class Context {
-    private Optional<DownloadsQueryRuleBase> ruleBase = Optional.empty();
-    private Map<String, Rule.Context> ruleContext = new HashMap<>();
-    private List<Issue> issues = new ArrayList<>();
-    private List<String> firedRules = new ArrayList<>();
+
+    private final DownloadsQueryRuleBase ruleBase;
+    private final Map<String, Rule.Context> ruleContext = new HashMap<>();
+    private final List<Issue> issues = new ArrayList<>();
+    private final List<String> firedRules = new ArrayList<>();
 
     Context(DownloadsQueryRuleBase base) {
-      this.ruleBase = Optional.of(base);
+      this.ruleBase = base;
     }
 
     void addIssue(Issue issue) {
@@ -49,23 +52,23 @@ public class DownloadsQueryRuleBase {
       firedRules.add(rule.getClass().getSimpleName());
     }
 
-    public List<Issue> issues() {
+    List<Issue> issues() {
       return issues;
     }
 
-    public List<String> firedRulesByName() {
+    List<String> firedRulesByName() {
       return firedRules;
     }
 
-    public Optional<Rule.Context> lookupRuleContextFor(Rule rule) {
+    Optional<Rule.Context> lookupRuleContextFor(Rule rule) {
       return Optional.ofNullable(ruleContext.get(rule.getClass().getSimpleName()));
     }
 
-    public Optional<DownloadsQueryRuleBase> ruleBase() {
+    DownloadsQueryRuleBase ruleBase() {
       return ruleBase;
     }
 
-    public boolean hasIssues() {
+    boolean hasIssues() {
       return !issues.isEmpty();
     }
   }
@@ -80,13 +83,14 @@ public class DownloadsQueryRuleBase {
 
   /**
    * creates instance of {@link DownloadsQueryRuleBase}.
-   * 
+   *
    * @return {@link DownloadsQueryRuleBase}
    */
-  public static DownloadsQueryRuleBase create() {
-    return DownloadsQueryRuleBase.create(RULES);
+  public static DownloadsQueryRuleBase create(HiveConnectionPool connectionPool) {
+    return DownloadsQueryRuleBase.create(RULES.apply(connectionPool));
   }
 
+  @VisibleForTesting
   public static DownloadsQueryRuleBase create(List<Rule> rulesToFire) {
     Objects.requireNonNull(rulesToFire);
     return new DownloadsQueryRuleBase(rulesToFire);
@@ -94,61 +98,40 @@ public class DownloadsQueryRuleBase {
 
   /**
    * fires all the rules on the {@link QueryContext}.
-   * 
-   * @param context
    */
-  public DownloadsQueryRuleBase thenValidate(String sql) {
+  public SqlValidationResult validate(String sql) {
     queryContext = Hive.Parser.parse(sql);
 
-    if (queryContext.hasParseIssues())
-      return this;
-
+    if (queryContext.hasParseIssues()) return SqlValidationResult.parseFailed(queryContext);
 
     ruleBaseContext = new DownloadsQueryRuleBase.Context(this);
-    rulesToFire.stream().forEach(rule -> fireRule(queryContext, rule));
+    rulesToFire.forEach(rule -> fireRule(queryContext, rule));
 
-    if (ruleBaseContext.hasIssues())
-      return this;
+    if (ruleBaseContext.hasIssues()) return SqlValidationResult.validationFailed(queryContext, ruleBaseContext);
 
     queryContext.computeFragmentsAndTranslateSQL(this);
-    return this;
+    return SqlValidationResult.success(queryContext, ruleBaseContext);
   }
 
   private void fireRule(QueryContext context, Rule rule) {
     context.onParseFailed((issue, exc) -> {
-      throw new IllegalArgumentException("Cannot fire rules since the query cannot be parsed: " + exc.getMessage());
+      throw new IllegalArgumentException("Cannot fire rules since the query cannot be parsed: ", exc);
     });
 
-    if (ruleBaseContext.firedRulesByName().contains(rule.getClass().getSimpleName()))
-      return;
-
-    Rule.Context ruleContext = rule.apply(context, ruleBaseContext).onViolation(ruleBaseContext::addIssue);
-    ruleBaseContext.addFiredRule(rule, ruleContext);
-  }
-
-  /**
-   * get the list of rules initialized in this rule base.
-   * 
-   * @return
-   */
-  public List<Rule> getRulesToFire() {
-    return rulesToFire;
+    if (!ruleBaseContext.firedRulesByName().contains(rule.getClass().getSimpleName())) {
+      Rule.Context ruleContext = rule.apply(context, ruleBaseContext).onViolation(ruleBaseContext::addIssue);
+      ruleBaseContext.addFiredRule(rule, ruleContext);
+    }
   }
 
   public DownloadsQueryRuleBase.Context context() {
     return ruleBaseContext;
   }
 
-  public QueryContext queryContext() {
-    return queryContext;
-  }
-
-  public <R> R andReturnResponse(BiFunction<QueryContext, DownloadsQueryRuleBase.Context, R> onSuccess,
-      BiFunction<QueryContext, DownloadsQueryRuleBase.Context, R> onValidationError, Function<QueryContext, R> onParseFail) {
-    if (queryContext.hasParseIssues())
-      return onParseFail.apply(queryContext);
-    if (ruleBaseContext.hasIssues())
-      return onValidationError.apply(queryContext, ruleBaseContext);
-    return onSuccess.apply(queryContext, ruleBaseContext);
+  /**
+   * get the list of rules initialized in this rule base.
+   */
+  List<Rule> getRulesToFire() {
+    return rulesToFire;
   }
 }

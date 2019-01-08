@@ -12,8 +12,20 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.hive.SqlDownloadService;
+import org.gbif.occurrence.download.service.hive.validation.SqlValidationResult;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
+import org.gbif.ws.response.GbifResponseStatus;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,23 +46,7 @@ import java.util.stream.Stream;
 import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import org.apache.oozie.client.Job;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.hive.HiveSQL;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
-import org.gbif.ws.response.GbifResponseStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
 import com.google.common.base.Preconditions;
@@ -62,6 +58,14 @@ import com.google.inject.name.Named;
 import com.sun.jersey.api.NotFoundException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
+import org.apache.oozie.client.Job;
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Singleton
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
@@ -111,6 +115,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final DownloadWorkflowParametersBuilder parametersBuilder;
 
   private final DownloadLimitsService downloadLimitsService;
+  private final SqlDownloadService sqlDownloadService;
 
 
   @Inject
@@ -120,7 +125,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
                                     @Named("ws.mount") String wsMountDir,
                                     OccurrenceDownloadService occurrenceDownloadService,
                                     DownloadEmailUtils downloadEmailUtils,
-                                    DownloadLimitsService downloadLimitsService) {
+                                    DownloadLimitsService downloadLimitsService, SqlDownloadService sqlDownloadService) {
 
     this.client = client;
     this.wsUrl = wsUrl;
@@ -129,6 +134,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     this.downloadEmailUtils = downloadEmailUtils;
     parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
     this.downloadLimitsService = downloadLimitsService;
+    this.sqlDownloadService = sqlDownloadService;
   }
 
   @Override
@@ -179,20 +185,20 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private String runSqlDownload(DownloadRequest request) throws OozieClientException {
     SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
-    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
-    if (!result.isOk()) {
-      throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
+    SqlValidationResult result = sqlDownloadService.validate(sqlRequest.getSql());
+    if (!result.isSuccess()) {
+      throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.getIssues()));
     }
-    sqlRequest.setSql(result.transSql());
+    sqlRequest.setSql(result.getTransSql());
     BiFunction<String, String, Map.Entry<String, String>> entry = AbstractMap.SimpleEntry::new;
     
     //if where clause is not there, then send empty when no functions used else send all rows for where clause(this is for citation).
-    Optional<String> optionalWhere = Optional.of(result.queryContext().fragments().getWhere());
-    String where = optionalWhere.filter( String::isEmpty).map( x -> result.queryContext().fragments().hasFunctionsOnSqlFields() ? EMPTY : ALL).orElse(optionalWhere.get());
+    Optional<String> optionalWhere = Optional.of(result.getContext().fragments().getWhere());
+    String where = optionalWhere.filter( String::isEmpty).map( x -> result.getContext().fragments().hasFunctionsOnSqlFields() ? EMPTY : ALL).orElse(optionalWhere.get());
     
     return client.run(parametersBuilder.buildWorkflowParameters(request,
         Collections.unmodifiableMap(Stream
-            .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
+            .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.getSqlHeader()),
                 entry.apply(DownloadWorkflowParameters.SQL_WHERE, where))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }

@@ -1,18 +1,5 @@
 package org.gbif.occurrence.download.service;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import java.util.Date;
-import java.util.List;
-import javax.mail.MessagingException;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.apache.oozie.client.WorkflowJob;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -22,6 +9,17 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.download.service.hive.SqlDownloadService;
+
+import java.util.Date;
+import java.util.List;
+import javax.mail.MessagingException;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.apache.oozie.client.WorkflowJob;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,9 +30,14 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @MockPolicy(Slf4jMockPolicy.class)
 @PowerMockIgnore({"javax.management.*", "javax.xml.*", "org.xml.*", "com.sun.org.apache.xerces.*", "org.w3c.dom.*"})
@@ -47,8 +50,8 @@ public class CallbackServiceTest {
   private static final String FAILED = "FAILED";
   private static final String SUCCEEDED = "SUCCEEDED";
   private static final String RUNNING = "RUNNING";
-  private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(OccurrenceSearchParameter.CATALOG_NUMBER,
-    "bar");
+  private static final Predicate DEFAULT_TEST_PREDICATE =
+    new EqualsPredicate(OccurrenceSearchParameter.CATALOG_NUMBER, "bar");
   private static final String TEST_USER = "admin";
   private static final List<String> EMAILS = Lists.newArrayList("tests@gbif.org");
 
@@ -57,13 +60,14 @@ public class CallbackServiceTest {
   private OccurrenceDownloadService occurrenceDownloadService;
   private DownloadEmailUtils downloadEmailUtils;
   private DownloadLimitsService downloadLimitsService;
+  private SqlDownloadService sqlDownloadservice;
 
   /**
    * Creates a mock download object.
    */
   private static Download mockDownload() {
-    DownloadRequest downloadRequest = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true,
-      DownloadFormat.DWCA);
+    DownloadRequest downloadRequest =
+      new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true, DownloadFormat.DWCA);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(DOWNLOAD_ID);
@@ -78,22 +82,26 @@ public class CallbackServiceTest {
   public void setup() {
     downloadEmailUtils = mock(DownloadEmailUtils.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
-    downloadLimitsService= mock(DownloadLimitsService.class);
+    downloadLimitsService = mock(DownloadLimitsService.class);
+    sqlDownloadservice = mock(SqlDownloadService.class);
     when(downloadLimitsService.isInDownloadLimits(Matchers.any(String.class))).thenReturn(true);
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
-    service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), "http://localhost:8080/",
-        "", occurrenceDownloadService, downloadEmailUtils,downloadLimitsService);
+    service = new DownloadRequestServiceImpl(oozieClient,
+                                             Maps.newHashMap(),
+                                             "http://localhost:8080/",
+                                             "",
+                                             occurrenceDownloadService,
+                                             downloadEmailUtils,
+                                             downloadLimitsService,
+                                             sqlDownloadservice);
   }
-
 
   @Test
   public void testIgnoreRunningJobs() {
     service.processCallback(JOB_ID, RUNNING);
     verifyNoMoreInteractions(oozieClient);
   }
-
 
   @Test(expected = IllegalArgumentException.class)
   public void testIgnoreWrongStatuses() {
@@ -107,24 +115,22 @@ public class CallbackServiceTest {
     when(oozieClient.getJobInfo(JOB_ID)).thenReturn(job);
     when(job.getId()).thenReturn(JOB_ID);
     when(job.getCreatedTime()).thenReturn(new Date());
-    when(job.getConf())
-      .thenReturn(
-        "<configuration>"
-          + "<property><name>"
-          + Constants.USER_PROPERTY
-          + "</name>"
-          + "<value>test</value></property>"
+    when(job.getConf()).thenReturn("<configuration>"
+                                   + "<property><name>"
+                                   + Constants.USER_PROPERTY
+                                   + "</name>"
+                                   + "<value>test</value></property>"
 
-          + "<property><name>"
-          + Constants.NOTIFICATION_PROPERTY
-          + "</name>"
-          + "<value>test@gbif.org</value></property>"
+                                   + "<property><name>"
+                                   + Constants.NOTIFICATION_PROPERTY
+                                   + "</name>"
+                                   + "<value>test@gbif.org</value></property>"
 
-          + "<property><name>"
-          + Constants.FILTER_PROPERTY
-          + "</name>"
-          + "<value>{\"type\":\"equals\",\"key\":\"DATASET_KEY\",\"value\":\"8575f23e-f762-11e1-a439-00145eb45e9a\"}</value></property>"
-          + "</configuration>");
+                                   + "<property><name>"
+                                   + Constants.FILTER_PROPERTY
+                                   + "</name>"
+                                   + "<value>{\"type\":\"equals\",\"key\":\"DATASET_KEY\",\"value\":\"8575f23e-f762-11e1-a439-00145eb45e9a\"}</value></property>"
+                                   + "</configuration>");
 
     service.processCallback(JOB_ID, SUCCEEDED);
   }

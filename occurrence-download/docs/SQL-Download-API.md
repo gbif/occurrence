@@ -118,7 +118,7 @@ cache-control: no-cache
         "        ListSink",
         ""
     ],
-    "isOk": true
+    "success": true,
 } 
 ```
 

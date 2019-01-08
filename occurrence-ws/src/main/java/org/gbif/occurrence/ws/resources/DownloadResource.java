@@ -12,8 +12,20 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.sql.DescribeResult;
+import org.gbif.api.model.occurrence.sql.ValidationResult;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.occurrence.download.service.CallbackService;
+import org.gbif.occurrence.download.service.PredicateFactory;
+import org.gbif.occurrence.download.service.hive.SqlDownloadService;
+import org.gbif.ws.util.ExtraMediaTypes;
 
 import java.io.InputStream;
 import java.security.Principal;
@@ -42,25 +54,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import org.apache.bval.guice.Validate;
-import org.apache.commons.lang3.StringUtils;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.download.service.PredicateFactory;
-import org.gbif.occurrence.download.service.hive.HiveSQL;
-import org.gbif.occurrence.download.service.hive.Result;
-import org.gbif.ws.util.ExtraMediaTypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.bval.guice.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 @Path("occurrence/download/request")
 @Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
@@ -86,14 +88,17 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
 
-  private List<Result.DescribeResult> describeCachedResponse;
+  private List<DescribeResult> describeCachedResponse;
+  
+  private final SqlDownloadService sqlDownloadService;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
-                          OccurrenceDownloadService occurrenceDownloadService) {
+                          OccurrenceDownloadService occurrenceDownloadService, SqlDownloadService sqlDownloadService) {
     requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.sqlDownloadService = sqlDownloadService;
   }
 
   @DELETE
@@ -134,18 +139,18 @@ public class DownloadResource {
   @GET
   @Path("sql/validate")
   @Produces(MediaType.APPLICATION_JSON)
-  public HiveSQL.Validate.Result validateSQL(@QueryParam("sql") String sqlQuery) {
+  public ValidationResult validateSQL(@QueryParam("sql") String sqlQuery) {
     LOG.debug("Received validation request for sql query [{}]", sqlQuery);
-    return new HiveSQL.Validate().apply(sqlQuery);
+    return  sqlDownloadService.validate(sqlQuery);
   }
 
   @GET
   @Path("sql/describe")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Result.DescribeResult> describeSQL() {
+  public List<DescribeResult> describeSQL() {
     LOG.debug("Received describe request for sql ");
     if (Objects.isNull(describeCachedResponse)) {
-      this.describeCachedResponse = HiveSQL.Execute.describe(OCCURRENCE_TABLE);
+      this.describeCachedResponse = sqlDownloadService.describe(OCCURRENCE_TABLE);
     }
     return describeCachedResponse;
   }

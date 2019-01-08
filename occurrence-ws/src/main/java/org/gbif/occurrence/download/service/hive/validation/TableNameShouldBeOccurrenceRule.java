@@ -1,13 +1,12 @@
 package org.gbif.occurrence.download.service.hive.validation;
 
-import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.gbif.api.model.occurrence.sql.Query.Issue;
 import org.gbif.occurrence.download.service.hive.validation.Hive.QueryContext;
-import org.gbif.occurrence.download.service.hive.validation.Query.Issue;
+
+import org.apache.hadoop.hive.ql.parse.ASTNode;
 
 /**
- * 
  * Rule to validate that the name of table in query is OCCURRENCE.
- *
  */
 public class TableNameShouldBeOccurrenceRule implements Rule {
 
@@ -15,7 +14,7 @@ public class TableNameShouldBeOccurrenceRule implements Rule {
 
   @Override
   public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
-    String tableName = QueryContext.search(queryContext.queryNode().orElse(null), TOK_TABNAME).map(searchNode -> {
+    String tableName = QueryContext.search(queryContext.queryNode(), TOK_TABNAME).map(searchNode -> {
       ASTNode childNode = (ASTNode) searchNode.getChildren().get(0);
       return childNode.getText();
     }).orElse("");
