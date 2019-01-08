@@ -200,7 +200,7 @@ GROUP BY
 Validate the query with SQL validation service
 
 ```
-  curl -G -i http://localhost:8080/occurrence/download/request/sql/validate --data-urlencode \
+  curl -G -i https://api.gbif-uat.org/v1/occurrence/download/request/sql/validate --data-urlencode \
 "sql=SELECT 
   decimallatitude/10 AS lat, 
   decimallongitude/10 AS lon, 
