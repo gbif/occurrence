@@ -120,35 +120,14 @@ public class DownloadServiceImplTest {
     allDownloads.add(job1);
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
-    when(downloadService.listByUser(any(String.class),
-                                    any(Pageable.class),
-                                    Matchers.anySetOf(Download.Status.class))).thenReturn(new PagingResponse<Download>(
-      0L,
-      0,
-      0L,
-      emptyDownloads));
-    when(downloadService.listByUser(eq("peter"),
-                                    any(Pageable.class),
-                                    Matchers.anySetOf(Download.Status.class))).thenReturn(new PagingResponse<Download>(
-      0L,
-      peterDownloads.size(),
-      new Long(peterDownloads.size()),
-      peterDownloads));
-    when(downloadService.listByUser(eq("karl"),
-                                    any(Pageable.class),
-                                    Matchers.anySetOf(Download.Status.class))).thenReturn(new PagingResponse<Download>(
-      0L,
-      peterDownloads.size(),
-      new Long(peterDownloads.size()),
-      karlDownloads));
-    when(downloadService.list(any(Pageable.class),
-                              Matchers.anySetOf(Download.Status.class))).thenReturn(new PagingResponse<Download>(0L,
-                                                                                                                 allDownloads
-                                                                                                                   .size(),
-                                                                                                                 new Long(
-                                                                                                                   allDownloads
-                                                                                                                     .size()),
-                                                                                                                 allDownloads));
+    when(downloadService.listByUser(any(String.class), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn
+      (new PagingResponse<Download>(0L, 0, 0L, emptyDownloads));
+    when(downloadService.listByUser(eq("peter"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn
+      (new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), peterDownloads));
+    when(downloadService.listByUser(eq("karl"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn
+      (new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), karlDownloads));
+    when(downloadService.list(any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn
+      (new PagingResponse<Download>(0L, allDownloads.size(), new Long(allDownloads.size()), allDownloads));
     // mock get details
     when(downloadService.get(eq("1-oozie-oozi-W"))).thenReturn(job1);
     when(downloadService.get(eq("2-oozie-oozi-W"))).thenReturn(job2);
@@ -171,8 +150,7 @@ public class DownloadServiceImplTest {
   @Test
   public void testNotification() throws OozieClientException {
     when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
-    DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE,
-                                                      "markus",
+    DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus",
                                                       Lists.newArrayList(TEST_EMAIL),
                                                       true,
                                                       DownloadFormat.DWCA);

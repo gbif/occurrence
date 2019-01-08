@@ -63,12 +63,8 @@ public class DownloadResourceTest {
     when(sec.getUserPrincipal()).thenReturn(userP);
 
     resource = new DownloadResource(service, callbackService, downloadService, sqlDownloadService);
-    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"),
-                                      USER,
-                                      null,
-                                      true,
-                                      DownloadFormat.DWCA);
+    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null,
+                                      true, DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);
   }
-
 }
