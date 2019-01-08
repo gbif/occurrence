@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.92-SNAPSHOT</version>
+    <version>0.93-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -72,7 +72,6 @@
                    <artifact>org.jruby:jruby-complete</artifact>
                   <artifact>org.mortbay.jetty:jetty</artifact>
                   <artifact>org.mortbay.jetty:jetty-util</artifact>
-                  <artifact>com.fasterxml.jackson.core:*</artifact>
                 </excludes>
               </artifactSet>
               <createDependencyReducedPom>true</createDependencyReducedPom>
@@ -90,7 +89,6 @@
                   <artifact>org.jruby:jruby-complete</artifact>
                   <excludes>
                     <exclude>org/joda/**</exclude>
-                    <exclude>com/fasterxml/**</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -149,6 +147,10 @@
         		<groupId>asm</groupId>
         		<artifactId>asm-commons</artifactId>
         	</exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
         	<exclusion>
         		<groupId>org.eclipse.jetty.aggregate</groupId>
         		<artifactId>jetty-all</artifactId>
@@ -476,12 +478,6 @@
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>
-      <exclusions>
-      	<exclusion>
-      		<groupId>com.fasterxml.jackson.core</groupId>
-      		<artifactId>jackson-databind</artifactId>
-      	</exclusion>
-      </exclusions>
     </dependency>
 
     <!-- testing -->
@@ -714,6 +710,12 @@
 		<artifactId>hadoop-mapreduce-client-core</artifactId>
 		<version>${hadoop.version}</version>
 		<scope>runtime</scope>
+    <exclusions>
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+      </exclusion>
+    </exclusions>
 	</dependency>
 	<dependency>
 		<groupId>org.apache.hadoop</groupId>
