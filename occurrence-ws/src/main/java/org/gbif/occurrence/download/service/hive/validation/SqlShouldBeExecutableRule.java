@@ -27,7 +27,7 @@ public class SqlShouldBeExecutableRule implements Rule {
   }
 
   @Override
-  public Context apply(Hive.QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Context apply(Hive.QueryContext queryContext) {
     List<String> explain;
     try {
       explain = service.explain(queryContext.translatedSQL());

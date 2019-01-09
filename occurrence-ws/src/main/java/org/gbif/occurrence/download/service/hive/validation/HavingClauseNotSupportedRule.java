@@ -11,7 +11,7 @@ public class HavingClauseNotSupportedRule implements Rule {
   private static final String TOK_HAVING = "TOK_HAVING";
 
   @Override
-  public Rule.Context apply(Hive.QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Rule.Context apply(Hive.QueryContext queryContext) {
     return Hive.QueryContext.search(queryContext.queryNode(), TOK_HAVING).isPresent()
       ? Rule.violated(Issue.HAVING_CLAUSE_NOT_SUPPORTED)
       : Rule.preserved();

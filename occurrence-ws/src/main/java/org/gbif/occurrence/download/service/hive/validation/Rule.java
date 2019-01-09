@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 @FunctionalInterface
 public interface Rule {
 
-  Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext);
+  Rule.Context apply(QueryContext queryContext);
 
   /**
    * creates rule context with issue, when rule was violated.

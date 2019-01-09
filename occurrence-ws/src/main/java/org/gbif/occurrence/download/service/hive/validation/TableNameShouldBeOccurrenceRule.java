@@ -13,7 +13,7 @@ public class TableNameShouldBeOccurrenceRule implements Rule {
   private static final String TOK_TABNAME = "TOK_TABNAME";
 
   @Override
-  public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Rule.Context apply(QueryContext queryContext) {
     String tableName = QueryContext.search(queryContext.queryNode(), TOK_TABNAME).map(searchNode -> {
       ASTNode childNode = (ASTNode) searchNode.getChildren().get(0);
       return childNode.getText();

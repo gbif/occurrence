@@ -10,7 +10,7 @@ import org.gbif.api.model.occurrence.sql.Query.Issue;
 public class OnlyPureSelectQueriesAllowedRule implements Rule {
 
   @Override
-  public Rule.Context apply(Hive.QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Rule.Context apply(Hive.QueryContext queryContext) {
     try {
       new UnionDDLJoinsValidator().validateNode(queryContext.queryNode());
       return Rule.preserved();

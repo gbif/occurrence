@@ -124,7 +124,7 @@ public class DownloadsQueryRuleBase {
     });
 
     if (!ruleBaseContext.firedRulesByName().contains(rule.getClass().getSimpleName())) {
-      Rule.Context ruleContext = rule.apply(context, ruleBaseContext).onViolation(ruleBaseContext::addIssue);
+      Rule.Context ruleContext = rule.apply(context).onViolation(ruleBaseContext::addIssue);
       ruleBaseContext.addFiredRule(rule, ruleContext);
     }
   }

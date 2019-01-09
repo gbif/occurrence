@@ -11,7 +11,7 @@ public class StarForFieldsNotAllowedRule implements Rule {
   private static final String ALL_ROWS = "TOK_ALLCOLREF";
 
   @Override
-  public Rule.Context apply(QueryContext queryContext, DownloadsQueryRuleBase.Context ruleBaseContext) {
+  public Rule.Context apply(QueryContext queryContext) {
     return QueryContext.search(queryContext.queryNode(), ALL_ROWS).isPresent()
       ? Rule.violated(Query.Issue.CANNOT_USE_ALLFIELDS)
       : Rule.preserved();
