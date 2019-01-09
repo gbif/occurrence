@@ -23,13 +23,15 @@ import org.slf4j.LoggerFactory;
 public class SqlDownloadService {
 
   private final HiveConnectionPool connectionPool;
+  private final DownloadsQueryRuleBase ruleBase;
   private static final String DESCRIBE = "DESCRIBE ";
   private static final String EXPLAIN = "EXPLAIN ";
   private static final Logger LOG = LoggerFactory.getLogger(SqlDownloadService.class);
 
   @Inject
-  public SqlDownloadService(HiveConnectionPool connectionPool) {
+  public SqlDownloadService(HiveConnectionPool connectionPool, DownloadsQueryRuleBase ruleBase) {
     this.connectionPool = connectionPool;
+    this.ruleBase = ruleBase;
   }
 
   @VisibleForTesting
@@ -63,6 +65,6 @@ public class SqlDownloadService {
    */
   public SqlValidationResult validate(String sqlQuery) {
     LOG.info("Validating sql: {}", sqlQuery);
-    return DownloadsQueryRuleBase.create(connectionPool).validate(sqlQuery);
+    return ruleBase.validate(sqlQuery);
   }
 }

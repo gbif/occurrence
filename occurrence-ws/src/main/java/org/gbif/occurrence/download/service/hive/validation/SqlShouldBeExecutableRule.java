@@ -6,8 +6,8 @@ import org.gbif.occurrence.download.service.hive.SqlDownloadService;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+import com.google.inject.Inject;
 import org.apache.nifi.dbcp.hive.HiveConnectionPool;
 
 /**
@@ -21,9 +21,9 @@ public class SqlShouldBeExecutableRule implements Rule {
 
   public SqlShouldBeExecutableRule() {}
 
+  @Inject
   public SqlShouldBeExecutableRule(HiveConnectionPool connectionPool) {
-    Objects.requireNonNull(connectionPool);
-    this.service = new SqlDownloadService(connectionPool);
+    service = new SqlDownloadService(connectionPool, null);
   }
 
   @Override

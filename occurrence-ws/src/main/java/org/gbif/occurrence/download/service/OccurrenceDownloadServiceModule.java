@@ -3,14 +3,22 @@ package org.gbif.occurrence.download.service;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.hive.SqlDownloadService;
+import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase;
+import org.gbif.occurrence.download.service.hive.validation.SqlShouldBeExecutableRule;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.service.guice.PrivateServiceModule;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.mail.Session;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import org.apache.nifi.attribute.expression.language.StandardPropertyValue;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.PropertyValue;
@@ -19,10 +27,6 @@ import org.apache.nifi.dbcp.hive.HiveConnectionPool;
 import org.apache.nifi.mock.MockControllerServiceInitializationContext;
 import org.apache.nifi.reporting.InitializationException;
 import org.apache.oozie.client.OozieClient;
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 
 public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
 
@@ -37,10 +41,13 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
     bind(DownloadEmailUtils.class);
     bind(DownloadRequestService.class).to(DownloadRequestServiceImpl.class);
     bind(SqlDownloadService.class);
-    
+    bind(DownloadsQueryRuleBase.class);
+    bind(SqlShouldBeExecutableRule.class);
+
     expose(DownloadRequestService.class);
     expose(SqlDownloadService.class);
-    
+    expose(DownloadsQueryRuleBase.class);
+    expose(SqlShouldBeExecutableRule.class);
     bind(CallbackService.class).to(DownloadRequestServiceImpl.class);
     expose(CallbackService.class);
   }
@@ -94,8 +101,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
                                                 @Named("hive.jdbc.validationQuery") String validationQuery)
     throws InitializationException {
     HiveConnectionPool cp = new HiveConnectionPool();
-    NifiConfigurationContext
-       context = NifiConfigurationContext.from(jdbcURL).withUsername(username).withPassword(password)
+    NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username).withPassword(password)
       .withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime).withProperty(HiveConnectionPool.VALIDATION_QUERY, validationQuery);
     cp.initialize(new MockControllerServiceInitializationContext());
     cp.onConfigured(context);

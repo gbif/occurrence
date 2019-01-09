@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
+import javax.validation.constraints.NotNull;
 
-import org.apache.nifi.dbcp.hive.HiveConnectionPool;
+import com.google.inject.Inject;
 
 /**
  * Rule base of all the checks required for SQL Query to run against Hive. This is entry class for
@@ -21,13 +21,11 @@ import org.apache.nifi.dbcp.hive.HiveConnectionPool;
  */
 public class DownloadsQueryRuleBase {
 
-  private static final Function<HiveConnectionPool, List<Rule>> RULES =
-    cp -> new ArrayList<>(Arrays.asList(new OnlyOneSelectAllowedRule(),
-                                        new StarForFieldsNotAllowedRule(),
-                                        new OnlyPureSelectQueriesAllowedRule(),
-                                        new TableNameShouldBeOccurrenceRule(),
-                                        new HavingClauseNotSupportedRule(),
-                                        new SqlShouldBeExecutableRule(cp)));
+  private static final List<Rule> RULES = new ArrayList<>(Arrays.asList(new OnlyOneSelectAllowedRule(),
+                                                                        new StarForFieldsNotAllowedRule(),
+                                                                        new OnlyPureSelectQueriesAllowedRule(),
+                                                                        new TableNameShouldBeOccurrenceRule(),
+                                                                        new HavingClauseNotSupportedRule()));
 
   /**
    * This Class keeps the context information of rules fired from rule base.
@@ -77,19 +75,26 @@ public class DownloadsQueryRuleBase {
   private DownloadsQueryRuleBase.Context ruleBaseContext;
   private QueryContext queryContext;
 
-  private DownloadsQueryRuleBase(List<Rule> rulesToFire) {
+  private DownloadsQueryRuleBase(@NotNull List<Rule> rulesToFire) {
     this.rulesToFire = rulesToFire;
+  }
+
+  /**
+   * This is default constructor for creating SQLDownloadRuleBase
+   */
+  @Inject
+  public DownloadsQueryRuleBase(@NotNull SqlShouldBeExecutableRule rule) {
+    this.rulesToFire = RULES;
+    this.rulesToFire.add(rule);
   }
 
   /**
    * creates instance of {@link DownloadsQueryRuleBase}.
    *
+   * @param rulesToFire list of rules to run
+   *
    * @return {@link DownloadsQueryRuleBase}
    */
-  public static DownloadsQueryRuleBase create(HiveConnectionPool connectionPool) {
-    return DownloadsQueryRuleBase.create(RULES.apply(connectionPool));
-  }
-
   @VisibleForTesting
   public static DownloadsQueryRuleBase create(List<Rule> rulesToFire) {
     Objects.requireNonNull(rulesToFire);
