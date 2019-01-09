@@ -13,19 +13,17 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 
-import com.google.inject.Inject;
-
 /**
  * Rule base of all the checks required for SQL Query to run against Hive. This is entry class for
  * SQL Download Query validation.
  */
 public class DownloadsQueryRuleBase {
 
-  private static final List<Rule> RULES = new ArrayList<>(Arrays.asList(new OnlyOneSelectAllowedRule(),
-                                                                        new StarForFieldsNotAllowedRule(),
-                                                                        new OnlyPureSelectQueriesAllowedRule(),
-                                                                        new TableNameShouldBeOccurrenceRule(),
-                                                                        new HavingClauseNotSupportedRule()));
+  private static final List<Rule> RULES = Arrays.asList(new OnlyOneSelectAllowedRule(),
+                                                        new StarForFieldsNotAllowedRule(),
+                                                        new OnlyPureSelectQueriesAllowedRule(),
+                                                        new TableNameShouldBeOccurrenceRule(),
+                                                        new HavingClauseNotSupportedRule());
 
   /**
    * This Class keeps the context information of rules fired from rule base.
@@ -76,16 +74,16 @@ public class DownloadsQueryRuleBase {
   private QueryContext queryContext;
 
   private DownloadsQueryRuleBase(@NotNull List<Rule> rulesToFire) {
-    this.rulesToFire = rulesToFire;
+    this.rulesToFire = new ArrayList<>(rulesToFire);
   }
 
   /**
-   * This is default constructor for creating SQLDownloadRuleBase
+   * creates instance of {@link DownloadsQueryRuleBase}.
+   *
+   * @return {@link DownloadsQueryRuleBase}
    */
-  @Inject
-  public DownloadsQueryRuleBase(@NotNull SqlShouldBeExecutableRule rule) {
-    this.rulesToFire = RULES;
-    this.rulesToFire.add(rule);
+  public static DownloadsQueryRuleBase create() {
+    return new DownloadsQueryRuleBase(RULES);
   }
 
   /**
@@ -99,6 +97,14 @@ public class DownloadsQueryRuleBase {
   public static DownloadsQueryRuleBase create(List<Rule> rulesToFire) {
     Objects.requireNonNull(rulesToFire);
     return new DownloadsQueryRuleBase(rulesToFire);
+  }
+
+  /**
+   * Adds more rule to rule base {@link DownloadsQueryRuleBase}.
+   */
+  public DownloadsQueryRuleBase addMoreRule(Rule rule) {
+    rulesToFire.add(rule);
+    return this;
   }
 
   /**

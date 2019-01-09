@@ -3,8 +3,6 @@ package org.gbif.occurrence.download.service;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.hive.SqlDownloadService;
-import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase;
-import org.gbif.occurrence.download.service.hive.validation.SqlShouldBeExecutableRule;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.service.guice.PrivateServiceModule;
 
@@ -41,13 +39,9 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
     bind(DownloadEmailUtils.class);
     bind(DownloadRequestService.class).to(DownloadRequestServiceImpl.class);
     bind(SqlDownloadService.class);
-    bind(DownloadsQueryRuleBase.class);
-    bind(SqlShouldBeExecutableRule.class);
 
     expose(DownloadRequestService.class);
     expose(SqlDownloadService.class);
-    expose(DownloadsQueryRuleBase.class);
-    expose(SqlShouldBeExecutableRule.class);
     bind(CallbackService.class).to(DownloadRequestServiceImpl.class);
     expose(CallbackService.class);
   }
@@ -70,18 +64,21 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   @Provides
   @Singleton
   @Named("oozie.default_properties")
-  Map<String,String> providesDefaultParameters(@Named("environment") String environment,
-                                               @Named("ws.url") String wsUrl,
-                                               @Named("hdfs.namenode") String nameNode,
-                                               @Named("user.name") String userName) {
-    return new ImmutableMap.Builder<String, String>()
-      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, environment))
-      .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
-                                                          environment))
+  Map<String, String> providesDefaultParameters(
+    @Named("environment") String environment,
+    @Named("ws.url") String wsUrl,
+    @Named("hdfs.namenode") String nameNode,
+    @Named("user.name") String userName) {
+    return new ImmutableMap.Builder<String, String>().put(OozieClient.LIBPATH,
+                                                          String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,
+                                                                        environment))
+      .put(OozieClient.APP_PATH,
+           nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT, environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
            DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
-      .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
+      .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS)
+      .build();
   }
 
   /**
@@ -89,17 +86,18 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
    * properties.
    *
    * @return HiveConnectionPool from default properties.
+   *
    * @throws InitializationException error initializing connection pool.
    */
   @Provides
   @Singleton
-  HiveConnectionPool providesHiveConnectionPool(@Named("hive.jdbc.url") String jdbcURL,
-                                               @Named("hive.jdbc.username") String username,
-                                               @Named("hive.jdbc.password") String password,
-                                               @Named("hive.jdbc.poolsize") int poolSize,
-                                                @Named("hive.jdbc.maxWaitTime") String maxWaitTime,
-                                                @Named("hive.jdbc.validationQuery") String validationQuery)
-    throws InitializationException {
+  HiveConnectionPool providesHiveConnectionPool(
+    @Named("hive.jdbc.url") String jdbcURL,
+    @Named("hive.jdbc.username") String username,
+    @Named("hive.jdbc.password") String password,
+    @Named("hive.jdbc.poolsize") int poolSize,
+    @Named("hive.jdbc.maxWaitTime") String maxWaitTime,
+    @Named("hive.jdbc.validationQuery") String validationQuery) throws InitializationException {
     HiveConnectionPool cp = new HiveConnectionPool();
     NifiConfigurationContext context = NifiConfigurationContext.from(jdbcURL).withUsername(username).withPassword(password)
       .withMaxConnections(poolSize).withMaxWaitTime(maxWaitTime).withProperty(HiveConnectionPool.VALIDATION_QUERY, validationQuery);
@@ -109,9 +107,7 @@ public class OccurrenceDownloadServiceModule extends PrivateServiceModule {
   }
 
   /**
-   *
    * Nifi Configuration Context containing jdbc related properties.
-   *
    */
   private static class NifiConfigurationContext implements ConfigurationContext {
 

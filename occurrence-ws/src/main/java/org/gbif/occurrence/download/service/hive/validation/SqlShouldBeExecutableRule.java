@@ -2,12 +2,11 @@ package org.gbif.occurrence.download.service.hive.validation;
 
 import org.gbif.api.model.occurrence.sql.Query;
 import org.gbif.api.model.occurrence.sql.Query.Issue;
-import org.gbif.occurrence.download.service.hive.SqlDownloadService;
+import org.gbif.occurrence.download.service.hive.HiveSql;
 
 import java.util.Collections;
 import java.util.List;
 
-import com.google.inject.Inject;
 import org.apache.nifi.dbcp.hive.HiveConnectionPool;
 
 /**
@@ -17,20 +16,19 @@ public class SqlShouldBeExecutableRule implements Rule {
 
   public static final String COMPILATION_ERROR = "COMPILATION ERROR";
 
-  private SqlDownloadService service;
-
   public SqlShouldBeExecutableRule() {}
 
-  @Inject
+  private HiveConnectionPool connectionPool;
+
   public SqlShouldBeExecutableRule(HiveConnectionPool connectionPool) {
-    service = new SqlDownloadService(connectionPool, null);
+    this.connectionPool = connectionPool;
   }
 
   @Override
   public Context apply(Hive.QueryContext queryContext) {
     List<String> explain;
     try {
-      explain = service.explain(queryContext.translatedSQL());
+      explain = HiveSql.Execute.explain(connectionPool, queryContext.translatedSQL());
       return Rule.preserved(explain);
     } catch (RuntimeException e) {
       explain = Collections.singletonList(COMPILATION_ERROR);

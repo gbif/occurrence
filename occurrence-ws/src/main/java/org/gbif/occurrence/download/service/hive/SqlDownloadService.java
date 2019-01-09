@@ -1,9 +1,8 @@
 package org.gbif.occurrence.download.service.hive;
 
 import org.gbif.api.model.occurrence.sql.DescribeResult;
-import org.gbif.occurrence.download.service.hive.Result.ReadDescribe;
-import org.gbif.occurrence.download.service.hive.Result.ReadExplain;
 import org.gbif.occurrence.download.service.hive.validation.DownloadsQueryRuleBase;
+import org.gbif.occurrence.download.service.hive.validation.SqlShouldBeExecutableRule;
 import org.gbif.occurrence.download.service.hive.validation.SqlValidationResult;
 
 import java.util.List;
@@ -22,16 +21,13 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class SqlDownloadService {
 
-  private final HiveConnectionPool connectionPool;
-  private final DownloadsQueryRuleBase ruleBase;
-  private static final String DESCRIBE = "DESCRIBE ";
-  private static final String EXPLAIN = "EXPLAIN ";
   private static final Logger LOG = LoggerFactory.getLogger(SqlDownloadService.class);
 
+  private final HiveConnectionPool connectionPool;
+
   @Inject
-  public SqlDownloadService(HiveConnectionPool connectionPool, DownloadsQueryRuleBase ruleBase) {
+  public SqlDownloadService(HiveConnectionPool connectionPool) {
     this.connectionPool = connectionPool;
-    this.ruleBase = ruleBase;
   }
 
   @VisibleForTesting
@@ -45,7 +41,7 @@ public class SqlDownloadService {
    * @return explain results.
    */
   public List<String> explain(String query) {
-    return HiveSql.Execute.<List<String>>with(connectionPool).apply(EXPLAIN.concat(query), new ReadExplain());
+    return HiveSql.Execute.explain(connectionPool, query);
   }
 
   /**
@@ -54,8 +50,7 @@ public class SqlDownloadService {
    * @return describe result of the table.
    */
   public List<DescribeResult> describe(String tableName) {
-    return HiveSql.Execute.<List<DescribeResult>>with(connectionPool).apply(DESCRIBE.concat(tableName),
-                                                                            new ReadDescribe());
+    return HiveSql.Execute.describe(connectionPool, tableName);
   }
 
   /**
@@ -65,6 +60,6 @@ public class SqlDownloadService {
    */
   public SqlValidationResult validate(String sqlQuery) {
     LOG.info("Validating sql: {}", sqlQuery);
-    return ruleBase.validate(sqlQuery);
+    return DownloadsQueryRuleBase.create().addMoreRule(new SqlShouldBeExecutableRule(connectionPool)).validate(sqlQuery);
   }
 }
