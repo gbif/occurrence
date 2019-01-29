@@ -1,0 +1,31 @@
+CREATE TABLE matt.mltest_estonia_birds2
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+TBLPROPERTIES ('avro.schema.url'='hdfs://ha-nn/tmp/imageoccurrence13.avsc');
+
+INSERT INTO matt.mltest_estonia_birds2
+  SELECT
+    o.gbifID, o.datasetKey, o.occurrenceID, o.kingdom, o.phylum, o.class, o.order_, o.family, o.genus, o.species, o.infraspecificEpithet, o.taxonRank, o.scientificName, o.countryCode, o.locality, o.publishingOrgKey, o.decimalLatitude, o.decimalLongitude, o.coordinateUncertaintyInMeters, o.coordinatePrecision, o.elevation, o.elevationAccuracy, o.depth, o.depthAccuracy, o.eventDate, o.day, o.month, o.year, o.taxonKey, o.speciesKey, o.basisOfRecord, o.institutionCode, o.collectionCode, o.catalogNumber, o.recordNumber, o.identifiedBy, o.dateIdentified, o.license, o.rightsHolder, o.recordedBy, o.typeStatus, o.establishmentMeans, o.lastInterpreted, o.issue,
+    collect_list(named_struct(
+      'format', m.format,
+      'derivedFrom', m.identifier,
+      'references', m.references,
+      'title', m.title,
+      'description', m.description,
+      'source', m.source,
+      'audience', m.audience,
+      'created', m.created,
+      'creator', m.creator,
+      'contributor', m.contributor,
+      'publisher', m.publisher,
+      'license', m.license,
+      'rightsholder', m.rightsholder,
+      'identifier', concat('https://api.gbif.org/v1/image/unsafe/fit-in/320x320/filters:format(jpg)/', m.identifier),
+      'thumbnail', resizeAndEncode9("http://api.gbif.org/v1/", m.identifier)
+    ))
+  FROM occurrence_hdfs o JOIN occurrence_multimedia m ON o.gbifid = m.gbifid
+  WHERE
+        o.datasetkey = '169fa761-2fb9-4022-93bd-e22b7a062efd' and o.countrycode = 'EE' and o.classkey = 212 and (m.identifier like '%.j%' or m.identifier like '%.J%')
+    AND m.identifier IS NOT NULL
+  GROUP BY o.gbifID, o.datasetKey, o.occurrenceID, o.kingdom, o.phylum, o.class, o.order_, o.family, o.genus, o.species, o.infraspecificEpithet, o.taxonRank, o.scientificName, o.countryCode, o.locality, o.publishingOrgKey, o.decimalLatitude, o.decimalLongitude, o.coordinateUncertaintyInMeters, o.coordinatePrecision, o.elevation, o.elevationAccuracy, o.depth, o.depthAccuracy, o.eventDate, o.day, o.month, o.year, o.taxonKey, o.speciesKey, o.basisOfRecord, o.institutionCode, o.collectionCode, o.catalogNumber, o.recordNumber, o.identifiedBy, o.dateIdentified, o.license, o.rightsHolder, o.recordedBy, o.typeStatus, o.establishmentMeans, o.lastInterpreted, o.issue;

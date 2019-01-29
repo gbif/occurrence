@@ -1,0 +1,114 @@
+/**
+ * "Images download" Occurrence record format.
+ */
+
+{
+  "name": "ImageOccurrence",
+  "namespace": "org.gbif.occurrence.download.avro",
+  "type": "record",
+  "fields": [
+    {"name": "gbifID", "type": ["null", "string"], "default": null },
+    {"name": "datasetKey", "type": ["null", "string"], "default": null },
+    {"name": "scientificName", "type": ["null", "string"], "default": null },
+
+    {"name": "images", "type":
+      {
+        "name": "Image",
+        "type": "record",
+        "fields": [
+          {"name": "format", "type": ["null", "string"], "default" : null },
+          {"name": "identifier", "type": ["null", "bytes"], "default" : null }
+        ]
+      }
+    }
+  ]
+}
+
+
+DROP TABLE matt.mltest;
+CREATE TABLE matt.mltest(gbifid STRING, datasetkey STRING, scientificname STRING, images ARRAY<STRUCT<format:STRING, identifier:STRING>>);
+
+INSERT INTO matt.mltest SELECT o.gbifid, o.datasetkey, o.scientificname, collect_list(named_struct('format', m.format, 'identifier', m.identifier)) from occurrence_hdfs o JOIN occurrence_multimedia m ON o.gbifid = m.gbifid
+WHERE o.datasetkey = '76dd8f0d-2daa-4a69-9fcd-55e04230334a' AND m.identifier IS NOT NULL
+GROUP BY o.gbifid, o.datasetkey, o.scientificname;
+
+SELECT * FROM matt.mltest;
+
+
+--
+
+DROP TABLE matt.mltest;
+CREATE TABLE matt.mltest
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES (
+    'avro.schema.literal'='{
+      "name": "ImageOccurrence",
+      "namespace": "org.gbif.occurrence.download.avro",
+      "type": "record",
+      "fields": [
+        {"name": "gbifID", "type": ["null", "string"], "default": null },
+        {"name": "datasetKey", "type": ["null", "string"], "default": null },
+        {"name": "scientificName", "type": ["null", "string"], "default": null },
+        {"name": "images", "type": {"type": "array", "items":
+          {
+            "name": "Image",
+            "type": "record",
+            "fields": [
+              {"name": "format", "type": ["null", "string"], "default" : null },
+              {"name": "identifier", "type": ["null", "string"], "default" : null }
+            ]
+          }}
+        }
+      ]
+    }');
+
+INSERT INTO matt.mltest SELECT o.gbifid, o.datasetkey, o.scientificname, collect_list(named_struct('format', m.format, 'identifier', m.identifier)) from occurrence_hdfs o JOIN occurrence_multimedia m ON o.gbifid = m.gbifid
+WHERE o.datasetkey = '76dd8f0d-2daa-4a69-9fcd-55e04230334a' AND m.identifier IS NOT NULL
+GROUP BY o.gbifid, o.datasetkey, o.scientificname;
+
+SELECT * FROM matt.mltest;
+
+
+
+
+--
+
+DROP TABLE matt.mltest;
+CREATE TABLE matt.mltest
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES (
+    'avro.schema.literal'='{
+      "name": "ImageOccurrence",
+      "namespace": "org.gbif.occurrence.download.avro",
+      "type": "record",
+      "fields": [
+        {"name": "gbifID", "type": ["null", "string"], "default": null },
+        {"name": "datasetKey", "type": ["null", "string"], "default": null },
+        {"name": "scientificName", "type": ["null", "string"], "default": null },
+        {"name": "images", "type": {"type": "array", "items":
+          {
+            "name": "Image",
+            "type": "record",
+            "fields": [
+              {"name": "format", "type": ["null", "string"], "default" : null },
+              {"name": "identifier", "type": ["null", "bytes"], "default" : null }
+            ]
+          }}
+        }
+      ]
+    }');
+
+INSERT INTO matt.mltest SELECT o.gbifid, o.datasetkey, o.scientificname, collect_list(named_struct('format', m.format, 'identifier', resizeAndEncode7("http://api.gbif.org/v1/", m.identifier))) from occurrence_hdfs o JOIN occurrence_multimedia m ON o.gbifid = m.gbifid
+WHERE o.datasetkey = '76dd8f0d-2daa-4a69-9fcd-55e04230334a' AND m.identifier IS NOT NULL
+GROUP BY o.gbifid, o.datasetkey, o.scientificname;
+
+SELECT * FROM matt.mltest;
+
+RELOAD FUNCTION;
+SELECT resizeAndEncode7("http://api.gbif.org/v1/", "https://s.idigbio.org/idigbio-images-prod/414560e3c8514266b6d9e1888a792564");
+
+select * from occurrence_multimedia limit 1;
