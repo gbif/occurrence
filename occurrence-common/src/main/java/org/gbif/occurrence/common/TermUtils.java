@@ -97,7 +97,7 @@ public class TermUtils {
                                                                                GbifTerm.nameType,
                                                                                GbifTerm.verbatimLabel,
                                                                                GbifTerm.infraspecificMarker,
-                                                                               GbifTerm.numOfOccurrences)));
+                                                                               GbifTerm.numberOfOccurrences)));
 
   /**
    * Interpreted terms that exist as java properties on Occurrence.

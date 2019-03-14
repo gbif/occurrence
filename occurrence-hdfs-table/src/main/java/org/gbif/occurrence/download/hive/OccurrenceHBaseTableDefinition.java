@@ -48,7 +48,7 @@ public class OccurrenceHBaseTableDefinition {
     Set<Term> exclusions = Stream.of(GbifTerm.gbifID, // treated as a special field (primary key)
                                      GbifTerm.mediaType, // stripped explicitly as it is handled as an array
                                      GbifTerm.issue, // stripped explicitly as it is handled as an array
-                                     GbifTerm.numOfOccurrences, //used for species aggregations only
+                                     GbifTerm.numberOfOccurrences, //used for species aggregations only
                                      //Boolean flags calculated from HBase data
                                      GbifTerm.hasCoordinate,
                                      GbifTerm.hasGeospatialIssues,

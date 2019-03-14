@@ -23,7 +23,7 @@ public class DownloadTerms {
                                                                    // omitted entirely
                                                                    GbifInternalTerm.fragment,
                                                                    // omitted entirely
-                                                                   GbifTerm.numOfOccurrences
+                                                                   GbifTerm.numberOfOccurrences
                                                                    //this is for aggregation only
   );
 
@@ -97,6 +97,8 @@ public class DownloadTerms {
                                                                     GbifTerm.datasetKey,
                                                                     DwcTerm.occurrenceID,
                                                                     GbifTerm.taxonKey,
+                                                                    GbifTerm.acceptedTaxonKey,
+                                                                    GbifTerm.acceptedScientificName,
                                                                     DwcTerm.scientificName,
                                                                     DwcTerm.taxonRank,
                                                                     DwcTerm.taxonomicStatus,
@@ -112,8 +114,6 @@ public class DownloadTerms {
                                                                     GbifTerm.familyKey,
                                                                     DwcTerm.genus,
                                                                     GbifTerm.genusKey,
-                                                                    DwcTerm.subgenus,
-                                                                    GbifTerm.subgenusKey,
                                                                     GbifTerm.species,
                                                                     GbifTerm.speciesKey,
                                                                     DcTerm.license);
@@ -123,7 +123,9 @@ public class DownloadTerms {
    */
   public static final Set<Term> SPECIES_LIST_DOWNLOAD_TERMS = ImmutableSet.of(GbifTerm.taxonKey,
                                                                               DwcTerm.scientificName,
-                                                                              GbifTerm.numOfOccurrences,
+                                                                              GbifTerm.acceptedTaxonKey,
+                                                                              GbifTerm.acceptedScientificName,
+                                                                              GbifTerm.numberOfOccurrences,
                                                                               DwcTerm.taxonRank,
                                                                               DwcTerm.taxonomicStatus,
                                                                               DwcTerm.kingdom,
@@ -138,8 +140,6 @@ public class DownloadTerms {
                                                                               GbifTerm.familyKey,
                                                                               DwcTerm.genus,
                                                                               GbifTerm.genusKey,
-                                                                              DwcTerm.subgenus,
-                                                                              GbifTerm.subgenusKey,
                                                                               GbifTerm.species,
                                                                               GbifTerm.speciesKey);
 }
