@@ -54,8 +54,8 @@ public class SpeciesListCollectorTest {
     collector.collect(speciesRecord2);
     collector.collect(speciesRecord3);
     collector.collect(speciesRecord4);
-    assertEquals(collector.getByTaxonKey("1").get(GbifTerm.numOfOccurrences.simpleName()), "134");
-    assertEquals(collector.getByTaxonKey("2").get(GbifTerm.numOfOccurrences.simpleName()), "100");
+    assertEquals(collector.getByTaxonKey("1").get(GbifTerm.numberOfOccurrences.simpleName()), "134");
+    assertEquals(collector.getByTaxonKey("2").get(GbifTerm.numberOfOccurrences.simpleName()), "100");
   }
 
   /**
@@ -64,7 +64,7 @@ public class SpeciesListCollectorTest {
   private Map<String,String> buildTestRecord(String taxonKey, Long numOfOccurrences) {
     Map<String, String> speciesRecord = new HashMap<>();
     if (Objects.nonNull(numOfOccurrences)) {
-      speciesRecord.put(GbifTerm.numOfOccurrences.simpleName(), Long.toString(numOfOccurrences));
+      speciesRecord.put(GbifTerm.numberOfOccurrences.simpleName(), Long.toString(numOfOccurrences));
     }
     speciesRecord.put(GbifTerm.taxonKey.simpleName(), taxonKey);
     return  speciesRecord;

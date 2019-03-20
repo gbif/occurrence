@@ -32,7 +32,7 @@ public class TestDownloadHeaders {
     diff = Sets.newHashSet(Sets.symmetricDifference(interpretedFromTermUtils, hdfsTerms));
     diff.remove(GbifTerm.gbifID);
     diff.remove(GbifTerm.mediaType);
-    diff.remove(GbifTerm.numOfOccurrences);
+    diff.remove(GbifTerm.numberOfOccurrences);
     assertEquals("TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
             diff, 0, diff.size());
 

@@ -285,7 +285,7 @@ public final class Terms {
       .addAll(
       // add all GBIF terms that are not stripped during interpretation\
       GBIF_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
-        && GbifTerm.coordinateAccuracy !=t && GbifTerm.numOfOccurrences != t).collect(Collectors.toList()))
+        && GbifTerm.coordinateAccuracy !=t && GbifTerm.numberOfOccurrences != t).collect(Collectors.toList()))
       .build();
   }
 
