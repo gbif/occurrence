@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.sql.GBIFSqlQuery;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -185,7 +186,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   private String runSqlDownload(DownloadRequest request) throws OozieClientException {
     SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
-    SqlValidationResult result = sqlDownloadService.validate(sqlRequest.getSql());
+
+    GBIFSqlQuery gbifSqlQuery = GBIFSqlQuery.create(sqlRequest.getSql());
+
+    SqlValidationResult result = sqlDownloadService.validate(gbifSqlQuery.getUncheckedHiveQuery());
     if (!result.isSuccess()) {
       throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.getIssues()));
     }
@@ -199,7 +203,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     return client.run(parametersBuilder.buildWorkflowParameters(request,
         Collections.unmodifiableMap(Stream
             .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.getSqlHeader()),
-                entry.apply(DownloadWorkflowParameters.SQL_WHERE, where))
+                entry.apply(DownloadWorkflowParameters.SQL_WHERE, where),
+                entry.apply(DownloadWorkflowParameters.SQL_EXPORT_TEMPLATE, gbifSqlQuery.getSqlDownloadExportFormat().getTemplate()))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 

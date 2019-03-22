@@ -34,6 +34,8 @@ public class DownloadWorkflowParameters {
   
   public static final String SQL_WHERE = "sql_where";
 
+  public static final String SQL_EXPORT_TEMPLATE = "sql_export_template";
+
   /**
    * Private default constructor.
    */

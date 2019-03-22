@@ -16,8 +16,7 @@ CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 DROP TABLE IF EXISTS ${occurrenceTable};
 
 -- pre-create verbatim table so it can be used in the multi-insert
-CREATE TABLE ${occurrenceTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-TBLPROPERTIES ("serialization.null.format"="")
+CREATE TABLE ${occurrenceTable} ${export_template}
 AS ${sql};
 
 SET mapred.output.compress=false;

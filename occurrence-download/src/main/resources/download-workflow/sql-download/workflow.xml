@@ -22,6 +22,7 @@
 			<param>hiveDB=${hive_db}</param>
 			<param>occurrenceTable=${download_table_name}</param>
 			<param>sql=${sql}</param>
+      <param>export_template=${export_template}</param>
 		</hive>
 		<ok to="archive_table" />
 		<error to="drop_tables_failure" />
