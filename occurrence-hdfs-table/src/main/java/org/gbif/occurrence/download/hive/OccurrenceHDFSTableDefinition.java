@@ -141,14 +141,14 @@ public class OccurrenceHDFSTableDefinition {
   private static List<InitializableField> interpretedFields() {
 
     // the following terms are manipulated when transposing from HBase to hive by using UDFs and custom HQL
-    Map<Term, String> initializers = ImmutableMap.<Term, String>of(GbifTerm.hasGeospatialIssues,
-                                                                   hasGeospatialIssuesInitializer(),
-                                                                   GbifTerm.hasCoordinate,
-                                                                   hasCoordinateInitializer(),
-                                                                   GbifTerm.issue,
-                                                                   issueInitializer(),
-                                                                   GbifTerm.repatriated,
-                                                                   repatriatedInitializer());
+    Map<Term, String> initializers = ImmutableMap.of(GbifTerm.hasGeospatialIssues,
+                                                     hasGeospatialIssuesInitializer(),
+                                                     GbifTerm.hasCoordinate,
+                                                     hasCoordinateInitializer(),
+                                                     GbifTerm.issue,
+                                                     issueInitializer(),
+                                                     GbifTerm.repatriated,
+                                                     repatriatedInitializer());
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {

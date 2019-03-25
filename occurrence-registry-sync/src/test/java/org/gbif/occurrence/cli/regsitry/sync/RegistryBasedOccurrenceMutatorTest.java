@@ -7,6 +7,8 @@ import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -74,15 +76,35 @@ public class RegistryBasedOccurrenceMutatorTest {
     Dataset datasetBefore = getMockDataset();
     datasetBefore.setPublishingOrganizationKey(org.getKey());
     datasetBefore.setLicense(License.UNSPECIFIED);
+    datasetBefore.setCreated(Date.from(Instant.now().minusSeconds(3600)));
 
     Dataset datasetAfter = new Dataset();
     datasetAfter.setKey(datasetBefore.getKey());
     datasetAfter.setPublishingOrganizationKey(org.getKey());
     datasetAfter.setLicense(License.CC0_1_0);
+    datasetAfter.setCreated(datasetBefore.getCreated());
 
     assertTrue(OCC_MUTATOR.requiresUpdate(datasetBefore, datasetAfter));
     assertTrue(StringUtils.isNotBlank(OCC_MUTATOR.generateUpdateMessage(org, org, datasetBefore, datasetAfter)
-            .orElse("")));
+      .orElse("")));
+  }
+
+  @Test
+  public void testRequiresUpdateRecentDataset() {
+
+    Organization org = getMockOrganization();
+    Dataset datasetBefore = getMockDataset();
+    datasetBefore.setPublishingOrganizationKey(org.getKey());
+    datasetBefore.setLicense(License.UNSPECIFIED);
+    datasetBefore.setCreated(Date.from(Instant.now().minusSeconds(60)));
+
+    Dataset datasetAfter = new Dataset();
+    datasetAfter.setKey(datasetBefore.getKey());
+    datasetAfter.setPublishingOrganizationKey(org.getKey());
+    datasetAfter.setLicense(License.CC0_1_0);
+    datasetAfter.setCreated(datasetBefore.getCreated());
+
+    assertFalse(OCC_MUTATOR.requiresUpdate(datasetBefore, datasetAfter));
   }
 
   @Test

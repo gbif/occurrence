@@ -18,13 +18,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -55,7 +55,7 @@ public class OccurrenceMapReader {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
-      Map<String, String> occurrence = new HashMap<String, String>();
+      Map<String, String> occurrence = new HashMap<>();
       for (Term term : TermUtils.interpretedTerms()) {
         if (TermUtils.isInterpretedDate(term)) {
           occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));
@@ -77,7 +77,7 @@ public class OccurrenceMapReader {
       occurrence.put(GbifTerm.hasCoordinate.simpleName(),
                      Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
                                       && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
-      occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orNull());
+      occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orElse(null));
       return occurrence;
     }
   }
@@ -91,7 +91,7 @@ public class OccurrenceMapReader {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
-      Map<String, String> occurrence = new HashMap<String, String>();
+      Map<String, String> occurrence = new HashMap<>();
       for (Term term : terms) {
         if (TermUtils.isInterpretedDate(term)) {
           occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));
@@ -112,7 +112,7 @@ public class OccurrenceMapReader {
                          Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
                                           && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
         } else if (term == GbifTerm.repatriated) {
-          occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orNull());
+          occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orElse(null));
         } else if (!TermUtils.isComplexType(term)) {
           occurrence.put(term.simpleName(), getCleanString(row, term));
         }
@@ -131,16 +131,16 @@ public class OccurrenceMapReader {
     if (publishingCountry != null && countryCode != null) {
       return Optional.of(Boolean.toString(publishingCountry.equalsIgnoreCase(countryCode)));
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /**
    * Extracts the media types from the hbase result.
    */
   private static String extractMediaTypes(Result result) {
-    Optional<byte[]> val = Optional.fromNullable(result.getValue(Columns.CF,
-                                                                 Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
-    return val.isPresent() ? SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(val.get())) : "";
+    Optional<byte[]> val = Optional.ofNullable(result.getValue(Columns.CF,
+                                                               Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
+    return val.map( v -> SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(v))).orElse("");
   }
 
   /**
@@ -181,7 +181,7 @@ public class OccurrenceMapReader {
     if (row == null || row.isEmpty()) {
       return null;
     }
-    Map<String, String> occurrence = new HashMap<String, String>();
+    Map<String, String> occurrence = new HashMap<>();
     for (Term term : TermUtils.verbatimTerms()) {
       occurrence.put(term.simpleName(), getCleanVerbatimString(row, term));
     }
@@ -192,33 +192,32 @@ public class OccurrenceMapReader {
    * Cleans specials characters from a string value.
    * Removes tabs, line breaks and new lines.
    */
-  public static String getCleanString(Result row, Term term) {
-    return cleanString(Optional.fromNullable(ExtResultReader.getString(row, term)));
+  private static String getCleanString(Result row, Term term) {
+    return cleanString(ExtResultReader.getString(row, term));
   }
 
   /**
    * Cleans specials characters from a string value.
    * Removes tabs, line breaks and new lines.
    */
-  public static String getCleanVerbatimString(Result row, Term term) {
-    return cleanString(Optional.fromNullable(ExtResultReader.getString(row, Columns.verbatimColumn(term))));
+  private static String getCleanVerbatimString(Result row, Term term) {
+    return cleanString(ExtResultReader.getString(row, Columns.verbatimColumn(term)));
   }
 
-  private static String cleanString(Optional<String> value) {
-    return value.isPresent() ? DELIMETERS_MATCH_PATTERN.matcher(value.get()).replaceAll(" ") : value.orNull();
+  private static String cleanString(String value) {
+    return Optional.ofNullable(value).map(v -> DELIMETERS_MATCH_PATTERN.matcher(v).replaceAll(" ")).orElse(value);
   }
 
   /**
    * Converts a date object into a String in IS0 8601 format.
    */
-  public static String toISO8601Date(Date date) {
+  private static String toISO8601Date(Date date) {
     return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
   @Inject
   public OccurrenceMapReader(@Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String tableName,
-                             Connection connection
-  ) {
+                             Connection connection) {
     occurrenceTableName = tableName;
     this.connection = connection;
   }

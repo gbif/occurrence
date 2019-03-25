@@ -1,12 +1,12 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.exception.UnparsableException;
+import org.gbif.api.model.checklistbank.NameUsage;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.checklistbank.NameParser;
-import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
@@ -24,6 +24,8 @@ import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -46,21 +48,30 @@ public class TaxonomyInterpreter implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
   private static final NameParser PARSER = new NameParserGbifV1();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
+  private static final String SPECIES_PATH = "species";
   private static final String MATCH_PATH = "species/match";
 
   // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private static final LoadingCache<WebResource, NameUsageMatch> CACHE =
+  private static final LoadingCache<WebResource, NameUsageMatch> MATCH_CACHE =
     CacheBuilder.newBuilder()
-      .maximumSize(10000)
+      .maximumSize(10_000)
       .expireAfterAccess(120, TimeUnit.MINUTES)
       .build(RetryingWebserviceClient.newInstance(NameUsageMatch.class, 5, 2000));
 
+  private static final LoadingCache<WebResource, NameUsage> SPECIES_CACHE =
+    CacheBuilder.newBuilder()
+      .maximumSize(10_000)
+      .expireAfterAccess(120, TimeUnit.MINUTES)
+      .build(RetryingWebserviceClient.newInstance(NameUsage.class, 5, 1000));
+
 
   private final WebResource matchingWs;
+  private final WebResource speciesWs;
 
   @Inject
   public TaxonomyInterpreter(WebResource apiBaseWs) {
     matchingWs = apiBaseWs.path(MATCH_PATH);
+    speciesWs = apiBaseWs.path(SPECIES_PATH);
   }
 
   public TaxonomyInterpreter(ApiClientConfiguration cfg) {
@@ -146,7 +157,7 @@ public class TaxonomyInterpreter implements Serializable {
     WebResource res = matchingWs.queryParams(queryParams);
     LOG.debug("WS call with: {}", res.getURI());
     try {
-      NameUsageMatch lookup = CACHE.get(res);
+      NameUsageMatch lookup = MATCH_CACHE.get(res);
       result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
       switch (lookup.getMatchType()) {
         case NONE:
@@ -171,13 +182,26 @@ public class TaxonomyInterpreter implements Serializable {
     return result;
   }
 
-  private static void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
+  private void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
     occ.setTaxonKey(match.getUsageKey());
     occ.setScientificName(match.getScientificName());
     occ.setTaxonRank(match.getRank());
+    occ.setTaxonomicStatus(match.getStatus());
 
     // copy issues
     occ.getIssues().addAll(issues);
+
+    //has an AcceptedUsageKey?
+    if(Objects.nonNull(match.getAcceptedUsageKey())) {
+       getNameUsage(match.getAcceptedUsageKey()).ifPresent(acceptedUsage -> {
+         occ.setAcceptedTaxonKey(acceptedUsage.getKey());
+         occ.setAcceptedScientificName(acceptedUsage.getScientificName());
+       });
+    } else {
+      //By default use taxonKey and scientificName as the accepted values
+      occ.setAcceptedTaxonKey(match.getUsageKey());
+      occ.setAcceptedScientificName(match.getScientificName());
+    }
 
     // parse name into pieces - we dont get them from the nub lookup
     try {
@@ -198,6 +222,20 @@ public class TaxonomyInterpreter implements Serializable {
     LOG.debug("Occurrence {} matched to nub {} [{}]", occ.getKey(), occ.getScientificName(), occ.getTaxonKey());
   }
 
+  /**
+   * Gets a name usage by its key.
+   */
+  private Optional<NameUsage> getNameUsage(Integer nubKey) {
+    WebResource resource = speciesWs.path(nubKey.toString());
+    try {
+      return  Optional.ofNullable(SPECIES_CACHE.get(resource));
+    } catch (Exception ex) {
+      // Log the error
+      LOG.error("Error getting accepted name usage: {}", resource.getURI());
+    }
+    return Optional.empty();
+  }
+
   private static String value(Map<Term, String> terms, Term term) {
     return terms.get(term);
   }
@@ -209,31 +247,6 @@ public class TaxonomyInterpreter implements Serializable {
 
     // try core taxon fields first
     OccurrenceParseResult<NameUsageMatch> matchPR = match(verbatim.getVerbatimFields());
-
-    // try the identification extension if no core match
-    if (!matchPR.isSuccessful() && verbatim.getExtensions().containsKey(Extension.IDENTIFICATION)) {
-      // there may be many identifications but we only want the latest, current one
-      //TODO: use latest identification only sorting records by their dwc:dateIdentified
-      for (Map<Term, String> rec : verbatim.getExtensions().get(Extension.IDENTIFICATION)) {
-        matchPR = match(rec);
-        if (matchPR.isSuccessful()) {
-          // TODO: copy other identification terms to core???
-          // identifiedBy
-          // dateIdentified
-          // identificationReferences
-          // identificationRemarks
-          // identificationQualifier
-          // identificationVerificationStatus
-          // typeStatus
-          // taxonID
-          // taxonConceptID
-          // nameAccordingTo
-          // nameAccordingToID
-          // taxonRemarks
-          break;
-        }
-      }
-    }
 
     // apply taxonomy if we got a match
     if (matchPR.isSuccessful()) {

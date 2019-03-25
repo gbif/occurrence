@@ -43,6 +43,7 @@
     {"name": "catalogNumber", "type": ["null", "string"], "default": null },
     {"name": "recordNumber", "type": ["null", "string"], "default": null },
     {"name": "identifiedBy", "type": ["null", "string"], "default": null },
+    {"name": "dateIdentified", "type": ["null", "string"], "default": null },
     {"name": "license", "type": ["null", "string"], "default": null },
     {"name": "rightsHolder", "type": ["null", "string"], "default": null },
     {"name": "recordedBy", "type": ["null", "string"], "default": null },

@@ -44,9 +44,9 @@ public class SolrQueryProcessor {
         // Limit can't be greater than the maximum number of records assigned to this job
         solrQuery.setRows(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         QueryResponse response = downloadFileWork.getSolrClient().query(solrQuery);
-        for (SolrDocument solrDocument : response.getResults()) {
-          resultHandler.accept((Integer) solrDocument.getFieldValue(KEY_FIELD));
-        }
+        response.getResults().forEach(solrDocument ->
+          resultHandler.accept((Integer) solrDocument.getFieldValue(KEY_FIELD))
+        );
         recordCount += response.getResults().size();
       }
     } catch (SolrServerException | IOException e) {

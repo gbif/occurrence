@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.85-SNAPSHOT</version>
+    <version>0.94-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -20,12 +20,13 @@
   </distributionManagement>
 
   <properties>
-    <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>
-    <gbif-microservice.version>0.7</gbif-microservice.version>
+    <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+    <gbif-microservice.version>0.9</gbif-microservice.version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <javassist.version>3.19.0-GA</javassist.version>
-    <!-- because ws accesses hbase directly this must match cluster-expected guava -->
-
+    <nifi.version>1.7.1</nifi.version>
+    <hadoop.core.version>2.6.0-mr1-cdh5.12.0</hadoop.core.version>
+    <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
   </properties>
 
   <build>
@@ -49,6 +50,10 @@
           <stopKey>stop</stopKey>
           <stopPort>15327</stopPort>
           <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webAppConfig>
+      		<contextPath>/</contextPath>
+      		<webInfIncludeJarPattern>.*/classes/.*</webInfIncludeJarPattern>
+    	  </webAppConfig>
         </configuration>
       </plugin>
       <plugin>
@@ -62,6 +67,13 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+            <artifactSet>
+                <excludes>
+                   <artifact>org.jruby:jruby-complete</artifact>
+                  <artifact>org.mortbay.jetty:jetty</artifact>
+                  <artifact>org.mortbay.jetty:jetty-util</artifact>
+                </excludes>
+              </artifactSet>
               <createDependencyReducedPom>true</createDependencyReducedPom>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -128,6 +140,60 @@
   <dependencies>
     <!-- GBIF -->
     <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
+        <exclusions>
+        	<exclusion>
+        		<groupId>asm</groupId>
+        		<artifactId>asm-commons</artifactId>
+        	</exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+        	<exclusion>
+        		<groupId>org.eclipse.jetty.aggregate</groupId>
+        		<artifactId>jetty-all</artifactId>
+        	</exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-core</artifactId>
+		<exclusions>
+			<exclusion>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>commons-dbcp</groupId>
+				<artifactId>commons-dbcp</artifactId>
+			</exclusion>
+		</exclusions>
+    </dependency>
+	  <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-avatica</artifactId>
+		<exclusions>
+			<exclusion>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+			</exclusion>
+			<exclusion>
+				<groupId>commons-dbcp</groupId>
+				<artifactId>commons-dbcp</artifactId>
+			</exclusion>
+		</exclusions>
+	  </dependency>
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
     </dependency>
@@ -138,14 +204,36 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>asm</groupId>
+      		<artifactId>asm</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-identity</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.checklistbank</groupId>
@@ -154,6 +242,10 @@
         <exclusion>
           <groupId>javax.servlet</groupId>
           <artifactId>javax.servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -165,11 +257,21 @@
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
         </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-service</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -191,6 +293,10 @@
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
         </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -201,11 +307,75 @@
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
         </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-common</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common-search</artifactId>
+      <exclusions>
+      <exclusion>
+        <artifactId>jsp-api</artifactId>
+        <groupId>javax.servlet.jsp</groupId>
+      </exclusion>
+      <exclusion>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-continuation</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-deploy</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-http</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-io</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-jmx</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-security</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-xml</artifactId>
+      </exclusion>
+      <exclusion>
+        <groupId>org.eclipse.jetty.orbit</groupId>
+        <artifactId>javax.servlet</artifactId>
+      </exclusion>
+      <exclusion>
+      	<groupId>com.google.guava</groupId>
+      	<artifactId>guava</artifactId>
+      </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- google -->
@@ -217,6 +387,12 @@
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Serialization -->
@@ -264,6 +440,10 @@
           <artifactId>slf4j-simple</artifactId>
           <groupId>org.slf4j</groupId>
         </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -281,6 +461,18 @@
         <exclusion>
           <artifactId>slf4j-log4j12</artifactId>
           <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+        	<groupId>org.mortbay.jetty</groupId>
+        	<artifactId>jetty</artifactId>
+        </exclusion>
+        <exclusion>
+        	<groupId>org.mortbay.jetty</groupId>
+        	<artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -383,12 +575,202 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
-
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-processors</artifactId>
+    	<version>${nifi.version}</version>
+    	<exclusions>
+    		<exclusion>
+    			<groupId>com.fasterxml.jackson.core</groupId>
+    			<artifactId>jackson-databind</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>com.google.guava</groupId>
+    			<artifactId>guava</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.mortbay.jetty</groupId>
+    			<artifactId>jetty-util</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.hive</groupId>
+    			<artifactId>hive-jdbc</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.hive.hcatalog</groupId>
+    			<artifactId>hive-hcatalog-streaming</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.hive.hcatalog</groupId>
+    			<artifactId>hive-hcatalog-core</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.hadoop</groupId>
+    			<artifactId>hadoop-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-security-utils</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-utils</artifactId>
+    		</exclusion>
+    	</exclusions>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-dbcp-service-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-framework-core</artifactId>
+    	<version>${nifi.version}</version>
+    	<exclusions>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.core</groupId>
+    			<artifactId>jersey-common</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.ext</groupId>
+    			<artifactId>jersey-entity-filtering</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.inject</groupId>
+    			<artifactId>jersey-hk2</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.glassfish.jersey.media</groupId>
+    			<artifactId>jersey-media-json-jackson</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>com.fasterxml.jackson.core</groupId>
+    			<artifactId>jackson-databind</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-authorizer</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-client-dto</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-web-utils</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-security</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-security-utils</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-site-to-site</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-site-to-site-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-socket-utils</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-user-actions</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi.registry</groupId>
+    			<artifactId>nifi-registry-client</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi.registry</groupId>
+    			<artifactId>nifi-registry-data-model</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-framework-cluster-protocol</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-framework-authorization</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi.registry</groupId>
+    			<artifactId>nifi-registry-flow-diff</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-repository-models</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-schema-utils</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-write-ahead-log</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>
+    				nifi-flowfile-repo-serialization
+    			</artifactId>
+    		</exclusion>
+    		<exclusion>
+    			<groupId>org.apache.nifi</groupId>
+    			<artifactId>nifi-data-provenance-utils</artifactId>
+    		</exclusion>
+    	</exclusions>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-hive-services-api</artifactId>
+    	<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.nifi</groupId>
+    	<artifactId>nifi-kerberos-credentials-service-api</artifactId>
+		<version>${nifi.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.hadoop</groupId>
+		<artifactId>hadoop-mapreduce-client-core</artifactId>
+		<version>${hadoop.version}</version>
+		<scope>runtime</scope>
+    <exclusions>
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+      </exclusion>
+    </exclusions>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.hadoop</groupId>
+		<artifactId>hadoop-core</artifactId>
+		<version>${hadoop.core.version}</version>
+		<scope>runtime</scope>
+	</dependency>
     <!-- GBIF microservice dependencies -->
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-microservice</artifactId>
       <version>${gbif-microservice.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>com.google.guava</groupId>
+      		<artifactId>guava</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>

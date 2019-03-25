@@ -36,4 +36,13 @@ public class LicenseSelectorTest {
     licenseSelector.collectLicense(License.CC_BY_NC_4_0);
     assertEquals(License.CC_BY_NC_4_0, licenseSelector.getSelectedLicense());
   }
+
+  @Test
+  public void testLicenseSelectorCCBY4ToCCBYNC(){
+    LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+    licenseSelector.collectLicense(License.CC_BY_4_0);
+    licenseSelector.collectLicense(License.CC_BY_NC_4_0);
+    licenseSelector.collectLicense(License.CC0_1_0);
+    assertEquals(License.CC_BY_NC_4_0, licenseSelector.getSelectedLicense());
+  }
 }

@@ -1,12 +1,13 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.HiveColumns;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -15,15 +16,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
+import org.apache.curator.shaded.com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -46,22 +48,32 @@ public class SimpleCsvArchiveBuilder {
   //Header file is named '0' to appear first when listing the content of the directory.
   private static final String HEADER_FILE_NAME = "0";
   //String that contains the file HEADER for the simple table format.
-  private static final String HEADER = buildHeader();
-
+  private final String header;
+  
   /**
    * Creates the file HEADER.
    * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
    */
-  private static String buildHeader() {
-    return DownloadTerms.SIMPLE_DOWNLOAD_TERMS.stream()
-      .map(term -> HiveColumns.columnFor(term).replaceAll("_", ""))
+  public static SimpleCsvArchiveBuilder withHeader(Set<Term> downloadTermsHeader) {
+    String header =  downloadTermsHeader.stream()
+      .map(term -> term.simpleName().replaceAll("_", ""))
       .collect(Collectors.joining("\t")) + '\n';
+    return new SimpleCsvArchiveBuilder(header);
   }
+  
+  /**
+   * Creates the file HEADER.
+   * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
+   */
+  public static SimpleCsvArchiveBuilder withHeader(String downloadTermsHeader) {
+    return new SimpleCsvArchiveBuilder(downloadTermsHeader+"\n");
+  }
+  
   /**
    * Merges the content of sourceFS:sourcePath into targetFS:outputPath in a file called downloadKey.zip.
    * The HEADER file is added to the directory hiveTableInputPath so it appears in the resulting zip file.
    */
-  public static void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+  public void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                 String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
@@ -76,7 +88,7 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the file using the standard java libraries java.util.zip.
    */
-  private static void zipDefault(final FileSystem sourceFS, final FileSystem targetFS, String sourcePath,
+  private void zipDefault(final FileSystem sourceFS, final FileSystem targetFS, String sourcePath,
                                  Path outputPath,String downloadKey) {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
@@ -105,13 +117,14 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Merges the pre-deflated content using the hadoop-compress library.
    */
-  private static void zipPreDeflated(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
+
+  private void zipPreDeflated(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                      Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
       ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
     ) {
-      final Path inputPath = new Path(sourcePath);
+      Path inputPath = new Path(sourcePath);
       //appends the header file
       appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED);
 
@@ -143,13 +156,13 @@ public class SimpleCsvArchiveBuilder {
   /**
    * Creates a compressed file named '0' that contains the content of the file HEADER.
    */
-  private static void appendHeaderFile(FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
+  private void appendHeaderFile(FileSystem fileSystem, Path dir, ModalZipOutputStream.MODE mode)
     throws IOException {
     try (FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(dir, HEADER_FILE_NAME))) {
       if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
-        D2Utils.compress(new ByteArrayInputStream(HEADER.getBytes()), fsDataOutputStream);
+        D2Utils.compress(new ByteArrayInputStream(header.getBytes()), fsDataOutputStream);
       } else {
-        fsDataOutputStream.write(HEADER.getBytes());
+        fsDataOutputStream.write(header.getBytes());
       }
     }
   }
@@ -161,23 +174,27 @@ public class SimpleCsvArchiveBuilder {
    * 1. targetPath: HDFS path where the resulting file will be copied.
    * 2. downloadKey: occurrence download key.
    * 3. MODE: ModalZipOutputStream.MODE of input files.
+   * 4. download-format : Download format
+   * 5. sql_header: tab separated SQL header in case of SQL Download 
    */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    String downloadFormat=Preconditions.checkNotNull(args[4]).trim();
+    
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    mergeToZip(sourceFileSystem,
-               sourceFileSystem,
-               args[0],
-               args[1],
-               args[2],
-               ModalZipOutputStream.MODE.valueOf(args[3]));
+    if(DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SQL)) {
+      SimpleCsvArchiveBuilder.withHeader(args[5]).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2], ModalZipOutputStream.MODE.valueOf(args[3]));
+    } else {
+      Set<Term> downloadTerms = DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST) ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS :DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+      SimpleCsvArchiveBuilder.withHeader(downloadTerms).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2], ModalZipOutputStream.MODE.valueOf(args[3]));
+    }
   }
 
   /**
    * Private constructor.
    */
-  private SimpleCsvArchiveBuilder() {
-    //do nothing
+  private SimpleCsvArchiveBuilder(String header) {
+    this.header = header;
   }
 }

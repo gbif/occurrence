@@ -7,7 +7,6 @@ import org.gbif.occurrence.persistence.guice.OccurrencePersistenceModule;
 import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.occurrence.search.guice.OccurrenceSearchModule;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
-import org.gbif.service.guice.PrivateServiceModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.app.ConfUtils;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
@@ -26,13 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import org.apache.bval.guice.ValidationModule;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 public class OccurrenceWsListener extends GbifServletListener {
 

@@ -82,7 +82,7 @@ public class MultiMediaInterpreterTest {
     assertEquals("image/jpeg", o.getMedia().get(0).getFormat());
     assertEquals("Geranium Plume Moth 0032", o.getMedia().get(0).getTitle());
     assertEquals("Geranium Plume Moth 0032 description", o.getMedia().get(0).getDescription());
-    assertEquals("BY-NC-SA 2.0", o.getMedia().get(0).getLicense());
+    assertEquals("http://creativecommons.org/licenses/by-nc-sa/2.0/", o.getMedia().get(0).getLicense());
     assertEquals("Moayed Bahajjaj", o.getMedia().get(0).getCreator());
     assertEquals("2012-03-29", ISO.format(o.getMedia().get(0).getCreated()));
     assertEquals("http://www.flickr.com/photos/70939559@N02/7039524065", o.getMedia().get(0).getReferences().toString());
@@ -126,7 +126,7 @@ public class MultiMediaInterpreterTest {
     assertEquals("image/jpeg", o.getMedia().get(0).getFormat());
     assertEquals("Geranium Plume Moth 0032", o.getMedia().get(0).getTitle());
     assertEquals("Geranium Plume Moth 0032 description", o.getMedia().get(0).getDescription());
-    assertEquals("BY-NC-SA 2.0", o.getMedia().get(0).getLicense());
+    assertEquals("http://creativecommons.org/licenses/by-nc-sa/2.0/", o.getMedia().get(0).getLicense());
     assertEquals("Moayed Bahajjaj", o.getMedia().get(0).getCreator());
     assertEquals("2012-03-29", ISO.format(o.getMedia().get(0).getCreated()));
     assertEquals("http://specify-attachments-saiab.saiab.ac.za/originals/sp6-3853933608872243693.att.JPG", o.getMedia().get(0).getIdentifier()
@@ -163,7 +163,6 @@ public class MultiMediaInterpreterTest {
     MultiMediaInterpreter.interpretMedia(v, o);
 
     assertEquals(2, o.getMedia().size());
-    assertEquals("BY-NC-SA 2.0", o.getMedia().get(0).getLicense());
+    assertEquals("http://creativecommons.org/licenses/by-nc-sa/2.0/", o.getMedia().get(0).getLicense());
   }
-
 }

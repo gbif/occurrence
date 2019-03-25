@@ -30,12 +30,13 @@ class IndexUpdaterService extends AbstractIdleService {
   @Override
   protected void startUp() throws Exception {
     configuration.ganglia.start();
-
-//    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
-//                                                                         configuration.commitWithinMs);
-//    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters());
-//    listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
-//                    configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
+/*
+    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
+                                                                         configuration.commitWithinMs);
+    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters(), configuration.msgPoolSize);
+    listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
+                    configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
+                    */
   }
 
   /**

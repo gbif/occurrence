@@ -120,14 +120,14 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           // check if we should start a m/r job to update occurrence records
           // FIXME this can lead to issues if 100 datasets change organization in a batch update.
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
-            LOG.info("Starting m/r sync for changed owning org on dataset [{}]", newDataset.getKey());
+            LOG.info("Starting m/r sync for dataset [{}], with reason {}", newDataset.getKey(), occurrenceMutator.generateUpdateMessage(oldDataset, newDataset));
             try {
               runMrSync(newDataset.getKey());
             } catch (Exception e) {
               LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
             }
           } else {
-            LOG.debug("Owning orgs match for updated dataset [{}] - taking no action", newDataset.getKey());
+            LOG.debug("Owning orgs and license match for updated dataset [{}] - taking no action", newDataset.getKey());
           }
         } else {
           LOG.info("Ignoring update of dataset [{}] because either no crawlable endpoints or we just sent a crawl",

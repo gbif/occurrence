@@ -2,6 +2,7 @@ package org.gbif.occurrence.persistence.hbase;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -9,7 +10,6 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
@@ -163,8 +163,8 @@ public class Columns {
       return null;
     }
 
-    // this is a verbatim term column, always a property term
-    return TermFactory.instance().findPropertyTerm(colName.substring(VERBATIM_TERM_PREFIX.length()));
+    // this is a verbatim term column
+    return TermFactory.instance().findTerm(colName.substring(VERBATIM_TERM_PREFIX.length()));
   }
 
   public static String column(OccurrenceIssue issue) {

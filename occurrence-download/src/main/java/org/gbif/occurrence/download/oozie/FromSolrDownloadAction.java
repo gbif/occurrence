@@ -74,6 +74,11 @@ public class FromSolrDownloadAction {
 
     // create the master
     ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
+
       public UntypedActor create() {
         return injector.getInstance(DownloadMaster.class);
       }

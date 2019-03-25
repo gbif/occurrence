@@ -1,24 +1,21 @@
 package org.gbif.occurrence.ws.resources;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.ws.security.NotAllowedException;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DownloadResourceTest {
 
@@ -27,7 +24,7 @@ public class DownloadResourceTest {
   private static final String STATUS = "SUCCEEDED";
 
   private DownloadResource resource;
-  private DownloadRequest dl;
+  private PredicateDownloadRequest dl;
   private SecurityContext sec;
 
   @Test
@@ -60,7 +57,7 @@ public class DownloadResourceTest {
     when(sec.getUserPrincipal()).thenReturn(userP);
 
     resource = new DownloadResource(service, callbackService, downloadService);
-    dl = new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
+    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
       DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);
   }

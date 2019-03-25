@@ -6,6 +6,7 @@ import org.gbif.ws.security.NotAuthenticatedException;
 
 import java.security.AccessControlException;
 import java.security.Principal;
+import java.util.Optional;
 import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
@@ -32,12 +33,20 @@ public class DownloadSecurityUtil {
    */
   public static void assertLoginMatches(DownloadRequest request, SecurityContext security) {
     // assert authenticated user is the same as in download
-    Principal principal = assertUserAuthenticated(security);
+    assertLoginMatches(request, assertUserAuthenticated(security));
+  }
+
+  /**
+   * Checks that the user principal.name is the creator of the download.
+   *
+   * @throws AccessControlException if no or wrong user is authenticated
+   */
+  public static void assertLoginMatches(DownloadRequest request, Principal principal) {
     if (!principal.getName().equals(request.getCreator())) {
       LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
-               request.getCreator());
+        request.getCreator());
       throw new NotAllowedException(principal.getName() + " not allowed to create download with creator "
-                                    + request.getCreator());
+        + request.getCreator());
     }
   }
 
@@ -46,10 +55,7 @@ public class DownloadSecurityUtil {
    */
   public static Principal assertUserAuthenticated(SecurityContext securityContext) {
     // assert authenticated user is the same as in download
-    Principal principal = securityContext.getUserPrincipal();
-    if (principal == null) {
-      throw new NotAuthenticatedException("No user authenticated for creating a download");
-    }
-    return principal;
+    return Optional.ofNullable(securityContext.getUserPrincipal())
+            .orElseThrow(() -> new NotAuthenticatedException("No user authenticated for creating a download"));
   }
 }

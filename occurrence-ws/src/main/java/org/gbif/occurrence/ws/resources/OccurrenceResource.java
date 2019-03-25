@@ -330,13 +330,12 @@ public class OccurrenceResource {
   @GET
   @Path("/counts/year")
   public Map<Integer, Long> getYearCounts(@QueryParam("year") String year) {
-    Range<Integer> range = parseYearRange(year);
     ImmutableSortedMap.Builder<Integer, Long> distribution = ImmutableSortedMap.naturalOrder();
 
     OccurrenceSearchRequest osr = osr(OccurrenceSearchParameter.YEAR);
     osr.addParameter(OccurrenceSearchParameter.YEAR, year);
 
-    distribution.putAll(count(osr, f -> Integer.parseInt(f)));
+    distribution.putAll(count(osr, Integer::parseInt));
 
     return distribution.build();
   }

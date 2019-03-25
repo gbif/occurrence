@@ -1,7 +1,12 @@
 package org.gbif.occurrence.ws.client;
 
+import static org.junit.Assert.assertNotNull;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Properties;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -10,18 +15,11 @@ import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.guice.AnonymousAuthModule;
 import org.gbif.ws.client.guice.SingleUserAuthModule;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Properties;
-
+import org.junit.Ignore;
+import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotNull;
 
 public class OccurrenceWsClientModuleTest {
 
@@ -53,7 +51,7 @@ public class OccurrenceWsClientModuleTest {
     DownloadRequestService client = inj.getInstance(DownloadRequestService.class);
 
     DownloadRequest d =
-      new DownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
+      new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "5219426"), USER, null, true,
                           DownloadFormat.DWCA);
 
     client.create(d);

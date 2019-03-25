@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.85-SNAPSHOT</version>
+  <version>0.94-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -48,6 +48,7 @@
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-beam-hbase-solr</module>
+    <module>occurrence-solr</module>
   </modules>
 
   <properties>
@@ -120,7 +121,6 @@
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
-
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
@@ -136,29 +136,31 @@
     <hive.version>1.1.0-cdh5.12.0</hive.version>
     <oozie.version>4.1.0-cdh5.12.0</oozie.version>
     <zookeeper.version>3.4.5-cdh5.12.0</zookeeper.version>
+    <calcite.version>1.0.0-incubating</calcite.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.18</download-query-tools.version>
-    <dwc-api.version>1.19</dwc-api.version>
+    <download-query-tools.version>1.21</download-query-tools.version>
+    <dwc-api.version>1.22</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
-    <gbif-api.version>0.70-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.75</gbif-api.version>
     <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.33</gbif-common-search.version>
-    <gbif-common-service.version>0.16</gbif-common-service.version>
-    <gbif-common-ws.version>0.42</gbif-common-ws.version>
+    <gbif-common-search.version>0.34</gbif-common-search.version>
+    <gbif-common-service.version>0.17</gbif-common-service.version>
+    <gbif-common-ws.version>0.46</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.36-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.39</gbif-parsers.version>
     <gbif-postal-service.version>0.25</gbif-postal-service.version>
-    <gbif-registry.version>2.89-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>2.96</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
 
+    <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
     <!-- es versions -->
-    <elasticsearch.version>5.6.3</elasticsearch.version>
+    <elasticsearch.version>6.5.4</elasticsearch.version>
   </properties>
 
   <repositories>
@@ -936,6 +938,17 @@
           </exclusion>
         </exclusions>
       </dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
+	  <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-core</artifactId>
+		<version>${calcite.version}</version>
+	  </dependency>
+	  <dependency>
+		<groupId>org.apache.calcite</groupId>
+		<artifactId>calcite-avatica</artifactId>
+		<version>${calcite.version}</version>
+	  </dependency>
 
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.

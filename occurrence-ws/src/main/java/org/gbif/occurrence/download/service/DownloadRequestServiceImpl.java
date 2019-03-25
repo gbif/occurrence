@@ -12,29 +12,44 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
-import org.gbif.ws.response.GbifResponseStatus;
-
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
-
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-
+import org.apache.oozie.client.Job;
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.hive.HiveSQL;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
+import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
+import org.gbif.ws.response.GbifResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
@@ -47,23 +62,17 @@ import com.google.inject.name.Named;
 import com.sun.jersey.api.NotFoundException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
-import org.apache.oozie.client.Job;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Singleton
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
+  private static final String EMPTY = "EMPTY";
+  private static final String ALL = "1 = 1";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
 
-  public static final EnumSet<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
+  protected static final Set<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
 
@@ -146,17 +155,43 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
     try {
       if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
-        throw new WebApplicationException(Response.status(GbifResponseStatus.ENHANCE_YOUR_CALM.getStatus()).build());
+        Response calm = Response
+          .status(GbifResponseStatus.ENHANCE_YOUR_CALM)
+          .entity("Too many simultaneous downloads, please wait for some to complete.\n\n"
+            + "Usually this is too many downloads from a single user, but it can be too many downloads overall.\n"
+            + "See your user page, or the GBIF health status page.\n")
+          .build();
+        throw new WebApplicationException(calm);
       }
-      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
-      LOG.debug("oozie job id is: [{}]", jobId);
+      String jobId = request.getFormat().equals(DownloadFormat.SQL)?
+                        runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
+      LOG.debug("Oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
       return downloadId;
     } catch (OozieClientException e) {
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
+  }
 
+  /**
+   * Executes the request as SQLDownload.
+   */
+  private String runSqlDownload(DownloadRequest request) throws OozieClientException {
+    SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
+    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
+    if (!result.isOk()) {
+      throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
+    }
+    sqlRequest.setSql(result.transSql());
+    BiFunction<String, String, Map.Entry<String, String>> entry = AbstractMap.SimpleEntry::new;
+    //if where clause is not there, then send empty when no functions used else send all rows for where clause(this is for citation).
+    return client.run(parametersBuilder.buildWorkflowParameters(request,
+        Collections.unmodifiableMap(Stream
+            .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
+                entry.apply(DownloadWorkflowParameters.SQL_WHERE,
+                    result.queryContext().where().orElse(result.queryContext().hasFunctionsInSelectFields() ? EMPTY : ALL)))
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 
   @Override
@@ -199,8 +234,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    */
   @Override
   public void processCallback(String jobId, String status) {
-    Preconditions.checkNotNull(Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
-    Preconditions.checkNotNull(Strings.isNullOrEmpty(status), "<status> may not be null or empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
@@ -210,7 +245,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      LOG.info(String.format("Download [%s] not found [Oozie may be issuing callback before download persisted]", downloadId));
+      LOG.info("Download {} not found [Oozie may be issuing callback before download persisted]", downloadId);
       return;
     }
 
@@ -263,10 +298,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private void persistDownload(DownloadRequest request, String downloadId) {
     Download download = new Download();
     download.setKey(downloadId);
-    download.setRequest(request);
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(downloadLink(wsUrl, downloadId));
+    download.setRequest(request);
     occurrenceDownloadService.create(download);
   }
 

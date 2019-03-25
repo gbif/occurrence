@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.85-SNAPSHOT</version>
+    <version>0.94-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-index-builder-workflow</artifactId>
@@ -26,7 +26,32 @@
       <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
-
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-remote-resources-plugin</artifactId>
+        <version>${maven-remote-resources-plugin.version}</version>
+        <configuration>
+          <resourceBundles>
+            <resourceBundle>org.gbif.occurrence:occurrence-solr:${project.version}</resourceBundle>
+          </resourceBundles>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
   <profiles>
     <profile>
       <id>oozie</id>
@@ -43,16 +68,6 @@
           <resource>
             <directory>src/main/resources</directory>
             <filtering>false</filtering>
-          </resource>
-          <resource>
-            <directory>${basedir}/bin</directory>
-            <filtering>true</filtering>
-            <excludes>
-              <exclude>**/*</exclude>
-            </excludes>
-            <includes>
-              <include>hbase_indexing/runHBaseBatchIndexer.sh</include>
-            </includes>
           </resource>
         </resources>
 
@@ -200,6 +215,12 @@
   </repositories>
 
   <dependencies>
+
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>occurrence-solr</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- Required to index coordinates using http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4 -->
     <dependency>
       <groupId>com.vividsolutions</groupId>

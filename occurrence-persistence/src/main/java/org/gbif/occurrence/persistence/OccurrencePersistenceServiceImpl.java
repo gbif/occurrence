@@ -1,6 +1,5 @@
 package org.gbif.occurrence.persistence;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -186,10 +184,10 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     RowUpdate upd = new RowUpdate(occ.getKey());
     try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       if (occ instanceof Occurrence) {
-        populateVerbatimPutDelete(table, upd, occ, false);
+        populateVerbatimPutDelete(upd, occ, false);
         populateInterpretedPutDelete(upd, (Occurrence) occ);
       } else {
-        populateVerbatimPutDelete(table, upd, occ, true);
+        populateVerbatimPutDelete(upd, occ, true);
       }
     } catch (IOException e) {
       throw new ServiceUnavailableException("Could not access HBase", e);
@@ -218,7 +216,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    *        (typically true when updating an Occurrence and false for
    *        VerbatimOccurrence)
    */
-  private void populateVerbatimPutDelete(Table occTable, RowUpdate upd, VerbatimOccurrence occ,
+  private void populateVerbatimPutDelete(RowUpdate upd, VerbatimOccurrence occ,
                                          boolean deleteInterpretedVerbatimColumns) throws IOException {
 
     // adding the mutations to the HTable is quite expensive, hence worth all these comparisons
@@ -361,6 +359,9 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     if (!Objects.equals(oldOcc.getScientificName(), occ.getScientificName())) {
       upd.setInterpretedField(DwcTerm.scientificName, occ.getScientificName());
     }
+    if (!Objects.equals(oldOcc.getAcceptedScientificName(), occ.getAcceptedScientificName())) {
+      upd.setInterpretedField(GbifTerm.acceptedScientificName, occ.getAcceptedScientificName());
+    }
     if (!Objects.equals(oldOcc.getGenericName(), occ.getGenericName())) {
       upd.setInterpretedField(GbifTerm.genericName, occ.getGenericName());
     }
@@ -372,6 +373,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
     }
     if (!Objects.equals(oldOcc.getTaxonRank(), occ.getTaxonRank())) {
       upd.setInterpretedField(DwcTerm.taxonRank, occ.getTaxonRank());
+    }
+    if (!Objects.equals(oldOcc.getTaxonomicStatus(), occ.getTaxonomicStatus())) {
+      upd.setInterpretedField(DwcTerm.taxonomicStatus, occ.getTaxonomicStatus());
+    }
+    if (!Objects.equals(oldOcc.getAcceptedTaxonKey(), occ.getAcceptedTaxonKey())) {
+      upd.setInterpretedField(GbifTerm.acceptedTaxonKey, occ.getAcceptedTaxonKey());
     }
     if (!Objects.equals(oldOcc.getCoordinateUncertaintyInMeters(), occ.getCoordinateUncertaintyInMeters())) {
       upd.setInterpretedField(DwcTerm.coordinateUncertaintyInMeters, occ.getCoordinateUncertaintyInMeters());
@@ -436,16 +443,6 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         upd.setField(Columns.column(issue), Bytes.toBytes(1));
       }
     }
-  }
-
-  /**
-   * Used to round (with half up) a BigDecimal to only keep a certain number of digit(s).
-   */
-  private static BigDecimal nullSafeRoundHalfUp(BigDecimal value, int scale){
-    if (value == null) {
-      return null;
-    }
-    return value.setScale(scale, BigDecimal.ROUND_HALF_UP);
   }
 
 }
