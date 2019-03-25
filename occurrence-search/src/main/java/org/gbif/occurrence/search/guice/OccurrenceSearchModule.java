@@ -55,6 +55,6 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
               requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(6000).setSocketTimeout(90000))
             .setMaxRetryTimeoutMillis(90000);
 
-    return new RestHighLevelClient(builder.build());
+    return new RestHighLevelClient(builder);
   }
 }

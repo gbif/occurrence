@@ -10,10 +10,12 @@ import com.vividsolutions.jts.io.WKTReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
+import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
+import org.elasticsearch.common.geo.builders.LineStringBuilder;
 import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
+import org.elasticsearch.common.geo.builders.PointBuilder;
 import org.elasticsearch.common.geo.builders.PolygonBuilder;
 import org.elasticsearch.common.geo.builders.ShapeBuilder;
-import org.elasticsearch.common.geo.builders.ShapeBuilders;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -22,6 +24,8 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.locationtech.jts.geom.Coordinate;
+
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -325,6 +329,10 @@ public class EsSearchRequestBuilder {
     return QueryBuilders.rangeQuery(esField.getFieldName()).gte(values[0]).lte(values[1]);
   }
 
+  private static List<Coordinate> asCollectionOfCoordinates(com.vividsolutions.jts.geom.Coordinate[] coordinates) {
+    return Arrays.stream(coordinates).map(coord -> new Coordinate(coord.x, coord.y)).collect(Collectors.toList());
+  }
+
   private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
@@ -335,12 +343,9 @@ public class EsSearchRequestBuilder {
 
     Function<Polygon, PolygonBuilder> polygonToBuilder =
         polygon -> {
-          PolygonBuilder polygonBuilder =
-              ShapeBuilders.newPolygon(Arrays.asList(polygon.getExteriorRing().getCoordinates()));
+          PolygonBuilder polygonBuilder = new PolygonBuilder(new CoordinatesBuilder().coordinates(asCollectionOfCoordinates(polygon.getExteriorRing().getCoordinates())));
           for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
-            polygonBuilder.hole(
-                ShapeBuilders.newLineString(
-                    Arrays.asList(polygon.getInteriorRingN(i).getCoordinates())));
+            polygonBuilder.hole( new LineStringBuilder(new CoordinatesBuilder().coordinates(asCollectionOfCoordinates(polygon.getInteriorRingN(i).getCoordinates()))));
           }
           return polygonBuilder;
         };
@@ -352,14 +357,15 @@ public class EsSearchRequestBuilder {
 
     ShapeBuilder shapeBuilder = null;
     if (("POINT").equals(type)) {
-      shapeBuilder = ShapeBuilders.newPoint(geometry.getCoordinate());
+      shapeBuilder = new PointBuilder(geometry.getCoordinate().x, geometry.getCoordinate().y);
     } else if ("LINESTRING".equals(type)) {
-      shapeBuilder = ShapeBuilders.newLineString(Arrays.asList(geometry.getCoordinates()));
+      shapeBuilder = new LineStringBuilder(asCollectionOfCoordinates(geometry.getCoordinates()));
     } else if ("POLYGON".equals(type)) {
       shapeBuilder = polygonToBuilder.apply((Polygon) geometry);
     } else if ("MULTIPOLYGON".equals(type)) {
       // multipolygon
-      MultiPolygonBuilder multiPolygonBuilder = ShapeBuilders.newMultiPolygon();
+
+      MultiPolygonBuilder multiPolygonBuilder = new MultiPolygonBuilder();
       for (int i = 0; i < geometry.getNumGeometries(); i++) {
         multiPolygonBuilder.polygon(polygonToBuilder.apply((Polygon) geometry.getGeometryN(i)));
       }
