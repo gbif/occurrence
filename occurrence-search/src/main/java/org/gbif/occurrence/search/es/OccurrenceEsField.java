@@ -2,12 +2,12 @@ package org.gbif.occurrence.search.es;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
 public enum OccurrenceEsField {
-  KEY("key"),
-  LATITUDE("decimallatitude"),
-  LONGITUDE("decimallongitude"),
+  KEY("id"),
+  LATITUDE("coordinate.lat"),
+  LONGITUDE("coordinate.lng"),
   COUNTRY("country"),
-  COUNTRY_CODE("countrycode"),
-  PUBLISHING_COUNTRY("publishingcountry"),
+  COUNTRY_CODE("countryCode"),
+  PUBLISHING_COUNTRY("publishingCountry"),
   CONTINENT("continent"),
   YEAR("year"),
   MONTH("month"),
@@ -15,11 +15,11 @@ public enum OccurrenceEsField {
   CATALOG_NUMBER("catalognumber"),
   RECORDED_BY("recordby"),
   RECORD_NUMBER("recordnumber"),
-  BASIS_OF_RECORD("basisofrecord"),
-  DATASET_KEY("datasetkey"),
+  BASIS_OF_RECORD("basisOfRecord"),
+  DATASET_KEY("datasetKey"),
   TAXA_KEY("taxakey"),
-  TAXON_KEY("taxonkey"),
-  TAXON_RANK("taxonrank"),
+  TAXON_KEY("gbifTaxonKey"),
+  TAXON_RANK("gbifTaxonRank"),
   KINGDOM_KEY("kingdomkey"),
   KINGDOM("kingdom"),
   PHYLUM_KEY("phylumkey"),
@@ -36,7 +36,7 @@ public enum OccurrenceEsField {
   SUBGENUS("subgenus"),
   SPECIES_KEY("specieskey"),
   SPECIES("species"),
-  SCIENTIFIC_NAME("scientificname"),
+  SCIENTIFIC_NAME("gbifScientificName"),
   SPECIFIC_EPITHET("specificepithet"),
   INFRA_SPECIFIC_EPITHET("infraspecificepithet"),
   GENERIC_NAME("genericname"),
@@ -85,8 +85,8 @@ public enum OccurrenceEsField {
   RELATION("relation"),
   TYPIFIED_NAME("typifiedname"),
   COORDINATE_SHAPE("coordinate_shape"),
-  COORDINATE_POINT("coordinate_point"),
-  GBIF_ID("gbifid");
+  COORDINATE_POINT("coordinate"),
+  GBIF_ID("id");
 
   private final String fieldName;
 
