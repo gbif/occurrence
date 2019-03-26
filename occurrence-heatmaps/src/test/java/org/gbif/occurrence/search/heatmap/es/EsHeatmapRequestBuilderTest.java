@@ -2,14 +2,10 @@ package org.gbif.occurrence.search.heatmap.es;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.POJONode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 

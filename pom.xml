@@ -158,6 +158,7 @@
     <name-parser.version>3.1.6</name-parser.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
+
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
   </properties>
