@@ -103,7 +103,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.COUNTRY, OccurrenceEsField.COUNTRY_CODE)
           .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceEsField.PUBLISHING_COUNTRY)
           .put(OccurrenceSearchParameter.CONTINENT, OccurrenceEsField.CONTINENT)
-          .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceEsField.TAXA_KEY)
+          .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceEsField.TAXON_KEY)
           .put(OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceEsField.KINGDOM_KEY)
           .put(OccurrenceSearchParameter.PHYLUM_KEY, OccurrenceEsField.PHYLUM_KEY)
           .put(OccurrenceSearchParameter.CLASS_KEY, OccurrenceEsField.CLASS_KEY)
@@ -125,9 +125,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)
           .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceEsField.PROTOCOL)
           .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceEsField.ORGANISM_ID)
-          .put(
-              OccurrenceSearchParameter.PUBLISHING_ORG,
-              OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
+          .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
           .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceEsField.CRAWL_ID)
           .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceEsField.INSTALLATION_KEY)
           .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceEsField.NETWORK_KEY)
