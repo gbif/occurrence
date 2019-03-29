@@ -25,8 +25,8 @@ oozie_url=`cat $P.properties| grep "oozie.url" | cut -d'=' -f2`
 
 echo "Assembling jar for $P"
 
-mvn --settings profiles.xml -Poozie,$P clean package assembly:single
-mvn --settings profiles.xml -Psolr,$P package assembly:single
+mvn --settings profiles.xml -Poozie,$P clean package assembly:single -U
+mvn --settings profiles.xml -Psolr,$P package assembly:single -U
 
 if hdfs dfs -test -d /occurrence-index-builder-$P/; then
    echo "Removing content of current Oozie workflow directory"
