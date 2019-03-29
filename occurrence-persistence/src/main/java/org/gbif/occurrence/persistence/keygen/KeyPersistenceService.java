@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
  * Implementations of this interface will be responsible for finding, generating and deleting the secondary index
  * keys that are used to lookup entries by their unique identifiers. The initial target implementation is for
  * occurrence records looked up by their {@link org.gbif.occurrence.common.identifier.UniqueIdentifier}. The type
- * parameter refers to the type of the entry key in the primary index (e.g. for occurrences this is an integer). It's
+ * parameter refers to the type of the entry key in the primary index (e.g. for occurrences this is an long). It's
  * expected that this class will move outside of occurrence persistence at some point.
   */
 public interface KeyPersistenceService<T> {

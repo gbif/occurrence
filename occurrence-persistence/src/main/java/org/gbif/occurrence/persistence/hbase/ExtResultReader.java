@@ -32,8 +32,8 @@ public class ExtResultReader {
   private ExtResultReader() {
   }
 
-  public static int getKey(Result row) {
-    return Bytes.toInt(row.getRow());
+  public static long getKey(Result row) {
+    return Bytes.toLong(row.getRow());
   }
 
   public static String getString(Result row, String column) {

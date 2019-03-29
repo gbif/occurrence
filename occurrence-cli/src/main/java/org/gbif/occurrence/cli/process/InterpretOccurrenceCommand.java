@@ -44,10 +44,10 @@ public class InterpretOccurrenceCommand extends BaseCommand {
         sendInterpretMessage(publisher, config.key);
         LOG.info("Sent interpretation message for key {}", config.key);
       } else {
-        List<Integer> keys = HueCsvReader.readIntKeys(config.keyFileName);
+        List<Long> keys = HueCsvReader.readIntKeys(config.keyFileName);
         if (keys != null && !keys.isEmpty()) {
           int counter = 0;
-          for (Integer key : keys) {
+          for (Long key : keys) {
             sendInterpretMessage(publisher, key);
             counter++;
             if (counter % 10000 == 0) {
@@ -67,7 +67,7 @@ public class InterpretOccurrenceCommand extends BaseCommand {
     }
   }
 
-  private static void sendInterpretMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
+  private static void sendInterpretMessage(MessagePublisher publisher, long occurrenceKey) throws IOException {
     publisher.send(new InterpretVerbatimMessage(occurrenceKey));
   }
 }

@@ -90,7 +90,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
           foundKey = key;
         } else {
           // we've found conflicting keys for our lookupKeys - this is fatal
-          if (foundKey.intValue() != key.intValue()) {
+          if (foundKey.longValue() != key.longValue()) {
             failWithConflictingLookup(existingKeyMap);
           }
         }
@@ -195,11 +195,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     // if we have exhausted our reserved keys, get a new batch of them
     if (currentKey == maxReservedKeyInclusive) {
       // get batch
-      Long longKey = counterTableStore.incrementColumnValue(COUNTER_ROW, Columns.COUNTER_COLUMN, BATCHED_ID_SIZE);
-      if (longKey > Integer.MAX_VALUE) {
-        throw new IllegalStateException("HBase issuing keys larger than Integer can support");
-      }
-      maxReservedKeyInclusive = longKey.intValue();
+      maxReservedKeyInclusive = counterTableStore.incrementColumnValue(COUNTER_ROW, Columns.COUNTER_COLUMN, BATCHED_ID_SIZE);
       // safer to calculate our guaranteed safe range than rely on what nextKey was set to
       currentKey = maxReservedKeyInclusive - BATCHED_ID_SIZE;
     }
@@ -219,5 +215,3 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     ALLOCATING, ALLOCATED
   }
 }
-
-

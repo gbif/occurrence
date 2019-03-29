@@ -437,7 +437,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(genus, occ.getGenus());
     assertTrue(genusId == occ.getGenusKey());
     assertEquals(publishingCountry, occ.getPublishingCountry());
-    assertTrue(update.getKey().intValue() == occ.getKey().intValue());
+    assertTrue(update.getKey().longValue() == occ.getKey().longValue());
 // assertEquals(1, occ.getIdentifiers().size());
 // Identifier updatedRecord = occ.getIdentifiers().iterator().next();
 // assertTrue(id0.equals(updatedRecord.getIdentifier()));

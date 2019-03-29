@@ -56,7 +56,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
    * Simple HBase get for given key. Note that OccurrenceBuilder could throw ValidationException if the underlying
    * fragment is missing required fields.
    *
-   * @param key the key of the fragment (Integer rather than int for use in methods/classes using generic types)
+   * @param key the key of the fragment (Long rather than long for use in methods/classes using generic types)
    *
    * @return the fragment or null if not found
    */
