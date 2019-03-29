@@ -12,7 +12,7 @@
     "name":"Occurrence",
     "type":"record",
     "fields":
-      [{"name":"key","type":["int", "null"]},
+      [{"name":"key","type":["long", "null"]},
       {"name":"dataset_key","type":["string", "null"]},
       {"name":"institution_code","type":["string", "null"]},
       {"name":"collection_code","type":["string", "null"]},
