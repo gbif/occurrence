@@ -224,7 +224,7 @@ public class FragmentPersistenceServiceImplTest {
 
     Fragment frag = fragmentService.get(got.getKey());
     Assert.assertNotNull(frag);
-    assertEquals(got.getKey().intValue(), frag.getKey().intValue());
+    assertEquals(got.getKey().longValue(), frag.getKey().longValue());
     assertEquals(XML_DATASET_KEY, frag.getDatasetKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());
@@ -316,7 +316,7 @@ public class FragmentPersistenceServiceImplTest {
 
     Fragment frag = fragmentService.get(got.getKey());
     Assert.assertNotNull(frag);
-    assertEquals(got.getKey().intValue(), frag.getKey().intValue());
+    assertEquals(got.getKey().longValue(), frag.getKey().longValue());
     assertEquals(JSON_DATASET_KEY, frag.getDatasetKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());

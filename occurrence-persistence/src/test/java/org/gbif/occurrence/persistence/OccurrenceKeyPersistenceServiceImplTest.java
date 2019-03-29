@@ -355,7 +355,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     }
 
     // test counter table is at 2, then 100 + 1 for this test
-    int expectedKey = 2 + threadCount + 1;
+    long expectedKey = 2 + threadCount + 1;
     PublisherProvidedUniqueIdentifier pubProvided =
       new PublisherProvidedUniqueIdentifier(datasetKey, UUID.randomUUID().toString());
     Set<UniqueIdentifier> ids = Sets.newHashSet();

@@ -74,7 +74,7 @@ class PreviousCrawlsOccurrenceDeleter {
    * @param lastSuccessfulCrawlId current crawl identified as the lastSuccessfulCrawl
    * @throws IOException
    */
-  private void sendDeleteMessage(int occurrenceKey, int lastSeenInCrawlId, int lastSuccessfulCrawlId) throws IOException {
+  private void sendDeleteMessage(long occurrenceKey, int lastSeenInCrawlId, int lastSuccessfulCrawlId) throws IOException {
     this.publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.NOT_SEEN_IN_LAST_CRAWL,
             lastSeenInCrawlId, lastSuccessfulCrawlId));
   }
@@ -110,7 +110,7 @@ class PreviousCrawlsOccurrenceDeleter {
 
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
-          sendDeleteMessage(rs.getInt(GBIF_ID_LBL), rs.getInt(CRAWL_ID_LBL), lastSuccessfulCrawl);
+          sendDeleteMessage(rs.getLong(GBIF_ID_LBL), rs.getInt(CRAWL_ID_LBL), lastSuccessfulCrawl);
           numberOfMessageEmitted++;
 
           if (numberOfMessageEmitted % config.deleteMessageBatchSize == 0) {

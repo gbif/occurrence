@@ -12,7 +12,7 @@ public interface FragmentPersistenceService {
   /**
    * Get the Fragment with the given key.
    *
-   * @param key the key of the fragment (Integer rather than int for use in methods/classes using generic types)
+   * @param key the key of the fragment (Long rather than long for use in methods/classes using generic types)
    *
    * @return the Fragment
    *

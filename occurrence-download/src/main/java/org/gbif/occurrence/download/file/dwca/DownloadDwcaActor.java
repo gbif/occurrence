@@ -83,7 +83,7 @@ public class DownloadDwcaActor extends UntypedActor {
    */
   private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter,
                                         org.apache.hadoop.hbase.client.Result result,
-                                        Integer occurrenceKey) throws IOException {
+                                        Long occurrenceKey) throws IOException {
     List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
@@ -155,7 +155,7 @@ public class DownloadDwcaActor extends UntypedActor {
    */
   public static class InnerMediaObject extends MediaObject {
 
-    private Integer gbifID;
+    private Long gbifID;
 
     /**
      * Default constructor.
@@ -169,7 +169,7 @@ public class DownloadDwcaActor extends UntypedActor {
      * Default constructor.
      * Copies the fields of the media object parameter and assigns the coreid.
      */
-    public InnerMediaObject(MediaObject mediaObject, Integer gbifID) {
+    public InnerMediaObject(MediaObject mediaObject, Long gbifID) {
       try {
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
@@ -186,11 +186,11 @@ public class DownloadDwcaActor extends UntypedActor {
     /**
      * Id column for the multimedia.txt file.
      */
-    public Integer getGbifID() {
+    public Long getGbifID() {
       return gbifID;
     }
 
-    public void setGbifID(Integer gbifID) {
+    public void setGbifID(Long gbifID) {
       this.gbifID = gbifID;
     }
 
