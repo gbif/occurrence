@@ -131,7 +131,7 @@ public class InterpretedProcessor {
    * @param attemptId     the crawl attempt id, only used for passing along in logs and subsequent messages.
    * @param datasetKey    the dataset that this occurrence belongs to (must not be null if fromCrawl is true)
    */
-  public void buildInterpreted(Long occurrenceKey, OccurrencePersistenceStatus status, boolean fromCrawl,
+  public void buildInterpreted(long occurrenceKey, OccurrencePersistenceStatus status, boolean fromCrawl,
                                @Nullable Integer attemptId, @Nullable UUID datasetKey) {
     checkArgument(occurrenceKey > 0, "occurrenceKey must be greater than 0");
     checkNotNull(status, "status can't be null");
@@ -260,7 +260,7 @@ public class InterpretedProcessor {
     return verbatimOccurrence;
   }
 
-  private void logError(String message, Long occurrenceKey, UUID datasetKey, boolean fromCrawl) {
+  private void logError(String message, long occurrenceKey, UUID datasetKey, boolean fromCrawl) {
     // TODO: send msg?
     LOG.error("{} verbatim occurrence with key [{}] - skipping.", message, occurrenceKey);
     if (fromCrawl) {

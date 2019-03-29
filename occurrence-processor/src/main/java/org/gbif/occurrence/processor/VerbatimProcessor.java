@@ -65,7 +65,7 @@ public class VerbatimProcessor {
    * @param attemptId     the crawl attempt id, only used for passing along in logs and subsequent messages.
    * @param datasetKey    the dataset that this occurrence belongs to (must not be null if fromCrawl is true)
    */
-  public void buildVerbatim(Long occurrenceKey, OccurrencePersistenceStatus status, boolean fromCrawl,
+  public void buildVerbatim(long occurrenceKey, OccurrencePersistenceStatus status, boolean fromCrawl,
                             @Nullable Integer attemptId, @Nullable UUID datasetKey) {
     checkArgument(occurrenceKey > 0, "occurrenceKey must be greater than 0");
     checkNotNull(status, "status can't be null");
@@ -118,7 +118,7 @@ public class VerbatimProcessor {
     verbProcessed.mark();
   }
 
-  private void logError(String message, Long occurrenceKey, UUID datasetKey, boolean fromCrawl) {
+  private void logError(String message, long occurrenceKey, UUID datasetKey, boolean fromCrawl) {
     // TODO: send msg?
     LOG.warn(message + " fragment with key [{}] - skipping.", occurrenceKey);
     if (fromCrawl) {
