@@ -33,14 +33,14 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
   private static final long WAIT_BEFORE_RETRY_MS = 5000;
   private static final int WAIT_SKEW = 4000;
   private static final long STALE_LOCK_TIME = 5 * 60 * 1000;
-  public static final int COUNTER_ROW = 1;
+  public static final long COUNTER_ROW = 1;
 
   // The number of IDs to reserve at a time in batch
   private static final int BATCHED_ID_SIZE = 100;
   // the next available key to allocate
-  private int currentKey;
+  private long currentKey;
   // our reserved upper key limit for the current batch
-  private int maxReservedKeyInclusive;
+  private long maxReservedKeyInclusive;
 
   private final Meter reattempts = Metrics.newMeter(HBaseLockingKeyService.class, "reattempts", "reattempts",
                                                     TimeUnit.SECONDS);
@@ -53,7 +53,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
   @Override
   public KeyLookupResult generateKey(Set<String> uniqueStrings, String scope) {
     Map<String, KeyStatus> statusMap = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
-    Map<String, Integer> existingKeyMap = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
+    Map<String, Long> existingKeyMap = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
     byte[] lockId = Bytes.toBytes(UUID.randomUUID().toString());
 
     // lookupTable schema: lookupKey | status | lock | key
@@ -63,8 +63,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
 
     Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
     boolean failed = false;
-    Integer key = null;
-    Integer foundKey = null;
+    Long key = null;
+    Long foundKey = null;
     for (String lookupKey : lookupKeys) {
       Result row = lookupTableStore.getRow(lookupKey);
       LOG.debug("Lookup for [{}] produced [{}]", lookupKey, row);
@@ -76,10 +76,8 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
         if (rawStatus != null) {
           status = KeyStatus.valueOf(rawStatus);
         }
-        existingLock = ResultReader.getBytes(row, Columns.OCCURRENCE_COLUMN_FAMILY,
-                                             Columns.LOOKUP_LOCK_COLUMN, null);
-        key = ResultReader.getInteger(row, Columns.OCCURRENCE_COLUMN_FAMILY,
-                                      Columns.LOOKUP_KEY_COLUMN, null);
+        existingLock = ResultReader.getBytes(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_LOCK_COLUMN, null);
+        key = ResultReader.getLong(row, Columns.OCCURRENCE_COLUMN_FAMILY, Columns.LOOKUP_KEY_COLUMN, null);
         LOG.debug("Got existing status [{}] existingLock [{}] key [{}]", status, existingLock, key);
       }
 
@@ -172,7 +170,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
     for (Map.Entry<String, KeyStatus> entry : statusMap.entrySet()) {
       if (entry.getValue() == KeyStatus.ALLOCATING) {
         // TODO: combine into one put
-        lookupTableStore.putInt(entry.getKey(), Columns.LOOKUP_KEY_COLUMN, key);
+        lookupTableStore.putLong(entry.getKey(), Columns.LOOKUP_KEY_COLUMN, key);
         lookupTableStore.putString(entry.getKey(), Columns.LOOKUP_STATUS_COLUMN, KeyStatus.ALLOCATED.toString());
       }
     }
@@ -193,7 +191,7 @@ public class HBaseLockingKeyService extends AbstractHBaseKeyPersistenceService {
    *
    * @return the next key
    */
-  private synchronized int getNextKey() {
+  private synchronized long getNextKey() {
     // if we have exhausted our reserved keys, get a new batch of them
     if (currentKey == maxReservedKeyInclusive) {
       // get batch

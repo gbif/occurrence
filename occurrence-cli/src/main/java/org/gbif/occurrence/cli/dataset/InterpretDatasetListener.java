@@ -31,8 +31,8 @@ public class InterpretDatasetListener extends AbstractMessageCallback<InterpretD
   public void handleMessage(InterpretDatasetMessage message) {
     LOG.info("Interpreting dataset for key [{}]", message.getDatasetUuid());
 
-    Set<Integer> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
-    for (Integer key : keys) {
+    Set<Long> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
+    for (Long key : keys) {
       try {
         messagePublisher.send(new InterpretVerbatimMessage(key));
       } catch (IOException e) {

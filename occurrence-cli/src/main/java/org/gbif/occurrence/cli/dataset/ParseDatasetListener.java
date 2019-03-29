@@ -31,8 +31,8 @@ public class ParseDatasetListener extends AbstractMessageCallback<ParseDatasetMe
   public void handleMessage(ParseDatasetMessage message) {
     LOG.info("Parse dataset for key [{}]", message.getDatasetUuid());
 
-    Set<Integer> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
-    for (Integer key : keys) {
+    Set<Long> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
+    for (Long key : keys) {
       try {
         messagePublisher.send(new ParseFragmentMessage(key));
       } catch (IOException e) {

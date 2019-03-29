@@ -61,7 +61,7 @@ public class FragmentPersistenceServiceImpl implements FragmentPersistenceServic
    * @return the fragment or null if not found
    */
   @Override
-  public Fragment get(@Nullable Integer key) {
+  public Fragment get(@Nullable Long key) {
     if (key == null) {
       return null;
     }

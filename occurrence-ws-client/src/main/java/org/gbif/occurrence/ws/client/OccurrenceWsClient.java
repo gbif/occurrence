@@ -13,7 +13,7 @@ import static org.gbif.ws.paths.OccurrencePaths.FRAGMENT_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 
-public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> implements OccurrenceService {
+public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Long> implements OccurrenceService {
 
   private static final GenericType<VerbatimOccurrence> GT_VERBATIM_OCCURRENCE = new GenericType<VerbatimOccurrence>() {
   };
@@ -30,7 +30,7 @@ public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> imp
   }
 
   @Override
-  public String getFragment(int key) {
+  public String getFragment(long key) {
     return get(GT_FRAGMENT, String.valueOf(key), FRAGMENT_PATH);
   }
 
@@ -40,7 +40,7 @@ public class OccurrenceWsClient extends BaseWsGetClient<Occurrence, Integer> imp
    * @return requested resource or {@code null} if it couldn't be found
    */
   @Override
-  public VerbatimOccurrence getVerbatim(Integer key) {
+  public VerbatimOccurrence getVerbatim(Long key) {
     if (key == null) {
       throw new IllegalArgumentException("Key cannot be null");
     }

@@ -42,6 +42,7 @@ import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseDate;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
+import org.supercsv.cellprocessor.ParseLong;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvMapReader;
 import org.supercsv.io.ICsvMapReader;
@@ -230,7 +231,7 @@ public class OccurrenceDataLoader {
 
   // List of processors, a processor is defined for each column
   private final static CellProcessor[] CELL_PROCESSORS = new CellProcessor[] {
-    new ParseInt(), // key
+    new ParseLong(), // key
     new Optional(new ParseDouble()), // elevation
     new Optional(new BasisOfRecordProcessor()), // basisOfRecord
     new Optional(), // catalogNumber

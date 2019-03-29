@@ -50,8 +50,8 @@ public class DeleteDatasetListener extends AbstractMessageCallback<DeleteDataset
     try {
       LOG.info("Deleting dataset for key [{}]", message.getDatasetUuid());
 
-      Set<Integer> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
-      for (Integer key : keys) {
+      Set<Long> keys = occurrenceKeyService.findKeysByDataset(message.getDatasetUuid().toString());
+      for (Long key : keys) {
         try {
           messagePublisher.send(new DeleteOccurrenceMessage(key, message.getDeletionReason(), null, null));
         } catch (IOException e) {

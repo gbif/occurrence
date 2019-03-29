@@ -70,23 +70,18 @@ public class ZkLockingKeyService extends AbstractHBaseKeyPersistenceService {
       }
 
       // generate new key from counter table
-      Long longKey =
+      long longKey =
         counterTableStore.incrementColumnValue(HBaseLockingKeyService.COUNTER_ROW, Columns.COUNTER_COLUMN, 1);
-      if (longKey > Integer.MAX_VALUE) {
-        throw new IllegalStateException(
-          "The next available occurrence id is greater than what Integer can handle. This is fatal!");
-      }
-      int newOccurrenceKey = longKey.intValue();
 
       // build the lookup keys from the uniqueIdentifiers
       Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
 
       // write the new id to each of the lookup keys
       for (String key : lookupKeys) {
-        lookupTableStore.putInt(key, Columns.LOOKUP_KEY_COLUMN, newOccurrenceKey);
+        lookupTableStore.putLong(key, Columns.LOOKUP_KEY_COLUMN, longKey);
       }
 
-      return new KeyLookupResult(newOccurrenceKey, true);
+      return new KeyLookupResult(longKey, true);
     } finally {
       // in all cases we want to release the lock
       LOG.debug("Releasing lock");

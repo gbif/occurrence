@@ -18,7 +18,7 @@ public interface FragmentPersistenceService {
    *
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
-  Fragment get(Integer key);
+  Fragment get(Long key);
 
   /**
    * Insert a new Fragment, given its UniqueIdentifiers, generating a key for it in the process.

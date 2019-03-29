@@ -14,14 +14,14 @@ import com.google.common.collect.Maps;
 
 public class OccurrenceKeyPersistenceServiceMock implements OccurrenceKeyPersistenceService {
 
-  private Map<String, Integer> cache = Maps.newHashMap();
-  private int lastId = 0;
+  private Map<String, Long> cache = Maps.newHashMap();
+  private long lastId = 0;
 
   @Override
   public KeyLookupResult findKey(Set<UniqueIdentifier> uniqueIdentifiers) {
     KeyLookupResult result = null;
 
-    Integer id = null;
+    Long id = null;
     for (UniqueIdentifier uniqueId : uniqueIdentifiers) {
       id = cache.get(uniqueId.getUniqueString());
       if (id != null) break;
@@ -35,9 +35,9 @@ public class OccurrenceKeyPersistenceServiceMock implements OccurrenceKeyPersist
   }
 
   @Override
-  public Set<Integer> findKeysByDataset(String datasetKey) {
-    Set<Integer> results = Sets.newHashSet();
-    for (Map.Entry<String, Integer> entry : cache.entrySet()) {
+  public Set<Long> findKeysByDataset(String datasetKey) {
+    Set<Long> results = Sets.newHashSet();
+    for (Map.Entry<String, Long> entry : cache.entrySet()) {
       if (entry.getKey().startsWith(datasetKey)) {
         results.add(entry.getValue());
       }
@@ -51,7 +51,7 @@ public class OccurrenceKeyPersistenceServiceMock implements OccurrenceKeyPersist
     KeyLookupResult result = findKey(uniqueIdentifiers);
     if (result != null) return result;
 
-    int id = ++lastId;
+    long id = ++lastId;
     for (UniqueIdentifier uniqueId : uniqueIdentifiers) {
       cache.put(uniqueId.getUniqueString(), id);
     }
@@ -61,7 +61,7 @@ public class OccurrenceKeyPersistenceServiceMock implements OccurrenceKeyPersist
   }
 
   @Override
-  public void deleteKey(int occurrenceKey, @Nullable String datasetKey) {
+  public void deleteKey(long occurrenceKey, @Nullable String datasetKey) {
     for (String key : cache.keySet()) {
       if (cache.get(key) == occurrenceKey) {
         cache.remove(key);

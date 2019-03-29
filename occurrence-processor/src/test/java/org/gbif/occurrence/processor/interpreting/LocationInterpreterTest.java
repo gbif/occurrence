@@ -46,7 +46,7 @@ public class LocationInterpreterTest {
   @Test
   public void testVerbCoordInterp() throws InterruptedException {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.verbatimLatitude, "10.123");
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "55.678");
@@ -61,7 +61,7 @@ public class LocationInterpreterTest {
   @Test
   public void testFullInterp() throws InterruptedException {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "CANADA");
     verb.setVerbatimField(DwcTerm.decimalLatitude, "33.333");
@@ -87,7 +87,7 @@ public class LocationInterpreterTest {
   @Test
   public void testInterpretCoordinateUncertaintyAndPrecision(){
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
 
     verb.setVerbatimField(DwcTerm.coordinatePrecision, "n/a");
     verb.setVerbatimField(DwcTerm.coordinateUncertaintyInMeters, "500 m.");
@@ -112,7 +112,7 @@ public class LocationInterpreterTest {
   public void testCoordinatesUncertaintyIssues() throws InterruptedException {
     verb = new VerbatimOccurrence();
 
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "CANADA");
     verb.setVerbatimField(DwcTerm.verbatimLatitude, "45.5088400");
@@ -132,7 +132,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromCoordNoCountry() {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.verbatimLatitude, "52.0112");
     verb.setVerbatimField(DwcTerm.verbatimLongitude, "5.2124");
@@ -151,7 +151,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromCoordWithCountry() {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "Paraguay");
     verb.setVerbatimField(DwcTerm.verbatimLatitude, "-20.1825");
@@ -170,7 +170,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromOnlyCountry() {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "Royaume-Uni");
     occ = new Occurrence(verb);
@@ -186,7 +186,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromMultipleMappedCountry1() {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "French Guiana");
     occ = new Occurrence(verb);
@@ -202,7 +202,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromMultipleMappedCountry2() {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "France");
     occ = new Occurrence(verb);
@@ -218,7 +218,7 @@ public class LocationInterpreterTest {
   @Test
   public void testAllNulls() throws InterruptedException {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     occ = new Occurrence(verb);
 
@@ -229,7 +229,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromEquivalentMappedCountry() throws InterruptedException {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "Western Sahara");
     verb.setVerbatimField(DwcTerm.decimalLatitude, "27.15");
@@ -248,7 +248,7 @@ public class LocationInterpreterTest {
   @Test
   public void testDeriveFromNotEquivalentMappedCountry() throws InterruptedException {
     verb = new VerbatimOccurrence();
-    verb.setKey(1);
+    verb.setKey(1L);
     verb.setDatasetKey(UUID.randomUUID());
     verb.setVerbatimField(DwcTerm.country, "Ireland");
     verb.setVerbatimField(DwcTerm.decimalLatitude, "54.59");

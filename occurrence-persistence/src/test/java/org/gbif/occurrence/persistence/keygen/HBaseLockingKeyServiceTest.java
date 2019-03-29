@@ -110,7 +110,7 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey1 = Bytes.toBytes(keyBuilder.buildKey(triplet, datasetKey));
     Put put = new Put(lookupKey1);
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2L));
     try(Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
       lookupTable.put(put);
     }
@@ -159,14 +159,14 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock1);
-    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2L));
     try(Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
       lookupTable.put(put);
       byte[] lock2 = Bytes.toBytes(UUID.randomUUID().toString());
       byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
       put = new Put(lookupKey2);
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_LOCK_COLUMN), 0, lock2);
-      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(3));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(3L));
       lookupTable.put(put);
       lookupTable.close();
     }
@@ -188,14 +188,14 @@ public class HBaseLockingKeyServiceTest {
     byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
     Put put = new Put(lookupKey1);
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+    put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
     try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
       lookupTable.put(put);
 
       byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
       put = new Put(lookupKey2);
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
-      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2L));
       lookupTable.put(put);
       lookupTable.close();
     }

@@ -57,13 +57,13 @@ public class OccurrenceWsClientIT extends BaseResourceTest {
 
   @Test
   public void testGet() {
-    Occurrence occ = client.get(10);
-    assertEquals((Integer) 10, occ.getKey());
+    Occurrence occ = client.get(10L);
+    assertEquals(Long.valueOf(10L), occ.getKey());
   }
 
   @Test
   public void testGetNotFound() {
-    Occurrence occ = client.get(-10);
+    Occurrence occ = client.get(-10L);
     assertNull(occ);
   }
 

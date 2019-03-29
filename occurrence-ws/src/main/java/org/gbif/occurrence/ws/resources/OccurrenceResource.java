@@ -81,7 +81,7 @@ public class OccurrenceResource {
   @GET
   @Path("/{id}")
   @NullToNotFound
-  public Occurrence get(@PathParam("id") Integer key) {
+  public Occurrence get(@PathParam("id") Long key) {
     LOG.debug("Request Occurrence [{}]:", key);
     return occurrenceService.get(key);
   }
@@ -95,7 +95,7 @@ public class OccurrenceResource {
   @GET
   @Path("/{key}/" + FRAGMENT_PATH)
   @NullToNotFound
-  public String getFragment(@PathParam("key") Integer key) {
+  public String getFragment(@PathParam("key") Long key) {
     LOG.debug("Request occurrence fragment [{}]:", key);
     return occurrenceService.getFragment(key);
   }
@@ -110,7 +110,7 @@ public class OccurrenceResource {
   @GET
   @Path("/{key}/" + VERBATIM_PATH)
   @NullToNotFound
-  public VerbatimOccurrence getVerbatim(@PathParam("key") Integer key) {
+  public VerbatimOccurrence getVerbatim(@PathParam("key") Long key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
     return occurrenceService.getVerbatim(key);
   }
@@ -138,7 +138,7 @@ public class OccurrenceResource {
   @Path(ANNOSYS_PATH + "/{key}")
   @NullToNotFound
   @Produces(MediaType.APPLICATION_XML)
-  public Occurrence getAnnosysOccurrence(@PathParam("key") Integer key) {
+  public Occurrence getAnnosysOccurrence(@PathParam("key") Long key) {
     LOG.debug("Request Annosys occurrence [{}]:", key);
     return occurrenceService.get(key);
   }
@@ -154,7 +154,7 @@ public class OccurrenceResource {
   @Path(ANNOSYS_PATH + "/{key}/" + VERBATIM_PATH)
   @NullToNotFound
   @Produces(MediaType.APPLICATION_XML)
-  public VerbatimOccurrence getAnnosysVerbatim(@PathParam("key") Integer key) {
+  public VerbatimOccurrence getAnnosysVerbatim(@PathParam("key") Long key) {
     LOG.debug("Request Annosys verbatim occurrence [{}]:", key);
     return occurrenceService.getVerbatim(key);
   }

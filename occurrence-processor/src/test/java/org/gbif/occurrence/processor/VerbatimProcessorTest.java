@@ -88,7 +88,7 @@ public class VerbatimProcessorTest {
     messagePublisher
       .send(new FragmentPersistedMessage(UUID.fromString("85697f04-f762-11e1-a439-00145eb45e9a"), 1, NEW, 1));
     Thread.sleep(5000);
-    VerbatimOccurrence verb = occurrenceService.getVerbatim(1);
+    VerbatimOccurrence verb = occurrenceService.getVerbatim(1L);
     assertNotNull(verb);
     assertEquals(30, verb.getVerbatimFields().size());
     assertEquals("1", verb.getVerbatimField(GbifTerm.gbifID));

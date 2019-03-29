@@ -111,7 +111,7 @@ public class OccurrenceSearchImpl implements OccurrenceSearchService {
     List<Occurrence> occurrences = Lists.newArrayListWithCapacity(results.size());
     for (SolrDocument doc : results) {
       // Only field key is returned in the result
-      Integer occKey = (Integer) doc.getFieldValue(OccurrenceSolrField.KEY.getFieldName());
+      Long occKey = (Long) doc.getFieldValue(OccurrenceSolrField.KEY.getFieldName());
       Occurrence occ = occurrenceService.get(occKey);
       if (occ == null || occ.getKey() == null) {
         LOG.warn("Occurrence {} not found in store, but present in solr", occKey);
