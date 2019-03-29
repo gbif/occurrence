@@ -32,7 +32,7 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
     if (key == null || key < 1 || key >= 1000000) {
       return null;
     }
-    int intKey = key.intValue();
+    int intKey = key.intValue(); // Just for generating values below.
 
     Occurrence occ = new Occurrence();
     occ.setKey(key);
