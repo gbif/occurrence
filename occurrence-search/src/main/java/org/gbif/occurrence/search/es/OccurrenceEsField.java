@@ -126,8 +126,9 @@ public enum OccurrenceEsField {
   LOCALITY("locality"),
   COORDINATE_PRECISION("coordinatePrecision"),
   COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters"),
+
   //Location GBIF specific
-  SPATIAL_ISSUES("hasGeospatialIssues"),
+  SPATIAL_ISSUES("hasGeospatialIssue"),
   HAS_COORDINATE("hasCoordinate"),
   REPATRIATED("repatriated"),
 
