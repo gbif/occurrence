@@ -85,7 +85,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
     bind(OccurrenceKeyPersistenceService.class).to(OccurrenceKeyPersistenceServiceImpl.class);
     bind(FragmentPersistenceService.class).to(FragmentPersistenceServiceImpl.class);
     bind(ZookeeperLockManager.class).toProvider(ThreadLocalLockProvider.class);
-    bind(new TypeLiteral<KeyPersistenceService<Integer>>() {
+    bind(new TypeLiteral<KeyPersistenceService<Long>>() {
     }).to(HBaseLockingKeyService.class);
     bind(DatasetDeletionService.class).to(DatasetDeletionServiceImpl.class);
 
@@ -94,7 +94,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
     expose(OccurrenceKeyPersistenceService.class);
     expose(FragmentPersistenceService.class);
     expose(ZookeeperLockManager.class);
-    expose(new TypeLiteral<KeyPersistenceService<Integer>>() {
+    expose(new TypeLiteral<KeyPersistenceService<Long>>() {
     });
     expose(DatasetDeletionService.class);
   }

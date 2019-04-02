@@ -69,9 +69,9 @@ public class FragmentPersistenceServiceImplTest {
   private static final String LOOKUP_CF_NAME = "o";
   private static final byte[] LOOKUP_CF = Bytes.toBytes(LOOKUP_CF_NAME);
 
-  private int xmlKey;
-  private int jsonKey;
-  private static final int BAD_KEY = 2000000;
+  private Long xmlKey;
+  private Long jsonKey;
+  private static final Long BAD_KEY = 2000000L;
   private static final String CAT = "abc123";
   private static final String COL_CODE = "Big cats";
   private static final UUID XML_DATASET_KEY = UUID.randomUUID();
@@ -196,7 +196,7 @@ public class FragmentPersistenceServiceImplTest {
     assertNotNull(frag);
 
     assertEquals(XML_DATASET_KEY, frag.getDatasetKey());
-    assertEquals(xmlKey, frag.getKey().intValue());
+    assertEquals(xmlKey, frag.getKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());
     assertTrue(Arrays.equals(XML, frag.getData()));
@@ -224,7 +224,7 @@ public class FragmentPersistenceServiceImplTest {
 
     Fragment frag = fragmentService.get(got.getKey());
     Assert.assertNotNull(frag);
-    assertEquals(got.getKey().intValue(), frag.getKey().intValue());
+    assertEquals(got.getKey().longValue(), frag.getKey().longValue());
     assertEquals(XML_DATASET_KEY, frag.getDatasetKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());
@@ -294,7 +294,7 @@ public class FragmentPersistenceServiceImplTest {
     assertNotNull(frag);
 
     assertEquals(JSON_DATASET_KEY, frag.getDatasetKey());
-    assertEquals(jsonKey, frag.getKey().intValue());
+    assertEquals(jsonKey, frag.getKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());
     assertTrue(Arrays.equals(JSON, frag.getData()));
@@ -316,7 +316,7 @@ public class FragmentPersistenceServiceImplTest {
 
     Fragment frag = fragmentService.get(got.getKey());
     Assert.assertNotNull(frag);
-    assertEquals(got.getKey().intValue(), frag.getKey().intValue());
+    assertEquals(got.getKey().longValue(), frag.getKey().longValue());
     assertEquals(JSON_DATASET_KEY, frag.getDatasetKey());
     assertEquals(CRAWL_ID, frag.getCrawlId().intValue());
     assertEquals(HARVEST_DATE, frag.getHarvestedDate());
@@ -376,7 +376,7 @@ public class FragmentPersistenceServiceImplTest {
 
     FragmentCreationResult got = fragmentService.insert(fragment, ids);
     assertFalse(got.isKeyCreated());
-    assertEquals(3, got.getFragment().getKey().intValue());
+    assertEquals(3L, got.getFragment().getKey().longValue());
   }
 
   private class FragmentInserter implements Runnable {

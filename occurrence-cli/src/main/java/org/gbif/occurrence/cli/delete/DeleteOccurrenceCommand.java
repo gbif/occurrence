@@ -47,7 +47,7 @@ public class DeleteOccurrenceCommand extends BaseCommand {
         List<String> keys = HueCsvReader.readKeys(config.keyFileName);
         if (keys != null && !keys.isEmpty()) {
           for (String key : keys) {
-            sendDeleteMessage(publisher, Integer.valueOf(key));
+            sendDeleteMessage(publisher, Long.valueOf(key));
           }
         }
       }
@@ -58,7 +58,7 @@ public class DeleteOccurrenceCommand extends BaseCommand {
     }
   }
 
-  private static void sendDeleteMessage(MessagePublisher publisher, int occurrenceKey) throws IOException {
+  private static void sendDeleteMessage(MessagePublisher publisher, long occurrenceKey) throws IOException {
     publisher.send(new DeleteOccurrenceMessage(occurrenceKey, OccurrenceDeletionReason.OCCURRENCE_MANUAL, null, null));
     LOG.info("Sent message to delete occurrence [{}]", occurrenceKey);
   }

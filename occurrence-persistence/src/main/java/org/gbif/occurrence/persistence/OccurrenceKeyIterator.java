@@ -13,14 +13,12 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides an iterator over occurrence keys for a given HBase scan. To guarantee that all resources are released after
  * use, please make sure to iterate over the entire result (until hasNext() returns false).
  */
-public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
+public class OccurrenceKeyIterator implements Iterator<Long>, AutoCloseable {
 
   private final ResultScanner scanner;
   private final Iterator<Result> iterator;
@@ -60,9 +58,9 @@ public class OccurrenceKeyIterator implements Iterator<Integer>, AutoCloseable {
   }
 
   @Override
-  public Integer next() {
+  public Long next() {
     if (hasNext()) {
-      return Bytes.toInt(iterator.next().getRow());
+      return Bytes.toLong(iterator.next().getRow());
     } else {
       throw new NoSuchElementException();
     }

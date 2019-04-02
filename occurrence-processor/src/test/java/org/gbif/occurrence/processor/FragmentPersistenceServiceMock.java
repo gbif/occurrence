@@ -13,14 +13,14 @@ import java.util.Set;
 public class FragmentPersistenceServiceMock implements FragmentPersistenceService {
 
   private OccurrenceKeyPersistenceService occurrenceKeyService;
-  private Map<Integer, Fragment> cache = new HashMap<Integer, Fragment>();
+  private Map<Long, Fragment> cache = new HashMap<Long, Fragment>();
 
   public FragmentPersistenceServiceMock(OccurrenceKeyPersistenceService occurrenceKeyService) {
     this.occurrenceKeyService = occurrenceKeyService;
   }
 
   @Override
-  public Fragment get(Integer key) {
+  public Fragment get(Long key) {
     return cache.get(key);
   }
 
@@ -31,7 +31,7 @@ public class FragmentPersistenceServiceMock implements FragmentPersistenceServic
 
   @Override
   public FragmentCreationResult insert(Fragment fragment, Set<UniqueIdentifier> uniqueIds) {
-    Integer key = occurrenceKeyService.generateKey(uniqueIds).getKey();
+    Long key = occurrenceKeyService.generateKey(uniqueIds).getKey();
     fragment.setKey(key);
     cache.put(key, fragment);
     return new FragmentCreationResult(fragment, true);

@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.94-SNAPSHOT</version>
+  <version>0.96-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -130,12 +130,7 @@
     <hdfs.namenode>hdfs://ha-nn</hdfs.namenode>
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
-    <!-- cluster version -->
-    <hadoop.version>2.6.0-cdh5.12.0</hadoop.version>
-    <hbase.version>1.2.0-cdh5.12.0</hbase.version>
-    <hive.version>1.1.0-cdh5.12.0</hive.version>
-    <oozie.version>4.1.0-cdh5.12.0</oozie.version>
-    <zookeeper.version>3.4.5-cdh5.12.0</zookeeper.version>
+
     <calcite.version>1.0.0-incubating</calcite.version>
 
     <!-- GBIF VERSIONS -->
@@ -143,7 +138,7 @@
     <download-query-tools.version>1.21</download-query-tools.version>
     <dwc-api.version>1.22</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
-    <gbif-api.version>0.77-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.79</gbif-api.version>
     <gbif-common.version>0.40</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.34</gbif-common-search.version>
@@ -152,7 +147,7 @@
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.39</gbif-parsers.version>
-    <gbif-postal-service.version>0.25</gbif-postal-service.version>
+    <gbif-postal-service.version>0.30</gbif-postal-service.version>
     <gbif-registry.version>2.96</gbif-registry.version>
     <gbif-wrangler.version>0.2</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
@@ -187,6 +182,35 @@
       <url>http://download.osgeo.org/webdav/geotools/</url>
     </repository>
   </repositories>
+
+  <!-- Profile created to manage multiple Hadoop version in different environments -->
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <!-- cluster version -->
+        <hadoop.version>2.6.0-cdh5.12.1</hadoop.version>
+        <hbase.version>1.2.0-cdh5.12.1</hbase.version>
+        <hive.version>1.1.0-cdh5.12.1</hive.version>
+        <oozie.version>4.1.0-cdh5.12.1</oozie.version>
+        <zookeeper.version>3.4.5-cdh5.12.1</zookeeper.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <!-- cluster version -->
+        <hadoop.version>2.6.0-cdh5.12.0</hadoop.version>
+        <hbase.version>1.2.0-cdh5.12.0</hbase.version>
+        <hive.version>1.1.0-cdh5.12.0</hive.version>
+        <oozie.version>4.1.0-cdh5.12.0</oozie.version>
+        <zookeeper.version>3.4.5-cdh5.12.0</zookeeper.version>
+      </properties>
+    </profile>
+  </profiles>
 
   <dependencyManagement>
     <dependencies>

@@ -61,10 +61,10 @@ public class DatasetDeletionServiceImpl implements DatasetDeletionService {
   private void deleteByColumn(byte[] columnValue, GbifTerm column) {
     LOG.debug("Starting delete by column for [{}]", column);
     int deleteCount = 0;
-    Iterator<Integer> keyIterator = occurrenceService.getKeysByColumn(columnValue, Columns.column(column));
-    List<Integer> keys = Lists.newArrayListWithCapacity(KEYS_BATCH_SIZE);
+    Iterator<Long> keyIterator = occurrenceService.getKeysByColumn(columnValue, Columns.column(column));
+    List<Long> keys = Lists.newArrayListWithCapacity(KEYS_BATCH_SIZE);
     while (keyIterator.hasNext()) {
-      int key = keyIterator.next();
+      long key = keyIterator.next();
       // TODO: this is critical, but causes extreme performance problems (full scan of lookups per deleted key)
       occurrenceKeyService.deleteKey(key, null);
       keys.add(key);

@@ -8,15 +8,15 @@ import com.google.common.base.Objects;
  */
 public class KeyLookupResult {
 
-  private final int key;
+  private final long key;
   private final boolean created;
 
-  public KeyLookupResult(int key, boolean created) {
+  public KeyLookupResult(long key, boolean created) {
     this.key = key;
     this.created = created;
   }
 
-  public int getKey() {
+  public long getKey() {
     return key;
   }
 

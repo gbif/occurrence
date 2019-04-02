@@ -63,7 +63,7 @@ public class OccurrenceKeyIteratorTest {
 
 
     try (Table table = CONNECTION.getTable(TABLE_NAME)) {
-      int keyCount = 0;
+      long keyCount = 0;
       for (int i = 0; i < ID_1_COUNT; i++) {
         keyCount++;
         addId(keyCount, DATASET_1.toString(), table);
@@ -79,7 +79,7 @@ public class OccurrenceKeyIteratorTest {
     }
   }
 
-  private void addId(int key, String value, Table table) throws IOException {
+  private void addId(long key, String value, Table table) throws IOException {
     Put put = new Put(Bytes.toBytes(key));
     put.addColumn(CF, Bytes.toBytes(Columns.column(GbifTerm.datasetKey)),
       Bytes.toBytes(value));
@@ -101,7 +101,7 @@ public class OccurrenceKeyIteratorTest {
       new SingleColumnValueFilter(CF, col, CompareFilter.CompareOp.EQUAL, Bytes.toBytes(DATASET_1.toString()));
     scan.setFilter(filter);
 
-    Iterator<Integer> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
+    Iterator<Long> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
     int count = 0;
     while (iterator.hasNext()) {
       iterator.next();
@@ -121,7 +121,7 @@ public class OccurrenceKeyIteratorTest {
                                                                  Bytes.toBytes(DATASET_1.toString()));
     scan.setFilter(filter);
 
-    Iterator<Integer> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
+    Iterator<Long> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
     int count = 0;
     while (iterator.hasNext()) {
       iterator.next();
@@ -140,7 +140,7 @@ public class OccurrenceKeyIteratorTest {
                                                                  Bytes.toBytes(DATASET_3.toString()));
     scan.setFilter(filter);
 
-    Iterator<Integer> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
+    Iterator<Long> iterator = new OccurrenceKeyIterator(CONNECTION, TABLE_NAME.getNameAsString(), scan);
     int count = 0;
     while (iterator.hasNext()) {
       iterator.next();

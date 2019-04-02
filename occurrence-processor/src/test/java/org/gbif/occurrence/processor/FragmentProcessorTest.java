@@ -99,7 +99,7 @@ public class FragmentProcessorTest {
     Integer crawlId = 1;
     fragmentProcessor.buildFragments(datasetKey, abcd206Single.getBytes(), schemaType, protocol, crawlId, null);
 
-    Fragment got = fragmentPersistenceService.get(1);
+    Fragment got = fragmentPersistenceService.get(1L);
     assertTrue(got.getKey() > 0);
     Calendar resultCal = Calendar.getInstance();
     resultCal.setTime(got.getHarvestedDate());
@@ -123,9 +123,9 @@ public class FragmentProcessorTest {
     fragmentProcessor
       .buildFragments(datasetKey, abcd206Multi.getBytes(), schemaType, EndpointType.BIOCASE, crawlId, null);
     Set<Fragment> fragments = Sets.newHashSet();
-    Fragment first = fragmentPersistenceService.get(1);
+    Fragment first = fragmentPersistenceService.get(1L);
     fragments.add(first);
-    Fragment second = fragmentPersistenceService.get(2);
+    Fragment second = fragmentPersistenceService.get(2L);
     fragments.add(second);
 
     int count = 0;
@@ -158,9 +158,9 @@ public class FragmentProcessorTest {
     fragmentProcessor.buildFragments(datasetKey, abcd206MultiModified.getBytes(), schemaType, protocol, crawlId, null);
 
     Set<Fragment> fragments = Sets.newHashSet();
-    Fragment first = fragmentPersistenceService.get(1);
+    Fragment first = fragmentPersistenceService.get(1L);
     fragments.add(first);
-    Fragment second = fragmentPersistenceService.get(2);
+    Fragment second = fragmentPersistenceService.get(2L);
     fragments.add(second);
 
     int count = 0;
@@ -204,7 +204,7 @@ public class FragmentProcessorTest {
       }
 
       @Override
-      public Set<Integer> findKeysByDataset(String datasetKey) {
+      public Set<Long> findKeysByDataset(String datasetKey) {
         throw new UnsupportedOperationException("Not implemented yet");
       }
 
@@ -214,7 +214,7 @@ public class FragmentProcessorTest {
       }
 
       @Override
-      public void deleteKey(int occurrenceKey, @Nullable String datasetKey) {
+      public void deleteKey(long occurrenceKey, @Nullable String datasetKey) {
         throw new UnsupportedOperationException("Not implemented yet");
       }
 
@@ -232,7 +232,7 @@ public class FragmentProcessorTest {
     Integer crawlId = 1;
     fragmentProcessor.buildFragments(datasetKey, abcd206Single.getBytes(), schemaType, protocol, crawlId, null);
 
-    Fragment got = fragmentPersistenceService.get(1);
+    Fragment got = fragmentPersistenceService.get(1L);
     assertNull(got);
   }
 }

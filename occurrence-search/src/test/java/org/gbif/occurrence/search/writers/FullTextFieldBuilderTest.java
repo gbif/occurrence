@@ -25,7 +25,7 @@ public class FullTextFieldBuilderTest {
   private Occurrence buildTestOccurrence(){
     Date now = new Date();
     Occurrence occurrence = new Occurrence();
-    occurrence.setKey(1227769253);
+    occurrence.setKey(1227769253L);
     occurrence.setDatasetKey(UUID.fromString("50c9509d-22c7-4a22-a47d-8c48425ef4a7"));
 
     occurrence.setPublishingOrgKey(UUID.fromString("28eb1a3f-1c15-4a95-931a-4af90ecb574d"));

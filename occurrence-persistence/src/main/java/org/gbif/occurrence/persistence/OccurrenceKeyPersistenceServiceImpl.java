@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersistenceService {
 
-  private final KeyPersistenceService<Integer> keyPersistenceService;
+  private final KeyPersistenceService<Long> keyPersistenceService;
 
   private final Timer lockWaitTimer = Metrics.newTimer(OccurrenceKeyPersistenceServiceImpl.class, "lock wait",
                                                        TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
@@ -30,7 +30,7 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
                                                       TimeUnit.SECONDS);
 
   @Inject
-  public OccurrenceKeyPersistenceServiceImpl(KeyPersistenceService<Integer> keyPersistenceService) {
+  public OccurrenceKeyPersistenceServiceImpl(KeyPersistenceService<Long> keyPersistenceService) {
     this.keyPersistenceService = checkNotNull(keyPersistenceService, "keyPersistenceService can't be null");
   }
 
@@ -51,7 +51,7 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
   }
 
   @Override
-  public Set<Integer> findKeysByDataset(String datasetKey) {
+  public Set<Long> findKeysByDataset(String datasetKey) {
     return keyPersistenceService.findKeysByScope(datasetKey);
   }
 
@@ -87,7 +87,7 @@ public class OccurrenceKeyPersistenceServiceImpl implements OccurrenceKeyPersist
    * Hands off to the member KeyPersistenceService to delete the key.
    */
   @Override
-  public void deleteKey(int occurrenceKey, String datasetKey) {
+  public void deleteKey(long occurrenceKey, String datasetKey) {
     keyPersistenceService.deleteKey(occurrenceKey, datasetKey);
   }
 

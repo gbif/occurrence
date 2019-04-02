@@ -44,7 +44,7 @@ public interface OccurrenceWriter {
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
   @Nullable
-  Occurrence delete(int occurrenceKey);
+  Occurrence delete(long occurrenceKey);
 
 
   /**
@@ -54,5 +54,5 @@ public interface OccurrenceWriter {
    *
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
-  void delete(List<Integer> occurrenceKeys);
+  void delete(List<Long> occurrenceKeys);
 }

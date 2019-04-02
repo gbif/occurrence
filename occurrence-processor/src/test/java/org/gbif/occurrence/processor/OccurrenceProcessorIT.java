@@ -149,7 +149,7 @@ public class OccurrenceProcessorIT {
 
     TimeUnit.MILLISECONDS.sleep(5000);
 
-    Occurrence got = occurrenceService.get(1);
+    Occurrence got = occurrenceService.get(1L);
     assertNotNull(got);
     assertEquals("BGBM", got.getVerbatimField(DwcTerm.institutionCode));
     assertEquals("Pontaurus", got.getVerbatimField(DwcTerm.collectionCode));
@@ -198,7 +198,7 @@ public class OccurrenceProcessorIT {
 
     TimeUnit.MILLISECONDS.sleep(10000);
 
-    Occurrence got = occurrenceService.get(1);
+    Occurrence got = occurrenceService.get(1L);
     assertNotNull(got);
     assertEquals("BGBM", got.getVerbatimField(DwcTerm.institutionCode));
     assertEquals("AlgaTerra", got.getVerbatimField(DwcTerm.collectionCode));

@@ -77,9 +77,9 @@ public class OccurrenceScanMapper extends AbstractOccurrenceRegistryMapper {
     }
 
     if (needsUpdate) {
-      Occurrence origOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
+      Occurrence origOcc = occurrencePersistenceService.get(Bytes.toLong(row.get()));
       // we have no clone or other easy copy method
-      Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
+      Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toLong(row.get()));
       occurrenceMutator.mutateOccurrence(updatedOcc, dataset, publishingOrg);
       occurrencePersistenceService.update(updatedOcc);
 

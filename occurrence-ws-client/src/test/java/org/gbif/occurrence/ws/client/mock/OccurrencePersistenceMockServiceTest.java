@@ -13,8 +13,8 @@ public class OccurrencePersistenceMockServiceTest {
   @Test
   public void testGenerator() {
     OccurrencePersistenceMockService srv = new OccurrencePersistenceMockService();
-    Occurrence occ = srv.get(112);
-    assertEquals((Integer) 112, occ.getKey());
+    Occurrence occ = srv.get(112L);
+    assertEquals((Long) 112L, occ.getKey());
     assertEquals(OccurrencePersistenceMockService.DATASETS.get(2), occ.getDatasetKey());
     assertEquals("cat-112", occ.getVerbatimField(DwcTerm.catalogNumber));
     assertEquals("Chromista", occ.getKingdom());

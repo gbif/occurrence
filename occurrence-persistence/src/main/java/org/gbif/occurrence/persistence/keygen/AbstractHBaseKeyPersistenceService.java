@@ -40,16 +40,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An abstract implementation of KeyPersistenceService that handles the finding and deleting of keys in HBase, but
  * leaves the generation of keys to sub-classes.
  */
-public abstract class AbstractHBaseKeyPersistenceService implements KeyPersistenceService<Integer> {
+public abstract class AbstractHBaseKeyPersistenceService implements KeyPersistenceService<Long> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractHBaseKeyPersistenceService.class);
   private static final int HBASE_CLIENT_CACHING = 200;
 
   private final Connection connection;
   private final TableName lookupTableName;
-  private final HBaseStore<Integer> occurrenceTableStore;
+  private final HBaseStore<Long> occurrenceTableStore;
   protected final HBaseStore<String> lookupTableStore;
-  protected final HBaseStore<Integer> counterTableStore;
+  protected final HBaseStore<Long> counterTableStore;
   protected final KeyBuilder keyBuilder;
 
   public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, Connection connection, KeyBuilder keyBuilder) {
@@ -57,8 +57,8 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     this.connection = checkNotNull(connection, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
     lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
-    counterTableStore = new HBaseStore<Integer>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
-    occurrenceTableStore = new HBaseStore<Integer>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
+    counterTableStore = new HBaseStore<Long>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
+    occurrenceTableStore = new HBaseStore<Long>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
   }
 
   @Override
@@ -73,12 +73,12 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     }
 
     Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
-    Map<String, Integer> foundOccurrenceKeys = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
+    Map<String, Long> foundOccurrenceKeys = Maps.newTreeMap(); // required: predictable sorting for e.g. testing
 
     // get the occurrenceKey for each lookupKey, and set a flag if we find any null
     boolean gotNulls = false;
     for (String uniqueString : lookupKeys) {
-      Integer occurrenceKey = lookupTableStore.getInt(uniqueString, Columns.LOOKUP_KEY_COLUMN);
+      Long occurrenceKey = lookupTableStore.getLong(uniqueString, Columns.LOOKUP_KEY_COLUMN);
       if (occurrenceKey == null) {
         gotNulls = true;
       } else {
@@ -88,13 +88,13 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
 
     // go through all the returned keys and make sure they're all the same - if not, fail loudly (this means
     // an inconsistency in the db that we can't resolve here)
-    Integer resultKey = null;
+    Long resultKey = null;
     for (String uniqueString : lookupKeys) {
-      Integer occurrenceKey = foundOccurrenceKeys.get(uniqueString);
+      Long occurrenceKey = foundOccurrenceKeys.get(uniqueString);
       if (occurrenceKey != null) {
         if (resultKey == null) {
           resultKey = occurrenceKey;
-        } else if (resultKey.intValue() != occurrenceKey.intValue()) {
+        } else if (resultKey.longValue() != occurrenceKey.longValue()) {
           failWithConflictingLookup(foundOccurrenceKeys);
         }
       }
@@ -114,8 +114,8 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   }
 
   @Override
-  public Set<Integer> findKeysByScope(String scope) {
-    Set<Integer> keys = Sets.newHashSet();
+  public Set<Long> findKeysByScope(String scope) {
+    Set<Long> keys = Sets.newHashSet();
     // note HTableStore isn't capable of ad hoc scans
     try (Table table = connection.getTable(lookupTableName)) {
       Scan scan = new Scan();
@@ -126,7 +126,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       for (Result result : results) {
         byte[] rawKey = result.getValue(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN));
         if (rawKey != null) {
-          keys.add(Bytes.toInt(rawKey));
+          keys.add(Bytes.toLong(rawKey));
         }
       }
     } catch (IOException e) {
@@ -146,7 +146,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
    * @param datasetKey    the optional "scope" for the lookup (without it this method is very slow)
    */
   @Override
-  public void deleteKey(Integer occurrenceKey, @Nullable String datasetKey) {
+  public void deleteKey(Long occurrenceKey, @Nullable String datasetKey) {
     checkNotNull(occurrenceKey, "occurrenceKey can't be null");
 
     // get the dataset for this occurrence if not handed in as scope
@@ -207,20 +207,20 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     }
   }
 
-  protected static void failWithConflictingLookup(Map<String, Integer> conflictingKeys) {
+  protected static void failWithConflictingLookup(Map<String, Long> conflictingKeys) {
     StringBuilder sb = new StringBuilder("Found inconsistent occurrence keys in looking up unique identifiers:");
-    for (Map.Entry<String, Integer> entry : conflictingKeys.entrySet()) {
+    for (Map.Entry<String, Long> entry : conflictingKeys.entrySet()) {
       sb.append('[').append(entry.getKey()).append("]=[").append(entry.getValue()).append(']');
     }
     throw new IllegalDataStateException(sb.toString());
   }
 
 
-  private void fillMissingKeys(Set<String> lookupKeys, Map<String, Integer> foundOccurrenceKeys,
-                               Integer occurrenceKey) {
+  private void fillMissingKeys(Set<String> lookupKeys, Map<String, Long> foundOccurrenceKeys,
+                               Long occurrenceKey) {
     for (String lookupKey : lookupKeys) {
       if (!foundOccurrenceKeys.containsKey(lookupKey)) {
-        lookupTableStore.putInt(lookupKey, Columns.LOOKUP_KEY_COLUMN, occurrenceKey);
+        lookupTableStore.putLong(lookupKey, Columns.LOOKUP_KEY_COLUMN, occurrenceKey);
       }
     }
   }

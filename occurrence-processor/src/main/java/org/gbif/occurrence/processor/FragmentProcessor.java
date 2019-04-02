@@ -196,7 +196,7 @@ public class FragmentProcessor {
       status = OccurrencePersistenceStatus.NEW;
     } else {
       // this is an existing record - fetch fragment from hbase and see if we need to do an update
-      int key = keyResult.getKey();
+      Long key = keyResult.getKey();
       int attempts = 0;
       do {
         attempts++;

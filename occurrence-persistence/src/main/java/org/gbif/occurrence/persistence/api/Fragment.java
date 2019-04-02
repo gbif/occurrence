@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Fragment {
 
-  private Integer key;
+  private Long key;
   private final UUID datasetKey;
   private byte[] data;
   private byte[] dataHash;
@@ -68,11 +68,11 @@ public class Fragment {
     this.datasetKey = checkNotNull(datasetKey, "datasetKey can't be null");
   }
 
-  public Integer getKey() {
+  public Long getKey() {
     return key;
   }
 
-  public void setKey(Integer key) {
+  public void setKey(Long key) {
     this.key = key;
   }
 
