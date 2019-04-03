@@ -5,7 +5,7 @@ SELECT
 gbifid,
 datasetkey,
 installationkey,
-networkkey,
+IF(networkkey IS NOT NULL, split(networkkey,";"), NULL) AS networkkey,
 institutioncode,
 collectioncode,
 catalognumber,
