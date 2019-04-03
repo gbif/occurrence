@@ -14,6 +14,8 @@
     "fields":
       [{"name":"key","type":["long", "null"]},
       {"name":"dataset_key","type":["string", "null"]},
+      {"name":"installation_key","type":["string", "null"]},
+      {"name":"network_key","type":["null",{"type":"array", "items":"string"}],"default":null},
       {"name":"institution_code","type":["string", "null"]},
       {"name":"collection_code","type":["string", "null"]},
       {"name":"catalog_number","type":["string", "null"]},
@@ -60,5 +62,8 @@
       {"name":"protocol","type":["string", "null"]},
       {"name":"license","type":["string", "null"]},
       {"name":"crawl_id","type":["int", "null"]},
-      {"name":"publishing_organization_key","type":["string", "null"]}]
+      {"name":"publishing_organization_key","type":["string", "null"]},
+      {"name":"event_id","type":["string", "null"]},
+      {"name":"parent_event_id","type":["string", "null"]},
+      {"name":"sampling_protocol","type":["string", "null"]}]
   }');

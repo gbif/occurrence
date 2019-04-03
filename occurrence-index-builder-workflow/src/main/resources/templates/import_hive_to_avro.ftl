@@ -4,6 +4,8 @@ INSERT OVERWRITE TABLE ${r"${avroTable}"}
 SELECT
 gbifid,
 datasetkey,
+installationkey,
+networkkey,
 institutioncode,
 collectioncode,
 catalognumber,
@@ -53,5 +55,8 @@ waterbody,
 protocol,
 COALESCE(license,"UNSPECIFIED") AS license,
 crawlid,
-publishingorgkey
+publishingorgkey,
+eventid,
+parenteventid,
+samplingprotocol
 FROM ${r"${sourceOccurrenceTable}"} occ;
