@@ -82,6 +82,18 @@ public class OccurrenceHDFSTableDefinition {
            + " IS NOT NULL, countrycode != publishingcountry, NULL )";
   }
 
+  /**
+   * @return a string for constructing the repatriated field
+   */
+  private static String networkKeyInitializer() {
+    String networkKeyColumn = HiveColumns.columnFor(GbifInternalTerm.networkKey);
+    return "IF("
+      + networkKeyColumn
+      + " IS NOT NULL AND length("
+      + networkKeyColumn
+      + ") > 0, split(" + networkKeyColumn + ",\"\\\\;\"), NULL )";
+  }
+
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
@@ -141,14 +153,15 @@ public class OccurrenceHDFSTableDefinition {
   private static List<InitializableField> interpretedFields() {
 
     // the following terms are manipulated when transposing from HBase to hive by using UDFs and custom HQL
-    Map<Term, String> initializers = ImmutableMap.of(GbifTerm.hasGeospatialIssues,
-                                                     hasGeospatialIssuesInitializer(),
-                                                     GbifTerm.hasCoordinate,
-                                                     hasCoordinateInitializer(),
-                                                     GbifTerm.issue,
-                                                     issueInitializer(),
-                                                     GbifTerm.repatriated,
-                                                     repatriatedInitializer());
+    Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
+                                      .put(GbifTerm.hasGeospatialIssues, hasGeospatialIssuesInitializer())
+                                      .put(GbifTerm.hasCoordinate, hasCoordinateInitializer())
+                                      .put(GbifTerm.issue, issueInitializer())
+                                      .put(GbifTerm.repatriated, repatriatedInitializer())
+                                      .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
+                                      .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
+                                      .put(GbifTerm.publishingCountry, HiveColumns.columnFor(GbifTerm.publishingCountry))
+                                      .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
@@ -170,10 +183,17 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<InitializableField> internalFields() {
+    Map<Term, String> initializers = ImmutableMap.of(GbifInternalTerm.networkKey, networkKeyInitializer(),
+                                                     GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey),
+                                                     GbifInternalTerm.installationKey, HiveColumns.columnFor(GbifInternalTerm.installationKey));
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
       if (!DownloadTerms.EXCLUSIONS.contains(t)) {
-        builder.add(interpretedField(t));
+        if (initializers.containsKey(t)) {
+          builder.add(interpretedField(t, initializers.get(t)));
+        } else {
+          builder.add(interpretedField(t));
+        }
       }
     }
     return builder.build();
@@ -262,4 +282,5 @@ public class OccurrenceHDFSTableDefinition {
                                   // not verbatim context
                                   initializer);
   }
+
 }

@@ -198,7 +198,10 @@ public final class Terms {
                            GbifTerm.publishingCountry,
                            GbifTerm.protocol,
                            GbifTerm.lastCrawled,
-                           GbifTerm.lastParsed);
+                           GbifTerm.lastParsed,
+                           GbifInternalTerm.installationKey,
+                           GbifInternalTerm.publishingOrgKey,
+                           GbifInternalTerm.networkKey);
   }
 
   /**
