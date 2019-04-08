@@ -54,7 +54,7 @@ package org.gbif.occurrence.search.es;
  * indexed="true" stored="false" docValues="true"/> <field name="full_text" type="text_general"
  * indexed="true" stored="false" multiValued="true"/>
  *
- * <p>Supported fields:
+ * <p>Supported fields: // TODO: update fields
  * KEY("key"), LATITUDE("latitude"), LONGITUDE("longitude"),
  * COORDINATE("coordinate"), COUNTRY("country"), PUBLISHING_COUNTRY("publishing_country"),
  * CONTINENT("continent"), YEAR("year"), MONTH("month"), CATALOG_NUMBER("catalog_number"),
@@ -64,7 +64,7 @@ package org.gbif.occurrence.search.es;
  * ORDER_KEY("order_key"), FAMILY_KEY("family_key"), GENUS_KEY("genus_key"),
  * SUBGENUS_KEY("subgenus_key"), SPECIES_KEY("species_key"), TAXONOMIC_STATUS("taxonomic_status"),
  * COLLECTION_CODE("collection_code"), ELEVATION("elevation"), DEPTH("depth"),
- * INSTITUTION_CODE("institution_code"), SPATIAL_ISSUES("spatial_issues"),
+ * INSTITUTION_CODE("institution_code"), HAS_GEOSPATIAL_ISSUES("spatial_issues"),
  * HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"), LAST_INTERPRETED("last_interpreted"),
  * TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue"),
  * ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id"),
@@ -102,7 +102,6 @@ public enum OccurrenceEsField {
   BASIS_OF_RECORD("basisOfRecord"),
   TYPE_STATUS("typeStatus"),
 
-
   //Temporal
   YEAR("year"),
   MONTH("month"),
@@ -126,29 +125,55 @@ public enum OccurrenceEsField {
   LOCALITY("locality"),
   COORDINATE_PRECISION("coordinatePrecision"),
   COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters"),
+  COUNTRY("country"),
 
   //Location GBIF specific
-  SPATIAL_ISSUES("hasGeospatialIssue"),
+  HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue"),
   HAS_COORDINATE("hasCoordinate"),
   REPATRIATED("repatriated"),
 
   //Taxonomic classification
   TAXON_KEY("gbifClassification.usage.key"),
+  TAXON_RANK("gbifClassification.usage.rank"),
   ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key"),
+  ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name"),
   KINGDOM_KEY("gbifClassification.kingdomKey"),
+  KINGDOM("gbifClassification.kingdom"),
   PHYLUM_KEY("gbifClassification.phylumkey"),
+  PHYLUM("gbifClassification.phylum"),
   CLASS_KEY("gbifClassification.classkey"),
+  CLASS("gbifClassification.class"),
   ORDER_KEY("gbifClassification.orderkey"),
+  ORDER("gbifClassification.order"),
   FAMILY_KEY("gbifClassification.familykey"),
+  FAMILY("gbifClassification.family"),
   GENUS_KEY("gbifClassification.genusKey"),
+  GENUS("gbifClassification.genus"),
   SUBGENUS_KEY("gbifClassification.subgenusKey"),
+  SUBGENUS("gbifClassification.subgenus"),
   SPECIES_KEY("gbifClassification.speciesKey"),
+  SPECIES("species"),
   SCIENTIFIC_NAME("gbifClassification.usage.name"),
+  // TODO: what name will the next 3 have in ES??
+  SPECIFIC_EPITHET("specificepithet"),
+  INFRA_SPECIFIC_EPITHET("infraspecificepithet"),
+  GENERIC_NAME("genericname"),
+  TYPIFIED_NAME("typifiedName"),
+  // TODO: name
+  TAXONOMIC_STATUS("??"),
 
   //Sampling
   EVENT_ID("eventId"),
   PARENT_EVENT_ID("parentEventId"),
   SAMPLING_PROTOCOL("samplingProtocol"),
+  LIFE_STAGE("lifeStage"),
+  DATE_IDENTIFIED("dateIdentified"),
+  MODIFIED("modified"),
+  REFERENCES("references"),
+  SEX("sex"),
+  IDENTIFIER("identifier"),
+  INDIVIDUAL_COUNT("individualCount"),
+  RELATION("relation"),
 
   //Crawling
   CRAWL_ID("crawlId"),
@@ -156,22 +181,13 @@ public enum OccurrenceEsField {
   LAST_CRAWLED("lastCrawled"),
   LAST_PARSED("lastParsed"),
 
-
   MEDIA_TYPE("mediaType"),
   ISSUE("issue"),
 
   ESTABLISHMENT_MEANS("establishmentMeans"),
-
-  FULL_TEXT("");
-
-
-
-
-
-
-
-
-
+  FACTS("measurementOrFactItems"),
+  GBIF_ID("gbifId"),
+  FULL_TEXT("all");
 
 
 
