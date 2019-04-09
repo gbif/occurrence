@@ -155,12 +155,12 @@ public enum OccurrenceEsField {
   SPECIES("species"),
   SCIENTIFIC_NAME("gbifClassification.usage.name"),
   // TODO: what name will the next 3 have in ES??
-  SPECIFIC_EPITHET("specificepithet"),
-  INFRA_SPECIFIC_EPITHET("infraspecificepithet"),
-  GENERIC_NAME("genericname"),
+  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet.keyword"),
+  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet.keyword"),
+  GENERIC_NAME("gbifClassification.usageParsedName.genericname"),
   TYPIFIED_NAME("typifiedName"),
   // TODO: name
-  TAXONOMIC_STATUS("??"),
+  TAXONOMIC_STATUS("gbifClassification.diagnostics.status"),
 
   //Sampling
   EVENT_ID("eventId"),
