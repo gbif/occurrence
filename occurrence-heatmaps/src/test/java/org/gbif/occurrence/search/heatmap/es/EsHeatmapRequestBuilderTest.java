@@ -119,7 +119,7 @@ public class EsHeatmapRequestBuilderTest {
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(TERM));
 
     // taxon key
-    Optional<String> taxaValue = findTermFilter(json, OccurrenceEsField.TAXA_KEY);
+    Optional<String> taxaValue = findTermFilter(json, OccurrenceEsField.TAXON_KEY);
 
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));

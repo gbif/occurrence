@@ -577,8 +577,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     JsonNode matchNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).path(MATCH);
-    assertTrue(matchNode.has(_ALL));
-    assertEquals("puma", matchNode.path(_ALL).path(QUERY).asText());
+    assertTrue(matchNode.has(FULL_TEXT.getFieldName()));
+    assertEquals("puma", matchNode.path(FULL_TEXT.getFieldName()).path(QUERY).asText());
   }
 
   @Test
@@ -654,7 +654,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void wringPagingFacetsTest() throws IOException {
+  public void wrongPagingFacetsTest() {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addFacets(OccurrenceSearchParameter.MONTH);
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 14, 3);

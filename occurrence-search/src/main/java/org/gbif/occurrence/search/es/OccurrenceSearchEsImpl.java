@@ -3,6 +3,7 @@ package org.gbif.occurrence.search.es;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
@@ -143,6 +144,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
    */
   public List<String> suggestTermByField(
       String prefix, OccurrenceSearchParameter parameter, Integer limit) {
+    // TODO
     // try {
     //  String solrField = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
     //  SolrQuery solrQuery = buildTermQuery(parseTermsQueryValue(prefix).toLowerCase(), solrField,
@@ -161,6 +163,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
 
   /** Escapes a query value and transform it into a phrase query if necessary. */
   private static String parseTermsQueryValue(final String q) {
+    // TODO
     //    // return default query for empty queries
     //    String qValue = Strings.nullToEmpty(q).trim();
     //    if (Strings.isNullOrEmpty(qValue)) {

@@ -115,7 +115,7 @@
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
-    <solr-lucene.version>5.4.1</solr-lucene.version>
+    <solr-lucene.version>7.5.0</solr-lucene.version>
     <jts.version>1.13</jts.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
@@ -398,11 +398,11 @@
         <artifactId>amqp-client</artifactId>
         <version>${amqp-client.version}</version>
       </dependency>
-      <!--<dependency>-->
-        <!--<groupId>org.apache.lucene</groupId>-->
-        <!--<artifactId>lucene-core</artifactId>-->
-        <!--<version>${solr-lucene.version}</version>-->
-      <!--</dependency>-->
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-core</artifactId>
+        <version>${solr-lucene.version}</version>
+      </dependency>
       <!--<dependency>-->
         <!--<groupId>org.apache.solr</groupId>-->
         <!--<artifactId>solr-map-reduce</artifactId>-->
@@ -1034,7 +1034,6 @@
         <artifactId>jersey-apache-client</artifactId>
         <version>${jersey.version}</version>
       </dependency>
-
 
       <!-- geotools -->
       <dependency>

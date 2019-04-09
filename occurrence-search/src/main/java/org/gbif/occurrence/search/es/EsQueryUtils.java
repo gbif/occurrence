@@ -1,11 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import org.apache.http.Header;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.vocabulary.*;
 
@@ -17,6 +11,12 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import org.apache.http.entity.ContentType;
+import org.apache.http.protocol.HTTP;
+import org.elasticsearch.client.RequestOptions;
 
 public class EsQueryUtils {
 
@@ -39,7 +39,6 @@ public class EsQueryUtils {
   public static final String LTE = "lte";
   public static final String VALUE = "value";
   public static final String POST_FILTER = "post_filter";
-  public static final String _ALL = "_all";
 
   // Aggs
   public static final String FIELD = "field";
@@ -60,7 +59,7 @@ public class EsQueryUtils {
 
   static final String RANGE_SEPARATOR = ",";
 
-  static final BiFunction<String, DateFormat, Date> DATE_FORMAT =
+  static final BiFunction<String, DateFormat, Date> STRING_TO_DATE =
       (dateAsString, format) -> {
         if (Strings.isNullOrEmpty(dateAsString)) {
           return null;
@@ -74,12 +73,12 @@ public class EsQueryUtils {
       };
 
   // functions
-  public static final Function<String, String> SEARCH_ENDPOINT = index -> "/" + index + "/_search";
-  public static final Supplier<Header[]> HEADERS =
-      () ->
-          new Header[] {
-            new BasicHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
-          };
+  public static final Supplier<RequestOptions> HEADERS =
+      () -> {
+        RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
+        builder.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+        return builder.build();
+      };
 
   static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> SEARCH_TO_ES_MAPPING =
       ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
@@ -96,7 +95,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ELEVATION, OccurrenceEsField.ELEVATION)
           .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceEsField.BASIS_OF_RECORD)
           .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceEsField.DATASET_KEY)
-          .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceEsField.SPATIAL_ISSUES)
+          .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
           .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceEsField.HAS_COORDINATE)
           .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceEsField.EVENT_DATE)
           .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceEsField.LAST_INTERPRETED)
@@ -125,7 +124,9 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)
           .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceEsField.PROTOCOL)
           .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceEsField.ORGANISM_ID)
-          .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
+          .put(
+              OccurrenceSearchParameter.PUBLISHING_ORG,
+              OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
           .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceEsField.CRAWL_ID)
           .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceEsField.INSTALLATION_KEY)
           .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceEsField.NETWORK_KEY)

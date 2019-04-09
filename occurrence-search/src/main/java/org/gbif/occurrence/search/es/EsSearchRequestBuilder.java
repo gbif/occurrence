@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 public class EsSearchRequestBuilder {
 
@@ -97,7 +98,7 @@ public class EsSearchRequestBuilder {
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(_ALL, qParam));
+      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getFieldName(), qParam));
     }
 
     if (params != null && !params.isEmpty()) {
@@ -376,7 +377,7 @@ public class EsSearchRequestBuilder {
 
     try {
       return QueryBuilders.geoShapeQuery(
-              OccurrenceEsField.COORDINATE_SHAPE.getFieldName(), shapeBuilder)
+              COORDINATE_SHAPE.getFieldName(), shapeBuilder)
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
