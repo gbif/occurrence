@@ -1,7 +1,6 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.Identifier;
-import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -16,6 +15,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.search.SearchHit;
@@ -28,6 +29,8 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 public class EsResponseParser {
 
+  private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
+  private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
   private static final DateFormat DATE_FORMAT =
       new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
 
@@ -122,7 +125,7 @@ public class EsResponseParser {
               setTaxonFields(hit, occ);
 
               // issues
-              getValueList(hit, ISSUE)
+              getListValue(hit, ISSUE)
                   .ifPresent(
                       v -> {
                         Set<OccurrenceIssue> issues = new HashSet<>();
@@ -131,18 +134,18 @@ public class EsResponseParser {
                       });
 
               // multimedia extension
-              // TODO: change when we have the full info about multimedia
-              getStringValue(hit, MEDIA_TYPE)
-                  .ifPresent(
-                      mediaType -> {
-                        MediaObject mediaObject = new MediaObject();
-                        // media type has to be compared ignoring the case
-                        Arrays.stream(MediaType.values())
-                            .filter(v -> v.name().equalsIgnoreCase(mediaType))
-                            .findFirst()
-                            .ifPresent(mediaObject::setType);
-                        occ.setMedia(Collections.singletonList(mediaObject));
-                      });
+              // TODO: multimedia. see if it's indexed and how
+              //              getStringValue(hit, MEDIA_TYPE)
+              //                  .ifPresent(
+              //                      mediaType -> {
+              //                        MediaObject mediaObject = new MediaObject();
+              //                        // media type has to be compared ignoring the case
+              //                        Arrays.stream(MediaType.values())
+              //                            .filter(v -> v.name().equalsIgnoreCase(mediaType))
+              //                            .findFirst()
+              //                            .ifPresent(mediaObject::setType);
+              //                        occ.setMedia(Collections.singletonList(mediaObject));
+              //                      });
             });
     return Optional.of(occurrences);
   }
@@ -176,7 +179,6 @@ public class EsResponseParser {
               occRelation.setId(v);
               occ.setRelations(Collections.singletonList(occRelation));
             });
-    // TODO: facts??
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
@@ -190,7 +192,7 @@ public class EsResponseParser {
   private static void setLocationFields(SearchHit hit, Occurrence occ) {
     getValue(hit, CONTINENT, Continent::valueOf).ifPresent(occ::setContinent);
     getStringValue(hit, STATE_PROVINCE).ifPresent(occ::setStateProvince);
-    getValue(hit, COUNTRY, v -> Country.valueOf(v.toUpperCase())).ifPresent(occ::setCountry);
+    getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
     getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(occ::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(occ::setCoordinatePrecision);
     getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS)
@@ -239,19 +241,24 @@ public class EsResponseParser {
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
         .ifPresent(occ::setPublishingOrgKey);
-    getValue(hit, LICENSE, License::valueOf).ifPresent(occ::setLicense);
-    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
+    getValue(hit, LICENSE, v -> License.fromLicenseUrl(v).orNull()).ifPresent(occ::setLicense);
+    // TODO
+    //    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
-    // FIXME: shouldn't networkkey be a list in the schema?
-    getStringValue(hit, NETWORK_KEY)
-        .ifPresent(v -> occ.setNetworkKeys(Collections.singletonList(UUID.fromString(v))));
+    getListValue(hit, NETWORK_KEY)
+        .ifPresent(
+            v -> {
+              List<UUID> networkKeys = new ArrayList<>();
+              v.forEach(s -> networkKeys.add(UUID.fromString(s)));
+              occ.setNetworkKeys(networkKeys);
+            });
   }
 
   private static void setCrawlingFields(SearchHit hit, Occurrence occ) {
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(occ::setCrawlId);
     getDateValue(hit, LAST_INTERPRETED).ifPresent(occ::setLastInterpreted);
-    getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastCrawled);
     getDateValue(hit, LAST_PARSED).ifPresent(occ::setLastParsed);
+    getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastParsed);
   }
 
   private static Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
@@ -270,17 +277,35 @@ public class EsResponseParser {
     return getValue(hit, esField, v -> STRING_TO_DATE.apply(v, DATE_FORMAT));
   }
 
-  private static <T> Optional<T> getValue(
-      SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
-        .map(String::valueOf)
-        .filter(v -> !v.isEmpty())
-        .map(mapper);
-  }
-
-  private static Optional<List<String>> getValueList(SearchHit hit, OccurrenceEsField esField) {
+  private static Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
     return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty());
+  }
+
+  private static Optional<Map<String, Object>> getMapValue(
+      SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+        .map(v -> (Map<String, Object>) v)
+        .filter(v -> !v.isEmpty());
+  }
+
+  private static <T> Optional<T> getValue(
+      SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
+    String fieldName = esField.getFieldName();
+    Map<String, Object> fields = hit.getSourceAsMap();
+    if (IS_NESTED.test(esField.getFieldName())) {
+      // take all paths till the field name
+      String[] paths = esField.getFieldName().split("\\.");
+      for (int i = 0; i < paths.length - 1; i++) {
+        fields = (Map<String, Object>) fields.get(paths[i]);
+      }
+      fieldName = paths[paths.length - 1];
+    }
+
+    return Optional.ofNullable(fields.get(fieldName))
+        .map(String::valueOf)
+        .filter(v -> !v.isEmpty())
+        .map(mapper);
   }
 }

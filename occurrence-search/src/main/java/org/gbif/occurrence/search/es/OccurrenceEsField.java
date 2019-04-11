@@ -76,6 +76,8 @@ package org.gbif.occurrence.search.es;
  * SAMPLING_PROTOCOL("sampling_protocol");
  */
 
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+
 /** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
 public enum OccurrenceEsField {
 
@@ -106,13 +108,13 @@ public enum OccurrenceEsField {
   YEAR("year"),
   MONTH("month"),
   DAY("day"),
-  EVENT_DATE("eventDate"),
+  EVENT_DATE("eventDateSingle"),
 
   //Location
-  COORDINATE_SHAPE("coordinateShape"),
+  COORDINATE_SHAPE("scoordinates"),
   COORDINATE_POINT("coordinate"),
-  LATITUDE("coordinate.lat"),
-  LONGITUDE("coordinate.lng"),
+  LATITUDE("coordinates.lat"),
+  LONGITUDE("coordinates.lon"),
   COUNTRY_CODE("countryCode"),
   CONTINENT("continent"),
   COORDINATE_ACCURACY("coordinateAccuracy"),
@@ -125,7 +127,6 @@ public enum OccurrenceEsField {
   LOCALITY("locality"),
   COORDINATE_PRECISION("coordinatePrecision"),
   COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters"),
-  COUNTRY("country"),
 
   //Location GBIF specific
   HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue"),
@@ -152,15 +153,12 @@ public enum OccurrenceEsField {
   SUBGENUS_KEY("gbifClassification.subgenusKey"),
   SUBGENUS("gbifClassification.subgenus"),
   SPECIES_KEY("gbifClassification.speciesKey"),
-  SPECIES("species"),
+  SPECIES("gbifClassification.species"),
   SCIENTIFIC_NAME("gbifClassification.usage.name"),
-  // TODO: what name will the next 3 have in ES??
-  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet.keyword"),
-  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet.keyword"),
-  GENERIC_NAME("gbifClassification.usageParsedName.genericname"),
-  TYPIFIED_NAME("typifiedName"),
-  // TODO: name
-  TAXONOMIC_STATUS("gbifClassification.diagnostics.status"),
+  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet"),
+  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraSpecificEpithet"),
+  GENERIC_NAME("gbifClassification.usageParsedName.genericName"),
+  TAXONOMIC_STATUS("gbifClassification.diagnostics.sttaus"),
 
   //Sampling
   EVENT_ID("eventId"),
@@ -174,14 +172,16 @@ public enum OccurrenceEsField {
   IDENTIFIER("identifier"),
   INDIVIDUAL_COUNT("individualCount"),
   RELATION("relation"),
+  TYPIFIED_NAME("typifiedName"),
 
   //Crawling
   CRAWL_ID("crawlId"),
-  LAST_INTERPRETED("lastInterpreted"),
+  LAST_INTERPRETED("created"),
   LAST_CRAWLED("lastCrawled"),
-  LAST_PARSED("lastParsed"),
+  LAST_PARSED("created"),
 
   MEDIA_TYPE("mediaType"),
+  MEDIA_ITEMS("multimediaItems"),
   ISSUE("issue"),
 
   ESTABLISHMENT_MEANS("establishmentMeans"),
