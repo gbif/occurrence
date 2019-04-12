@@ -109,7 +109,8 @@ public class EsSearchRequestBuilder {
                 esField.getFieldName() + "-suggest",
                 SuggestBuilders.completionSuggestion(esField.getFieldName() + ".suggest")
                     .prefix(prefix)
-                    .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)));
+                    .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
+                    .skipDuplicates(true)));
 
     // add source field
     searchSourceBuilder.fetchSource(esField.getFieldName(), null);
