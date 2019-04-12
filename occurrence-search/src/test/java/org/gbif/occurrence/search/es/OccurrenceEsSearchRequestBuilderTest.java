@@ -1,22 +1,27 @@
 package org.gbif.occurrence.search.es;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
+
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
@@ -639,18 +644,18 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 10, 5);
 
     SearchRequest request =
-      EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(
-      12,
-      jsonQuery
-        .path(AGGREGATIONS)
-        .path(OccurrenceEsField.MONTH.getFieldName())
-        .path(TERMS)
-        .path(SIZE)
-        .asInt());
+        12,
+        jsonQuery
+            .path(AGGREGATIONS)
+            .path(OccurrenceEsField.MONTH.getFieldName())
+            .path(TERMS)
+            .path(SIZE)
+            .asInt());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -660,5 +665,27 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 14, 3);
 
     EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+  }
+
+  @Test
+  public void suggestQuery() throws IOException {
+    String prefix = "pre";
+    int size = 2;
+    OccurrenceSearchParameter param = OccurrenceSearchParameter.INSTITUTION_CODE;
+
+    SearchRequest request = EsSearchRequestBuilder.buildSuggestQuery(prefix, param, size, "index");
+    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        SEARCH_TO_ES_MAPPING.get(param).getFieldName(),
+        jsonQuery.path("_source").path("includes").get(0).asText());
+    JsonNode suggestNode =
+        jsonQuery.path(SUGGEST).path(SEARCH_TO_ES_MAPPING.get(param).getFieldName() + "-suggest");
+    assertEquals(prefix, suggestNode.path("prefix").asText());
+    assertEquals(
+        SEARCH_TO_ES_MAPPING.get(param).getFieldName() + ".suggest",
+        suggestNode.path("completion").path("field").asText());
+    assertEquals(size, suggestNode.path("completion").path("size").asInt());
   }
 }

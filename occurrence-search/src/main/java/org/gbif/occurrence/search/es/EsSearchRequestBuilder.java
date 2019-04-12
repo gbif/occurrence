@@ -1,5 +1,16 @@
 package org.gbif.occurrence.search.es;
 
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.search.SearchConstants;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -10,12 +21,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
-import org.elasticsearch.common.geo.builders.LineStringBuilder;
-import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
-import org.elasticsearch.common.geo.builders.PointBuilder;
-import org.elasticsearch.common.geo.builders.PolygonBuilder;
-import org.elasticsearch.common.geo.builders.ShapeBuilder;
+import org.elasticsearch.common.geo.builders.*;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -24,21 +30,16 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.locationtech.jts.geom.Coordinate;
 
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import static org.gbif.api.util.SearchTypeValidator.isRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
+import static org.gbif.occurrence.search.es.EsQueryUtils.CARDINALITIES;
+import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
+import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.COORDINATE_SHAPE;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
 public class EsSearchRequestBuilder {
 
@@ -91,6 +92,31 @@ public class EsSearchRequestBuilder {
     return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
   }
 
+  public static SearchRequest buildSuggestQuery(
+      String prefix, OccurrenceSearchParameter parameter, Integer limit, String index) {
+    SearchRequest request = new SearchRequest();
+    request.indices(index);
+
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    request.source(searchSourceBuilder);
+
+    OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(parameter);
+
+    // create suggest query
+    searchSourceBuilder.suggest(
+        new SuggestBuilder()
+            .addSuggestion(
+                esField.getFieldName() + "-suggest",
+                SuggestBuilders.completionSuggestion(esField.getFieldName() + ".suggest")
+                    .prefix(prefix)
+                    .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)));
+
+    // add source field
+    searchSourceBuilder.fetchSource(esField.getFieldName(), null);
+
+    return request;
+  }
+
   private static Optional<QueryBuilder> buildQuery(
       Multimap<OccurrenceSearchParameter, String> params, String qParam) {
     // create bool node
@@ -112,10 +138,7 @@ public class EsSearchRequestBuilder {
       }
 
       // adding term queries to bool
-      params
-          .asMap()
-          .entrySet()
-          .stream()
+      params.asMap().entrySet().stream()
           .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
           .flatMap(
               e ->
@@ -163,10 +186,7 @@ public class EsSearchRequestBuilder {
     }
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    postFilterParams
-        .asMap()
-        .entrySet()
-        .stream()
+    postFilterParams.asMap().entrySet().stream()
         .flatMap(
             e ->
                 buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
@@ -204,24 +224,19 @@ public class EsSearchRequestBuilder {
       return buildFacets(searchRequest);
     }
 
-    return searchRequest
-        .getFacets()
-        .stream()
+    return searchRequest.getFacets().stream()
         .filter(p -> SEARCH_TO_ES_MAPPING.get(p) != null)
         .map(
             facetParam -> {
 
               // build filter aggs
               BoolQueryBuilder bool = QueryBuilders.boolQuery();
-              postFilterParams
-                  .asMap()
-                  .entrySet()
-                  .stream()
+              postFilterParams.asMap().entrySet().stream()
                   .filter(entry -> entry.getKey() != facetParam)
                   .flatMap(
                       e ->
                           buildTermQuery(
-                                  e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                              e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
                               .stream())
                   .forEach(q -> bool.filter().add(q));
 
@@ -245,9 +260,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
-    return searchRequest
-        .getFacets()
-        .stream()
+    return searchRequest.getFacets().stream()
         .filter(p -> SEARCH_TO_ES_MAPPING.get(p) != null)
         .map(
             facetParam -> {
@@ -330,8 +343,11 @@ public class EsSearchRequestBuilder {
     return QueryBuilders.rangeQuery(esField.getFieldName()).gte(values[0]).lte(values[1]);
   }
 
-  private static List<Coordinate> asCollectionOfCoordinates(com.vividsolutions.jts.geom.Coordinate[] coordinates) {
-    return Arrays.stream(coordinates).map(coord -> new Coordinate(coord.x, coord.y)).collect(Collectors.toList());
+  private static List<Coordinate> asCollectionOfCoordinates(
+      com.vividsolutions.jts.geom.Coordinate[] coordinates) {
+    return Arrays.stream(coordinates)
+        .map(coord -> new Coordinate(coord.x, coord.y))
+        .collect(Collectors.toList());
   }
 
   private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
@@ -344,9 +360,18 @@ public class EsSearchRequestBuilder {
 
     Function<Polygon, PolygonBuilder> polygonToBuilder =
         polygon -> {
-          PolygonBuilder polygonBuilder = new PolygonBuilder(new CoordinatesBuilder().coordinates(asCollectionOfCoordinates(polygon.getExteriorRing().getCoordinates())));
+          PolygonBuilder polygonBuilder =
+              new PolygonBuilder(
+                  new CoordinatesBuilder()
+                      .coordinates(
+                          asCollectionOfCoordinates(polygon.getExteriorRing().getCoordinates())));
           for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
-            polygonBuilder.hole( new LineStringBuilder(new CoordinatesBuilder().coordinates(asCollectionOfCoordinates(polygon.getInteriorRingN(i).getCoordinates()))));
+            polygonBuilder.hole(
+                new LineStringBuilder(
+                    new CoordinatesBuilder()
+                        .coordinates(
+                            asCollectionOfCoordinates(
+                                polygon.getInteriorRingN(i).getCoordinates()))));
           }
           return polygonBuilder;
         };
@@ -376,8 +401,7 @@ public class EsSearchRequestBuilder {
     }
 
     try {
-      return QueryBuilders.geoShapeQuery(
-              COORDINATE_SHAPE.getFieldName(), shapeBuilder)
+      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getFieldName(), shapeBuilder)
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);

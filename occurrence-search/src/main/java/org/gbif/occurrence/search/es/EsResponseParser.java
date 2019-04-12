@@ -22,8 +22,11 @@ import java.util.stream.Collectors;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.ES_TO_SEARCH_MAPPING;
+import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
 import static org.gbif.occurrence.search.es.EsQueryUtils.STRING_TO_DATE;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
@@ -54,6 +57,21 @@ public class EsResponseParser {
     parseFacets(esResponse, request).ifPresent(response::setFacets);
 
     return response;
+  }
+
+  static List<String> buildSuggestResponse(
+      org.elasticsearch.action.search.SearchResponse esResponse,
+      OccurrenceSearchParameter parameter) {
+
+    String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
+
+    return esResponse.getSuggest().getSuggestion(fieldName + "-suggest").getEntries().stream()
+        .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
+        .map(o -> ((CompletionSuggestion.Entry.Option) o).getHit())
+        .map(hit -> hit.getSourceAsMap().get(fieldName))
+        .filter(Objects::nonNull)
+        .map(String::valueOf)
+        .collect(Collectors.toList());
   }
 
   private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(

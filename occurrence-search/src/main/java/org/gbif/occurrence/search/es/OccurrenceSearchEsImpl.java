@@ -1,10 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -14,14 +9,19 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.search.SearchException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.validation.constraints.Min;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.validation.constraints.Min;
+
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
@@ -144,39 +144,21 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
    */
   public List<String> suggestTermByField(
       String prefix, OccurrenceSearchParameter parameter, Integer limit) {
-    // TODO
-    // try {
-    //  String solrField = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
-    //  SolrQuery solrQuery = buildTermQuery(parseTermsQueryValue(prefix).toLowerCase(), solrField,
-    //                                       Objects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
-    //  final QueryResponse queryResponse = solrClient.query(solrQuery);
-    //  final TermsResponse termsResponse = queryResponse.getTermsResponse();
-    //  return
-    // termsResponse.getTerms(solrField).stream().map(Term::getTerm).collect(Collectors.toList());
-    // } catch (SolrServerException | IOException e) {
-    //  LOG.error("Error executing/building the request", e);
-    //  throw new SearchException(e);
-    // }
+    SearchRequest esRequest =
+        EsSearchRequestBuilder.buildSuggestQuery(prefix, parameter, limit, esIndex);
 
-    return null;
-  }
+    LOG.debug("ES request: {}", esRequest);
 
-  /** Escapes a query value and transform it into a phrase query if necessary. */
-  private static String parseTermsQueryValue(final String q) {
-    // TODO
-    //    // return default query for empty queries
-    //    String qValue = Strings.nullToEmpty(q).trim();
-    //    if (Strings.isNullOrEmpty(qValue)) {
-    //      return DEFAULT_FILTER_QUERY;
-    //    }
-    //    // If default query was sent, must not be escaped
-    //    if (!qValue.equals(DEFAULT_FILTER_QUERY)) {
-    //      qValue = QueryUtils.clearConsecutiveBlanks(qValue);
-    //      qValue = QueryUtils.escapeQuery(qValue);
-    //    }
-    //
-    //    return qValue;
-    return null;
+    // perform the search
+    org.elasticsearch.action.search.SearchResponse response = null;
+    try {
+      response = esClient.search(esRequest, HEADERS.get());
+    } catch (IOException e) {
+      LOG.error("Error executing the search operation", e);
+      throw new SearchException(e);
+    }
+
+    return EsResponseParser.buildSuggestResponse(response, parameter);
   }
 
   /**
