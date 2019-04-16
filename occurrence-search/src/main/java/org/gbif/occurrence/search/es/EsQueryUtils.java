@@ -3,12 +3,16 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.vocabulary.*;
 
-import java.text.DateFormat;
-import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Strings;
@@ -59,17 +63,49 @@ public class EsQueryUtils {
 
   static final String RANGE_SEPARATOR = ",";
 
-  static final BiFunction<String, DateFormat, Date> STRING_TO_DATE =
-      (dateAsString, format) -> {
+  private static final DateTimeFormatter FORMATTER =
+      DateTimeFormatter.ofPattern(
+              "[yyyy-MM-dd'T'HH:mm:ss.SSS XXX][yyyy-MM-dd'T'HH:mm:ss.SSSXXX][yyyy-MM-dd'T'HH:mm:ss.SSS]"
+                  + "[yyyy-MM-dd'T'HH:mm:ss][yyyy-MM-dd'T'HH:mm:ss XXX][yyyy-MM-dd'T'HH:mm:ssXXX][yyyy-MM-dd'T'HH:mm:ss]"
+                  + "[yyyy-MM-dd'T'HH:mm][yyyy-MM-dd][yyyy-MM][yyyy]")
+          .withZone(ZoneId.of("UTC"));
+
+  static final Function<String, Date> STRING_TO_DATE =
+      dateAsString -> {
         if (Strings.isNullOrEmpty(dateAsString)) {
           return null;
         }
 
-        try {
-          return format.parse(dateAsString);
-        } catch (ParseException e) {
-          throw new IllegalStateException(e.getMessage(), e);
+        // parse string
+        TemporalAccessor temporalAccessor = FORMATTER.parse(dateAsString);
+
+        // create local date time
+        LocalDateTime localDateTime =
+            LocalDateTime.now().withYear(temporalAccessor.get(ChronoField.YEAR));
+
+        if (temporalAccessor.isSupported(ChronoField.MONTH_OF_YEAR)) {
+          localDateTime = localDateTime.withMonth(temporalAccessor.get(ChronoField.MONTH_OF_YEAR));
         }
+        if (temporalAccessor.isSupported(ChronoField.DAY_OF_MONTH)) {
+          localDateTime =
+              localDateTime.withDayOfMonth(temporalAccessor.get(ChronoField.DAY_OF_MONTH));
+        }
+        if (temporalAccessor.isSupported(ChronoField.HOUR_OF_DAY)) {
+          localDateTime = localDateTime.withHour(temporalAccessor.get(ChronoField.HOUR_OF_DAY));
+        }
+        if (temporalAccessor.isSupported(ChronoField.MINUTE_OF_HOUR)) {
+          localDateTime =
+              localDateTime.withMinute(temporalAccessor.get(ChronoField.MINUTE_OF_HOUR));
+        }
+        if (temporalAccessor.isSupported(ChronoField.SECOND_OF_MINUTE)) {
+          localDateTime =
+              localDateTime.withSecond(temporalAccessor.get(ChronoField.SECOND_OF_MINUTE));
+        }
+        if (temporalAccessor.isSupported(ChronoField.NANO_OF_SECOND)) {
+          localDateTime = localDateTime.withNano(temporalAccessor.get(ChronoField.NANO_OF_SECOND));
+        }
+
+        return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
       };
 
   // functions
@@ -95,7 +131,9 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ELEVATION, OccurrenceEsField.ELEVATION)
           .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceEsField.BASIS_OF_RECORD)
           .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceEsField.DATASET_KEY)
-          .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
+          .put(
+              OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE,
+              OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
           .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceEsField.HAS_COORDINATE)
           .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceEsField.EVENT_DATE)
           .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceEsField.LAST_INTERPRETED)

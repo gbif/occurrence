@@ -3,6 +3,7 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
@@ -11,8 +12,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
 import java.net.URI;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.suggest.Suggest;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.ES_TO_SEARCH_MAPPING;
@@ -34,12 +32,6 @@ public class EsResponseParser {
 
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
-  private static final DateFormat DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd"); // Quoted "Z" to indicate UTC, no timezone offset
-
-  static {
-    DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
 
   private EsResponseParser() {}
 
@@ -103,7 +95,9 @@ public class EsResponseParser {
                   OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
 
                   // check for paging in facets
-                  Pageable facetPage = request.getFacetPage(facet);
+                  Pageable facetPage =
+                      Optional.ofNullable(request.getFacetPage(facet))
+                          .orElse(new FacetedSearchRequest<OccurrenceSearchParameter>());
 
                   List<Facet.Count> counts =
                       buckets.stream()
@@ -292,19 +286,12 @@ public class EsResponseParser {
   }
 
   private static Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, v -> STRING_TO_DATE.apply(v, DATE_FORMAT));
+    return getValue(hit, esField, STRING_TO_DATE);
   }
 
   private static Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
     return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
         .map(v -> (List<String>) v)
-        .filter(v -> !v.isEmpty());
-  }
-
-  private static Optional<Map<String, Object>> getMapValue(
-      SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
-        .map(v -> (Map<String, Object>) v)
         .filter(v -> !v.isEmpty());
   }
 
@@ -315,9 +302,11 @@ public class EsResponseParser {
     if (IS_NESTED.test(esField.getFieldName())) {
       // take all paths till the field name
       String[] paths = esField.getFieldName().split("\\.");
-      for (int i = 0; i < paths.length - 1; i++) {
+      for (int i = 0; i < paths.length - 1 && fields.containsKey(paths[i]); i++) {
+        // update the fields with the current path
         fields = (Map<String, Object>) fields.get(paths[i]);
       }
+      // the last path is the field name
       fieldName = paths[paths.length - 1];
     }
 
