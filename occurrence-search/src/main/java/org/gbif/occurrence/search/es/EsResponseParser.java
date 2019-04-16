@@ -3,7 +3,6 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
-import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
@@ -95,14 +94,22 @@ public class EsResponseParser {
                   OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
 
                   // check for paging in facets
-                  Pageable facetPage =
+                  long facetOffset =
                       Optional.ofNullable(request.getFacetPage(facet))
-                          .orElse(new FacetedSearchRequest<OccurrenceSearchParameter>());
+                          .map(Pageable::getOffset)
+                          .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : 0L);
+                  long facetLimit =
+                      Optional.ofNullable(request.getFacetPage(facet))
+                          .map(f -> (long) f.getLimit())
+                          .orElse(
+                              request.getFacetLimit() != null
+                                  ? request.getFacetLimit().longValue()
+                                  : 10L);
 
                   List<Facet.Count> counts =
                       buckets.stream()
-                          .skip((int) facetPage.getOffset())
-                          .limit(facetPage.getOffset() + facetPage.getLimit())
+                          .skip(facetOffset)
+                          .limit(facetOffset + facetLimit)
                           .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
                           .collect(Collectors.toList());
 
