@@ -76,8 +76,6 @@ package org.gbif.occurrence.search.es;
  * SAMPLING_PROTOCOL("sampling_protocol");
  */
 
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-
 /** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
 public enum OccurrenceEsField {
 
@@ -134,7 +132,8 @@ public enum OccurrenceEsField {
   REPATRIATED("repatriated"),
 
   //Taxonomic classification
-  TAXON_KEY("gbifClassification.usage.key"),
+  TAXON_KEY("gbifClassification.taxonKey"),
+  USAGE_TAXON_KEY("gbifClassification.usage.key"),
   TAXON_RANK("gbifClassification.usage.rank"),
   ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key"),
   ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name"),
@@ -180,9 +179,9 @@ public enum OccurrenceEsField {
   LAST_CRAWLED("lastCrawled"),
   LAST_PARSED("created"),
 
-  MEDIA_TYPE("mediaType"),
+  MEDIA_TYPE("multimediaItems.type"),
   MEDIA_ITEMS("multimediaItems"),
-  ISSUE("issue"),
+  ISSUE("issues"),
 
   ESTABLISHMENT_MEANS("establishmentMeans"),
   FACTS("measurementOrFactItems"),

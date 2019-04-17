@@ -1,6 +1,7 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.Identifier;
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -29,6 +30,10 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 public class EsResponseParser {
 
+  // defaults
+  private static final long DEFAULT_FACET_OFFSET = 0;
+  private static final long DEFAULT_FACET_LIMIT = 10;
+
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
 
@@ -56,7 +61,7 @@ public class EsResponseParser {
 
     String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
 
-    return esResponse.getSuggest().getSuggestion(fieldName + "-suggest").getEntries().stream()
+    return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
         .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
         .map(o -> ((CompletionSuggestion.Entry.Option) o).getHit())
         .map(hit -> hit.getSourceAsMap().get(fieldName))
@@ -97,14 +102,17 @@ public class EsResponseParser {
                   long facetOffset =
                       Optional.ofNullable(request.getFacetPage(facet))
                           .map(Pageable::getOffset)
-                          .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : 0L);
+                          .orElse(
+                              request.getFacetOffset() != null
+                                  ? request.getFacetOffset()
+                                  : DEFAULT_FACET_OFFSET);
                   long facetLimit =
                       Optional.ofNullable(request.getFacetPage(facet))
                           .map(f -> (long) f.getLimit())
                           .orElse(
                               request.getFacetLimit() != null
                                   ? request.getFacetLimit().longValue()
-                                  : 10L);
+                                  : DEFAULT_FACET_LIMIT);
 
                   List<Facet.Count> counts =
                       buckets.stream()
@@ -153,18 +161,7 @@ public class EsResponseParser {
                       });
 
               // multimedia extension
-              // TODO: multimedia. see if it's indexed and how
-              //              getStringValue(hit, MEDIA_TYPE)
-              //                  .ifPresent(
-              //                      mediaType -> {
-              //                        MediaObject mediaObject = new MediaObject();
-              //                        // media type has to be compared ignoring the case
-              //                        Arrays.stream(MediaType.values())
-              //                            .filter(v -> v.name().equalsIgnoreCase(mediaType))
-              //                            .findFirst()
-              //                            .ifPresent(mediaObject::setType);
-              //                        occ.setMedia(Collections.singletonList(mediaObject));
-              //                      });
+              parseMultimediaItems(hit, occ);
             });
     return Optional.of(occurrences);
   }
@@ -247,7 +244,7 @@ public class EsResponseParser {
     getStringValue(hit, INFRA_SPECIFIC_EPITHET).ifPresent(occ::setInfraspecificEpithet);
     getStringValue(hit, GENERIC_NAME).ifPresent(occ::setGenericName);
     getStringValue(hit, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-    getIntValue(hit, TAXON_KEY).ifPresent(occ::setTaxonKey);
+    getIntValue(hit, USAGE_TAXON_KEY).ifPresent(occ::setTaxonKey);
     getIntValue(hit, ACCEPTED_TAXON_KEY).ifPresent(occ::setAcceptedTaxonKey);
     getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setScientificName);
     getValue(hit, TAXONOMIC_STATUS, TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
@@ -261,8 +258,7 @@ public class EsResponseParser {
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
         .ifPresent(occ::setPublishingOrgKey);
     getValue(hit, LICENSE, v -> License.fromLicenseUrl(v).orNull()).ifPresent(occ::setLicense);
-    // TODO
-    //    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
+    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
     getListValue(hit, NETWORK_KEY)
         .ifPresent(
@@ -278,6 +274,47 @@ public class EsResponseParser {
     getDateValue(hit, LAST_INTERPRETED).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, LAST_PARSED).ifPresent(occ::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastParsed);
+  }
+
+  private static void parseMultimediaItems(SearchHit hit, Occurrence occ) {
+    getObjectsListValue(hit, MEDIA_ITEMS)
+        .ifPresent(
+            items ->
+                occ.setMedia(
+                    items.stream()
+                        .map(
+                            item -> {
+                              MediaObject mediaObject = new MediaObject();
+
+                              extractValue(item, "type", MediaType::valueOf)
+                                  .ifPresent(mediaObject::setType);
+                              extractStringValue(item, "format").ifPresent(mediaObject::setFormat);
+                              extractValue(item, "identifier", URI::create)
+                                  .ifPresent(mediaObject::setIdentifier);
+                              extractStringValue(item, "audience")
+                                  .ifPresent(mediaObject::setAudience);
+                              extractStringValue(item, "contributor")
+                                  .ifPresent(mediaObject::setContributor);
+                              extractValue(item, "created", STRING_TO_DATE)
+                                  .ifPresent(mediaObject::setCreated);
+                              extractStringValue(item, "creator")
+                                  .ifPresent(mediaObject::setCreator);
+                              extractStringValue(item, "description")
+                                  .ifPresent(mediaObject::setDescription);
+                              extractStringValue(item, "license")
+                                  .ifPresent(mediaObject::setLicense);
+                              extractStringValue(item, "publisher")
+                                  .ifPresent(mediaObject::setPublisher);
+                              extractValue(item, "references", URI::create)
+                                  .ifPresent(mediaObject::setReferences);
+                              extractStringValue(item, "rightsHolder")
+                                  .ifPresent(mediaObject::setRightsHolder);
+                              extractStringValue(item, "source").ifPresent(mediaObject::setSource);
+                              extractStringValue(item, "title").ifPresent(mediaObject::setTitle);
+
+                              return mediaObject;
+                            })
+                        .collect(Collectors.toList())));
   }
 
   private static Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
@@ -302,6 +339,13 @@ public class EsResponseParser {
         .filter(v -> !v.isEmpty());
   }
 
+  private static Optional<List<Map<String, Object>>> getObjectsListValue(
+      SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+        .map(v -> (List<Map<String, Object>>) v)
+        .filter(v -> !v.isEmpty());
+  }
+
   private static <T> Optional<T> getValue(
       SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
     String fieldName = esField.getFieldName();
@@ -317,9 +361,18 @@ public class EsResponseParser {
       fieldName = paths[paths.length - 1];
     }
 
+    return extractValue(fields, fieldName, mapper);
+  }
+
+  private static <T> Optional<T> extractValue(
+      Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
     return Optional.ofNullable(fields.get(fieldName))
         .map(String::valueOf)
         .filter(v -> !v.isEmpty())
         .map(mapper);
+  }
+
+  private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
+    return extractValue(fields, fieldName, Function.identity());
   }
 }

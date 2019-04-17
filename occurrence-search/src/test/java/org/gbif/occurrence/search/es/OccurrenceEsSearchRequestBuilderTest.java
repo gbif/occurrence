@@ -681,7 +681,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         SEARCH_TO_ES_MAPPING.get(param).getFieldName(),
         jsonQuery.path("_source").path("includes").get(0).asText());
     JsonNode suggestNode =
-        jsonQuery.path(SUGGEST).path(SEARCH_TO_ES_MAPPING.get(param).getFieldName() + "-suggest");
+        jsonQuery.path(SUGGEST).path(SEARCH_TO_ES_MAPPING.get(param).getFieldName());
     assertEquals(prefix, suggestNode.path("prefix").asText());
     assertEquals(
         SEARCH_TO_ES_MAPPING.get(param).getFieldName() + ".suggest",
