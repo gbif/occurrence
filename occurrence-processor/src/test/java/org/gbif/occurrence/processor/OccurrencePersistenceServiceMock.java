@@ -16,8 +16,8 @@ import com.google.common.collect.Maps;
 public class OccurrencePersistenceServiceMock implements OccurrencePersistenceService {
 
   private final FragmentPersistenceService fragService;
-  private final Map<Integer, Occurrence> cache = Maps.newHashMap();
-  private final Map<Integer, VerbatimOccurrence> vCache = Maps.newHashMap();
+  private final Map<Long, Occurrence> cache = Maps.newHashMap();
+  private final Map<Long, VerbatimOccurrence> vCache = Maps.newHashMap();
 
 
 
@@ -26,18 +26,18 @@ public class OccurrencePersistenceServiceMock implements OccurrencePersistenceSe
   }
 
   @Override
-  public Occurrence get(Integer key) {
+  public Occurrence get(Long key) {
     return cache.get(key);
   }
 
   @Nullable
   @Override
-  public VerbatimOccurrence getVerbatim(Integer key) {
+  public VerbatimOccurrence getVerbatim(Long key) {
     return vCache.get(key);
   }
 
   @Override
-  public String getFragment(int key) {
+  public String getFragment(long key) {
     Fragment frag = fragService.get(key);
     return frag == null ? null : String.valueOf(frag.getData());
   }
@@ -53,19 +53,19 @@ public class OccurrencePersistenceServiceMock implements OccurrencePersistenceSe
   }
 
   @Override
-  public Occurrence delete(int occurrenceKey) {
+  public Occurrence delete(long occurrenceKey) {
     return cache.remove(occurrenceKey);
   }
 
   @Override
-  public void delete(List<Integer> occurrenceKeys) {
-    for (Integer key : occurrenceKeys) {
+  public void delete(List<Long> occurrenceKeys) {
+    for (Long key : occurrenceKeys) {
       delete(key);
     }
   }
 
   @Override
-  public Iterator<Integer> getKeysByColumn(byte[] columnValue, String columnName) {
+  public Iterator<Long> getKeysByColumn(byte[] columnValue, String columnName) {
     throw new UnsupportedOperationException("Not implemented yet");
   }
 }

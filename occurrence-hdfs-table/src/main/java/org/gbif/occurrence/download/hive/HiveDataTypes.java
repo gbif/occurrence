@@ -33,10 +33,12 @@ public final class HiveDataTypes {
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
-  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue);
+  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue, GbifInternalTerm.networkKey);
 
   // dates are all stored as BigInt
-  private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(DwcTerm.eventDate,
+  private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
+    GbifTerm.gbifID,
+    DwcTerm.eventDate,
     DwcTerm.dateIdentified,
     GbifTerm.lastInterpreted,
     GbifTerm.lastParsed,
@@ -44,7 +46,7 @@ public final class HiveDataTypes {
     DcTerm.modified,
     GbifInternalTerm.fragmentCreated);
 
-  private static final Set<Term> INT_TERMS = ImmutableSet.of(GbifTerm.gbifID,
+  private static final Set<Term> INT_TERMS = ImmutableSet.of(
     DwcTerm.year,
     DwcTerm.month,
     DwcTerm.day,
@@ -62,7 +64,8 @@ public final class HiveDataTypes {
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);
 
-  private static final Set<Term> DOUBLE_TERMS = ImmutableSet.of(DwcTerm.decimalLatitude,
+  private static final Set<Term> DOUBLE_TERMS = ImmutableSet.of(
+    DwcTerm.decimalLatitude,
     DwcTerm.decimalLongitude,
     DwcTerm.coordinateUncertaintyInMeters,
     DwcTerm.coordinatePrecision,

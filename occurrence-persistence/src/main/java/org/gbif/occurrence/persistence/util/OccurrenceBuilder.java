@@ -106,7 +106,7 @@ public class OccurrenceBuilder {
       return null;
     }
 
-    int key = Bytes.toInt(result.getRow());
+    Long key = Bytes.toLong(result.getRow());
 
     String rawDatasetKey = ExtResultReader.getString(result, GbifTerm.datasetKey);
     if (rawDatasetKey == null) {
@@ -170,7 +170,7 @@ public class OccurrenceBuilder {
         occ.getVerbatimFields().remove(t);
       }
 
-      Integer key = Bytes.toInt(row.getRow());
+      Long key = Bytes.toLong(row.getRow());
       occ.setKey(key);
 
       // taxonomy terms
@@ -267,7 +267,7 @@ public class OccurrenceBuilder {
     }
 
     VerbatimOccurrence verb = new VerbatimOccurrence();
-    verb.setKey(Bytes.toInt(row.getRow()));
+    verb.setKey(Bytes.toLong(row.getRow()));
     verb.setDatasetKey(ExtResultReader.getUuid(row, GbifTerm.datasetKey));
     verb.setPublishingOrgKey(ExtResultReader.getUuid(row, GbifInternalTerm.publishingOrgKey));
     verb.setPublishingCountry(Country.fromIsoCode(ExtResultReader.getString(row, GbifTerm.publishingCountry)));
@@ -305,7 +305,7 @@ public class OccurrenceBuilder {
     return extensions;
   }
 
-  private static List<Identifier> extractIdentifiers(Integer key, Result result) {
+  private static List<Identifier> extractIdentifiers(Long key, Result result) {
     List<Identifier> records = Lists.newArrayList();
     Integer maxCount = ExtResultReader.getInteger(result, GbifInternalTerm.identifierCount);
     if (maxCount != null) {

@@ -16,7 +16,7 @@ public class InterpretOccurrenceConfiguration {
   public MessagingConfiguration messaging = new MessagingConfiguration();
 
   @Parameter(names = "--occurrence-key")
-  public Integer key;
+  public Long key;
 
   @Parameter(names = "--occurrence-key-file")
   public String keyFileName;

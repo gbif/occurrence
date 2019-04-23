@@ -47,7 +47,7 @@ SET hive.auto.convert.join=false;
 
 DROP TABLE IF EXISTS occurrence_multimedia;
 CREATE TABLE IF NOT EXISTS occurrence_multimedia
-(gbifid INT,type STRING,format STRING,identifier STRING,references STRING,title STRING,description STRING,
+(gbifid BIGINT,type STRING,format STRING,identifier STRING,references STRING,title STRING,description STRING,
 source STRING,audience STRING,created STRING,creator STRING,contributor STRING,
 publisher STRING,license STRING,rightsHolder STRING)
 STORED AS PARQUET;

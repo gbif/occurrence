@@ -63,7 +63,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
    * @return a String holding the original xml or json snippet for this occurrence
    */
   @Override
-  public String getFragment(int key) {
+  public String getFragment(long key) {
     String fragment = null;
     try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       Get get = new Get(Bytes.toBytes(key));
@@ -84,7 +84,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   @Nullable
   @Override
-  public VerbatimOccurrence getVerbatim(@Nullable Integer key) {
+  public VerbatimOccurrence getVerbatim(@Nullable Long key) {
     if (key == null) {
       return null;
     }
@@ -105,7 +105,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   }
 
   @Override
-  public Occurrence get(@Nullable Integer key) {
+  public Occurrence get(@Nullable Long key) {
     if (key == null) {
       return null;
     }
@@ -126,7 +126,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   }
 
   @Override
-  public Iterator<Integer> getKeysByColumn(byte[] columnValue, String columnName) {
+  public Iterator<Long> getKeysByColumn(byte[] columnValue, String columnName) {
     byte[] col = Bytes.toBytes(columnName);
     Scan scan = new Scan();
     scan.setCaching(SCANNER_CACHE_SIZE);
@@ -147,12 +147,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   }
 
   @Override
-  public Occurrence delete(int occurrenceKey) {
+  public Occurrence delete(long occurrenceKey) {
     Occurrence occurrence = get(occurrenceKey);
     if (occurrence == null) {
       LOG.debug("Occurrence for key [{}] not found, ignoring delete request.", occurrenceKey);
     } else {
-      delete(new ImmutableList.Builder<Integer>().add(occurrenceKey).build());
+      delete(new ImmutableList.Builder<Long>().add(occurrenceKey).build());
     }
 
     LOG.debug("<< delete [{}]", occurrenceKey);
@@ -160,12 +160,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   }
 
   @Override
-  public void delete(List<Integer> occurrenceKeys) {
+  public void delete(List<Long> occurrenceKeys) {
     checkNotNull(occurrenceKeys, "occurrenceKeys can't be null");
 
     try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName)))  {
       List<Delete> deletes = Lists.newArrayListWithExpectedSize(occurrenceKeys.size());
-      for (Integer occurrenceKey : occurrenceKeys) {
+      for (Long occurrenceKey : occurrenceKeys) {
         if (occurrenceKey != null) {
           deletes.add(new Delete(Bytes.toBytes(occurrenceKey)));
         }

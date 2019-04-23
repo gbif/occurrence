@@ -79,7 +79,7 @@ public class DatasetDeletionServiceImplTest {
     TEST_UTIL.truncateTable(LOOKUP_TABLE);
     TEST_UTIL.truncateTable(COUNTER_TABLE);
 
-    KeyPersistenceService<Integer> keyService =  new HBaseLockingKeyService(CFG, connection);
+    KeyPersistenceService<Long> keyService =  new HBaseLockingKeyService(CFG, connection);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyService);
     FragmentPersistenceService fragmentService =
       new FragmentPersistenceServiceImpl(CFG, connection, occurrenceKeyService);
@@ -110,7 +110,7 @@ public class DatasetDeletionServiceImplTest {
 
   @Test
   public void testDatasetKeyExists() {
-    Iterator<Integer> iterator =
+    Iterator<Long> iterator =
       occurrenceService.getKeysByColumn(Bytes.toBytes(GOOD_DATASET_KEY.toString()), Columns.column(GbifTerm.datasetKey));
     int count = 0;
     while (iterator.hasNext()) {
@@ -135,7 +135,7 @@ public class DatasetDeletionServiceImplTest {
   @Test
   public void testDatasetKeyDoesntExist() {
     UUID datasetKey = UUID.randomUUID();
-    Iterator<Integer> iterator =
+    Iterator<Long> iterator =
       occurrenceService.getKeysByColumn(Bytes.toBytes(datasetKey.toString()), Columns.column(GbifTerm.datasetKey));
     assertFalse(iterator.hasNext());
     deletionService.deleteDataset(datasetKey);

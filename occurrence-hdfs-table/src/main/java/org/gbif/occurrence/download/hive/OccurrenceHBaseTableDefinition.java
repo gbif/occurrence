@@ -73,7 +73,7 @@ public class OccurrenceHBaseTableDefinition {
 
     return Arrays.stream(GbifInternalTerm.values())
             .filter(t  -> !exclusions.contains(t))
-            .map(OccurrenceHBaseTableDefinition::interpretedField)
+            .map(t -> GbifInternalTerm.networkKey == t? hbaseField(t, HiveDataTypes.TYPE_STRING): interpretedField(t)) //In HBase networkKey is an string
             .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
@@ -152,6 +152,17 @@ public class OccurrenceHBaseTableDefinition {
                           // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
                           // column in HBase for us
                           HiveDataTypes.typeForTerm(term, false), // not verbatim context
+                          Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(term));
+  }
+
+  /**
+   * Creates a {@link HBaseField} using a specific data type.
+   */
+  private static HBaseField hbaseField(Term term, String hiveDataType) {
+    return new HBaseField(term, HiveColumns.columnFor(term),
+                          // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
+                          // column in HBase for us
+                          hiveDataType, // not verbatim context
                           Columns.OCCURRENCE_COLUMN_FAMILY + ':' + Columns.column(term));
   }
 

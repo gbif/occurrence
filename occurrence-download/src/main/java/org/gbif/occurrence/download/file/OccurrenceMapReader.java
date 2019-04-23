@@ -226,7 +226,7 @@ public class OccurrenceMapReader {
    * Reads an occurrence record from HBase into Map.
    * The occurrence record
    */
-  public Result get(@Nonnull Integer key) throws IOException {
+  public Result get(@Nonnull Long key) throws IOException {
     Preconditions.checkNotNull(key, "Occurrence key can't be null");
     try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
       return table.get(new Get(Bytes.toBytes(key)));

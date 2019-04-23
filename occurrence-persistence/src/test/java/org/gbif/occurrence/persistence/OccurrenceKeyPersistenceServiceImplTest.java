@@ -113,18 +113,17 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(CFG.lookupTable))) {
       Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
-      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
       lookupTable.put(put);
       put = new Put(Bytes.toBytes(DWC_KEY));
-      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1));
+      put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
       lookupTable.put(put);
     }
 
     try (Table counterTable = CONNECTION.getTable(TableName.valueOf(CFG.counterTable))) {
       Put put = new Put(Bytes.toBytes(HBaseLockingKeyService.COUNTER_ROW));
-      put.addColumn(CF, Bytes.toBytes(Columns.COUNTER_COLUMN), Bytes.toBytes(Long.valueOf(2)));
+      put.addColumn(CF, Bytes.toBytes(Columns.COUNTER_COLUMN), Bytes.toBytes(2L));
       counterTable.put(put);
-      counterTable.close();
     }
   }
 
@@ -133,7 +132,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(tripletId);
     KeyLookupResult result = occurrenceKeyService.findKey(ids);
-    assertEquals(1, result.getKey());
+    assertEquals(1L, result.getKey());
   }
 
   @Test
@@ -141,7 +140,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(dwcId);
     KeyLookupResult result = occurrenceKeyService.findKey(ids);
-    assertEquals(1, result.getKey());
+    assertEquals(1L, result.getKey());
   }
 
   @Test
@@ -149,7 +148,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(newId);
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
-    assertEquals(3, result.getKey());
+    assertEquals(3L, result.getKey());
     assertTrue(result.isCreated());
   }
 
@@ -158,7 +157,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(tripletId);
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
-    assertEquals(1, result.getKey());
+    assertEquals(1L, result.getKey());
     assertFalse(result.isCreated());
   }
 
@@ -167,7 +166,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(dwcId);
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
-    assertEquals(1, result.getKey());
+    assertEquals(1L, result.getKey());
     assertFalse(result.isCreated());
   }
 
@@ -176,12 +175,12 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     Set<UniqueIdentifier> ids = Sets.newHashSet();
     ids.add(newId);
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
-    Integer existing = result.getKey();
+    Long existing = result.getKey();
 
     ids = Sets.newHashSet();
     ids.add(tripletId);
-    Integer test = occurrenceKeyService.generateKey(ids).getKey();
-    assertEquals(1, test.intValue());
+    Long test = occurrenceKeyService.generateKey(ids).getKey();
+    assertEquals(1L, test.longValue());
     occurrenceKeyService.deleteKey(1, null);
     result = occurrenceKeyService.findKey(ids);
     assertNull(result);
@@ -189,7 +188,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     ids = Sets.newHashSet();
     ids.add(newId);
     result = occurrenceKeyService.generateKey(ids);
-    Integer stillExisting = result.getKey();
+    Long stillExisting = result.getKey();
     assertEquals(existing, stillExisting);
   }
 
@@ -211,7 +210,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
     assertNotNull(result);
     assertTrue(result.isCreated());
-    int newKey = result.getKey();
+    long newKey = result.getKey();
 
     Set<UniqueIdentifier> testIds = Sets.newHashSet();
     testIds.add(triplet);
@@ -237,7 +236,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
     assertNotNull(result);
     assertTrue(result.isCreated());
-    int newKey = result.getKey();
+    long newKey = result.getKey();
 
     PublisherProvidedUniqueIdentifier pubProvided2 = new PublisherProvidedUniqueIdentifier(datasetKey, "xcb08725");
     Set<UniqueIdentifier> testIds = Sets.newHashSet();
@@ -265,7 +264,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     ids.add(pubProvided1);
     ids.add(pubProvided2);
     KeyLookupResult result = occurrenceKeyService.generateKey(ids);
-    int newKey = result.getKey();
+    long newKey = result.getKey();
 
     occurrenceKeyService.deleteKey(newKey, null);
 
@@ -301,7 +300,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     ids.add(dwcId);
     occurrenceKeyService.generateKey(ids);
 
-    Set<Integer> keys = occurrenceKeyService.findKeysByDataset(datasetKey.toString());
+    Set<Long> keys = occurrenceKeyService.findKeysByDataset(datasetKey.toString());
     assertEquals(2, keys.size());
   }
 
@@ -328,7 +327,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     }
 
     // next available key in the test counter table is 3
-    int expectedKey = 3;
+    long expectedKey = 3;
     assertEquals(expectedKey, occurrenceKeyService.findKey(ids).getKey());
   }
 
@@ -356,7 +355,7 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     }
 
     // test counter table is at 2, then 100 + 1 for this test
-    int expectedKey = 2 + threadCount + 1;
+    long expectedKey = 2 + threadCount + 1;
     PublisherProvidedUniqueIdentifier pubProvided =
       new PublisherProvidedUniqueIdentifier(datasetKey, UUID.randomUUID().toString());
     Set<UniqueIdentifier> ids = Sets.newHashSet();

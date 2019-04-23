@@ -52,7 +52,7 @@ public class OccurrenceDeletionService {
    *
    * @return the deleted occurrence or null if en error occurred
    */
-  public Occurrence deleteOccurrence(int occurrenceKey, @Nullable Integer crawlId) {
+  public Occurrence deleteOccurrence(long occurrenceKey, @Nullable Integer crawlId) {
     checkArgument(occurrenceKey > 0, "occurrenceKey must be > 0");
     LOG.debug("Deleting occurrence for key [{}]", occurrenceKey);
 

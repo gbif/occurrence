@@ -39,7 +39,7 @@ public class RowUpdate {
    *
    * @param key the row key
    */
-  public RowUpdate(int key) {
+  public RowUpdate(long key) {
     this.key = Bytes.toBytes(key);
     rowMutations = new RowMutations(this.key);
   }

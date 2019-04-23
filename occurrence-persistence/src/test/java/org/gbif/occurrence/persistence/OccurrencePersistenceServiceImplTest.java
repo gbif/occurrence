@@ -70,8 +70,8 @@ public class OccurrencePersistenceServiceImplTest {
   private static final byte[] TABLE = Bytes.toBytes(CFG.occTable);
   private static final String CF_NAME = "o";
   private static final byte[] CF = Bytes.toBytes(CF_NAME);
-  private static final int KEY = 1000000;
-  private static final int BAD_KEY = 2000000;
+  private static final long KEY = 1000000;
+  private static final long BAD_KEY = 2000000;
 
   private static final double ELEV = 1000d;
   private static final BasisOfRecord BOR = BasisOfRecord.PRESERVED_SPECIMEN;
@@ -292,7 +292,7 @@ public class OccurrencePersistenceServiceImplTest {
 
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
-    assertEquals((Integer) KEY, occ.getKey());
+    assertEquals((Long) KEY, occ.getKey());
 // assertEquals(3, occ.getIdentifiers().size());
     assertEquals(OccurrenceIssue.values().length, occ.getIssues().size());
     assertFalse(occ.hasVerbatimField(DwcTerm.basisOfRecord));
@@ -303,7 +303,7 @@ public class OccurrencePersistenceServiceImplTest {
   public void testGetNoIdentifiers() throws IOException {
     Occurrence occ = occurrenceService.get(KEY);
     assertEquivalence(occ);
-    assertEquals((Integer) KEY, occ.getKey());
+    assertEquals((Long) KEY, occ.getKey());
     assertEquals(0, occ.getIdentifiers().size());
   }
 
@@ -315,7 +315,7 @@ public class OccurrencePersistenceServiceImplTest {
     occurrenceService.update(raw);
 
     Occurrence occ = occurrenceService.get(KEY);
-    assertEquals((Integer) KEY, occ.getKey());
+    assertEquals((Long) KEY, occ.getKey());
     assertEquals(0, occ.getIssues().size());
   }
 
@@ -437,7 +437,7 @@ public class OccurrencePersistenceServiceImplTest {
     assertEquals(genus, occ.getGenus());
     assertTrue(genusId == occ.getGenusKey());
     assertEquals(publishingCountry, occ.getPublishingCountry());
-    assertTrue(update.getKey().intValue() == occ.getKey().intValue());
+    assertTrue(update.getKey().longValue() == occ.getKey().longValue());
 // assertEquals(1, occ.getIdentifiers().size());
 // Identifier updatedRecord = occ.getIdentifiers().iterator().next();
 // assertTrue(id0.equals(updatedRecord.getIdentifier()));
@@ -496,7 +496,7 @@ public class OccurrencePersistenceServiceImplTest {
   public void testDeleteExists() throws IOException {
     Occurrence occ = occurrenceService.delete(KEY);
     assertEquivalence(occ);
-    assertEquals((Integer) KEY, occ.getKey());
+    assertEquals((Long) KEY, occ.getKey());
     Occurrence test = occurrenceService.get(KEY);
     assertNull(test);
   }
@@ -510,7 +510,7 @@ public class OccurrencePersistenceServiceImplTest {
   @Test
   public void testKeyByColumnIterator() {
     int count = 0;
-    Iterator<Integer> iterator =
+    Iterator<Long> iterator =
       occurrenceService.getKeysByColumn(Bytes.toBytes(DATASET_KEY.toString()), Columns.column(GbifTerm.datasetKey));
     while (iterator.hasNext()) {
       iterator.next();

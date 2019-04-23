@@ -85,9 +85,9 @@ public class OccurrenceRegistryMapper extends AbstractOccurrenceRegistryMapper {
 
       Organization publishingOrg = organizationCache.get(dataset.getPublishingOrganizationKey());
       if (occurrenceMutator.requiresUpdate(dataset, publishingOrg, values)) {
-        Occurrence origOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
+        Occurrence origOcc = occurrencePersistenceService.get(Bytes.toLong(row.get()));
         // we have no clone or other easy copy method
-        Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toInt(row.get()));
+        Occurrence updatedOcc = occurrencePersistenceService.get(Bytes.toLong(row.get()));
         occurrenceMutator.mutateOccurrence(updatedOcc, dataset, publishingOrg);
 
         occurrencePersistenceService.update(updatedOcc);

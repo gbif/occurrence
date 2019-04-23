@@ -71,7 +71,7 @@ public class OccurrenceInterpreterTest {
     verbMod.setVerbatimField(DwcTerm.scientificName, "Panthera onca goldmani");
   }
 
-  private VerbatimOccurrence buildVerbatim(int key) {
+  private VerbatimOccurrence buildVerbatim(Long key) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setKey(key);
     v.setDatasetKey(DATASET_KEY);

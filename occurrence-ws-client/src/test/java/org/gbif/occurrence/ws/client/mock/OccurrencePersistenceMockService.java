@@ -28,25 +28,26 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
   }
 
   @Override
-  public Occurrence get(Integer key) {
+  public Occurrence get(Long key) {
     if (key == null || key < 1 || key >= 1000000) {
       return null;
     }
+    int intKey = key.intValue(); // Just for generating values below.
 
     Occurrence occ = new Occurrence();
     occ.setKey(key);
-    occ.setDatasetKey(DATASETS.get(key % 10));
+    occ.setDatasetKey(DATASETS.get(intKey % 10));
 
-    int ord = key % BasisOfRecord.values().length;
+    int ord = intKey % BasisOfRecord.values().length;
     occ.setBasisOfRecord(BasisOfRecord.values()[ord]);
-    occ.setYear(1800 + (key % 200));
+    occ.setYear(1800 + (intKey % 200));
     occ.setElevation(key % 2000d);
     Map<Term, String> fields = occ.getVerbatimFields();
     fields.put(DwcTerm.catalogNumber, "cat-" + key);
     occ.setVerbatimFields(fields);
-    occ.setMonth(1 + (key % 12));
+    occ.setMonth(1 + (intKey % 12));
 
-    ord = key % Kingdom.values().length;
+    ord = intKey % Kingdom.values().length;
     Kingdom k = Kingdom.values()[ord];
     occ.setKingdomKey(k.nubUsageID());
     occ.setKingdom(StringUtils.capitalize(k.name().toLowerCase()));
@@ -55,12 +56,12 @@ public class OccurrencePersistenceMockService implements OccurrenceService {
   }
 
   @Override
-  public VerbatimOccurrence getVerbatim(Integer key) {
+  public VerbatimOccurrence getVerbatim(Long key) {
     return new VerbatimOccurrence();
   }
 
   @Override
-  public String getFragment(int i) {
+  public String getFragment(long i) {
     return "<record>mock parsing</record>";
   }
 }

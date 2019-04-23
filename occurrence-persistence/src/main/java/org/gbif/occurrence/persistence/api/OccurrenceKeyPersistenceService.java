@@ -36,7 +36,7 @@ public interface OccurrenceKeyPersistenceService {
    * @throws org.gbif.api.exception.ServiceUnavailableException
    *          if the underlying data connection fails
    */
-  Set<Integer> findKeysByDataset(String datasetKey);
+  Set<Long> findKeysByDataset(String datasetKey);
 
   /**
    * If a key already exists for these uniqueIdentifiers, returns the existing key, otherwise generates a new key.
@@ -56,7 +56,7 @@ public interface OccurrenceKeyPersistenceService {
    *
    * @throws org.gbif.api.exception.ServiceUnavailableException if the underlying data connection fails
    */
-  void deleteKey(int occurrenceKey, @Nullable String datasetKey);
+  void deleteKey(long occurrenceKey, @Nullable String datasetKey);
 
   /**
    * Deletes the secondary index entry(ies) in the lookup table for the given UniqueIdentifiers.

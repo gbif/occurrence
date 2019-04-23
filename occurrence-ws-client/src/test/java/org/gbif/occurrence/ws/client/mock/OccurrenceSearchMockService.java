@@ -29,7 +29,7 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService {
   @Override
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(OccurrenceSearchRequest request) {
     List<Occurrence> results = Lists.newArrayList();
-    for (int i = 0; i < NUM_RESULTS; i++) {
+    for (long i = 0; i < NUM_RESULTS; i++) {
       results.add(occurrenceService.get(i));
     }
     SearchResponse<Occurrence, OccurrenceSearchParameter> response =

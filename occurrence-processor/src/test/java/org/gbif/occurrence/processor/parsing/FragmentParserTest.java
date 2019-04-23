@@ -44,7 +44,7 @@ public class FragmentParserTest {
     UUID datasetKey = UUID.randomUUID();
     Fragment frag = new Fragment(datasetKey, abcd206Single.getBytes(), DigestUtils.md5(abcd206Single.getBytes()),
       Fragment.FragmentType.XML, EndpointType.BIOCASE, new Date(), 1, schema, null, null);
-    frag.setKey(1);
+    frag.setKey(1L);
 
     VerbatimOccurrence got = FragmentParser.parse(frag);
     assertNotNull(got);
@@ -91,7 +91,7 @@ public class FragmentParserTest {
     Fragment frag =
       new Fragment(datasetKey, dwc14.getBytes(), DigestUtils.md5(dwc14.getBytes()), Fragment.FragmentType.XML,
         EndpointType.DIGIR, new Date(), 1, schema, null, null);
-    frag.setKey(123);
+    frag.setKey(123L);
 
     VerbatimOccurrence got = FragmentParser.parse(frag);
     assertNotNull(got);

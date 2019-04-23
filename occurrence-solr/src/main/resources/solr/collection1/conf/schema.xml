@@ -84,7 +84,7 @@
 
   </types>
   <fields>
-    <field name="key" type="int" indexed="true" stored="true" required="true" docValues="true"/>
+    <field name="key" type="long" indexed="true" stored="true" required="true" docValues="true"/>
     <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="installation_key" type="string" indexed="true" stored="false" docValues="true"/>
     <field name="network_key" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>

@@ -23,10 +23,10 @@ fi
 #extract the oozie.url value from the properties file
 oozie_url=`cat $P.properties| grep "oozie.url" | cut -d'=' -f2`
 
-echo "Assembling jar for $ENV"
+echo "Assembling jar for $P"
 
-mvn --settings profiles.xml -Poozie,$P clean package assembly:single
-mvn --settings profiles.xml -Psolr,$P package assembly:single
+mvn --settings profiles.xml -Poozie,$P clean package assembly:single -U
+mvn --settings profiles.xml -Psolr,$P package assembly:single -U
 
 if hdfs dfs -test -d /occurrence-index-builder-$P/; then
    echo "Removing content of current Oozie workflow directory"
@@ -40,4 +40,3 @@ sudo -u hdfs hdfs dfs -copyFromLocal target/oozie-workflow/* /occurrence-index-b
 
 echo "Executing Oozie workflow"
 sudo -u yarn oozie job --oozie ${oozie_url} -config $P.properties -run
-
