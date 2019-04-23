@@ -176,7 +176,7 @@ public class EsResponseParser {
   }
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, GBIF_ID, Integer::valueOf).ifPresent(occ::setKey);
+    getValue(hit, GBIF_ID, Long::valueOf).ifPresent(occ::setKey);
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
     getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf)
         .ifPresent(occ::setEstablishmentMeans);
