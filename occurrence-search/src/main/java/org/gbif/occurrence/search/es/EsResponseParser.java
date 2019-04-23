@@ -10,13 +10,18 @@ import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
@@ -134,36 +139,40 @@ public class EsResponseParser {
       return Optional.empty();
     }
 
-    List<Occurrence> occurrences = new ArrayList<>();
-    esResponse
-        .getHits()
-        .forEach(
-            hit -> {
-              // create occurrence
-              Occurrence occ = new Occurrence();
-              occurrences.add(occ);
+    return Optional.of(
+        Stream.of(esResponse.getHits().getHits())
+            .map(
+                hit -> {
+                  // create occurrence
+                  Occurrence occ = new Occurrence();
 
-              // set fields
-              setOccurrenceFields(hit, occ);
-              setLocationFields(hit, occ);
-              setTemporalFields(hit, occ);
-              setCrawlingFields(hit, occ);
-              setDatasetFields(hit, occ);
-              setTaxonFields(hit, occ);
+                  // set fields
+                  setOccurrenceFields(hit, occ);
+                  setLocationFields(hit, occ);
+                  setTemporalFields(hit, occ);
+                  setCrawlingFields(hit, occ);
+                  setDatasetFields(hit, occ);
+                  setTaxonFields(hit, occ);
 
-              // issues
-              getListValue(hit, ISSUE)
-                  .ifPresent(
-                      v -> {
-                        Set<OccurrenceIssue> issues = new HashSet<>();
-                        v.forEach(issue -> issues.add(OccurrenceIssue.valueOf(issue)));
-                        occ.setIssues(issues);
-                      });
+                  // issues
+                  getListValue(hit, ISSUE)
+                      .ifPresent(
+                          v ->
+                              occ.setIssues(
+                                  v.stream()
+                                      .map(OccurrenceIssue::valueOf)
+                                      .collect(Collectors.toSet())));
 
-              // multimedia extension
-              parseMultimediaItems(hit, occ);
-            });
-    return Optional.of(occurrences);
+                  // multimedia extension
+                  parseMultimediaItems(hit, occ);
+
+                  // add verbatim fields
+                  occ.setVerbatimFields(extractVerbatimFields(hit));
+                  // TODO: add verbatim extensions
+
+                  return occ;
+                })
+            .collect(Collectors.toList()));
   }
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
@@ -262,11 +271,7 @@ public class EsResponseParser {
 
     getListValue(hit, NETWORK_KEY)
         .ifPresent(
-            v -> {
-              List<UUID> networkKeys = new ArrayList<>();
-              v.forEach(s -> networkKeys.add(UUID.fromString(s)));
-              occ.setNetworkKeys(networkKeys);
-            });
+            v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
 
   private static void setCrawlingFields(SearchHit hit, Occurrence occ) {
@@ -374,5 +379,14 @@ public class EsResponseParser {
 
   private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
     return extractValue(fields, fieldName, Function.identity());
+  }
+
+  private static Map<Term, String> extractVerbatimFields(SearchHit hit) {
+    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
+    return verbatimCoreFields.entrySet().stream()
+        .map(e -> new SimpleEntry<>(TermFactory.instance().findTerm(e.getKey()), e.getValue()))
+        .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

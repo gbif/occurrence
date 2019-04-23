@@ -132,20 +132,26 @@ public class EsSearchRequestBuilder {
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
         BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
-        params
-            .get(OccurrenceSearchParameter.GEOMETRY)
-            .forEach(wkt -> shouldGeometry.should().add(buildGeoShapeQuery(wkt)));
+        shouldGeometry
+            .should()
+            .addAll(
+                params.get(OccurrenceSearchParameter.GEOMETRY).stream()
+                    .map(EsSearchRequestBuilder::buildGeoShapeQuery)
+                    .collect(Collectors.toList()));
         bool.filter().add(shouldGeometry);
       }
 
       // adding term queries to bool
-      params.asMap().entrySet().stream()
-          .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
-          .flatMap(
-              e ->
-                  buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                      .stream())
-          .forEach(q -> bool.filter().add(q));
+      bool.filter()
+          .addAll(
+              params.asMap().entrySet().stream()
+                  .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+                  .flatMap(
+                      e ->
+                          buildTermQuery(
+                              e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                              .stream())
+                  .collect(Collectors.toList()));
     }
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
@@ -187,12 +193,15 @@ public class EsSearchRequestBuilder {
     }
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    postFilterParams.asMap().entrySet().stream()
-        .flatMap(
-            e ->
-                buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                    .stream())
-        .forEach(q -> bool.filter().add(q));
+    bool.filter()
+        .addAll(
+            postFilterParams.asMap().entrySet().stream()
+                .flatMap(
+                    e ->
+                        buildTermQuery(
+                            e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                            .stream())
+                .collect(Collectors.toList()));
 
     return Optional.of(bool);
   }
@@ -232,14 +241,18 @@ public class EsSearchRequestBuilder {
 
               // build filter aggs
               BoolQueryBuilder bool = QueryBuilders.boolQuery();
-              postFilterParams.asMap().entrySet().stream()
-                  .filter(entry -> entry.getKey() != facetParam)
-                  .flatMap(
-                      e ->
-                          buildTermQuery(
-                              e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                              .stream())
-                  .forEach(q -> bool.filter().add(q));
+              bool.filter()
+                  .addAll(
+                      postFilterParams.asMap().entrySet().stream()
+                          .filter(entry -> entry.getKey() != facetParam)
+                          .flatMap(
+                              e ->
+                                  buildTermQuery(
+                                      e.getValue(),
+                                      e.getKey(),
+                                      SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                                      .stream())
+                          .collect(Collectors.toList()));
 
               // add filter to the aggs
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
