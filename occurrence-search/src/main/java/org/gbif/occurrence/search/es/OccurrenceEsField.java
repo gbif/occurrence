@@ -111,8 +111,8 @@ public enum OccurrenceEsField {
   //Location
   COORDINATE_SHAPE("scoordinates"),
   COORDINATE_POINT("coordinates"),
-  LATITUDE("coordinates.lat"),
-  LONGITUDE("coordinates.lon"),
+  LATITUDE("decimalLatitude"),
+  LONGITUDE("decimalLongitude"),
   COUNTRY_CODE("countryCode"),
   CONTINENT("continent"),
   COORDINATE_ACCURACY("coordinateAccuracy"),
