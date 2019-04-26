@@ -1,6 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -35,9 +34,7 @@ import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.locationtech.jts.geom.Coordinate;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.CARDINALITIES;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
-import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.COORDINATE_SHAPE;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
@@ -264,7 +261,8 @@ public class EsSearchRequestBuilder {
                   buildTermsAggs(
                       "filtered_" + esField.getFieldName(),
                       esField,
-                      searchRequest.getFacetPage(facetParam),
+                      extractFacetOffset(searchRequest, facetParam),
+                      extractFacetLimit(searchRequest, facetParam),
                       searchRequest.getFacetMinCount());
               filterAggs.subAggregation(termsAggs);
 
@@ -282,45 +280,53 @@ public class EsSearchRequestBuilder {
               return buildTermsAggs(
                   esField.getFieldName(),
                   esField,
-                  searchRequest.getFacetPage(facetParam),
+                  extractFacetOffset(searchRequest, facetParam),
+                  extractFacetLimit(searchRequest, facetParam),
                   searchRequest.getFacetMinCount());
             })
         .collect(Collectors.toList());
   }
 
   private static TermsAggregationBuilder buildTermsAggs(
-      String aggsName, OccurrenceEsField esField, Pageable facetPage, Integer minCount) {
+      String aggsName,
+      OccurrenceEsField esField,
+      int facetOffset,
+      int facetLimit,
+      Integer minCount) {
+    // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggsName).field(esField.getFieldName());
 
+    // min count
     Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
-    Optional.ofNullable(facetPage)
-        .ifPresent(
-            p -> {
-              int maxCardinality = CARDINALITIES.getOrDefault(esField, Integer.MAX_VALUE);
 
-              // offset cannot be greater than the max cardinality
-              if (p.getOffset() >= maxCardinality) {
-                throw new IllegalArgumentException(
-                    "facet paging for "
-                        + esField.getFieldName()
-                        + " exceeds the cardinality of the field: "
-                        + CARDINALITIES.get(esField));
-              }
-
-              // the limit is bounded by the max cardinality of the field
-              int limit = Math.min((int) p.getOffset() + p.getLimit(), maxCardinality);
-
-              // we set a maximum limit for performance reasons
-              if (limit > MAX_SIZE_TERMS_AGGS) {
-                throw new IllegalArgumentException(
-                    "Facets paging is only supported up to " + MAX_SIZE_TERMS_AGGS + " elements");
-              }
-
-              termsAggsBuilder.size(limit);
-            });
+    // aggs size
+    termsAggsBuilder.size(calculateAggsSize(esField, facetOffset, facetLimit));
 
     return termsAggsBuilder;
+  }
+
+  private static int calculateAggsSize(OccurrenceEsField esField, int facetOffset, int facetLimit) {
+    int maxCardinality = CARDINALITIES.getOrDefault(esField, Integer.MAX_VALUE);
+
+    // offset cannot be greater than the max cardinality
+    if (facetOffset >= maxCardinality) {
+      throw new IllegalArgumentException(
+          "facet paging for "
+              + esField.getFieldName()
+              + " exceeds the cardinality of the field: "
+              + CARDINALITIES.get(esField));
+    }
+
+    // the limit is bounded by the max cardinality of the field
+    int limit = Math.min(facetOffset + facetLimit, maxCardinality);
+
+    // we set a maximum limit for performance reasons
+    if (limit > MAX_SIZE_TERMS_AGGS) {
+      throw new IllegalArgumentException(
+          "Facets paging is only supported up to " + MAX_SIZE_TERMS_AGGS + " elements");
+    }
+    return limit;
   }
 
   private static List<QueryBuilder> buildTermQuery(

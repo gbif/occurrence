@@ -2,7 +2,6 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
-import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -28,16 +27,11 @@ import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.ES_TO_SEARCH_MAPPING;
-import static org.gbif.occurrence.search.es.EsQueryUtils.SEARCH_TO_ES_MAPPING;
-import static org.gbif.occurrence.search.es.EsQueryUtils.STRING_TO_DATE;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 public class EsResponseParser {
-
-  // defaults
-  private static final long DEFAULT_FACET_OFFSET = 0;
-  private static final long DEFAULT_FACET_LIMIT = 10;
 
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
@@ -104,20 +98,8 @@ public class EsResponseParser {
                   OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
 
                   // check for paging in facets
-                  long facetOffset =
-                      Optional.ofNullable(request.getFacetPage(facet))
-                          .map(Pageable::getOffset)
-                          .orElse(
-                              request.getFacetOffset() != null
-                                  ? request.getFacetOffset()
-                                  : DEFAULT_FACET_OFFSET);
-                  long facetLimit =
-                      Optional.ofNullable(request.getFacetPage(facet))
-                          .map(f -> (long) f.getLimit())
-                          .orElse(
-                              request.getFacetLimit() != null
-                                  ? request.getFacetLimit().longValue()
-                                  : DEFAULT_FACET_LIMIT);
+                  long facetOffset = extractFacetOffset(request, facet);
+                  long facetLimit = extractFacetLimit(request, facet);
 
                   List<Facet.Count> counts =
                       buckets.stream()
