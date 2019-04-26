@@ -1,6 +1,8 @@
 package org.gbif.occurrence.search.es;
 
+import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
 import java.time.LocalDateTime;
@@ -12,6 +14,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -24,6 +27,10 @@ import org.elasticsearch.client.RequestOptions;
 public class EsQueryUtils {
 
   private EsQueryUtils() {}
+
+  // defaults
+  private static final int DEFAULT_FACET_OFFSET = 0;
+  private static final int DEFAULT_FACET_LIMIT = 10;
 
   // ES fields for queries
   public static final String SIZE = "size";
@@ -195,5 +202,17 @@ public class EsQueryUtils {
         SEARCH_TO_ES_MAPPING.entrySet()) {
       ES_TO_SEARCH_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
     }
+  }
+
+  static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+    return Optional.ofNullable(request.getFacetPage(facet))
+        .map(Pageable::getLimit)
+        .orElse(request.getFacetLimit() != null ? request.getFacetLimit() : DEFAULT_FACET_LIMIT);
+  }
+
+  static int extractFacetOffset(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+    return Optional.ofNullable(request.getFacetPage(facet))
+        .map(v -> (int) v.getOffset())
+        .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
 }
