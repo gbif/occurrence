@@ -364,7 +364,7 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
-  private static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
+  public static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
       geometry = new WKTReader().read(wkt);
