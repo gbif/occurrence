@@ -19,7 +19,9 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
+/**
+ * Test cases for the Elasticsearch query visitor.
+ */
 public class EsQueryVisitorTest {
 
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
@@ -31,46 +33,134 @@ public class EsQueryVisitorTest {
   public void testEqualsPredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(PARAM, "value");
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value\"}}]}}}", query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"match\" : {\n" +
+      "          \"catalogNumber\" : {\n" +
+      "            \"query\" : \"value\",\n" +
+      "            \"operator\" : \"OR\",\n" +
+      "            \"prefix_length\" : 0,\n" +
+      "            \"max_expansions\" : 50,\n" +
+      "            \"fuzzy_transpositions\" : true,\n" +
+      "            \"lenient\" : false,\n" +
+      "            \"zero_terms_query\" : \"NONE\",\n" +
+      "            \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "222");
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"range\":{\"elevation\":{\"gte\":\"222\"}}}]}}}", query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"elevation\" : {\n" +
+      "            \"from\" : \"222\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testGreaterThanPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"range\":{\"elevation\":{\"gt\":\"1000\"}}}]}}}", query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"elevation\" : {\n" +
+      "            \"from\" : \"1000\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : false,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"range\":{\"elevation\":{\"lte\":\"1000\"}}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"elevation\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"1000\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testLessThanPredicate() throws QueryBuildingException {
     Predicate p = new LessThanPredicate(OccurrenceSearchParameter.ELEVATION, "1000");
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"range\":{\"elevation\":{\"lt\":\"1000\"}}}]}}}", query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"elevation\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"1000\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : false,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -80,10 +170,80 @@ public class EsQueryVisitorTest {
     Predicate p3 = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.MONTH, "12");
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"match\":{\"institutioncode\":\"value_2\"}},{\"range\":{\"month\":{\"gte\":\"12\"}}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"query\" : \"value_1\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"institutionCode\" : {\n" +
+      "                  \"query\" : \"value_2\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"range\" : {\n" +
+      "                \"month\" : {\n" +
+      "                  \"from\" : \"12\",\n" +
+      "                  \"to\" : null,\n" +
+      "                  \"include_lower\" : true,\n" +
+      "                  \"include_upper\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -93,20 +253,86 @@ public class EsQueryVisitorTest {
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"match\":{\"institutioncode\":\"value_2\"}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"should\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"query\" : \"value_1\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"institutionCode\" : {\n" +
+      "                  \"query\" : \"value_2\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testInPredicate() throws QueryBuildingException {
     Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"terms\":{\"catalognumber\":[\"value_1\",\"value_2\",\"value_3\"]}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"terms\" : {\n" +
+      "          \"catalogNumber\" : [\n" +
+      "            \"value_1\",\n" +
+      "            \"value_2\",\n" +
+      "            \"value_3\"\n" +
+      "          ],\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -116,20 +342,117 @@ public class EsQueryVisitorTest {
     Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"terms\":{\"catalognumber\":[\"value_1\",\"value_2\",\"value_3\"]}},{\"match\":{\"institutioncode\":\"value_2\"}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"query\" : \"value_1\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"terms\" : {\n" +
+      "                \"catalogNumber\" : [\n" +
+      "                  \"value_1\",\n" +
+      "                  \"value_2\",\n" +
+      "                  \"value_3\"\n" +
+      "                ],\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"institutionCode\" : {\n" +
+      "                  \"query\" : \"value_2\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testNotPredicate() throws QueryBuildingException {
     Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must_not\":[{\"match\":{\"catalognumber\":\"value\"}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery =  "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must_not\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"query\" : \"value\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery,query);
   }
 
   @Test
@@ -141,20 +464,92 @@ public class EsQueryVisitorTest {
 
     Predicate p = new NotPredicate(cp);
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must_not\":[{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"match\":{\"institutioncode\":\"value_2\"}}]}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must_not\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"must\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"query\" : \"value_1\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"institutionCode\" : {\n" +
+      "                        \"query\" : \"value_2\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testLikePredicate() throws QueryBuildingException {
     LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*");
     String query = visitor.getQuery(likePredicate);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"wildcard\":{\"catalognumber\":\"value_1*\"}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"wildcard\" : {\n" +
+      "          \"catalogNumber\" : {\n" +
+      "            \"wildcard\" : \"value_1**\",\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -164,19 +559,98 @@ public class EsQueryVisitorTest {
     Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"wildcard\":{\"catalognumber\":\"value_1*\"}},{\"match\":{\"institutioncode\":\"value_2\"}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"query\" : \"value_1\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"wildcard\" : {\n" +
+      "                \"catalogNumber\" : {\n" +
+      "                  \"wildcard\" : \"value_1**\",\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"filter\" : [\n" +
+      "            {\n" +
+      "              \"match\" : {\n" +
+      "                \"institutionCode\" : {\n" +
+      "                  \"query\" : \"value_2\",\n" +
+      "                  \"operator\" : \"OR\",\n" +
+      "                  \"prefix_length\" : 0,\n" +
+      "                  \"max_expansions\" : 50,\n" +
+      "                  \"fuzzy_transpositions\" : true,\n" +
+      "                  \"lenient\" : false,\n" +
+      "                  \"zero_terms_query\" : \"NONE\",\n" +
+      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"boost\" : 1.0\n" +
+      "                }\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
   public void testIsNotNullPredicate() throws QueryBuildingException {
     Predicate p = new IsNotNullPredicate(PARAM);
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"exists\":{\"field\":\"catalognumber\"}}]}}}", query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"exists\" : {\n" +
+      "          \"field\" : \"catalogNumber\",\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -184,7 +658,7 @@ public class EsQueryVisitorTest {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getQuery(p);
-    System.out.println(query);
+    Assert.assertNotNull(query);
   }
 
   @Test
@@ -196,10 +670,116 @@ public class EsQueryVisitorTest {
     Predicate pdis = new DisjunctionPredicate(Lists.newArrayList(p1, pcon));
     Predicate p = new NotPredicate(pdis);
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must_not\":[{\"bool\":{\"should\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"wildcard\":{\"catalognumber\":\"value_1*\"}},{\"match\":{\"institutioncode\":\"value_2\"}}]}}]}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must_not\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"should\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"query\" : \"value_1\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"must\" : [\n" +
+      "                  {\n" +
+      "                    \"bool\" : {\n" +
+      "                      \"filter\" : [\n" +
+      "                        {\n" +
+      "                          \"match\" : {\n" +
+      "                            \"catalogNumber\" : {\n" +
+      "                              \"query\" : \"value_1\",\n" +
+      "                              \"operator\" : \"OR\",\n" +
+      "                              \"prefix_length\" : 0,\n" +
+      "                              \"max_expansions\" : 50,\n" +
+      "                              \"fuzzy_transpositions\" : true,\n" +
+      "                              \"lenient\" : false,\n" +
+      "                              \"zero_terms_query\" : \"NONE\",\n" +
+      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"boost\" : 1.0\n" +
+      "                            }\n" +
+      "                          }\n" +
+      "                        }\n" +
+      "                      ],\n" +
+      "                      \"adjust_pure_negative\" : true,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  },\n" +
+      "                  {\n" +
+      "                    \"bool\" : {\n" +
+      "                      \"filter\" : [\n" +
+      "                        {\n" +
+      "                          \"wildcard\" : {\n" +
+      "                            \"catalogNumber\" : {\n" +
+      "                              \"wildcard\" : \"value_1**\",\n" +
+      "                              \"boost\" : 1.0\n" +
+      "                            }\n" +
+      "                          }\n" +
+      "                        }\n" +
+      "                      ],\n" +
+      "                      \"adjust_pure_negative\" : true,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  },\n" +
+      "                  {\n" +
+      "                    \"bool\" : {\n" +
+      "                      \"filter\" : [\n" +
+      "                        {\n" +
+      "                          \"match\" : {\n" +
+      "                            \"institutionCode\" : {\n" +
+      "                              \"query\" : \"value_2\",\n" +
+      "                              \"operator\" : \"OR\",\n" +
+      "                              \"prefix_length\" : 0,\n" +
+      "                              \"max_expansions\" : 50,\n" +
+      "                              \"fuzzy_transpositions\" : true,\n" +
+      "                              \"lenient\" : false,\n" +
+      "                              \"zero_terms_query\" : \"NONE\",\n" +
+      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"boost\" : 1.0\n" +
+      "                            }\n" +
+      "                          }\n" +
+      "                        }\n" +
+      "                      ],\n" +
+      "                      \"adjust_pure_negative\" : true,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -213,10 +793,124 @@ public class EsQueryVisitorTest {
 
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p4, new NotPredicate(p5)));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"bool\":{\"should\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"match\":{\"institutioncode\":\"value_2\"}}]}},{\"bool\":{\"must_not\":[{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"wildcard\":{\"catalognumber\":\"value_1*\"}}]}}]}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"should\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"query\" : \"value_1\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"institutionCode\" : {\n" +
+      "                        \"query\" : \"value_2\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"must_not\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"must\" : [\n" +
+      "                  {\n" +
+      "                    \"bool\" : {\n" +
+      "                      \"filter\" : [\n" +
+      "                        {\n" +
+      "                          \"match\" : {\n" +
+      "                            \"catalogNumber\" : {\n" +
+      "                              \"query\" : \"value_1\",\n" +
+      "                              \"operator\" : \"OR\",\n" +
+      "                              \"prefix_length\" : 0,\n" +
+      "                              \"max_expansions\" : 50,\n" +
+      "                              \"fuzzy_transpositions\" : true,\n" +
+      "                              \"lenient\" : false,\n" +
+      "                              \"zero_terms_query\" : \"NONE\",\n" +
+      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"boost\" : 1.0\n" +
+      "                            }\n" +
+      "                          }\n" +
+      "                        }\n" +
+      "                      ],\n" +
+      "                      \"adjust_pure_negative\" : true,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  },\n" +
+      "                  {\n" +
+      "                    \"bool\" : {\n" +
+      "                      \"filter\" : [\n" +
+      "                        {\n" +
+      "                          \"wildcard\" : {\n" +
+      "                            \"catalogNumber\" : {\n" +
+      "                              \"wildcard\" : \"value_1**\",\n" +
+      "                              \"boost\" : 1.0\n" +
+      "                            }\n" +
+      "                          }\n" +
+      "                        }\n" +
+      "                      ],\n" +
+      "                      \"adjust_pure_negative\" : true,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -233,9 +927,160 @@ public class EsQueryVisitorTest {
 
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p5, p6));
     String query = visitor.getQuery(p);
-    Assert.assertEquals(
-      "{\"query\":{\"bool\":{\"must\":[{\"bool\":{\"should\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"match\":{\"institutioncode\":\"value_2\"}},{\"geo_bounding_box\":{\"pin.location\":{\"top_left\":{\"lat\":10.0,\"lon\":10.0},\"bottom_right\":{\"lat\":40.0,\"lon\":40.0}}}}]}},{\"bool\":{\"must\":[{\"match\":{\"catalognumber\":\"value_1\"}},{\"wildcard\":{\"catalognumber\":\"value_1*\"}}]}}]}}}",
-      query);
-    System.out.println(query);
+    String expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"must\" : [\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"should\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"query\" : \"value_1\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"institutionCode\" : {\n" +
+      "                        \"query\" : \"value_2\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"geo_shape\" : {\n" +
+      "                      \"scoordinates\" : {\n" +
+      "                        \"shape\" : {\n" +
+      "                          \"type\" : \"polygon\",\n" +
+      "                          \"orientation\" : \"right\",\n" +
+      "                          \"coordinates\" : [\n" +
+      "                            [\n" +
+      "                              [\n" +
+      "                                30.0,\n" +
+      "                                10.0\n" +
+      "                              ],\n" +
+      "                              [\n" +
+      "                                10.0,\n" +
+      "                                20.0\n" +
+      "                              ],\n" +
+      "                              [\n" +
+      "                                20.0,\n" +
+      "                                40.0\n" +
+      "                              ],\n" +
+      "                              [\n" +
+      "                                40.0,\n" +
+      "                                40.0\n" +
+      "                              ],\n" +
+      "                              [\n" +
+      "                                30.0,\n" +
+      "                                10.0\n" +
+      "                              ]\n" +
+      "                            ]\n" +
+      "                          ]\n" +
+      "                        },\n" +
+      "                        \"relation\" : \"within\"\n" +
+      "                      },\n" +
+      "                      \"ignore_unmapped\" : false,\n" +
+      "                      \"boost\" : 1.0\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"bool\" : {\n" +
+      "          \"must\" : [\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"match\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"query\" : \"value_1\",\n" +
+      "                        \"operator\" : \"OR\",\n" +
+      "                        \"prefix_length\" : 0,\n" +
+      "                        \"max_expansions\" : 50,\n" +
+      "                        \"fuzzy_transpositions\" : true,\n" +
+      "                        \"lenient\" : false,\n" +
+      "                        \"zero_terms_query\" : \"NONE\",\n" +
+      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            },\n" +
+      "            {\n" +
+      "              \"bool\" : {\n" +
+      "                \"filter\" : [\n" +
+      "                  {\n" +
+      "                    \"wildcard\" : {\n" +
+      "                      \"catalogNumber\" : {\n" +
+      "                        \"wildcard\" : \"value_1**\",\n" +
+      "                        \"boost\" : 1.0\n" +
+      "                      }\n" +
+      "                    }\n" +
+      "                  }\n" +
+      "                ],\n" +
+      "                \"adjust_pure_negative\" : true,\n" +
+      "                \"boost\" : 1.0\n" +
+      "              }\n" +
+      "            }\n" +
+      "          ],\n" +
+      "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    Assert.assertEquals(expectedQuery, query);
   }
 }

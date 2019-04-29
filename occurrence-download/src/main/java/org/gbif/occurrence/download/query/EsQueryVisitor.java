@@ -68,7 +68,7 @@ public class EsQueryVisitor {
       try {
         BoolQueryBuilder mustQueryBuilder = QueryBuilders.boolQuery();
         visit(subPredicate, mustQueryBuilder);
-        mustQueryBuilder.filter().forEach(queryBuilder::must);
+        queryBuilder.must(mustQueryBuilder);
       } catch (QueryBuildingException ex) {
         throw new RuntimeException(ex);
       }
@@ -87,7 +87,7 @@ public class EsQueryVisitor {
       try {
         BoolQueryBuilder shouldQueryBuilder = QueryBuilders.boolQuery();
         visit(subPredicate, shouldQueryBuilder);
-        shouldQueryBuilder.filter().forEach(queryBuilder::should);
+        queryBuilder.should(shouldQueryBuilder);
       } catch (QueryBuildingException ex) {
         throw new RuntimeException(ex);
       }
@@ -172,7 +172,7 @@ public class EsQueryVisitor {
   public void visit(NotPredicate predicate, BoolQueryBuilder queryBuilder) throws QueryBuildingException {
     BoolQueryBuilder mustNotQueryBuilder = QueryBuilders.boolQuery();
     visit(predicate.getPredicate(), mustNotQueryBuilder);
-    mustNotQueryBuilder.filter().forEach(queryBuilder::mustNot);
+    queryBuilder.mustNot(mustNotQueryBuilder);
   }
 
   /**
