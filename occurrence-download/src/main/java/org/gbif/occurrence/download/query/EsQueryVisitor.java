@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.query;
 
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;

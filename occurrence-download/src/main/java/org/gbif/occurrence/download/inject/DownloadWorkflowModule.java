@@ -1,11 +1,13 @@
 package org.gbif.occurrence.download.inject;
 
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.common.search.solr.SolrConfig;
-import org.gbif.common.search.solr.SolrModule;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -16,10 +18,13 @@ import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
+import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 
@@ -50,7 +55,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
-  private static final String PROPERTIES_SOLR_PREFIX = "solr.";
+  private static final String ES_PREFIX = "es.";
 
   private static final String LOCKING_PATH = "/runningJobs/";
 
@@ -76,8 +81,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Override
   protected void configure() {
     Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    install(new SolrModule(SolrConfig.fromProperties(workflowConfiguration.getDownloadSettings(),
-            PROPERTIES_SOLR_PREFIX)));
     bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
@@ -139,6 +142,31 @@ public final class DownloadWorkflowModule extends AbstractModule {
     return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, LOCKING_PATH);
   }
 
+  @Provides
+  @Singleton
+  private RestHighLevelClient provideEsClient() {
+    EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
+    HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
+    int i = 0;
+    for (String host : esConfig.getHosts()) {
+      try {
+        URL url = new URL(host);
+        hosts[i] = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
+        i++;
+      } catch (MalformedURLException e) {
+        throw new IllegalArgumentException(e.getMessage(), e);
+      }
+    }
+
+    RestClientBuilder builder =
+      RestClient.builder(hosts)
+        .setRequestConfigCallback(
+          requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(6000).setSocketTimeout(90000))
+        .setMaxRetryTimeoutMillis(90000);
+
+    return new RestHighLevelClient(builder);
+  }
+
   /**
    * Binds a DownloadFilesAggregator according to the DownloadFormat set using the key DOWNLOAD_FORMAT_KEY.
    */
@@ -186,6 +214,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
     public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
+    public static final String ES_INDEX_KEY = "es.index";
 
     /**
      * Hidden constructor.

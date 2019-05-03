@@ -10,7 +10,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class SpeciesListDownloadActor extends UntypedActor {
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();
     try {
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrenceKey -> {
         try {
           org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
           Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);

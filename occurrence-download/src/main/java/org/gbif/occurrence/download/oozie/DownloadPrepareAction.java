@@ -1,5 +1,11 @@
 package org.gbif.occurrence.download.oozie;
 
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.predicate.Predicate;
@@ -7,9 +13,9 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.query.EsQueryVisitor;
 import org.gbif.occurrence.download.query.HiveQueryVisitor;
 import org.gbif.occurrence.download.query.QueryBuildingException;
-import org.gbif.occurrence.download.query.SolrQueryVisitor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,9 +31,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -39,7 +42,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * This class sets the following parameters required by the download workflow:
  * - is_small_download: define if the occurrence download must be processed as a small(Solr) or a big (Hive) download.\
  * This parameter is calculated by executing a Solr query that counts the number of records.
- * - solr_query: query to process small download, it's a translation of the predicate filter.
+ * - search_query: query to process small download, it's a translation of the predicate filter.
  * - hive_query: query to process big download, it's a translation of the predicate filter.
  * - hive_db: this parameter is read from a properties file.
  * - download_key: download primary key, it's generated from the Oozie workflow id.
@@ -60,7 +63,7 @@ public class DownloadPrepareAction {
 
   private static final String IS_SMALL_DOWNLOAD = "is_small_download";
 
-  private static final String SOLR_QUERY = "solr_query";
+  private static final String SEARCH_QUERY = "search_query";
 
   private static final String HIVE_DB = "hive_db";
 
@@ -73,7 +76,9 @@ public class DownloadPrepareAction {
   // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
   private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
 
-  private final SolrClient solrClient;
+  private final RestHighLevelClient esClient;
+
+  private final String esIndex;
 
   // Holds the value of the maximum number of records that a small download can have.
   private final int smallDownloadLimit;
@@ -108,12 +113,14 @@ public class DownloadPrepareAction {
    */
   @Inject
   public DownloadPrepareAction(
-    SolrClient solrClient,
+    RestHighLevelClient esClient,
+    @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
     @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
     OccurrenceDownloadService occurrenceDownloadService,
     WorkflowConfiguration workflowConfiguration
   ) {
-    this.solrClient = solrClient;
+    this.esClient = esClient;
+    this.esIndex = esIndex;
     this.smallDownloadLimit = smallDownloadLimit;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.workflowConfiguration = workflowConfiguration;
@@ -149,10 +156,10 @@ public class DownloadPrepareAction {
         props.setProperty(HIVE_QUERY, rawPredicate); //is sql
       } else {
         Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-        String solrQuery = new SolrQueryVisitor().getQuery(predicate);
-        long recordCount = getRecordCount(solrQuery);
+        String searchQuery = new EsQueryVisitor().getQuery(predicate);
+        long recordCount = getRecordCount(searchQuery);
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-        props.setProperty(SOLR_QUERY, solrQuery);
+        props.setProperty(SEARCH_QUERY, searchQuery);
         props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
           updateTotalRecordsCount(downloadKey, recordCount);
@@ -178,10 +185,14 @@ public class DownloadPrepareAction {
    * Executes the Solr query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.
    */
-  private long getRecordCount(String solrQuery) {
+  private long getRecordCount(String esQuery) {
     try {
-      QueryResponse response = solrClient.query(new SolrQuery(solrQuery));
-      return response.getResults().getNumFound();
+      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
+      if(!Strings.isNullOrEmpty(esQuery)) {
+        searchSourceBuilder.query(QueryBuilders.wrapperQuery(esQuery));
+      }
+      SearchResponse response = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
+      return response.getHits().getTotalHits();
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
       return ERROR_COUNT;

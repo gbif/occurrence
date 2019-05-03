@@ -6,7 +6,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                                                                                   StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrenceKey -> {
           try {
             org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
             Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);

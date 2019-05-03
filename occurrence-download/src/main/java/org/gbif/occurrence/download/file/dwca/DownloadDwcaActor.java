@@ -10,7 +10,7 @@ import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.io.IOException;
@@ -114,7 +114,7 @@ public class DownloadDwcaActor extends UntypedActor {
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
                                                                                         Charsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrenceKey -> {
           try {
             // Writes the occurrence record obtained from HBase as Map<String,Object>.
             org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);

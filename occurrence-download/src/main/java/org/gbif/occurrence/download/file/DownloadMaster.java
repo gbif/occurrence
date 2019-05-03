@@ -1,7 +1,12 @@
 package org.gbif.occurrence.download.file;
 
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.common.search.solr.SolrConstants;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
@@ -11,7 +16,6 @@ import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -27,10 +31,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.fs.Path;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,8 @@ public class DownloadMaster extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
-  private final SolrClient solrClient;
+  private final RestHighLevelClient esClient;
+  private final String esIndex;
   private final Configuration conf;
   private final LockFactory lockFactory;
   private final OccurrenceMapReader occurrenceMapReader;
@@ -55,13 +56,14 @@ public class DownloadMaster extends UntypedActor {
    * Default constructor.
    */
   @Inject
-  public DownloadMaster(LockFactory lockFactory, Configuration configuration, SolrClient solrClient,
-                        OccurrenceMapReader occurrenceMapReader, DownloadJobConfiguration jobConfiguration,
-                        DownloadAggregator aggregator) {
+  public DownloadMaster(LockFactory lockFactory, Configuration configuration, RestHighLevelClient esClient,
+                        String esIndex, OccurrenceMapReader occurrenceMapReader,
+                        DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
-    this.solrClient = solrClient;
+    this.esClient = esClient;
+    this.esIndex = esIndex;
     this.occurrenceMapReader = occurrenceMapReader;
     this.aggregator = aggregator;
 
@@ -100,13 +102,15 @@ public class DownloadMaster extends UntypedActor {
    */
   private Long getSearchCount(String query) {
     try {
-      SolrQuery solrQuery = new SolrQuery().setQuery(SolrConstants.DEFAULT_QUERY).setRows(0);
+      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
       if (!Strings.isNullOrEmpty(query)) {
-        solrQuery.addFilterQuery(query);
+        searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
+      } else {
+        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
       }
-      QueryResponse queryResponse = solrClient.query(solrQuery);
-      return queryResponse.getResults().getNumFound();
-    } catch (SolrServerException | IOException e) {
+      SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
+      return searchResponse.getHits().getTotalHits();
+    } catch (Exception e) {
       LOG.error("Error executing Solr query", e);
       return 0L;
     }
@@ -126,7 +130,7 @@ public class DownloadMaster extends UntypedActor {
     }
     downloadTempDir.mkdirs();
 
-    int recordCount = getSearchCount(jobConfiguration.getSolrQuery()).intValue();
+    int recordCount = getSearchCount(jobConfiguration.getSearchQuery()).intValue();
     if (recordCount <= 0) { // no work to do: shutdown the system
       aggregateAndShutdown();
     } else  {
@@ -170,9 +174,10 @@ public class DownloadMaster extends UntypedActor {
                                                      + Path.SEPARATOR
                                                      + jobConfiguration.getDownloadTableName(),
                                                      i,
-                                                     jobConfiguration.getSolrQuery(),
+                                                     jobConfiguration.getSearchQuery(),
                                                      lock,
-                                                     solrClient,
+                                                     esClient,
+                                                     esIndex,
                                                      occurrenceMapReader);
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());

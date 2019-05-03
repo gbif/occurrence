@@ -64,9 +64,9 @@
 
   <action name="from_solr_download">
     <java>
-      <main-class>org.gbif.occurrence.download.oozie.FromSolrDownloadAction</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.FromSearchDownloadAction</main-class>
       <arg>${download_format}</arg>
-      <arg>${wf:actionData('download_prepare')['solr_query']}</arg>
+      <arg>${wf:actionData('download_prepare')['search_query']}</arg>
       <arg>${wf:actionData('download_prepare')['download_key']}</arg>
       <arg>${gbif_filter}</arg>
       <arg>${wf:actionData('download_prepare')['download_table_name']}</arg>

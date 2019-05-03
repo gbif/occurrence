@@ -24,16 +24,16 @@ import org.slf4j.LoggerFactory;
  * Class that encapsulates the process of creating the occurrence files from Solr/HBase.
  * To start the process
  */
-public class FromSolrDownloadAction {
+public class FromSearchDownloadAction {
 
-  private static final Logger LOG = LoggerFactory.getLogger(FromSolrDownloadAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FromSearchDownloadAction.class);
 
   private static final long SLEEP_TIME_BEFORE_TERMINATION = 5000L;
 
   /**
    * Private constructor.
    */
-  private FromSolrDownloadAction(){
+  private FromSearchDownloadAction(){
     //Instances of this class are not allowed
   }
 
@@ -50,7 +50,7 @@ public class FromSolrDownloadAction {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
-    run(workflowConfiguration, new DownloadJobConfiguration.Builder().withSolrQuery(args[1])
+    run(workflowConfiguration, new DownloadJobConfiguration.Builder().withSearchQuery(args[1])
           .withDownloadKey(args[2])
           .withFilter(args[3])
           .withDownloadTableName(args[4])
