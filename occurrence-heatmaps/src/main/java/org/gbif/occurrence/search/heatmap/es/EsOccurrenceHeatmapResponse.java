@@ -130,9 +130,9 @@ public class EsOccurrenceHeatmapResponse {
   }
 
   /** Bucket/aggregation response. */
-  public static class GeoGridBucket {
+  public static class GeoBoundsGridBucket {
     private String key;
-    private Integer docCount;
+    private Long docCount;
     private Cell cell;
 
     /** @return GeoHash key */
@@ -147,11 +147,11 @@ public class EsOccurrenceHeatmapResponse {
 
     /** @return number of documents in this cell */
     @JsonProperty("doc_count")
-    public Integer getDocCount() {
+    public Long getDocCount() {
       return docCount;
     }
 
-    public void setDocCount(Integer docCount) {
+    public void setDocCount(Long docCount) {
       this.docCount = docCount;
     }
 
@@ -173,7 +173,7 @@ public class EsOccurrenceHeatmapResponse {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      GeoGridBucket that = (GeoGridBucket) o;
+      GeoBoundsGridBucket that = (GeoBoundsGridBucket) o;
       return Objects.equals(key, that.key)
           && Objects.equals(docCount, that.docCount)
           && Objects.equals(cell, that.cell);
@@ -185,32 +185,128 @@ public class EsOccurrenceHeatmapResponse {
     }
   }
 
-  private List<GeoGridBucket> buckets;
 
-  /** @return a list of geo grid buckets */
-  @JsonProperty("buckets")
-  public List<GeoGridBucket> getBuckets() {
-    return buckets;
-  }
+  /** Bucket/aggregation response. */
+  public static class GeoCentroidGridBucket {
+    private String key;
+    private Long docCount;
+    private Coordinate centroid;
 
-  public void setBuckets(List<GeoGridBucket> buckets) {
-    this.buckets = buckets;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    /** @return GeoHash key */
+    @JsonProperty("key")
+    public String getKey() {
+      return key;
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+
+    public void setKey(String key) {
+      this.key = key;
     }
-    EsOccurrenceHeatmapResponse that = (EsOccurrenceHeatmapResponse) o;
-    return Objects.equals(buckets, that.buckets);
+
+    /** @return number of documents in this cell */
+    @JsonProperty("doc_count")
+    public Long getDocCount() {
+      return docCount;
+    }
+
+    public void setDocCount(Long docCount) {
+      this.docCount = docCount;
+    }
+
+    /** @return cell centroid */
+    @JsonProperty("centroid")
+    public Coordinate getCentroid() {
+      return centroid;
+    }
+
+    public void setCentroid(Coordinate centroid) {
+      this.centroid = centroid;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      GeoCentroidGridBucket that = (GeoCentroidGridBucket) o;
+      return Objects.equals(key, that.key)
+        && Objects.equals(docCount, that.docCount)
+        && Objects.equals(centroid, that.centroid);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(key, docCount, centroid);
+    }
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(buckets);
+
+
+  public static class GeoBoundsResponse {
+
+    private List<GeoBoundsGridBucket> buckets;
+    /**
+     * @return a list of geo grid buckets
+     */
+    @JsonProperty("buckets")
+    public List<GeoBoundsGridBucket> getBuckets() {
+      return buckets;
+    }
+
+    public void setBuckets(List<GeoBoundsGridBucket> buckets) {
+      this.buckets = buckets;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      GeoBoundsResponse that = (GeoBoundsResponse) o;
+      return Objects.equals(buckets, that.buckets);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(buckets);
+    }
+  }
+
+  public static class GeoCentroidResponse {
+
+    private List<GeoCentroidGridBucket> buckets;
+    /**
+     * @return a list of geo grid buckets
+     */
+    @JsonProperty("buckets")
+    public List<GeoCentroidGridBucket> getBuckets() {
+      return buckets;
+    }
+
+    public void setBuckets(List<GeoCentroidGridBucket> buckets) {
+      this.buckets = buckets;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      GeoCentroidResponse that = (GeoCentroidResponse) o;
+      return Objects.equals(buckets, that.buckets);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(buckets);
+    }
   }
 }

@@ -1,18 +1,21 @@
 package org.gbif.occurrence.search.heatmap;
 
+import org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse;
+
 import javax.annotation.Nullable;
 
 /**
- * Generic interface for heatmap services.
- * @param <T> response type
+ * Generic interface for Heatmap services.
  */
-public interface OccurrenceHeatmapService<T> {
+public interface OccurrenceHeatmapService {
 
   /**
-   * Generic method that receives a general heatmap request and returns a response specific to the geo-spatial engine.
-   * @param request generic heatmap reques
-
-   * @return
+   * Provides a HeatMap aggregation based on GeoBounds.
    */
-  T searchHeatMap(@Nullable OccurrenceHeatmapRequest request);
+  EsOccurrenceHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(@Nullable OccurrenceHeatmapRequest request);
+
+  /**
+   * Provides a HeatMap aggregation based on a GeoCentroid.
+   */
+  EsOccurrenceHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(@Nullable OccurrenceHeatmapRequest request);
 }

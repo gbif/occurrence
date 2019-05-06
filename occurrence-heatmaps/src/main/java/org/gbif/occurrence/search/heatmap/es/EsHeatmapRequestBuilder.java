@@ -10,6 +10,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.geobounds.GeoBoundsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.geocentroid.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.common.shaded.com.google.common.collect.Iterables;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
@@ -69,11 +70,16 @@ class EsHeatmapRequestBuilder {
             .field(OccurrenceEsField.COORDINATE_POINT.getFieldName())
             .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)]);
 
-    GeoBoundsAggregationBuilder geoBoundsAggs =
-        AggregationBuilders.geoBounds(CELL_AGGS)
-            .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+    if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
+      GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
+                                                        .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+      geoGridAggs.subAggregation(geoCentroidAggs);
+    } else {
+      GeoBoundsAggregationBuilder geoBoundsAggs = AggregationBuilders.geoBounds(CELL_AGGS)
+                                                    .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+      geoGridAggs.subAggregation(geoBoundsAggs);
+    }
 
-    geoGridAggs.subAggregation(geoBoundsAggs);
     filterAggs.subAggregation(geoGridAggs);
 
     return filterAggs;

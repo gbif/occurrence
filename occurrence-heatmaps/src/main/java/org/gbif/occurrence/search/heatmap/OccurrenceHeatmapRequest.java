@@ -11,9 +11,15 @@ import com.google.common.base.Objects;
  */
 public class OccurrenceHeatmapRequest extends  OccurrenceSearchRequest {
 
+  public enum Mode {
+    GEO_BOUNDS, GEO_CENTROID;
+  }
+
   private String geometry;
 
   private int zoom;
+
+  private Mode mode = Mode.GEO_BOUNDS;
 
   /**
    * Default empty constructor, required for serialization.
@@ -46,9 +52,18 @@ public class OccurrenceHeatmapRequest extends  OccurrenceSearchRequest {
     this.zoom = zoom;
   }
 
+  public Mode getMode() {
+    return mode;
+  }
+
+  public void setMode(Mode mode) {
+    this.mode = mode;
+  }
+
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("geometry", geometry).add("zoom",zoom).toString();
+    return MoreObjects.toStringHelper(this).add("geometry", geometry).add("zoom",zoom)
+            .add("mode", mode).toString();
   }
 
   @Override
@@ -62,12 +77,13 @@ public class OccurrenceHeatmapRequest extends  OccurrenceSearchRequest {
 
     OccurrenceHeatmapRequest that = (OccurrenceHeatmapRequest) obj;
     return Objects.equal(geometry, that.geometry)
-           && Objects.equal(zoom, that.zoom);
+           && Objects.equal(zoom, that.zoom)
+           && Objects.equal(mode, that.mode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), geometry, zoom);
+    return Objects.hashCode(super.hashCode(), geometry, zoom, mode);
   }
 
 }

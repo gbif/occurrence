@@ -26,7 +26,7 @@ public class EsOccurrenceHeatmapResponseSerDeserTest {
   public void deserializationTest() throws IOException {
     try (InputStream  testFile = EsOccurrenceHeatmapResponseSerDeserTest.class.getResourceAsStream(TEST_JSON_FILE)) {
       JsonNode json = MAPPER.readTree(testFile);
-      EsOccurrenceHeatmapResponse esOccurrenceHeatmapResponse = MAPPER.treeToValue(json.path("aggregations").path("heatmap"), EsOccurrenceHeatmapResponse.class);
+      EsOccurrenceHeatmapResponse.GeoBoundsResponse esOccurrenceHeatmapResponse = MAPPER.treeToValue(json.path("aggregations").path("heatmap"), EsOccurrenceHeatmapResponse.GeoBoundsResponse.class);
       Assert.assertEquals(esOccurrenceHeatmapResponse.getBuckets().size(), 10);
     }
   }
