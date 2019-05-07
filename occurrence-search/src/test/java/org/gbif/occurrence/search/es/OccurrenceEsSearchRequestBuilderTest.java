@@ -364,7 +364,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 0, 5);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -384,7 +384,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addMonthFilter(1);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -404,7 +404,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setMultiSelectFacets(true);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -440,7 +440,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setMultiSelectFacets(true);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -524,18 +524,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setOffset(2);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(2, jsonQuery.path(FROM).asInt());
     assertEquals(10, jsonQuery.path(SIZE).asInt());
-
-    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 1, 2, INDEX);
-    jsonQuery = MAPPER.readTree(request.source().toString());
-
-    assertEquals(1, jsonQuery.path(FROM).asInt());
-    assertEquals(2, jsonQuery.path(SIZE).asInt());
   }
 
   @Test
@@ -577,7 +571,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setQ("puma");
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -593,14 +587,14 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setQ("puma");
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
 
     // mix with q param and term
     searchRequest.addMonthFilter(1);
-    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
@@ -609,7 +603,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter(4);
 
-    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 200, 20, INDEX);
+    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -623,7 +617,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 3, 5);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -644,7 +638,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 10, 5);
 
     SearchRequest request =
-        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+        EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
@@ -664,7 +658,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacets(OccurrenceSearchParameter.MONTH);
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 14, 3);
 
-    EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, 0, 0, INDEX);
+    EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
   }
 
   @Test

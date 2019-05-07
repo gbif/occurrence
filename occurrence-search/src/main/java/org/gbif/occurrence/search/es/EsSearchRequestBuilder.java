@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -40,16 +41,13 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
 public class EsSearchRequestBuilder {
 
-  private static final int MAX_SIZE_TERMS_AGGS = 20000;
+  private static final int MAX_SIZE_TERMS_AGGS = 200000;
+  private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> size + 3000;
 
   private EsSearchRequestBuilder() {}
 
   public static SearchRequest buildSearchRequest(
-      OccurrenceSearchRequest searchRequest,
-      boolean facetsEnabled,
-      int maxOffset,
-      int maxLimit,
-      String index) {
+      OccurrenceSearchRequest searchRequest, boolean facetsEnabled, String index) {
 
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -58,8 +56,8 @@ public class EsSearchRequestBuilder {
     esRequest.source(searchSourceBuilder);
 
     // size and offset
-    searchSourceBuilder.size(Math.min(searchRequest.getLimit(), maxLimit));
-    searchSourceBuilder.from((int) Math.min(maxOffset, searchRequest.getOffset()));
+    searchSourceBuilder.size(searchRequest.getLimit());
+    searchSourceBuilder.from((int) searchRequest.getOffset());
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
@@ -89,7 +87,7 @@ public class EsSearchRequestBuilder {
     return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
   }
 
-  public static SearchRequest buildSuggestQuery(
+  static SearchRequest buildSuggestQuery(
       String prefix, OccurrenceSearchParameter parameter, Integer limit, String index) {
     SearchRequest request = new SearchRequest();
     request.indices(index);
@@ -301,7 +299,11 @@ public class EsSearchRequestBuilder {
     Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
 
     // aggs size
-    termsAggsBuilder.size(calculateAggsSize(esField, facetOffset, facetLimit));
+    int size = calculateAggsSize(esField, facetOffset, facetLimit);
+    termsAggsBuilder.size(size);
+
+    // aggs shard size
+    termsAggsBuilder.shardSize(CARDINALITIES.getOrDefault(esField, DEFAULT_SHARD_SIZE.applyAsInt(size)));
 
     return termsAggsBuilder;
   }
@@ -312,7 +314,7 @@ public class EsSearchRequestBuilder {
     // offset cannot be greater than the max cardinality
     if (facetOffset >= maxCardinality) {
       throw new IllegalArgumentException(
-          "facet paging for "
+          "Facet paging for "
               + esField.getFieldName()
               + " exceeds the cardinality of the field: "
               + CARDINALITIES.get(esField));

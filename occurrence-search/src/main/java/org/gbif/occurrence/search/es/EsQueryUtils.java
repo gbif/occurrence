@@ -191,6 +191,7 @@ public class EsQueryUtils {
           .put(OccurrenceEsField.LICENSE, License.values().length)
           .put(OccurrenceEsField.MEDIA_TYPE, MediaType.values().length)
           .put(OccurrenceEsField.TYPE_STATUS, TypeStatus.values().length)
+          .put(OccurrenceEsField.KINGDOM_KEY, Kingdom.values().length)
           .put(OccurrenceEsField.MONTH, 12)
           .build();
 

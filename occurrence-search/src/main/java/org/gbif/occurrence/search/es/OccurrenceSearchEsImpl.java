@@ -16,6 +16,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.elasticsearch.action.search.SearchRequest;
@@ -34,8 +35,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
   private final RestHighLevelClient esClient;
   private final String esIndex;
   private final boolean facetsEnabled;
-  private final int maxOffset;
   private final int maxLimit;
+  private final int maxOffset;
 
   @Inject
   public OccurrenceSearchEsImpl(
@@ -45,6 +46,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
       @Named("max.limit") int maxLimit,
       @Named("facets.enable") boolean facetsEnable,
       @Named("es.index") String esIndex) {
+    Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
+    Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     facetsEnabled = facetsEnable;
     this.maxOffset = maxOffset;
     this.maxLimit = maxLimit;
@@ -61,14 +64,24 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
       return new SearchResponse<>();
     }
 
+    Preconditions.checkArgument(
+        request.getLimit() <= maxLimit, "Max limit of " + maxLimit + " exceeded");
+    Preconditions.checkArgument(
+        request.getOffset() + request.getLimit() <= maxLimit,
+        "Max limit of "
+            + maxLimit
+            + " exceeded: "
+            + request.getOffset()
+            + " + "
+            + request.getLimit());
+
     if (!hasReplaceableScientificNames(request)) {
       return new SearchResponse<>(request);
     }
 
     // build request
     SearchRequest esRequest =
-        EsSearchRequestBuilder.buildSearchRequest(
-            request, facetsEnabled, maxOffset, maxLimit, esIndex);
+        EsSearchRequestBuilder.buildSearchRequest(request, facetsEnabled, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
