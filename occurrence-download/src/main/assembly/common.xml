@@ -104,6 +104,10 @@
         <include>org.elasticsearch.plugin:rank-eval-client:jar</include>
         <include>org.elasticsearch:elasticsearch:jar</include>
         <include>org.elasticsearch:elasticsearch-x-content:jar</include>
+        <include>org.elasticsearch:elasticsearch-core:jar</include>
+        <include>org.elasticsearch:elasticsearch-cli:jar</include>
+        <include>org.elasticsearch:elasticsearch-scure-sm:jar</include>
+        <include>org.elasticsearch:jna:jar</include>
         <include>org.apache.httpcomponents:httpasyncclient:jar</include>
         <include>org.apache.httpcomponents:httpcore-nio:jar</include>
         <include>org.apache.httpcomponents:httpmime:jar</include>
