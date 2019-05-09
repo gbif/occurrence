@@ -96,7 +96,7 @@ public enum OccurrenceEsField {
   CATALOG_NUMBER("catalogNumber"),
 
   ORGANISM_ID("organismId"),
-  OCCURRENCE_ID("occurrenceID"),
+  OCCURRENCE_ID("occurrenceId"),
   RECORDED_BY("recordBy"),
   RECORD_NUMBER("recordNumber"),
   BASIS_OF_RECORD("basisOfRecord"),
@@ -179,7 +179,7 @@ public enum OccurrenceEsField {
   LAST_CRAWLED("lastCrawled"),
   LAST_PARSED("created"),
 
-  MEDIA_TYPE("multimediaItems.type"),
+  MEDIA_TYPE("mediaTypes"),
   MEDIA_ITEMS("multimediaItems"),
   ISSUE("issues"),
 
