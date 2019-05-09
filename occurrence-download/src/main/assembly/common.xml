@@ -98,6 +98,7 @@
         <include>org.scala-lang:scala-library:jar</include>
         <include>org.elasticsearch.client:elasticsearch-rest-high-level-client:jar</include>
         <include>org.elasticsearch:elasticsearch:jar</include>
+        <include>org.elasticsearch:elasticsearch-x-content:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
