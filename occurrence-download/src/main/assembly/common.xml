@@ -112,6 +112,7 @@
         <include>org.apache.httpcomponents:httpcore-nio:jar</include>
         <include>org.apache.httpcomponents:httpmime:jar</include>
         <include>org.apache.lucene:*:jar</include>
+        <include>org.slf4j:*</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
