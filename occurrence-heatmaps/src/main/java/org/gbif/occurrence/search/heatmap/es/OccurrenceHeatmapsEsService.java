@@ -23,7 +23,10 @@ import java.util.stream.Collectors;
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 
-public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService {
+/**
+ * Elasticsearch heatmap service.
+ */
+public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<SearchRequest,SearchResponse> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
 
@@ -68,6 +71,16 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService {
       throw new SearchException(e);
     }
 
+  }
+
+  @Override
+  public SearchResponse searchOnEngine(SearchRequest searchRequest) {
+    try {
+      return esClient.search(searchRequest, HEADERS.get());
+    } catch (IOException e) {
+      LOG.error("Error executing the search operation", e);
+      throw new SearchException(e);
+    }
   }
 
   /**
