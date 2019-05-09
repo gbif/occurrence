@@ -106,6 +106,7 @@
         <include>org.elasticsearch:elasticsearch-x-content:jar</include>
         <include>org.apache.httpcomponents:httpasyncclient:jar</include>
         <include>org.apache.httpcomponents:httpcore-nio:jar</include>
+        <include>org.apache.httpcomponents:httpmime:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
