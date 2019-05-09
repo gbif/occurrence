@@ -98,6 +98,10 @@
         <include>org.scala-lang:scala-library:jar</include>
         <include>org.elasticsearch.client:elasticsearch-rest-client:jar</include>
         <include>org.elasticsearch.client:elasticsearch-rest-high-level-client:jar</include>
+        <include>org.elasticsearch.plugin:lang-mustache-client:jar</include>
+        <include>org.elasticsearch.plugin:aggs-matricx-stats-client:jar</include>
+        <include>org.elasticsearch.plugin:parent-join-client:jar</include>
+        <include>org.elasticsearch.plugin:rank-eval-client:jar</include>
         <include>org.elasticsearch:elasticsearch:jar</include>
         <include>org.elasticsearch:elasticsearch-x-content:jar</include>
       </includes>
