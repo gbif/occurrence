@@ -46,7 +46,7 @@
         ${(download_format eq 'SIMPLE_AVRO')}
       </case>
       <!-- it's a small download -->
-      <case to="from_solr_download">
+      <case to="from_elastic_download">
         ${wf:actionData('download_prepare')['is_small_download']}
       </case>
       <case to="simple_csv_download">
@@ -62,7 +62,7 @@
     </switch>
   </decision>
 
-  <action name="from_solr_download">
+  <action name="from_elastic_download">
     <java>
       <main-class>org.gbif.occurrence.download.oozie.FromSearchDownloadAction</main-class>
       <arg>${download_format}</arg>
