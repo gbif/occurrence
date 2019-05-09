@@ -104,6 +104,7 @@
         <include>org.elasticsearch.plugin:rank-eval-client:jar</include>
         <include>org.elasticsearch:elasticsearch:jar</include>
         <include>org.elasticsearch:elasticsearch-x-content:jar</include>
+        <include>org.apache.httpcomponents:httpasyncclient:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
