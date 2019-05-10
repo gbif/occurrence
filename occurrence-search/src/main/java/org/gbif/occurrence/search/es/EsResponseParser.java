@@ -2,6 +2,7 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -43,7 +44,7 @@ public class EsResponseParser {
    *
    * @return a new instance of a SearchResponse.
    */
-  static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
+  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
@@ -54,7 +55,20 @@ public class EsResponseParser {
     return response;
   }
 
-  static List<String> buildSuggestResponse(
+  /**
+   * Builds a SearchResponse instance using the current builder state.
+   *
+   * @return a new instance of a SearchResponse.
+   */
+  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
+
+    SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
+    response.setCount(esResponse.getHits().getTotalHits());
+    parseHits(esResponse).ifPresent(response::setResults);
+    return response;
+  }
+
+  public static List<String> buildSuggestResponse(
       org.elasticsearch.action.search.SearchResponse esResponse,
       OccurrenceSearchParameter parameter) {
 

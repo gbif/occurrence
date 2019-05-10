@@ -112,7 +112,11 @@
         <include>org.apache.httpcomponents:httpcore-nio:jar</include>
         <include>org.apache.httpcomponents:httpmime:jar</include>
         <include>org.apache.lucene:*:jar</include>
-        <include>log4j:log4j:jar</include>
+        <include>org.apache.log4j:log4j-api:jar</include>
+        <include>com.fasterxml.jackson.core:*:jar</include>
+        <include>com.fasterxml.jackson.dataformat:*:jar</include>
+        <include>joda-time:joda-time:jar</include>
+        <include>com.carrotsearch:hppc:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>

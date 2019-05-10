@@ -80,21 +80,16 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
     }
 
     // build request
-    SearchRequest esRequest =
-        EsSearchRequestBuilder.buildSearchRequest(request, facetsEnabled, esIndex);
+    SearchRequest esRequest = EsSearchRequestBuilder.buildSearchRequest(request, facetsEnabled, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
-    org.elasticsearch.action.search.SearchResponse response = null;
     try {
-      response = esClient.search(esRequest, HEADERS.get());
+      return EsResponseParser.buildResponse(esClient.search(esRequest, HEADERS.get()), request);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
-
-    // parse response
-    return EsResponseParser.buildResponse(response, request);
   }
 
   @Override

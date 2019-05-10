@@ -63,18 +63,15 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                                                                                   StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      SearchQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
-            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
-            Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+            Map<String, String> occurrenceRecordMap = buildOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
             if (occurrenceRecordMap != null) {
               //collect usages
               datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
                       occurrenceRecordMap.get(DcTerm.license.simpleName()));
               //write results
               csvMapWriter.write(occurrenceRecordMap, COLUMNS);
-            } else {
-              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
             }
           } catch (Exception e) {
             throw Throwables.propagate(e);
