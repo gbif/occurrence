@@ -34,7 +34,6 @@ public class NiceDateTemplateMethodModel implements TemplateMethodModelEx {
   public static String format(Date date) {
     LocalDateTime localTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d'" + getDayOfMonthSuffix(localTime.getDayOfMonth()) + "' MMMM yyyy");
-
     return formatter.format(localTime);
   }
 
