@@ -46,10 +46,24 @@ public class OccurrenceMapReaderTest {
     occurrence.setReferences(reference);
     occurrence.setLicense(License.CC_BY_4_0);
 
-    MediaObject mediaObject = new MediaObject();
-    mediaObject.setTitle("Image");
-    mediaObject.setType(MediaType.StillImage);
-    occurrence.setMedia(Collections.singletonList(mediaObject));
+    MediaObject mediaObjectStillImage = new MediaObject();
+    mediaObjectStillImage.setTitle("Image");
+    mediaObjectStillImage.setType(MediaType.StillImage);
+
+    MediaObject mediaObjectMovingImage = new MediaObject();
+    mediaObjectMovingImage.setTitle("Video");
+    mediaObjectMovingImage.setType(MediaType.MovingImage);
+
+    List<MediaObject> mediaObjects = new ArrayList<>();
+    mediaObjects.add(mediaObjectMovingImage);
+    mediaObjects.add(mediaObjectStillImage);
+
+    occurrence.setMedia(mediaObjects);
+    HashSet<OccurrenceIssue> issues = new HashSet<>();
+    issues.add(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH);
+    issues.add(OccurrenceIssue.TAXON_MATCH_FUZZY);
+    occurrence.setIssues(issues);
+
 
     Map<String,String> occurrenceMap = OccurrenceMapReader.buildOccurrenceMap(occurrence, Lists.newArrayList(TermUtils.interpretedTerms()));
 
@@ -70,5 +84,9 @@ public class OccurrenceMapReaderTest {
     Assert.assertEquals(reference.toString(), occurrenceMap.get(DcTerm.references.simpleName()));
     Assert.assertEquals(License.CC_BY_4_0.name(), occurrenceMap.get(DcTerm.license.simpleName()));
     Assert.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.StillImage.name()));
+    Assert.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.MovingImage.name()));
+    Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH.name()));
+    Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.TAXON_MATCH_FUZZY.name()));
+    Assert.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasGeospatialIssues.simpleName()));
   }
 }

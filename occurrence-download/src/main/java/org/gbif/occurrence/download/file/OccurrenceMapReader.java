@@ -12,14 +12,14 @@ import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
- * Reads a occurrence record from HBase and return it in a Map<String,Object>.
+ * Transforms a Occurrence object in a Map<String,String>.
+ * The key values are determined by the related Term.simpleName of a occurrence property.
  */
 public class OccurrenceMapReader {
 
@@ -40,8 +40,6 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.protocol.simpleName(), getSimpleValue(occurrence.getProtocol()));
     interpretedOccurrence.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(occurrence.getCrawlId()));
 
-
-
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
     interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(), getSimpleValue(occurrence.getAcceptedTaxonKey()));
@@ -57,7 +55,6 @@ public class OccurrenceMapReader {
       Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
         .ifPresent( rankKey -> interpretedOccurrence.put(OccurrenceBuilder.rank2KeyTerm.get(rank).simpleName(), rankKey.toString()))
     );
-
 
     // other java properties
     interpretedOccurrence.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(occurrence.getBasisOfRecord()));
@@ -91,7 +88,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DcTerm.references.simpleName(), getSimpleValue(occurrence.getReferences()));
     interpretedOccurrence.put(DcTerm.license.simpleName(), getSimpleValue(occurrence.getLicense()));
 
-
+    //Boolean flags
     interpretedOccurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(occurrence.hasSpatialIssue()));
     interpretedOccurrence.put(GbifTerm.hasCoordinate.simpleName(), Boolean.toString(occurrence.getDecimalLatitude() != null && occurrence.getDecimalLongitude() != null));
 
@@ -99,12 +96,13 @@ public class OccurrenceMapReader {
     extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
 
-
-
     return interpretedOccurrence;
   }
 
 
+  /**
+   * Builds Map that contains a lists of terms.
+   */
   public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Term> terms) {
     return  buildOccurrenceMap(occurrence).entrySet().stream()
               .filter(entry -> terms.stream().anyMatch(term -> term.simpleName().equals(entry.getKey())))
@@ -112,6 +110,9 @@ public class OccurrenceMapReader {
   }
 
 
+  /**
+   * Joins a collection of UUIDs into String.
+   */
   private static String joinUUIDs(Collection<UUID> uuids) {
     if (uuids != null ) {
      return uuids.stream().map(UUID::toString).collect(Collectors.joining(";"));
@@ -119,6 +120,9 @@ public class OccurrenceMapReader {
     return null;
   }
 
+  /**
+   * Extract the Iso2LetterCode from the country.
+   */
   private static String getCountryCode(Country country) {
     if (country != null) {
       return country.getIso2LetterCode();
@@ -127,20 +131,19 @@ public class OccurrenceMapReader {
   }
 
 
+  /**
+   * Transforma a simple data type into a String.
+   */
   private static String getSimpleValue(Object value) {
     if (value != null) {
-      if (value instanceof Date) {
-        return toISO8601Date((Date) value);
-      } else if (value instanceof Number) {
+      if (value instanceof Number || value instanceof UUID || value instanceof URI) {
         return value.toString();
+      } else if (value instanceof Date) {
+        return toISO8601Date((Date) value);
       } else if (value instanceof String) {
         return cleanString((String) value);
       } else if (value instanceof Enum<?>) {
         return ((Enum<?>)value).name();
-      } else if (value instanceof UUID) {
-        return ((UUID)value).toString();
-      } else if (value instanceof URI) {
-        return ((URI)value).toString();
       }
     }
     return null;
@@ -161,7 +164,7 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Extracts the media types from the hbase result.
+   * Extracts the media types from the record.
    */
   private static Optional<String> extractMediaTypes(Occurrence occurrence) {
     return  Optional.ofNullable(occurrence.getMedia())
@@ -171,7 +174,7 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Extracts the spatial issues from the hbase result.
+   * Extracts the spatial issues from the record.
    */
   private static Optional<String> extractOccurrenceIssues(Occurrence occurrence) {
     return  Optional.ofNullable(occurrence.getIssues())
@@ -181,16 +184,17 @@ public class OccurrenceMapReader {
 
 
   /**
-   * Utility to build an API Occurrence from an HBase row.
-   *
-   * @return A complete occurrence, or null
+   * Extract all the verbatim data into a Map.
    */
-  public static Map<String, String> buildVerbatimOccurrenceMap(@Nullable Occurrence occurrence) {
+  public static Map<String, String> buildVerbatimOccurrenceMap(Occurrence occurrence) {
     return occurrence.getVerbatimFields().entrySet().stream()
             .collect(HashMap::new, (m,v) -> m.put(v.getKey().simpleName(), v.getValue()), HashMap::putAll);
   }
 
 
+  /**
+   * Removes all delimiters in a string.
+   */
   private static String cleanString(String value) {
     return Optional.ofNullable(value).map(v -> DELIMETERS_MATCH_PATTERN.matcher(v).replaceAll(" ")).orElse(value);
   }
@@ -198,7 +202,7 @@ public class OccurrenceMapReader {
   /**
    * Converts a date object into a String in IS0 8601 format.
    */
-  public static String toISO8601Date(Date date) {
+  protected static String toISO8601Date(Date date) {
     return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
