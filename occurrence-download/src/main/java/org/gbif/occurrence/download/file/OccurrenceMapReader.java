@@ -108,7 +108,7 @@ public class OccurrenceMapReader {
   public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Term> terms) {
     return  buildOccurrenceMap(occurrence).entrySet().stream()
               .filter(entry -> terms.stream().anyMatch(term -> term.simpleName().equals(entry.getKey())))
-              .collect(HashMap::new, (m,v)->m.put(v.getKey(), v.getValue()), HashMap::putAll);
+              .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
 
 
@@ -187,7 +187,7 @@ public class OccurrenceMapReader {
    */
   public static Map<String, String> buildVerbatimOccurrenceMap(@Nullable Occurrence occurrence) {
     return occurrence.getVerbatimFields().entrySet().stream()
-            .collect(Collectors.toMap(e -> e.getKey().simpleName(), Map.Entry::getValue));
+            .collect(HashMap::new, (m,v) -> m.put(v.getKey().simpleName(), v.getValue()), HashMap::putAll);
   }
 
 
