@@ -45,7 +45,6 @@ public class DownloadMaster extends UntypedActor {
   private final String esIndex;
   private final Configuration conf;
   private final LockFactory lockFactory;
-  private final OccurrenceMapReader occurrenceMapReader;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
   private List<Result> results = Lists.newArrayList();
@@ -56,15 +55,15 @@ public class DownloadMaster extends UntypedActor {
    * Default constructor.
    */
   @Inject
-  public DownloadMaster(LockFactory lockFactory, Configuration configuration, RestHighLevelClient esClient,
-                        String esIndex, OccurrenceMapReader occurrenceMapReader,
+  public DownloadMaster(LockFactory lockFactory, Configuration configuration,
+                        RestHighLevelClient esClient,
+                        @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
                         DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
     this.esClient = esClient;
     this.esIndex = esIndex;
-    this.occurrenceMapReader = occurrenceMapReader;
     this.aggregator = aggregator;
 
   }
@@ -177,8 +176,7 @@ public class DownloadMaster extends UntypedActor {
                                                      jobConfiguration.getSearchQuery(),
                                                      lock,
                                                      esClient,
-                                                     esIndex,
-                                                     occurrenceMapReader);
+                                                     esIndex);
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
         lock.lock();

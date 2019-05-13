@@ -32,13 +32,12 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final String esIndex;
 
-  private final OccurrenceMapReader occurrenceMapReader;
 
   /**
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
-                          RestHighLevelClient esClient, String esIndex,OccurrenceMapReader occurrenceMapReader) {
+                          RestHighLevelClient esClient, String esIndex) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -48,7 +47,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.lock = lock;
     this.esClient = esClient;
     this.esIndex = esIndex;
-    this.occurrenceMapReader = occurrenceMapReader;
   }
 
   /**
@@ -127,13 +125,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    */
   public String getEsIndex() {
     return esIndex;
-  }
-
-  /**
-   * @return reads Hbase results into HashMaps
-   */
-  public OccurrenceMapReader getOccurrenceMapReader() {
-    return occurrenceMapReader;
   }
 
   @Override

@@ -81,7 +81,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Override
   protected void configure() {
     Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
     Optional.ofNullable(configuration).ifPresent(conf -> bind(DownloadJobConfiguration.class).toInstance(conf));
