@@ -108,7 +108,7 @@ public class OccurrenceMapReader {
   public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Term> terms) {
     return  buildOccurrenceMap(occurrence).entrySet().stream()
               .filter(entry -> terms.stream().anyMatch(term -> term.simpleName().equals(entry.getKey())))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+              .collect(HashMap::new, (m,v)->m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
 
 
@@ -131,7 +131,7 @@ public class OccurrenceMapReader {
     if (value != null) {
       if (value instanceof Date) {
         return toISO8601Date((Date) value);
-      } else if (value instanceof Double) {
+      } else if (value instanceof Number) {
         return value.toString();
       } else if (value instanceof String) {
         return cleanString((String) value);
@@ -155,7 +155,7 @@ public class OccurrenceMapReader {
     Country countryCode = occurrence.getCountry();
 
     if (publishingCountry != null && countryCode != null) {
-      return Optional.of(Boolean.toString(countryCode == publishingCountry));
+      return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
   }
@@ -197,7 +197,7 @@ public class OccurrenceMapReader {
   /**
    * Converts a date object into a String in IS0 8601 format.
    */
-  private static String toISO8601Date(Date date) {
+  public static String toISO8601Date(Date date) {
     return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 

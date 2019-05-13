@@ -66,13 +66,13 @@ public class SimpleCsvDownloadActor extends UntypedActor {
       SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
             Map<String, String> occurrenceRecordMap = buildOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
-            if (occurrenceRecordMap != null) {
-              //collect usages
-              datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-                      occurrenceRecordMap.get(DcTerm.license.simpleName()));
-              //write results
-              csvMapWriter.write(occurrenceRecordMap, COLUMNS);
-            }
+
+            //collect usages
+            datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+                    occurrenceRecordMap.get(DcTerm.license.simpleName()));
+            //write results
+            csvMapWriter.write(occurrenceRecordMap, COLUMNS);
+
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }
