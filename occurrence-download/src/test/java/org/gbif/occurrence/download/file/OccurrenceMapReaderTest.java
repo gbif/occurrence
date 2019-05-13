@@ -1,11 +1,9 @@
 package org.gbif.occurrence.download.file;
 
 import com.google.common.collect.Lists;
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.*;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -14,9 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URI;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 /**
@@ -50,6 +46,11 @@ public class OccurrenceMapReaderTest {
     occurrence.setReferences(reference);
     occurrence.setLicense(License.CC_BY_4_0);
 
+    MediaObject mediaObject = new MediaObject();
+    mediaObject.setTitle("Image");
+    mediaObject.setType(MediaType.StillImage);
+    occurrence.setMedia(Collections.singletonList(mediaObject));
+
     Map<String,String> occurrenceMap = OccurrenceMapReader.buildOccurrenceMap(occurrence, Lists.newArrayList(TermUtils.interpretedTerms()));
 
     Assert.assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
@@ -68,5 +69,6 @@ public class OccurrenceMapReaderTest {
     Assert.assertEquals(datasetKey.toString(), occurrenceMap.get(GbifTerm.datasetKey.simpleName()));
     Assert.assertEquals(reference.toString(), occurrenceMap.get(DcTerm.references.simpleName()));
     Assert.assertEquals(License.CC_BY_4_0.name(), occurrenceMap.get(DcTerm.license.simpleName()));
+    Assert.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.StillImage.name()));
   }
 }

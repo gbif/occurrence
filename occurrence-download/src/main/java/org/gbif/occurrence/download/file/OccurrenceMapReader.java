@@ -165,7 +165,8 @@ public class OccurrenceMapReader {
    */
   private static Optional<String> extractMediaTypes(Occurrence occurrence) {
     return  Optional.ofNullable(occurrence.getMedia())
-              .map(media -> media.stream().map(mediaObject -> mediaObject.getType().name())
+              .map(media -> media.stream().filter(mediaObject -> Objects.nonNull(mediaObject.getType()))
+                              .map(mediaObject -> mediaObject.getType().name())
                               .collect(Collectors.joining(";")));
   }
 
