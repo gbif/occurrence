@@ -16,7 +16,9 @@ import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.Actor;
@@ -73,7 +75,21 @@ public class DownloadMaster extends UntypedActor {
    */
   private void aggregateAndShutdown() {
     aggregator.aggregate(results);
+    shutDownEsClientSilently();
     getContext().stop(getSelf());
+  }
+
+  /**
+   * Shuts down the ElasticSearch client
+   */
+  private void shutDownEsClientSilently() {
+    try {
+      if(Objects.nonNull(esClient)) {
+        esClient.close();
+      }
+    } catch (IOException ex) {
+      LOG.error("Error shutting down Elasticsearch client", ex);
+    }
   }
 
   @Override
