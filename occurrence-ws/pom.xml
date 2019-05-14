@@ -7,7 +7,7 @@
     <version>0.96-ES-SNAPSHOT</version>
   </parent>
 
-  <artifactId>occurrence-ws</artifactId>
+  <artifactId>es-occurrence-ws</artifactId>
   <packaging>jar</packaging>
 
   <name>Occurrence Web service</name>
