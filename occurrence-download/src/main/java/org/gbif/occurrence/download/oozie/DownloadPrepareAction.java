@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.google.common.base.Strings;
@@ -196,6 +197,21 @@ public class DownloadPrepareAction {
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
       return ERROR_COUNT;
+    } finally {
+      shutDownEsClientSilently();
+    }
+  }
+
+  /**
+   * Shuts down the ElasticSearch client.
+   */
+  private void shutDownEsClientSilently() {
+    try {
+      if(Objects.nonNull(esClient)) {
+        esClient.close();
+      }
+    } catch (IOException ex) {
+      LOG.error("Error shutting down Elasticsearch client", ex);
     }
   }
 
