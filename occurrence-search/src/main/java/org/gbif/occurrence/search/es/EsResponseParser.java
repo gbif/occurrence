@@ -252,7 +252,7 @@ public class EsResponseParser {
     getStringValue(hit, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
     getIntValue(hit, USAGE_TAXON_KEY).ifPresent(occ::setTaxonKey);
     getIntValue(hit, ACCEPTED_TAXON_KEY).ifPresent(occ::setAcceptedTaxonKey);
-    getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setScientificName);
+    getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setAcceptedScientificName);
     getValue(hit, TAXONOMIC_STATUS, TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
   }
 
