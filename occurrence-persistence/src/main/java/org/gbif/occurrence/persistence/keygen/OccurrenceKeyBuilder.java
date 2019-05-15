@@ -9,7 +9,7 @@ import com.google.common.collect.Sets;
  */
 public class OccurrenceKeyBuilder implements KeyBuilder {
 
-  private static final String DELIM = "|";
+  public static final String DELIM = "|";
 
   @Override
   public Set<String> buildKeys(Set<String> uniqueStrings, String scope) {
