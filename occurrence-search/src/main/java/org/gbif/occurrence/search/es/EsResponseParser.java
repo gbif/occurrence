@@ -275,7 +275,7 @@ public class EsResponseParser {
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(occ::setCrawlId);
     getDateValue(hit, LAST_INTERPRETED).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, LAST_PARSED).ifPresent(occ::setLastParsed);
-    getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastParsed);
+    getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastCrawled);
   }
 
   private static void parseMultimediaItems(SearchHit hit, Occurrence occ) {
