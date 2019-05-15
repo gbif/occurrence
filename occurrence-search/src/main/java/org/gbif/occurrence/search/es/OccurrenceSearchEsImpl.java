@@ -94,9 +94,9 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     Preconditions.checkArgument(
         request.getLimit() <= maxLimit, "Max limit of " + maxLimit + " exceeded");
     Preconditions.checkArgument(
-        request.getOffset() + request.getLimit() <= maxLimit,
-        "Max limit of "
-            + maxLimit
+        request.getOffset() + request.getLimit() <= maxOffset,
+        "Max offset of "
+            + maxOffset
             + " exceeded: "
             + request.getOffset()
             + " + "
