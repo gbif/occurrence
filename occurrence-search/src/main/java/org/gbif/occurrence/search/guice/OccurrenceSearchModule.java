@@ -8,6 +8,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
 import org.gbif.service.guice.PrivateServiceModule;
@@ -31,6 +32,7 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
   @Override
   protected void configureService() {
     bind(OccurrenceSearchService.class).to(OccurrenceSearchEsImpl.class);
+    bind(OccurrenceGetByKey.class).to(OccurrenceSearchEsImpl.class);
     expose(OccurrenceSearchService.class);
   }
 

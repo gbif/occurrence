@@ -137,38 +137,39 @@ public class EsResponseParser {
 
     return Optional.of(
         Stream.of(esResponse.getHits().getHits())
-            .map(
-                hit -> {
-                  // create occurrence
-                  Occurrence occ = new Occurrence();
-
-                  // set fields
-                  setOccurrenceFields(hit, occ);
-                  setLocationFields(hit, occ);
-                  setTemporalFields(hit, occ);
-                  setCrawlingFields(hit, occ);
-                  setDatasetFields(hit, occ);
-                  setTaxonFields(hit, occ);
-
-                  // issues
-                  getListValue(hit, ISSUE)
-                      .ifPresent(
-                          v ->
-                              occ.setIssues(
-                                  v.stream()
-                                      .map(OccurrenceIssue::valueOf)
-                                      .collect(Collectors.toSet())));
-
-                  // multimedia extension
-                  parseMultimediaItems(hit, occ);
-
-                  // add verbatim fields
-                  occ.setVerbatimFields(extractVerbatimFields(hit));
-                  // TODO: add verbatim extensions
-
-                  return occ;
-                })
+            .map(EsResponseParser::toOccurrence)
             .collect(Collectors.toList()));
+  }
+
+  public static Occurrence toOccurrence(SearchHit hit) {
+    // create occurrence
+    Occurrence occ = new Occurrence();
+
+    // set fields
+    setOccurrenceFields(hit, occ);
+    setLocationFields(hit, occ);
+    setTemporalFields(hit, occ);
+    setCrawlingFields(hit, occ);
+    setDatasetFields(hit, occ);
+    setTaxonFields(hit, occ);
+
+    // issues
+    getListValue(hit, ISSUE)
+      .ifPresent(
+        v ->
+          occ.setIssues(
+            v.stream()
+              .map(OccurrenceIssue::valueOf)
+              .collect(Collectors.toSet())));
+
+    // multimedia extension
+    parseMultimediaItems(hit, occ);
+
+    // add verbatim fields
+    occ.setVerbatimFields(extractVerbatimFields(hit));
+    // TODO: add verbatim extensions
+
+    return occ;
   }
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {

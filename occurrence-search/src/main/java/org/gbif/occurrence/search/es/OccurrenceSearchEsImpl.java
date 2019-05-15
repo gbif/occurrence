@@ -1,5 +1,10 @@
 package org.gbif.occurrence.search.es;
 
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -8,11 +13,13 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
@@ -27,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 /** Occurrence search service. */
-public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
+public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
@@ -55,6 +62,26 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService {
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
+  }
+
+  @Override
+  public Occurrence get(long key) {
+    //This should be changed to use GetRequest once ElasticSearch stores id correctly
+    SearchRequest searchRequest = new SearchRequest();
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.size(1);
+    searchRequest.indices(esIndex);
+    searchSourceBuilder.query(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), key));
+    searchRequest.source(searchSourceBuilder);
+    try {
+      SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
+      if(hits != null && hits.totalHits > 0 ) {
+        return EsResponseParser.toOccurrence(hits.getAt(0));
+      }
+      return null;
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   @Override
