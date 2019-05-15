@@ -154,7 +154,7 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-ws</artifactId>
+      <artifactId>es-occurrence-ws</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>
