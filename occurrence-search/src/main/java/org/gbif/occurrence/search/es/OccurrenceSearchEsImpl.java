@@ -65,7 +65,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   }
 
   @Override
-  public Occurrence get(long key) {
+  public Occurrence get(Long key) {
     //This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

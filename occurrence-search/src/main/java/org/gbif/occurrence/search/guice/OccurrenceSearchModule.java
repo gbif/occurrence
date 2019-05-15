@@ -34,6 +34,7 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
     bind(OccurrenceSearchService.class).to(OccurrenceSearchEsImpl.class);
     bind(OccurrenceGetByKey.class).to(OccurrenceSearchEsImpl.class);
     expose(OccurrenceSearchService.class);
+    expose(OccurrenceGetByKey.class);
   }
 
   @Provides

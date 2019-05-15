@@ -14,9 +14,10 @@ import java.util.UUID;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 
 
-public class OccurrencePersistenceMockService implements OccurrenceService {
+public class OccurrencePersistenceMockService implements OccurrenceService, OccurrenceGetByKey {
 
   protected static final List<UUID> DATASETS = Lists.newArrayList();
   private static final String UUID_PREFIX = "111aaa11-0000-1111-2222-f5f5f5d8888";

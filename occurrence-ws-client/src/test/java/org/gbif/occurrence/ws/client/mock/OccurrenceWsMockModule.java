@@ -8,6 +8,7 @@ import org.gbif.occurrence.download.service.CallbackService;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.mockito.Mockito;
 
 public class OccurrenceWsMockModule extends PrivateModule {
@@ -15,12 +16,14 @@ public class OccurrenceWsMockModule extends PrivateModule {
   @Override
   protected void configure() {
     bind(OccurrenceService.class).to(OccurrencePersistenceMockService.class).in(Scopes.SINGLETON);
+    bind(OccurrenceGetByKey.class).to(OccurrencePersistenceMockService.class).in(Scopes.SINGLETON);
     bind(OccurrenceSearchService.class).to(OccurrenceSearchMockService.class).in(Scopes.SINGLETON);
     //Following mocked services are required to bind all the services expected by the client module
     bind(OccurrenceDownloadService.class).toInstance(Mockito.mock(OccurrenceDownloadService.class));
     bind(DownloadRequestService.class).toInstance(Mockito.mock(DownloadRequestService.class));
     bind(CallbackService.class).toInstance(Mockito.mock(CallbackService.class));
     expose(OccurrenceService.class);
+    expose(OccurrenceGetByKey.class);
     expose(OccurrenceSearchService.class);
     expose(OccurrenceDownloadService.class);
     expose(DownloadRequestService.class);
