@@ -157,7 +157,7 @@ public enum OccurrenceEsField {
   SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet"),
   INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraSpecificEpithet"),
   GENERIC_NAME("gbifClassification.usageParsedName.genericName"),
-  TAXONOMIC_STATUS("gbifClassification.diagnostics.sttaus"),
+  TAXONOMIC_STATUS("gbifClassification.diagnostics.status"),
 
   //Sampling
   EVENT_ID("eventId"),
