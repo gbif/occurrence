@@ -3,7 +3,6 @@ package org.gbif.occurrence.search.guice;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;

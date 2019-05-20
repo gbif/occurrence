@@ -5,9 +5,16 @@ import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.TimerContext;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
+import org.gbif.occurrence.search.es.EsQueryUtils;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +45,13 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
   private final Timer writeTimer = Metrics.newTimer(getClass(), "occurrenceIndexWrites", TimeUnit.MILLISECONDS,
                                                     TimeUnit.SECONDS);
 
-//  private final Duration updateWithin;
+  private final Duration updateWithin;
 
-//  private final SolrOccurrenceWriter solrOccurrenceWriter;
+  private final RestHighLevelClient esClient;
 
-//  private final List<Occurrence> updateBatch;
+  private final String esIndex;
+
+  private final List<Occurrence> updateBatch;
 
   private LocalDateTime lastUpdate = LocalDateTime.now();
 
@@ -69,55 +78,68 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
 //      }
 //  }
 
-//  /**
-//   * Default constructor.
-//   */
-//  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter, int solrUpdateBatchSize,
-//                              long solrUpdateWithinMs) {
-//    this.solrOccurrenceWriter = solrOccurrenceWriter;
-//    updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
-//    updateWithin = Duration.ofMillis(solrUpdateWithinMs);
-//    updateTimer.scheduleWithFixedDelay(() -> {
-//                try {
-//                  atomicAddOrUpdate();
-//                } catch (Exception ex){
-//                  throw new RuntimeException(ex);
-//                }
-//            }, solrUpdateWithinMs, solrUpdateWithinMs, TimeUnit.MILLISECONDS);
-//  }
+  /**
+   * Default constructor.
+   */
+  public IndexUpdaterCallback(RestHighLevelClient esClient, String esIndex,
+                              int solrUpdateBatchSize,
+                              long solrUpdateWithinMs) {
+    this.esClient = esClient;
+    this.esIndex = esIndex;
+    updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
+    updateWithin = Duration.ofMillis(solrUpdateWithinMs);
+    updateTimer.scheduleWithFixedDelay(() -> {
+                try {
+                  atomicAddOrUpdate();
+                } catch (Exception ex){
+                  throw new RuntimeException(ex);
+                }
+            }, solrUpdateWithinMs, solrUpdateWithinMs, TimeUnit.MILLISECONDS);
+  }
 
   @Override
   public void handleMessage(OccurrenceMutatedMessage message) {
-//    LOG.debug("Handling [{}] occurrence", message.getStatus());
-//    messageCount.inc();
-//    TimerContext context = writeTimer.time();
-//    try {
-//      switch (message.getStatus()) {
-//        case NEW:
-//          // create occurrence
-//          updateBatch.add(message.getNewOccurrence());
-//          atomicAddOrUpdate();
-//          newOccurrencesCount.inc();
-//          break;
-//        case UPDATED:
-//          // update occurrence
-//          updateBatch.add(message.getNewOccurrence());
-//          atomicAddOrUpdate();
-//          updatedOccurrencesCount.inc();
-//          break;
-//        case DELETED:
-//          // delete occurrence
-//          solrOccurrenceWriter.delete(message.getOldOccurrence());
-//          deletedOccurrencesCount.inc();
-//          break;
-//        case UNCHANGED:
-//          break;
-//      }
-//    } catch (Exception e) {
-//      LOG.error("Error while updating occurrence index for [{}], error [{}]", message.getStatus(), e);
-//    } finally {
-//      context.stop();
-//    }
+    LOG.debug("Handling [{}] occurrence", message.getStatus());
+    messageCount.inc();
+    TimerContext context = writeTimer.time();
+    try {
+      switch (message.getStatus()) {
+        case NEW:
+          // create occurrence
+          updateBatch.add(message.getNewOccurrence());
+          atomicAddOrUpdate();
+         newOccurrencesCount.inc();
+          break;
+        case UPDATED:
+          // update occurrence
+          updateBatch.add(message.getNewOccurrence());
+          atomicAddOrUpdate();
+          updatedOccurrencesCount.inc();
+          break;
+        case DELETED:
+          // delete occurrence
+          deleteOccurrence(message.getOldOccurrence());
+          break;
+        case UNCHANGED:
+          break;
+      }
+    } catch (Exception e) {
+      LOG.error("Error while updating occurrence index for [{}], error [{}]", message.getStatus(), e);
+    } finally {
+      context.stop();
+    }
+  }
+
+
+  /**
+   * Performs a DeleteByQuery.
+   */
+  private void deleteOccurrence(Occurrence occurrence) throws IOException {
+    DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest();
+    deleteByQueryRequest.indices(esIndex);
+    deleteByQueryRequest.setQuery(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), occurrence.getKey()));
+    BulkByScrollResponse response = esClient.deleteByQuery(deleteByQueryRequest, EsQueryUtils.HEADERS.get());
+    deletedOccurrencesCount.inc(response.getDeleted());
   }
 
   /**
@@ -125,12 +147,13 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
    */
   @Override
   public void close() {
-//    try {
-//      addOrUpdate(true);
-//    } catch (Exception e) {
-//      LOG.error("Error closing callback", e);
-//    }
-//    updateTimer.shutdownNow();
+    try {
+      //addOrUpdate(true);
+      esClient.close();
+    } catch (Exception e) {
+      LOG.error("Error closing callback", e);
+    }
+    updateTimer.shutdownNow();
   }
 
 }
