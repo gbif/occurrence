@@ -1,5 +1,9 @@
 package org.gbif.occurrence.persistence.hbase;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.RegexStringComparator;
+import org.apache.hadoop.hbase.filter.RowFilter;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.hbase.util.ResultReader;
 
@@ -14,6 +18,8 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.gbif.occurrence.persistence.keygen.KeyBuilder;
+import org.gbif.occurrence.persistence.keygen.OccurrenceKeyBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -32,14 +38,28 @@ public class HBaseStore<T> {
   private final String cf;
   private final byte[] cfBytes;
   private final Connection connection;
+  private final boolean salted;
+  private final Integer numberOfBuckets;
 
   // TODO consider a put and get builder that adds columns with successive calls
 
   public HBaseStore(String tableName, String cf, Connection connection) {
+    this(tableName, cf, connection, null);
+  }
+
+  public HBaseStore(String tableName, String cf, Connection connection, Integer numberOfBuckets) {
     this.tableName = TableName.valueOf(checkNotNull(tableName, "tableName can't be null"));
     this.cf = checkNotNull(cf, "cf can't be null");
     cfBytes = Bytes.toBytes(cf);
     this.connection = checkNotNull(connection, "connection can't be null");
+    if (numberOfBuckets != null) {
+      checkArgument(numberOfBuckets>0, "bucket count must be >0");
+      this.numberOfBuckets = numberOfBuckets;
+      this.salted = true;
+    } else {
+      this.numberOfBuckets = null;
+      salted = false;
+    }
   }
 
   public Integer getInt(T key, String columnName) {
@@ -239,19 +259,69 @@ public class HBaseStore<T> {
   }
 
   private byte[] convertKey(T key) {
-    // instanceof is dirty, but it's that or separate classes for different key types
-    if (key instanceof Integer) {
-      return Bytes.toBytes((Integer) key);
-    } else if (key instanceof String) {
-      return Bytes.toBytes((String) key);
-    } else if (key instanceof Long) {
-      return Bytes.toBytes((Long) key);
-    } else if (key instanceof Float) {
-      return Bytes.toBytes((Float) key);
-    } else if (key instanceof Double) {
-      return Bytes.toBytes((Double) key);
+    if (salted) {
+      return saltKey(String.valueOf(key), numberOfBuckets);
+    } else {
+      // instanceof is dirty, but it's that or separate classes for different key types
+      if (key instanceof Integer) {
+        return Bytes.toBytes((Integer) key);
+      } else if (key instanceof String) {
+        return Bytes.toBytes((String) key);
+      } else if (key instanceof Long) {
+        return Bytes.toBytes((Long) key);
+      } else if (key instanceof Float) {
+        return Bytes.toBytes((Float) key);
+      } else if (key instanceof Double) {
+        return Bytes.toBytes((Double) key);
+      }
+      return null;
     }
+  }
 
-    return null;
+  /**
+   * Returns the unsalted key using a modulus based approach.
+   * @param unsalted Key to salt
+   * @param numberOfBuckets To use in salting
+   * @return The salted key
+   */
+  @VisibleForTesting
+  public static byte[] saltKey(String unsalted, int numberOfBuckets) {
+    int salt = Math.abs(unsalted.hashCode() % numberOfBuckets);
+    int digitCount = digitCount(numberOfBuckets-1);  // minus one because e.g. %100 produces 0..99 (2 digits)
+    String saltedKey = leftPadZeros(salt,digitCount) + ":" + unsalted;
+    return Bytes.toBytes(saltedKey);
+  }
+
+  /**
+   * Pads with 0s to desired length.
+   * @param number To pad
+   * @param length The final length needed
+   * @return The string padded with 0 if needed
+   */
+  private static String leftPadZeros(int number, int length) {
+    return String.format("%0" + length + "d", number);
+  }
+
+  /**
+   * Returns the number of digits in the number. This will only provide sensible results for
+   * number>0 and the input is not sanitized.
+   *
+   * @return the number of digits in the number
+   */
+  private static int digitCount(int number) {
+    return (int) (Math.log10(number) + 1);
+  }
+
+  /**
+   * Returns a row filter to enable scanning for occurrences of salted keys.
+   * E.g. passed a dataset UUID, this will allow a scan of the occurrence lookup table
+   * @param key Which is unsalted (e.g. a dataset UUID as a string)
+   * @return The Row filter for scanning
+   */
+  public static RowFilter saltedRowFilter(String key) {
+    return new RowFilter(
+      CompareFilter.CompareOp.EQUAL,
+      new RegexStringComparator("^[0-9]+:" + key + "\\|.+")
+    );
   }
 }
