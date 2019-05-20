@@ -1,8 +1,8 @@
 package org.gbif.occurrence.download.service.freemarker;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -32,12 +32,9 @@ public class NiceDateTemplateMethodModel implements TemplateMethodModelEx {
   }
 
   public static String format(Date date) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-
-    DateFormat dateFormat = new SimpleDateFormat("d'" + getDayOfMonthSuffix(dayOfMonth) + "' MMMM yyyy");
-    return dateFormat.format(date.getTime());
+    LocalDateTime localTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d'" + getDayOfMonthSuffix(localTime.getDayOfMonth()) + "' MMMM yyyy");
+    return formatter.format(localTime);
   }
 
   private static String getDayOfMonthSuffix(int n) {
