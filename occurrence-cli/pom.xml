@@ -7,7 +7,7 @@
     <version>0.96-ES-SNAPSHOT</version>
   </parent>
 
-  <artifactId>occurrence-cli</artifactId>
+  <artifactId>es-occurrence-cli</artifactId>
   <packaging>jar</packaging>
 
   <name>Occurrence CLI</name>
@@ -508,4 +508,3 @@
     </profile>
   </profiles>
 </project>
-
