@@ -10,6 +10,7 @@ import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.TermUtils;
@@ -60,7 +61,8 @@ public class EsResponseParser {
    *
    * @return a new instance of a SearchResponse.
    */
-  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
+  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
+      org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits());
@@ -155,18 +157,16 @@ public class EsResponseParser {
 
     // issues
     getListValue(hit, ISSUE)
-      .ifPresent(
-        v ->
-          occ.setIssues(
-            v.stream()
-              .map(OccurrenceIssue::valueOf)
-              .collect(Collectors.toSet())));
+        .ifPresent(
+            v ->
+                occ.setIssues(
+                    v.stream().map(OccurrenceIssue::valueOf).collect(Collectors.toSet())));
 
     // multimedia extension
     parseMultimediaItems(hit, occ);
 
     // add verbatim fields
-    occ.setVerbatimFields(extractVerbatimFields(hit));
+    occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
     // TODO: add verbatim extensions
 
     return occ;
@@ -174,6 +174,12 @@ public class EsResponseParser {
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
     getValue(hit, GBIF_ID, Long::valueOf).ifPresent(occ::setKey);
+    getValue(hit, GBIF_ID, Long::valueOf)
+        .ifPresent(
+            id -> {
+              occ.setKey(id);
+              occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
+            });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
     getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf)
         .ifPresent(occ::setEstablishmentMeans);
