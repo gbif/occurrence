@@ -9,6 +9,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.*;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -160,7 +161,10 @@ public class EsResponseParser {
         .ifPresent(
             v ->
                 occ.setIssues(
-                    v.stream().map(OccurrenceIssue::valueOf).collect(Collectors.toSet())));
+                    v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
+                      .filter(com.google.common.base.Optional::isPresent)
+                      .map(com.google.common.base.Optional::get)
+                      .collect(Collectors.toSet())));
 
     // multimedia extension
     parseMultimediaItems(hit, occ);
