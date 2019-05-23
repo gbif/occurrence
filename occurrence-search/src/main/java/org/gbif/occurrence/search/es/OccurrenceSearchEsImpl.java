@@ -1,10 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -19,7 +14,6 @@ import org.gbif.occurrence.search.SearchException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
@@ -28,6 +22,9 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
