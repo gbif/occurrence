@@ -61,7 +61,7 @@ class IndexingConfiguration {
     return Objects.toStringHelper(this)
       .add("messaging", messaging).add("ganglia", ganglia)
       .add("poolSize", poolSize).add("msgPoolSize", msgPoolSize)
-      .add("commitWithinMs", commitWithinMs).add("queueName", queueName).add("solrServer", solrServer)
+      .add("commitWithinMs", commitWithinMs).add("queueName", queueName)
       .add("esHosts", esHosts).add("esIndex", esIndex)
       .add("updateBatchSize", updateBatchSize)
       .toString();
