@@ -279,10 +279,8 @@ public class FragmentProcessor {
       if (status == OccurrencePersistenceStatus.NEW) {
         FragmentCreationResult creationResult = fragmentPersister.insert(fragment, uniqueIds);
         if (!creationResult.isKeyCreated()) {
-          // we lost a race to generate the key for these uniqueIds, and now this is an update
-          status = OccurrencePersistenceStatus.UPDATED;
           LOG.info(
-            "Fragment creation did not generate new key - lost race and now using existing [{}] as status [UPDATE]",
+            "Fragment creation did not generate new key [{}] but wrote the fragment",
             fragment.getKey());
         }
       } else {
