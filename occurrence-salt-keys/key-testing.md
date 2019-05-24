@@ -99,7 +99,7 @@ Index iNatarulist concurrently on top of `test 5`. Concurrent ID assigning will 
 9,053,152 SOLR
 9,053,152 ES
 9,513,524 Lookup (= Test 4 + dataset size)
-All records show as unchanged - all ran through fast
+All existing records show as unchanged - all ran through fast
 ```
 
 A script was used to pull all IDs from Solr and ES and confirm the same IDs were in both.
