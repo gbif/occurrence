@@ -3,7 +3,7 @@
 Tests that 2 distinct processes assigning keys using the same lookup table can coexist.
 Tests use the Rabbit/Solr ingestion and the Beam/ES pipeline.
 
-** Summary: The results confirm things operate as expected **
+**Summary: The results confirm things operate as expected**
 
 ## Tests
 
