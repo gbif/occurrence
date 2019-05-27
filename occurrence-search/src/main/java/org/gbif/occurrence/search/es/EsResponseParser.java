@@ -179,7 +179,6 @@ public class EsResponseParser {
   }
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, GBIF_ID, Long::valueOf).ifPresent(occ::setKey);
     getValue(hit, GBIF_ID, Long::valueOf)
         .ifPresent(
             id -> {
@@ -275,7 +274,7 @@ public class EsResponseParser {
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
         .ifPresent(occ::setPublishingOrgKey);
-    getValue(hit, LICENSE, v -> License.fromLicenseUrl(v).orNull()).ifPresent(occ::setLicense);
+    getValue(hit, LICENSE, v -> License.fromString(v).orNull()).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
     getListValue(hit, NETWORK_KEY)
