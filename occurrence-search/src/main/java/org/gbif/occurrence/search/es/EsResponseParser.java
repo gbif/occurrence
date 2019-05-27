@@ -14,6 +14,7 @@ import org.gbif.api.vocabulary.*;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
@@ -38,6 +39,7 @@ public class EsResponseParser {
 
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
+  private static final TermFactory TERM_FACTORY = TermFactory.instance();
 
   private EsResponseParser() {}
 
@@ -392,8 +394,20 @@ public class EsResponseParser {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
     return verbatimCoreFields.entrySet().stream()
-        .map(e -> new SimpleEntry<>(TermFactory.instance().findTerm(e.getKey()), e.getValue()))
+        .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
         .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * Re-maps terms to handle Unknown terms.
+   * This has to be done because Pipelines preserve Unknown terms and do not add the URI for unknown terms.
+   */
+  private static Term mapTerm(String verbatimTerm) {
+    Term term  = TERM_FACTORY.findTerm(verbatimTerm);
+    if (term instanceof UnknownTerm) {
+      return UnknownTerm.build(term.simpleName(), false);
+    }
+    return term;
   }
 }
