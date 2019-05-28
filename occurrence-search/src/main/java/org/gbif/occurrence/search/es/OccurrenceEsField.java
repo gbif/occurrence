@@ -155,7 +155,7 @@ public enum OccurrenceEsField {
   SPECIES("gbifClassification.species"),
   SCIENTIFIC_NAME("gbifClassification.usage.name"),
   SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet"),
-  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraSpecificEpithet"),
+  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet"),
   GENERIC_NAME("gbifClassification.usageParsedName.genericName"),
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status"),
 

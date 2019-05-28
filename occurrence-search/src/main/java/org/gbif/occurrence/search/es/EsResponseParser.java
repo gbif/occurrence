@@ -73,15 +73,14 @@ public class EsResponseParser {
     return response;
   }
 
-  public static List<String> buildSuggestResponse(
-      org.elasticsearch.action.search.SearchResponse esResponse,
-      OccurrenceSearchParameter parameter) {
+  public static List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
+                                                  OccurrenceSearchParameter parameter) {
 
     String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
         .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
-        .map(o -> ((CompletionSuggestion.Entry.Option) o).getHit())
+        .map(CompletionSuggestion.Entry.Option::getHit)
         .map(hit -> hit.getSourceAsMap().get(fieldName))
         .filter(Objects::nonNull)
         .map(String::valueOf)
@@ -132,18 +131,14 @@ public class EsResponseParser {
             .collect(Collectors.toList()));
   }
 
-  private static Optional<List<Occurrence>> parseHits(
-      org.elasticsearch.action.search.SearchResponse esResponse) {
-    if (esResponse.getHits() == null
-        || esResponse.getHits().getHits() == null
-        || esResponse.getHits().getHits().length == 0) {
+  private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse) {
+    if (esResponse.getHits() == null || esResponse.getHits().getHits() == null || esResponse.getHits().getHits().length == 0) {
       return Optional.empty();
     }
 
-    return Optional.of(
-        Stream.of(esResponse.getHits().getHits())
-            .map(EsResponseParser::toOccurrence)
-            .collect(Collectors.toList()));
+    return Optional.of(Stream.of(esResponse.getHits().getHits())
+                         .map(EsResponseParser::toOccurrence)
+                         .collect(Collectors.toList()));
   }
 
   public static Occurrence toOccurrence(SearchHit hit) {
@@ -352,15 +347,13 @@ public class EsResponseParser {
         .filter(v -> !v.isEmpty());
   }
 
-  private static Optional<List<Map<String, Object>>> getObjectsListValue(
-      SearchHit hit, OccurrenceEsField esField) {
+  private static Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
     return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
         .map(v -> (List<Map<String, Object>>) v)
         .filter(v -> !v.isEmpty());
   }
 
-  private static <T> Optional<T> getValue(
-      SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
+  private static <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
     String fieldName = esField.getFieldName();
     Map<String, Object> fields = hit.getSourceAsMap();
     if (IS_NESTED.test(esField.getFieldName())) {
@@ -377,12 +370,11 @@ public class EsResponseParser {
     return extractValue(fields, fieldName, mapper);
   }
 
-  private static <T> Optional<T> extractValue(
-      Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
+  private static <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
     return Optional.ofNullable(fields.get(fieldName))
-        .map(String::valueOf)
-        .filter(v -> !v.isEmpty())
-        .map(mapper);
+            .map(String::valueOf)
+            .filter(v -> !v.isEmpty())
+            .map(mapper);
   }
 
   private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
@@ -393,9 +385,9 @@ public class EsResponseParser {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
     return verbatimCoreFields.entrySet().stream()
-        .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
-        .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
+            .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**
