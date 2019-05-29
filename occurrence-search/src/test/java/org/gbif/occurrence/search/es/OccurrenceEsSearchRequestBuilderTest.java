@@ -4,6 +4,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.MediaType;
 
 import java.io.IOException;
 
@@ -54,6 +55,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addYearFilter(1999);
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
+    searchRequest.addMediaTypeFilter(MediaType.StillImage);
 
     QueryBuilder query =
         EsSearchRequestBuilder.buildQueryNode(searchRequest)
@@ -62,7 +64,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(2, jsonQuery.path(BOOL).path(FILTER).size());
+    assertEquals(3, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         1999, jsonQuery.path(BOOL).path(FILTER).findValue(YEAR.getFieldName()).get(VALUE).asInt());
     assertEquals(
@@ -73,6 +75,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .findValue(COUNTRY_CODE.getFieldName())
             .get(VALUE)
             .asText());
+    assertEquals(
+      MediaType.StillImage.name(), jsonQuery
+        .path(BOOL)
+        .path(FILTER)
+        .findValue(MEDIA_TYPE.getFieldName())
+        .get(VALUE)
+        .asText());
   }
 
   @Test

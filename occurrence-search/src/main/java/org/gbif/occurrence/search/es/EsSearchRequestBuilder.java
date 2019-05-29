@@ -4,6 +4,7 @@ import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.Country;
 
 import java.io.IOException;
 import java.util.*;
@@ -332,12 +333,19 @@ public class EsSearchRequestBuilder {
     return limit;
   }
 
-  private static List<QueryBuilder> buildTermQuery(
-      Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
-    List<QueryBuilder> queries = new ArrayList<>();
+  /**
+   * Mapping parameter values into know values for Enums.
+   * Non-enum parameter values are passed using its raw value.
+   */
+  private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
+    if (Enum.class.isAssignableFrom(parameter.type()) && !Country.class.isAssignableFrom(parameter.type())) {
+      return  VocabularyUtils.lookup(value, (Class<Enum<?>>)parameter.type()).transform(Enum::name).orNull();
+    }
+    return value;
+  }
 
-    BiFunction<String, OccurrenceSearchParameter, String> parser =
-        (v, p) -> Enum.class.isAssignableFrom(p.type()) ? VocabularyUtils.lookup(v, (Class<Enum<?>>)p.type()).transform(Enum::name).orNull() : v;
+  private static List<QueryBuilder> buildTermQuery(Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
+    List<QueryBuilder> queries = new ArrayList<>();
 
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
@@ -347,7 +355,7 @@ public class EsSearchRequestBuilder {
         continue;
       }
 
-      parsedValues.add(parser.apply(value, param));
+      parsedValues.add(parseParamValue(value, param));
     }
 
     if (parsedValues.size() == 1) {
