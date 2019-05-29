@@ -33,6 +33,8 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
@@ -43,6 +45,8 @@ public class EsResponseParser {
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
+
+  private static final Logger LOG = LoggerFactory.getLogger(EsResponseParser.class);
 
   /**
    * Private constructor.
@@ -178,21 +182,49 @@ public class EsResponseParser {
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
     // add verbatim fields
-    vOcc.getVerbatimFields().putAll(parseTermMap(hit));
+    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+
+    vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
+
+    if (verbatimData.containsKey("extensions" )) {
+      vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
+    }
+
     return vOcc;
   }
+
+  private static Map<Extension, List<Map<Term, String>>> parseExtensionsMap(Map<String, Object> extensions) {
+    // parse extensions
+    Map<Extension, List<Map<Term, String>>> extTerms = Maps.newHashMap();
+    for (String rowType : extensions.keySet()) {
+      // first pare into a term cause the extension lookup by rowType is very strict
+      Term rowTypeTerm = TERM_FACTORY.findTerm(rowType);
+      Extension ext = Extension.fromRowType(rowTypeTerm.qualifiedName());
+      if (ext == null) {
+        LOG.debug("Ignore unknown extension {}", rowType);
+      } else {
+        List<Map<Term, String>> records = new ArrayList<>();
+        // transform records to term based map
+        for (Map<String, Object> rawRecord : (List<Map<String, Object>>) extensions.get(rowType)) {
+          records.add(parseVerbatimTermMap(rawRecord));
+        }
+        extTerms.put(ext, records);
+      }
+    }
+    return extTerms;
+  }
+
+
+
 
   /**
    * Parses a simple string based map into a Term based map, ignoring any non term entries and not parsing nested
    * e.g. extensions data.
    * This produces a Map of verbatim data.
    */
-  private static Map<Term, String> parseTermMap(SearchHit hit) {
+  private static Map<Term, String> parseVerbatimTermMap(Map<String, Object> data) {
 
     Map<Term, String> terms = Maps.newHashMap();
-
-    Map<String, Object> data = (Map<String, Object>)((Map<String, Object>) hit.getSourceAsMap().get("verbatim")).get("core");
-
     data.forEach( (simpleTermName,value) -> {
       if (Objects.nonNull(value) && !simpleTermName.equalsIgnoreCase("extensions")) {
         Term term = TERM_FACTORY.findTerm(simpleTermName);
