@@ -3,6 +3,7 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.VocabularyUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -336,7 +337,7 @@ public class EsSearchRequestBuilder {
     List<QueryBuilder> queries = new ArrayList<>();
 
     BiFunction<String, OccurrenceSearchParameter, String> parser =
-        (v, p) -> Enum.class.isAssignableFrom(p.type()) ? v.toUpperCase() : v;
+        (v, p) -> Enum.class.isAssignableFrom(p.type()) ? VocabularyUtils.lookup(v, (Class<Enum<?>>)p.type()).transform(Enum::name).orNull() : v;
 
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();

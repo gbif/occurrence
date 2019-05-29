@@ -4,6 +4,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
@@ -14,15 +15,18 @@ import org.gbif.occurrence.search.SearchException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
@@ -61,8 +65,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
-  @Override
-  public Occurrence get(Long key) {
+
+  private <T> T searchByKey(Long key, Function<SearchHit,T> mapper) {
     //This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -73,12 +77,22 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     try {
       SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
       if(hits != null && hits.totalHits > 0 ) {
-        return EsResponseParser.toOccurrence(hits.getAt(0));
+        return mapper.apply(hits.getAt(0));
       }
       return null;
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  @Override
+  public Occurrence get(Long key) {
+    return searchByKey(key, EsResponseParser::toOccurrence);
+  }
+
+  @Override
+  public VerbatimOccurrence getVerbatim(Long key) {
+    return searchByKey(key, EsResponseParser::toVerbatimOccurrence);
   }
 
   @Override

@@ -7,10 +7,12 @@ import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -40,6 +42,11 @@ public class EsResponseParser {
   private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
+
+  private static final Set<OccurrenceEsField> VERBATIM_TERMS = Arrays.stream(OccurrenceEsField.values())
+                                                                .filter(esField ->
+                                                                          Objects.nonNull(esField.getTerm()) &&  ! (esField.getTerm() instanceof GbifTerm || esField.getTerm() instanceof GbifInternalTerm))
+                                                                .collect(Collectors.toSet());
 
   private EsResponseParser() {}
 
@@ -139,6 +146,41 @@ public class EsResponseParser {
     return Optional.of(Stream.of(esResponse.getHits().getHits())
                          .map(EsResponseParser::toOccurrence)
                          .collect(Collectors.toList()));
+  }
+
+
+  public static VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
+    VerbatimOccurrence vOcc = new VerbatimOccurrence();
+    getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
+      .ifPresent(vOcc::setPublishingCountry);
+    getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(vOcc::setDatasetKey);
+    getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(vOcc::setInstallationKey);
+    getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
+      .ifPresent(vOcc::setPublishingOrgKey);
+    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(vOcc::setProtocol);
+
+    getListValue(hit, NETWORK_KEY)
+      .ifPresent(
+        v -> vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
+    getDateValue(hit, LAST_PARSED).ifPresent(vOcc::setLastParsed);
+    getDateValue(hit, LAST_CRAWLED).ifPresent(vOcc::setLastCrawled);
+    getValue(hit, GBIF_ID, Long::valueOf)
+      .ifPresent(
+        id -> {
+          vOcc.setKey(id);
+          vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
+        });
+    // add verbatim fields
+    vOcc.getVerbatimFields().putAll(extractVerbatimFields(hit));
+    VERBATIM_TERMS.forEach(esField -> getStringValue(hit, esField)
+                                        .ifPresent(value -> {
+                                          if (!vOcc.hasVerbatimField(esField.getTerm()) && !TermUtils.isInterpretedSourceTerm(esField.getTerm())) {
+                                            vOcc.setVerbatimField(esField.getTerm(), value);
+                                          }
+                                        }));
+
+    return vOcc;
   }
 
   public static Occurrence toOccurrence(SearchHit hit) {

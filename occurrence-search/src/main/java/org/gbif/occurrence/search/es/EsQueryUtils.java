@@ -5,11 +5,14 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,35 +87,27 @@ public class EsQueryUtils {
         }
 
         // parse string
-        TemporalAccessor temporalAccessor = FORMATTER.parse(dateAsString);
-
-        // create local date time
-        LocalDateTime localDateTime =
-            LocalDateTime.now().withYear(temporalAccessor.get(ChronoField.YEAR));
-
-        if (temporalAccessor.isSupported(ChronoField.MONTH_OF_YEAR)) {
-          localDateTime = localDateTime.withMonth(temporalAccessor.get(ChronoField.MONTH_OF_YEAR));
-        }
-        if (temporalAccessor.isSupported(ChronoField.DAY_OF_MONTH)) {
-          localDateTime =
-              localDateTime.withDayOfMonth(temporalAccessor.get(ChronoField.DAY_OF_MONTH));
-        }
-        if (temporalAccessor.isSupported(ChronoField.HOUR_OF_DAY)) {
-          localDateTime = localDateTime.withHour(temporalAccessor.get(ChronoField.HOUR_OF_DAY));
-        }
-        if (temporalAccessor.isSupported(ChronoField.MINUTE_OF_HOUR)) {
-          localDateTime =
-              localDateTime.withMinute(temporalAccessor.get(ChronoField.MINUTE_OF_HOUR));
-        }
-        if (temporalAccessor.isSupported(ChronoField.SECOND_OF_MINUTE)) {
-          localDateTime =
-              localDateTime.withSecond(temporalAccessor.get(ChronoField.SECOND_OF_MINUTE));
-        }
-        if (temporalAccessor.isSupported(ChronoField.NANO_OF_SECOND)) {
-          localDateTime = localDateTime.withNano(temporalAccessor.get(ChronoField.NANO_OF_SECOND));
+        TemporalAccessor temporalAccessor = FORMATTER.parseBest(dateAsString,
+                                                                ZonedDateTime::from,
+                                                                LocalDateTime::from,
+                                                                LocalDate::from,
+                                                                YearMonth::from,
+                                                                Year::from);
+        if (temporalAccessor instanceof ZonedDateTime) {
+          return Date.from(((ZonedDateTime)temporalAccessor).toInstant());
+        } else if (temporalAccessor instanceof LocalDateTime) {
+          return Date.from(((LocalDateTime)temporalAccessor).toInstant(ZoneOffset.UTC));
+        } else if (temporalAccessor instanceof LocalDate) {
+          return Date.from((((LocalDate)temporalAccessor).atStartOfDay()).toInstant(ZoneOffset.UTC));
+        } else if (temporalAccessor instanceof YearMonth) {
+          return Date.from((((YearMonth)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
+        } else if (temporalAccessor instanceof Year) {
+          return Date.from((((Year)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
+        } else {
+          return null;
         }
 
-        return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
+
       };
 
   // functions
@@ -215,5 +210,9 @@ public class EsQueryUtils {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
+  }
+
+  public static void main(String[] args) {
+
   }
 }

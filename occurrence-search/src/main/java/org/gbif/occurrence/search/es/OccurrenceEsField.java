@@ -1,203 +1,145 @@
 package org.gbif.occurrence.search.es;
 
 /**
- * <field name="key" type="int" indexed="true" stored="true" required="true"docValues="true"/>
- * <field name="dataset_key" type="string" indexed="true" stored="false" docValues="true"/> <field
- * name="installation_key" type="string" indexed="true" stored="false" docValues="true"/> <field
- * name="network_key" type="string" indexed="true" stored="false" multiValued="true"
- * docValues="true"/> <field name="taxon_key" type="int" indexed="true" stored="false"
- * multiValued="true" docValues="true"/> <field name="accepted_taxon_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="kingdom_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="phylum_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="class_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="order_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="family_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="genus_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="subgenus_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="species_key" type="int" indexed="true"
- * stored="false" docValues="true"/> <field name="taxonomic_status" type="string" indexed="true"
- * stored="false" docValues="true"/> <field name="basis_of_record" type="string" indexed="true"
- * stored="false" docValues="true"/> <field name="year" type="int" indexed="true" stored="false"
- * docValues="true"/> <field name="month" type="int" indexed="true" stored="false"
- * docValues="true"/> <field name="elevation" type="double" indexed="true" stored="false"
- * docValues="true"/> <field name="depth" type="double" indexed="true" stored="false"
- * docValues="true"/> <field name="catalog_number" type="string_ci" indexed="true" stored="false" />
- * <field name="recorded_by" type="string_ci" indexed="true" stored="false" /> <field
- * name="record_number" type="string_ci" indexed="true" stored="false" /> <field
- * name="institution_code" type="string_ci" indexed="true" stored="false" /> <field
- * name="collection_code" type="string_ci" indexed="true" stored="false" /> <field name="country"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="continent"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="publishing_country"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="coordinate"
- * type="coordinate" indexed="true" stored="false" /> <field name="spatial_issues" type="boolean"
- * indexed="true" stored="false" /> <field name="has_coordinate" type="boolean" indexed="true"
- * stored="false" /> <field name="latitude" type="double" indexed="true" stored="false" /> <field
- * name="longitude" type="double" indexed="true" stored="false" /> <field name="event_date"
- * type="date" indexed="true" stored="false" /> <field name="last_interpreted" type="date"
- * indexed="true" stored="false" /> <field name="type_status" type="string" indexed="true"
- * stored="false" docValues="true"/> <field name="media_type" type="string" indexed="true"
- * stored="false" multiValued="true" docValues="true"/> <field name="issue" type="string"
- * indexed="true" stored="false" multiValued="true" docValues="true"/> <field
- * name="establishment_means" type="string" indexed="true" stored="false" docValues="true"/> <field
- * name="occurrence_id" type="string" indexed="true" stored="false"/> <field name="scientific_name"
- * type="string_ci" indexed="true" stored="false" /> <field name="organism_id" type="string_ci"
- * indexed="true" stored="false"/> <field name="state_province" type="string_ci" indexed="true"
- * stored="false"/> <field name="water_body" type="string_ci" indexed="true" stored="false"/> <field
- * name="locality" type="string_ci" indexed="true" stored="false"/> <field name="protocol"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="license"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="crawl_id" type="int"
- * indexed="true" stored="false" docValues="true"/> <field name="publishing_organization_key"
- * type="string" indexed="true" stored="false" docValues="true"/> <field name="repatriated"
- * type="boolean" indexed="true" stored="false" /> <field name="event_id" type="string"
- * indexed="true" stored="false" docValues="true"/> <field name="parent_event_id" type="string"
- * indexed="true" stored="false" docValues="true"/> <field name="sampling_protocol" type="string"
- * indexed="true" stored="false" docValues="true"/> <field name="full_text" type="text_general"
- * indexed="true" stored="false" multiValued="true"/>
- *
- * <p>Supported fields: // TODO: update fields
- * KEY("key"), LATITUDE("latitude"), LONGITUDE("longitude"),
- * COORDINATE("coordinate"), COUNTRY("country"), PUBLISHING_COUNTRY("publishing_country"),
- * CONTINENT("continent"), YEAR("year"), MONTH("month"), CATALOG_NUMBER("catalog_number"),
- * RECORDED_BY("recorded_by"), RECORD_NUMBER("record_number"), BASIS_OF_RECORD("basis_of_record"),
- * DATASET_KEY("dataset_key"), TAXON_KEY("taxon_key"), ACCEPTED_TAXON_KEY("accepted_taxon_key"),
- * KINGDOM_KEY("kingdom_key"), PHYLUM_KEY("phylum_key"), CLASS_KEY("class_key"),
- * ORDER_KEY("order_key"), FAMILY_KEY("family_key"), GENUS_KEY("genus_key"),
- * SUBGENUS_KEY("subgenus_key"), SPECIES_KEY("species_key"), TAXONOMIC_STATUS("taxonomic_status"),
- * COLLECTION_CODE("collection_code"), ELEVATION("elevation"), DEPTH("depth"),
- * INSTITUTION_CODE("institution_code"), HAS_GEOSPATIAL_ISSUES("spatial_issues"),
- * HAS_COORDINATE("has_coordinate"), EVENT_DATE("event_date"), LAST_INTERPRETED("last_interpreted"),
- * TYPE_STATUS("type_status"), MEDIA_TYPE("media_type"), ISSUE("issue"),
- * ESTABLISHMENT_MEANS("establishment_means"), OCCURRENCE_ID("occurrence_id"),
- * SCIENTIFIC_NAME("scientific_name"), FULL_TEXT("full_text"), REPATRIATED("repatriated"),
- * ORGANISM_ID("organism_id"), STATE_PROVINCE("state_province"), WATER_BODY("water_body"),
- * LOCALITY("locality"), PROTOCOL("protocol"), LICENSE("license"), CRAWL_ID("crawl_id"),
- * PUBLISHING_ORGANIZATION_KEY("publishing_organization_key"), INSTALLATION_KEY("installation_key"),
- * NETWORK_KEY("network_key"), EVENT_ID("event_id"), PARENT_EVENT_ID("parent_event_id"),
- * SAMPLING_PROTOCOL("sampling_protocol");
+ * Enumeration that holds a map
  */
+
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
 public enum OccurrenceEsField {
 
-  KEY("id"),
+  KEY("id", GbifTerm.gbifID),
 
   //Dataset derived
-  DATASET_KEY("datasetKey"),
-  PUBLISHING_COUNTRY("publishingCountry"),
-  PUBLISHING_ORGANIZATION_KEY("publishingOrganizationKey"),
-  INSTALLATION_KEY("installationKey"),
-  NETWORK_KEY("networkKeys"),
-  PROTOCOL("protocol"),
-  LICENSE("license"),
+  DATASET_KEY("datasetKey", GbifTerm.datasetKey),
+  PUBLISHING_COUNTRY("publishingCountry", GbifTerm.publishingCountry),
+  PUBLISHING_ORGANIZATION_KEY("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey),
+  INSTALLATION_KEY("installationKey", GbifInternalTerm.installationKey),
+  NETWORK_KEY("networkKeys", GbifInternalTerm.networkKey),
+  PROTOCOL("protocol", GbifTerm.protocol),
+  LICENSE("license", DcTerm.license),
 
   //Core identification
-  INSTITUTION_CODE("institutionCode"),
-  COLLECTION_CODE("collectionCode"),
-  CATALOG_NUMBER("catalogNumber"),
+  INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode),
+  COLLECTION_CODE("collectionCode", DwcTerm.collectionCode),
+  CATALOG_NUMBER("catalogNumber", DwcTerm.catalogNumber),
 
-  ORGANISM_ID("organismId"),
-  OCCURRENCE_ID("occurrenceId"),
-  RECORDED_BY("recordBy"),
-  RECORD_NUMBER("recordNumber"),
-  BASIS_OF_RECORD("basisOfRecord"),
-  TYPE_STATUS("typeStatus"),
+  ORGANISM_ID("organismId", DwcTerm.organismID),
+  OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID),
+  RECORDED_BY("recordBy", DwcTerm.recordedBy),
+  RECORD_NUMBER("recordNumber", DwcTerm.recordNumber),
+  BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
+  TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
 
   //Temporal
-  YEAR("year"),
-  MONTH("month"),
-  DAY("day"),
-  EVENT_DATE("eventDateSingle"),
+  YEAR("year", DwcTerm.year),
+  MONTH("month", DwcTerm.month),
+  DAY("day", DwcTerm.day),
+  EVENT_DATE("eventDateSingle", DwcTerm.eventDate),
 
   //Location
-  COORDINATE_SHAPE("scoordinates"),
-  COORDINATE_POINT("coordinates"),
-  LATITUDE("decimalLatitude"),
-  LONGITUDE("decimalLongitude"),
-  COUNTRY_CODE("countryCode"),
-  CONTINENT("continent"),
-  COORDINATE_ACCURACY("coordinateAccuracy"),
-  ELEVATION_ACCURACY("elevationAccuracy"),
-  DEPTH_ACCURACY("depthAccuracy"),
-  ELEVATION("elevation"),
-  DEPTH("depth"),
-  STATE_PROVINCE("stateProvince"), //NOT INTERPRETED
-  WATER_BODY("waterBody"),
-  LOCALITY("locality"),
-  COORDINATE_PRECISION("coordinatePrecision"),
-  COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters"),
+  COORDINATE_SHAPE("scoordinates", null),
+  COORDINATE_POINT("coordinates", null),
+  LATITUDE("decimalLatitude", DwcTerm.decimalLatitude),
+  LONGITUDE("decimalLongitude", DwcTerm.decimalLongitude),
+  COUNTRY_CODE("countryCode", DwcTerm.countryCode),
+  CONTINENT("continent", DwcTerm.continent),
+  COORDINATE_ACCURACY("coordinateAccuracy", GbifTerm.coordinateAccuracy),
+  ELEVATION_ACCURACY("elevationAccuracy", GbifTerm.elevationAccuracy),
+  DEPTH_ACCURACY("depthAccuracy", GbifTerm.depthAccuracy),
+  ELEVATION("elevation", GbifTerm.elevation),
+  DEPTH("depth", GbifTerm.depth),
+  STATE_PROVINCE("stateProvince", DwcTerm.stateProvince), //NOT INTERPRETED
+  WATER_BODY("waterBody", DwcTerm.waterBody),
+  LOCALITY("locality", DwcTerm.locality),
+  COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
+  COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
 
   //Location GBIF specific
-  HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue"),
-  HAS_COORDINATE("hasCoordinate"),
-  REPATRIATED("repatriated"),
+  HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue", GbifTerm.hasGeospatialIssues),
+  HAS_COORDINATE("hasCoordinate", GbifTerm.hasCoordinate),
+  REPATRIATED("repatriated", GbifTerm.repatriated),
 
   //Taxonomic classification
-  TAXON_KEY("gbifClassification.taxonKey"),
-  USAGE_TAXON_KEY("gbifClassification.usage.key"),
-  TAXON_RANK("gbifClassification.usage.rank"),
-  ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key"),
-  ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name"),
-  KINGDOM_KEY("gbifClassification.kingdomKey"),
-  KINGDOM("gbifClassification.kingdom"),
-  PHYLUM_KEY("gbifClassification.phylumKey"),
-  PHYLUM("gbifClassification.phylum"),
-  CLASS_KEY("gbifClassification.classKey"),
-  CLASS("gbifClassification.class"),
-  ORDER_KEY("gbifClassification.orderKey"),
-  ORDER("gbifClassification.order"),
-  FAMILY_KEY("gbifClassification.familyKey"),
-  FAMILY("gbifClassification.family"),
-  GENUS_KEY("gbifClassification.genusKey"),
-  GENUS("gbifClassification.genus"),
-  SUBGENUS_KEY("gbifClassification.subgenusKey"),
-  SUBGENUS("gbifClassification.subgenus"),
-  SPECIES_KEY("gbifClassification.speciesKey"),
-  SPECIES("gbifClassification.species"),
-  SCIENTIFIC_NAME("gbifClassification.usage.name"),
-  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet"),
-  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet"),
-  GENERIC_NAME("gbifClassification.usageParsedName.genericName"),
-  TAXONOMIC_STATUS("gbifClassification.diagnostics.status"),
+  TAXON_KEY("gbifClassification.taxonKey", GbifTerm.taxonKey),
+  USAGE_TAXON_KEY("gbifClassification.usage.key",GbifTerm.taxonKey),
+  TAXON_RANK("gbifClassification.usage.rank", DwcTerm.taxonRank),
+  ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey),
+  ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName),
+  KINGDOM_KEY("gbifClassification.kingdomKey", GbifTerm.kingdomKey),
+  KINGDOM("gbifClassification.kingdom", DwcTerm.kingdom),
+  PHYLUM_KEY("gbifClassification.phylumKey", GbifTerm.phylumKey),
+  PHYLUM("gbifClassification.phylum", DwcTerm.phylum),
+  CLASS_KEY("gbifClassification.classKey", GbifTerm.classKey),
+  CLASS("gbifClassification.class", DwcTerm.class_),
+  ORDER_KEY("gbifClassification.orderKey", GbifTerm.orderKey),
+  ORDER("gbifClassification.order", DwcTerm.order),
+  FAMILY_KEY("gbifClassification.familyKey", GbifTerm.familyKey),
+  FAMILY("gbifClassification.family", DwcTerm.family),
+  GENUS_KEY("gbifClassification.genusKey", GbifTerm.genusKey),
+  GENUS("gbifClassification.genus", DwcTerm.genus),
+  SUBGENUS_KEY("gbifClassification.subgenusKey", GbifTerm.subgenusKey),
+  SUBGENUS("gbifClassification.subgenus", DwcTerm.subgenus),
+  SPECIES_KEY("gbifClassification.speciesKey", GbifTerm.speciesKey),
+  SPECIES("gbifClassification.species", GbifTerm.species),
+  SCIENTIFIC_NAME("gbifClassification.usage.name", DwcTerm.scientificName),
+  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet),
+  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet),
+  GENERIC_NAME("gbifClassification.usageParsedName.genericName", GbifTerm.genericName),
+  TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
 
   //Sampling
-  EVENT_ID("eventId"),
-  PARENT_EVENT_ID("parentEventId"),
-  SAMPLING_PROTOCOL("samplingProtocol"),
-  LIFE_STAGE("lifeStage"),
-  DATE_IDENTIFIED("dateIdentified"),
-  MODIFIED("modified"),
-  REFERENCES("references"),
-  SEX("sex"),
-  IDENTIFIER("identifier"),
-  INDIVIDUAL_COUNT("individualCount"),
-  RELATION("relation"),
-  TYPIFIED_NAME("typifiedName"),
+  EVENT_ID("eventId", DwcTerm.eventID),
+  PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID),
+  SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol),
+  LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
+  DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
+  MODIFIED("modified", DcTerm.modified),
+  REFERENCES("references", DcTerm.references),
+  SEX("sex", DwcTerm.sex),
+  IDENTIFIER("identifier", DcTerm.identifier),
+  INDIVIDUAL_COUNT("individualCount", DwcTerm.individualCount),
+  RELATION("relation", DcTerm.relation),
+  TYPIFIED_NAME("typifiedName", GbifTerm.typifiedName),
 
   //Crawling
-  CRAWL_ID("crawlId"),
-  LAST_INTERPRETED("created"),
-  LAST_CRAWLED("lastCrawled"),
-  LAST_PARSED("created"),
+  CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
+  LAST_INTERPRETED("created", GbifTerm.lastInterpreted),
+  LAST_CRAWLED("lastCrawled", GbifTerm.lastCrawled),
+  LAST_PARSED("created", GbifTerm.lastParsed),
 
-  MEDIA_TYPE("mediaTypes"),
-  MEDIA_ITEMS("multimediaItems"),
-  ISSUE("issues"),
+  MEDIA_TYPE("mediaTypes", GbifTerm.mediaType),
+  MEDIA_ITEMS("multimediaItems", null),
+  ISSUE("issues", GbifTerm.issue),
 
-  ESTABLISHMENT_MEANS("establishmentMeans"),
-  FACTS("measurementOrFactItems"),
-  GBIF_ID("gbifId"),
-  FULL_TEXT("all");
+  ESTABLISHMENT_MEANS("establishmentMeans", DwcTerm.establishmentMeans),
+  FACTS("measurementOrFactItems", null),
+  GBIF_ID("gbifId", GbifTerm.gbifID),
+  FULL_TEXT("all", null);
 
 
 
   private final String fieldName;
 
-  OccurrenceEsField(String fieldName) {
+  private final Term term;
+
+  OccurrenceEsField(String fieldName, Term term) {
     this.fieldName = fieldName;
+    this.term = term;
   }
 
   /** @return the fieldName */
   public String getFieldName() {
     return fieldName;
+  }
+
+  /** @return the term */
+  public Term getTerm() {
+    return term;
   }
 }
