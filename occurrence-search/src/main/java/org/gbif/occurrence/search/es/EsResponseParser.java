@@ -12,7 +12,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.*;
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -30,6 +29,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Maps;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
@@ -44,12 +44,12 @@ public class EsResponseParser {
   private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
 
-  private static final Set<OccurrenceEsField> VERBATIM_TERMS = Arrays.stream(OccurrenceEsField.values())
-                                                                .filter(esField ->
-                                                                          Objects.nonNull(esField.getTerm()) &&  ! (esField.getTerm() instanceof GbifTerm || esField.getTerm() instanceof GbifInternalTerm))
-                                                                .collect(Collectors.toSet());
-
-  private EsResponseParser() {}
+  /**
+   * Private constructor.
+   */
+  private EsResponseParser() {
+    //DO NOTHING
+  }
 
   /**
    * Builds a SearchResponse instance using the current builder state.
@@ -87,56 +87,59 @@ public class EsResponseParser {
     String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
-        .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
-        .map(CompletionSuggestion.Entry.Option::getHit)
-        .map(hit -> hit.getSourceAsMap().get(fieldName))
-        .filter(Objects::nonNull)
-        .map(String::valueOf)
-        .collect(Collectors.toList());
+            .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
+            .map(CompletionSuggestion.Entry.Option::getHit)
+            .map(hit -> hit.getSourceAsMap().get(fieldName))
+            .filter(Objects::nonNull)
+            .map(String::valueOf)
+            .collect(Collectors.toList());
+  }
+
+  /**
+   * Extract the buckets of an {@link Aggregation}.
+   */
+  private static List<? extends Terms.Bucket> getBuckets(Aggregation aggregation) {
+    if (aggregation instanceof Terms) {
+      return ((Terms) aggregation).getBuckets();
+    } else if (aggregation instanceof Filter) {
+      return
+        ((Filter) aggregation)
+          .getAggregations().asList()
+            .stream()
+            .flatMap(agg -> ((Terms) agg).getBuckets().stream())
+            .collect(Collectors.toList());
+    } else {
+      throw new IllegalArgumentException(aggregation.getClass() + " aggregation not supported");
+    }
   }
 
   private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
-    if (esResponse.getAggregations() == null) {
-      return Optional.empty();
-    }
+    return
+      Optional.ofNullable(esResponse.getAggregations())
+        .map(aggregations -> aggregations.asList().stream()
+               .map(
+                 aggs -> {
+                   // get buckets
+                   List<? extends Terms.Bucket> buckets = getBuckets(aggs);
 
-    return Optional.of(
-        esResponse.getAggregations().asList().stream()
-            .map(
-                aggs -> {
-                  // get buckets
-                  List<? extends Terms.Bucket> buckets = null;
-                  if (aggs instanceof Terms) {
-                    buckets = ((Terms) aggs).getBuckets();
-                  } else if (aggs instanceof Filter) {
-                    buckets =
-                        ((Filter) aggs)
-                            .getAggregations().asList().stream()
-                                .flatMap(agg -> ((Terms) agg).getBuckets().stream())
-                                .collect(Collectors.toList());
-                  } else {
-                    throw new IllegalArgumentException(
-                        aggs.getClass() + " aggregation not supported");
-                  }
+                   // get facet of the agg
+                   OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
 
-                  // get facet of the agg
-                  OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
+                   // check for paging in facets
+                   long facetOffset = extractFacetOffset(request, facet);
+                   long facetLimit = extractFacetLimit(request, facet);
 
-                  // check for paging in facets
-                  long facetOffset = extractFacetOffset(request, facet);
-                  long facetLimit = extractFacetLimit(request, facet);
+                   List<Facet.Count> counts =
+                     buckets.stream()
+                       .skip(facetOffset)
+                       .limit(facetOffset + facetLimit)
+                       .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
+                       .collect(Collectors.toList());
 
-                  List<Facet.Count> counts =
-                      buckets.stream()
-                          .skip(facetOffset)
-                          .limit(facetOffset + facetLimit)
-                          .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
-                          .collect(Collectors.toList());
-
-                  return new Facet<>(facet, counts);
-                })
-            .collect(Collectors.toList()));
+                   return new Facet<>(facet, counts);
+                 })
+               .collect(Collectors.toList()));
   }
 
   private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse) {
@@ -190,19 +193,13 @@ public class EsResponseParser {
 
     Map<String, Object> data = (Map<String, Object>)((Map<String, Object>) hit.getSourceAsMap().get("verbatim")).get("core");
 
-    for (Map.Entry<String, Object> entry : data.entrySet()) {
-      String simpleTermName = entry.getKey();
-      // ignore extensions key
-      if (simpleTermName.equalsIgnoreCase("extensions")) {
-        continue;
-      }
-
-      Object value = entry.getValue();
-      if (value != null) {
+    data.forEach( (simpleTermName,value) -> {
+      if (Objects.nonNull(value) && !simpleTermName.equalsIgnoreCase("extensions")) {
         Term term = TERM_FACTORY.findTerm(simpleTermName);
         terms.put(term, value.toString());
       }
-    }
+    });
+
     return terms;
   }
 
