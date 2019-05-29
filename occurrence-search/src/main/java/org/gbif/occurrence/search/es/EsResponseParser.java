@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Maps;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -148,7 +149,9 @@ public class EsResponseParser {
                          .collect(Collectors.toList()));
   }
 
-
+  /**
+   * Transforms a SearchHit into a suitable Verbatim map of terms.
+   */
   public static VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
@@ -172,15 +175,35 @@ public class EsResponseParser {
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
     // add verbatim fields
-    vOcc.getVerbatimFields().putAll(extractVerbatimFields(hit));
-    VERBATIM_TERMS.forEach(esField -> getStringValue(hit, esField)
-                                        .ifPresent(value -> {
-                                          if (!vOcc.hasVerbatimField(esField.getTerm()) && !TermUtils.isInterpretedSourceTerm(esField.getTerm())) {
-                                            vOcc.setVerbatimField(esField.getTerm(), value);
-                                          }
-                                        }));
-
+    vOcc.getVerbatimFields().putAll(parseTermMap(hit));
     return vOcc;
+  }
+
+  /**
+   * Parses a simple string based map into a Term based map, ignoring any non term entries and not parsing nested
+   * e.g. extensions data.
+   * This produces a Map of verbatim data.
+   */
+  private static Map<Term, String> parseTermMap(SearchHit hit) {
+
+    Map<Term, String> terms = Maps.newHashMap();
+
+    Map<String, Object> data = (Map<String, Object>)((Map<String, Object>) hit.getSourceAsMap().get("verbatim")).get("core");
+
+    for (Map.Entry<String, Object> entry : data.entrySet()) {
+      String simpleTermName = entry.getKey();
+      // ignore extensions key
+      if (simpleTermName.equalsIgnoreCase("extensions")) {
+        continue;
+      }
+
+      Object value = entry.getValue();
+      if (value != null) {
+        Term term = TERM_FACTORY.findTerm(simpleTermName);
+        terms.put(term, value.toString());
+      }
+    }
+    return terms;
   }
 
   public static Occurrence toOccurrence(SearchHit hit) {
