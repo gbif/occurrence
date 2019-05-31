@@ -83,6 +83,7 @@ public class DownloadMaster extends UntypedActor {
     aggregator.aggregate(results);
     shutDownEsClientSilently();
     if (Objects.nonNull(readMutex)) {
+      LOG.info("Releasing Search Index Read Lock");
       readMutex.release();
     }
     getContext().stop(getSelf());
@@ -149,6 +150,7 @@ public class DownloadMaster extends UntypedActor {
     StopWatch stopwatch = new StopWatch();
     stopwatch.start();
     readMutex = mutexFactory.createReadMutex(this.esIndex);
+    LOG.info("Acquiring Search Index Read Lock");
     readMutex.acquire();
     File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
     if (downloadTempDir.exists()) {
