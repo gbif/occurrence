@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.97-SNAPSHOT</version>
+  <version>0.100-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -136,7 +136,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.21</download-query-tools.version>
+    <download-query-tools.version>1.24</download-query-tools.version>
     <dwc-api.version>1.22</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
     <gbif-api.version>0.79</gbif-api.version>
