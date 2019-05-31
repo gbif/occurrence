@@ -16,6 +16,8 @@ import akka.actor.UntypedActorFactory;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,7 @@ public class FromSearchDownloadAction {
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     final Injector injector = createInjector(workflowConfiguration, configuration);
-    CuratorFramework curator = injector.getInstance(CuratorFramework.class);
+    CuratorFramework curator = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
 
     // Create an Akka system
     ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());

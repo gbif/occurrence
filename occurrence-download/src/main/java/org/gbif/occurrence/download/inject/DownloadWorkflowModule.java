@@ -234,7 +234,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String HIVE_DB_KEY = "hive.db";
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
-    public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
     public static final String ES_INDEX_KEY = "es.index";
 
     /**
