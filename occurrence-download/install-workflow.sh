@@ -16,13 +16,6 @@ OOZIE=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"]
 HBASE_TABLE=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="'$P'"]]/*[name()="properties"]/*[name()="hbase.table"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="'$P'"]]/*[name()="properties"]/*[name()="hive.db"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 
-#gets the oozie id of the current coordinator job if it exists
-WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV | awk 'NR==3 {print $1}')
-if [ -n "$WID" ]; then
-  echo "Killing current coordinator job" $WID
-  sudo -u hdfs oozie job -oozie $OOZIE -kill $WID
-fi
-
 echo "Assembling jar for $ENV"
 #Oozie uses timezone UTC
 mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
@@ -33,4 +26,3 @@ sudo -u hdfs hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
 sudo -u hdfs hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
 echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs"  > job.properties
 
-sudo -u hdfs oozie job --oozie $OOZIE -config job.properties -run
