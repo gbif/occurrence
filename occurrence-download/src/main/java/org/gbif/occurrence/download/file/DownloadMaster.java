@@ -178,6 +178,7 @@ public class DownloadMaster extends UntypedActor {
       int remainingPerJob = remaining > 0 ? Math.max(remaining / calcNrOfWorkers, 1) : 0;
       int to = 0;
       int additionalJobsCnt = 0;
+      readMutex.acquire();
       for (int i = 0; i < calcNrOfWorkers; i++) {
         int from = i == 0 ? 0 : to;
         to = from + sizeOfChunks + remainingPerJob;
