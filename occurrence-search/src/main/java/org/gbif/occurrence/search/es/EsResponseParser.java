@@ -214,9 +214,6 @@ public class EsResponseParser {
     return extTerms;
   }
 
-
-
-
   /**
    * Parses a simple string based map into a Term based map, ignoring any non term entries and not parsing nested
    * e.g. extensions data.
@@ -404,7 +401,8 @@ public class EsResponseParser {
                               extractStringValue(item, "description")
                                   .ifPresent(mediaObject::setDescription);
                               extractStringValue(item, "license")
-                                  .ifPresent(mediaObject::setLicense);
+                                  .map(license -> License.fromString(license).orNull())
+                                  .ifPresent(license -> mediaObject.setLicense(license.getLicenseUrl()));
                               extractStringValue(item, "publisher")
                                   .ifPresent(mediaObject::setPublisher);
                               extractValue(item, "references", URI::create)
