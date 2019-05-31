@@ -31,7 +31,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
-      <arg>/occurrence-download/${occurrence.environment}-downloads/</arg>
+      <arg>${occurrence.hdfsOutputPath}</arg>
       <arg>${download_key}</arg>
       <capture-output/>
     </java>
