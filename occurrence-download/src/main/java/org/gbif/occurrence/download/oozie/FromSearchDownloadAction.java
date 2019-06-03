@@ -19,6 +19,9 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
+import org.gbif.wrangler.lock.Mutex;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;
+import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +81,7 @@ public class FromSearchDownloadAction {
     // create the master
     ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -87,6 +90,8 @@ public class FromSearchDownloadAction {
       }
     }), "DownloadMaster" + configuration.getDownloadKey());
 
+    Mutex readMutex = injector.getInstance(Mutex.class);
+    readMutex.acquire();
     // start the calculation
     master.tell(new DownloadMaster.Start());
     while (!master.isTerminated()) {
@@ -97,6 +102,7 @@ public class FromSearchDownloadAction {
       }
     }
     system.shutdown();
+    readMutex.release();
     curatorDownload.close();
     curatorIndices.close();
   }

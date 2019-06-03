@@ -14,14 +14,11 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
-import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.Actor;
@@ -50,26 +47,23 @@ public class DownloadMaster extends UntypedActor {
   private final String esIndex;
   private final Configuration conf;
   private final LockFactory lockFactory;
-  private final ReadWriteMutexFactory mutexFactory;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
   private List<Result> results = Lists.newArrayList();
   private int calcNrOfWorkers;
   private int nrOfResults;
-  private Mutex readMutex;
 
   /**
    * Default constructor.
    */
   @Inject
-  public DownloadMaster(LockFactory lockFactory, ReadWriteMutexFactory mutexFactory, Configuration configuration,
+  public DownloadMaster(LockFactory lockFactory, Configuration configuration,
                         RestHighLevelClient esClient,
                         @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
                         DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
-    this.mutexFactory = mutexFactory;
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
@@ -82,10 +76,6 @@ public class DownloadMaster extends UntypedActor {
   private void aggregateAndShutdown() {
     aggregator.aggregate(results);
     shutDownEsClientSilently();
-    if (Objects.nonNull(readMutex)) {
-      LOG.info("Releasing Search Index Read Lock");
-      readMutex.release();
-    }
     getContext().stop(getSelf());
   }
 
@@ -149,9 +139,7 @@ public class DownloadMaster extends UntypedActor {
   private void runActors() {
     StopWatch stopwatch = new StopWatch();
     stopwatch.start();
-    readMutex = mutexFactory.createReadMutex(this.esIndex);
     LOG.info("Acquiring Search Index Read Lock");
-    readMutex.acquire();
     File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
     if (downloadTempDir.exists()) {
       FileUtils.deleteDirectoryRecursively(downloadTempDir);
@@ -231,7 +219,7 @@ public class DownloadMaster extends UntypedActor {
   private static class DownloadActorsFactory implements UntypedActorFactory {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final DownloadFormat downloadFormat;
@@ -250,7 +238,7 @@ public class DownloadMaster extends UntypedActor {
       }
       if (downloadFormat == DownloadFormat.DWCA) {
         return new DownloadDwcaActor();
-      } 
+      }
       if (downloadFormat == DownloadFormat.SPECIES_LIST) {
         return new SpeciesListDownloadActor();
       }

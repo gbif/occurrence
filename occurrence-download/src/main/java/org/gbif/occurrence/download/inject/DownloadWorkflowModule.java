@@ -19,6 +19,7 @@ import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
@@ -161,6 +162,11 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Provides
   ReadWriteMutexFactory provideMutexFactory(@Named("Indices") CuratorFramework curatorFramework) {
     return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
+  }
+
+  @Provides
+  Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex) {
+    return readWriteMutexFactory.createReadMutex(esIndex);
   }
 
   @Provides
