@@ -69,7 +69,8 @@ public class FromSearchDownloadAction {
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     final Injector injector = createInjector(workflowConfiguration, configuration);
-    CuratorFramework curator = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
+    CuratorFramework curatorDownload = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
+    CuratorFramework curatorIndices = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Indices")));
 
     // Create an Akka system
     ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
@@ -96,7 +97,8 @@ public class FromSearchDownloadAction {
       }
     }
     system.shutdown();
-    curator.close();
+    curatorDownload.close();
+    curatorIndices.close();
   }
 
   /**
