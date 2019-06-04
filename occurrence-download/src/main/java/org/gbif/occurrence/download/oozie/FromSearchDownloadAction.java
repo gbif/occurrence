@@ -72,39 +72,38 @@ public class FromSearchDownloadAction {
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     final Injector injector = createInjector(workflowConfiguration, configuration);
-    CuratorFramework curatorDownload = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
-    CuratorFramework curatorIndices = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Indices")));
+    try (CuratorFramework curatorDownload = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
+         CuratorFramework curatorIndices = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Indices")))) {
 
-    // Create an Akka system
-    ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
+      // Create an Akka system
+      ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
 
-    // create the master
-    ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
+      // create the master
+      ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
 
-      public UntypedActor create() {
-        return injector.getInstance(DownloadMaster.class);
+        public UntypedActor create() {
+          return injector.getInstance(DownloadMaster.class);
+        }
+      }), "DownloadMaster" + configuration.getDownloadKey());
+
+      Mutex readMutex = injector.getInstance(Mutex.class);
+      readMutex.acquire();
+      // start the calculation
+      master.tell(new DownloadMaster.Start());
+      while (!master.isTerminated()) {
+        try {
+          Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
+        } catch (InterruptedException ie) {
+          LOG.error("Thread interrupted", ie);
+        }
       }
-    }), "DownloadMaster" + configuration.getDownloadKey());
-
-    Mutex readMutex = injector.getInstance(Mutex.class);
-    readMutex.acquire();
-    // start the calculation
-    master.tell(new DownloadMaster.Start());
-    while (!master.isTerminated()) {
-      try {
-        Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
-      } catch (InterruptedException ie) {
-        LOG.error("Thread interrupted", ie);
-      }
+      system.shutdown();
+      readMutex.release();
     }
-    system.shutdown();
-    readMutex.release();
-    curatorDownload.close();
-    curatorIndices.close();
   }
 
   /**
