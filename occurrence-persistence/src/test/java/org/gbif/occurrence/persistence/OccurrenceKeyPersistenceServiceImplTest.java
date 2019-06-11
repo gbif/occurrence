@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence;
 
+import com.google.common.collect.ImmutableSet;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.common.identifier.HolyTriplet;
 import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
@@ -8,6 +9,8 @@ import org.gbif.occurrence.persistence.api.KeyLookupResult;
 import org.gbif.occurrence.persistence.api.OccurrenceKeyPersistenceService;
 import org.gbif.occurrence.persistence.guice.ThreadLocalLockProvider;
 import org.gbif.occurrence.persistence.hbase.Columns;
+import org.gbif.occurrence.persistence.hbase.HBaseStore;
+import org.gbif.occurrence.persistence.keygen.AbstractHBaseKeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.HBaseLockingKeyService;
 import org.gbif.occurrence.persistence.keygen.KeyPersistenceService;
 import org.gbif.occurrence.persistence.keygen.ZkLockingKeyService;
@@ -34,6 +37,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.gbif.occurrence.persistence.hbase.HBaseStore.saltKey;
+import static org.gbif.occurrence.persistence.keygen.AbstractHBaseKeyPersistenceService.NUMBER_OF_BUCKETS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -112,10 +117,11 @@ public class OccurrenceKeyPersistenceServiceImplTest {
     KeyPersistenceService keyPersistenceService = new ZkLockingKeyService(CFG, CONNECTION, ZOO_LOCK_PROVIDER);
     occurrenceKeyService = new OccurrenceKeyPersistenceServiceImpl(keyPersistenceService);
     try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(CFG.lookupTable))) {
-      Put put = new Put(Bytes.toBytes(TRIPLET_KEY));
+      // salted keys!
+      Put put = new Put(saltKey(TRIPLET_KEY, NUMBER_OF_BUCKETS));
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
       lookupTable.put(put);
-      put = new Put(Bytes.toBytes(DWC_KEY));
+      put = new Put(saltKey(DWC_KEY, NUMBER_OF_BUCKETS));
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
       lookupTable.put(put);
     }
@@ -302,6 +308,25 @@ public class OccurrenceKeyPersistenceServiceImplTest {
 
     Set<Long> keys = occurrenceKeyService.findKeysByDataset(datasetKey.toString());
     assertEquals(2, keys.size());
+  }
+
+  @Test
+  public void testFindByDatasetWithMultiple() {
+    UUID ds1 = UUID.randomUUID();
+    UUID ds2 = UUID.randomUUID();
+    UUID ds3 = UUID.randomUUID();
+
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds1, "1")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds1, "2")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds2, "a")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds2, "b")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds2, "c")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds3, "x")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds3, "y")));
+    occurrenceKeyService.generateKey(ImmutableSet.of(new PublisherProvidedUniqueIdentifier(ds3, "z")));
+
+    Set<Long> keys = occurrenceKeyService.findKeysByDataset(ds2.toString());
+    assertEquals(3, keys.size());
   }
 
   @Test

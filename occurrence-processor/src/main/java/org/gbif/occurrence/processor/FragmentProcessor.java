@@ -52,11 +52,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class FragmentProcessor {
 
-  // Please read POR-2807 before changing.
-  // Previously been 3 times @ 500msecs, but this reduces crawling to 15/sec as there are 1.5 sec wait times.
-  private static final int MAX_NULL_FRAG_RETRIES = 3;
-  private static final long NULL_FRAG_RETRY_WAIT = 100;
-
   private final FragmentPersistenceService fragmentPersister;
   private final OccurrenceKeyPersistenceService occurrenceKeyPersister;
   private final MessagePublisher messagePublisher;
@@ -197,49 +192,42 @@ public class FragmentProcessor {
     } else {
       // this is an existing record - fetch fragment from hbase and see if we need to do an update
       Long key = keyResult.getKey();
-      int attempts = 0;
-      do {
-        attempts++;
-        LOG.debug("Attempt [{}] to fetch fragment for key [{}]", attempts, key);
-        try {
-          fragment = fragmentPersister.get(key);
-        } catch (ValidationException v) {
-          LOG.warn("The fragment for key [{}] is invalid. Ignoring this update.", v);
-          updateZookeeper(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_ERROR);
-          return;
-        } catch (ServiceUnavailableException e) {
-          failForServiceUnavailable(datasetKey, e);
-          return;
-        }
-        if (fragment == null) {
-          /* this means either
-              1) the key we're trying was only just assigned and the owner hasn't written their fragment yet, or
-              2) our index is out of sync - it has an index entry pointing to nothing, so delete the index
-                entry(ies) and proceed as if this is an insert
-             So we retry a few times to get clear of 1), and then act on 2).
-             Note however in POR-2807, that if for some reason deletions are not clearing lookups (i.e. POR-995)
-             too conservative rates mean the system grinds to a complete halt for large datasets.
-          */
-          LOG.debug("Fragment for key [{}] was null, sleeping and trying again", key);
-          try {
-            Thread.sleep(NULL_FRAG_RETRY_WAIT);
-          } catch (InterruptedException e) {
-            LOG.info("Woken up from sleep while waiting to retry fragment get", e);
-          }
-        }
-      } while (fragment == null && attempts <= MAX_NULL_FRAG_RETRIES);
+      try {
+        fragment = fragmentPersister.get(key);
+      } catch (ValidationException v) {
+        LOG.warn("The fragment for key [{}] is invalid. Ignoring this update.", v);
+        updateZookeeper(datasetKey, ZookeeperConnector.CounterName.RAW_OCCURRENCE_PERSISTED_ERROR);
+        return;
+      } catch (ServiceUnavailableException e) {
+        failForServiceUnavailable(datasetKey, e);
+        return;
+      }
 
       if (fragment == null) {
-        // we're in case 2) from above
-        LOG.info("Could not retrieve Fragment with key [{}] even though it exists in lookup table - deleting lookup "
-                 + "and inserting Fragment as NEW.", key);
-        try {
-          occurrenceKeyPersister.deleteKeyByUniqueIdentifiers(uniqueIds);
-        } catch (ServiceUnavailableException e) {
-          failForServiceUnavailable(datasetKey, e);
-          return;
-        }
+          /* this means one of:
+              1) the key we're trying was only just assigned and the owner hasn't written their fragment yet, or
+              2) the key we're trying was assigned and the owner didn't opt to write a fragment, or
+              3) our index is out of sync - it has an index entry pointing to nothing
+
+             Option 1) was possible once in the GBIF infrastructure but data validation upstream and a single Rabbit
+             queue no longer make this a very likely scenario (occassional race conditions may present).
+
+             Option 2) is very likely as the forthcoming pipelines run concurrently and don't write fragments.
+
+             Option 3) is unlikely but may indicate a formerly deleted record is being recreated with the same ID.
+
+             Contrary to previous versions of this code, we now favour a lenient approach and assume option 2 or 3 and
+             write the fragment acting in good faith.
+          */
+
+
+        LOG.info("Fragment for key [{}] was null and will be created as if a NEW record.", key);
         fragment = new Fragment(datasetKey);
+
+        /*
+           We set the status to NEW knowing that when generating the record it will once again do a read for the key
+           and find and reuse it.
+         */
         status = OccurrencePersistenceStatus.NEW;
       } else {
         status = OccurrencePersistenceStatus.UPDATED;
@@ -291,10 +279,8 @@ public class FragmentProcessor {
       if (status == OccurrencePersistenceStatus.NEW) {
         FragmentCreationResult creationResult = fragmentPersister.insert(fragment, uniqueIds);
         if (!creationResult.isKeyCreated()) {
-          // we lost a race to generate the key for these uniqueIds, and now this is an update
-          status = OccurrencePersistenceStatus.UPDATED;
           LOG.info(
-            "Fragment creation did not generate new key - lost race and now using existing [{}] as status [UPDATE]",
+            "Fragment creation did not generate new key [{}] but wrote the fragment",
             fragment.getKey());
         }
       } else {

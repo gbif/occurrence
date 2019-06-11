@@ -23,7 +23,7 @@ import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
-import org.gbif.occurrence.query.HumanFilterBuilder;
+import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookup;
 import org.gbif.occurrence.query.TitleLookupModule;
 import org.gbif.registry.metadata.EMLWriter;
@@ -283,7 +283,7 @@ public class DwcaArchiveBuilder {
     try {
       ObjectMapper mapper = new ObjectMapper();
       Predicate p = mapper.readValue(configuration.getFilter(), Predicate.class);
-      humanQuery = new HumanFilterBuilder(titleLookup).humanFilterString(p);
+      humanQuery = new HumanPredicateBuilder(titleLookup).humanFilterString(p);
     } catch (Exception e) {
       LOG.error("Failed to transform JSON query into human query: {}", configuration.getFilter(), e);
     }

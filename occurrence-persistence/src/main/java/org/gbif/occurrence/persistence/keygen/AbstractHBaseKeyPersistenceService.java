@@ -1,5 +1,6 @@
 package org.gbif.occurrence.persistence.keygen;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
@@ -28,7 +29,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
-import org.apache.hadoop.hbase.filter.PrefixFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -52,11 +52,16 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
   protected final HBaseStore<Long> counterTableStore;
   protected final KeyBuilder keyBuilder;
 
+  // Deliberately not parameterised to discourage misuse (and 100 will satisfy every eventually we foresee)
+  @VisibleForTesting
+  public static final int NUMBER_OF_BUCKETS = 100;
+
   public AbstractHBaseKeyPersistenceService(OccHBaseConfiguration cfg, Connection connection, KeyBuilder keyBuilder) {
     lookupTableName =  TableName.valueOf(checkNotNull(cfg.lookupTable, "lookupTable can't be null"));
     this.connection = checkNotNull(connection, "tablePool can't be null");
     this.keyBuilder = checkNotNull(keyBuilder, "keyBuilder can't be null");
-    lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
+    // only the lookup table is salted
+    lookupTableStore = new HBaseStore<String>(cfg.lookupTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection, NUMBER_OF_BUCKETS);
     counterTableStore = new HBaseStore<Long>(cfg.counterTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
     occurrenceTableStore = new HBaseStore<Long>(cfg.occTable, Columns.OCCURRENCE_COLUMN_FAMILY, connection);
   }
@@ -121,7 +126,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
       Scan scan = new Scan();
       scan.setCacheBlocks(false);
       scan.setCaching(HBASE_CLIENT_CACHING);
-      scan.setFilter(new PrefixFilter(Bytes.toBytes(scope)));
+      scan.setFilter(HBaseStore.saltedRowFilter(scope));
       ResultScanner results = table.getScanner(scan);
       for (Result result : results) {
         byte[] rawKey = result.getValue(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN));
@@ -164,7 +169,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     if (rawDatasetKey == null) {
       LOG.warn("About to scan lookup table with no datasetKey prefix - target key for deletion is [{}]", occurrenceKey);
     } else {
-      filters.add(new PrefixFilter(Bytes.toBytes(OccurrenceKeyHelper.buildKeyPrefix(rawDatasetKey))));
+      filters.add(HBaseStore.saltedRowFilter(OccurrenceKeyHelper.buildKeyPrefix(rawDatasetKey)));
     }
     Filter valueFilter = new SingleColumnValueFilter(Columns.CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN),
                                                      CompareFilter.CompareOp.EQUAL, Bytes.toBytes(occurrenceKey));
@@ -196,7 +201,7 @@ public abstract class AbstractHBaseKeyPersistenceService implements KeyPersisten
     Set<String> lookupKeys = keyBuilder.buildKeys(uniqueStrings, scope);
     List<Delete> keysToDelete = Lists.newArrayListWithCapacity(lookupKeys.size());
     for (String lookupKey : lookupKeys) {
-      keysToDelete.add(new Delete(Bytes.toBytes(lookupKey)));
+      keysToDelete.add(new Delete(HBaseStore.saltKey(lookupKey, NUMBER_OF_BUCKETS)));
     }
     try (Table lookupTable = connection.getTable(lookupTableName)) {
       if (!keysToDelete.isEmpty()) {
