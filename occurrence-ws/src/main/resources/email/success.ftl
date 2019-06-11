@@ -13,7 +13,7 @@ Download Information:
     Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
     Data size: ${size}
     Download format: ${download.request.format}
-    Filter used: ${query!"All occurrence records"}
+    Filter used: see ${portal}occurrence/download/${download.key} for details
 
 Download file retention:
     Information about this download will always be available at ${download.doi.getUrl()} and ${portal}occurrence/download/${download.key}

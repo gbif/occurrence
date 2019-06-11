@@ -48,6 +48,7 @@
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-solr</module>
+    <module>occurrence-salt-keys</module>
   </modules>
 
   <properties>
@@ -134,7 +135,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.21</download-query-tools.version>
+    <download-query-tools.version>1.24</download-query-tools.version>
     <dwc-api.version>1.22</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
     <gbif-api.version>0.79</gbif-api.version>
@@ -145,7 +146,7 @@
     <gbif-common-ws.version>0.46</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-parsers.version>0.39</gbif-parsers.version>
+    <gbif-parsers.version>0.41</gbif-parsers.version>
     <gbif-postal-service.version>0.30</gbif-postal-service.version>
     <gbif-registry.version>2.96</gbif-registry.version>
     <gbif-wrangler.version>0.3-SNAPSHOT</gbif-wrangler.version>

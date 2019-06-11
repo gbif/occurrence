@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -21,6 +22,7 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.gbif.occurrence.persistence.hbase.HBaseStore;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,6 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static org.gbif.occurrence.persistence.hbase.HBaseStore.saltKey;
+import static org.gbif.occurrence.persistence.keygen.AbstractHBaseKeyPersistenceService.NUMBER_OF_BUCKETS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -107,7 +111,7 @@ public class HBaseLockingKeyServiceTest {
 
     String datasetKey = UUID.randomUUID().toString();
     String triplet = "IC|CC|CN|null";
-    byte[] lookupKey1 = Bytes.toBytes(keyBuilder.buildKey(triplet, datasetKey));
+    byte[] lookupKey1 = saltKey(keyBuilder.buildKey(triplet, datasetKey), NUMBER_OF_BUCKETS);
     Put put = new Put(lookupKey1);
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2L));
@@ -185,15 +189,15 @@ public class HBaseLockingKeyServiceTest {
 
     String datasetKey = "fakeuuid";
 
-    byte[] lookupKey1 = Bytes.toBytes(datasetKey + "|ABCD");
-    Put put = new Put(lookupKey1);
+    String lookupKey1 = datasetKey + "|ABCD";
+    Put put = new Put(HBaseStore.saltKey(lookupKey1, NUMBER_OF_BUCKETS));
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
     put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(1L));
     try (Table lookupTable = CONNECTION.getTable(TableName.valueOf(LOOKUP_TABLE))) {
       lookupTable.put(put);
 
-      byte[] lookupKey2 = Bytes.toBytes(datasetKey + "|EFGH");
-      put = new Put(lookupKey2);
+      String lookupKey2 = datasetKey + "|EFGH";
+      put = new Put(HBaseStore.saltKey(lookupKey2, NUMBER_OF_BUCKETS));
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_STATUS_COLUMN), Bytes.toBytes("ALLOCATED"));
       put.addColumn(CF, Bytes.toBytes(Columns.LOOKUP_KEY_COLUMN), Bytes.toBytes(2L));
       lookupTable.put(put);

@@ -89,6 +89,9 @@ public class HiveQueryVisitor {
   private static final String ISSUE_CONTAINS_FMT = "array_contains(" +
                                                    HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
 
+  private static final String NETWORK_KEY_CONTAINS_FMT = "array_contains(" +
+                                                   HiveColumnsUtils.getHiveColumn(GbifInternalTerm.networkKey) + ",'%s')";
+
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
   private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(GbifTerm.taxonKey,
@@ -251,6 +254,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+    } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
+      builder.append(String.format(NETWORK_KEY_CONTAINS_FMT, predicate.getValue()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }
