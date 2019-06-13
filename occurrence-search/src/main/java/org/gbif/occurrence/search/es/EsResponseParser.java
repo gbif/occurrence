@@ -401,7 +401,14 @@ public class EsResponseParser {
                               extractStringValue(item, "description")
                                   .ifPresent(mediaObject::setDescription);
                               extractStringValue(item, "license")
-                                  .map(license -> License.fromString(license).transform(License::getLicenseUrl).or(license))
+                                  .map(
+                                      license ->
+                                          License.fromString(license)
+                                              .transform(
+                                                  l ->
+                                                      Optional.ofNullable(l.getLicenseUrl())
+                                                          .orElse(license))
+                                              .or(license))
                                   .ifPresent(mediaObject::setLicense);
                               extractStringValue(item, "publisher")
                                   .ifPresent(mediaObject::setPublisher);
