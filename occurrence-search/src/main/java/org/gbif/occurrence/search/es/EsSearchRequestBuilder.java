@@ -8,7 +8,6 @@ import org.gbif.api.vocabulary.Country;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
@@ -374,7 +373,16 @@ public class EsSearchRequestBuilder {
 
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
     String[] values = value.split(RANGE_SEPARATOR);
-    return QueryBuilders.rangeQuery(esField.getFieldName()).gte(values[0]).lte(values[1]);
+    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
+
+    if (!RANGE_WILDCARD.equals(values[0])) {
+      builder.gte(values[0]);
+    }
+    if (!RANGE_WILDCARD.equals(values[1])) {
+      builder.lte(values[1]);
+    }
+
+    return builder;
   }
 
   private static List<Coordinate> asCollectionOfCoordinates(

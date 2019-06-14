@@ -72,6 +72,7 @@ public class EsQueryUtils {
   static final String WITHIN = "within";
 
   static final String RANGE_SEPARATOR = ",";
+  static final String RANGE_WILDCARD = "*";
 
   private static final DateTimeFormatter FORMATTER =
       DateTimeFormatter.ofPattern(
