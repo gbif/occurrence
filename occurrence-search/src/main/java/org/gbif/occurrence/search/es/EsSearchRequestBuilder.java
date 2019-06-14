@@ -341,6 +341,9 @@ public class EsSearchRequestBuilder {
     if (Enum.class.isAssignableFrom(parameter.type()) && !Country.class.isAssignableFrom(parameter.type())) {
       return  VocabularyUtils.lookup(value, (Class<Enum<?>>)parameter.type()).transform(Enum::name).orNull();
     }
+    if (Boolean.class.isAssignableFrom(parameter.type())) {
+      return value.toLowerCase();
+    }
     return value;
   }
 
