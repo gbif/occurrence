@@ -42,7 +42,7 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
 public class EsSearchRequestBuilder {
 
-  private static final int MAX_SIZE_TERMS_AGGS = 700000;
+  private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (int) (size * 1.5) + 3000;
 
   private EsSearchRequestBuilder() {}
@@ -311,15 +311,6 @@ public class EsSearchRequestBuilder {
 
   private static int calculateAggsSize(OccurrenceEsField esField, int facetOffset, int facetLimit) {
     int maxCardinality = CARDINALITIES.getOrDefault(esField, Integer.MAX_VALUE);
-
-    // offset cannot be greater than the max cardinality
-    if (facetOffset >= maxCardinality) {
-      throw new IllegalArgumentException(
-          "Facet paging for "
-              + esField.getFieldName()
-              + " exceeds the cardinality of the field: "
-              + CARDINALITIES.get(esField));
-    }
 
     // the limit is bounded by the max cardinality of the field
     int limit = Math.min(facetOffset + facetLimit, maxCardinality);
