@@ -661,15 +661,6 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .asInt());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void wrongPagingFacetsTest() {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addFacets(OccurrenceSearchParameter.MONTH);
-    searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 14, 3);
-
-    EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
-  }
-
   @Test
   public void suggestQuery() throws IOException {
     String prefix = "pre";
