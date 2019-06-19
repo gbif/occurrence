@@ -23,6 +23,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -119,31 +120,41 @@ public class EsResponseParser {
 
   private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
-    return
-      Optional.ofNullable(esResponse.getAggregations())
-        .map(aggregations -> aggregations.asList().stream()
-               .map(
-                 aggs -> {
-                   // get buckets
-                   List<? extends Terms.Bucket> buckets = getBuckets(aggs);
+    return Optional.ofNullable(esResponse.getAggregations())
+        .map(
+            aggregations ->
+                aggregations.asList().stream()
+                    .map(
+                        aggs -> {
+                          // get buckets
+                          List<? extends Terms.Bucket> buckets = getBuckets(aggs);
 
-                   // get facet of the agg
-                   OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
+                          // get facet of the agg
+                          OccurrenceSearchParameter facet =
+                              ES_TO_SEARCH_MAPPING.get(aggs.getName());
 
-                   // check for paging in facets
-                   long facetOffset = extractFacetOffset(request, facet);
-                   long facetLimit = extractFacetLimit(request, facet);
+                          // check for paging in facets
+                          long facetOffset = extractFacetOffset(request, facet);
+                          long facetLimit = extractFacetLimit(request, facet);
 
-                   List<Facet.Count> counts =
-                     buckets.stream()
-                       .skip(facetOffset)
-                       .limit(facetOffset + facetLimit)
-                       .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
-                       .collect(Collectors.toList());
+                          UnaryOperator<String> valueNormalizer =
+                              v ->
+                                  String.class.isAssignableFrom(facet.type()) ? v.toLowerCase() : v;
 
-                   return new Facet<>(facet, counts);
-                 })
-               .collect(Collectors.toList()));
+                          List<Facet.Count> counts =
+                              buckets.stream()
+                                  .skip(facetOffset)
+                                  .limit(facetOffset + facetLimit)
+                                  .map(
+                                      b ->
+                                          new Facet.Count(
+                                              valueNormalizer.apply(b.getKeyAsString()),
+                                              b.getDocCount()))
+                                  .collect(Collectors.toList());
+
+                          return new Facet<>(facet, counts);
+                        })
+                    .collect(Collectors.toList()));
   }
 
   private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse) {
