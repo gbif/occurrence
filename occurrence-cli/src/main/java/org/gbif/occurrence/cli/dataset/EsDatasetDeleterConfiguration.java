@@ -13,7 +13,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
 
 /** Configuration required to update ES with changes from deleted datasets. */
-public class PipelinesDatasetDeleterConfiguration {
+public class EsDatasetDeleterConfiguration {
 
   @ParametersDelegate @NotNull @Valid
   public MessagingConfiguration messaging = new MessagingConfiguration();
@@ -40,7 +40,7 @@ public class PipelinesDatasetDeleterConfiguration {
   @Override
   public String toString() {
     return new StringJoiner(
-            ", ", PipelinesDatasetDeleterConfiguration.class.getSimpleName() + "[", "]")
+      ", ", EsDatasetDeleterConfiguration.class.getSimpleName() + "[", "]")
         .add("messaging=" + messaging)
         .add("ganglia=" + ganglia)
         .add("poolSize=" + poolSize)

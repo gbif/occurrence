@@ -8,18 +8,18 @@ import org.kohsuke.MetaInfServices;
 
 /** Entry class for CLI command to start a service that updates ES when a dataset is deleted. */
 @MetaInfServices(Command.class)
-public class PipelinesDatasetDeleterCommand extends ServiceCommand {
+public class EsDatasetDeleterCommand extends ServiceCommand {
 
-  private final PipelinesDatasetDeleterConfiguration configuration =
-      new PipelinesDatasetDeleterConfiguration();
+  private final EsDatasetDeleterConfiguration configuration =
+      new EsDatasetDeleterConfiguration();
 
-  public PipelinesDatasetDeleterCommand() {
-    super("pipelines-dataset-deleter");
+  public EsDatasetDeleterCommand() {
+    super("es-dataset-deleter");
   }
 
   @Override
   protected Service getService() {
-    return new PipelinesDatasetDeleterService(configuration);
+    return new EsDatasetDeleterService(configuration);
   }
 
   @Override

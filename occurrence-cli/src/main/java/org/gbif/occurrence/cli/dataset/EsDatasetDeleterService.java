@@ -17,15 +17,15 @@ import org.slf4j.LoggerFactory;
  * Service that listens to {@link
  * org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage} messages.
  */
-public class PipelinesDatasetDeleterService extends AbstractIdleService {
+public class EsDatasetDeleterService extends AbstractIdleService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PipelinesDatasetDeleterService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EsDatasetDeleterService.class);
 
-  private final PipelinesDatasetDeleterConfiguration config;
+  private final EsDatasetDeleterConfiguration config;
   private MessageListener listener;
   private RestHighLevelClient esClient;
 
-  public PipelinesDatasetDeleterService(PipelinesDatasetDeleterConfiguration config) {
+  public EsDatasetDeleterService(EsDatasetDeleterConfiguration config) {
     this.config = config;
   }
 
@@ -40,7 +40,7 @@ public class PipelinesDatasetDeleterService extends AbstractIdleService {
     listener.listen(
         config.queueName,
         config.poolSize,
-        new PipelinesDatasetDeleterCallback(esClient, config.esIndex));
+        new EsDatasetDeleterCallback(esClient, config.esIndex));
   }
 
   @Override

@@ -16,29 +16,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Callback that is called when the {@link DeleteDatasetOccurrencesMessage} is received. */
-public class PipelinesDatasetDeleterCallback
+public class EsDatasetDeleterCallback
     extends AbstractMessageCallback<DeleteDatasetOccurrencesMessage> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PipelinesDatasetDeleterCallback.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EsDatasetDeleterCallback.class);
 
   private final RestHighLevelClient esClient;
   private final String[] esIndex;
 
   private final Timer processTimerDeleteByQuery =
       Metrics.newTimer(
-          PipelinesDatasetDeleterCallback.class,
+          EsDatasetDeleterCallback.class,
           "ES dataset delete by query time",
           TimeUnit.MILLISECONDS,
           TimeUnit.SECONDS);
 
   private final Timer processTimerDeleteIndex =
       Metrics.newTimer(
-          PipelinesDatasetDeleterCallback.class,
+          EsDatasetDeleterCallback.class,
           "ES dataset delete index time",
           TimeUnit.MILLISECONDS,
           TimeUnit.SECONDS);
 
-  public PipelinesDatasetDeleterCallback(RestHighLevelClient esClient, String[] esIndex) {
+  public EsDatasetDeleterCallback(RestHighLevelClient esClient, String[] esIndex) {
     this.esClient = esClient;
     this.esIndex = esIndex;
   }
