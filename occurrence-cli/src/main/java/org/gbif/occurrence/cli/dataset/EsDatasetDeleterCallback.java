@@ -14,6 +14,7 @@ import com.yammer.metrics.core.TimerContext;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /** Callback that is called when the {@link DeleteDatasetOccurrencesMessage} is received. */
 public class EsDatasetDeleterCallback
@@ -45,6 +46,8 @@ public class EsDatasetDeleterCallback
 
   @Override
   public void handleMessage(DeleteDatasetOccurrencesMessage message) {
+    MDC.put("datasetKey", message.getDatasetUuid().toString());
+
     if (OccurrenceDeletionReason.DATASET_MANUAL != message.getDeletionReason()) {
       LOG.warn("In Pipelines we only support DATASET_MANUAL deletion events");
       return;
