@@ -12,6 +12,7 @@
  */
 package org.gbif.occurrence.download.query;
 
+import com.google.common.base.Joiner;
 import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
@@ -40,6 +41,7 @@ import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -72,6 +74,7 @@ public class HiveQueryVisitor {
   private static final String CONJUNCTION_OPERATOR = " AND ";
   private static final String DISJUNCTION_OPERATOR = " OR ";
   private static final String EQUALS_OPERATOR = " = ";
+  private static final String IN_OPERATOR = " IN";
   private static final String GREATER_THAN_OPERATOR = " > ";
   private static final String GREATER_THAN_EQUALS_OPERATOR = " >= ";
   private static final String LESS_THAN_OPERATOR = " < ";
@@ -159,6 +162,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, DwcTerm.parentEventID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, DwcTerm.samplingProtocol)
       .build();
+
+  private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
 
   private StringBuilder builder;
 
@@ -269,20 +274,48 @@ public class HiveQueryVisitor {
     visitSimplePredicate(predicate, GREATER_THAN_OPERATOR);
   }
 
+  /*
+   * For large disjunctions, IN predicates are around 3× faster than a perfectly balanced tree of
+   * OR predicates, and around 2× faster than a fairly flat OR query.
+   *
+   * With Hive 1.3.0, balancing OR queries should be internal to Hive:
+   *   https://jira.apache.org/jira/browse/HIVE-11398
+   * but it is probably still better to use an IN, which uses a hash table lookup internally:
+   *   https://jira.apache.org/jira/browse/HIVE-11415#comment-14651085
+   */
   public void visit(InPredicate predicate) throws QueryBuildingException {
-    builder.append('(');
-    Iterator<String> iterator = predicate.getValues().iterator();
-    while (iterator.hasNext()) {
-      String value = iterator.next();
+
+    if (isHiveArray(predicate.getKey())) {
+      // Array values must be converted to ORs.
       builder.append('(');
-      // Use the equals predicate to get the behaviour for taxon key etc.
-      visit(new EqualsPredicate(predicate.getKey(), value));
-      builder.append(')');
-      if (iterator.hasNext()) {
-        builder.append(DISJUNCTION_OPERATOR);
+      Iterator<String> iterator = predicate.getValues().iterator();
+      while (iterator.hasNext()) {
+        // Use the equals predicate to get the behaviour for array.
+        visit(new EqualsPredicate(predicate.getKey(), iterator.next()));
+        if (iterator.hasNext()) {
+          builder.append(DISJUNCTION_OPERATOR);
+        }
       }
+      builder.append(')');
+
+    } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
+      // Taxon keys must be expanded into a disjunction of in predicates
+      appendTaxonKeyFilter(predicate.getValues());
+
+    } else {
+      builder.append('(');
+      builder.append(toHiveField(predicate.getKey()));
+      builder.append(IN_OPERATOR);
+      builder.append('(');
+      Iterator<String> iterator = predicate.getValues().iterator();
+      while (iterator.hasNext()) {
+        builder.append(toHiveValue(predicate.getKey(), iterator.next()));
+        if (iterator.hasNext()) {
+          builder.append(", ");
+        }
+      }
+      builder.append("))");
     }
-    builder.append(')');
   }
 
   public void visit(LessThanOrEqualsPredicate predicate) throws QueryBuildingException {
@@ -366,14 +399,14 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Determines if the type of a parameter it'a a Hive array.
+   * Determines if the type of a parameter is a Hive array.
    */
   private static boolean isHiveArray(OccurrenceSearchParameter parameter) {
     return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
   }
 
   /**
-   * Searches any of the nub keys in HBase of any rank.
+   * Searches any of the NUB keys in HBase of any rank.
    *
    * @param taxonKey to append as filter
    */
@@ -387,6 +420,28 @@ public class HiveQueryVisitor {
       builder.append(HiveColumnsUtils.getHiveColumn(term));
       builder.append(EQUALS_OPERATOR);
       builder.append(taxonKey);
+      first = false;
+    }
+    builder.append(')');
+  }
+
+  /**
+   * Searches any of the NUB keys in HBase of any rank, for multiple keys.
+   *
+   * @param taxonKeys to append as filter
+   */
+  private void appendTaxonKeyFilter(Collection<String> taxonKeys) {
+    builder.append('(');
+    boolean first = true;
+    for (Term term : NUB_KEYS) {
+      if (!first) {
+        builder.append(DISJUNCTION_OPERATOR);
+      }
+      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(IN_OPERATOR);
+      builder.append('(');
+      builder.append(commaJoiner.join(taxonKeys));
+      builder.append(')');
       first = false;
     }
     builder.append(')');
