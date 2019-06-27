@@ -2,6 +2,7 @@ package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
@@ -65,7 +66,7 @@ public class HiveColumnsUtils {
    * Checks if the term is stored as an Hive array.
    */
   public static boolean isHiveArray(Term term) {
-    return GbifTerm.mediaType == term || GbifTerm.issue == term;
+    return GbifTerm.mediaType == term || GbifTerm.issue == term || GbifInternalTerm.networkKey == term;
   }
 
   /**
