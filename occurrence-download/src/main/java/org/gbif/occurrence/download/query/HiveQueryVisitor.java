@@ -41,6 +41,7 @@ import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -246,7 +247,38 @@ public class HiveQueryVisitor {
   }
 
   public void visit(DisjunctionPredicate predicate) throws QueryBuildingException {
-    visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
+    // See if this disjunction can be simplified into an IN predicate, which is much faster.
+    // We could overcomplicate this:
+    //   A=1 OR A=2 OR B=3 OR B=4 OR C>5 → A IN(1,2) OR B IN (3,4) OR C>5
+    // but that's a very unusual query for us, so we just check for
+    // - EqualsPredicates everywhere
+    // - on the same search parameter.
+
+    boolean useIn = true;
+    List<String> values = new ArrayList<>();
+    OccurrenceSearchParameter parameter = null;
+
+    for (Predicate subPredicate : predicate.getPredicates()) {
+      if (subPredicate instanceof EqualsPredicate) {
+        EqualsPredicate equalsSubPredicate = (EqualsPredicate) subPredicate;
+        if (parameter == null) {
+          parameter = equalsSubPredicate.getKey();
+        } else if (parameter != equalsSubPredicate.getKey()) {
+          useIn = false;
+          break;
+        }
+        values.add(equalsSubPredicate.getValue());
+      } else {
+        useIn = false;
+        break;
+      }
+    }
+
+    if (useIn) {
+      visit(new InPredicate(parameter, values));
+    } else {
+      visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
+    }
   }
 
   /**
