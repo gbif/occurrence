@@ -31,6 +31,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class HiveQueryVisitorTest {
 
@@ -55,6 +56,32 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testMoreComplexQuery() throws QueryBuildingException {
+    Predicate taxon1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1");
+    Predicate taxon2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2");
+    DisjunctionPredicate taxa = new DisjunctionPredicate(Lists.newArrayList(taxon1, taxon2));
+
+    Predicate basis = new InPredicate(OccurrenceSearchParameter.BASIS_OF_RECORD, Lists.newArrayList("HUMAN_OBSERVATION", "MACHINE_OBSERVATION"));
+
+    Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB");
+    Predicate IE = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "IE");
+    DisjunctionPredicate countries = new DisjunctionPredicate(Lists.newArrayList(UK, IE));
+
+    Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
+    Predicate in2000 = new EqualsPredicate(OccurrenceSearchParameter.YEAR, "2000");
+    DisjunctionPredicate years = new DisjunctionPredicate(Lists.newArrayList(before1989, in2000));
+
+    ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(taxa, basis, countries, years));
+    String where = visitor.getHiveQuery(p);
+    assertEquals(
+      "(((taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))) " +
+        "AND ((basisofrecord IN('HUMAN_OBSERVATION', 'MACHINE_OBSERVATION'))) " +
+        "AND ((countrycode IN(\'GB\', \'IE\'))) " +
+        "AND (((year <= 1989) OR (year = 2000))))",
+      where);
+  }
+
+  @Test
   public void testConjunctionPredicate() throws QueryBuildingException {
     Predicate p1 = new EqualsPredicate(PARAM, "value_1");
     Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
@@ -72,6 +99,37 @@ public class HiveQueryVisitorTest {
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo("((lower(catalognumber) = lower(\'value_1\')) OR (lower(institutioncode) = lower(\'value_2\')))"));
+  }
+
+  @Test
+  public void testDisjunctionToInPredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
+    Predicate p2 = new EqualsPredicate(PARAM, "value_2");
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    String query = visitor.getHiveQuery(p);
+    assertThat(query, equalTo("(lower(catalognumber) IN(lower(\'value_1\'), lower(\'value_2\')))"));
+  }
+
+  @Test
+  public void testDisjunctionToInTaxonPredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1");
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2");
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    String query = visitor.getHiveQuery(p);
+    assertThat(query,
+      equalTo("(taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
+  }
+
+  @Test
+  public void testDisjunctionMediaTypePredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "StillImage");
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "Sound");
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    String query = visitor.getHiveQuery(p);
+    assertThat(query, equalTo("(array_contains(mediatype,'STILLIMAGE') OR array_contains(mediatype,'SOUND'))"));
   }
 
   @Test
@@ -100,7 +158,7 @@ public class HiveQueryVisitorTest {
     Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("((lower(catalognumber) = lower(\'value_1\')) OR (lower(catalognumber) = lower(\'value_2\')) OR (lower(catalognumber) = lower(\'value_3\')))"));
+      equalTo("(lower(catalognumber) IN(lower(\'value_1\'), lower(\'value_2\'), lower(\'value_3\')))"));
   }
 
   @Test
@@ -108,7 +166,14 @@ public class HiveQueryVisitorTest {
     Predicate p = new InPredicate(OccurrenceSearchParameter.TAXON_KEY, Lists.newArrayList("1", "2"));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("(((taxonkey = 1 OR kingdomkey = 1 OR phylumkey = 1 OR classkey = 1 OR orderkey = 1 OR familykey = 1 OR genuskey = 1 OR subgenuskey = 1 OR specieskey = 1)) OR ((taxonkey = 2 OR kingdomkey = 2 OR phylumkey = 2 OR classkey = 2 OR orderkey = 2 OR familykey = 2 OR genuskey = 2 OR subgenuskey = 2 OR specieskey = 2)))"));
+      equalTo("(taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
+  }
+
+  @Test
+  public void testInPredicateMediaType() throws QueryBuildingException {
+    Predicate p = new InPredicate(OccurrenceSearchParameter.MEDIA_TYPE, Lists.newArrayList("StillImage", "Sound"));
+    String query = visitor.getHiveQuery(p);
+    assertThat(query, equalTo("(array_contains(mediatype,'STILLIMAGE') OR array_contains(mediatype,'SOUND'))"));
   }
 
   @Test
@@ -221,7 +286,7 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
-  public void testAllParamsExist() throws QueryBuildingException {
+  public void testAllParamsExist() {
     List<Predicate> predicates = Lists.newArrayList();
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       String value = "7";
@@ -249,6 +314,10 @@ public class HiveQueryVisitorTest {
       }
     }
     ConjunctionPredicate and = new ConjunctionPredicate(predicates);
-    String where = visitor.getHiveQuery(and);
+    try {
+      visitor.getHiveQuery(and);
+    } catch (QueryBuildingException e) {
+      fail();
+    }
   }
 }
