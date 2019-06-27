@@ -15,7 +15,6 @@ import org.gbif.occurrence.search.SearchException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
@@ -81,7 +80,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       }
       return null;
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new SearchException(ex);
     }
   }
 
