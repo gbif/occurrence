@@ -58,6 +58,11 @@ public class EsDatasetDeleterCallback
     Set<String> datasetIndexes =
         EsHelper.findExistingIndexesInAliases(esClient, datasetKey, esIndex);
 
+    if (datasetIndexes == null || datasetIndexes.isEmpty()) {
+      LOG.info("No indexes found in aliases {} for dataset {}", esIndex, datasetKey);
+      return;
+    }
+
     final TimerContext contextDeleteIndex = processTimerDeleteIndex.time();
     // remove independent indexes for this dataset
     datasetIndexes.stream()
