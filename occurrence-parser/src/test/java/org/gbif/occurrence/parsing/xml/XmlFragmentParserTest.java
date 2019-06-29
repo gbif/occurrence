@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class XmlFragmentParserTest {
@@ -35,11 +36,24 @@ public class XmlFragmentParserTest {
     // note the collector name has an u umlaut
     String xml = Resources.toString(Resources.getResource("id_extraction/abcd1_umlaut.xml"), Charsets.UTF_8);
 
-    RawXmlOccurrence rawRecord = createFakeOcc(xml);
+    RawXmlOccurrence rawRecord = createFakeOcc(xml, OccurrenceSchemaType.ABCD_1_2);
     List<RawOccurrenceRecord> results = XmlFragmentParser.parseRecord(rawRecord);
     assertEquals(1, results.size());
     // System.out.println("Looking for [Oschütz], got collector name [" + results.get(0).getCollectorName() + "]");
     assertTrue(results.get(0).getCollectorName().equals("Oschütz"));
+  }
+
+  @Test
+  public void testParsingMultipleIdsUnitQualifier() throws IOException {
+    // One occurrence has a unitQualifier, the other does not
+    String xml = Resources.toString(Resources.getResource("id_extraction/abcd2_multi_with_null.xml"), Charsets.UTF_8);
+
+    byte[] rawRecord = createFakeOcc(xml, OccurrenceSchemaType.ABCD_2_0_6).getXml().getBytes("UTF-8");
+    String uq = "Entelophyllum ex gr. roemeri Wedekind, 1927";
+    RawOccurrenceRecord resultUnit1 = XmlFragmentParser.parseRecord(rawRecord, OccurrenceSchemaType.ABCD_2_0_6, uq);
+    RawOccurrenceRecord resultUnit2 = XmlFragmentParser.parseRecord(rawRecord, OccurrenceSchemaType.ABCD_2_0_6, null);
+    assertEquals(uq, resultUnit1.getScientificName());
+    assertNull(resultUnit2.getScientificName());
   }
 
   @Ignore("too expensive for constant use")
@@ -50,7 +64,7 @@ public class XmlFragmentParserTest {
     // 5 parsers in 5 threads parse 1000 records each
     List<RawXmlOccurrence> raws = new ArrayList<RawXmlOccurrence>();
     for (int i = 0; i < 5000; i++) {
-      raws.add(createFakeOcc(xml));
+      raws.add(createFakeOcc(xml, OccurrenceSchemaType.ABCD_1_2));
     }
 
     ExecutorService tp = Executors.newFixedThreadPool(5);
@@ -90,13 +104,13 @@ public class XmlFragmentParserTest {
   public void testIdExtractionSimple() throws IOException {
     String xml = Resources.toString(Resources.getResource("id_extraction/abcd1_simple.xml"), Charsets.UTF_8);
     UUID datasetKey = UUID.randomUUID();
-    HolyTriplet target =
-      new HolyTriplet(datasetKey, "TLMF", "Tiroler Landesmuseum Ferdinandeum", "82D45C93-B297-490E-B7B0-E0A9BEED1326",
-        null);
     byte[] xmlBytes = xml.getBytes(Charset.forName("UTF8"));
     Set<IdentifierExtractionResult> extractionResults =
       XmlFragmentParser.extractIdentifiers(datasetKey, xmlBytes, OccurrenceSchemaType.ABCD_1_2, true,
         true);
+    HolyTriplet target =
+      new HolyTriplet(datasetKey, "TLMF", "Tiroler Landesmuseum Ferdinandeum", "82D45C93-B297-490E-B7B0-E0A9BEED1326",
+        null);
     Set<UniqueIdentifier> ids = extractionResults.iterator().next().getUniqueIdentifiers();
     assertEquals(1, ids.size());
     UniqueIdentifier id = ids.iterator().next();
@@ -122,6 +136,24 @@ public class XmlFragmentParserTest {
       String uniqueId = result.getUniqueIdentifiers().iterator().next().getUniqueString();
       assertTrue(uniqueId.equals(OccurrenceKeyHelper.buildKey(holyTriplet1)) || uniqueId
         .equals(OccurrenceKeyHelper.buildKey(holyTriplet2)));
+    }
+  }
+
+  @Test
+  public void testIdExtractionMultipleIdsUnitQualifierDuplicates() throws IOException {
+    String xml = Resources.toString(Resources.getResource("id_extraction/abcd2_multi_with_null.xml"), Charsets.UTF_8);
+    UUID datasetKey = UUID.randomUUID();
+    byte[] xmlBytes = xml.getBytes(Charset.forName("UTF8"));
+    Set<IdentifierExtractionResult> extractionResults =
+      XmlFragmentParser.extractIdentifiers(datasetKey, xmlBytes, OccurrenceSchemaType.ABCD_2_0_6, true,
+        true);
+    HolyTriplet holyTriplet1 = new HolyTriplet(datasetKey, "Institute of Geology at TUT", "GIT", "713-13", "Entelophyllum ex gr. roemeri Wedekind, 1927");
+    HolyTriplet holyTriplet2 = new HolyTriplet(datasetKey, "Institute of Geology at TUT", "GIT", "713-13", "null");
+    assertEquals(2, extractionResults.size());
+    for (IdentifierExtractionResult result : extractionResults) {
+      String uniqueId = result.getUniqueIdentifiers().iterator().next().getUniqueString();
+      System.out.println(uniqueId);
+      assertTrue(uniqueId.equals(OccurrenceKeyHelper.buildKey(holyTriplet1)) || uniqueId.equals(OccurrenceKeyHelper.buildKey(holyTriplet2)));
     }
   }
 
@@ -165,13 +197,13 @@ public class XmlFragmentParserTest {
     assertTrue(extractionResults.isEmpty());
   }
 
-  private RawXmlOccurrence createFakeOcc(String xml) {
+  private RawXmlOccurrence createFakeOcc(String xml, OccurrenceSchemaType schemaType) {
     RawXmlOccurrence rawRecord = new RawXmlOccurrence();
     rawRecord.setCatalogNumber("fake catalog");
     rawRecord.setCollectionCode("fake collection code");
     rawRecord.setInstitutionCode("fake inst");
     rawRecord.setResourceName("fake resource name");
-    rawRecord.setSchemaType(OccurrenceSchemaType.ABCD_1_2);
+    rawRecord.setSchemaType(schemaType);
     rawRecord.setXml(xml);
 
     return rawRecord;
