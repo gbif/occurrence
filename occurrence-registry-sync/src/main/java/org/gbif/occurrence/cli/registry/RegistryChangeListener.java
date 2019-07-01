@@ -7,27 +7,25 @@ import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Endpoint;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.service.registry.OrganizationService;
+import org.gbif.api.util.comparators.EndpointPriorityComparator;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.TagName;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
-import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
-import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
-import org.gbif.common.messaging.api.messages.RegistryChangeMessage;
-import org.gbif.common.messaging.api.messages.StartCrawlMessage;
+import org.gbif.common.messaging.api.messages.*;
 import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
 import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Scan;
@@ -42,10 +40,12 @@ import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.gbif.common.messaging.api.messages.PipelinesVerbatimMessage.ValidationResult;
+
 /**
  * Listens for any registry changes {@link RegistryChangeMessage}
  * of interest to occurrences: namely organization and dataset updates or deletions.
- *
+ * <p>
  * This was written at a time when we only looked at occurrence datasets, but without
  * planning, it is now the process that also triggers crawling for checklist datasets,
  * and metadata-only datasets.
@@ -55,14 +55,18 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
   private static final String HBASE_TIMEOUT = "600000";
-  private static final String MR_MAP_MEMORY_MB= "1024";
+  private static final String MR_MAP_MEMORY_MB = "1024";
   //approx. 85% of MR_MAP_MEMORY_MB
   private static final String MR_MAP_JAVA_OPTS = "-Xmx768m";
-  private static final String MR_QUEUE_NAME= "crap";
+  private static final String MR_QUEUE_NAME = "crap";
 
-  private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>()
-    .add(EndpointType.BIOCASE, EndpointType.DIGIR, EndpointType.DIGIR_MANIS, EndpointType.TAPIR,
-      EndpointType.DWC_ARCHIVE, EndpointType.EML).build();
+  private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>().add(
+    EndpointType.BIOCASE,
+    EndpointType.DIGIR,
+    EndpointType.DIGIR_MANIS,
+    EndpointType.TAPIR,
+    EndpointType.DWC_ARCHIVE,
+    EndpointType.EML).build();
 
   /*
     When an IPT publishes a new dataset we will get multiple messages from the registry informing us of the update
@@ -92,8 +96,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     if ("Dataset".equals(clazz.getSimpleName())) {
       handleDataset(message.getChangeType(), (Dataset) message.getOldObject(), (Dataset) message.getNewObject());
     } else if ("Organization".equals(clazz.getSimpleName())) {
-      handleOrganization(message.getChangeType(), (Organization) message.getOldObject(),
-        (Organization) message.getNewObject());
+      handleOrganization(message.getChangeType(),
+                         (Organization) message.getOldObject(),
+                         (Organization) message.getNewObject());
     }
   }
 
@@ -102,8 +107,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       case DELETED:
         LOG.info("Sending delete for dataset [{}]", oldDataset.getKey());
         try {
-          messagePublisher
-            .send(new DeleteDatasetOccurrencesMessage(oldDataset.getKey(), OccurrenceDeletionReason.DATASET_MANUAL));
+          messagePublisher.send(new DeleteDatasetOccurrencesMessage(oldDataset.getKey(),
+                                                                    OccurrenceDeletionReason.DATASET_MANUAL));
         } catch (IOException e) {
           LOG.warn("Could not send delete dataset message for key [{}]", oldDataset.getKey(), e);
         }
@@ -120,7 +125,13 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           // check if we should start a m/r job to update occurrence records
           // FIXME this can lead to issues if 100 datasets change organization in a batch update.
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
-            LOG.info("Starting m/r sync for dataset [{}], with reason {}", newDataset.getKey(), occurrenceMutator.generateUpdateMessage(oldDataset, newDataset));
+            Optional<String> changedMessage = occurrenceMutator.generateUpdateMessage(oldDataset, newDataset);
+
+            // send message to pipelines
+            sendUpdateMetadataMessageToPipelines(
+                newDataset, changedMessage.orElse("Dataset changed in registry"));
+
+            LOG.info("Starting m/r sync for dataset [{}], with reason {}", newDataset.getKey(), changedMessage);
             try {
               runMrSync(newDataset.getKey());
             } catch (Exception e) {
@@ -131,7 +142,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           }
         } else {
           LOG.info("Ignoring update of dataset [{}] because either no crawlable endpoints or we just sent a crawl",
-            newDataset.getKey());
+                   newDataset.getKey());
         }
         break;
       case CREATED:
@@ -144,7 +155,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           }
         } else {
           LOG.info("Ignoring creation of dataset [{}] because no crawlable endpoints or we just sent a crawl",
-            newDataset.getKey());
+                   newDataset.getKey());
         }
         break;
     }
@@ -169,39 +180,41 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     return false;
   }
 
-  private void handleOrganization(RegistryChangeMessage.ChangeType changeType, Organization oldOrg,
-    Organization newOrg) {
+  private void handleOrganization(
+    RegistryChangeMessage.ChangeType changeType, Organization oldOrg, Organization newOrg
+  ) {
     switch (changeType) {
-      case DELETED:
-        break;
       case UPDATED:
         if (!oldOrg.isEndorsementApproved() && newOrg.isEndorsementApproved()) {
           LOG.info("Starting crawl of all datasets for newly endorsed org [{}]", newOrg.getKey());
-          DatasetVisitor visitor = new DatasetVisitor() {
-            @Override
-            public void visit(UUID datasetKey) {
-              try {
-                messagePublisher.send(new StartCrawlMessage(datasetKey));
-              } catch (IOException e) {
-                LOG.warn("Could not send start crawl message for newly endorsed dataset key [{}]", datasetKey, e);
-              }
+          DatasetVisitor visitor = dataset -> {
+            try {
+              messagePublisher.send(new StartCrawlMessage(dataset.getKey()));
+            } catch (IOException e) {
+              LOG.warn("Could not send start crawl message for newly endorsed dataset key [{}]", dataset.getKey(), e);
             }
           };
           visitOwnedDatasets(newOrg.getKey(), visitor);
-        } else if (occurrenceMutator.requiresUpdate(oldOrg, newOrg)) {
-          if (newOrg.getNumPublishedDatasets() > 0) {
-            LOG.info("Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
-              newOrg.getKey(), oldOrg.getCountry(), newOrg.getCountry());
-            DatasetVisitor visitor = new DatasetVisitor() {
-              @Override
-              public void visit(UUID datasetKey) {
-                runMrSync(datasetKey);
-              }
-            };
-            visitOwnedDatasets(newOrg.getKey(), visitor);
-          }
+        } else if (occurrenceMutator.requiresUpdate(oldOrg, newOrg)
+            && newOrg.getNumPublishedDatasets() > 0) {
+          LOG.info(
+              "Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
+              newOrg.getKey(),
+              oldOrg.getCountry(),
+              newOrg.getCountry());
+          DatasetVisitor visitor =
+              dataset -> {
+                sendUpdateMetadataMessageToPipelines(
+                    dataset,
+                    occurrenceMutator
+                        .generateUpdateMessage(oldOrg, newOrg)
+                        .orElse("Organization change in registry"));
+                runMrSync(dataset.getKey());
+              };
+          visitOwnedDatasets(newOrg.getKey(), visitor);
         }
         break;
+      case DELETED:
       case CREATED:
         break;
     }
@@ -209,8 +222,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   /**
    * Creates and submit a MapReduce job to the cluster using {@link OccurrenceScanMapper} as a mapper.
-   *
-   * @param datasetKey
    */
   private static void runMrSync(@Nullable UUID datasetKey) {
 
@@ -222,7 +233,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     Properties props = SyncCommon.loadProperties();
     // add all props to job context for use by the OccurrenceScanMapper when it no longer has access to our classpath
     for (Object key : props.keySet()) {
-      String stringKey = (String)key;
+      String stringKey = (String) key;
       conf.set(stringKey, props.getProperty(stringKey));
     }
 
@@ -242,8 +253,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     String rawDatasetKey = null;
     if (datasetKey != null) {
       rawDatasetKey = datasetKey.toString();
-      scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF, SyncCommon.DK_COL, CompareFilter.CompareOp.EQUAL,
-        Bytes.toBytes(rawDatasetKey)));
+      scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF,
+                                                 SyncCommon.DK_COL,
+                                                 CompareFilter.CompareOp.EQUAL,
+                                                 Bytes.toBytes(rawDatasetKey)));
     }
 
     if (rawDatasetKey != null) {
@@ -269,9 +282,13 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         LOG.error("Sync m/r not properly configured (occ table or mapreduce user not set) - aborting");
       } else {
         // NOTE: addDependencyJars must be false or you'll see it trying to load hdfs://c1n1/home/user/app/lib/occurrence-cli.jar
-        TableMapReduceUtil
-          .initTableMapperJob(targetTable, scan, OccurrenceScanMapper.class, ImmutableBytesWritable.class,
-            NullWritable.class, job, false);
+        TableMapReduceUtil.initTableMapperJob(targetTable,
+                                              scan,
+                                              OccurrenceScanMapper.class,
+                                              ImmutableBytesWritable.class,
+                                              NullWritable.class,
+                                              job,
+                                              false);
         job.waitForCompletion(true);
       }
     } catch (Exception e) {
@@ -290,7 +307,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       PagingResponse<Dataset> datasets = orgService.publishedDatasets(orgKey, page);
 
       for (Dataset dataset : datasets.getResults()) {
-        visitor.visit(dataset.getKey());
+        visitor.visit(dataset);
       }
       datasetCount += datasets.getResults().size();
       offset += PAGING_LIMIT;
@@ -304,6 +321,68 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private interface DatasetVisitor {
 
-    void visit(UUID datasetKey);
+    void visit(Dataset dataset);
+  }
+
+  /**
+   * Sends message to pipelines to update the metadata of the dataset.
+   *
+   * @param dataset dataset to update
+   * @param changedMessage message with the change occurred in the registry
+   */
+  private void sendUpdateMetadataMessageToPipelines(Dataset dataset, String changedMessage) {
+    LOG.info(
+      "Sending a message to pipelines to update the metadata for dataset [{}], with reason {}",
+      dataset.getKey(),
+      changedMessage);
+
+    OptionalInt attempt = getDatasetAttempt(dataset);
+    if (!attempt.isPresent()) {
+      LOG.warn(
+        "Could not find attempt for dataset {}. Message to pipelines to update metadata not sent",
+        dataset.getKey());
+      return;
+    }
+
+    Optional<Endpoint> endpoint = getEndpoint(dataset);
+    if (!endpoint.isPresent()) {
+      LOG.warn(
+        "Could not find endpoint for dataset {}. Message to pipelines to update metadata not sent",
+        dataset.getKey());
+      return;
+    }
+
+    try {
+      PipelinesVerbatimMessage message =
+        new PipelinesVerbatimMessage(
+          dataset.getKey(),
+          attempt.getAsInt(),
+          Collections.singleton("METADATA"),
+          Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX"),
+          null,
+          endpoint.get().getType(),
+          null,
+          new ValidationResult(true, true, null, null));
+
+      messagePublisher.send(
+        new PipelinesBalancerMessage(message.getClass().getSimpleName(), message.toString()));
+    } catch (IOException e) {
+      LOG.warn("Could not send delete dataset message for key [{}]", dataset.getKey(), e);
+    }
+  }
+
+  private Optional<Endpoint> getEndpoint(Dataset dataset) {
+    return dataset.getEndpoints()
+      .stream()
+      .filter(e -> EndpointPriorityComparator.PRIORITIES.contains(e.getType()))
+      .min(new EndpointPriorityComparator());
+  }
+
+  private OptionalInt getDatasetAttempt(Dataset dataset) {
+    return dataset.getMachineTags()
+      .stream()
+      .filter(t -> TagName.CRAWL_ATTEMPT.getName().equals(t.getName()))
+      .mapToInt(t -> Integer.valueOf(t.getValue()))
+      .max();
   }
 }
