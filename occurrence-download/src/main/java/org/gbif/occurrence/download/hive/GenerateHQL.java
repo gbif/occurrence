@@ -28,6 +28,7 @@ public class GenerateHQL {
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
+  private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
   
   private static final String FIELDS = "fields";
   
@@ -42,11 +43,15 @@ public class GenerateHQL {
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
-      
+      File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
+
+
+
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
+      avroSchemasDir.mkdirs();
       
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
@@ -54,6 +59,9 @@ public class GenerateHQL {
       // generates HQL for the coordinator jobs to create the tables to be queried
       generateHBaseTableHQL(cfg, createTablesDir);
       generateOccurrenceTableHQL(cfg, createTablesDir);
+
+      generateOccurrenceAvroSchema(avroSchemasDir);
+      generateOccurrenceAvroTableHQL(cfg, createTablesDir);
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
@@ -98,6 +106,24 @@ public class GenerateHQL {
   }
 
   /**
+   * Generates HQL which is used to take snapshots of the HBase table, and creates an HDFS equivalent.
+   */
+  private static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+
+    try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-avro.q"))) {
+      Template template = cfg.getTemplate("configure/create-occurrence-avro.ftl");
+      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHDFSTableDefinition.definition());
+      template.process(data, out);
+    }
+  }
+
+  private static void generateOccurrenceAvroSchema(File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "occurrence-hdfs-record.avsc"))) {
+      out.write(OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(Boolean.TRUE));
+    }
+  }
+
+  /**
    * Generates the Hive query file used for DwAc downloads.
    */
   private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
@@ -134,4 +160,5 @@ public class GenerateHQL {
       template.process(data, out);
     }
   }
+
 }

@@ -24,5 +24,5 @@ java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occur
 echo "Copy to hadoop"
 sudo -u hdfs hdfs dfs -rm -r /occurrence-download-workflows-$ENV/
 sudo -u hdfs hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/ /
-echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs"  > job.properties
+echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noccurrenceHBaseTable=$HBASE_TABLE\noozie.libpath=/occurrence-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs\nenv=$ENV"  > job.properties
 
