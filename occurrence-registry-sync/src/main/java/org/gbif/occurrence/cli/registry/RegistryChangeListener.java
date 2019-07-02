@@ -9,7 +9,6 @@ import org.gbif.api.model.registry.Organization;
 import org.gbif.api.service.registry.OrganizationService;
 import org.gbif.api.util.comparators.EndpointPriorityComparator;
 import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.TagName;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.*;
@@ -39,8 +38,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.gbif.common.messaging.api.messages.PipelinesVerbatimMessage.ValidationResult;
 
 /**
  * Listens for any registry changes {@link RegistryChangeMessage}
@@ -331,43 +328,32 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
    * @param changedMessage message with the change occurred in the registry
    */
   private void sendUpdateMetadataMessageToPipelines(Dataset dataset, String changedMessage) {
+    Optional<Endpoint> endpoint = getEndpoint(dataset);
+    if (!endpoint.isPresent()) {
+      LOG.warn(
+        "Could not find a valid endpoint for dataset {}. Message to pipelines to update metadata NOT SENT",
+        dataset.getKey());
+      return;
+    }
+
     LOG.info(
       "Sending a message to pipelines to update the metadata for dataset [{}], with reason {}",
       dataset.getKey(),
       changedMessage);
 
-    OptionalInt attempt = getDatasetAttempt(dataset);
-    if (!attempt.isPresent()) {
-      LOG.warn(
-        "Could not find attempt for dataset {}. Message to pipelines to update metadata not sent",
-        dataset.getKey());
-      return;
-    }
-
-    Optional<Endpoint> endpoint = getEndpoint(dataset);
-    if (!endpoint.isPresent()) {
-      LOG.warn(
-        "Could not find endpoint for dataset {}. Message to pipelines to update metadata not sent",
-        dataset.getKey());
-      return;
-    }
-
     try {
       PipelinesVerbatimMessage message =
-        new PipelinesVerbatimMessage(
-          dataset.getKey(),
-          attempt.getAsInt(),
-          Collections.singleton("METADATA"),
-          Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX"),
-          null,
-          endpoint.get().getType(),
-          null,
-          new ValidationResult(true, true, null, null));
+          new PipelinesVerbatimMessage(
+              dataset.getKey(),
+              null,
+              Collections.singleton("METADATA"),
+              Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX"),
+              endpoint.get().getType());
 
       messagePublisher.send(
         new PipelinesBalancerMessage(message.getClass().getSimpleName(), message.toString()));
     } catch (IOException e) {
-      LOG.warn("Could not send delete dataset message for key [{}]", dataset.getKey(), e);
+      LOG.warn("Could not send message to pipelines to update metadata for dataset [{}]", dataset.getKey(), e);
     }
   }
 
@@ -376,13 +362,5 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       .stream()
       .filter(e -> EndpointPriorityComparator.PRIORITIES.contains(e.getType()))
       .min(new EndpointPriorityComparator());
-  }
-
-  private OptionalInt getDatasetAttempt(Dataset dataset) {
-    return dataset.getMachineTags()
-      .stream()
-      .filter(t -> TagName.CRAWL_ATTEMPT.getName().equals(t.getName()))
-      .mapToInt(t -> Integer.valueOf(t.getValue()))
-      .max();
   }
 }
