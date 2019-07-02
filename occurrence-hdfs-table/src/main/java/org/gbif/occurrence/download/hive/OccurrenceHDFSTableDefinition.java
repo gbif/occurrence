@@ -82,18 +82,6 @@ public class OccurrenceHDFSTableDefinition {
            + " IS NOT NULL, countrycode != publishingcountry, NULL )";
   }
 
-  /**
-   * @return a string for constructing the repatriated field
-   */
-  private static String networkKeyInitializer() {
-    String networkKeyColumn = HiveColumns.columnFor(GbifInternalTerm.networkKey);
-    return "IF("
-      + networkKeyColumn
-      + " IS NOT NULL AND length("
-      + networkKeyColumn
-      + ") > 0, split(" + networkKeyColumn + ",\"\\\\;\"), NULL )";
-  }
-
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
@@ -183,8 +171,7 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<InitializableField> internalFields() {
-    Map<Term, String> initializers = ImmutableMap.of(GbifInternalTerm.networkKey, networkKeyInitializer(),
-                                                     GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey),
+    Map<Term, String> initializers = ImmutableMap.of(GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey),
                                                      GbifInternalTerm.installationKey, HiveColumns.columnFor(GbifInternalTerm.installationKey));
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
