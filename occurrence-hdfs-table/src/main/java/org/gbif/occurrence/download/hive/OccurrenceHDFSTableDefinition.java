@@ -1,8 +1,6 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -59,77 +57,10 @@ public class OccurrenceHDFSTableDefinition {
     return "collectMediaTypes(" + HiveColumns.columnFor(Extension.MULTIMEDIA) + ")";
   }
 
-  /**
-   * @return a string for constructing the hasCoordinate field
-   */
-  private static String hasCoordinateInitializer() {
-    return "("
-           + HiveColumns.columnFor(DwcTerm.decimalLatitude)
-           + " IS NOT NULL AND "
-           + HiveColumns.columnFor(DwcTerm.decimalLongitude)
-           + " IS NOT NULL)";
-  }
 
-
-  /**
-   * @return a string for constructing the repatriated field
-   */
-  private static String repatriatedInitializer() {
-    return "IF("
-           + HiveColumns.columnFor(GbifTerm.publishingCountry)
-           + " IS NOT NULL AND "
-           + HiveColumns.columnFor(DwcTerm.countryCode)
-           + " IS NOT NULL, countrycode != publishingcountry, NULL )";
-  }
 
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
-  }
-
-  /**
-   * @return a string for constructing the hasGeospatialIssues field
-   */
-  private static String hasGeospatialIssuesInitializer() {
-
-    // example output:
-    //   (COALESCE(zero_coordinate,0) + COALESCE(country_coordinate_mismatch,0)) > 0
-
-    StringBuilder statement = new StringBuilder("(");
-    for (int i = 0; i < OccurrenceIssue.GEOSPATIAL_RULES.size(); i++) {
-      OccurrenceIssue issue = OccurrenceIssue.GEOSPATIAL_RULES.get(i);
-      statement.append("COALESCE(").append(HiveColumns.columnFor(issue)).append(",0)");
-      if (i + 1 < OccurrenceIssue.GEOSPATIAL_RULES.size()) {
-        statement.append(" + ");
-      }
-    }
-    statement.append(") > 0");
-    return statement.toString();
-  }
-
-  /**
-   * @return a complex string which turns individual issues into a Hive array, formatted nicely for the freemarker to
-   * aid debugging.
-   */
-  private static String issueInitializer() {
-    StringBuilder statement = new StringBuilder("removeNulls(\n").append("    array(\n");
-    for (int i = 0; i < OccurrenceIssue.values().length; i++) {
-      OccurrenceIssue issue = OccurrenceIssue.values()[i];
-      // example:  "IF(zero_coordinate IS NOT NULL, 'ZERO_COORDINATE', NULL),"
-      statement.append("      IF(")
-        .append(HiveColumns.columnFor(issue))
-        .append(" IS NOT NULL, '")
-        .append(issue.toString().toUpperCase())
-        .append("', NULL)");
-
-      if (i + 1 < OccurrenceIssue.values().length) {
-        statement.append(",\n");
-      } else {
-        statement.append("\n");
-      }
-    }
-    statement.append("    )\n");
-    statement.append("  )");
-    return statement.toString();
   }
 
   /**
@@ -142,10 +73,6 @@ public class OccurrenceHDFSTableDefinition {
 
     // the following terms are manipulated when transposing from HBase to hive by using UDFs and custom HQL
     Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
-                                      .put(GbifTerm.hasGeospatialIssues, hasGeospatialIssuesInitializer())
-                                      .put(GbifTerm.hasCoordinate, hasCoordinateInitializer())
-                                      .put(GbifTerm.issue, issueInitializer())
-                                      .put(GbifTerm.repatriated, repatriatedInitializer())
                                       .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, HiveColumns.columnFor(GbifTerm.publishingCountry))
