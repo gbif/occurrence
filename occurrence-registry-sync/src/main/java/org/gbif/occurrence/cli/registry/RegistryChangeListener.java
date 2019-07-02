@@ -330,7 +330,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private void sendUpdateMetadataMessageToPipelines(Dataset dataset, String changedMessage) {
     Optional<Endpoint> endpoint = getEndpoint(dataset);
     if (!endpoint.isPresent()) {
-      LOG.warn(
+      LOG.error(
         "Could not find a valid endpoint for dataset {}. Message to pipelines to update metadata NOT SENT",
         dataset.getKey());
       return;
@@ -353,7 +353,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       messagePublisher.send(
         new PipelinesBalancerMessage(message.getClass().getSimpleName(), message.toString()));
     } catch (IOException e) {
-      LOG.warn("Could not send message to pipelines to update metadata for dataset [{}]", dataset.getKey(), e);
+      LOG.error("Could not send message to pipelines to update metadata for dataset [{}]", dataset.getKey(), e);
     }
   }
 
