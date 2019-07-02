@@ -35,14 +35,14 @@ CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UD
 CREATE TEMPORARY FUNCTION from_json AS 'brickhouse.udf.json.FromJsonUDF';
 
 -- re-create the HDFS view of the HBase table
-CREATE TABLE IF NOT EXISTS occurrence_hdfs (
+CREATE TABLE IF NOT EXISTS occurrence_pipeline_hdfs (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
 </#list>
 ) STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 -- populate the HDFS view
-INSERT OVERWRITE TABLE occurrence_hdfs
+INSERT OVERWRITE TABLE occurrence_pipeline_hdfs
 SELECT
 <#list fields as field>
   ${field.initializer}<#if field_has_next>,</#if>
