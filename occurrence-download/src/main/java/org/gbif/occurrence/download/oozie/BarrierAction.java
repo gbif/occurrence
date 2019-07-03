@@ -63,9 +63,9 @@ public class BarrierAction {
       curator.start();
       String lockPath = config.getProperty(LOCK_PATH) + config.getProperty(LOCK_NAME);
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
-      LOG.info("Waiting for barrier {}", lockPath);
-      barrier.waitOnBarrier();
       if(Action.START == action) {
+        LOG.info("Waiting for barrier {}", lockPath);
+        barrier.waitOnBarrier();
         LOG.info("Setting barrier {}", lockPath);
         barrier.setBarrier();
       } else if(Action.END == action) {
