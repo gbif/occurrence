@@ -139,7 +139,7 @@ public class EsResponseParser {
 
                           UnaryOperator<String> valueNormalizer =
                               v ->
-                                  String.class.isAssignableFrom(facet.type()) ? v.toLowerCase() : v;
+                                  Country.class.isAssignableFrom(facet.type()) ? v.toUpperCase() : v;
 
                           List<Facet.Count> counts =
                               buckets.stream()
