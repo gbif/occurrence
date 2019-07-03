@@ -65,6 +65,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     EndpointType.DWC_ARCHIVE,
     EndpointType.EML).build();
 
+  // pipelines
+  private static final String METADATA_INTERPRETATION = "METADATA";
+  private static final String LOCATION_INTERPRETATION = "LOCATION";
+
   /*
     When an IPT publishes a new dataset we will get multiple messages from the registry informing us of the update
     (depending on the number of endpoints, contacts etc). We only want to send a single crawl message for one of those
@@ -125,8 +129,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             Optional<String> changedMessage = occurrenceMutator.generateUpdateMessage(oldDataset, newDataset);
 
             // send message to pipelines
-            sendUpdateMetadataMessageToPipelines(
-                newDataset, changedMessage.orElse("Dataset changed in registry"));
+            sendUpdateMessageToPipelines(
+                newDataset, Collections.singleton(METADATA_INTERPRETATION), changedMessage.orElse("Dataset changed in registry"));
 
             LOG.info("Starting m/r sync for dataset [{}], with reason {}", newDataset.getKey(), changedMessage);
             try {
@@ -201,8 +205,9 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
               newOrg.getCountry());
           DatasetVisitor visitor =
               dataset -> {
-                sendUpdateMetadataMessageToPipelines(
+                sendUpdateMessageToPipelines(
                     dataset,
+                    Sets.newHashSet(METADATA_INTERPRETATION, LOCATION_INTERPRETATION),
                     occurrenceMutator
                         .generateUpdateMessage(oldOrg, newOrg)
                         .orElse("Organization change in registry"));
@@ -325,9 +330,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
    * Sends message to pipelines to update the metadata of the dataset.
    *
    * @param dataset dataset to update
+   * @param interpretations interpretations that should be run
    * @param changedMessage message with the change occurred in the registry
    */
-  private void sendUpdateMetadataMessageToPipelines(Dataset dataset, String changedMessage) {
+  private void sendUpdateMessageToPipelines(Dataset dataset, Set<String> interpretations, String changedMessage) {
     Optional<Endpoint> endpoint = getEndpoint(dataset);
     if (!endpoint.isPresent()) {
       LOG.error(
@@ -346,7 +352,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           new PipelinesVerbatimMessage(
               dataset.getKey(),
               null,
-              Collections.singleton("METADATA"),
+              interpretations,
               Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX"),
               endpoint.get().getType());
 
