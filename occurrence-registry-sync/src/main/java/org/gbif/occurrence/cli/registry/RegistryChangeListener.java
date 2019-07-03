@@ -343,9 +343,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
 
     LOG.info(
-      "Sending a message to pipelines to update the metadata for dataset [{}], with reason {}",
-      dataset.getKey(),
-      changedMessage);
+        "Sending a message to pipelines to update the {} for dataset [{}], with reason {}",
+        interpretations,
+        dataset.getKey(),
+        changedMessage);
 
     try {
       PipelinesVerbatimMessage message =
