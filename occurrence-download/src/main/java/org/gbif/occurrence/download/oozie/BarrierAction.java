@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.oozie;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -35,7 +36,7 @@ public class BarrierAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(BarrierAction.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     Action action = Action.valueOf(args[0].toUpperCase());
     doInBarrier(settings, action);

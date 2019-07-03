@@ -24,7 +24,16 @@
     </configuration>
   </global>
 
-  <start to="create-avro-table"/>
+  <start to="start-barrier"/>
+
+  <action name="start-barrier">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <arg>START</arg>
+    </java>
+    <ok to="create-avro-table"/>
+    <error to="notify-error"/>
+  </action>
 
   <!--
     Create the table backed by HBase
@@ -36,6 +45,15 @@
       <param>hiveDB=${hiveDB}</param>
       <param>env=${occurrence.environment}</param>
     </hive>
+    <ok to="end-barrier"/>
+    <error to="notify-error"/>
+  </action>
+
+  <action name="end-barrier">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <arg>END</arg>
+    </java>
     <ok to="end"/>
     <error to="notify-error"/>
   </action>
