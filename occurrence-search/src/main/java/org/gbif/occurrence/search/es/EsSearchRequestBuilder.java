@@ -43,7 +43,7 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 public class EsSearchRequestBuilder {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
-  private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (int) (size * 1.5) + 3000;
+  private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
 
   private EsSearchRequestBuilder() {}
 
