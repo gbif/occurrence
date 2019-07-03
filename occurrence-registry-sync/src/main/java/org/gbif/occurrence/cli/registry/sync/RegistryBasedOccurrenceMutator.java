@@ -143,6 +143,23 @@ public class RegistryBasedOccurrenceMutator {
    *
    * @param currentOrg
    * @param newOrg
+   * @return
+   */
+  public Optional<String> generateUpdateMessage(Organization currentOrg, Organization newOrg) {
+    StringJoiner joiner = new StringJoiner(",");
+    if(requiresUpdate(currentOrg, newOrg)) {
+      joiner.add(MessageFormat.format("Publishing Organization [{0}]: Country [{1}] -> [{2}]", currentOrg.getKey(),
+                                      currentOrg.getCountry(), newOrg.getCountry()));
+    }
+
+    return joiner.length() > 0 ? Optional.of(joiner.toString()) : Optional.empty();
+  }
+
+  /**
+   * Generates a message about what changed in the mutation. Mostly use for logging.
+   *
+   * @param currentDataset
+   * @param newDataset
    * @param currentDataset
    * @param newDataset
    * @return
