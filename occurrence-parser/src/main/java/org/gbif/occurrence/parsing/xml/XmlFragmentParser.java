@@ -126,21 +126,29 @@ public class XmlFragmentParser {
     RawOccurrenceRecord result = null;
     List<RawOccurrenceRecord> records = parseRecord(xml, schemaType);
     if (records.isEmpty()) {
-      LOG.warn("Could not parse any records from given xml - returning null.");
+      LOG.warn("Could not parse any records from given XML – returning null.");
     } else if (records.size() == 1) {
-      result = records.get(0);
-    } else if (unitQualifier == null) {
-      LOG.warn("Got multiple records from given xml, but no unitQualifier set - returning first record as a guess.");
       result = records.get(0);
     } else {
       for (RawOccurrenceRecord record : records) {
-        if (record.getScientificName().equals(unitQualifier)) {
+        // Sometimes one unitQualifier in a group is indeed null; check for this.
+        if (unitQualifier == null) {
+          if (record.getScientificName() == null) {
+            result = record;
+            break;
+          }
+        } else if (unitQualifier.equals(record.getScientificName())) {
           result = record;
           break;
         }
       }
       if (result == null) {
-        LOG.warn("Got multiple records from xml but none matched unitQualifier - returning null");
+        if (unitQualifier == null) {
+          LOG.warn("No unitQualifier set, and multiple records all with unitQualifiers – returning first record as a guess.");
+          result = records.get(0);
+        } else {
+          LOG.warn("Got multiple records from XML but none matched unitQualifier – returning null");
+        }
       }
     }
 
