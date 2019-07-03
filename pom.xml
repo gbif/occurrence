@@ -150,7 +150,7 @@
     <gbif-parsers.version>0.41</gbif-parsers.version>
     <gbif-postal-service.version>0.35-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>2.96</gbif-registry.version>
-    <gbif-wrangler.version>0.3-SNAPSHOT</gbif-wrangler.version>
+    <gbif-wrangler.version>0.3</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
 
