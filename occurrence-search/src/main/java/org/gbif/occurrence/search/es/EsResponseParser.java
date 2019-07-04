@@ -137,10 +137,6 @@ public class EsResponseParser {
                           long facetOffset = extractFacetOffset(request, facet);
                           long facetLimit = extractFacetLimit(request, facet);
 
-                          UnaryOperator<String> valueNormalizer =
-                              v ->
-                                  Enum.class.isAssignableFrom(facet.type()) ? v.toUpperCase() : v;
-
                           List<Facet.Count> counts =
                               buckets.stream()
                                   .skip(facetOffset)
@@ -148,7 +144,7 @@ public class EsResponseParser {
                                   .map(
                                       b ->
                                           new Facet.Count(
-                                              valueNormalizer.apply(b.getKeyAsString()),
+                                              b.getKeyAsString(),
                                               b.getDocCount()))
                                   .collect(Collectors.toList());
 
