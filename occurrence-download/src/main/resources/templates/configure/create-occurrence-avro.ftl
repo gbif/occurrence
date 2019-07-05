@@ -8,8 +8,8 @@
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
 USE ${r"${hiveDB}"};
 
-DROP TABLE IF EXISTS occurrence_pipelines_avro;
-CREATE EXTERNAL TABLE occurrence_pipelines_avro
+DROP TABLE IF EXISTS occurrence_pipeline_avro;
+CREATE EXTERNAL TABLE occurrence_pipeline_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
@@ -46,7 +46,7 @@ SELECT
 <#list fields as field>
   ${field.initializer}<#if field_has_next>,</#if>
 </#list>
-FROM occurrence_pipelines_avro;
+FROM occurrence_pipeline_avro;
 
 SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
