@@ -70,7 +70,6 @@
         <include>org.apache.curator:curator-framework:jar</include>
         <include>org.apache.curator:curator-recipes:jar</include>
         <include>org.apache.curator:curator-client:jar</include>
-        <include>org.apache.zookeeper:zookeeper:jar</include>
         <include>org.mybatis:mybatis:jar</include>
         <include>org.cloudera.htrace:htrace-core:jar</include>
         <include>org.codehaus.jackson:jackson-jaxrs:jar</include>

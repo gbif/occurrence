@@ -50,6 +50,8 @@ FROM occurrence_pipeline_avro;
 SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
 SET hive.auto.convert.join=false;
+--https://stackoverflow.com/questions/29946841/hive-kryo-exception
+SET hive.exec.parallel=false;
 
 CREATE TABLE IF NOT EXISTS occurrence_pipeline_multimedia
 (gbifid BIGINT, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,
@@ -64,5 +66,6 @@ occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,s
 
 SET hive.auto.convert.join=true;
 SET hive.vectorized.execution.reduce.enabled=true;
+SET hive.exec.parallel=true;
 
 
