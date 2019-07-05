@@ -152,10 +152,6 @@
                 <!-- Ensure only Log4J binding -->
                 <exclude>ch.qos.logback</exclude>
                 <exclude>org.slf4j:log4j-over-slf4j</exclude>
-                <!-- We depend upon occurrence-persistence, which has shaded these. -->
-                <exclude>org.apache.curator:curator-client</exclude>
-                <exclude>org.apache.curator:curator-framework</exclude>
-                <exclude>org.apache.curator:curator-recipes</exclude>
               </excludes>
             </bannedDependencies>
           </rules>
@@ -512,12 +508,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-wrangler</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
