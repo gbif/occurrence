@@ -121,9 +121,7 @@ public class OccurrenceHDFSTableDefinition {
   private static List<InitializableField> extensions() {
     // only MULTIMEDIA is supported, but coded for future use
     Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
-
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    builder.add(interpretedField(GbifTerm.mediaType, mediaTypeInitializer()));
     for (Extension e : extensions) {
       builder.add(new InitializableField(GbifTerm.Multimedia,
                                          HiveColumns.columnFor(e),
