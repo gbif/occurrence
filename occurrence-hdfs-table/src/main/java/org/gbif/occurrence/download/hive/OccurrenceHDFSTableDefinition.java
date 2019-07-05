@@ -49,16 +49,6 @@ public class OccurrenceHDFSTableDefinition {
     return builder.build();
   }
 
-  /**
-   * @return a string for constructing the media type field using a UDF
-   */
-  private static String mediaTypeInitializer() {
-    // collects from the extension multimedia term important(!)
-    return "collectMediaTypes(" + HiveColumns.columnFor(Extension.MULTIMEDIA) + ")";
-  }
-
-
-
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
