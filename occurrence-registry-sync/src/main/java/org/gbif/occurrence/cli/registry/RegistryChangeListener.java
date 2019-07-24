@@ -368,6 +368,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     return dataset.getEndpoints()
       .stream()
       .filter(e -> EndpointPriorityComparator.PRIORITIES.contains(e.getType()))
-      .min(new EndpointPriorityComparator());
+      .max(new EndpointPriorityComparator());
   }
 }
