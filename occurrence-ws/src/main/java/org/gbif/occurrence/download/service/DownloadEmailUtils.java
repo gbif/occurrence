@@ -44,7 +44,6 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 import static freemarker.template.Configuration.VERSION_2_3_25;
 
-
 /**
  * Utility class that sends notification emails of occurrence downloads.
  */
@@ -113,9 +112,14 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? 
+    try {
+      String query = download.getRequest().getFormat().equals(DownloadFormat.SQL) ?
         ((SqlDownloadRequest) download.getRequest()).getSql().replaceAll(CASE_INSENSITIVE_REGEX + Pattern.quote(OCCURRENCE_HDFS), OCCURRENCE)
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+      return "        " + query.replace("\n", "\n        ");
+    } catch (Exception e) {
+      return "        The query is too complex.  View it on the landing page.";
+    }
   }
 
   /**

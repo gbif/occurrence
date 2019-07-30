@@ -5,12 +5,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Date;
+
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
+import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
+import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.InPredicate;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.query.TitleLookup;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -37,6 +44,15 @@ public class DownloadEmailUtilsTest {
     d.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
 
     PredicateDownloadRequest req = new PredicateDownloadRequest();
+    req.setPredicate(new ConjunctionPredicate(Arrays.asList(
+      new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"),
+      new InPredicate(OccurrenceSearchParameter.COUNTRY, Arrays.asList("SE", "FI", "AX")),
+      new DisjunctionPredicate(Arrays.asList(
+        new EqualsPredicate(OccurrenceSearchParameter.BASIS_OF_RECORD, "HUMAN_OBSERVATION"),
+        new EqualsPredicate(OccurrenceSearchParameter.BASIS_OF_RECORD, "MACHINE_OBSERVATION")
+      ))
+    )));
+
     req.setFormat(DownloadFormat.SIMPLE_CSV);
     req.setCreator("markus");
     d.setRequest(req);
@@ -44,7 +60,6 @@ public class DownloadEmailUtilsTest {
 
     //System.out.println(body);
     assertNotNull(body);
-
 
     d.setStatus(Download.Status.FAILED);
     body = utils.buildBody(d, "error.ftl");
