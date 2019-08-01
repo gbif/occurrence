@@ -152,7 +152,9 @@ public class DownloadPrepareAction {
         String solrQuery = new SolrQueryVisitor().getQuery(predicate);
         long recordCount = getRecordCount(solrQuery);
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-        props.setProperty(SOLR_QUERY, solrQuery);
+        if (isSmallDownloadCount(recordCount)) {
+          props.setProperty(SOLR_QUERY, solrQuery);
+        }
         props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
           updateTotalRecordsCount(downloadKey, recordCount);

@@ -154,15 +154,26 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     try {
-      if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
+      String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
+      if (exceedComplexityLimit != null) {
+        LOG.info("Download request refused as it would exceed complexity limits");
+        Response tooBig = Response
+          .status(GbifResponseStatus.PAYLOAD_TOO_LARGE)
+          .entity("A download limitation is exceeded:\n" + exceedComplexityLimit + "\n")
+          .build();
+        throw new WebApplicationException(tooBig);
+      }
+
+      String exceedSimultaneousLimit = downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
+      if (exceedSimultaneousLimit != null) {
+        LOG.info("Download request refused as it would exceed simultaneous limits");
         Response calm = Response
           .status(GbifResponseStatus.ENHANCE_YOUR_CALM)
-          .entity("Too many simultaneous downloads, please wait for some to complete.\n\n"
-            + "Usually this is too many downloads from a single user, but it can be too many downloads overall.\n"
-            + "See your user page, or the GBIF health status page.\n")
+          .entity("A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n")
           .build();
         throw new WebApplicationException(calm);
       }
+
       String jobId = request.getFormat().equals(DownloadFormat.SQL)?
                         runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
       LOG.debug("Oozie job id is: [{}]", jobId);
@@ -170,6 +181,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       persistDownload(request, downloadId);
       return downloadId;
     } catch (OozieClientException e) {
+      LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }

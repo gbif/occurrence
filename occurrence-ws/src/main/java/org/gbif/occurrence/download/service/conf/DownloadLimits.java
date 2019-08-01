@@ -5,6 +5,9 @@ import javax.inject.Inject;
 
 import com.google.common.base.Splitter;
 import com.google.inject.name.Named;
+import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.occurrence.query.PredicateGeometryPointCounter;
+import org.gbif.occurrence.query.PredicateTaxonCounter;
 
 public class DownloadLimits {
 
@@ -36,28 +39,38 @@ public class DownloadLimits {
   }
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',');
+  private final PredicateTaxonCounter predicateTaxonCounter = new PredicateTaxonCounter();
+  private final PredicateGeometryPointCounter predicateGeometryPointCounter = new PredicateGeometryPointCounter();
 
   private final int maxUserDownloads;
-
   private final Limit softLimit;
   private final Limit hardLimit;
 
-  public DownloadLimits(int maxUserDownloads, Limit softLimit, Limit hardLimit) {
+  private final int maxPoints;
+  private final int maxTaxa;
+
+  public DownloadLimits(int maxUserDownloads, Limit softLimit, Limit hardLimit, int maxPoints, int maxTaxa) {
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = softLimit;
     this.hardLimit = hardLimit;
+    this.maxPoints = maxPoints;
+    this.maxTaxa = maxTaxa;
   }
 
   @Inject
   public DownloadLimits(@Named("max_user_downloads") int maxUserDownloads,
                         @Named("downloads_soft_limit") String softLimit,
-                        @Named("downloads_hard_limit") String hardLimit) {
+                        @Named("downloads_hard_limit") String hardLimit,
+                        @Named("downloads_max_points") int maxPoints,
+                        @Named("downloads_max_taxa") int maxTaxa) {
 
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = new Limit(Integer.parseInt(softLimits.next()), Integer.parseInt(softLimits.next()));
     this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()), Integer.parseInt(hardLimits.next()));
+    this.maxPoints = maxPoints;
+    this.maxTaxa = maxTaxa;
   }
 
   public int getMaxUserDownloads() {
@@ -75,5 +88,21 @@ public class DownloadLimits {
   public boolean violatesLimits(int userDownloads, int globalDownloads) {
     return getSoftLimit().violatesLimit(userDownloads, globalDownloads)
            && getHardLimit().violatesLimit(userDownloads, globalDownloads);
+  }
+
+  public String violatesFilterRules(Predicate p) {
+    // Find any WithinPredicates, and check the geometry is not too large.
+    Integer points = predicateGeometryPointCounter.count(p);
+    if (points > maxPoints) {
+      return "The geometry (or geometries) contains "+points+" points.  The maximum is "+maxPoints+".";
+    }
+
+    // Count the total number of taxon comparisons.
+    Integer taxa = predicateTaxonCounter.count(p);
+    if (taxa > maxTaxa) {
+      return "The request contains "+taxa+" taxon names and/or taxon keys.  The maximum is "+maxTaxa+".";
+    }
+
+    return null;
   }
 }

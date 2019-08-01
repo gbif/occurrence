@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
+import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -29,7 +31,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -65,7 +66,8 @@ public class DownloadServiceImplTest {
     props.clear();
     downloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
-    when(downloadLimitsService.isInDownloadLimits(any(String.class))).thenReturn(true);
+    when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class))).thenReturn(null);
+    when(downloadLimitsService.exceedsDownloadComplexity(any(DownloadRequest.class))).thenReturn(null);
     requestService =
       new DownloadRequestServiceImpl(oozieClient, props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
   }
@@ -81,13 +83,15 @@ public class DownloadServiceImplTest {
   }
 
   @Test
-  @Ignore("See OCC-55: At the moment failures are not propagated")
   public void testFailedCreate() throws OozieClientException {
     doThrow(new OozieClientException("foo", "bar")).when(oozieClient).run(any(Properties.class));
     DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true, DownloadFormat.DWCA);
-    requestService.create(dl);
 
-    // TODO: Assert on exception
+    try {
+      requestService.create(dl);
+      fail();
+    } catch (ServiceUnavailableException e) {
+    }
   }
 
   @Test
