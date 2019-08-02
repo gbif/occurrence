@@ -46,7 +46,9 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
 
   private static final String CSV_EXTENSION = ".csv";
 
-  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream().map(Term::simpleName).toArray(String[]::new);
+  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream()
+    .map(DownloadTerms::simpleName)
+    .toArray(String[]::new);
 
   private final DownloadJobConfiguration configuration;
   private final WorkflowConfiguration workflowConfiguration;
