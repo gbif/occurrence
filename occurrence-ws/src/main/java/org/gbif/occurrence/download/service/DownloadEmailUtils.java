@@ -6,7 +6,6 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
-import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
 import org.gbif.occurrence.query.HumanFilterBuilder;
 import org.gbif.occurrence.query.TitleLookup;
 
@@ -79,9 +78,9 @@ public class DownloadEmailUtils {
     freemarker.setLocale(Locale.UK);
     freemarker.setTimeZone(TimeZone.getTimeZone("GMT"));
     freemarker.setNumberFormat("0.####");
-    freemarker.setDateFormat("yyyy-MM-dd");
-    // create custom rendering for relative dates
-    freemarker.setSharedVariable("niceDate", new NiceDateTemplateMethodModel());
+    freemarker.setDateFormat("d MMMM yyyy");
+    freemarker.setTimeFormat("HH:mm:ss");
+    freemarker.setDateTimeFormat("HH:mm:ss d MMMM yyyy");
     freemarker.setClassForTemplateLoading(DownloadEmailUtils.class, "/email");
   }
 
