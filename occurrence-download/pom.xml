@@ -345,10 +345,6 @@
       <artifactId>occurrence-hive</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.gbif.hadoop</groupId>
       <artifactId>hadoop-compress</artifactId>
       <version>${hadoop-compress.version}</version>
@@ -539,6 +535,6 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
     </dependency>
+    <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
   </dependencies>
-  <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
 </project>

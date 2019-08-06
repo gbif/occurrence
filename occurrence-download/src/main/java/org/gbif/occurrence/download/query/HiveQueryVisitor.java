@@ -53,6 +53,15 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.spatial4j.context.jts.DatelineRule;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.io.WKTReader;
+import org.locationtech.spatial4j.shape.Rectangle;
+import org.locationtech.spatial4j.shape.Shape;
+import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -377,15 +386,53 @@ public class HiveQueryVisitor {
     }
   }
 
-  public void visit(WithinPredicate within) {
-    // the geometry must be valid - it was validated in the predicates constructor
-    builder.append("contains(\"");
-    builder.append(within.getGeometry());
-    builder.append("\", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
-    builder.append(", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-    builder.append(')');
+  public void visit(WithinPredicate within) throws QueryBuildingException {
+    JtsSpatialContextFactory spatialContextFactory = new JtsSpatialContextFactory();
+    spatialContextFactory.normWrapLongitude = true;
+    spatialContextFactory.srid = 4326;
+    spatialContextFactory.datelineRule = DatelineRule.ccwRect;
+
+    WKTReader reader = new WKTReader(spatialContextFactory.newSpatialContext(), spatialContextFactory);
+
+    try {
+      // the geometry must be valid - it was validated in the predicates constructor
+      Shape geometry = reader.parse(within.getGeometry());
+
+      builder.append('(');
+      String withinGeometry;
+
+      // Add an additional filter to a bounding box around any shapes that aren't squares, to speed up the query.
+      if (geometry instanceof JtsGeometry && ((JtsGeometry) geometry).getGeom().getNumPoints() != 5) {
+        // Use the Spatial4J-fixed geometry; this is split into a multipolygon if it crosses the antimeridian.
+        withinGeometry = ((JtsGeometry) geometry).getGeom().toText();
+
+        GeometryFactory gf = new GeometryFactory();
+        Rectangle bounds = geometry.getBoundingBox();
+        Geometry rect = gf.toGeometry(new Envelope(bounds.getMinX(), bounds.getMaxX(), bounds.getMaxY(), bounds.getMinY()));
+
+        builder.append("contains(\"");
+        builder.append(rect.toText());
+        builder.append("\", ");
+        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+        builder.append(", ");
+        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+        builder.append(')');
+        builder.append(CONJUNCTION_OPERATOR);
+      } else {
+        withinGeometry = within.getGeometry();
+      }
+      builder.append("contains(\"");
+      builder.append(withinGeometry);
+      builder.append("\", ");
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+      builder.append(", ");
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(')');
+
+      builder.append(')');
+    } catch (Exception e) {
+      throw new QueryBuildingException(e);
+    }
   }
 
   /**

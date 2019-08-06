@@ -6,8 +6,8 @@ import org.gbif.occurrence.search.solr.OccurrenceSolrField;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKTReader;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Assert;
 import org.junit.Test;
