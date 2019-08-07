@@ -7,6 +7,7 @@ import org.gbif.ws.client.BaseWsGetClient;
 import org.gbif.ws.mixin.LicenseMixin;
 import org.gbif.ws.util.InputStreamUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.Nullable;
@@ -62,4 +63,9 @@ public class OccurrenceDownloadWsClient extends BaseWsGetClient<Download, String
     return InputStreamUtils.wrapStream(getResource(downloadKey + ZIP_EXT));
   }
 
+  @Nullable
+  @Override
+  public File getResultFile(String downloadKey) {
+    throw new UnsupportedOperationException();
+  }
 }
