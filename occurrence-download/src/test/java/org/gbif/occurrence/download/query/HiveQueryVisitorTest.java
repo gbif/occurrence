@@ -27,15 +27,6 @@ import java.util.UUID;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 import org.junit.Test;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.spatial4j.context.jts.DatelineRule;
-import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
-import org.locationtech.spatial4j.io.WKTReader;
-import org.locationtech.spatial4j.io.WKTWriter;
-import org.locationtech.spatial4j.shape.Rectangle;
-import org.locationtech.spatial4j.shape.Shape;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -56,8 +47,7 @@ public class HiveQueryVisitorTest {
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
     Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true");
 
-    ConjunctionPredicate p =
-      new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
+    ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
       "(((taxonkey = 212 OR kingdomkey = 212 OR phylumkey = 212 OR classkey = 212 OR orderkey = 212 OR familykey = 212 OR genuskey = 212 OR subgenuskey = 212 OR specieskey = 212)) AND (countrycode = \'GB\') AND (lower(scientificname) LIKE lower(\'Passer%\')) AND (year <= 1989) AND (hascoordinate = true))",
@@ -329,6 +319,31 @@ public class HiveQueryVisitorTest {
     assertThat(query, equalTo(String.format("((lastinterpreted >= %s) AND (lastinterpreted <= %s))",
                                             String.valueOf(range.lowerEndpoint().getTime()),
                                             String.valueOf(range.upperEndpoint().getTime()))));
+  }
+
+  @Test
+  public void testIssues() throws QueryBuildingException {
+    // EqualsPredicate
+    String query = visitor.getHiveQuery(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK"));
+    assertThat(query, equalTo("array_contains(issue,'TAXON_MATCH_HIGHERRANK')"));
+
+    // InPredicate
+    query = visitor.getHiveQuery(new InPredicate(OccurrenceSearchParameter.ISSUE, Lists.newArrayList("TAXON_MATCH_HIGHERRANK", "TAXON_MATCH_NONE")));
+    assertThat(query, equalTo("(array_contains(issue,'TAXON_MATCH_HIGHERRANK') OR array_contains(issue,'TAXON_MATCH_NONE'))"));
+
+    // LikePredicate
+    try {
+      new LikePredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK");
+      fail();
+    } catch (IllegalArgumentException e) {}
+
+    // Not
+    query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK")));
+    assertThat(query, equalTo("NOT array_contains(issue,'TAXON_MATCH_HIGHERRANK')"));
+
+    // IsNotNull
+    query = visitor.getHiveQuery(new IsNotNullPredicate(OccurrenceSearchParameter.ISSUE));
+    assertThat(query, equalTo("(issue IS NOT NULL AND size(issue) > 0)"));
   }
 
   @Test
