@@ -334,6 +334,15 @@ public class SolrQueryVisitorTest {
     query = visitor.getQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK")));
     assertThat(query, equalTo("(*:* NOT issue:TAXON_MATCH_HIGHERRANK)"));
 
+    // Not disjunction
+    query = visitor.getQuery(new NotPredicate(new DisjunctionPredicate(Lists.newArrayList(
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_INVALID"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_OUT_OF_RANGE"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "ZERO_COORDINATE"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "RECORDED_DATE_INVALID")
+    ))));
+    assertThat(query, equalTo("(*:* NOT ((issue:COORDINATE_INVALID) OR (issue:COORDINATE_OUT_OF_RANGE) OR (issue:ZERO_COORDINATE) OR (issue:RECORDED_DATE_INVALID)))"));
+
     // IsNotNull
     query = visitor.getQuery(new IsNotNullPredicate(OccurrenceSearchParameter.ISSUE));
     assertThat(query, equalTo("issue:*"));

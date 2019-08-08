@@ -341,6 +341,15 @@ public class HiveQueryVisitorTest {
     query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK")));
     assertThat(query, equalTo("NOT array_contains(issue,'TAXON_MATCH_HIGHERRANK')"));
 
+    // Not disjunction
+    query = visitor.getHiveQuery(new NotPredicate(new DisjunctionPredicate(Lists.newArrayList(
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_INVALID"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_OUT_OF_RANGE"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "ZERO_COORDINATE"),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "RECORDED_DATE_INVALID")
+    ))));
+    assertThat(query, equalTo("NOT (array_contains(issue,'COORDINATE_INVALID') OR array_contains(issue,'COORDINATE_OUT_OF_RANGE') OR array_contains(issue,'ZERO_COORDINATE') OR array_contains(issue,'RECORDED_DATE_INVALID'))"));
+
     // IsNotNull
     query = visitor.getHiveQuery(new IsNotNullPredicate(OccurrenceSearchParameter.ISSUE));
     assertThat(query, equalTo("(issue IS NOT NULL AND size(issue) > 0)"));

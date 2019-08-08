@@ -1,0 +1,16 @@
+{
+  "creator": "MattBlissett",
+  "notification_address": ["mblissett@gbif.org"],
+  "sendNotification": true,
+  "format": "DWCA",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "TAXON_KEY",
+        "value": "8863"
+      }
+    ]
+  }
+}
