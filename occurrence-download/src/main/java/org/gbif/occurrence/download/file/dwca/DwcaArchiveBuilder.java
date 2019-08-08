@@ -115,7 +115,7 @@ public class DwcaArchiveBuilder {
   private final FileSystem sourceFs;
   private final FileSystem targetFs;
   private final DownloadJobConfiguration configuration;
-  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
 
   //constituents and citation are basically the same info, are keep in 2 separate collections to avoid rebuilding them
   private Set<Constituent> constituents = Sets.newTreeSet();
