@@ -115,6 +115,9 @@ public class DownloadEmailUtils {
       String query = download.getRequest().getFormat().equals(DownloadFormat.SQL) ?
         ((SqlDownloadRequest) download.getRequest()).getSql().replaceAll(CASE_INSENSITIVE_REGEX + Pattern.quote(OCCURRENCE_HDFS), OCCURRENCE)
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+      if (query.length() > 1000) {
+        query = query.substring(0, 1000) + "\n… abbreviated, view the full query on the landing page.";
+      }
       return "        " + query.replace("\n", "\n        ");
     } catch (Exception e) {
       return "        The query is too complex.  View it on the landing page.";
