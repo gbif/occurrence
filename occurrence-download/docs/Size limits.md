@@ -3,6 +3,9 @@ Occurrence download size limits
 
 These are the relevant steps for an occurrence download with a long and/or complex query.
 
+→ User tests query using GET requests, e.g. through the portal.  This required [this change](https://github.com/gbif/gbif-microservice/commit/a3098c38a78050d3233671c3a8e31f918f335823)
+  to allow configuration of the maximum request length.
+
 → User POSTs request to API endpoint
   → Possible limit on POST data length
     → An error is returned here, if the query is probably too long or complex
@@ -14,6 +17,11 @@ These are the relevant steps for an occurrence download with a long and/or compl
     → The registry saves it in PostgreSQL
 
   → Oozie runs the job.  If the SOLR query (GET) is too long, the download will run on Hive even if it's small.
+    SOLR has the configuration option `-Dsolr.jetty.request.header.size=1048576` set.
+    The test for a small download queries SOLR, this can fail in DownloadPrepareAction in these ways
+    • "too many boolean clauses" for a long list of taxa.  I can't reproduce this using curl, as I get the too-large errors instead.
+      It should be safe though (either above the limit or not).
+    • URI too long.
   → Oozie updates the job status, using a GET to occurrence-ws (just the status, there's no problem with the predicate size here)
     → This sends a PUT to registry-ws
       → If the download status becomes `SUCCESSFUL`, the Registry updates the DOI.  This serializes the query into readable form,
