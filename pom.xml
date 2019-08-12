@@ -82,7 +82,7 @@
     <curator.version>4.0.1</curator.version>
     <curator-test.version>2.12.0</curator-test.version>
     <dbunit.version>2.4.9</dbunit.version>
-    <geotools.version>12.1</geotools.version>
+    <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <!--
       Important! Guava is highly fragile across webservices, YARN MR jobs, downloads and
