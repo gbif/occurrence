@@ -354,7 +354,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
               dataset.getKey(),
               null,
               interpretations,
-              Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX", "HIVE_VIEW"),
+              Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX", "HDFS_VIEW"),
               endpoint.get().getType());
 
       messagePublisher.send(
