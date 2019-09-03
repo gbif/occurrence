@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE occurrence_pipeline_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '/data/ingest/hdfsview/occurrence/'
+LOCATION '/data/hdfsview/occurrence/'
 TBLPROPERTIES ('avro.schema.url'='/occurrence-download-workflows-${r"${env}"}/create-tables/avro-schemas/occurrence-hdfs-record.avsc');
 
 -- snappy compression
