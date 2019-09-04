@@ -607,16 +607,6 @@ public class OccurrenceEsSearchRequestBuilderTest {
     jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
     assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
-
-    // sort by _doc desc if q param is not present
-    searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addKingdomKeyFilter(4);
-
-    request = EsSearchRequestBuilder.buildSearchRequest(searchRequest, true, INDEX);
-    jsonQuery = MAPPER.readTree(request.source().toString());
-    LOG.debug("Query: {}", jsonQuery);
-
-    assertEquals("desc", jsonQuery.path("sort").get(0).path("_doc").path("order").asText());
   }
 
   @Test

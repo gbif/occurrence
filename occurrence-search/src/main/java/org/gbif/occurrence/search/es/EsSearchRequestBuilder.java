@@ -61,9 +61,7 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.from((int) searchRequest.getOffset());
 
     // sort
-    if (Strings.isNullOrEmpty(searchRequest.getQ())) {
-      searchSourceBuilder.sort(SortBuilders.fieldSort("_doc").order(SortOrder.DESC));
-    } else {
+    if (!Strings.isNullOrEmpty(searchRequest.getQ())) {
       searchSourceBuilder.sort(SortBuilders.scoreSort());
     }
 
