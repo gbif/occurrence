@@ -153,6 +153,7 @@
     <gbif-wrangler.version>0.4-SNAPSHOT</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
+    <pipelines.version>2.2.9</pipelines.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
 
@@ -411,6 +412,11 @@
         <groupId>org.gbif.checklistbank</groupId>
         <artifactId>checklistbank-ws-client</artifactId>
         <version>${checklistbank-ws-client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.pipelines</groupId>
+        <artifactId>common</artifactId>
+        <version>${pipelines.version}</version>
       </dependency>
 
       <!-- Other -->

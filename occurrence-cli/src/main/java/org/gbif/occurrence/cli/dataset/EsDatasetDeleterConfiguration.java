@@ -37,6 +37,18 @@ public class EsDatasetDeleterConfiguration {
   @NotNull
   public String[] esIndex;
 
+  @Parameter(names = "--hdfs-site-config")
+  @NotNull
+  public String hdfsSiteConfig;
+
+  @Parameter(names = "--core-site-config")
+  @NotNull
+  public String coreSiteConfig;
+
+  @Parameter(names = "--hdfs-view-dir-path")
+  @NotNull
+  public String hdfsViewDirPath;
+
   @Override
   public String toString() {
     return new StringJoiner(
@@ -47,6 +59,8 @@ public class EsDatasetDeleterConfiguration {
         .add("queueName='" + queueName + "'")
         .add("esHosts=" + Arrays.toString(esHosts))
         .add("esIndex=" + Arrays.toString(esIndex))
+        .add("coreSiteConfig=" + coreSiteConfig)
+        .add("hdfsSiteConfig=" + hdfsSiteConfig)
         .toString();
   }
 }

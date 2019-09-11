@@ -1,17 +1,23 @@
 package org.gbif.occurrence.cli.dataset;
 
-import org.gbif.common.messaging.MessageListener;
-
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.google.common.util.concurrent.AbstractIdleService;
+import org.gbif.common.messaging.MessageListener;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractIdleService;
 
 /**
  * Service that listens to {@link
@@ -24,6 +30,7 @@ public class EsDatasetDeleterService extends AbstractIdleService {
   private final EsDatasetDeleterConfiguration config;
   private MessageListener listener;
   private RestHighLevelClient esClient;
+  private FileSystem fs;
 
   public EsDatasetDeleterService(EsDatasetDeleterConfiguration config) {
     this.config = config;
@@ -34,13 +41,14 @@ public class EsDatasetDeleterService extends AbstractIdleService {
     LOG.info("Starting pipelines-dataset-deleter service with params: {}", config);
     listener = new MessageListener(config.messaging.getConnectionParameters());
     esClient = createEsClient();
+    fs = createFs();
 
     config.ganglia.start();
 
     listener.listen(
         config.queueName,
         config.poolSize,
-        new EsDatasetDeleterCallback(esClient, config.esIndex));
+        new EsDatasetDeleterCallback(esClient, fs, config));
   }
 
   @Override
@@ -51,6 +59,25 @@ public class EsDatasetDeleterService extends AbstractIdleService {
     if (esClient != null) {
       esClient.close();
     }
+    if (fs != null) {
+      fs.close();
+    }
+  }
+
+  private FileSystem createFs() throws IOException {
+    Configuration cf = new Configuration();
+    // check if the hdfs-site.xml is provided
+    if (!Strings.isNullOrEmpty(config.hdfsSiteConfig)) {
+      File hdfsSite = new File(config.hdfsSiteConfig);
+      if (hdfsSite.exists() && hdfsSite.isFile()) {
+        LOG.info("using hdfs-site.xml");
+        cf.addResource(hdfsSite.toURI().toURL());
+      } else {
+        LOG.warn("hdfs-site.xml does not exist");
+      }
+    }
+
+    return FileSystem.get(cf);
   }
 
   private RestHighLevelClient createEsClient() {

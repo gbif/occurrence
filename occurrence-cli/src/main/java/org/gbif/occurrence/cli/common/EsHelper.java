@@ -85,6 +85,7 @@ public class EsHelper {
    */
   public static void deleteByDatasetKey(
       final RestHighLevelClient esClient, String datasetKey, String index) {
+    LOG.info("Deleting all documents of dataset {} from ES index {}", datasetKey, index);
     Objects.requireNonNull(esClient);
     Preconditions.checkArgument(!Strings.isNullOrEmpty(datasetKey), "datasetKey is required");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index), "index is required");
@@ -108,6 +109,7 @@ public class EsHelper {
    * @param index index to delete
    */
   public static void deleteIndex(final RestHighLevelClient esClient, String index) {
+    LOG.info("Deleting ES index {}", index);
     Objects.requireNonNull(esClient);
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index), "index is required");
 

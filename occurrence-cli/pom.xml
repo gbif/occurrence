@@ -361,6 +361,10 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.gbif.pipelines</groupId>
+      <artifactId>common</artifactId>
+    </dependency>
 
     <!-- false positive from maven dep:analyze -->
     <dependency>
