@@ -102,6 +102,7 @@ public class EsDatasetDeleterCallback
       FileStatus[] status = fs.globStatus(new Path(globFilter));
       Path[] paths = FileUtil.stat2Paths(status);
       for (Path path : paths) {
+        LOG.info("Deleting the path - {}", path);
         fs.delete(path, Boolean.TRUE);
       }
 
