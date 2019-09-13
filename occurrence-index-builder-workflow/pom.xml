@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.96-ES-SNAPSHOT</version>
+    <version>0.96-ES</version>
   </parent>
 
   <artifactId>occurrence-index-builder-workflow</artifactId>
