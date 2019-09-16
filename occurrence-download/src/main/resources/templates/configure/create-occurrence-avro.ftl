@@ -21,11 +21,6 @@ SET hive.exec.compress.output=true;
 SET mapred.output.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
 
--- configure for reading HBase
-SET hive.mapred.reduce.tasks.speculative.execution=false;
-SET hive.hadoop.supports.splittable.combineinputformat=true;
-SET mapred.max.split.size=256000000;
-
 -- hint: ensure these are on the job classpath
 CREATE TEMPORARY FUNCTION removeNulls AS 'org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF';
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
