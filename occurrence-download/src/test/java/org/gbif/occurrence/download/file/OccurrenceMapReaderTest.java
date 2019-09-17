@@ -1,13 +1,12 @@
 package org.gbif.occurrence.download.file;
 
-import com.google.common.collect.Lists;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.*;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.common.TermUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -65,7 +64,7 @@ public class OccurrenceMapReaderTest {
     occurrence.setIssues(issues);
 
 
-    Map<String,String> occurrenceMap = OccurrenceMapReader.buildOccurrenceMap(occurrence, Lists.newArrayList(TermUtils.interpretedTerms()));
+    Map<String,String> occurrenceMap = OccurrenceMapReader.buildOccurrenceMap(occurrence);
 
     Assert.assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
     Assert.assertEquals(Country.TRINIDAD_TOBAGO.getIso2LetterCode(), occurrenceMap.get(GbifTerm.publishingCountry.simpleName()));
