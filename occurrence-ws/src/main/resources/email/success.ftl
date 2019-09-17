@@ -5,20 +5,22 @@ Your download is available at the following address:
     ${download.downloadLink}
 
 When using this dataset please use the following citation:
-    GBIF.org (${niceDate(download.created)}) GBIF Occurrence Download ${download.doi.getUrl()}
+    GBIF.org (${download.created?date}) GBIF Occurrence Download ${download.doi.getUrl()}
 
 Download Information:
     DOI: ${download.doi.getUrl()} (may take some hours before being active)
-    Creation Date: ${download.created?datetime?string.full}
+    Creation Date: ${download.created?datetime}
     Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
-    Data size: ${size}
-    Download format: ${download.request.format}
-    Filter used: see ${portal}occurrence/download/${download.key} for details
+    Compressed data size: ${size}
+    Download format: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>
+    Filter used:
+${query!"        All occurrence records"}
 
 Download file retention:
-    Information about this download will always be available at ${download.doi.getUrl()} and ${portal}occurrence/download/${download.key}
+    Information about this download will always be available at ${download.doi.getUrl()}
+    and ${portal}occurrence/download/${download.key}
 
-    The ${download.request.format} ZIP file will be kept for six months (until ${niceDate(download.eraseAfter)}).  You can ask
+    The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
     us to keep the file for longer from ${portal}occurrence/download/${download.key}
 
     If you cite this download using the DOI, we will usually detect this and keep the file indefinitely.

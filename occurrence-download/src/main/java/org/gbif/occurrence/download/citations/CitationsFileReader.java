@@ -112,7 +112,7 @@ public final class CitationsFileReader {
   public static class PersistUsage implements BiConsumer<Map<UUID,Long>,Map<UUID,License>> {
 
     private final String downloadKey;
-    private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+    private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
     private final OccurrenceDownloadService downloadService;
 
     public PersistUsage(String downloadKey, String registryWsUrl) {

@@ -1,15 +1,15 @@
 {
-  "sendNotification": true,
   "creator": "MattBlissett",
   "notification_address": ["mblissett@gbif.org"],
-  "format": "SIMPLE_CSV",
+  "sendNotification": true,
+  "format": "DWCA",
   "predicate": {
     "type": "and",
     "predicates": [
       {
         "type": "equals",
         "key": "TAXON_KEY",
-        "value": "5"
+        "value": "8863"
       }
     ]
   }

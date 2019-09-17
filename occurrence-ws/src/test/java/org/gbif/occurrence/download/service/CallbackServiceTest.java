@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.service;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -25,7 +26,6 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.mockpolicies.Slf4jMockPolicy;
 import org.powermock.core.classloader.annotations.MockPolicy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -79,7 +79,8 @@ public class CallbackServiceTest {
     downloadEmailUtils = mock(DownloadEmailUtils.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService= mock(DownloadLimitsService.class);
-    when(downloadLimitsService.isInDownloadLimits(Matchers.any(String.class))).thenReturn(true);
+    when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class))).thenReturn(null);
+    when(downloadLimitsService.exceedsDownloadComplexity(any(DownloadRequest.class))).thenReturn(null);
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =

@@ -44,7 +44,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
   private final String outputFileName;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
   @Inject
   public SimpleCsvDownloadAggregator(DownloadJobConfiguration configuration,
                                      WorkflowConfiguration workflowConfiguration,

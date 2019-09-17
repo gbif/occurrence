@@ -154,13 +154,15 @@ public class DownloadPrepareAction {
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
       if (DownloadFormat.valueOf(downloadFormat.trim()) == DownloadFormat.SQL) {
-        props.setProperty(HIVE_QUERY, rawPredicate); //is sql
+        props.setProperty(HIVE_QUERY, rawPredicate); //is sql TODO: Does this also need XML escaping?
       } else {
         Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
         String searchQuery = new EsQueryVisitor().getQuery(predicate);
         long recordCount = getRecordCount(searchQuery);
         props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-        props.setProperty(SEARCH_QUERY, searchQuery);
+        if(isSmallDownloadCount(recordCount)) {
+          props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
+        }
         props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
         if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
           updateTotalRecordsCount(downloadKey, recordCount);

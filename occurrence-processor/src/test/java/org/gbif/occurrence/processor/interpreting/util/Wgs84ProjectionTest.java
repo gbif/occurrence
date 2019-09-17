@@ -70,7 +70,6 @@ public class Wgs84ProjectionTest {
     lng = -97.7;
     assertLatLon(Wgs84Projection.reproject(lat, lng, "TOKYO"), lat+0.008063, lng-0.002217, false, true);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "ARC 1950"), lat-0.005546, lng-0.001274, false, true);
-    assertLatLon(Wgs84Projection.reproject(lat, lng, "INDIAN"), lat+0.007992, lng+0.0008119, false, true);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "CAPE"), lat-0.005581, lng-0.0012493, false, true);
     assertLatLon(Wgs84Projection.reproject(lat, lng, "WGS66"), lat-0.00000427, lng, false, true);
   }

@@ -7,19 +7,20 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
- * Transforms a Occurrence object in a Map<String,String>.
- * The key values are determined by the related Term.simpleName of a occurrence property.
+ * Reads a occurrence record from HBase and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
 
@@ -103,9 +104,9 @@ public class OccurrenceMapReader {
   /**
    * Builds Map that contains a lists of terms.
    */
-  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Term> terms) {
+  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
     return  buildOccurrenceMap(occurrence).entrySet().stream()
-              .filter(entry -> terms.stream().anyMatch(term -> term.simpleName().equals(entry.getKey())))
+              .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
               .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
 

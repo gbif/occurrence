@@ -67,9 +67,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-            <artifactSet>
+              <artifactSet>
                 <excludes>
-                   <artifact>org.jruby:jruby-complete</artifact>
+                  <artifact>org.jruby:jruby-complete</artifact>
                   <artifact>org.mortbay.jetty:jetty</artifact>
                   <artifact>org.mortbay.jetty:jetty-util</artifact>
                 </excludes>
@@ -380,11 +380,6 @@
 
     <!-- google -->
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
       <exclusions>
@@ -411,10 +406,9 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
     </dependency>
-
     <dependency>
       <!-- dependency:analyze reports a false positive here -->
       <groupId>com.google.inject.extensions</groupId>
