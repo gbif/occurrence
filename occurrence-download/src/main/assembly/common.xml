@@ -121,6 +121,7 @@
         <include>joda-time:joda-time:jar</include>
         <include>com.carrotsearch:hppc:jar</include>
         <include>org.locationtech.jts:jts-core:jar</include>
+        <include>org.locationtech.spatial4j:spatial4j:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
