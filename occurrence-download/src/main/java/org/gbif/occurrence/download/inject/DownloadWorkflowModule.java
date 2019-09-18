@@ -24,7 +24,6 @@ import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
@@ -41,9 +40,6 @@ import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 /**
  * Private guice module that provides bindings the required Modules and dependencies.
@@ -147,11 +143,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
   ExecutionContextExecutorService provideExecutionContextExecutorService(
     @Named(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
     return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
-  }
-
-  @Provides
-  Connection provideHBaseConnection() throws IOException {
-    return ConnectionFactory.createConnection(HBaseConfiguration.create());
   }
 
   @Provides
