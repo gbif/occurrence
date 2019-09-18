@@ -264,7 +264,11 @@
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>
-          <artifactId>*</artifactId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-core</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.gbif.datacite</groupId>
@@ -316,7 +320,6 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
     </dependency>
-
 
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
@@ -420,8 +423,12 @@
       <version>${hadoop-compress.version}</version>
       <exclusions>
         <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-aws</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>*</artifactId>
+          <artifactId>jackson-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -485,6 +492,12 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
@@ -493,10 +506,6 @@
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
