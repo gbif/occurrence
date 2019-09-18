@@ -414,6 +414,12 @@
       <groupId>org.gbif.hadoop</groupId>
       <artifactId>hadoop-compress</artifactId>
       <version>${hadoop-compress.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
