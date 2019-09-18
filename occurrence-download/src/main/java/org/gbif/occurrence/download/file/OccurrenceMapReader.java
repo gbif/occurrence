@@ -8,13 +8,13 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
@@ -23,6 +23,12 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  * Reads a occurrence record from HBase and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
+
+  public static final Map<Rank, Term> rank2KeyTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
+      .put(Rank.CLASS, GbifTerm.classKey).put(Rank.ORDER, GbifTerm.orderKey).put(Rank.FAMILY, GbifTerm.familyKey)
+      .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
+      .put(Rank.SPECIES, GbifTerm.speciesKey).build();
 
 
   public static Map<String, String> buildOccurrenceMap(Occurrence occurrence) {
@@ -54,7 +60,7 @@ public class OccurrenceMapReader {
 
     Rank.DWC_RANKS.forEach(rank ->
       Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
-        .ifPresent( rankKey -> interpretedOccurrence.put(OccurrenceBuilder.rank2KeyTerm.get(rank).simpleName(), rankKey.toString()))
+        .ifPresent( rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()))
     );
 
     // other java properties
