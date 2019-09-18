@@ -17,4 +17,4 @@ SET mapred.reduce.tasks=1;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
 CREATE TABLE ${occurrenceTable}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences, license FROM occurrence_hdfs WHERE ${whereClause} AND datasetkey IS NOT NULL GROUP BY datasetkey, license;
+AS SELECT datasetkey, count(*) as num_occurrences, license FROM occurrence_pipeline_hdfs WHERE ${whereClause} AND datasetkey IS NOT NULL GROUP BY datasetkey, license;

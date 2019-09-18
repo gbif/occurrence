@@ -56,10 +56,6 @@ public class GenerateHQL {
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
-      // generates HQL for the coordinator jobs to create the tables to be queried
-      generateHBaseTableHQL(cfg, createTablesDir);
-      generateOccurrenceTableHQL(cfg, createTablesDir);
-
       generateOccurrenceAvroSchema(avroSchemasDir);
       generateOccurrenceAvroTableHQL(cfg, createTablesDir);
 
@@ -80,29 +76,6 @@ public class GenerateHQL {
       System.exit(-1);
     }
 
-  }
-
-  /**
-   * Generates HQL which create a Hive table on the HBase table.
-   */
-  private static void generateHBaseTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hbase.q"))) {
-      Template template = cfg.getTemplate("configure/create-occurrence-hbase.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHBaseTableDefinition.definition());
-      template.process(data, out);
-    }
-  }
-
-  /**
-   * Generates HQL which is used to take snapshots of the HBase table, and creates an HDFS equivalent.
-   */
-  private static void generateOccurrenceTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-
-    try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-hdfs.q"))) {
-      Template template = cfg.getTemplate("configure/create-occurrence-hdfs.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHDFSTableDefinition.definition());
-      template.process(data, out);
-    }
   }
 
   /**
