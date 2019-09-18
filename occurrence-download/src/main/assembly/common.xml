@@ -80,8 +80,6 @@
         <include>org.gbif.occurrence:occurrence-download:jar</include>
         <include>org.gbif.occurrence:download-query-tools:jar</include>
         <include>org.gbif.occurrence:occurrence-hive:jar</include>
-        <!-- Occurrence persistence includes several shaded JARs (Curator, HBase etc) -->
-        <include>org.gbif.occurrence:occurrence-persistence:jar</include>
         <include>org.gbif.occurrence:occurrence-search:jar</include>
         <include>org.gbif.occurrence:occurrence-hdfs-table:jar</include>
         <include>org.gbif.registry:registry-ws-client:jar</include>
