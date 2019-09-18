@@ -120,7 +120,7 @@
         <include>com.fasterxml.jackson.dataformat:*:jar</include>
         <include>joda-time:joda-time:jar</include>
         <include>com.carrotsearch:hppc:jar</include>
-        <include>org.locationtech.jts:jts-core</include>
+        <include>org.locationtech.jts:jts-core:jar</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
