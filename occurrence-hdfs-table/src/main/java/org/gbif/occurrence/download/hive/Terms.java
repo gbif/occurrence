@@ -201,7 +201,8 @@ public final class Terms {
                            GbifTerm.lastParsed,
                            GbifInternalTerm.installationKey,
                            GbifInternalTerm.publishingOrgKey,
-                           GbifInternalTerm.networkKey);
+                           GbifInternalTerm.networkKey,
+                           GbifTerm.mediaType);
   }
 
   /**
