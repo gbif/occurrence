@@ -172,12 +172,12 @@ public class DownloadResource {
           if (ranges[0].isEmpty()) {
             // End range: Range: bytes=-5000
             to = download.length() - 1;
-            from = download.length() - Integer.parseInt(ranges[1]);
+            from = download.length() - Long.parseLong(ranges[1]);
           } else {
             // Normal or open range: bytes=1000-2000 or bytes=1000-
-            from = Integer.parseInt(ranges[0]);
+            from = Long.parseLong(ranges[0]);
             if (ranges.length == 2) {
-              to = Integer.parseInt(ranges[1]);
+              to = Long.parseLong(ranges[1]);
             } else {
               to = download.length() - 1;
             }
