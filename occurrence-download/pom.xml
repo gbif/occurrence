@@ -262,10 +262,26 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
       <exclusions>
-      <exclusion>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>*</artifactId>
-      </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.datacite</groupId>
+          <artifactId>datacite-rest-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.registry</groupId>
+          <artifactId>registry-identity</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>gbif-common-service</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.common</groupId>
+          <artifactId>gbif-postal-service</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -352,10 +368,6 @@
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
-    </dependency>
 
     <!-- Used during build phase only, to generate HQL scripts -->
     <dependency>
@@ -387,6 +399,10 @@
         <exclusion>
           <artifactId>curator-client</artifactId>
           <groupId>org.apache.curator</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.rabbitmq</groupId>
+          <artifactId>amqp-client</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -462,28 +478,6 @@
       <artifactId>gbif-wrangler</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>log4j-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-jdk14</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-auth</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
     </dependency>
@@ -496,6 +490,18 @@
           <artifactId>log4j-api</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId> org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId> org.elasticsearch</groupId>
+      <artifactId>elasticsearch-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId> org.elasticsearch</groupId>
+      <artifactId>elasticsearch</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
