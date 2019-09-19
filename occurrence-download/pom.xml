@@ -91,7 +91,6 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <minimizeJar>true</minimizeJar>
               <artifactSet>
                 <excludes>
                   <exclude>org.apache.hadoop:*</exclude>
