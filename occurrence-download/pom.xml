@@ -96,6 +96,10 @@
                 <excludes>
                   <exclude>org.apache.hadoop:*</exclude>
                   <exclude>org.gbif.occurrence:occurrence-persistence</exclude>
+                  <exclude>com.sun.jersey:jersey-json</exclude>
+                  <exclude>com.sun.jersey:jersey-server</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-guice</exclude>
+                  <exclude>com.sun.jersey:jersey-servlet</exclude>
                 </excludes>
               </artifactSet>
               <filters>
