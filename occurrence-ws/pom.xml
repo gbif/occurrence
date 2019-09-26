@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.100-SNAPSHOT</version>
+    <version>0.108-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -67,9 +67,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-            <artifactSet>
+              <artifactSet>
                 <excludes>
-                   <artifact>org.jruby:jruby-complete</artifact>
+                  <artifact>org.jruby:jruby-complete</artifact>
                   <artifact>org.mortbay.jetty:jetty</artifact>
                   <artifact>org.mortbay.jetty:jetty-util</artifact>
                 </excludes>
@@ -406,8 +406,8 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
     </dependency>
     <dependency>
       <!-- dependency:analyze reports a false positive here -->

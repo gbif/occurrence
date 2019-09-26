@@ -40,8 +40,8 @@ public class SimpleCsvDownloadActor extends UntypedActor {
   }
 
   private static final String[] COLUMNS = DownloadTerms.SIMPLE_DOWNLOAD_TERMS.stream()
-    .map(Term::simpleName).toArray(String[]::new);
-
+    .map(DownloadTerms::simpleName)
+    .toArray(String[]::new);
 
   @Override
   public void onReceive(Object message) throws Exception {

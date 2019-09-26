@@ -43,7 +43,8 @@
         <include>com.sun.jersey:jersey-core:jar</include>
         <include>com.typesafe.akka:akka-actor:jar</include>
         <include>com.typesafe:config:jar</include>
-        <include>com.vividsolutions:jts:jar</include>
+        <include>org.locationtech.jts:jts-core:jar</include>
+        <include>org.locationtech.spatial4j:spatial4j:jar</include>
         <include>commons-beanutils:commons-beanutils:jar</include>
         <include>commons-io:commons-io:jar</include>
         <include>com.github.stephenc.high-scale-lib:high-scale-lib:jar</include>

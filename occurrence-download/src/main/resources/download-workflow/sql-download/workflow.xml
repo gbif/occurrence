@@ -79,7 +79,7 @@
 			<main-class>org.gbif.occurrence.download.file.common.DownloadCountAndLicensePersistence</main-class>
 			<arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
 			<arg>${download_key}</arg>
-			<arg>CC_BY_4_0</arg>
+			<arg>CC0_1_0</arg>
 			<capture-output />
 		</java>
 		<ok to="drop_tables" />

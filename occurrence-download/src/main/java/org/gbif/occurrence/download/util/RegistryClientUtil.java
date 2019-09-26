@@ -44,6 +44,7 @@ public class RegistryClientUtil {
     cc.getClasses().add(JacksonJsonProvider.class);
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
     cc.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, REGISTRY_CLIENT_TO);
+    cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, REGISTRY_CLIENT_TO);
     JacksonJsonContextResolver.addMixIns(Mixins.getPredefinedMixins());
     return ApacheHttpClient.create(cc);
   }

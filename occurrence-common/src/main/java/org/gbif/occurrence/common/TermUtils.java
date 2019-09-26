@@ -61,7 +61,9 @@ public class TermUtils {
   private static final Set<? extends Term> INTERPRETED_BOOLEAN =
     ImmutableSet.of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
 
-  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue);
+  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
+                                                                          GbifTerm.issue,
+                                                                          GbifInternalTerm.networkKey);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,

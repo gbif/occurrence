@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -54,9 +55,9 @@ public class SimpleCsvArchiveBuilder {
    * Creates the file HEADER.
    * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
    */
-  public static SimpleCsvArchiveBuilder withHeader(Set<Term> downloadTermsHeader) {
-    String header =  downloadTermsHeader.stream()
-      .map(term -> term.simpleName().replaceAll("_", ""))
+  public static SimpleCsvArchiveBuilder withHeader(Set<Pair<DownloadTerms.Group, Term>> downloadTermsHeader) {
+    String header = downloadTermsHeader.stream()
+      .map(termPair -> DownloadTerms.simpleName(termPair).replaceAll("_", ""))
       .collect(Collectors.joining("\t")) + '\n';
     return new SimpleCsvArchiveBuilder(header);
   }
@@ -179,14 +180,16 @@ public class SimpleCsvArchiveBuilder {
    */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    String downloadFormat=Preconditions.checkNotNull(args[4]).trim();
+    String downloadFormat = Preconditions.checkNotNull(args[4]).trim();
     
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
-    if(DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SQL)) {
+    if (DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SQL)) {
       SimpleCsvArchiveBuilder.withHeader(args[5]).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2], ModalZipOutputStream.MODE.valueOf(args[3]));
     } else {
-      Set<Term> downloadTerms = DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST) ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS :DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+      Set<Pair<DownloadTerms.Group, Term>> downloadTerms = DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST)
+        ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
+        : DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
       SimpleCsvArchiveBuilder.withHeader(downloadTerms).mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2], ModalZipOutputStream.MODE.valueOf(args[3]));
     }
   }

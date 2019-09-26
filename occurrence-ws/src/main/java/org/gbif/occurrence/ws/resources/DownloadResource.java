@@ -12,36 +12,47 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import static javax.ws.rs.core.Response.status;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.security.Principal;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import com.sun.jersey.api.client.ClientResponse;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -108,7 +119,9 @@ public class DownloadResource {
   @GET
   @Path("{key}")
   @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
-  public InputStream getResult(@PathParam("key") String downloadKey, @Context HttpServletResponse response) {
+  public Response getResult(@HeaderParam("Range") String range,
+                            @PathParam("key") String downloadKey,
+                            @Context HttpServletRequest request) {
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
@@ -118,9 +131,122 @@ public class DownloadResource {
       .orElse(ZIP_EXT);
 
     LOG.debug("Get download data: [{}]", downloadKey);
-    // suggest filename for download in http headers
-    response.setHeader("Content-Disposition", "attachment; filename=" + downloadKey + extension);
-    return requestService.getResult(downloadKey);
+    File download = requestService.getResultFile(downloadKey);
+
+    try {
+      if (range == null) {
+        return Response
+          .ok(new FileInputStream(download))
+          .status(Response.Status.OK)
+          // Show that we support Range requests (i.e. can resume downloads)
+          .header("Accept-Ranges", "bytes")
+          // Suggest filename for download in HTTP headers
+          .header("Content-Disposition", "attachment; filename=" + downloadKey + extension)
+          // Allow client to show a progress bar
+          .header(HttpHeaders.CONTENT_LENGTH, download.length())
+          .header(HttpHeaders.LAST_MODIFIED, new Date(download.lastModified()))
+          .type(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
+          .build();
+      } else {
+        //LOG.debug("Ranged request, Range: {}", range);
+        if (LOG.isDebugEnabled()) {
+          // Temporarily, in case we find weird clients.
+          LOG.debug("Range {} request, dumping all headers:", request.getMethod());
+          Enumeration<String> h = request.getHeaderNames();
+          while (h.hasMoreElements()) {
+            String s = h.nextElement();
+            LOG.debug("Header {}: {}", s, request.getHeader(s));
+          }
+        }
+
+        // Determine requested range.
+        final long from;
+        final long to;
+        try {
+          // Multipart ranges are not supported: Range: bytes=0-50, 100-150,
+          // but will fall through to the end of the range.
+
+          String[] ranges = range.split("=")[1].split("-");
+          // Single range: Range: bytes=1000-2000
+          // Or open ranges: Range: bytes=1000-
+          if (ranges[0].isEmpty()) {
+            // End range: Range: bytes=-5000
+            to = download.length() - 1;
+            from = download.length() - Long.parseLong(ranges[1]);
+          } else {
+            // Normal or open range: bytes=1000-2000 or bytes=1000-
+            from = Long.parseLong(ranges[0]);
+            if (ranges.length == 2) {
+              to = Long.parseLong(ranges[1]);
+            } else {
+              to = download.length() - 1;
+            }
+          }
+        } catch (Exception e) {
+          // Error log, as I assume clients shouldn't often make bad requests.
+          LOG.error("Unable to parse range request for {}: {}", downloadKey, range);
+          return Response
+            .status(Response.Status.BAD_REQUEST)
+            .build();
+        }
+
+        // Determine if the requested range exists
+        if (to < 0 || from >= download.length()) {
+          // Error log, since it seems strange that clients would make these requests.
+          LOG.error("Unable to satisfy range request for {}: {}", downloadKey, range);
+          return status(ClientResponse.Status.REQUESTED_RANGE_NOT_SATIFIABLE)
+            .header("Content-Range", String.format("bytes */%d", download.length()))
+            .build();
+        }
+
+        final RandomAccessFile downloadRAF = new RandomAccessFile(download, "r");
+        downloadRAF.seek(from);
+
+        final long length = to - from + 1;
+        final DownloadStreamer streamer = new DownloadStreamer(downloadRAF, length);
+        final String responseRange = String.format("bytes %d-%d/%d", from, to, download.length());
+        // Ensure this has the same headers (except Content-Range and Content-Length) as the full response above.
+        return Response
+          .ok(streamer)
+          .status(ClientResponse.Status.PARTIAL_CONTENT)
+          .header("Accept-Ranges", "bytes")
+          .header("Content-Range", responseRange)
+          .header("Content-Disposition", "attachment; filename=" + downloadKey + extension)
+          .header(HttpHeaders.CONTENT_LENGTH, length)
+          .header(HttpHeaders.LAST_MODIFIED, new Date(download.lastModified()))
+          .type(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
+          .build();
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read download " + downloadKey + " from " + download.getAbsolutePath(), e);
+    }
+  }
+
+  /**
+   * Streams some amount of a a pre-sought (hmm…) file.
+   */
+  class DownloadStreamer implements StreamingOutput {
+    private RandomAccessFile download;
+    private long length;
+    final byte[] b = new byte[4096];
+
+    public DownloadStreamer(RandomAccessFile download, long length) {
+      this.download = download;
+      this.length = length;
+    }
+
+    @Override
+    public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+      try {
+        while (length > 0) {
+          int read = download.read(b, 0, (int) (b.length > length ? length : b.length));
+          outputStream.write(b, 0, read);
+          length -= read;
+        }
+      } finally {
+        download.close();
+      }
+    }
   }
 
   @GET

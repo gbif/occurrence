@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.100-SNAPSHOT</version>
+    <version>0.108-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-registry-sync</artifactId>
@@ -49,6 +49,9 @@
             <filter>
               <artifact>*:*</artifact>
               <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
                 <exclude>core-site.xml</exclude>
                 <exclude>hbase-site.xml</exclude>
                 <exclude>mapred-site.xml</exclude>

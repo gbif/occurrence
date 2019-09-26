@@ -6,7 +6,6 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
-import org.gbif.occurrence.download.service.freemarker.NiceDateTemplateMethodModel;
 import org.gbif.occurrence.query.HumanFilterBuilder;
 import org.gbif.occurrence.query.TitleLookup;
 
@@ -44,7 +43,6 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 import static freemarker.template.Configuration.VERSION_2_3_25;
 
-
 /**
  * Utility class that sends notification emails of occurrence downloads.
  */
@@ -80,9 +78,9 @@ public class DownloadEmailUtils {
     freemarker.setLocale(Locale.UK);
     freemarker.setTimeZone(TimeZone.getTimeZone("GMT"));
     freemarker.setNumberFormat("0.####");
-    freemarker.setDateFormat("yyyy-MM-dd");
-    // create custom rendering for relative dates
-    freemarker.setSharedVariable("niceDate", new NiceDateTemplateMethodModel());
+    freemarker.setDateFormat("d MMMM yyyy");
+    freemarker.setTimeFormat("HH:mm:ss");
+    freemarker.setDateTimeFormat("HH:mm:ss d MMMM yyyy");
     freemarker.setClassForTemplateLoading(DownloadEmailUtils.class, "/email");
   }
 
@@ -113,9 +111,17 @@ public class DownloadEmailUtils {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download) {
-    return download.getRequest().getFormat().equals(DownloadFormat.SQL) ? 
+    try {
+      String query = download.getRequest().getFormat().equals(DownloadFormat.SQL) ?
         ((SqlDownloadRequest) download.getRequest()).getSql().replaceAll(CASE_INSENSITIVE_REGEX + Pattern.quote(OCCURRENCE_HDFS), OCCURRENCE)
         : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+      if (query.length() > 1000) {
+        query = query.substring(0, 1000) + "\n… abbreviated, view the full query on the landing page.";
+      }
+      return "        " + query.replace("\n", "\n        ");
+    } catch (Exception e) {
+      return "        The query is too complex.  View it on the landing page.";
+    }
   }
 
   /**

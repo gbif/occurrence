@@ -1,4 +1,5 @@
 {
+  "sendNotification": true,
   "creator": "MattBlissett",
   "notification_address": ["mblissett@gbif.org"],
   "format": "DWCA",

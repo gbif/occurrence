@@ -60,7 +60,7 @@ public class OccurrenceInterpreterTest {
   @BeforeClass
   public static void initOccurrenceInterpreter() {
     ProcessorConfiguration cfg = new ProcessorConfiguration();
-    cfg.api.url = URI.create("http://api.gbif-dev.org/v1/");
+    cfg.api.url = URI.create("http://api.gbif.org/v1/");
     Injector injector = Guice.createInjector(new OccurrenceProcessorMockModule(cfg));
     occurrenceInterpreter = injector.getInstance(OccurrenceInterpreter.class);
   }

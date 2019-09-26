@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DwcTerm;
@@ -8,6 +9,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
@@ -87,34 +89,39 @@ public class OccurrenceMapReader {
    *
    * @return A complete occurrence, or null
    */
-  public static Map<String, String> buildOccurrenceMap(@Nullable Result row, Collection<Term> terms) {
+  public static Map<String, String> buildOccurrenceMap(@Nullable Result row, Collection<Pair<DownloadTerms.Group, Term>> terms) {
     if (row == null || row.isEmpty()) {
       return null;
     } else {
       Map<String, String> occurrence = new HashMap<>();
-      for (Term term : terms) {
-        if (TermUtils.isInterpretedDate(term)) {
-          occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));
+      for (Pair<DownloadTerms.Group, Term> termPair : terms) {
+        Term term = termPair.getRight();
+        String simpleName = DownloadTerms.simpleName(termPair);
+        if (termPair.getLeft().equals(DownloadTerms.Group.VERBATIM)) {
+          // In the CSV, the verbatim field should be prefixed "verbatim".
+          occurrence.put(simpleName, getCleanVerbatimString(row, term));
+        } else if (TermUtils.isInterpretedDate(term)) {
+          occurrence.put(simpleName, toISO8601Date(ExtResultReader.getDate(row, term)));
         } else if (TermUtils.isInterpretedDouble(term)) {
           Double value = ExtResultReader.getDouble(row, term);
-          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
+          occurrence.put(simpleName, value != null ? value.toString() : null);
         } else if (TermUtils.isInterpretedNumerical(term)) {
           Integer value = ExtResultReader.getInteger(row, term);
-          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
+          occurrence.put(simpleName, value != null ? value.toString() : null);
         } else if (term == GbifTerm.issue) {
-          occurrence.put(GbifTerm.issue.simpleName(), extractOccurrenceIssues(row));
+          occurrence.put(simpleName, extractOccurrenceIssues(row));
         } else if (term == GbifTerm.mediaType) {
-          occurrence.put(GbifTerm.mediaType.simpleName(), extractMediaTypes(row));
+          occurrence.put(simpleName, extractMediaTypes(row));
         } else if (term == GbifTerm.hasGeospatialIssues) {
-          occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
+          occurrence.put(simpleName, Boolean.toString(hasGeospatialIssues(row)));
         } else if (term == GbifTerm.hasCoordinate) {
-          occurrence.put(GbifTerm.hasCoordinate.simpleName(),
+          occurrence.put(simpleName,
                          Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
                                           && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
         } else if (term == GbifTerm.repatriated) {
-          occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orElse(null));
+          occurrence.put(simpleName, getRepatriated(row).orElse(null));
         } else if (!TermUtils.isComplexType(term)) {
-          occurrence.put(term.simpleName(), getCleanString(row, term));
+          occurrence.put(simpleName, getCleanString(row, term));
         }
       }
       return occurrence;

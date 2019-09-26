@@ -48,7 +48,7 @@ public class SpeciesListCollector {
         // order the results according to download
         return new LinkedHashMap<>(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream()
                                      .collect(LinkedHashMap::new, (m, val) -> {
-                                       m.put(val.simpleName(), occurrenceRecord.get(val.simpleName()));
+                                       m.put(val.getRight().simpleName(), occurrenceRecord.get(val.getRight().simpleName()));
                                      }, LinkedHashMap::putAll));
       }
     }));

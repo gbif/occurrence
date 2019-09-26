@@ -46,14 +46,16 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
 
   private static final String CSV_EXTENSION = ".csv";
 
-  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream().map(Term::simpleName).toArray(String[]::new);
+  private static final String[] COLUMNS = DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS.stream()
+    .map(DownloadTerms::simpleName)
+    .toArray(String[]::new);
 
   private final DownloadJobConfiguration configuration;
   private final WorkflowConfiguration workflowConfiguration;
   private final String outputFileName;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC_BY_4_0);
+  private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
 
   @Inject
   public SpeciesListDownloadAggregator(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,

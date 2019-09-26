@@ -30,9 +30,11 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
@@ -154,15 +156,28 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     try {
-      if (!downloadLimitsService.isInDownloadLimits(request.getCreator())) {
+      String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
+      if (exceedComplexityLimit != null) {
+        LOG.info("Download request refused as it would exceed complexity limits");
+        Response tooBig = Response
+          .status(GbifResponseStatus.PAYLOAD_TOO_LARGE)
+          .entity("A download limitation is exceeded:\n" + exceedComplexityLimit + "\n")
+          .type("text/plain")
+          .build();
+        throw new WebApplicationException(tooBig);
+      }
+
+      String exceedSimultaneousLimit = downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
+      if (exceedSimultaneousLimit != null) {
+        LOG.info("Download request refused as it would exceed simultaneous limits");
         Response calm = Response
           .status(GbifResponseStatus.ENHANCE_YOUR_CALM)
-          .entity("Too many simultaneous downloads, please wait for some to complete.\n\n"
-            + "Usually this is too many downloads from a single user, but it can be too many downloads overall.\n"
-            + "See your user page, or the GBIF health status page.\n")
+          .entity("A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n")
+          .type("text/plain")
           .build();
         throw new WebApplicationException(calm);
       }
+
       String jobId = request.getFormat().equals(DownloadFormat.SQL)?
                         runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
       LOG.debug("Oozie job id is: [{}]", jobId);
@@ -170,6 +185,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       persistDownload(request, downloadId);
       return downloadId;
     } catch (OozieClientException e) {
+      LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
@@ -194,8 +210,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 
+  @Nullable
   @Override
-  public InputStream getResult(String downloadKey) {
+  public File getResultFile(String downloadKey) {
     String filename;
 
     // avoid check for download in the registry if we have secret non download files with a magic prefix!
@@ -207,7 +224,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       }
 
       if (d.getStatus() == Download.Status.FILE_ERASED) {
-        throw new NotFoundException("Download " + downloadKey + " has been erased");
+        Response gone = Response
+          .status(Response.Status.GONE)
+          .entity("Download " + downloadKey + " has been erased\n")
+          .type("text/plain")
+          .build();
+        throw new WebApplicationException(gone);
       }
 
       if (!d.isAvailable()) {
@@ -220,9 +242,20 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
 
     File localFile = new File(downloadMount, filename);
+    if (localFile.canRead()) {
+      return localFile;
+    } else {
+      throw new IllegalStateException(
+        "Unable to read download " + downloadKey + " from " + localFile.getAbsolutePath());
+    }
+  }
+
+  @Nullable
+  @Override
+  public InputStream getResult(String downloadKey) {
+    File localFile = getResultFile(downloadKey);
     try {
       return new FileInputStream(localFile);
-
     } catch (IOException e) {
       throw new IllegalStateException(
         "Failed to read download " + downloadKey + " from " + localFile.getAbsolutePath(), e);

@@ -12,6 +12,7 @@
  */
 package org.gbif.occurrence.download.query;
 
+import com.google.common.base.Joiner;
 import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
@@ -40,6 +41,8 @@ import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +53,15 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.spatial4j.context.jts.DatelineRule;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.io.WKTReader;
+import org.locationtech.spatial4j.shape.Rectangle;
+import org.locationtech.spatial4j.shape.Shape;
+import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +84,7 @@ public class HiveQueryVisitor {
   private static final String CONJUNCTION_OPERATOR = " AND ";
   private static final String DISJUNCTION_OPERATOR = " OR ";
   private static final String EQUALS_OPERATOR = " = ";
+  private static final String IN_OPERATOR = " IN";
   private static final String GREATER_THAN_OPERATOR = " > ";
   private static final String GREATER_THAN_EQUALS_OPERATOR = " >= ";
   private static final String LESS_THAN_OPERATOR = " < ";
@@ -160,6 +173,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, DwcTerm.samplingProtocol)
       .build();
 
+  private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
+
   private StringBuilder builder;
 
   /**
@@ -241,7 +256,38 @@ public class HiveQueryVisitor {
   }
 
   public void visit(DisjunctionPredicate predicate) throws QueryBuildingException {
-    visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
+    // See if this disjunction can be simplified into an IN predicate, which is much faster.
+    // We could overcomplicate this:
+    //   A=1 OR A=2 OR B=3 OR B=4 OR C>5 → A IN(1,2) OR B IN (3,4) OR C>5
+    // but that's a very unusual query for us, so we just check for
+    // - EqualsPredicates everywhere
+    // - on the same search parameter.
+
+    boolean useIn = true;
+    List<String> values = new ArrayList<>();
+    OccurrenceSearchParameter parameter = null;
+
+    for (Predicate subPredicate : predicate.getPredicates()) {
+      if (subPredicate instanceof EqualsPredicate) {
+        EqualsPredicate equalsSubPredicate = (EqualsPredicate) subPredicate;
+        if (parameter == null) {
+          parameter = equalsSubPredicate.getKey();
+        } else if (parameter != equalsSubPredicate.getKey()) {
+          useIn = false;
+          break;
+        }
+        values.add(equalsSubPredicate.getValue());
+      } else {
+        useIn = false;
+        break;
+      }
+    }
+
+    if (useIn) {
+      visit(new InPredicate(parameter, values));
+    } else {
+      visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
+    }
   }
 
   /**
@@ -269,20 +315,48 @@ public class HiveQueryVisitor {
     visitSimplePredicate(predicate, GREATER_THAN_OPERATOR);
   }
 
+  /*
+   * For large disjunctions, IN predicates are around 3× faster than a perfectly balanced tree of
+   * OR predicates, and around 2× faster than a fairly flat OR query.
+   *
+   * With Hive 1.3.0, balancing OR queries should be internal to Hive:
+   *   https://jira.apache.org/jira/browse/HIVE-11398
+   * but it is probably still better to use an IN, which uses a hash table lookup internally:
+   *   https://jira.apache.org/jira/browse/HIVE-11415#comment-14651085
+   */
   public void visit(InPredicate predicate) throws QueryBuildingException {
-    builder.append('(');
-    Iterator<String> iterator = predicate.getValues().iterator();
-    while (iterator.hasNext()) {
-      String value = iterator.next();
+
+    if (isHiveArray(predicate.getKey())) {
+      // Array values must be converted to ORs.
       builder.append('(');
-      // Use the equals predicate to get the behaviour for taxon key etc.
-      visit(new EqualsPredicate(predicate.getKey(), value));
-      builder.append(')');
-      if (iterator.hasNext()) {
-        builder.append(DISJUNCTION_OPERATOR);
+      Iterator<String> iterator = predicate.getValues().iterator();
+      while (iterator.hasNext()) {
+        // Use the equals predicate to get the behaviour for array.
+        visit(new EqualsPredicate(predicate.getKey(), iterator.next()));
+        if (iterator.hasNext()) {
+          builder.append(DISJUNCTION_OPERATOR);
+        }
       }
+      builder.append(')');
+
+    } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
+      // Taxon keys must be expanded into a disjunction of in predicates
+      appendTaxonKeyFilter(predicate.getValues());
+
+    } else {
+      builder.append('(');
+      builder.append(toHiveField(predicate.getKey()));
+      builder.append(IN_OPERATOR);
+      builder.append('(');
+      Iterator<String> iterator = predicate.getValues().iterator();
+      while (iterator.hasNext()) {
+        builder.append(toHiveValue(predicate.getKey(), iterator.next()));
+        if (iterator.hasNext()) {
+          builder.append(", ");
+        }
+      }
+      builder.append("))");
     }
-    builder.append(')');
   }
 
   public void visit(LessThanOrEqualsPredicate predicate) throws QueryBuildingException {
@@ -312,15 +386,53 @@ public class HiveQueryVisitor {
     }
   }
 
-  public void visit(WithinPredicate within) {
-    // the geometry must be valid - it was validated in the predicates constructor
-    builder.append("contains(\"");
-    builder.append(within.getGeometry());
-    builder.append("\", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
-    builder.append(", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-    builder.append(')');
+  public void visit(WithinPredicate within) throws QueryBuildingException {
+    JtsSpatialContextFactory spatialContextFactory = new JtsSpatialContextFactory();
+    spatialContextFactory.normWrapLongitude = true;
+    spatialContextFactory.srid = 4326;
+    spatialContextFactory.datelineRule = DatelineRule.ccwRect;
+
+    WKTReader reader = new WKTReader(spatialContextFactory.newSpatialContext(), spatialContextFactory);
+
+    try {
+      // the geometry must be valid - it was validated in the predicates constructor
+      Shape geometry = reader.parse(within.getGeometry());
+
+      builder.append('(');
+      String withinGeometry;
+
+      // Add an additional filter to a bounding box around any shapes that aren't squares, to speed up the query.
+      if (geometry instanceof JtsGeometry && ((JtsGeometry) geometry).getGeom().getNumPoints() != 5) {
+        // Use the Spatial4J-fixed geometry; this is split into a multipolygon if it crosses the antimeridian.
+        withinGeometry = ((JtsGeometry) geometry).getGeom().toText();
+
+        GeometryFactory gf = new GeometryFactory();
+        Rectangle bounds = geometry.getBoundingBox();
+        Geometry rect = gf.toGeometry(new Envelope(bounds.getMinX(), bounds.getMaxX(), bounds.getMaxY(), bounds.getMinY()));
+
+        builder.append("contains(\"");
+        builder.append(rect.toText());
+        builder.append("\", ");
+        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+        builder.append(", ");
+        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+        builder.append(')');
+        builder.append(CONJUNCTION_OPERATOR);
+      } else {
+        withinGeometry = within.getGeometry();
+      }
+      builder.append("contains(\"");
+      builder.append(withinGeometry);
+      builder.append("\", ");
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+      builder.append(", ");
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(')');
+
+      builder.append(')');
+    } catch (Exception e) {
+      throw new QueryBuildingException(e);
+    }
   }
 
   /**
@@ -366,14 +478,14 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Determines if the type of a parameter it'a a Hive array.
+   * Determines if the type of a parameter is a Hive array.
    */
   private static boolean isHiveArray(OccurrenceSearchParameter parameter) {
     return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
   }
 
   /**
-   * Searches any of the nub keys in HBase of any rank.
+   * Searches any of the NUB keys in HBase of any rank.
    *
    * @param taxonKey to append as filter
    */
@@ -387,6 +499,28 @@ public class HiveQueryVisitor {
       builder.append(HiveColumnsUtils.getHiveColumn(term));
       builder.append(EQUALS_OPERATOR);
       builder.append(taxonKey);
+      first = false;
+    }
+    builder.append(')');
+  }
+
+  /**
+   * Searches any of the NUB keys in HBase of any rank, for multiple keys.
+   *
+   * @param taxonKeys to append as filter
+   */
+  private void appendTaxonKeyFilter(Collection<String> taxonKeys) {
+    builder.append('(');
+    boolean first = true;
+    for (Term term : NUB_KEYS) {
+      if (!first) {
+        builder.append(DISJUNCTION_OPERATOR);
+      }
+      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(IN_OPERATOR);
+      builder.append('(');
+      builder.append(commaJoiner.join(taxonKeys));
+      builder.append(')');
       first = false;
     }
     builder.append(')');
