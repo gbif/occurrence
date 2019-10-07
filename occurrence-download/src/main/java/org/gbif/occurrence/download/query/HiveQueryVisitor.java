@@ -32,6 +32,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -47,6 +49,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
@@ -297,7 +300,8 @@ public class HiveQueryVisitor {
     if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       appendTaxonKeyFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
-      builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+      Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
+        .ifPresent( mediaType -> builder.append(String.format(MEDIATYPE_CONTAINS_FMT, mediaType.name())));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
