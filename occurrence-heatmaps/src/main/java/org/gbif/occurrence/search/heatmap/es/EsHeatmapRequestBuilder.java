@@ -24,7 +24,7 @@ class EsHeatmapRequestBuilder {
   static final String CELL_AGGS = "cell";
 
   //Mapping of predefined zoom levels
-  private static final int[] PRECISION_LOOKUP = new int[]{2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
+  private static final int[] PRECISION_LOOKUP = new int[]{3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
   private EsHeatmapRequestBuilder() {}
 
