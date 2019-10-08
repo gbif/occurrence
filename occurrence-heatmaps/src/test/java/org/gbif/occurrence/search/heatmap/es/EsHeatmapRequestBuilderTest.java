@@ -70,7 +70,7 @@ public class EsHeatmapRequestBuilderTest {
             .path(GEOHASH_GRID);
     assertEquals(
         OccurrenceEsField.COORDINATE_POINT.getFieldName(), jsonGeohashGrid.get(FIELD).asText());
-    assertEquals(2, jsonGeohashGrid.get(PRECISION).asInt());
+    assertEquals(3, jsonGeohashGrid.get(PRECISION).asInt());
 
     // geo_bounds
     assertTrue(
