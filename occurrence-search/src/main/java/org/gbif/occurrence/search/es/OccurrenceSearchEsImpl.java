@@ -113,7 +113,9 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
             + request.getLimit());
 
     if (!hasReplaceableScientificNames(request)) {
-      return new SearchResponse<>(request);
+      SearchResponse<Occurrence, OccurrenceSearchParameter> emptyResponse = new SearchResponse<>(request);
+      emptyResponse.setCount(0L);
+      return emptyResponse;
     }
 
     // build request
