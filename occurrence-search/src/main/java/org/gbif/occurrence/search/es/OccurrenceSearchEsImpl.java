@@ -64,8 +64,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
-
-  private <T> T searchByKey(Long key, Function<SearchHit,T> mapper) {
+  private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
     //This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -75,7 +74,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     searchRequest.source(searchSourceBuilder);
     try {
       SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
-      if(hits != null && hits.totalHits > 0 ) {
+      if (hits != null && hits.totalHits > 0) {
         return mapper.apply(hits.getAt(0));
       }
       return null;
@@ -98,7 +97,9 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
       @Nullable OccurrenceSearchRequest request) {
     if (request == null) {
-      return new SearchResponse<>();
+      SearchResponse<Occurrence, OccurrenceSearchParameter> emptyResponse = new SearchResponse<>();
+      emptyResponse.setCount(0L);
+      return emptyResponse;
     }
 
     Preconditions.checkArgument(
@@ -184,9 +185,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.
    *
-   * @param prefix search term
+   * @param prefix    search term
    * @param parameter mapped field to be searched
-   * @param limit of maximum matches
+   * @param limit     of maximum matches
+   *
    * @return a list of elements that matched against the prefix
    */
   public List<String> suggestTermByField(
@@ -212,17 +214,15 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
    * Tries to get the corresponding name usage keys from the scientific_name parameter values.
    *
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific
-   *     name was found false: if none scientific name was found
+   * name was found false: if none scientific name was found
    */
   private boolean hasReplaceableScientificNames(OccurrenceSearchRequest request) {
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      Collection<String> values =
-          request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+      Collection<String> values = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
       for (String value : values) {
-        NameUsageMatch nameUsageMatch =
-            nameUsageMatchingService.match(value, null, null, true, false);
+        NameUsageMatch nameUsageMatch = nameUsageMatchingService.match(value, null, null, true, false);
         if (nameUsageMatch.getMatchType() == MatchType.EXACT) {
           hasValidReplaces = true;
           values.remove(value);
