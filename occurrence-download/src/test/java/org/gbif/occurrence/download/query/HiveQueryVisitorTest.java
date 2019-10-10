@@ -50,7 +50,7 @@ public class HiveQueryVisitorTest {
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
     assertEquals(
-      "(((taxonkey = 212 OR kingdomkey = 212 OR phylumkey = 212 OR classkey = 212 OR orderkey = 212 OR familykey = 212 OR genuskey = 212 OR subgenuskey = 212 OR specieskey = 212)) AND (countrycode = \'GB\') AND (lower(scientificname) LIKE lower(\'Passer%\')) AND (year <= 1989) AND (hascoordinate = true))",
+      "(((taxonkey = 212 OR acceptedtaxonkey = 212 OR kingdomkey = 212 OR phylumkey = 212 OR classkey = 212 OR orderkey = 212 OR familykey = 212 OR genuskey = 212 OR subgenuskey = 212 OR specieskey = 212)) AND (countrycode = \'GB\') AND (lower(scientificname) LIKE lower(\'Passer%\')) AND (year <= 1989) AND (hascoordinate = true))",
       where);
   }
 
@@ -73,7 +73,7 @@ public class HiveQueryVisitorTest {
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(taxa, basis, countries, years));
     String where = visitor.getHiveQuery(p);
     assertEquals(
-      "(((taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))) " +
+      "(((taxonkey IN(1, 2) OR acceptedtaxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))) " +
         "AND ((basisofrecord IN('HUMAN_OBSERVATION', 'MACHINE_OBSERVATION'))) " +
         "AND ((countrycode IN(\'GB\', \'IE\'))) " +
         "AND (((year <= 1989) OR (year = 2000))))",
@@ -118,7 +118,7 @@ public class HiveQueryVisitorTest {
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("(taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
+      equalTo("(taxonkey IN(1, 2) OR acceptedtaxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
   }
 
   @Test
@@ -165,7 +165,7 @@ public class HiveQueryVisitorTest {
     Predicate p = new InPredicate(OccurrenceSearchParameter.TAXON_KEY, Lists.newArrayList("1", "2"));
     String query = visitor.getHiveQuery(p);
     assertThat(query,
-      equalTo("(taxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
+      equalTo("(taxonkey IN(1, 2) OR acceptedtaxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))"));
   }
 
   @Test
