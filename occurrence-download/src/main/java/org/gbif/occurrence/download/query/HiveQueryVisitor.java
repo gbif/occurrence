@@ -107,7 +107,8 @@ public class HiveQueryVisitor {
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
-  private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(GbifTerm.taxonKey,
+  private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(GbifTerm.acceptedTaxonKey,
+                                                                  GbifTerm.taxonKey,
                                                                   GbifTerm.kingdomKey,
                                                                   GbifTerm.phylumKey,
                                                                   GbifTerm.classKey,
