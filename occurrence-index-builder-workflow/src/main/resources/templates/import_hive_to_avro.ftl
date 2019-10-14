@@ -12,7 +12,7 @@ catalognumber,
 recordedby,
 recordnumber,
 IF(lastinterpreted IS NOT NULL, concat(to_date(from_utc_timestamp(lastinterpreted,'UTC')),'T00:00:00Z'),NULL) AS lastinterpreted,
-removeNulls(array(kingdomkey,phylumkey,classkey,orderkey,familykey,genuskey,subgenuskey,specieskey,taxonkey)) AS taxonkey, --taxon_key
+removeNulls(array(kingdomkey,phylumkey,classkey,orderkey,familykey,genuskey,subgenuskey,specieskey,taxonkey,acceptedtaxonkey)) AS taxonkey, --taxon_key
 acceptedtaxonkey,
 kingdomkey,
 phylumkey,
