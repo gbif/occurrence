@@ -468,6 +468,7 @@
       <str name="echoParams">explicit</str>
       <int name="rows">20</int>
       <str name="df">key</str>
+      <str name="timeAllowed">60000</str>
     </lst>
 
   </requestHandler>
@@ -497,6 +498,7 @@
       <str name="spellcheck.collateExtendedResults">true</str>
       <str name="spellcheck.maxCollationTries">3</str>
       <str name="spellcheck.maxCollations">3</str>
+      <str name="timeAllowed">60000</str>
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
