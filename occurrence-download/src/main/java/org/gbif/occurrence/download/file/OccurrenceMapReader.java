@@ -6,6 +6,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.*;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
@@ -102,6 +103,12 @@ public class OccurrenceMapReader {
     getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
     extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+
+    occurrence.getVerbatimFields().forEach( (term, value) -> {
+      if (!TermUtils.isOccurrenceJavaProperty(term)) {
+       interpretedOccurrence.put(term.simpleName(), value);
+      }
+    });
 
     return interpretedOccurrence;
   }

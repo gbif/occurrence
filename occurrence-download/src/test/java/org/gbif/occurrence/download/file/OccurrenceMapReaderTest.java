@@ -45,6 +45,13 @@ public class OccurrenceMapReaderTest {
     occurrence.setReferences(reference);
     occurrence.setLicense(License.CC_BY_4_0);
 
+    //Varbatim fields not populated by Java fields must be copied into the result
+    occurrence.setVerbatimField(DwcTerm.institutionCode, "INST");
+
+    //Latitude and longitude must be superseded by the interpreted values
+    occurrence.setVerbatimField(DwcTerm.decimalLatitude, "89.200001");
+    occurrence.setVerbatimField(DwcTerm.decimalLongitude, "100.200001");
+
     MediaObject mediaObjectStillImage = new MediaObject();
     mediaObjectStillImage.setTitle("Image");
     mediaObjectStillImage.setType(MediaType.StillImage);
@@ -87,5 +94,8 @@ public class OccurrenceMapReaderTest {
     Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH.name()));
     Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.TAXON_MATCH_FUZZY.name()));
     Assert.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasGeospatialIssues.simpleName()));
+    Assert.assertEquals(occurrenceMap.get(DwcTerm.institutionCode.simpleName()), "INST");
+    Assert.assertEquals(occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()), "89.2");
+    Assert.assertEquals(occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()), "100.2");
   }
 }
