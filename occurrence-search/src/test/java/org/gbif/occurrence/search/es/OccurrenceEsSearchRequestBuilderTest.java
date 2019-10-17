@@ -160,6 +160,45 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
+  public void polygonWithDuplicatesTest() throws IOException {
+    final String polygon = "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 101.0 1.0, 100.0 0.0))";
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addGeometryFilter(polygon);
+
+    QueryBuilder query =
+      EsSearchRequestBuilder.buildQueryNode(searchRequest)
+        .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(
+      jsonQuery
+        .path(BOOL)
+        .path(FILTER)
+        .get(0)
+        .path(BOOL)
+        .path(SHOULD)
+        .get(0)
+        .path(GEO_SHAPE)
+        .path(COORDINATE_SHAPE.getFieldName())
+        .has(SHAPE));
+    JsonNode shape =
+      jsonQuery
+        .path(BOOL)
+        .path(FILTER)
+        .get(0)
+        .path(BOOL)
+        .path(SHOULD)
+        .get(0)
+        .path(GEO_SHAPE)
+        .path(COORDINATE_SHAPE.getFieldName())
+        .path(SHAPE);
+    assertEquals("polygon", shape.get(TYPE).asText());
+    assertTrue(shape.get(COORDINATES).isArray());
+    assertEquals(4, shape.get(COORDINATES).get(0).size());
+  }
+
+  @Test
   public void polygonWithHoleQueryTest() throws IOException {
     final String polygonWithHole =
         "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0), (100.2 0.2, 100.8 0.2, 100.8 0.8, 100.2 0.8, 100.2 0.2))";

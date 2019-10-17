@@ -15,10 +15,6 @@ import java.util.stream.Collectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
@@ -33,6 +29,10 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -301,7 +301,8 @@ public class EsSearchRequestBuilder {
     termsAggsBuilder.size(size);
 
     // aggs shard size
-    termsAggsBuilder.shardSize(CARDINALITIES.getOrDefault(esField, DEFAULT_SHARD_SIZE.applyAsInt(size)));
+    termsAggsBuilder.shardSize(
+        CARDINALITIES.getOrDefault(esField, DEFAULT_SHARD_SIZE.applyAsInt(size)));
 
     return termsAggsBuilder;
   }
@@ -321,12 +322,15 @@ public class EsSearchRequestBuilder {
   }
 
   /**
-   * Mapping parameter values into know values for Enums.
-   * Non-enum parameter values are passed using its raw value.
+   * Mapping parameter values into know values for Enums. Non-enum parameter values are passed using
+   * its raw value.
    */
   private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
-    if (Enum.class.isAssignableFrom(parameter.type()) && !Country.class.isAssignableFrom(parameter.type())) {
-      return  VocabularyUtils.lookup(value, (Class<Enum<?>>)parameter.type()).transform(Enum::name).orNull();
+    if (Enum.class.isAssignableFrom(parameter.type())
+        && !Country.class.isAssignableFrom(parameter.type())) {
+      return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
+          .transform(Enum::name)
+          .orNull();
     }
     if (Boolean.class.isAssignableFrom(parameter.type())) {
       return value.toLowerCase();
@@ -334,7 +338,8 @@ public class EsSearchRequestBuilder {
     return value;
   }
 
-  private static List<QueryBuilder> buildTermQuery(Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
+  private static List<QueryBuilder> buildTermQuery(
+      Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // collect queries for each value
@@ -373,13 +378,6 @@ public class EsSearchRequestBuilder {
     return builder;
   }
 
-  private static List<Coordinate> asCollectionOfCoordinates(
-      Coordinate[] coordinates) {
-    return Arrays.stream(coordinates)
-        .map(coord -> new Coordinate(coord.x, coord.y))
-        .collect(Collectors.toList());
-  }
-
   public static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
@@ -394,13 +392,13 @@ public class EsSearchRequestBuilder {
               new PolygonBuilder(
                   new CoordinatesBuilder()
                       .coordinates(
-                          asCollectionOfCoordinates(polygon.getExteriorRing().getCoordinates())));
+                          normalizePolygonCoordinates(polygon.getExteriorRing().getCoordinates())));
           for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
             polygonBuilder.hole(
                 new LineStringBuilder(
                     new CoordinatesBuilder()
                         .coordinates(
-                            asCollectionOfCoordinates(
+                            normalizePolygonCoordinates(
                                 polygon.getInteriorRingN(i).getCoordinates()))));
           }
           return polygonBuilder;
@@ -415,12 +413,11 @@ public class EsSearchRequestBuilder {
     if (("POINT").equals(type)) {
       shapeBuilder = new PointBuilder(geometry.getCoordinate().x, geometry.getCoordinate().y);
     } else if ("LINESTRING".equals(type)) {
-      shapeBuilder = new LineStringBuilder(asCollectionOfCoordinates(geometry.getCoordinates()));
+      shapeBuilder = new LineStringBuilder(Arrays.asList(geometry.getCoordinates()));
     } else if ("POLYGON".equals(type)) {
       shapeBuilder = polygonToBuilder.apply((Polygon) geometry);
     } else if ("MULTIPOLYGON".equals(type)) {
       // multipolygon
-
       MultiPolygonBuilder multiPolygonBuilder = new MultiPolygonBuilder();
       for (int i = 0; i < geometry.getNumGeometries(); i++) {
         multiPolygonBuilder.polygon(polygonToBuilder.apply((Polygon) geometry.getGeometryN(i)));
@@ -436,6 +433,26 @@ public class EsSearchRequestBuilder {
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }
+  }
+
+  /** Eliminates duplicates but discarding the first and the last coordinates. */
+  private static Coordinate[] normalizePolygonCoordinates(Coordinate[] coordinates) {
+    Set<Coordinate> uniqueIntermediateCoords =
+        Arrays.stream(coordinates)
+            .skip(1)
+            .limit(coordinates.length - 2L)
+            .collect(Collectors.toSet());
+
+    Coordinate[] normalizedCoords = new Coordinate[uniqueIntermediateCoords.size() + 2];
+    normalizedCoords[0] = coordinates[0];
+
+    int i = 1;
+    for (Coordinate coord : uniqueIntermediateCoords) {
+      normalizedCoords[i++] = coord;
+    }
+    normalizedCoords[i] = coordinates[coordinates.length - 1];
+
+    return normalizedCoords;
   }
 
   @VisibleForTesting
