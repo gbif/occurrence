@@ -136,7 +136,7 @@ public class OccurrenceMapReader {
     String countryCode = ExtResultReader.getString(result,Columns.column(DwcTerm.countryCode));
 
     if (publishingCountry != null && countryCode != null) {
-      return Optional.of(Boolean.toString(publishingCountry.equalsIgnoreCase(countryCode)));
+      return Optional.of(Boolean.toString(!publishingCountry.equalsIgnoreCase(countryCode)));
     }
     return Optional.empty();
   }
