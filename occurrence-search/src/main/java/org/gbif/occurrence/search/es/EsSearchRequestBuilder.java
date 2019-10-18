@@ -440,12 +440,11 @@ public class EsSearchRequestBuilder {
    * preserved
    */
   private static Coordinate[] normalizePolygonCoordinates(Coordinate[] coordinates) {
-    Set<Coordinate> uniqueIntermediateCoords = new HashSet<>();
-
     List<Coordinate> normalizedCoordinates = new ArrayList<>();
     normalizedCoordinates.add(0, coordinates[0]);
 
     int i = 1;
+    Set<Coordinate> uniqueIntermediateCoords = new HashSet<>();
     for (int j = 1; j < coordinates.length - 1; j++) {
       Coordinate jCoord = coordinates[j];
       if (!uniqueIntermediateCoords.contains(jCoord)) {
