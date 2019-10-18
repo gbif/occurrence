@@ -435,24 +435,28 @@ public class EsSearchRequestBuilder {
     }
   }
 
-  /** Eliminates duplicates but discarding the first and the last coordinates. */
+  /**
+   * Eliminates duplicates but discarding the first and the last coordinates. The order must be
+   * preserved
+   */
   private static Coordinate[] normalizePolygonCoordinates(Coordinate[] coordinates) {
-    Set<Coordinate> uniqueIntermediateCoords =
-        Arrays.stream(coordinates)
-            .skip(1)
-            .limit(coordinates.length - 2L)
-            .collect(Collectors.toSet());
+    Set<Coordinate> uniqueIntermediateCoords = new HashSet<>();
 
-    Coordinate[] normalizedCoords = new Coordinate[uniqueIntermediateCoords.size() + 2];
-    normalizedCoords[0] = coordinates[0];
+    List<Coordinate> normalizedCoordinates = new ArrayList<>();
+    normalizedCoordinates.add(0, coordinates[0]);
 
     int i = 1;
-    for (Coordinate coord : uniqueIntermediateCoords) {
-      normalizedCoords[i++] = coord;
+    for (int j = 1; j < coordinates.length - 1; j++) {
+      Coordinate jCoord = coordinates[j];
+      if (!uniqueIntermediateCoords.contains(jCoord)) {
+        uniqueIntermediateCoords.add(jCoord);
+        normalizedCoordinates.add(i++, jCoord);
+      }
     }
-    normalizedCoords[i] = coordinates[coordinates.length - 1];
 
-    return normalizedCoords;
+    normalizedCoordinates.add(i, coordinates[coordinates.length - 1]);
+
+    return normalizedCoordinates.toArray(new Coordinate[0]);
   }
 
   @VisibleForTesting

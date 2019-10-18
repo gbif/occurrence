@@ -19,10 +19,7 @@ import org.slf4j.LoggerFactory;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
@@ -161,7 +158,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
   @Test
   public void polygonWithDuplicatesTest() throws IOException {
-    final String polygon = "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 101.0 1.0, 100.0 0.0))";
+    final String polygon = "POLYGON((-3.05145 41.29638,-2.48154 40.78249,1.66529 42.70934,1.66529 42.70934,1.1994 42.68054,-3.05145 41.29638))";
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(polygon);
 
@@ -195,7 +192,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         .path(SHAPE);
     assertEquals("polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
-    assertEquals(4, shape.get(COORDINATES).get(0).size());
+    assertEquals(5, shape.get(COORDINATES).get(0).size());
   }
 
   @Test
