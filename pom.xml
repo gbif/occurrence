@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.101-ES-SNAPSHOT</version>
+  <version>0.102-ES-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -600,33 +600,6 @@
         <version>${logstash-encoder.version}</version>
         <scope>runtime</scope>
       </dependency>
-      <!--<dependency>-->
-        <!--<groupId>org.apache.solr</groupId>-->
-        <!--<artifactId>solr-core</artifactId>-->
-        <!--<version>${solr-lucene.version}</version>-->
-        <!--<exclusions>-->
-          <!--<exclusion>-->
-            <!--<artifactId>commons-logging</artifactId>-->
-            <!--<groupId>commons-logging</groupId>-->
-          <!--</exclusion>-->
-          <!--<exclusion>-->
-            <!--<artifactId>slf4j-jdk14</artifactId>-->
-            <!--<groupId>org.slf4j</groupId>-->
-          <!--</exclusion>-->
-          <!--<exclusion>-->
-          <!--<artifactId>org.restlet</artifactId>-->
-          <!--<groupId>org.restlet.jee</groupId>-->
-        <!--</exclusion>-->
-          <!--<exclusion>-->
-            <!--<artifactId>org.restlet.ext.servlet</artifactId>-->
-            <!--<groupId>org.restlet.jee</groupId>-->
-          <!--</exclusion>-->
-          <!--<exclusion>-->
-            <!--<artifactId>org.restlet.ext.servlet</artifactId>-->
-            <!--<groupId>org.restlet.jee</groupId>-->
-          <!--</exclusion>-->
-        <!--</exclusions>-->
-      <!--</dependency>-->
       <dependency>
         <groupId>org.locationtech.jts</groupId>
         <artifactId>jts-core</artifactId>
@@ -653,11 +626,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!--<dependency>-->
-        <!--<groupId>org.apache.solr</groupId>-->
-        <!--<artifactId>solr-solrj</artifactId>-->
-        <!--<version>${solr-lucene.version}</version>-->
-      <!--</dependency>-->
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>

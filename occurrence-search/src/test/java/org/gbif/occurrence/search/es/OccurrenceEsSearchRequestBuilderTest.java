@@ -19,10 +19,7 @@ import org.slf4j.LoggerFactory;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
@@ -154,6 +151,45 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
+    assertEquals("polygon", shape.get(TYPE).asText());
+    assertTrue(shape.get(COORDINATES).isArray());
+    assertEquals(5, shape.get(COORDINATES).get(0).size());
+  }
+
+  @Test
+  public void polygonWithDuplicatesTest() throws IOException {
+    final String polygon = "POLYGON((-3.05145 41.29638,-2.48154 40.78249,1.66529 42.70934,1.66529 42.70934,1.1994 42.68054,-3.05145 41.29638))";
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addGeometryFilter(polygon);
+
+    QueryBuilder query =
+      EsSearchRequestBuilder.buildQueryNode(searchRequest)
+        .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(
+      jsonQuery
+        .path(BOOL)
+        .path(FILTER)
+        .get(0)
+        .path(BOOL)
+        .path(SHOULD)
+        .get(0)
+        .path(GEO_SHAPE)
+        .path(COORDINATE_SHAPE.getFieldName())
+        .has(SHAPE));
+    JsonNode shape =
+      jsonQuery
+        .path(BOOL)
+        .path(FILTER)
+        .get(0)
+        .path(BOOL)
+        .path(SHOULD)
+        .get(0)
+        .path(GEO_SHAPE)
+        .path(COORDINATE_SHAPE.getFieldName())
+        .path(SHAPE);
     assertEquals("polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(5, shape.get(COORDINATES).get(0).size());

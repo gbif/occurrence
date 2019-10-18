@@ -213,7 +213,4 @@ public class EsQueryUtils {
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
 
-  public static void main(String[] args) {
-
-  }
 }
