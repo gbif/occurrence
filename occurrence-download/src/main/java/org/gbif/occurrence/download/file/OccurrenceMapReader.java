@@ -31,6 +31,12 @@ public class OccurrenceMapReader {
       .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
       .put(Rank.SPECIES, GbifTerm.speciesKey).build();
 
+  public static final Map<Rank, Term> rank2Term =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
+      .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
+      .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus)
+      .put(Rank.SPECIES, GbifTerm.species).build();
+
 
   public static Map<String, String> buildOccurrenceMap(Occurrence occurrence) {
 
@@ -59,10 +65,13 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
     interpretedOccurrence.put(DwcTerm.taxonomicStatus.simpleName(), getSimpleValue(occurrence.getTaxonomicStatus()));
 
-    Rank.DWC_RANKS.forEach(rank ->
-      Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
-        .ifPresent( rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()))
-    );
+    Rank.DWC_RANKS.forEach(rank -> {
+                              Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
+                                .ifPresent(rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()));
+                              Optional.ofNullable(ClassificationUtils.getHigherRank(occurrence, rank))
+                                .ifPresent(rankClassification -> interpretedOccurrence.put(rank2Term.get(rank).simpleName(), rankClassification));
+                           });
+
 
     // other java properties
     interpretedOccurrence.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(occurrence.getBasisOfRecord()));
@@ -105,7 +114,7 @@ public class OccurrenceMapReader {
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
 
     occurrence.getVerbatimFields().forEach( (term, value) -> {
-      if (!TermUtils.isOccurrenceJavaProperty(term)) {
+      if (!TermUtils.isOccurrenceJavaProperty(term) && Objects.isNull(interpretedOccurrence.get(term.simpleName()))) {
        interpretedOccurrence.put(term.simpleName(), value);
       }
     });

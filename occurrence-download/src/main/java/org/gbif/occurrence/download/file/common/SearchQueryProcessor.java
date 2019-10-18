@@ -80,7 +80,7 @@ public class SearchQueryProcessor {
       }
       ClearScrollResponse clearScrollResponse = downloadFileWork.getEsClient().clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
       if(!clearScrollResponse.isSucceeded()) {
-        LOG.warn("Error clearing Scroll Id, respose {}", clearScrollResponse.toString());
+        LOG.warn("Error clearing Scroll Id, response {}", clearScrollResponse.toString());
       }
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
