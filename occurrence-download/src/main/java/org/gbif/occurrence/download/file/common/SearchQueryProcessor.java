@@ -46,50 +46,34 @@ public class SearchQueryProcessor {
 
     // Calculates the amount of output records
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
-    final int limit = Math.min(LIMIT, nrOfOutputRecords);
-
-    // Creates a search request instance using the search request that comes in the fileJob
-    SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
-
-    searchSourceBuilder.size(limit);
-    SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
-    Scroll scroll = new Scroll(TimeValue.timeValueMinutes(SCROLL_TIME_VALUE));
-    searchRequest.scroll(scroll);
-
 
     try {
-      SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
-      consume(searchResponse, limit, resultHandler);
 
-      ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
-      clearScrollRequest.addScrollId(searchResponse.getScrollId());
+      int recordCount = 0;
+      // Creates a search request instance using the search request that comes in the fileJob
+      SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
 
-      SearchHit[] searchHits = searchResponse.getHits().getHits();
-      int recordCount = searchHits.length;
+      while (recordCount < nrOfOutputRecords) {
 
-      while (recordCount < nrOfOutputRecords && searchHits.length > 0) {
-        SearchScrollRequest scrollRequest = new SearchScrollRequest(searchResponse.getScrollId());
-        scrollRequest.scroll(searchRequest.scroll());
+        searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
+        searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
+        SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
-        searchResponse = downloadFileWork.getEsClient().scroll(scrollRequest, RequestOptions.DEFAULT);
+        SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
+        consume(searchResponse, resultHandler);
 
-        consume(searchResponse, recordCount + limit > nrOfOutputRecords ? nrOfOutputRecords - recordCount : limit, resultHandler);
-        searchHits = searchResponse.getHits().getHits();
+        SearchHit[] searchHits = searchResponse.getHits().getHits();
         recordCount += searchHits.length;
 
-      }
-      ClearScrollResponse clearScrollResponse = downloadFileWork.getEsClient().clearScroll(clearScrollRequest, RequestOptions.DEFAULT);
-      if(!clearScrollResponse.isSucceeded()) {
-        LOG.warn("Error clearing Scroll Id, response {}", clearScrollResponse.toString());
       }
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
   }
 
-  private static void consume(SearchResponse searchResponse, int until, Consumer<Occurrence> consumer) {
+  private static void consume(SearchResponse searchResponse, Consumer<Occurrence> consumer) {
     EsResponseParser.buildResponse(searchResponse, new PagingRequest(0, searchResponse.getHits().getHits().length))
-      .getResults().stream().limit(until).forEach(consumer);
+      .getResults().forEach(consumer);
   }
   /**
    * Creates a SolrQuery that contains the query parameter as the filter query value.
