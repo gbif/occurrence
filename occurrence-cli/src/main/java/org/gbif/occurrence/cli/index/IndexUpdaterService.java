@@ -1,18 +1,18 @@
 package org.gbif.occurrence.cli.index;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import com.google.common.util.concurrent.AbstractIdleService;
+import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.apache.http.HttpHost;
-
-import com.google.common.util.concurrent.AbstractIdleService;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * A base class for services that will insert/update occurrences in the Occurrence Index.
  */
+// TODO: remove this. It is not needed in ES.
 class IndexUpdaterService extends AbstractIdleService {
 
   private final IndexingConfiguration configuration;
@@ -32,13 +32,6 @@ class IndexUpdaterService extends AbstractIdleService {
   @Override
   protected void startUp() throws Exception {
     configuration.ganglia.start();
-/*
-    SolrOccurrenceWriter solrOccurrenceWriter = new SolrOccurrenceWriter(buildSolrServer(configuration),
-                                                                         configuration.commitWithinMs);
-    listener = new IndexMessageListener(configuration.messaging.getConnectionParameters(), configuration.msgPoolSize);
-    listener.listen(configuration.queueName, configuration.poolSize, new IndexUpdaterCallback(solrOccurrenceWriter,
-                    configuration.solrUpdateBatchSize, configuration.solrUpdateWithinMs));
-                    */
   }
 
   private RestHighLevelClient provideEsClient() {

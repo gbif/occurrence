@@ -54,8 +54,11 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
     RestClientBuilder builder =
         RestClient.builder(hosts)
             .setRequestConfigCallback(
-              requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(6000).setSocketTimeout(90000))
-            .setMaxRetryTimeoutMillis(90000);
+                requestConfigBuilder ->
+                    requestConfigBuilder
+                        .setConnectTimeout(esConfig.getConnectTimeout())
+                        .setSocketTimeout(esConfig.getSocketTimeout()))
+            .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout());
 
     return new RestHighLevelClient(builder);
   }

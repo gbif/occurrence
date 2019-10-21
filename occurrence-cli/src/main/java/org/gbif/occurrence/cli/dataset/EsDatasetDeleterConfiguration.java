@@ -37,6 +37,12 @@ public class EsDatasetDeleterConfiguration {
   @NotNull
   public String[] esIndex;
 
+  @Parameter(names = "--es-connect-timeout")
+  public int esConnectTimeout = 7500;
+
+  @Parameter(names = "--es-socket-timeout")
+  public int esSocketTimeout = 125000;
+
   @Parameter(names = "--hdfs-site-config")
   @NotNull
   public String hdfsSiteConfig;
@@ -59,6 +65,8 @@ public class EsDatasetDeleterConfiguration {
         .add("queueName='" + queueName + "'")
         .add("esHosts=" + Arrays.toString(esHosts))
         .add("esIndex=" + Arrays.toString(esIndex))
+        .add("esConnectTimeout=" + esConnectTimeout)
+        .add("esSocketTimeout=" + esSocketTimeout)
         .add("coreSiteConfig=" + coreSiteConfig)
         .add("hdfsSiteConfig=" + hdfsSiteConfig)
         .toString();

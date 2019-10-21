@@ -1,12 +1,14 @@
 package org.gbif.occurrence.cli.dataset;
 
+import org.gbif.common.messaging.MessageListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.gbif.common.messaging.MessageListener;
-
+import com.google.common.base.Strings;
+import com.google.common.util.concurrent.AbstractIdleService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.http.HttpHost;
@@ -15,9 +17,6 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
-import com.google.common.util.concurrent.AbstractIdleService;
 
 /**
  * Service that listens to {@link
@@ -97,8 +96,10 @@ public class EsDatasetDeleterService extends AbstractIdleService {
         RestClient.builder(hosts)
             .setRequestConfigCallback(
                 requestConfigBuilder ->
-                    requestConfigBuilder.setConnectTimeout(6000).setSocketTimeout(90000))
-            .setMaxRetryTimeoutMillis(90000);
+                    requestConfigBuilder
+                        .setConnectTimeout(config.esConnectTimeout)
+                        .setSocketTimeout(config.esSocketTimeout))
+            .setMaxRetryTimeoutMillis(config.esSocketTimeout);
 
     return new RestHighLevelClient(builder);
   }
