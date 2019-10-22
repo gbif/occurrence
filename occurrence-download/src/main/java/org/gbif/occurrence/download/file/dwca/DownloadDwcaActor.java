@@ -118,10 +118,8 @@ public class DownloadDwcaActor extends UntypedActor {
 
             if (occurrence != null) {
               datasetUsagesCollector.incrementDatasetUsage(occurrence.getDatasetKey().toString());
-              intCsvWriter.write(OccurrenceMapReader.buildOccurrenceMap(occurrence), INT_COLUMNS);
-              verbCsvWriter.write(occurrence.getVerbatimFields().entrySet().stream()
-                                    .collect(Collectors.toMap(e -> e.getKey().simpleName(), Map.Entry::getValue)),
-                                  VERB_COLUMNS);
+              intCsvWriter.write(OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence), INT_COLUMNS);
+              verbCsvWriter.write(OccurrenceMapReader.buildVerbatimOccurrenceMap(occurrence), VERB_COLUMNS);
               writeMediaObjects(multimediaCsvWriter, occurrence);
             }
           } catch (Exception e) {

@@ -71,7 +71,7 @@ public class OccurrenceMapReaderTest {
     occurrence.setIssues(issues);
 
 
-    Map<String,String> occurrenceMap = OccurrenceMapReader.buildOccurrenceMap(occurrence);
+    Map<String,String> occurrenceMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence);
 
     Assert.assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
     Assert.assertEquals(Country.TRINIDAD_TOBAGO.getIso2LetterCode(), occurrenceMap.get(GbifTerm.publishingCountry.simpleName()));

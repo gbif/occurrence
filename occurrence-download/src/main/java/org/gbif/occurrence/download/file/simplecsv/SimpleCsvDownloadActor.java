@@ -2,7 +2,6 @@ package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
@@ -25,7 +24,7 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
 
 /**
  * Actor that creates a part of the simple csv download file.
@@ -65,7 +64,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
 
       SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
-            Map<String, String> occurrenceRecordMap = buildOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+            Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
 
             //collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
