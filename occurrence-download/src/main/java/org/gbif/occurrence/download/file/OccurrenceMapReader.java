@@ -38,7 +38,7 @@ public class OccurrenceMapReader {
       .put(Rank.SPECIES, GbifTerm.species).build();
 
 
-  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence) {
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence) {
 
     Map<String,String> interpretedOccurrence = new HashMap<>();
 
@@ -126,8 +126,8 @@ public class OccurrenceMapReader {
   /**
    * Builds Map that contains a lists of terms.
    */
-  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  buildOccurrenceMap(occurrence).entrySet().stream()
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
+    return  buildInterpretedOccurrenceMap(occurrence).entrySet().stream()
               .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
               .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
@@ -210,8 +210,9 @@ public class OccurrenceMapReader {
    * Extract all the verbatim data into a Map.
    */
   public static Map<String, String> buildVerbatimOccurrenceMap(Occurrence occurrence) {
-    return occurrence.getVerbatimFields().entrySet().stream()
-            .collect(HashMap::new, (m,v) -> m.put(v.getKey().simpleName(), v.getValue()), HashMap::putAll);
+    HashMap<String, String> verbatimMap = new HashMap<>();
+    TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(occurrence.getVerbatimField(term))));
+    return verbatimMap;
   }
 
 
