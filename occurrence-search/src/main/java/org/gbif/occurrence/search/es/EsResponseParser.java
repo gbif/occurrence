@@ -492,7 +492,6 @@ public class EsResponseParser {
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
     return verbatimCoreFields.entrySet().stream()
             .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
-            .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
