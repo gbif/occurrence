@@ -155,7 +155,7 @@ public class OccurrenceMapReader {
 
 
   /**
-   * Transforma a simple data type into a String.
+   * Transform a simple data type into a String.
    */
   private static String getSimpleValue(Object value) {
     if (value != null) {
@@ -193,6 +193,7 @@ public class OccurrenceMapReader {
     return  Optional.ofNullable(occurrence.getMedia())
               .map(media -> media.stream().filter(mediaObject -> Objects.nonNull(mediaObject.getType()))
                               .map(mediaObject -> mediaObject.getType().name())
+                              .distinct()
                               .collect(Collectors.joining(";")));
   }
 
