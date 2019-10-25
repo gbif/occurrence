@@ -25,6 +25,7 @@ import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
 
 /**
  * Actor that creates a part of the simple csv download file.
@@ -65,6 +66,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
       SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
             Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+            populateVerbatimCsvFields(occurrenceRecordMap, occurrence);
 
             //collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),

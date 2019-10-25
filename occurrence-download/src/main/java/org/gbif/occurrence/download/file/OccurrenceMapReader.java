@@ -13,6 +13,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
@@ -120,6 +121,21 @@ public class OccurrenceMapReader {
     });
 
     return interpretedOccurrence;
+  }
+
+  /**
+   * Populate two verbatim fields for CSV downloads
+   */
+  public static void populateVerbatimCsvFields(Map<String, String> map, Occurrence occurrence) {
+    Function<Term, String> keyFn =
+      t -> "verbatim" + Character.toUpperCase(t.simpleName().charAt(0)) + t.simpleName().substring(1);
+
+    Map<Term, String> verbatimFields = occurrence.getVerbatimFields();
+
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificName))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificName), x));
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificNameAuthorship))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificNameAuthorship), x));
   }
 
 
