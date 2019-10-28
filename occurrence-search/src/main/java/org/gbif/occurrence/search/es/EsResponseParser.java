@@ -194,6 +194,7 @@ public class EsResponseParser {
     Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
 
     vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
+    setIdentifier(hit, vOcc);
 
     if (verbatimData.containsKey("extensions" )) {
       vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
