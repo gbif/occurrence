@@ -294,7 +294,7 @@ public class EsResponseParser {
     String gbifId = Optional.ofNullable(occ.getKey()).map(x -> Long.toString(x)).orElse("");
 
     getStringValue(hit, KEY).filter(k -> !k.equals(gbifId) && !k.equals(triplet)).ifPresent(result -> {
-      occ.getVerbatimFields().put(DcTerm.identifier, result);
+      occ.getVerbatimFields().putIfAbsent(DcTerm.identifier, result);
     });
   }
 
