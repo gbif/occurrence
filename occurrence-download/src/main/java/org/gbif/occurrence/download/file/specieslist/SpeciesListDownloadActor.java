@@ -1,6 +1,6 @@
 package org.gbif.occurrence.download.file.specieslist;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class SpeciesListDownloadActor extends UntypedActor {
     try {
       SearchQueryProcessor.processQuery(work, occurrence -> {
         try {
-          Map<String, String> occurrenceRecordMap = buildOccurrenceMap(occurrence, DownloadTerms.SPECIES_LIST_TERMS);
+          Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SPECIES_LIST_TERMS);
           if (occurrenceRecordMap != null) {
             // collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),

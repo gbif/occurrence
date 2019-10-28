@@ -13,6 +13,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +39,7 @@ public class OccurrenceMapReader {
       .put(Rank.SPECIES, GbifTerm.species).build();
 
 
-  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence) {
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence) {
 
     Map<String,String> interpretedOccurrence = new HashMap<>();
 
@@ -122,12 +123,27 @@ public class OccurrenceMapReader {
     return interpretedOccurrence;
   }
 
+  /**
+   * Populate two verbatim fields for CSV downloads
+   */
+  public static void populateVerbatimCsvFields(Map<String, String> map, Occurrence occurrence) {
+    Function<Term, String> keyFn =
+      t -> "verbatim" + Character.toUpperCase(t.simpleName().charAt(0)) + t.simpleName().substring(1);
+
+    Map<Term, String> verbatimFields = occurrence.getVerbatimFields();
+
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificName))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificName), x));
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificNameAuthorship))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificNameAuthorship), x));
+  }
+
 
   /**
    * Builds Map that contains a lists of terms.
    */
-  public static Map<String, String> buildOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  buildOccurrenceMap(occurrence).entrySet().stream()
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
+    return  buildInterpretedOccurrenceMap(occurrence).entrySet().stream()
               .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
               .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
@@ -155,7 +171,7 @@ public class OccurrenceMapReader {
 
 
   /**
-   * Transforma a simple data type into a String.
+   * Transform a simple data type into a String.
    */
   private static String getSimpleValue(Object value) {
     if (value != null) {
@@ -193,6 +209,7 @@ public class OccurrenceMapReader {
     return  Optional.ofNullable(occurrence.getMedia())
               .map(media -> media.stream().filter(mediaObject -> Objects.nonNull(mediaObject.getType()))
                               .map(mediaObject -> mediaObject.getType().name())
+                              .distinct()
                               .collect(Collectors.joining(";")));
   }
 
@@ -210,8 +227,9 @@ public class OccurrenceMapReader {
    * Extract all the verbatim data into a Map.
    */
   public static Map<String, String> buildVerbatimOccurrenceMap(Occurrence occurrence) {
-    return occurrence.getVerbatimFields().entrySet().stream()
-            .collect(HashMap::new, (m,v) -> m.put(v.getKey().simpleName(), v.getValue()), HashMap::putAll);
+    HashMap<String, String> verbatimMap = new HashMap<>();
+    TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(occurrence.getVerbatimField(term))));
+    return verbatimMap;
   }
 
 

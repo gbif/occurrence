@@ -1,5 +1,12 @@
 package org.gbif.occurrence.search.es;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -9,19 +16,11 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import javax.annotation.Nullable;
-import javax.validation.constraints.Min;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -30,6 +29,13 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import javax.annotation.Nullable;
+import javax.validation.constraints.Min;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
@@ -85,7 +91,16 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   @Override
   public Occurrence get(Long key) {
-    return searchByKey(key, EsResponseParser::toOccurrence);
+    return searchByKey(key, hit -> {
+      Occurrence occurrence = EsResponseParser.toOccurrence(hit);
+      Map<Term, String> verbatim = occurrence.getVerbatimFields()
+        .entrySet()
+        .stream()
+        .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+      occurrence.setVerbatimFields(verbatim);
+      return occurrence;
+    });
   }
 
   @Override
