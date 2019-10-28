@@ -13,7 +13,7 @@ import org.gbif.dwc.terms.Term;
 /** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
 public enum OccurrenceEsField {
 
-  KEY("id", GbifTerm.gbifID),
+  ID("id", DcTerm.identifier),
 
   //Dataset derived
   DATASET_KEY("datasetKey", GbifTerm.datasetKey),
