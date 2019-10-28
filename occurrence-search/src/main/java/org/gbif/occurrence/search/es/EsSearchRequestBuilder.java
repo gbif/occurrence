@@ -26,6 +26,7 @@ import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuil
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.locationtech.jts.geom.Coordinate;
@@ -60,7 +61,12 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.from((int) searchRequest.getOffset());
 
     // sort
-    if (!Strings.isNullOrEmpty(searchRequest.getQ())) {
+    if (Strings.isNullOrEmpty(searchRequest.getQ())) {
+      searchSourceBuilder.sort(SortBuilders.fieldSort("year").order(SortOrder.DESC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort("month").order(SortOrder.ASC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort("day").order(SortOrder.ASC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort("_id").order(SortOrder.ASC));
+    } else {
       searchSourceBuilder.sort(SortBuilders.scoreSort());
     }
 
