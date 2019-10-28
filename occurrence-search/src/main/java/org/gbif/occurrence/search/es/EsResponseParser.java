@@ -190,9 +190,6 @@ public class EsResponseParser {
           vOcc.setKey(id);
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
-
-    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    getStringValue(hit, ID).ifPresent(verbatimId -> vOcc.getVerbatimFields().putIfAbsent(DcTerm.identifier, verbatimId));
     // add verbatim fields
     Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
 
@@ -271,11 +268,37 @@ public class EsResponseParser {
 
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
-
     // TODO: add verbatim extensions
+
+    setIdentifier(hit, occ);
 
     return occ;
   }
+
+  /**
+   * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could only have been
+   * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
+   * our public API v1, so we continue to do this.the id (the <id> reference in the DWCA meta.xml) is an identifier
+   * local to the DWCA, and could only have been used for "un-starring" a DWCA star record. However, we've exposed
+   * it as DcTerm.identifier for a long time in our public API v1, so we continue to do this.
+   */
+  private static void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
+
+    String institutionCode = occ.getVerbatimField(DwcTerm.institutionCode);
+    String collectionCode = occ.getVerbatimField(DwcTerm.collectionCode);
+    String catalogNumber = occ.getVerbatimField(DwcTerm.catalogNumber);
+
+    // id format following the convention of DwC (http://rs.tdwg.org/dwc/terms/#occurrenceID)
+    String triplet = String.join(":", "urn:catalog", institutionCode, collectionCode, catalogNumber);
+
+    String gbifId = Optional.ofNullable(occ.getKey()).map(x -> Long.toString(x)).orElse("");
+
+    getStringValue(hit, KEY).filter(k -> !k.equals(gbifId) && !k.equals(triplet)).ifPresent(result -> {
+      occ.getVerbatimFields().put(DcTerm.identifier, result);
+    });
+  }
+
+
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
     getValue(hit, GBIF_ID, Long::valueOf)
@@ -496,8 +519,6 @@ public class EsResponseParser {
   private static Map<Term, String> extractVerbatimFields(SearchHit hit) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
-    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    getStringValue(hit, ID).ifPresent(verbatimId ->  verbatimCoreFields.putIfAbsent(DcTerm.identifier.simpleName(), verbatimId));
     return verbatimCoreFields.entrySet().stream()
             .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

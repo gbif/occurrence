@@ -54,6 +54,8 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
     interpretedOccurrence.put(GbifTerm.protocol.simpleName(), getSimpleValue(occurrence.getProtocol()));
     interpretedOccurrence.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(occurrence.getCrawlId()));
+    Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
+      .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
