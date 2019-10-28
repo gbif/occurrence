@@ -18,14 +18,13 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -191,8 +190,6 @@ public class EsResponseParser {
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
 
-    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    getStringValue(hit, ID).ifPresent(verbatimId -> vOcc.getVerbatimFields().putIfAbsent(DcTerm.identifier, verbatimId));
     // add verbatim fields
     Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
 
@@ -201,6 +198,9 @@ public class EsResponseParser {
     if (verbatimData.containsKey("extensions" )) {
       vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
     }
+
+    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
+    setIdentifier(hit, vOcc.getVerbatimFields(), s -> vOcc.getVerbatimFields().put(DcTerm.identifier, s));
 
     return vOcc;
   }
@@ -274,7 +274,30 @@ public class EsResponseParser {
 
     // TODO: add verbatim extensions
 
+    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
+    setIdentifier(hit, occ.getVerbatimFields(), s -> occ.getVerbatimFields().put(DcTerm.identifier, s));
+
     return occ;
+  }
+
+  /**
+   * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could only have been
+   * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
+   * our public API v1, so we continue to do this.the id (the <id> reference in the DWCA meta.xml) is an identifier
+   * local to the DWCA, and could only have been used for "un-starring" a DWCA star record. However, we've exposed
+   * it as DcTerm.identifier for a long time in our public API v1, so we continue to do this.
+   */
+  private static void setIdentifier(SearchHit hit, Map<Term, String> verbatim, Consumer<String> setter) {
+
+    String institutionCode = verbatim.get(DwcTerm.institutionCode);
+    String collectionCode = verbatim.get(DwcTerm.collectionCode);
+    String catalogNumber = verbatim.get(DwcTerm.catalogNumber);
+
+    // id format following the convention of DwC (http://rs.tdwg.org/dwc/terms/#occurrenceID)
+    String triplet = String.join(":", "urn:catalog", institutionCode, collectionCode, catalogNumber);
+    String gbifId = getStringValue(hit, GBIF_ID).orElse("");
+
+    getStringValue(hit, ID).filter(k -> !k.equals(gbifId) && !k.equals(triplet)).ifPresent(setter);
   }
 
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
@@ -496,8 +519,6 @@ public class EsResponseParser {
   private static Map<Term, String> extractVerbatimFields(SearchHit hit) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
-    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    getStringValue(hit, ID).ifPresent(verbatimId ->  verbatimCoreFields.putIfAbsent(DcTerm.identifier.simpleName(), verbatimId));
     return verbatimCoreFields.entrySet().stream()
             .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
