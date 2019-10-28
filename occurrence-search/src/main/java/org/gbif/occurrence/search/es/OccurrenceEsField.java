@@ -103,6 +103,7 @@ public enum OccurrenceEsField {
   REFERENCES("references", DcTerm.references),
   SEX("sex", DwcTerm.sex),
   IDENTIFIER("identifier", DcTerm.identifier),
+  ID("id", DcTerm.identifier),
   INDIVIDUAL_COUNT("individualCount", DwcTerm.individualCount),
   RELATION("relation", DcTerm.relation),
   TYPIFIED_NAME("typifiedName", GbifTerm.typifiedName),

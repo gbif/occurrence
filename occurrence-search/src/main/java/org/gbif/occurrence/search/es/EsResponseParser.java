@@ -12,6 +12,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -188,6 +190,9 @@ public class EsResponseParser {
           vOcc.setKey(id);
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
+
+    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
+    getStringValue(hit, ID).ifPresent(verbatimId -> vOcc.getVerbatimFields().putIfAbsent(DcTerm.identifier, verbatimId));
     // add verbatim fields
     Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
 
@@ -266,6 +271,7 @@ public class EsResponseParser {
 
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
+
     // TODO: add verbatim extensions
 
     return occ;
@@ -490,6 +496,8 @@ public class EsResponseParser {
   private static Map<Term, String> extractVerbatimFields(SearchHit hit) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
+    //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
+    getStringValue(hit, ID).ifPresent(verbatimId ->  verbatimCoreFields.putIfAbsent(DcTerm.identifier.simpleName(), verbatimId));
     return verbatimCoreFields.entrySet().stream()
             .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
