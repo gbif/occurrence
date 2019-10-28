@@ -117,8 +117,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       return emptyResponse;
     }
 
-    Preconditions.checkArgument(
-        request.getLimit() <= maxLimit, "Max limit of " + maxLimit + " exceeded");
+    if (request.getLimit() > maxLimit) {
+      request.setLimit(maxLimit);
+    }
+
     Preconditions.checkArgument(
         request.getOffset() + request.getLimit() <= maxOffset,
         "Max offset of "
