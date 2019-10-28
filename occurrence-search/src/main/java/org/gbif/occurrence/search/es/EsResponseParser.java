@@ -200,7 +200,7 @@ public class EsResponseParser {
     }
 
     //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    setIdentifier(hit, vOcc.getVerbatimFields(), s -> vOcc.getVerbatimFields().put(DcTerm.identifier, s));
+    setIdentifier(hit, vOcc.getVerbatimFields(), s -> vOcc.getVerbatimFields().putIfAbsent(DcTerm.identifier, s));
 
     return vOcc;
   }
@@ -275,7 +275,7 @@ public class EsResponseParser {
     // TODO: add verbatim extensions
 
     //Adding explicit mapping of identifier to a verbatim field, DcTerm.identifier for a long time in our public API v1
-    setIdentifier(hit, occ.getVerbatimFields(), s -> occ.getVerbatimFields().put(DcTerm.identifier, s));
+    setIdentifier(hit, occ.getVerbatimFields(), s -> occ.getVerbatimFields().putIfAbsent(DcTerm.identifier, s));
 
     return occ;
   }
