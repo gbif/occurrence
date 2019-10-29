@@ -96,7 +96,6 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       Map<Term, String> verbatim = occurrence.getVerbatimFields()
         .entrySet()
         .stream()
-        .filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()))
         .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
       occurrence.setVerbatimFields(verbatim);
       return occurrence;
