@@ -64,7 +64,6 @@ public class EsSearchRequestBuilder {
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       searchSourceBuilder.sort(SortBuilders.fieldSort("year").order(SortOrder.DESC));
       searchSourceBuilder.sort(SortBuilders.fieldSort("month").order(SortOrder.ASC));
-      searchSourceBuilder.sort(SortBuilders.fieldSort("day").order(SortOrder.ASC));
       searchSourceBuilder.sort(SortBuilders.fieldSort("_id").order(SortOrder.ASC));
     } else {
       searchSourceBuilder.sort(SortBuilders.scoreSort());
