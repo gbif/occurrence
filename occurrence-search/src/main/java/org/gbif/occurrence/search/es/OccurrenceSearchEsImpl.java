@@ -92,7 +92,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Override
   public Occurrence get(Long key) {
     return searchByKey(key, hit -> {
-      Occurrence occurrence = EsResponseParser.toOccurrence(hit);
+      Occurrence occurrence = EsResponseParser.toOccurrence(hit, true);
       Map<Term, String> verbatim = occurrence.getVerbatimFields()
         .entrySet()
         .stream()
@@ -142,7 +142,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
     // perform the search
     try {
-      return EsResponseParser.buildResponse(esClient.search(esRequest, HEADERS.get()), request);
+      return EsResponseParser.buildDownloadResponse(esClient.search(esRequest, HEADERS.get()), request);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);

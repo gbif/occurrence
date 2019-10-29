@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
 import java.util.AbstractMap.SimpleEntry;
@@ -62,12 +63,12 @@ public class EsResponseParser {
    *
    * @return a new instance of a SearchResponse.
    */
-  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
+  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits());
-    parseHits(esResponse).ifPresent(response::setResults);
+    parseHits(esResponse, true).ifPresent(response::setResults);
     parseFacets(esResponse, request).ifPresent(response::setFacets);
 
     return response;
@@ -75,15 +76,16 @@ public class EsResponseParser {
 
   /**
    * Builds a SearchResponse instance using the current builder state.
+   * This response is intended to be used for occurrence downloads only since it does not exclude verbatim fields.
    *
    * @return a new instance of a SearchResponse.
    */
-  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildResponse(
+  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
       org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits());
-    parseHits(esResponse).ifPresent(response::setResults);
+    parseHits(esResponse, false).ifPresent(response::setResults);
     return response;
   }
 
@@ -154,13 +156,13 @@ public class EsResponseParser {
                     .collect(Collectors.toList()));
   }
 
-  private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse) {
+  private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse, boolean excludeInterpreted) {
     if (esResponse.getHits() == null || esResponse.getHits().getHits() == null || esResponse.getHits().getHits().length == 0) {
       return Optional.empty();
     }
 
     return Optional.of(Stream.of(esResponse.getHits().getHits())
-                         .map(EsResponseParser::toOccurrence)
+                         .map(hit -> EsResponseParser.toOccurrence(hit, excludeInterpreted))
                          .collect(Collectors.toList()));
   }
 
@@ -241,7 +243,7 @@ public class EsResponseParser {
     return terms;
   }
 
-  public static Occurrence toOccurrence(SearchHit hit) {
+  public static Occurrence toOccurrence(SearchHit hit, boolean excludeInterpreted) {
     // create occurrence
     Occurrence occ = new Occurrence();
 
@@ -267,7 +269,7 @@ public class EsResponseParser {
     parseMultimediaItems(hit, occ);
 
     // add verbatim fields
-    occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
+    occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
     // TODO: add verbatim extensions
 
     setIdentifier(hit, occ);
@@ -516,12 +518,16 @@ public class EsResponseParser {
     return extractValue(fields, fieldName, Function.identity());
   }
 
-  private static Map<Term, String> extractVerbatimFields(SearchHit hit) {
+  private static Map<Term, String> extractVerbatimFields(SearchHit hit, boolean excludeInterpreted) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
-    return verbatimCoreFields.entrySet().stream()
-            .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
+    verbatimCoreFields.entrySet().stream()
+      .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
+    if (excludeInterpreted) {
+      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()));
+    }
+    return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**

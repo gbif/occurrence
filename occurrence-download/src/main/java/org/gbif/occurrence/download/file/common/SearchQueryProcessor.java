@@ -4,9 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -72,7 +70,7 @@ public class SearchQueryProcessor {
   }
 
   private static void consume(SearchResponse searchResponse, Consumer<Occurrence> consumer) {
-    EsResponseParser.buildResponse(searchResponse, new PagingRequest(0, searchResponse.getHits().getHits().length))
+    EsResponseParser.buildDownloadResponse(searchResponse, new PagingRequest(0, searchResponse.getHits().getHits().length))
       .getResults().forEach(consumer);
   }
   /**
