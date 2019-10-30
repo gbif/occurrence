@@ -4,7 +4,6 @@ import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 
@@ -12,7 +11,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -376,22 +374,22 @@ public class EsSearchRequestBuilder {
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
 
-    Range range;
     if (DATE_FIELDS.contains(esField)) {
-      range = IsoDateParsingUtils.parseDateRange(value);
+      Range<Date> dateRange = IsoDateParsingUtils.parseDateRange(value);
+      if (dateRange.hasLowerBound()) {
+        builder.gte(dateRange.lowerEndpoint());
+      }
+      if (dateRange.hasUpperBound()) {
+        builder.lte(dateRange.upperEndpoint());
+      }
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
-      UnaryOperator<String> wildcardToNull = s -> s.equals(RANGE_WILDCARD) ? null : s;
-      range =
-          SearchTypeValidator.buildRange(
-              wildcardToNull.apply(values[0]), wildcardToNull.apply(values[1]));
-    }
-
-    if (range.hasLowerBound()) {
-      builder.gte(range.lowerEndpoint());
-    }
-    if (range.hasUpperBound()) {
-      builder.lte(range.upperEndpoint());
+      if (!RANGE_WILDCARD.equals(values[0])) {
+        builder.gte(values[0]);
+      }
+      if (!RANGE_WILDCARD.equals(values[1])) {
+        builder.lte(values[1]);
+      }
     }
 
     return builder;
