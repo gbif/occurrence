@@ -3,6 +3,7 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Range;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
@@ -370,14 +372,24 @@ public class EsSearchRequestBuilder {
   }
 
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
-    String[] values = value.split(RANGE_SEPARATOR);
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
 
-    if (!RANGE_WILDCARD.equals(values[0])) {
-      builder.gte(values[0]);
-    }
-    if (!RANGE_WILDCARD.equals(values[1])) {
-      builder.lte(values[1]);
+    if (DATE_FIELDS.contains(esField)) {
+      Range<Date> dateRange = IsoDateParsingUtils.parseDateRange(value);
+      if (dateRange.hasLowerBound()) {
+        builder.gte(dateRange.lowerEndpoint());
+      }
+      if (dateRange.hasUpperBound()) {
+        builder.lte(dateRange.upperEndpoint());
+      }
+    } else {
+      String[] values = value.split(RANGE_SEPARATOR);
+      if (!RANGE_WILDCARD.equals(values[0])) {
+        builder.gte(values[0]);
+      }
+      if (!RANGE_WILDCARD.equals(values[1])) {
+        builder.lte(values[1]);
+      }
     }
 
     return builder;

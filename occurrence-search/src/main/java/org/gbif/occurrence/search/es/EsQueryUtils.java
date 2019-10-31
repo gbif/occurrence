@@ -5,22 +5,15 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
@@ -105,8 +98,6 @@ public class EsQueryUtils {
         } else {
           return null;
         }
-
-
       };
 
   // functions
@@ -189,6 +180,15 @@ public class EsQueryUtils {
           .put(OccurrenceEsField.MONTH, 12)
           .build();
 
+  static final List<OccurrenceEsField> DATE_FIELDS =
+    ImmutableList.of(
+      OccurrenceEsField.EVENT_DATE,
+      OccurrenceEsField.DATE_IDENTIFIED,
+      OccurrenceEsField.MODIFIED,
+      OccurrenceEsField.LAST_INTERPRETED,
+      OccurrenceEsField.LAST_CRAWLED,
+      OccurrenceEsField.LAST_PARSED);
+
   static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
       new HashMap<>(SEARCH_TO_ES_MAPPING.size());
 
@@ -210,5 +210,4 @@ public class EsQueryUtils {
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
-
 }
