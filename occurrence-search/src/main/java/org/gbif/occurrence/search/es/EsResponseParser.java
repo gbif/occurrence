@@ -23,7 +23,6 @@ import org.gbif.occurrence.common.TermUtils;
 import java.net.URI;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -31,6 +30,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.Maps;
+
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
@@ -294,10 +295,11 @@ public class EsResponseParser {
     String triplet = String.join(":", "urn:catalog", institutionCode, collectionCode, catalogNumber);
 
     String gbifId = Optional.ofNullable(occ.getKey()).map(x -> Long.toString(x)).orElse("");
+    String occId = occ.getVerbatimField(DwcTerm.occurrenceID);
 
-    getStringValue(hit, ID).filter(k -> !k.equals(gbifId) && !k.equals(triplet)).ifPresent(result -> {
-      occ.getVerbatimFields().put(DcTerm.identifier, result);
-    });
+    getStringValue(hit, ID)
+      .filter(k -> !k.equals(gbifId) && (!Strings.isNullOrEmpty(occId) || !k.equals(triplet)))
+      .ifPresent(result -> occ.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
 
