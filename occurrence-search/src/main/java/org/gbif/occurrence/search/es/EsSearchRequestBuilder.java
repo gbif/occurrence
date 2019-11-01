@@ -3,11 +3,11 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Range;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
@@ -375,12 +374,16 @@ public class EsSearchRequestBuilder {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
 
     if (DATE_FIELDS.contains(esField)) {
-      Range<Date> dateRange = IsoDateParsingUtils.parseDateRange(value);
-      if (dateRange.hasLowerBound()) {
-        builder.gte(dateRange.lowerEndpoint());
+      String[] values = value.split(RANGE_SEPARATOR);
+
+      LocalDateTime lowerBound = LOWER_BOUND_RANGE_PARSER.apply(values[0]);
+      if (lowerBound != null) {
+        builder.gte(lowerBound);
       }
-      if (dateRange.hasUpperBound()) {
-        builder.lte(dateRange.upperEndpoint());
+
+      LocalDateTime upperBound = UPPER_BOUND_RANGE_PARSER.apply(values[1]);
+      if (upperBound != null) {
+        builder.lte(upperBound);
       }
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
