@@ -510,10 +510,15 @@ public class EsResponseParser {
   }
 
   private static <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
-    return Optional.ofNullable(fields.get(fieldName))
-            .map(String::valueOf)
-            .filter(v -> !v.isEmpty())
-            .map(mapper);
+      return Optional.ofNullable(fields.get(fieldName)).map(String::valueOf).filter(v -> !v.isEmpty())
+        .map(v -> {
+          try {
+            return mapper.apply(v);
+          } catch (Exception ex) {
+            LOG.error("Error extracting for field {}, values {} ", fieldName, fields);
+            return null;
+          }
+        });
   }
 
   private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
@@ -543,4 +548,5 @@ public class EsResponseParser {
     }
     return term;
   }
+
 }
