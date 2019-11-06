@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 public class ContainsUDFTest {
 
   @Test
-  public void validity() {
+  public void evaluateTest() {
 
     // Simple rectangle (has Rectangle JTS structure)
     assertTrue(contains(" POLYGON ((30 10, 30 20, 15 20, 15 10, 30 10))", 15.0, 20.0));
@@ -22,9 +22,15 @@ public class ContainsUDFTest {
     assertTrue(contains(" POLYGON ((170 -80, 170 70, -160 70, -160 -80, 170 -80))", -10.0, -40.0));
     assertFalse(contains("POLYGON ((170 -80, 170 70, -160 70, -160 -80, 170 -80))", -175.0, -40.0));
 
-    // Enormous meridian-centric polygon — requires extra points because DatelineRule.ccwRect (NB *rect*) only
-    assertTrue(contains(" POLYGON ((170 -80, 170 70, -160 65, -160 -80, 170 -80))", -10.0, -10.0));
-    assertFalse(contains("POLYGON ((170 -80, 170 70, -160 65, -160 -80, 170 -80))", -175.0, -40.0));
+    // Enormous meridian-centric polygon — requires extra points because DatelineRule.ccwRect only
+    // The Spatial4J developer writes “Spatial4j does it this way because it seemed a real-world polygon wouldn't have
+    // longitudinal points ≥ 180 degrees apart” https://github.com/locationtech/spatial4j/issues/46
+    // We occasionally get these polygons (e.g. drawn around the Pacific Ocean), and the client needs to interpolote
+    // them.
+    //assertTrue(contains(" POLYGON ((170 -80, 170 70, -160 65, -160 -80, 170 -80))", -10.0, -10.0));
+    //assertFalse(contains("POLYGON ((170 -80, 170 70, -160 65, -160 -80, 170 -80))", -175.0, -40.0));
+    assertTrue(contains(" POLYGON ((170 -80, 170 70, 5 67.5, -160 65, -160 -80, 5 -80, 170 -80))", -10.0, -10.0));
+    assertFalse(contains("POLYGON ((170 -80, 170 70, 5 67.5, -160 65, -160 -80, 5 -80, 170 -80))", -175.0, -40.0));
 
     assertTrue(contains("POLYGON((-153.28125 -68.2954,178.59375 -68.2954,178.59375 65.77395,-153.28125 65.77395,-153.28125 -68.2954))", 0.0, 0.0));
 
@@ -58,8 +64,10 @@ public class ContainsUDFTest {
 
     // Enormous antimeridian-centric polygon — requires extra points because DatelineRule.ccwRect (NB *rect*) only
     // applies to rectangles.
-    assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 100 80, 30 70, 30 -80, 100 -60, -140 -80, -20 -80))", 0.0, 180.0));
-    assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 100 80, 30 70, 30 -80, 100 -60, -140 -80, -20 -80))", 0.0, -180.0));
+    //assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 100 80, 30 70, 30 -80, 100 -60, -140 -80, -20 -80))", 0.0, 180.0));
+    //assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 100 80, 30 70, 30 -80, 100 -60, -140 -80, -20 -80))", 0.0, -180.0));
+    assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 160 70, 100 80, 30 70, 30 -80, 100 -60, 160 -70, -140 -80, -20 -80))", 0.0, 170.0));
+    assertTrue(contains(" POLYGON ((-20 -80, -20 75, -140 60, 160 70, 100 80, 30 70, 30 -80, 100 -60, 160 -70, -140 -80, -20 -80))", 0.0, -170.0));
 
     // Rectangle around the Pacific (original motivation for these tests, https://github.com/gbif/portal-feedback/issues/2272)
     assertTrue(contains(" POLYGON ((-78.13477 -50.88867, -78.13477 49.13086, 105.0293 49.13086, 105.0293 -50.88867, -78.13477 -50.88867))", 10.0, 170.0));
