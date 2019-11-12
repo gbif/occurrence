@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
@@ -37,6 +38,8 @@ public class OccurrenceMapReader {
       .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
       .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus)
       .put(Rank.SPECIES, GbifTerm.species).build();
+
+  private static final ImmutableSet<Term> INTERPRETED_SOURCE_TERMS = ImmutableSet.copyOf(TermUtils.interpretedSourceTerms());
 
 
   public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence) {
@@ -117,7 +120,7 @@ public class OccurrenceMapReader {
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
 
     occurrence.getVerbatimFields().forEach( (term, value) -> {
-      if (!TermUtils.isOccurrenceJavaProperty(term) && Objects.isNull(interpretedOccurrence.get(term.simpleName()))) {
+      if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
        interpretedOccurrence.put(term.simpleName(), value);
       }
     });
