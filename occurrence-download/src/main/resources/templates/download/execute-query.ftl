@@ -74,7 +74,7 @@ SET mapred.reduce.tasks=5;
 -- Disabling hive auto join https://issues.apache.org/jira/browse/HIVE-2601.
 SET hive.auto.convert.join=false;
 CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT m.*
+AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
 FROM occurrence_pipeline_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 SET hive.auto.convert.join=true;

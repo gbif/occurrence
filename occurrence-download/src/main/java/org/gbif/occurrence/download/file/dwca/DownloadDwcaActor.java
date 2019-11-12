@@ -61,19 +61,20 @@ public class DownloadDwcaActor extends UntypedActor {
     Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] MULTIMEDIA_COLUMNS =
     Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), Term::simpleName).toArray(new String[0]);
-  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {new NotNull(), // coreid
+  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {
+    new NotNull(), // coreid
     new MediaTypeProcessor(), // type
     new CleanStringProcessor(), // format
     new URIProcessor(), // identifier
     new URIProcessor(), // references
     new CleanStringProcessor(), // title
     new CleanStringProcessor(), // description
+    new CleanStringProcessor(), // source
+    new CleanStringProcessor(), // audience
     new DateProcessor(), // created
     new CleanStringProcessor(), // creator
     new CleanStringProcessor(), // contributor
     new CleanStringProcessor(), // publisher
-    new CleanStringProcessor(), // audience
-    new CleanStringProcessor(), // source
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
   };
