@@ -10,8 +10,6 @@ MAP_RED_OPTS=$8
 SOLR_HTTP_URL=$9
 IS_SINGLE_SHARD=${10}
 
-sudo -u hdfs
-
 source $SOLR_HOME/server/scripts/map-reduce/set-map-reduce-classpath.sh
 export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTSP $HADOOP_CLIENT_OPTS"
 export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$SOLR_HOME/server/solr-webapp/webapp/WEB-INF/lib/jts-1.13.jar
@@ -28,10 +26,14 @@ hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP
 
 else
 
+echo "Deleting old collection" curl """$SOLR_HTTP_URL"/admin/collections?action=DELETE\&name="$SOLR_COLLECTION"""
 curl """$SOLR_HTTP_URL"/admin/collections?action=DELETE\&name="$SOLR_COLLECTION"""
+echo "Uploading configuration for new collection" $SOLR_HOME/server/scripts/cloud-scripts/zkcli.sh  -zkhost $ZK_HOST -cmd upconfig -confname $SOLR_COLLECTION -confdir solr/collection1/conf/
 $SOLR_HOME/server/scripts/cloud-scripts/zkcli.sh  -zkhost $ZK_HOST -cmd upconfig -confname $SOLR_COLLECTION -confdir solr/collection1/conf/
+echo "Creating new collection" curl """$SOLR_HTTP_URL"/admin/collections?action=CREATE\&name="$SOLR_COLLECTION"\&"$SOLR_COLLECTION_OPTS"\&collection.configName="$SOLR_COLLECTION"""
 curl """$SOLR_HTTP_URL"/admin/collections?action=CREATE\&name="$SOLR_COLLECTION"\&"$SOLR_COLLECTION_OPTS"\&collection.configName="$SOLR_COLLECTION"""
-hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/dist/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
+
+hadoop --config /etc/hadoop/conf/ jar $SOLR_HOME/solr-map-reduce-*.jar $MAP_RED_OPTS -D mapreduce.job.user.classpath.first=true \
 -libjars $HADOOP_LIBJAR --morphline-file avro_solr_occurrence_morphline.conf \
 --zk-host $ZK_HOST --output-dir $OUT_HDFS_DIR \
 --collection $SOLR_COLLECTION --log4j log4j.properties \
