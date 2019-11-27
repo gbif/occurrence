@@ -18,6 +18,11 @@ import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
 import org.gbif.occurrence.search.es.EsQueryUtils;
@@ -82,17 +87,58 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(DisjunctionPredicate predicate, BoolQueryBuilder queryBuilder) throws QueryBuildingException {
+    Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn = groupEquals(predicate);
 
     predicate.getPredicates().forEach(subPredicate -> {
       try {
-        BoolQueryBuilder shouldQueryBuilder = QueryBuilders.boolQuery();
-        visit(subPredicate, shouldQueryBuilder);
-        queryBuilder.should(shouldQueryBuilder);
+        if (!isReplaceableByInPredicate(subPredicate, equalsPredicatesReplaceableByIn)) {
+          BoolQueryBuilder shouldQueryBuilder = QueryBuilders.boolQuery();
+          visit(subPredicate, shouldQueryBuilder);
+          queryBuilder.should(shouldQueryBuilder);
+        }
       } catch (QueryBuildingException ex) {
         throw new RuntimeException(ex);
       }
     });
+    if (!equalsPredicatesReplaceableByIn.isEmpty()) {
+      toInPredicates(equalsPredicatesReplaceableByIn).forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getElasticField(ep.getKey()), ep.getValues())));
+    }
   }
+
+  /**
+   * Checks if a predicate has in grouped and can be replaced later by a InPredicate.
+   */
+  private boolean isReplaceableByInPredicate(Predicate predicate, Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn) {
+    if (!equalsPredicatesReplaceableByIn.isEmpty() && predicate instanceof EqualsPredicate) {
+      EqualsPredicate equalsPredicate = (EqualsPredicate)predicate;
+      return equalsPredicatesReplaceableByIn.containsKey(equalsPredicate.getKey()) && equalsPredicatesReplaceableByIn.get(equalsPredicate.getKey()).contains(equalsPredicate);
+    }
+    return false;
+  }
+
+  /**
+   * Groups all equals predicates by search parameter.
+   */
+  private static Map<OccurrenceSearchParameter, List<EqualsPredicate>> groupEquals(DisjunctionPredicate predicate) {
+    return predicate.getPredicates().stream()
+            .filter(p -> p instanceof EqualsPredicate)
+            .map(p -> (EqualsPredicate)p)
+            .collect(Collectors.groupingBy(EqualsPredicate::getKey))
+            .entrySet().stream()
+            .filter( e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * Transforms the grouped EqualsPredicates into InPredicates.
+   */
+  private List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
+    return equalPredicates.entrySet()
+            .stream()
+            .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet())))
+            .collect(Collectors.toList());
+  }
+
+
 
   /**
    * handles EqualPredicate
@@ -205,7 +251,7 @@ public class EsQueryVisitor {
     try {
       method.invoke(this, object, queryBuilder);
     } catch (IllegalAccessException e) {
-      LOG.error("This error shouldn't occurr if all visit methods are public. Probably a programming error", e);
+      LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
       Throwables.propagate(e);
     } catch (InvocationTargetException e) {
       LOG.info("Exception thrown while building the query", e);
