@@ -249,35 +249,13 @@ public class EsQueryVisitorTest {
   public void testDisjunctionPredicate() throws QueryBuildingException {
     Predicate p1 = new EqualsPredicate(PARAM, "value_1");
     Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p3 = new EqualsPredicate(PARAM, "value_3");
 
-    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
       "    \"should\" : [\n" +
-      "      {\n" +
-      "        \"bool\" : {\n" +
-      "          \"filter\" : [\n" +
-      "            {\n" +
-      "              \"match\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
-      "                  \"query\" : \"value_1\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
-      "                  \"boost\" : 1.0\n" +
-      "                }\n" +
-      "              }\n" +
-      "            }\n" +
-      "          ],\n" +
-      "          \"adjust_pure_negative\" : true,\n" +
-      "          \"boost\" : 1.0\n" +
-      "        }\n" +
-      "      },\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
@@ -298,6 +276,15 @@ public class EsQueryVisitorTest {
       "            }\n" +
       "          ],\n" +
       "          \"adjust_pure_negative\" : true,\n" +
+      "          \"boost\" : 1.0\n" +
+      "        }\n" +
+      "      },\n" +
+      "      {\n" +
+      "        \"terms\" : {\n" +
+      "          \"catalogNumber\" : [\n" +
+      "            \"value_3\",\n" +
+      "            \"value_1\"\n" +
+      "          ],\n" +
       "          \"boost\" : 1.0\n" +
       "        }\n" +
       "      }\n" +
