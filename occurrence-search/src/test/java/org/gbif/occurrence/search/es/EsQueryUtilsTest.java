@@ -23,6 +23,8 @@ public class EsQueryUtilsTest {
     EsQueryUtils.STRING_TO_DATE.apply("2019-04-15T17:17:48.191");
 
     EsQueryUtils.STRING_TO_DATE.apply("2019-04-15T17:17:48.023+02:00");
+
+    EsQueryUtils.STRING_TO_DATE.apply("2019-11-12T13:24:56.963591");
   }
 
   @Test
