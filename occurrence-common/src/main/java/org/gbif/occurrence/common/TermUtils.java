@@ -221,12 +221,12 @@ public class TermUtils {
                                                                         DcTerm.references,
                                                                         DcTerm.title,
                                                                         DcTerm.description,
+                                                                        DcTerm.source,
+                                                                        DcTerm.audience,
                                                                         DcTerm.created,
                                                                         DcTerm.creator,
                                                                         DcTerm.contributor,
                                                                         DcTerm.publisher,
-                                                                        DcTerm.audience,
-                                                                        DcTerm.source,
                                                                         DcTerm.license,
                                                                         DcTerm.rightsHolder);
 
