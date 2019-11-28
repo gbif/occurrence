@@ -22,9 +22,9 @@ public class EsConfig {
 
   // defaults
   private static final int CONNECT_TIMEOUT_DEFAULT = 6000;
-  private static final int SOCKET_TIMEOUT_DEFAULT = 90000;
-  private static final int SNIFF_INTERVAL_DEFAULT = 300000;
-  private static final int SNIFF_AFTER_FAILURE_DELAY_DEFAULT = 30000;
+  private static final int SOCKET_TIMEOUT_DEFAULT = 100000;
+  private static final int SNIFF_INTERVAL_DEFAULT = 600000;
+  private static final int SNIFF_AFTER_FAILURE_DELAY_DEFAULT = 60000;
 
   private final String[] hosts;
   private final String index;
