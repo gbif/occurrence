@@ -12,6 +12,7 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -99,7 +100,8 @@ public class EsDatasetDeleterService extends AbstractIdleService {
                     requestConfigBuilder
                         .setConnectTimeout(config.esConnectTimeout)
                         .setSocketTimeout(config.esSocketTimeout))
-            .setMaxRetryTimeoutMillis(config.esSocketTimeout);
+            .setMaxRetryTimeoutMillis(config.esSocketTimeout)
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
     return new RestHighLevelClient(builder);
   }

@@ -1,11 +1,5 @@
 package org.gbif.occurrence.search.guice;
 
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.es.EsConfig;
@@ -15,6 +9,14 @@ import org.gbif.service.guice.PrivateServiceModule;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
+
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 
 /** Occurrence search guice module. */
 public class OccurrenceSearchModule extends PrivateServiceModule {
@@ -58,7 +60,8 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
                     requestConfigBuilder
                         .setConnectTimeout(esConfig.getConnectTimeout())
                         .setSocketTimeout(esConfig.getSocketTimeout()))
-            .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout());
+            .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
     return new RestHighLevelClient(builder);
   }

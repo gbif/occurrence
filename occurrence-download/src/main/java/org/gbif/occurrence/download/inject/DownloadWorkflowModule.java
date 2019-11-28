@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.inject;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -181,7 +182,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
         .setRequestConfigCallback(
           requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
             .setSocketTimeout(esConfig.getSocketTimeout()))
-        .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout());
+        .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
+        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
     return new RestHighLevelClient(builder);
   }
