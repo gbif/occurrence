@@ -1,11 +1,14 @@
 package org.gbif.occurrence.search.es;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.function.BiFunction;
+import javax.annotation.Nullable;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 
 public class EsConfig {
 
@@ -16,6 +19,12 @@ public class EsConfig {
   private static final String SNIFF_INTERVAL_PROP = "sniff_interval";
   private static final String SNIFF_AFTER_FAILURE_DELAY_PROP = "sniff_after_failure_delay";
   private static final Splitter SPLITTER = Splitter.on(",");
+
+  // defaults
+  private static final int CONNECT_TIMEOUT_DEFAULT = 6000;
+  private static final int SOCKET_TIMEOUT_DEFAULT = 90000;
+  private static final int SNIFF_INTERVAL_DEFAULT = 300000;
+  private static final int SNIFF_AFTER_FAILURE_DELAY_DEFAULT = 30000;
 
   private final String[] hosts;
   private final String index;
@@ -52,10 +61,18 @@ public class EsConfig {
             SPLITTER.omitEmptyStrings().split(props.getProperty(HOSTS_PROP)), String.class);
 
     String index =  props.getProperty(INDEX_PROP);
-    int connectTimeout = Integer.parseInt(props.getProperty(CONNECT_TIMEOUT_PROP));
-    int socketTimeout = Integer.parseInt(props.getProperty(SOCKET_TIMEOUT_PROP));
-    int sniffInterval = Integer.parseInt(props.getProperty(SNIFF_INTERVAL_PROP));
-    int sniffAfterFailureDelay = Integer.parseInt(props.getProperty(SNIFF_AFTER_FAILURE_DELAY_PROP));
+
+    BiFunction<String, Integer, Integer> getOrDefault =
+        (prop, defaultValue) ->
+            Optional.ofNullable(props.getProperty(prop))
+                .filter(v -> !v.isEmpty())
+                .map(Integer::parseInt)
+                .orElse(defaultValue);
+
+    int connectTimeout = getOrDefault.apply(CONNECT_TIMEOUT_PROP, CONNECT_TIMEOUT_DEFAULT);
+    int socketTimeout = getOrDefault.apply(SOCKET_TIMEOUT_PROP, SOCKET_TIMEOUT_DEFAULT);
+    int sniffInterval = getOrDefault.apply(SNIFF_INTERVAL_PROP, SNIFF_INTERVAL_DEFAULT);
+    int sniffAfterFailureDelay = getOrDefault.apply(SNIFF_AFTER_FAILURE_DELAY_PROP, SNIFF_AFTER_FAILURE_DELAY_DEFAULT);
 
     return new EsConfig(hosts, index, connectTimeout, socketTimeout, sniffInterval, sniffAfterFailureDelay);
   }
