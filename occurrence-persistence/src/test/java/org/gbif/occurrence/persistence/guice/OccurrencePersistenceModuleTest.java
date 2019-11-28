@@ -10,11 +10,13 @@ import java.net.URISyntaxException;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@Ignore("Not needed for pipelines")
 public class OccurrencePersistenceModuleTest {
 
   // ensure that the guice module is currrent - if you change this, change the README to match!

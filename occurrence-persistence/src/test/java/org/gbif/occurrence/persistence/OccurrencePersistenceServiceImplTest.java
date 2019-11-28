@@ -61,6 +61,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+@Ignore("Not needed for pipelines")
 public class OccurrencePersistenceServiceImplTest {
 
   private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
