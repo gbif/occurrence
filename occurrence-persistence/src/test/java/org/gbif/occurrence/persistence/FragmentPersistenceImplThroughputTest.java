@@ -24,10 +24,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.junit.Ignore;
 
 /**
  * Note not a real JUnit test, but an extremely expensive performance test that should use the real cluster.
  */
+@Ignore("Not needed for pipelines")
 public class FragmentPersistenceImplThroughputTest {
 
   private static final OccHBaseConfiguration CFG = new OccHBaseConfiguration();
