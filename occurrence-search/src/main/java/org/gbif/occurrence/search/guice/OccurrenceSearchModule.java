@@ -6,6 +6,7 @@ import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
 import org.gbif.service.guice.PrivateServiceModule;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
@@ -17,6 +18,8 @@ import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.sniff.SniffOnFailureListener;
+import org.elasticsearch.client.sniff.Sniffer;
 
 /** Occurrence search guice module. */
 public class OccurrenceSearchModule extends PrivateServiceModule {
@@ -53,6 +56,9 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
       }
     }
 
+    SniffOnFailureListener sniffOnFailureListener =
+      new SniffOnFailureListener();
+
     RestClientBuilder builder =
         RestClient.builder(hosts)
             .setRequestConfigCallback(
@@ -61,8 +67,30 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
                         .setConnectTimeout(esConfig.getConnectTimeout())
                         .setSocketTimeout(esConfig.getSocketTimeout()))
             .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
-            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
+            .setFailureListener(sniffOnFailureListener);
 
-    return new RestHighLevelClient(builder);
+    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+
+    Sniffer sniffer =
+        Sniffer.builder(highLevelClient.getLowLevelClient())
+            .setSniffIntervalMillis(esConfig.getSniffInterval())
+            .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
+            .build();
+    sniffOnFailureListener.setSniffer(sniffer);
+
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  sniffer.close();
+                  try {
+                    highLevelClient.close();
+                  } catch (IOException e) {
+                    throw new IllegalStateException("Couldn't close ES client", e);
+                  }
+                }));
+
+    return highLevelClient;
   }
 }

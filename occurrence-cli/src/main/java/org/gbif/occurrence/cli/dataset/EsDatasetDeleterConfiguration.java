@@ -43,6 +43,12 @@ public class EsDatasetDeleterConfiguration {
   @Parameter(names = "--es-socket-timeout")
   public int esSocketTimeout = 125000;
 
+  @Parameter(names = "--es-sniff-interval")
+  public int esSniffInterval = 300000;
+
+  @Parameter(names = "--es-sniff-after-failure-delay")
+  public int esSniffAfterFailureDelay = 30000;
+
   @Parameter(names = "--hdfs-site-config")
   @NotNull
   public String hdfsSiteConfig;
@@ -67,6 +73,8 @@ public class EsDatasetDeleterConfiguration {
         .add("esIndex=" + Arrays.toString(esIndex))
         .add("esConnectTimeout=" + esConnectTimeout)
         .add("esSocketTimeout=" + esSocketTimeout)
+        .add("esSniffInterval=" + esSniffInterval)
+        .add("esSniffAfterFailureDelay=" + esSniffAfterFailureDelay)
         .add("coreSiteConfig=" + coreSiteConfig)
         .add("hdfsSiteConfig=" + hdfsSiteConfig)
         .toString();
