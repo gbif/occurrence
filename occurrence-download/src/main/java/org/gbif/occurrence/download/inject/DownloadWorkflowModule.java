@@ -25,6 +25,7 @@ import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
@@ -41,6 +42,8 @@ import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.elasticsearch.client.sniff.SniffOnFailureListener;
+import org.elasticsearch.client.sniff.Sniffer;
 
 /**
  * Private guice module that provides bindings the required Modules and dependencies.
@@ -177,15 +180,40 @@ public final class DownloadWorkflowModule extends AbstractModule {
       }
     }
 
+    SniffOnFailureListener sniffOnFailureListener =
+      new SniffOnFailureListener();
+
     RestClientBuilder builder =
       RestClient.builder(hosts)
         .setRequestConfigCallback(
           requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
             .setSocketTimeout(esConfig.getSocketTimeout()))
         .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
-        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
+        .setFailureListener(sniffOnFailureListener);
 
-    return new RestHighLevelClient(builder);
+    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+
+    Sniffer sniffer =
+      Sniffer.builder(highLevelClient.getLowLevelClient())
+        .setSniffIntervalMillis(esConfig.getSniffInterval())
+        .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
+        .build();
+    sniffOnFailureListener.setSniffer(sniffer);
+
+    Runtime.getRuntime()
+      .addShutdownHook(
+        new Thread(
+          () -> {
+            sniffer.close();
+            try {
+              highLevelClient.close();
+            } catch (IOException e) {
+              throw new IllegalStateException("Couldn't close ES client", e);
+            }
+          }));
+
+    return highLevelClient;
   }
 
   /**

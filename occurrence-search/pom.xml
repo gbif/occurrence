@@ -132,6 +132,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.locationtech.spatial4j</groupId>
       <artifactId>spatial4j</artifactId>
       <version>${spatial4j.version}</version>

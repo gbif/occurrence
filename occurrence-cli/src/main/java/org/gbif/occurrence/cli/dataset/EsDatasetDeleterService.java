@@ -16,6 +16,8 @@ import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.sniff.SniffOnFailureListener;
+import org.elasticsearch.client.sniff.Sniffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ public class EsDatasetDeleterService extends AbstractIdleService {
   private final EsDatasetDeleterConfiguration config;
   private MessageListener listener;
   private RestHighLevelClient esClient;
+  private Sniffer esSniffer;
   private FileSystem fs;
 
   public EsDatasetDeleterService(EsDatasetDeleterConfiguration config) {
@@ -41,6 +44,7 @@ public class EsDatasetDeleterService extends AbstractIdleService {
     LOG.info("Starting pipelines-dataset-deleter service with params: {}", config);
     listener = new MessageListener(config.messaging.getConnectionParameters());
     esClient = createEsClient();
+
     fs = createFs();
 
     config.ganglia.start();
@@ -55,6 +59,9 @@ public class EsDatasetDeleterService extends AbstractIdleService {
   protected void shutDown() throws Exception {
     if (listener != null) {
       listener.close();
+    }
+    if (esSniffer != null) {
+      esSniffer.close();
     }
     if (esClient != null) {
       esClient.close();
@@ -93,6 +100,9 @@ public class EsDatasetDeleterService extends AbstractIdleService {
       }
     }
 
+    SniffOnFailureListener sniffOnFailureListener =
+      new SniffOnFailureListener();
+
     RestClientBuilder builder =
         RestClient.builder(hosts)
             .setRequestConfigCallback(
@@ -101,8 +111,18 @@ public class EsDatasetDeleterService extends AbstractIdleService {
                         .setConnectTimeout(config.esConnectTimeout)
                         .setSocketTimeout(config.esSocketTimeout))
             .setMaxRetryTimeoutMillis(config.esSocketTimeout)
-            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
+            .setFailureListener(sniffOnFailureListener);
 
-    return new RestHighLevelClient(builder);
+    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+
+    esSniffer =
+      Sniffer.builder(highLevelClient.getLowLevelClient())
+        .setSniffIntervalMillis(config.esSniffInterval)
+        .setSniffAfterFailureDelayMillis(config.esSniffAfterFailureDelay)
+        .build();
+    sniffOnFailureListener.setSniffer(esSniffer);
+
+    return highLevelClient;
   }
 }
