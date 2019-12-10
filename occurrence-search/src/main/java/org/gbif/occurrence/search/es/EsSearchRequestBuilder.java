@@ -455,25 +455,20 @@ public class EsSearchRequestBuilder {
     }
   }
 
-  /**
-   * Eliminates duplicates but discarding the first and the last coordinates. The order must be
-   * preserved
-   */
-  private static Coordinate[] normalizePolygonCoordinates(Coordinate[] coordinates) {
+  /** Eliminates consecutive duplicates. The order is preserved. */
+  @VisibleForTesting
+  static Coordinate[] normalizePolygonCoordinates(Coordinate[] coordinates) {
     List<Coordinate> normalizedCoordinates = new ArrayList<>();
-    normalizedCoordinates.add(0, coordinates[0]);
 
-    int i = 1;
-    Set<Coordinate> uniqueIntermediateCoords = new HashSet<>();
-    for (int j = 1; j < coordinates.length - 1; j++) {
-      Coordinate jCoord = coordinates[j];
-      if (!uniqueIntermediateCoords.contains(jCoord)) {
-        uniqueIntermediateCoords.add(jCoord);
-        normalizedCoordinates.add(i++, jCoord);
+    // we always have to keep the fist and last coordinates
+    int i = 0;
+    normalizedCoordinates.add(i++, coordinates[0]);
+
+    for (int j = 1; j < coordinates.length; j++) {
+      if (!coordinates[j - 1].equals(coordinates[j])) {
+        normalizedCoordinates.add(i++, coordinates[j]);
       }
     }
-
-    normalizedCoordinates.add(i, coordinates[coordinates.length - 1]);
 
     return normalizedCoordinates.toArray(new Coordinate[0]);
   }
