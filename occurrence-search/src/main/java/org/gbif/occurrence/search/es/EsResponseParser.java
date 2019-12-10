@@ -513,7 +513,7 @@ public class EsResponseParser {
           try {
             return mapper.apply(v);
           } catch (Exception ex) {
-            LOG.error("Error extracting for field {}, values {} ", fieldName, fields);
+            LOG.error("Error extracting field {} with value {}", fieldName, v);
             return null;
           }
         });
