@@ -12,6 +12,8 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
+import org.gbif.occurrence.download.service.PredicateOptimizer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
@@ -39,7 +41,7 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(((PredicateDownloadRequest)request).getPredicate());
+    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(PredicateOptimizer.optimize(((PredicateDownloadRequest)request).getPredicate()));
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
