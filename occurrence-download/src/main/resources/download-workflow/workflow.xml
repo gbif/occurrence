@@ -14,8 +14,8 @@
         <value>download-admin</value>
       </property>
       <property>
-        <name>mapred.job.queue.name</name>
-        <value>download-admin</value>
+        <name>oozie.launcher.mapreduce.map.memory.mb</name>
+        <value>${oozie.launcher.mapreduce.map.memory.mb}</value>
       </property>
     </configuration>
   </global>

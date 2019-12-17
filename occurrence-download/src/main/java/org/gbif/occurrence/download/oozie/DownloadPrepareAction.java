@@ -195,7 +195,9 @@ public class DownloadPrepareAction {
         searchSourceBuilder.query(QueryBuilders.wrapperQuery(esQuery));
       }
       SearchResponse response = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
-      return response.getHits().getTotalHits();
+      long count = response.getHits().getTotalHits();
+      LOG.info("Download record count {}", count);
+      return count;
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
       return ERROR_COUNT;

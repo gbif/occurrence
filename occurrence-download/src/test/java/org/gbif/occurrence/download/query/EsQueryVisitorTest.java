@@ -171,7 +171,7 @@ public class EsQueryVisitorTest {
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
-      "    \"must\" : [\n" +
+      "    \"filter\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
@@ -330,7 +330,7 @@ public class EsQueryVisitorTest {
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
-      "    \"must\" : [\n" +
+      "    \"filter\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
@@ -455,7 +455,7 @@ public class EsQueryVisitorTest {
       "    \"must_not\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
-      "          \"must\" : [\n" +
+      "          \"filter\" : [\n" +
       "            {\n" +
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
@@ -547,7 +547,7 @@ public class EsQueryVisitorTest {
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
-      "    \"must\" : [\n" +
+      "    \"filter\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
@@ -687,7 +687,7 @@ public class EsQueryVisitorTest {
       "            },\n" +
       "            {\n" +
       "              \"bool\" : {\n" +
-      "                \"must\" : [\n" +
+      "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"bool\" : {\n" +
       "                      \"filter\" : [\n" +
@@ -781,7 +781,7 @@ public class EsQueryVisitorTest {
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
-      "    \"must\" : [\n" +
+      "    \"filter\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"should\" : [\n" +
@@ -841,7 +841,7 @@ public class EsQueryVisitorTest {
       "          \"must_not\" : [\n" +
       "            {\n" +
       "              \"bool\" : {\n" +
-      "                \"must\" : [\n" +
+      "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"bool\" : {\n" +
       "                      \"filter\" : [\n" +
@@ -915,7 +915,7 @@ public class EsQueryVisitorTest {
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
-      "    \"must\" : [\n" +
+      "    \"filter\" : [\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
       "          \"should\" : [\n" +
@@ -1017,7 +1017,7 @@ public class EsQueryVisitorTest {
       "      },\n" +
       "      {\n" +
       "        \"bool\" : {\n" +
-      "          \"must\" : [\n" +
+      "          \"filter\" : [\n" +
       "            {\n" +
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
