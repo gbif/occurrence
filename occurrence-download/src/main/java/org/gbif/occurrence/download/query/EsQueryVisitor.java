@@ -48,8 +48,8 @@ public class EsQueryVisitor {
     if (Enum.class.isAssignableFrom(parameter.type())
         && !Country.class.isAssignableFrom(parameter.type())) {
       return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
-        .transform(Enum::name)
-        .orNull();
+        .map(Enum::name)
+        .orElse(null);
     }
     if (Boolean.class.isAssignableFrom(parameter.type())) {
       return value.toLowerCase();

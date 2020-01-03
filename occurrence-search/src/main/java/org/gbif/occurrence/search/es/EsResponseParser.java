@@ -262,8 +262,8 @@ public class EsResponseParser {
             v ->
                 occ.setIssues(
                     v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
-                      .filter(com.google.common.base.Optional::isPresent)
-                      .map(com.google.common.base.Optional::get)
+                      .filter(Optional::isPresent)
+                      .map(Optional::get)
                       .collect(Collectors.toSet())));
 
     // multimedia extension
@@ -398,7 +398,7 @@ public class EsResponseParser {
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
         .ifPresent(occ::setPublishingOrgKey);
-    getValue(hit, LICENSE, v -> License.fromString(v).orNull()).ifPresent(occ::setLicense);
+    getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
     getListValue(hit, NETWORK_KEY)
@@ -442,11 +442,11 @@ public class EsResponseParser {
                                   .map(
                                       license ->
                                           License.fromString(license)
-                                              .transform(
+                                              .map(
                                                   l ->
                                                       Optional.ofNullable(l.getLicenseUrl())
                                                           .orElse(license))
-                                              .or(license))
+                                              .orElse(license))
                                   .ifPresent(mediaObject::setLicense);
                               extractStringValue(item, "publisher")
                                   .ifPresent(mediaObject::setPublisher);
