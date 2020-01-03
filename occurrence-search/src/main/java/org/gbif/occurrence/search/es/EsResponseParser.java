@@ -336,6 +336,12 @@ public class EsResponseParser {
               occRelation.setId(v);
               occ.setRelations(Collections.singletonList(occRelation));
             });
+
+    getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
+    getStringValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
+    getStringValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
+    getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
+    getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {

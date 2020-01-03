@@ -135,8 +135,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.COLLECTION_CODE, DwcTerm.collectionCode)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, DwcTerm.catalogNumber)
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, DwcTerm.scientificName)
-      .put(OccurrenceSearchParameter.OCCURRENCE_ID,
-           DwcTerm.occurrenceID).put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
+      .put(OccurrenceSearchParameter.OCCURRENCE_ID, DwcTerm.occurrenceID)
+      .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
       // the following need some value transformation
       .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, GbifTerm.lastInterpreted)
@@ -179,6 +179,11 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PROGRAMME, GbifInternalTerm.programmeAcronym)
       .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, GbifTerm.verbatimScientificName)
       .put(OccurrenceSearchParameter.TAXON_ID, DwcTerm.taxonID)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, DwcTerm.sampleSizeUnit)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, DwcTerm.sampleSizeValue)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, DwcTerm.organismQuantity)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, DwcTerm.organismQuantityType)
+      .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();

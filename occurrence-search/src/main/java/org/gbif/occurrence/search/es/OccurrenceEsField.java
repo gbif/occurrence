@@ -110,6 +110,11 @@ public enum OccurrenceEsField {
   INDIVIDUAL_COUNT("individualCount", DwcTerm.individualCount),
   RELATION("relation", DcTerm.relation),
   TYPIFIED_NAME("typifiedName", GbifTerm.typifiedName),
+  ORGANISM_QUANTITY("organismQuantity", DwcTerm.organismQuantity),
+  ORGANISM_QUANTITY_TYPE("organismQuantityType", DwcTerm.organismQuantityType),
+  SAMPLE_SIZE_UNIT("sampleSizeUnit", DwcTerm.sampleSizeUnit),
+  SAMPLE_SIZE_VALUE("sampleSizeValue", DwcTerm.sampleSizeValue),
+  RELATIVE_ORGANISM_QUANTITY("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity),
 
   //Crawling
   CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
