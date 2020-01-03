@@ -79,6 +79,12 @@ public class EsQueryUtils {
           return null;
         }
 
+        boolean firstYear = false;
+        if (dateAsString.startsWith("0000")) {
+          firstYear = true;
+          dateAsString = dateAsString.replaceFirst("0000", "1970");
+        }
+
         // parse string
         TemporalAccessor temporalAccessor = FORMATTER.parseBest(dateAsString,
                                                                 ZonedDateTime::from,
@@ -86,19 +92,27 @@ public class EsQueryUtils {
                                                                 LocalDate::from,
                                                                 YearMonth::from,
                                                                 Year::from);
+        Date dateParsed = null;
         if (temporalAccessor instanceof ZonedDateTime) {
-          return Date.from(((ZonedDateTime)temporalAccessor).toInstant());
+          dateParsed = Date.from(((ZonedDateTime)temporalAccessor).toInstant());
         } else if (temporalAccessor instanceof LocalDateTime) {
-          return Date.from(((LocalDateTime)temporalAccessor).toInstant(ZoneOffset.UTC));
+          dateParsed = Date.from(((LocalDateTime)temporalAccessor).toInstant(ZoneOffset.UTC));
         } else if (temporalAccessor instanceof LocalDate) {
-          return Date.from((((LocalDate)temporalAccessor).atStartOfDay()).toInstant(ZoneOffset.UTC));
+          dateParsed = Date.from((((LocalDate)temporalAccessor).atStartOfDay()).toInstant(ZoneOffset.UTC));
         } else if (temporalAccessor instanceof YearMonth) {
-          return Date.from((((YearMonth)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
+          dateParsed = Date.from((((YearMonth)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
         } else if (temporalAccessor instanceof Year) {
-          return Date.from((((Year)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
-        } else {
-          return null;
+          dateParsed = Date.from((((Year)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
         }
+
+        if (dateParsed != null && firstYear) {
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(dateParsed);
+          cal.set(Calendar.YEAR, 1);
+          return cal.getTime();
+        }
+
+        return dateParsed;
       };
 
   static final Function<String, LocalDateTime> LOWER_BOUND_RANGE_PARSER =

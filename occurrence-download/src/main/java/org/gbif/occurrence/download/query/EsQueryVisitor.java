@@ -18,13 +18,14 @@ import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
+
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.Country;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.slf4j.Logger;
@@ -41,6 +42,19 @@ public class EsQueryVisitor {
 
   private static String getElasticField(OccurrenceSearchParameter param) {
     return EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param).getFieldName();
+  }
+
+  private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
+    if (Enum.class.isAssignableFrom(parameter.type())
+        && !Country.class.isAssignableFrom(parameter.type())) {
+      return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
+        .transform(Enum::name)
+        .orNull();
+    }
+    if (Boolean.class.isAssignableFrom(parameter.type())) {
+      return value.toLowerCase();
+    }
+    return value;
   }
 
   /**
@@ -73,7 +87,7 @@ public class EsQueryVisitor {
       try {
         BoolQueryBuilder mustQueryBuilder = QueryBuilders.boolQuery();
         visit(subPredicate, mustQueryBuilder);
-        queryBuilder.must(mustQueryBuilder);
+        queryBuilder.filter(mustQueryBuilder);
       } catch (QueryBuildingException ex) {
         throw new RuntimeException(ex);
       }
@@ -101,7 +115,11 @@ public class EsQueryVisitor {
       }
     });
     if (!equalsPredicatesReplaceableByIn.isEmpty()) {
-      toInPredicates(equalsPredicatesReplaceableByIn).forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getElasticField(ep.getKey()), ep.getValues())));
+      toInPredicates(equalsPredicatesReplaceableByIn)
+        .forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getElasticField(ep.getKey()),
+                                                                          ep.getValues().stream()
+                                                                            .map(v -> parseParamValue(v, ep.getKey()))
+                                                                            .collect(Collectors.toList()))));
     }
   }
 
@@ -146,7 +164,8 @@ public class EsQueryVisitor {
    * @param predicate equalPredicate
    */
   public void visit(EqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.matchQuery(getElasticField(predicate.getKey()), predicate.getValue()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.matchQuery(getElasticField(parameter), parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -156,7 +175,8 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(GreaterThanOrEqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(predicate.getKey())).gte(predicate.getValue()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter)).gte(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -166,7 +186,8 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(GreaterThanPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(predicate.getKey())).gt(predicate.getValue()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter)).gt(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -176,7 +197,11 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(InPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.termsQuery(getElasticField(predicate.getKey()), predicate.getValues()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.termsQuery(getElasticField(parameter),
+                                                       predicate.getValues().stream()
+                                                         .map(v -> parseParamValue(v, parameter))
+                                                         .collect(Collectors.toList())));
   }
 
   /**
@@ -186,7 +211,9 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(LessThanOrEqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(predicate.getKey())).lte(predicate.getValue()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter))
+                                .lte(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -196,7 +223,9 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(LessThanPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(predicate.getKey())).lt(predicate.getValue()));
+    OccurrenceSearchParameter parameter = predicate.getKey();
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter))
+                                .lt(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
