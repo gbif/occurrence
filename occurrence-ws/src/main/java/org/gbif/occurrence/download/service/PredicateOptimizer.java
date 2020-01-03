@@ -130,6 +130,15 @@ public class PredicateOptimizer {
   }
 
   /**
+   * handles EqualsPredicate Predicate
+   *
+   * @param predicate EqualsPredicate predicate
+   */
+  public void visit(EqualsPredicate predicate) {
+    return;
+  }
+
+  /**
    * handles ISNOTNULL Predicate
    *
    * @param predicate ISNOTNULL predicate
