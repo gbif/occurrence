@@ -336,6 +336,8 @@ public class EsResponseParser {
               occRelation.setId(v);
               occ.setRelations(Collections.singletonList(occRelation));
             });
+    getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
+    getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
