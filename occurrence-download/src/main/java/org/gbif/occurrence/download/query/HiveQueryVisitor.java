@@ -179,6 +179,11 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PROGRAMME, GbifInternalTerm.programmeAcronym)
       .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, GbifTerm.verbatimScientificName)
       .put(OccurrenceSearchParameter.TAXON_ID, DwcTerm.taxonID)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, DwcTerm.organismQuantity)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, DwcTerm.organismQuantityType)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, DwcTerm.sampleSizeUnit)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, DwcTerm.sampleSizeValue)
+      .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
