@@ -94,7 +94,7 @@ public enum OccurrenceEsField {
   INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet),
   GENERIC_NAME("gbifClassification.usageParsedName.genericName", GbifTerm.genericName),
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
-  TAXON_ID("gbifClassification.taxonId", DwcTerm.taxonID),
+  TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
 
   //Sampling
