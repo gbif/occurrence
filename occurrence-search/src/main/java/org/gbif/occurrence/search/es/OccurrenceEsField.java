@@ -23,6 +23,8 @@ public enum OccurrenceEsField {
   NETWORK_KEY("networkKeys", GbifInternalTerm.networkKey),
   PROTOCOL("protocol", GbifTerm.protocol),
   LICENSE("license", DcTerm.license),
+  PROJECT_ID("projectId", GbifInternalTerm.projectId),
+  PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
 
   //Core identification
   INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode),
@@ -92,6 +94,8 @@ public enum OccurrenceEsField {
   INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet),
   GENERIC_NAME("gbifClassification.usageParsedName.genericName", GbifTerm.genericName),
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
+  TAXON_ID("gbifClassification.taxonId", DwcTerm.taxonID),
+  VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
 
   //Sampling
   EVENT_ID("eventId", DwcTerm.eventID),

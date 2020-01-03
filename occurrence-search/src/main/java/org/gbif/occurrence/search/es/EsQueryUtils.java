@@ -194,6 +194,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SUBGENUS_KEY, OccurrenceEsField.SUBGENUS_KEY)
           .put(OccurrenceSearchParameter.SPECIES_KEY, OccurrenceEsField.SPECIES_KEY)
           .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, OccurrenceEsField.SCIENTIFIC_NAME)
+          .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, OccurrenceEsField.VERBATIM_SCIENTIFIC_NAME)
+          .put(OccurrenceSearchParameter.TAXON_ID, OccurrenceEsField.TAXON_ID)
           .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceEsField.TYPE_STATUS)
           .put(OccurrenceSearchParameter.MEDIA_TYPE, OccurrenceEsField.MEDIA_TYPE)
           .put(OccurrenceSearchParameter.ISSUE, OccurrenceEsField.ISSUE)
@@ -215,6 +217,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceEsField.EVENT_ID)
           .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceEsField.PARENT_EVENT_ID)
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
+          .put(OccurrenceSearchParameter.PROJECT_ID, OccurrenceEsField.PROJECT_ID)
+          .put(OccurrenceSearchParameter.PROGRAMME, OccurrenceEsField.PROGRAMME)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
