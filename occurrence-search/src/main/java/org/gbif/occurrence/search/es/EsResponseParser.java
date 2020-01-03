@@ -336,6 +336,8 @@ public class EsResponseParser {
               occRelation.setId(v);
               occ.setRelations(Collections.singletonList(occRelation));
             });
+    getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
+    getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
 
     getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
     getStringValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
