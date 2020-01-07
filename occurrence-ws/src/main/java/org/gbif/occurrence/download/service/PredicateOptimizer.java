@@ -13,6 +13,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,8 +31,8 @@ public class PredicateOptimizer {
   }
 
   public static Predicate optimize(Predicate predicate) {
-    new PredicateOptimizer().visit(predicate);
-    return predicate;
+    Object v = new PredicateOptimizer().visit(predicate);
+    return v instanceof Predicate ? (Predicate) v : predicate;
   }
 
   /**
@@ -45,15 +46,18 @@ public class PredicateOptimizer {
   }
 
 
-  public void visit(DisjunctionPredicate predicate) {
+  public Predicate visit(DisjunctionPredicate predicate) {
     Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalsPredicates = groupEqualsPredicate(predicate);
     if (!equalsPredicates.isEmpty()) {
-      predicate.getPredicates().removeAll(predicate.getPredicates()
-                                            .stream()
-                                            .filter(p -> isReplaceableByInPredicate(p, equalsPredicates))
-                                            .collect(Collectors.toList()));
-      predicate.getPredicates().addAll(toInPredicates(equalsPredicates));
+      List<Predicate> predicates = new ArrayList<>(predicate.getPredicates());
+      List<Predicate> exclude = predicates.stream()
+        .filter(p -> isReplaceableByInPredicate(p, equalsPredicates))
+        .collect(Collectors.toList());
+      predicates.removeAll(exclude);
+      predicates.addAll(toInPredicates(equalsPredicates));
+      return new DisjunctionPredicate(predicates);
     }
+    return predicate;
   }
 
   /**
@@ -147,7 +151,7 @@ public class PredicateOptimizer {
     return;
   }
 
-  private void visit(Object object) {
+  private Object visit(Object object) {
     Method method;
     try {
       method = getClass().getMethod("visit", object.getClass());
@@ -156,7 +160,7 @@ public class PredicateOptimizer {
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
-      method.invoke(this, object);
+      return method.invoke(this, object);
     } catch (IllegalAccessException e) {
       LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
       Throwables.propagate(e);
@@ -164,5 +168,6 @@ public class PredicateOptimizer {
       LOG.info("Exception thrown while building the query", e);
       throw new RuntimeException(e);
     }
+    throw new RuntimeException("Exception thrown while building the query");
   }
 }
