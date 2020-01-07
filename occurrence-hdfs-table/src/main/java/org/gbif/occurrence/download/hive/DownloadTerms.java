@@ -32,9 +32,11 @@ public class DownloadTerms {
                                                                    // omitted entirely
                                                                    GbifInternalTerm.fragment,
                                                                    // omitted entirely
-                                                                   GbifTerm.numberOfOccurrences
+                                                                   GbifTerm.numberOfOccurrences,
                                                                    //this is for aggregation only
-  );
+                                                                   GbifTerm.verbatimScientificName
+                                                                   //Does not need to be included since it exists as verbatim
+                                                                   );
 
   //This set is used fot the HDFS table definition
   public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>().addAll(EXCLUSIONS_INTERPRETED).build();
