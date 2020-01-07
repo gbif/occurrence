@@ -189,9 +189,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ELEVATION, OccurrenceEsField.ELEVATION)
           .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceEsField.BASIS_OF_RECORD)
           .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceEsField.DATASET_KEY)
-          .put(
-              OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE,
-              OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
+          .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
           .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceEsField.HAS_COORDINATE)
           .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceEsField.EVENT_DATE)
           .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceEsField.LAST_INTERPRETED)
@@ -222,9 +220,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)
           .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceEsField.PROTOCOL)
           .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceEsField.ORGANISM_ID)
-          .put(
-              OccurrenceSearchParameter.PUBLISHING_ORG,
-              OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
+          .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
           .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceEsField.CRAWL_ID)
           .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceEsField.INSTALLATION_KEY)
           .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceEsField.NETWORK_KEY)
@@ -233,6 +229,11 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
           .put(OccurrenceSearchParameter.PROJECT_ID, OccurrenceEsField.PROJECT_ID)
           .put(OccurrenceSearchParameter.PROGRAMME, OccurrenceEsField.PROGRAMME)
+          .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, OccurrenceEsField.ORGANISM_QUANTITY)
+          .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, OccurrenceEsField.ORGANISM_QUANTITY_TYPE)
+          .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, OccurrenceEsField.SAMPLE_SIZE_VALUE)
+          .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, OccurrenceEsField.SAMPLE_SIZE_UNIT)
+          .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, OccurrenceEsField.RELATIVE_ORGANISM_QUANTITY)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =

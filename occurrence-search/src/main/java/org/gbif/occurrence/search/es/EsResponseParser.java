@@ -338,6 +338,12 @@ public class EsResponseParser {
             });
     getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
     getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
+
+    getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
+    getStringValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
+    getStringValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
+    getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
+    getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
