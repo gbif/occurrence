@@ -33,6 +33,7 @@ public class TestDownloadHeaders {
     diff.remove(GbifTerm.gbifID);
     diff.remove(GbifTerm.mediaType);
     diff.remove(GbifTerm.numberOfOccurrences);
+    diff.remove(GbifTerm.verbatimScientificName);
     assertEquals("TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
             diff, 0, diff.size());
 
