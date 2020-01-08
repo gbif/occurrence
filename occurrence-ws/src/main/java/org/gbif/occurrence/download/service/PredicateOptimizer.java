@@ -1,10 +1,16 @@
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
+import org.gbif.api.model.occurrence.predicate.LikePredicate;
 import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.SimplePredicate;
@@ -127,7 +133,7 @@ public class PredicateOptimizer {
    * handles within predicate
    *
    * @param within   Within predicate
-   * @param queryBuilder toor query builder
+   * @param queryBuilder toor query builderCompoundPredicate
    */
   public void visit(WithinPredicate within) {
     return;
@@ -148,6 +154,60 @@ public class PredicateOptimizer {
    * @param predicate ISNOTNULL predicate
    */
   public void visit(IsNotNullPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles GreaterThanOrEqualsPredicate Predicate
+   *
+   * @param predicate GreaterThanOrEqualsPredicate predicate
+   */
+  public void visit(GreaterThanOrEqualsPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles GreaterThanPredicate Predicate
+   *
+   * @param predicate GreaterThanPredicate predicate
+   */
+  public void visit(GreaterThanPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles LessThanOrEqualsPredicate Predicate
+   *
+   * @param predicate LessThanOrEqualsPredicate predicate
+   */
+  public void visit(LessThanOrEqualsPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles LessThanPredicate Predicate
+   *
+   * @param predicate LessThanPredicate predicate
+   */
+  public void visit(LessThanPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles LikePredicate Predicate
+   *
+   * @param predicate LikePredicate predicate
+   */
+  public void visit(LikePredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles CompoundPredicate Predicate
+   *
+   * @param predicate CompoundPredicate predicate
+   */
+  public void visit(CompoundPredicate predicate) {
     return;
   }
 
