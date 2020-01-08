@@ -234,6 +234,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, OccurrenceEsField.SAMPLE_SIZE_VALUE)
           .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, OccurrenceEsField.SAMPLE_SIZE_UNIT)
           .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, OccurrenceEsField.RELATIVE_ORGANISM_QUANTITY)
+          .put(OccurrenceSearchParameter.COLLECTION_KEY, OccurrenceEsField.COLLECTION_KEY)
+          .put(OccurrenceSearchParameter.INSTITUTION_KEY, OccurrenceEsField.INSTITUTION_KEY)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
