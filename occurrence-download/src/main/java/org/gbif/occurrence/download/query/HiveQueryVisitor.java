@@ -184,6 +184,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, DwcTerm.organismQuantity)
       .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, DwcTerm.organismQuantityType)
       .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
+      .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
+      .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
