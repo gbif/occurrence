@@ -232,10 +232,10 @@ public class OccurrenceBuilder {
       occ.setTypeStatus(ExtResultReader.getEnum(row, DwcTerm.typeStatus, TypeStatus.class));
       occ.setTypifiedName(ExtResultReader.getString(row, GbifTerm.typifiedName));
 
-      occ.setOrganismQuantity(ExtResultReader.getString(row, DwcTerm.organismQuantity));
+      occ.setOrganismQuantity(ExtResultReader.getDouble(row, DwcTerm.organismQuantity));
       occ.setOrganismQuantityType(ExtResultReader.getString(row, DwcTerm.organismQuantityType));
       occ.setSampleSizeUnit(ExtResultReader.getString(row, DwcTerm.sampleSizeUnit));
-      occ.setSampleSizeValue(ExtResultReader.getString(row, DwcTerm.sampleSizeValue));
+      occ.setSampleSizeValue(ExtResultReader.getDouble(row, DwcTerm.sampleSizeValue));
       occ.setRelativeOrganismQuantity(ExtResultReader.getDouble(row, GbifTerm.relativeOrganismQuantity));
 
       occ.setReferences(ExtResultReader.getUri(row, DcTerm.references));
