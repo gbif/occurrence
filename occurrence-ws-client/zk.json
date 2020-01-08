@@ -1,0 +1,42 @@
+{
+  "name": "registry-ws",
+  "id": "cb542804-e45d-4e8b-8167-11a0213354ab",
+  "address": "130.225.43.147",
+  "port": 8082,
+  "sslPort": null,
+  "payload": {
+    "@class": "org.gbif.discovery.conf.ServiceDetails",
+    "groupId": "org.gbif.registry",
+    "artifactId": "registry-ws",
+    "version": "2.144-SNAPSHOT",
+    "serviceConfiguration": {
+      "httpPort": 8082,
+      "httpAdminPort": 8083,
+      "zkHost": "c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181",
+      "zkPath": "dev/services",
+      "stopSecret": "stop",
+      "timestamp": 1576766362,
+      "externalPort": 8082,
+      "externalAdminPort": 8083,
+      "host": "ws.gbif-dev.org",
+      "containerName": null,
+      "conf": "/usr/local/gbif/services/registry-ws/2.144-SNAPSHOT/1576766362/application.properties",
+      "runsInContainer": false,
+      "discoverable": true
+    },
+    "status": "RUNNING",
+    "fullName": "registry-ws-2.144-SNAPSHOT",
+    "externalUrl": "http://ws.gbif-dev.org:8082/",
+    "name": "registry-ws"
+  },
+  "registrationTimeUTC": 1576766392056,
+  "serviceType": "DYNAMIC",
+  "uriSpec": {
+    "parts": [
+      {
+        "value": "http://ws.gbif-dev.org:8082/",
+        "variable": false
+      }
+    ]
+  }
+}
