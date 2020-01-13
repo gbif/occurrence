@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.111-ES-SNAPSHOT</version>
+    <version>0.111-ES</version>
   </parent>
 
   <artifactId>occurrence-hive</artifactId>
