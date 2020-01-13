@@ -121,6 +121,13 @@ public class OccurrenceMapReader {
     extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
 
+    // Sampling
+    interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
+    interpretedOccurrence.put(DwcTerm.sampleSizeValue.simpleName(), getSimpleValue(occurrence.getSampleSizeValue()));
+    interpretedOccurrence.put(DwcTerm.organismQuantity.simpleName(), getSimpleValue(occurrence.getOrganismQuantity()));
+    interpretedOccurrence.put(DwcTerm.organismQuantityType.simpleName(), occurrence.getOrganismQuantityType());
+    interpretedOccurrence.put(GbifTerm.relativeOrganismQuantity.simpleName(), getSimpleValue(occurrence.getRelativeOrganismQuantity()));
+
     occurrence.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
        interpretedOccurrence.put(term.simpleName(), value);

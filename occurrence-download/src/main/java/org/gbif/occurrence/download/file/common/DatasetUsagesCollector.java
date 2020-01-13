@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 

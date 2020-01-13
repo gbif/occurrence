@@ -88,8 +88,14 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<InitializableField> internalFields() {
-    Map<Term, String> initializers = ImmutableMap.of(GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey),
-                                                     GbifInternalTerm.installationKey, HiveColumns.columnFor(GbifInternalTerm.installationKey));
+    Map<Term, String> initializers = new ImmutableMap.Builder<Term,String>()
+                                                      .put(GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey))
+                                                      .put(GbifInternalTerm.installationKey, HiveColumns.columnFor(GbifInternalTerm.installationKey))
+                                                      .put(GbifInternalTerm.institutionKey, HiveColumns.columnFor(GbifInternalTerm.institutionKey))
+                                                      .put(GbifInternalTerm.collectionKey, HiveColumns.columnFor(GbifInternalTerm.collectionKey))
+                                                      .put(GbifInternalTerm.projectId, HiveColumns.columnFor(GbifInternalTerm.projectId))
+                                                      .put(GbifInternalTerm.programmeAcronym, HiveColumns.columnFor(GbifInternalTerm.programmeAcronym))
+                                            .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
       if (!DownloadTerms.EXCLUSIONS.contains(t)) {

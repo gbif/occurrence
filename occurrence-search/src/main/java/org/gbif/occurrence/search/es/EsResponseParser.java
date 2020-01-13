@@ -262,8 +262,8 @@ public class EsResponseParser {
             v ->
                 occ.setIssues(
                     v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
-                      .filter(com.google.common.base.Optional::isPresent)
-                      .map(com.google.common.base.Optional::get)
+                      .filter(Optional::isPresent)
+                      .map(Optional::get)
                       .collect(Collectors.toSet())));
 
     // multimedia extension
@@ -336,6 +336,14 @@ public class EsResponseParser {
               occRelation.setId(v);
               occ.setRelations(Collections.singletonList(occRelation));
             });
+    getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
+    getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
+
+    getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
+    getDoubleValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
+    getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
+    getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
+    getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
@@ -352,8 +360,7 @@ public class EsResponseParser {
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
     getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(occ::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(occ::setCoordinatePrecision);
-    getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS)
-        .ifPresent(occ::setCoordinateUncertaintyInMeters);
+    getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS).ifPresent(occ::setCoordinateUncertaintyInMeters);
     getDoubleValue(hit, LATITUDE).ifPresent(occ::setDecimalLatitude);
     getDoubleValue(hit, LONGITUDE).ifPresent(occ::setDecimalLongitude);
     getDoubleValue(hit, DEPTH).ifPresent(occ::setDepth);
@@ -398,7 +405,7 @@ public class EsResponseParser {
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
         .ifPresent(occ::setPublishingOrgKey);
-    getValue(hit, LICENSE, v -> License.fromString(v).orNull()).ifPresent(occ::setLicense);
+    getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
 
     getListValue(hit, NETWORK_KEY)
@@ -442,11 +449,11 @@ public class EsResponseParser {
                                   .map(
                                       license ->
                                           License.fromString(license)
-                                              .transform(
+                                              .map(
                                                   l ->
                                                       Optional.ofNullable(l.getLicenseUrl())
                                                           .orElse(license))
-                                              .or(license))
+                                              .orElse(license))
                                   .ifPresent(mediaObject::setLicense);
                               extractStringValue(item, "publisher")
                                   .ifPresent(mediaObject::setPublisher);
