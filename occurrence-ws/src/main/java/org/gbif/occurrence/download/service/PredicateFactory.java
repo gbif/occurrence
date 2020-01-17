@@ -118,6 +118,8 @@ public class PredicateFactory {
   private static Predicate parsePredicate(OccurrenceSearchParameter param, String value) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
+      // validate it here, as this constructor only logs invalid strings.
+      SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, value);
       return new WithinPredicate(value);
     }
 
