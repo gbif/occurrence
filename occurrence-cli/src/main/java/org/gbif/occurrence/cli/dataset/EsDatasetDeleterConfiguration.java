@@ -61,6 +61,10 @@ public class EsDatasetDeleterConfiguration {
   @NotNull
   public String hdfsViewDirPath;
 
+  @Parameter(names = "--ingest-dir-path")
+  @NotNull
+  public String ingestDirPath;
+
   @Override
   public String toString() {
     return new StringJoiner(
