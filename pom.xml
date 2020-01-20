@@ -131,7 +131,6 @@
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <calcite.version>1.5.0</calcite.version>
     <avro.version>1.8.2</avro.version>
 
     <!-- GBIF VERSIONS -->
@@ -938,17 +937,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-core</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-avatica</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
 
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.
