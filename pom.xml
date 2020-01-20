@@ -196,11 +196,11 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>2.6.0-cdh5.12.1</hadoop.version>
-        <hbase.version>1.2.0-cdh5.12.1</hbase.version>
-        <hive.version>1.1.0-cdh5.12.1</hive.version>
-        <oozie.version>4.1.0-cdh5.12.1</oozie.version>
-        <zookeeper.version>3.4.5-cdh5.12.1</zookeeper.version>
+        <hadoop.version>2.6.0-cdh5.16.2</hadoop.version>
+        <hbase.version>1.2.0-cdh5.16.2</hbase.version>
+        <hive.version>1.1.0-cdh5.16.2</hive.version>
+        <oozie.version>4.1.0-cdh5.16.2</oozie.version>
+        <zookeeper.version>3.4.5-cdh5.16.2</zookeeper.version>
       </properties>
     </profile>
     <profile>
