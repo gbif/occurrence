@@ -60,6 +60,7 @@ public class EsSearchRequestBuilder {
     // size and offset
     searchSourceBuilder.size(searchRequest.getLimit());
     searchSourceBuilder.from((int) searchRequest.getOffset());
+    searchSourceBuilder.fetchSource(null, "all"); //excluding all from the response
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
