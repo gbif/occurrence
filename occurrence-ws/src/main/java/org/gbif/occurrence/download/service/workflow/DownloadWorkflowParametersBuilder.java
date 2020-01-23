@@ -6,10 +6,8 @@ import java.util.Map;
 import java.util.Properties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.download.service.Constants;
 import org.gbif.occurrence.download.service.PredicateOptimizer;
@@ -41,7 +39,7 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    String gbifFilter = request.getFormat().equals(DownloadFormat.SQL) ? ((SqlDownloadRequest)request).getSql() : getJsonStringPredicate(PredicateOptimizer.optimize(((PredicateDownloadRequest)request).getPredicate()));
+    String gbifFilter = getJsonStringPredicate(PredicateOptimizer.optimize(((PredicateDownloadRequest)request).getPredicate()));
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
@@ -53,18 +51,6 @@ public class DownloadWorkflowParametersBuilder {
 
     return properties;
   }
-
-  /**
-   * Use the request.format to build the workflow parameters.
-   */
-  public Properties buildWorkflowParameters(DownloadRequest request, Map<String, String> additionalSettings) {
-    Properties properties = buildWorkflowParameters(request);
-    properties.putAll(additionalSettings);
-    LOG.debug("job  with additional settings: {}", additionalSettings);
-
-    return properties;
-  }
-
 
   /**
    * Serializes a predicate filter into a json string.

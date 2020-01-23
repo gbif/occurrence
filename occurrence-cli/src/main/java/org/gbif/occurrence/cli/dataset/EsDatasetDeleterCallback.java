@@ -86,10 +86,14 @@ public class EsDatasetDeleterCallback
       .forEach(idx -> EsHelper.deleteByDatasetKey(esClient, datasetKey, idx));
     contextDeleteByQuery.stop();
 
-    // Delete dataset in hdfs view directory
-    String deletePath =
-      String.join(Path.SEPARATOR, config.hdfsViewDirPath, HdfsView.VIEW_OCCURRENCE + "_" + datasetKey + "_*");
-    deleteByPattern(fs, deletePath);
+    // Delete dataset from ingest folder
+    String deleteIngestPath = String.join(Path.SEPARATOR, config.ingestDirPath, datasetKey);
+    deleteByPattern(fs, deleteIngestPath);
+
+    // Delete dataset from hdfs view directory
+    String viewFileName = HdfsView.VIEW_OCCURRENCE + "_" + datasetKey + "_*";
+    String deleteHdfsPath = String.join(Path.SEPARATOR, config.hdfsViewDirPath, viewFileName);
+    deleteByPattern(fs, deleteHdfsPath);
   }
 
   /**

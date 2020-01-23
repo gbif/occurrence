@@ -73,6 +73,8 @@ public final class HiveDataTypes {
     GbifTerm.elevationAccuracy,
     GbifTerm.depth,
     GbifTerm.depthAccuracy,
+    DwcTerm.organismQuantity,
+    DwcTerm.sampleSizeValue,
     GbifTerm.relativeOrganismQuantity);
 
   private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(GbifTerm.hasCoordinate,

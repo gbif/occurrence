@@ -340,8 +340,8 @@ public class EsResponseParser {
     getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
 
     getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
-    getStringValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
-    getStringValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
+    getDoubleValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
+    getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
     getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
   }
@@ -360,8 +360,7 @@ public class EsResponseParser {
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
     getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(occ::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(occ::setCoordinatePrecision);
-    getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS)
-        .ifPresent(occ::setCoordinateUncertaintyInMeters);
+    getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS).ifPresent(occ::setCoordinateUncertaintyInMeters);
     getDoubleValue(hit, LATITUDE).ifPresent(occ::setDecimalLatitude);
     getDoubleValue(hit, LONGITUDE).ifPresent(occ::setDecimalLongitude);
     getDoubleValue(hit, DEPTH).ifPresent(occ::setDepth);

@@ -123,8 +123,8 @@ public class OccurrenceMapReader {
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
-    interpretedOccurrence.put(DwcTerm.sampleSizeValue.simpleName(), occurrence.getSampleSizeValue());
-    interpretedOccurrence.put(DwcTerm.organismQuantity.simpleName(), occurrence.getOrganismQuantity());
+    interpretedOccurrence.put(DwcTerm.sampleSizeValue.simpleName(), getSimpleValue(occurrence.getSampleSizeValue()));
+    interpretedOccurrence.put(DwcTerm.organismQuantity.simpleName(), getSimpleValue(occurrence.getOrganismQuantity()));
     interpretedOccurrence.put(DwcTerm.organismQuantityType.simpleName(), occurrence.getOrganismQuantityType());
     interpretedOccurrence.put(GbifTerm.relativeOrganismQuantity.simpleName(), getSimpleValue(occurrence.getRelativeOrganismQuantity()));
 

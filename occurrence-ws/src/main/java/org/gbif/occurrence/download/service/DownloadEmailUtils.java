@@ -2,9 +2,7 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.query.HumanFilterBuilder;
 import org.gbif.occurrence.query.TitleLookup;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.regex.Pattern;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -47,9 +44,6 @@ import static freemarker.template.Configuration.VERSION_2_3_25;
  * Utility class that sends notification emails of occurrence downloads.
  */
 public class DownloadEmailUtils {
-  private static final String OCCURRENCE = "occurrence";
-  private static final String OCCURRENCE_HDFS = "occurrence_hdfs";
-  private static final String CASE_INSENSITIVE_REGEX = "(?i)";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
   private static final String SUCCESS_SUBJECT = "Your GBIF data download is ready";
@@ -112,9 +106,8 @@ public class DownloadEmailUtils {
    */
   public String getHumanQuery(Download download) {
     try {
-      String query = download.getRequest().getFormat().equals(DownloadFormat.SQL) ?
-        ((SqlDownloadRequest) download.getRequest()).getSql().replaceAll(CASE_INSENSITIVE_REGEX + Pattern.quote(OCCURRENCE_HDFS), OCCURRENCE)
-        : new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+      String query =
+        new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
       if (query.length() > 1000) {
         query = query.substring(0, 1000) + "\n… abbreviated, view the full query on the landing page.";
       }
@@ -161,8 +154,8 @@ public class DownloadEmailUtils {
       // Send E-Mail
       MimeMessage msg = new MimeMessage(session);
       msg.setFrom();
-      msg.setRecipients(Message.RecipientType.TO, emails.toArray(new Address[emails.size()]));
-      msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[bccAddresses.size()]));
+      msg.setRecipients(Message.RecipientType.TO, emails.toArray(new Address[0]));
+      msg.setRecipients(Message.RecipientType.BCC, bccAddresses.toArray(new Address[0]));
       msg.setSubject(subject);
       msg.setSentDate(new Date());
       msg.setText(buildBody(download, bodyTemplate));

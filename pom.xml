@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.111-ES-SNAPSHOT</version>
+  <version>0.112-ES-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -131,7 +131,6 @@
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <calcite.version>1.0.0-incubating</calcite.version>
     <avro.version>1.8.2</avro.version>
 
     <!-- GBIF VERSIONS -->
@@ -197,11 +196,11 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>2.6.0-cdh5.12.1</hadoop.version>
-        <hbase.version>1.2.0-cdh5.12.1</hbase.version>
-        <hive.version>1.1.0-cdh5.12.1</hive.version>
-        <oozie.version>4.1.0-cdh5.12.1</oozie.version>
-        <zookeeper.version>3.4.5-cdh5.12.1</zookeeper.version>
+        <hadoop.version>2.6.0-cdh5.16.2</hadoop.version>
+        <hbase.version>1.2.0-cdh5.16.2</hbase.version>
+        <hive.version>1.1.0-cdh5.16.2</hive.version>
+        <oozie.version>4.1.0-cdh5.16.2</oozie.version>
+        <zookeeper.version>3.4.5-cdh5.16.2</zookeeper.version>
       </properties>
     </profile>
     <profile>
@@ -938,17 +937,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-core</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-avatica</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
 
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.

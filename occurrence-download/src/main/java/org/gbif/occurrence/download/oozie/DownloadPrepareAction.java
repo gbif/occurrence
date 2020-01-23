@@ -92,7 +92,7 @@ public class DownloadPrepareAction {
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
   public static void main(String[] args) throws Exception {
-    checkArgument(args.length > 0 || Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
+    checkArgument(args.length > 0 && Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
     DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
     occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
   }
@@ -153,21 +153,19 @@ public class DownloadPrepareAction {
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-      if (DownloadFormat.valueOf(downloadFormat.trim()) == DownloadFormat.SQL) {
-        props.setProperty(HIVE_QUERY, rawPredicate); //is sql TODO: Does this also need XML escaping?
-      } else {
-        Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-        String searchQuery = new EsQueryVisitor().getQuery(predicate);
-        long recordCount = getRecordCount(searchQuery);
-        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-        if(isSmallDownloadCount(recordCount)) {
-          props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
-        }
-        props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
-        if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
-          updateTotalRecordsCount(downloadKey, recordCount);
-        }
+
+      Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
+      String searchQuery = new EsQueryVisitor().getQuery(predicate);
+      long recordCount = getRecordCount(searchQuery);
+      props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
+      if (isSmallDownloadCount(recordCount)) {
+        props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
       }
+      props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
+      if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
+        updateTotalRecordsCount(downloadKey, recordCount);
+      }
+
       persist(oozieProp, props);
     } else {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
@@ -183,7 +181,7 @@ public class DownloadPrepareAction {
       throw Throwables.propagate(e);
     }
   }
-  
+
   /**
    * Executes the Solr query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.
