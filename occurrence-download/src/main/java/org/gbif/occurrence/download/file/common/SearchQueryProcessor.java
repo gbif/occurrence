@@ -55,6 +55,7 @@ public class SearchQueryProcessor {
 
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
+        searchSourceBuilder.fetchSource(null, "all"); //All field is not needed in the response
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
         SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
