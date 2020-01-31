@@ -92,7 +92,7 @@ public class DownloadPrepareAction {
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
   public static void main(String[] args) throws Exception {
-    checkArgument(args.length > 0 && Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
+    checkArgument(args.length > 0 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
     DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
     occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
   }
