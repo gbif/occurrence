@@ -35,9 +35,7 @@
     <module>occurrence-cli</module>
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
-    <module>occurrence-deleter</module>
     <module>occurrence-persistence</module>
-    <module>occurrence-parser</module>
     <module>occurrence-processor</module>
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
@@ -46,7 +44,6 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-salt-keys</module>
   </modules>
 
   <properties>

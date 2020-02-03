@@ -29,14 +29,9 @@ It should be noted that you can override any property from the configuration fil
 Command | Description
 --- | ---
 delete-dataset | deletes an existing dataset
-delete-occurrence | delete an occurrence record from HBase
-fragment-processor | processes occurrence fragments
 interpret-dataset | send a message to (re)interpret a dataset (starting from the interpreted-processor)
-interpret-occurrence | send a message to (re)interpret a single occurrence (starting from the interpreted-processor)
-interpreted-processor | create/updates the interpreted occurrence records
 parse-dataset | send a message to (re)parse a dataset (starting from the verbatim-processor)
 registry-change-listener | update the occurrence table when a dataset or organization changes country (via mapreduce)
-verbatim-processor | create/updates the verbatim occurrence records
 sync-occurrence-registry | Synchronize the entire Occurrence table with the registry (via mapreduce)
 
 ### Usage sync-occurrence-registry
