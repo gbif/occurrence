@@ -1,14 +1,6 @@
-  # GBIF Occurrence Registry Synchronizer
+# GBIF Occurrence Registry Synchronizer
 
 This module contains the minimal code to listen for messages from the registry about anything that has changed there.
 
 Of primary interest are datasets and organizations whose "owning organization" has changed, or if that organization's
-country has changed. If either of those have changed, the OccurrenceScanMapper of this module gets run as a MapReduce
-job on the cluster which updates each of the occurrence records in HBase with the new country information. Without this
-the records would never be updated and our statistics about occurrences per country would be invalid. This is all
-necessary because we are denormalizing the country information in order to run those very same statistics without
-joining to a registry table. When run, this code requires the cluster configuration and a populated
-"registry-sync.properties" on the classpath. You can build local versions of those for testing with the dev profile from
-http://github.com/gbif/gbif-configuration/maven/settings.xml and build as:
-
-```mvn -Pdev clean install```
+country has changed.

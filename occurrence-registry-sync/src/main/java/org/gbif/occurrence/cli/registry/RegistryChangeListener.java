@@ -12,30 +12,16 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.*;
-import org.gbif.occurrence.cli.registry.sync.OccurrenceScanMapper;
 import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
-import org.gbif.occurrence.cli.registry.sync.SyncCommon;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +37,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
-  private static final String HBASE_TIMEOUT = "600000";
-  private static final String MR_MAP_MEMORY_MB = "1024";
-  //approx. 85% of MR_MAP_MEMORY_MB
-  private static final String MR_MAP_JAVA_OPTS = "-Xmx768m";
-  private static final String MR_QUEUE_NAME = "crap";
 
   private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>().add(
     EndpointType.BIOCASE,
@@ -124,7 +105,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             LOG.warn("Could not send start crawl message for dataset key [{}]", newDataset.getKey(), e);
           }
           // check if we should start a m/r job to update occurrence records
-          // FIXME this can lead to issues if 100 datasets change organization in a batch update.
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
             Optional<String> changedMessage = occurrenceMutator.generateUpdateMessage(oldDataset, newDataset);
 
@@ -132,12 +112,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
             sendUpdateMessageToPipelines(
                 newDataset, Collections.singleton(METADATA_INTERPRETATION), changedMessage.orElse("Dataset changed in registry"));
 
-            LOG.info("Starting m/r sync for dataset [{}], with reason {}", newDataset.getKey(), changedMessage);
-            try {
-              runMrSync(newDataset.getKey());
-            } catch (Exception e) {
-              LOG.warn("Failed to run RegistrySync m/r for dataset [{}]", newDataset.getKey(), e);
-            }
           } else {
             LOG.debug("Owning orgs and license match for updated dataset [{}] - taking no action", newDataset.getKey());
           }
@@ -199,7 +173,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         } else if (occurrenceMutator.requiresUpdate(oldOrg, newOrg)
             && newOrg.getNumPublishedDatasets() > 0) {
           LOG.info(
-              "Starting m/r sync for all datasets of org [{}] because it has changed country from [{}] to [{}]",
+              "Starting ingestion of all datasets of org [{}] because it has changed country from [{}] to [{}]",
               newOrg.getKey(),
               oldOrg.getCountry(),
               newOrg.getCountry());
@@ -211,7 +185,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
                     occurrenceMutator
                         .generateUpdateMessage(oldOrg, newOrg)
                         .orElse("Organization change in registry"));
-                runMrSync(dataset.getKey());
               };
           visitOwnedDatasets(newOrg.getKey(), visitor);
         }
@@ -220,84 +193,6 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       case CREATED:
         break;
     }
-  }
-
-  /**
-   * Creates and submit a MapReduce job to the cluster using {@link OccurrenceScanMapper} as a mapper.
-   */
-  private static void runMrSync(@Nullable UUID datasetKey) {
-
-    //create the HBase config here since hbase-site.xml is (at least should) be in our classpath.
-    Configuration conf = HBaseConfiguration.create();
-    conf.set("hbase.client.scanner.timeout.period", HBASE_TIMEOUT);
-    conf.set("hbase.rpc.timeout", HBASE_TIMEOUT);
-
-    Properties props = SyncCommon.loadProperties();
-    // add all props to job context for use by the OccurrenceScanMapper when it no longer has access to our classpath
-    for (Object key : props.keySet()) {
-      String stringKey = (String) key;
-      conf.set(stringKey, props.getProperty(stringKey));
-    }
-
-    Scan scan = new Scan();
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.DK_COL); //datasetKey
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.HC_COL); //publishingCountry
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.OOK_COL); //publishingOrgKey
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.CI_COL); //crawlId
-    scan.addColumn(SyncCommon.OCC_CF, SyncCommon.LICENSE_COL);
-
-    scan.setCaching(200);
-    scan.setCacheBlocks(false); // don't set to true for MR jobs (from HBase MapReduce Examples)
-
-    String targetTable = props.getProperty(SyncCommon.OCC_TABLE_PROPS_KEY);
-    String mrUser = props.getProperty(SyncCommon.MR_USER_PROPS_KEY);
-    String jobTitle = "Registry-Occurrence Sync on table " + targetTable;
-    String rawDatasetKey = null;
-    if (datasetKey != null) {
-      rawDatasetKey = datasetKey.toString();
-      scan.setFilter(new SingleColumnValueFilter(SyncCommon.OCC_CF,
-                                                 SyncCommon.DK_COL,
-                                                 CompareFilter.CompareOp.EQUAL,
-                                                 Bytes.toBytes(rawDatasetKey)));
-    }
-
-    if (rawDatasetKey != null) {
-      jobTitle = jobTitle + " for dataset " + rawDatasetKey;
-    }
-
-    try {
-      Job job = Job.getInstance(conf, jobTitle);
-      job.setUser(mrUser);
-      job.setJarByClass(OccurrenceScanMapper.class);
-      job.setOutputFormatClass(NullOutputFormat.class);
-      job.setNumReduceTasks(0);
-      job.getConfiguration().set("mapreduce.map.speculative", "false");
-      job.getConfiguration().set("mapreduce.reduce.speculative", "false");
-      job.getConfiguration().set("mapreduce.client.submit.file.replication", "3");
-      job.getConfiguration().set("mapreduce.task.classpath.user.precedence", "true");
-      job.getConfiguration().set("mapreduce.job.user.classpath.first", "true");
-      job.getConfiguration().set("mapreduce.map.memory.mb", MR_MAP_MEMORY_MB);
-      job.getConfiguration().set("mapreduce.map.java.opts", MR_MAP_JAVA_OPTS);
-      job.getConfiguration().set("mapred.job.queue.name", MR_QUEUE_NAME);
-
-      if (targetTable == null || mrUser == null) {
-        LOG.error("Sync m/r not properly configured (occ table or mapreduce user not set) - aborting");
-      } else {
-        // NOTE: addDependencyJars must be false or you'll see it trying to load hdfs://c1n1/home/user/app/lib/occurrence-cli.jar
-        TableMapReduceUtil.initTableMapperJob(targetTable,
-                                              scan,
-                                              OccurrenceScanMapper.class,
-                                              ImmutableBytesWritable.class,
-                                              NullWritable.class,
-                                              job,
-                                              false);
-        job.waitForCompletion(true);
-      }
-    } catch (Exception e) {
-      LOG.error("Could not start m/r job, aborting", e);
-    }
-
-    LOG.info("Finished running m/r sync for dataset [{}]", datasetKey);
   }
 
   private void visitOwnedDatasets(UUID orgKey, DatasetVisitor visitor) {

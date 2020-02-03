@@ -1,5 +1,6 @@
 package org.gbif.occurrence.cli.common;
 
+import com.google.common.base.Strings;
 import org.gbif.occurrence.search.SearchException;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import parquet.Strings;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
