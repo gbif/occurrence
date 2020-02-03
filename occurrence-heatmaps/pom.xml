@@ -80,28 +80,9 @@
       <artifactId>occurrence-search</artifactId>
     </dependency>
     <dependency>
-<<<<<<< HEAD
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>log4j-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.lucene</groupId>
-          <artifactId>lucene-spatial</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.lucene</groupId>
-          <artifactId>lucene-core</artifactId>
-        </exclusion>
-      </exclusions>
-=======
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
->>>>>>> 71fdee5cb... Remove SOLR dependency from Heatmaps.
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
