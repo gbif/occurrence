@@ -36,7 +36,6 @@ interpret-occurrence | send a message to (re)interpret a single occurrence (star
 interpreted-processor | create/updates the interpreted occurrence records
 parse-dataset | send a message to (re)parse a dataset (starting from the verbatim-processor)
 registry-change-listener | update the occurrence table when a dataset or organization changes country (via mapreduce)
-update-occurrence-index | inserts/updates occurrence records into the Solr Index
 verbatim-processor | create/updates the verbatim occurrence records
 sync-occurrence-registry | Synchronize the entire Occurrence table with the registry (via mapreduce)
 
