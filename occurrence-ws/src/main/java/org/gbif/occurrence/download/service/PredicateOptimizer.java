@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
@@ -37,8 +38,11 @@ public class PredicateOptimizer {
   }
 
   public static Predicate optimize(Predicate predicate) {
-    Object v = new PredicateOptimizer().visit(predicate);
-    return v instanceof Predicate ? (Predicate) v : predicate;
+    if (Objects.nonNull(predicate)) {
+      Object v = new PredicateOptimizer().visit(predicate);
+      return v instanceof Predicate ? (Predicate) v : predicate;
+    }
+    return predicate;
   }
 
   /**
