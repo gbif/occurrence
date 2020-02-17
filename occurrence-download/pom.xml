@@ -542,6 +542,6 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
   </dependencies>
+  <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
 </project>
