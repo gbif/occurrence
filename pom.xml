@@ -68,7 +68,7 @@
     <occurrence.download.mail.bcc>helpdesk@gbif.org</occurrence.download.mail.bcc>
 
     <!-- VERSIONS -->
-    <amqp-client.version>3.0.2</amqp-client.version>
+    <amqp-client.version>4.8.0</amqp-client.version>
     <freemarker.version>2.3.26-incubating</freemarker.version>
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
