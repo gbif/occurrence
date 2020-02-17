@@ -155,6 +155,22 @@
     <pipelines.version>2.2.9</pipelines.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
+    <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
+    <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
+
+    <!-- Sonar -->
+    <sonar.language>java</sonar.language>
+    <sonar.jacoco.reportPaths>${jacoco.merged.output.file}</sonar.jacoco.reportPaths>
+    <sonar.projectName>GBIF Occurrence</sonar.projectName>
+
+    <!-- JaCoCo -->
+    <coverage.dir>${project.basedir}/../target/coverage</coverage.dir>
+    <coverage.report.it.dir>${project.basedir}/../target/site/jacoco-it</coverage.report.it.dir>
+    <coverage.report.ut.dir>${project.basedir}/../target/site/jacoco-ut</coverage.report.ut.dir>
+    <jacoco.it.output.file>${coverage.dir}/jacoco-it.exec</jacoco.it.output.file>
+    <jacoco.ut.output.file>${coverage.dir}/jacoco-ut.exec</jacoco.ut.output.file>
+    <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
