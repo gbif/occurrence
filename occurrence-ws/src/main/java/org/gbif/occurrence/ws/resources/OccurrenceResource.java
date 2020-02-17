@@ -21,6 +21,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.ws.server.interceptor.NullToNotFound;
 import org.gbif.ws.util.ExtraMediaTypes;
 
@@ -63,13 +64,17 @@ public class OccurrenceResource {
   private final OccurrenceService occurrenceService;
   private final OccurrenceSearchService occurrenceSearchService;
 
+  private final OccurrenceGetByKey occurrenceGetByKey;
+
   @Inject
   public OccurrenceResource(
     OccurrenceService occurrenceService,
-    OccurrenceSearchService occurrenceSearchService
+    OccurrenceSearchService occurrenceSearchService,
+    OccurrenceGetByKey occurrenceGetByKey
   ) {
     this.occurrenceService = occurrenceService;
     this.occurrenceSearchService = occurrenceSearchService;
+    this.occurrenceGetByKey = occurrenceGetByKey;
   }
 
   /**
@@ -83,7 +88,7 @@ public class OccurrenceResource {
   @NullToNotFound
   public Occurrence get(@PathParam("id") Long key) {
     LOG.debug("Request Occurrence [{}]:", key);
-    return occurrenceService.get(key);
+    return occurrenceGetByKey.get(key);
   }
 
   /**
@@ -112,7 +117,7 @@ public class OccurrenceResource {
   @NullToNotFound
   public VerbatimOccurrence getVerbatim(@PathParam("key") Long key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
-    return occurrenceService.getVerbatim(key);
+    return occurrenceGetByKey.getVerbatim(key);
   }
 
   /**
@@ -140,7 +145,7 @@ public class OccurrenceResource {
   @Produces(MediaType.APPLICATION_XML)
   public Occurrence getAnnosysOccurrence(@PathParam("key") Long key) {
     LOG.debug("Request Annosys occurrence [{}]:", key);
-    return occurrenceService.get(key);
+    return occurrenceGetByKey.get(key);
   }
 
   /**

@@ -20,7 +20,7 @@ CREATE TABLE ${speciesListTable}_tmp STORED AS ORC
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus,
           kingdom, kingdomkey, phylum, phylumkey, class,classkey, order_, orderkey, family, familykey,
           genus,genuskey, species, specieskey, datasetkey, license
-FROM occurrence_hdfs
+FROM occurrence_pipeline_hdfs
 WHERE ${whereClause};
 
 

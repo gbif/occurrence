@@ -42,33 +42,28 @@ class IndexingConfiguration {
   @NotNull
   public String queueName;
 
-  @Parameter(names = "--solr-server")
+  @Parameter(names = "--es-hosts")
   @NotNull
-  public String solrServer;
+  public String esHosts;
 
-  @Parameter(names = "--solr-server-type")
+  @Parameter(names = "--es-index")
   @NotNull
-  public String solrServerType;
-
-  @Parameter(names = "--solr-collection")
-  @NotNull
-  public String solrCollection;
+  public String esIndex;
 
 
-  @Parameter(names = "--solr-update-batch-size")
+  @Parameter(names = "--es-update-batch-size")
   @NotNull
-  public int solrUpdateBatchSize = 1000;
+  public int updateBatchSize = 1000;
 
-  @Parameter(names = "--solr-update-within")
-  @NotNull
-  public long solrUpdateWithinMs = 120000;
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("messaging", messaging).add("ganglia", ganglia).add("poolSize", poolSize)
-      .add("commitWithinMs", commitWithinMs).add("queueName", queueName).add("solrServer", solrServer)
-      .add("solrServerType", solrServerType).add("solrCollection", solrCollection)
-      .add("solrUpdateBatchSize", solrUpdateBatchSize).add("solrUpdateWithinMs", solrUpdateWithinMs)
+    return Objects.toStringHelper(this)
+      .add("messaging", messaging).add("ganglia", ganglia)
+      .add("poolSize", poolSize).add("msgPoolSize", msgPoolSize)
+      .add("commitWithinMs", commitWithinMs).add("queueName", queueName)
+      .add("esHosts", esHosts).add("esIndex", esIndex)
+      .add("updateBatchSize", updateBatchSize)
       .toString();
   }
 }

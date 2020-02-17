@@ -13,3 +13,4 @@ pom.xml.releaseBackup
 *.classpath
 *.project
 *.settings/
+*dependency-reduced-pom.xml

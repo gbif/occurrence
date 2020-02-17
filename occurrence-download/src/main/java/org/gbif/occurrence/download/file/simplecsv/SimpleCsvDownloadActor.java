@@ -2,11 +2,10 @@ package org.gbif.occurrence.download.file.simplecsv;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 import java.io.IOException;
@@ -25,7 +24,8 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
 
 /**
  * Actor that creates a part of the simple csv download file.
@@ -63,19 +63,17 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                                                                                   StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
-            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
-            Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
-            if (occurrenceRecordMap != null) {
-              //collect usages
-              datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-                      occurrenceRecordMap.get(DcTerm.license.simpleName()));
-              //write results
-              csvMapWriter.write(occurrenceRecordMap, COLUMNS);
-            } else {
-              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
-            }
+            Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+            populateVerbatimCsvFields(occurrenceRecordMap, occurrence);
+
+            //collect usages
+            datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+                    occurrenceRecordMap.get(DcTerm.license.simpleName()));
+            //write results
+            csvMapWriter.write(occurrenceRecordMap, COLUMNS);
+
           } catch (Exception e) {
             throw Throwables.propagate(e);
           }

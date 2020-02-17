@@ -24,7 +24,6 @@ import java.io.RandomAccessFile;
 import java.security.Principal;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -58,15 +57,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
-import org.gbif.occurrence.download.service.hive.HiveSQL;
-import org.gbif.occurrence.download.service.hive.Result;
 import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,8 +78,6 @@ public class DownloadResource {
   private static final String ZIP_EXT = ".zip";
   private static final String AVRO_EXT = ".avro";
 
-  private static final String OCCURRENCE_TABLE = "occurrence_hdfs";
-
   private static final Logger LOG = LoggerFactory.getLogger(DownloadResource.class);
 
   // low quality of source to default to JSON
@@ -96,8 +90,6 @@ public class DownloadResource {
   private final OccurrenceDownloadService occurrenceDownloadService;
 
   private final CallbackService callbackService;
-
-  private List<Result.DescribeResult> describeCachedResponse;
 
   @Inject
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -257,33 +249,6 @@ public class DownloadResource {
     return Response.ok().build();
   }
 
-  @GET
-  @Path("sql/validate")
-  @Produces(MediaType.APPLICATION_JSON)
-  public HiveSQL.Validate.Result validateSQL(@QueryParam("sql") String sqlQuery) {
-    LOG.debug("Received validation request for sql query [{}]", sqlQuery);
-    return new HiveSQL.Validate().apply(sqlQuery);
-  }
-
-  @GET
-  @Path("sql/describe")
-  @Produces(MediaType.APPLICATION_JSON)
-  public List<Result.DescribeResult> describeSQL() {
-    LOG.debug("Received describe request for sql ");
-    if (Objects.isNull(describeCachedResponse)) {
-      this.describeCachedResponse = HiveSQL.Execute.describe(OCCURRENCE_TABLE);
-    }
-    return describeCachedResponse;
-  }
-
-  @POST
-  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
-  @Validate
-  @Path("sql")
-  public String startSqlDownload(@NotNull @Valid SqlDownloadRequest request, @Context SecurityContext security) {
-    return createDownload(request, security);
-  }
-
   /**
    * Request a new predicate download (POST method, public API).
    */
@@ -331,15 +296,9 @@ public class DownloadResource {
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = getUserName(securityContext);
     Set<String> notificationAddress = asSet(emails);
-    if (DownloadFormat.SQL == downloadFormat) {
-      String sql = httpRequest.getParameter("sql");
-      LOG.info("SQL build for passing to download [{}]", sql);
-      return new SqlDownloadRequest(sql, creator, notificationAddress, true);
-    } else {
-      Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
-      LOG.info("Predicate build for passing to download [{}]", predicate);
-      return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
-    }
+    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
+    LOG.info("Predicate build for passing to download [{}]", predicate);
+    return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
   }
 
   /**

@@ -3,12 +3,13 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.109-SNAPSHOT</version>
+    <version>0.115-ES-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-download</artifactId>
   <name>Occurrence Download</name>
+  <packaging>jar</packaging>
 
   <distributionManagement>
     <site>
@@ -75,6 +76,57 @@
               <arguments>
                 <argument>${project.build.outputDirectory}</argument>
               </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.apache.hadoop:*</exclude>
+                  <exclude>org.gbif.occurrence:occurrence-persistence</exclude>
+                  <exclude>com.sun.jersey:jersey-json</exclude>
+                  <exclude>com.sun.jersey:jersey-server</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-guice</exclude>
+                  <exclude>com.sun.jersey:jersey-servlet</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>**/config-default.xml</exclude>
+                    <exclude>hbase-site.xml</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>g14.com.google.common</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.joda.time</pattern>
+                  <shadedPattern>j21.org.joda.time</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.curator</pattern>
+                  <shadedPattern>shadedocc.org.apache.curator</shadedPattern>
+                </relocation>
+              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -152,10 +204,6 @@
                 <!-- Ensure only Log4J binding -->
                 <exclude>ch.qos.logback</exclude>
                 <exclude>org.slf4j:log4j-over-slf4j</exclude>
-                <!-- We depend upon occurrence-persistence, which has shaded these. -->
-                <exclude>org.apache.curator:curator-client</exclude>
-                <exclude>org.apache.curator:curator-framework</exclude>
-                <exclude>org.apache.curator:curator-recipes</exclude>
               </excludes>
             </bannedDependencies>
           </rules>
@@ -206,6 +254,7 @@
   </repositories>
 
   <dependencies>
+
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
@@ -223,10 +272,30 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
       <exclusions>
-      <exclusion>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>*</artifactId>
-      </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.datacite</groupId>
+          <artifactId>datacite-rest-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.registry</groupId>
+          <artifactId>registry-identity</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>gbif-common-service</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.common</groupId>
+          <artifactId>gbif-postal-service</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -251,17 +320,12 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-persistence</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hdfs-table</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
     </dependency>
-
 
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
@@ -289,10 +353,6 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
     </dependency>
@@ -316,10 +376,6 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
     </dependency>
 
     <!-- Used during build phase only, to generate HQL scripts -->
@@ -348,11 +404,39 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hive</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>curator-client</artifactId>
+          <groupId>org.apache.curator</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.rabbitmq</groupId>
+          <artifactId>amqp-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.common</groupId>
+          <artifactId>gbif-postal-service</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.hadoop</groupId>
       <artifactId>hadoop-compress</artifactId>
       <version>${hadoop-compress.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-aws</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -380,112 +464,15 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-server</artifactId>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>jetty</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jetty-util</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jsp-2.1</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jsp-api-2.1</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jetty-sslengine</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>servlet-api-2.5</artifactId>
-          <groupId>org.mortbay.jetty</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-core</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-json</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-server</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>servlet-api</artifactId>
-          <groupId>javax.servlet</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-hbase-handler</artifactId>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-log4j12</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jersey-servlet</artifactId>
-          <groupId>com.sun.jersey</groupId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hive</groupId>
-      <artifactId>hive-serde</artifactId>
-      <version>${hive.serde}</version>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>com.yammer.metrics</groupId>
       <artifactId>metrics-core</artifactId>
       <version>${metrics-core.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-common</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -507,38 +494,53 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-wrangler</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>log4j-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-jdk14</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-auth</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-high-level-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-framework</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-recipes</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
     <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
   </dependencies>

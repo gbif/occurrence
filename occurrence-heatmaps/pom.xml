@@ -3,7 +3,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.109-SNAPSHOT</version>
+    <version>0.115-ES-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -84,17 +84,15 @@
           <groupId>org.slf4j</groupId>
           <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-spatial</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.lucene</groupId>
+          <artifactId>lucene-core</artifactId>
+        </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-solrj</artifactId>
-      <version>${solr-lucene.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-spatial</artifactId>
-      <version>${solr-lucene.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>

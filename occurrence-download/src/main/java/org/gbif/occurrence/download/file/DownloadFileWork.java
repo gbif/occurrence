@@ -1,10 +1,10 @@
 package org.gbif.occurrence.download.file;
 
+import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.wrangler.lock.Lock;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
-import org.apache.solr.client.solrj.SolrClient;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -28,23 +28,16 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final Lock lock;
 
-  private final SolrClient solrClient;
+  private final RestHighLevelClient esClient;
 
-  private final OccurrenceMapReader occurrenceMapReader;
+  private final String esIndex;
+
 
   /**
    * Default constructor.
    */
-  public DownloadFileWork(
-    int from,
-    int to,
-    String baseDataFileName,
-    int jobId,
-    String query,
-    Lock lock,
-    SolrClient solrClient,
-    OccurrenceMapReader occurrenceMapReader
-  ) {
+  public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
+                          RestHighLevelClient esClient, String esIndex) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -52,8 +45,8 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.baseDataFileName = baseDataFileName;
     this.jobId = jobId;
     this.lock = lock;
-    this.solrClient = solrClient;
-    this.occurrenceMapReader = occurrenceMapReader;
+    this.esClient = esClient;
+    this.esIndex = esIndex;
   }
 
   /**
@@ -120,17 +113,18 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
   }
 
   /**
-   * @return Solr client to run queries
+   * @return Elasticsearch client to run queries
    */
-  public SolrClient getSolrClient() {
-    return solrClient;
+  public RestHighLevelClient getEsClient() {
+    return esClient;
   }
 
   /**
-   * @return reads Hbase results into HashMaps
+   *
+   * @return the Elasticsearch index
    */
-  public OccurrenceMapReader getOccurrenceMapReader() {
-    return occurrenceMapReader;
+  public String getEsIndex() {
+    return esIndex;
   }
 
   @Override

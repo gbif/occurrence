@@ -1,6 +1,6 @@
 package org.gbif.occurrence.download.file.specieslist;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
@@ -10,7 +10,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +44,14 @@ public class SpeciesListDownloadActor extends UntypedActor {
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();
     try {
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrence -> {
         try {
-          org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
-          Map<String, String> occurrenceRecordMap = buildOccurrenceMap(result, DownloadTerms.SPECIES_LIST_TERMS);
+          Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SPECIES_LIST_TERMS);
           if (occurrenceRecordMap != null) {
             // collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
                 occurrenceRecordMap.get(DcTerm.license.simpleName()));
             speciesCollector.collect(occurrenceRecordMap);
-          } else {
-            LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
           }
         } catch (Exception e) {
           throw Throwables.propagate(e);

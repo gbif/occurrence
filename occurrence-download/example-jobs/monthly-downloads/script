@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd $(dirname $(realpath $0))
+
+curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-csv.json 'https://api.gbif.org/v1/occurrence/download/request'
+sleep 1m
+curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-dwc.json 'https://api.gbif.org/v1/occurrence/download/request'
+sleep 1m
+curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-avro.json 'https://api.gbif.org/v1/occurrence/download/request'
+sleep 5h
+
+curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-georeferenced-csv.json 'https://api.gbif.org/v1/occurrence/download/request'
+sleep 1m
+curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-georeferenced-dwc.json 'https://api.gbif.org/v1/occurrence/download/request'

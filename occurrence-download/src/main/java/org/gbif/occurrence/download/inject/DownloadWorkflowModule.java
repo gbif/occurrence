@@ -1,25 +1,33 @@
 package org.gbif.occurrence.download.inject;
 
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.common.search.solr.SolrConfig;
-import org.gbif.common.search.solr.SolrModule;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
-import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadAggregator;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
+import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.Mutex;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 
@@ -34,9 +42,8 @@ import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.elasticsearch.client.sniff.SniffOnFailureListener;
+import org.elasticsearch.client.sniff.Sniffer;
 
 /**
  * Private guice module that provides bindings the required Modules and dependencies.
@@ -50,9 +57,11 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
-  private static final String PROPERTIES_SOLR_PREFIX = "solr.";
+  private static final String ES_PREFIX = "es.";
 
-  private static final String LOCKING_PATH = "/runningJobs/";
+  private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
+
+  private static final String INDEX_LOCKING_PATH = "/indices/";
 
   private final DownloadJobConfiguration configuration;
 
@@ -76,9 +85,6 @@ public final class DownloadWorkflowModule extends AbstractModule {
   @Override
   protected void configure() {
     Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    install(new SolrModule(SolrConfig.fromProperties(workflowConfiguration.getDownloadSettings(),
-            PROPERTIES_SOLR_PREFIX)));
-    bind(OccurrenceMapReader.class);
     bind(DownloadPrepareAction.class);
     bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
     Optional.ofNullable(configuration).ifPresent(conf -> bind(DownloadJobConfiguration.class).toInstance(conf));
@@ -88,10 +94,26 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   @Provides
   @Singleton
-  CuratorFramework provideCuratorFramework(@Named(PROPERTIES_PREFIX + "zookeeper.namespace") String zookeeperNamespace,
-                                           @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-                                           @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-                                           @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
+  @Named("Downloads")
+  CuratorFramework provideCuratorFrameworkDownloads(@Named(PROPERTIES_PREFIX + "zookeeper.downloads.namespace") String zookeeperNamespace,
+                                                    @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
+                                                    @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
+                                                    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
+    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
+      .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
+      .connectString(zookeeperConnection)
+      .build();
+    curator.start();
+    return curator;
+  }
+
+  @Provides
+  @Singleton
+  @Named("Indices")
+  CuratorFramework provideCuratorFrameworkIndices(@Named(PROPERTIES_PREFIX + "zookeeper.indices.namespace") String zookeeperNamespace,
+                                                  @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
+                                                  @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
+                                                  @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
@@ -128,15 +150,70 @@ public final class DownloadWorkflowModule extends AbstractModule {
   }
 
   @Provides
-  Connection provideHBaseConnection() throws IOException {
-    return ConnectionFactory.createConnection(HBaseConfiguration.create());
+  LockFactory provideLock(@Named("Downloads") CuratorFramework curatorFramework, @Named(PROPERTIES_PREFIX + "max_global_threads") Integer maxGlobalThreads) {
+    return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, RUNNING_JOBS_LOCKING_PATH);
   }
 
   @Provides
-  LockFactory provideLock(
-    CuratorFramework curatorFramework, @Named(PROPERTIES_PREFIX + "max_global_threads") Integer maxGlobalThreads
-  ) {
-    return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, LOCKING_PATH);
+  ReadWriteMutexFactory provideMutexFactory(@Named("Indices") CuratorFramework curatorFramework) {
+    return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
+  }
+
+  @Provides
+  Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex) {
+    return readWriteMutexFactory.createReadMutex(esIndex);
+  }
+
+  @Provides
+  @Singleton
+  private RestHighLevelClient provideEsClient() {
+    EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
+    HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
+    int i = 0;
+    for (String host : esConfig.getHosts()) {
+      try {
+        URL url = new URL(host);
+        hosts[i] = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
+        i++;
+      } catch (MalformedURLException e) {
+        throw new IllegalArgumentException(e.getMessage(), e);
+      }
+    }
+
+    SniffOnFailureListener sniffOnFailureListener =
+      new SniffOnFailureListener();
+
+    RestClientBuilder builder =
+      RestClient.builder(hosts)
+        .setRequestConfigCallback(
+          requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
+            .setSocketTimeout(esConfig.getSocketTimeout()))
+        .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
+        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
+        .setFailureListener(sniffOnFailureListener);
+
+    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+
+    Sniffer sniffer =
+      Sniffer.builder(highLevelClient.getLowLevelClient())
+        .setSniffIntervalMillis(esConfig.getSniffInterval())
+        .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
+        .build();
+    sniffOnFailureListener.setSniffer(sniffer);
+
+    Runtime.getRuntime()
+      .addShutdownHook(
+        new Thread(
+          () -> {
+            sniffer.close();
+            try {
+              highLevelClient.close();
+            } catch (IOException e) {
+              throw new IllegalStateException("Couldn't close ES client", e);
+            }
+          }));
+
+    return highLevelClient;
   }
 
   /**
@@ -185,7 +262,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String HIVE_DB_KEY = "hive.db";
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
-    public static final String OCC_HBASE_TABLE_KEY = "hbase.table";
+    public static final String ES_INDEX_KEY = "es.index";
 
     /**
      * Hidden constructor.

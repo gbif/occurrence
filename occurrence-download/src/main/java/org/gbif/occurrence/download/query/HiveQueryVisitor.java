@@ -32,6 +32,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -47,6 +49,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
@@ -132,8 +135,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.COLLECTION_CODE, DwcTerm.collectionCode)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, DwcTerm.catalogNumber)
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, DwcTerm.scientificName)
-      .put(OccurrenceSearchParameter.OCCURRENCE_ID,
-           DwcTerm.occurrenceID).put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
+      .put(OccurrenceSearchParameter.OCCURRENCE_ID, DwcTerm.occurrenceID)
+      .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
       // the following need some value transformation
       .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, GbifTerm.lastInterpreted)
@@ -172,6 +175,17 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.EVENT_ID, DwcTerm.eventID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, DwcTerm.parentEventID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, DwcTerm.samplingProtocol)
+      .put(OccurrenceSearchParameter.PROJECT_ID, GbifInternalTerm.projectId)
+      .put(OccurrenceSearchParameter.PROGRAMME, GbifInternalTerm.programmeAcronym)
+      .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, GbifTerm.verbatimScientificName)
+      .put(OccurrenceSearchParameter.TAXON_ID, DwcTerm.taxonID)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, DwcTerm.sampleSizeUnit)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, DwcTerm.sampleSizeValue)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, DwcTerm.organismQuantity)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, DwcTerm.organismQuantityType)
+      .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
+      .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
+      .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
@@ -298,7 +312,8 @@ public class HiveQueryVisitor {
     if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       appendTaxonKeyFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
-      builder.append(String.format(MEDIATYPE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+      Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
+        .ifPresent( mediaType -> builder.append(String.format(MEDIATYPE_CONTAINS_FMT, mediaType.name())));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
       builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {

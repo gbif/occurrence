@@ -1,41 +1,24 @@
 package org.gbif.occurrence.download.file;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.gbif.api.vocabulary.Extension;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.util.ClassificationUtils;
+import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.persistence.hbase.Columns;
-import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
-import java.io.IOException;
+import java.net.URI;
 import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import com.beust.jcommander.internal.Sets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
@@ -44,173 +27,229 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  */
 public class OccurrenceMapReader {
 
-  private static final Joiner SEMICOLON_JOINER = Joiner.on(';').skipNulls();
-  private final String occurrenceTableName;
-  private final Connection connection;
+  public static final Map<Rank, Term> rank2KeyTerm =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
+      .put(Rank.CLASS, GbifTerm.classKey).put(Rank.ORDER, GbifTerm.orderKey).put(Rank.FAMILY, GbifTerm.familyKey)
+      .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
+      .put(Rank.SPECIES, GbifTerm.speciesKey).build();
 
-  /**
-   * Utility to build an API Occurrence record as a Map<String,Object> from an HBase row.
-   *
-   * @return A complete occurrence, or null
-   */
-  public static Map<String, String> buildInterpretedOccurrenceMap(@Nullable Result row) {
-    if (row == null || row.isEmpty()) {
-      return null;
-    } else {
-      Map<String, String> occurrence = new HashMap<>();
-      for (Term term : TermUtils.interpretedTerms()) {
-        if (TermUtils.isInterpretedDate(term)) {
-          occurrence.put(term.simpleName(), toISO8601Date(ExtResultReader.getDate(row, term)));
-        } else if (TermUtils.isInterpretedDouble(term)) {
-          Double value = ExtResultReader.getDouble(row, term);
-          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
-        } else if (TermUtils.isInterpretedNumerical(term)) {
-          Integer value = ExtResultReader.getInteger(row, term);
-          occurrence.put(term.simpleName(), value != null ? value.toString() : null);
-        } else if (term == GbifTerm.issue) {
-          occurrence.put(GbifTerm.issue.simpleName(), extractOccurrenceIssues(row));
-        } else if (term == GbifTerm.mediaType) {
-          occurrence.put(GbifTerm.mediaType.simpleName(), extractMediaTypes(row));
-        } else if (!TermUtils.isComplexType(term)) {
-          occurrence.put(term.simpleName(), getCleanString(row, term));
-        }
+  public static final Map<Rank, Term> rank2Term =
+    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
+      .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
+      .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus)
+      .put(Rank.SPECIES, GbifTerm.species).build();
+
+  private static final ImmutableSet<Term> INTERPRETED_SOURCE_TERMS = ImmutableSet.copyOf(TermUtils.interpretedSourceTerms());
+
+
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence) {
+
+    Map<String,String> interpretedOccurrence = new HashMap<>();
+
+    //Basic record terms
+    interpretedOccurrence.put(GbifTerm.gbifID.simpleName(), getSimpleValue(occurrence.getKey()));
+    interpretedOccurrence.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(occurrence.getBasisOfRecord()));
+    interpretedOccurrence.put(DwcTerm.establishmentMeans.simpleName(), getSimpleValue(occurrence.getEstablishmentMeans()));
+    interpretedOccurrence.put(DwcTerm.individualCount.simpleName(), getSimpleValue(occurrence.getIndividualCount()));
+    interpretedOccurrence.put(DwcTerm.lifeStage.simpleName(), getSimpleValue(occurrence.getLifeStage()));
+    interpretedOccurrence.put(DcTerm.references.simpleName(), getSimpleValue(occurrence.getReferences()));
+    interpretedOccurrence.put(DwcTerm.sex.simpleName(), getSimpleValue(occurrence.getSex()));
+    interpretedOccurrence.put(DwcTerm.typeStatus.simpleName(), getSimpleValue(occurrence.getTypeStatus()));
+    interpretedOccurrence.put(GbifTerm.typifiedName.simpleName(), occurrence.getTypifiedName());
+    interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
+    interpretedOccurrence.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(occurrence.getLastInterpreted()));
+
+    Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
+      .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
+
+    //Dataset Metadata
+    interpretedOccurrence.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(occurrence.getCrawlId()));
+    interpretedOccurrence.put(GbifTerm.datasetKey.simpleName(), getSimpleValue(occurrence.getDatasetKey()));
+    interpretedOccurrence.put(GbifTerm.publishingCountry.simpleName(), getCountryCode(occurrence.getPublishingCountry()));
+    interpretedOccurrence.put(GbifInternalTerm.installationKey.simpleName(), getSimpleValue(occurrence.getInstallationKey()));
+    interpretedOccurrence.put(DcTerm.license.simpleName(), getSimpleValue(occurrence.getLicense()));
+    interpretedOccurrence.put(GbifTerm.protocol.simpleName(), getSimpleValue(occurrence.getProtocol()));
+    interpretedOccurrence.put(GbifInternalTerm.networkKey.simpleName(), joinUUIDs(occurrence.getNetworkKeys()));
+    interpretedOccurrence.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(occurrence.getPublishingOrgKey()));
+    interpretedOccurrence.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(occurrence.getLastCrawled()));
+
+    //Temporal fields
+    interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getSimpleValue(occurrence.getDateIdentified()));
+    interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue( occurrence.getModified()));
+    interpretedOccurrence.put(DwcTerm.day.simpleName(), getSimpleValue(occurrence.getDay()));
+    interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
+    interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
+    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getSimpleValue(occurrence.getEventDate()));
+
+    // taxonomy terms
+    interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
+    interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(), getSimpleValue(occurrence.getAcceptedTaxonKey()));
+    interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
+    interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
+    interpretedOccurrence.put(GbifTerm.genericName.simpleName(), occurrence.getGenericName());
+    interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
+    interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
+    interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
+    interpretedOccurrence.put(DwcTerm.taxonomicStatus.simpleName(), getSimpleValue(occurrence.getTaxonomicStatus()));
+    interpretedOccurrence.put(GbifTerm.genericName.simpleName(), getSimpleValue(occurrence.getGenericName()));
+    Rank.DWC_RANKS.forEach(rank -> {
+                              Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
+                                .ifPresent(rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()));
+                              Optional.ofNullable(ClassificationUtils.getHigherRank(occurrence, rank))
+                                .ifPresent(rankClassification -> interpretedOccurrence.put(rank2Term.get(rank).simpleName(), rankClassification));
+                           });
+
+    //location fields
+    interpretedOccurrence.put(DwcTerm.countryCode.simpleName(), getCountryCode(occurrence.getCountry()));
+    interpretedOccurrence.put(DwcTerm.continent.simpleName(), getSimpleValue(occurrence.getContinent()));
+    interpretedOccurrence.put(DwcTerm.decimalLatitude.simpleName(), getSimpleValue(occurrence.getDecimalLatitude()));
+    interpretedOccurrence.put(DwcTerm.decimalLongitude.simpleName(), getSimpleValue(occurrence.getDecimalLongitude()));
+    interpretedOccurrence.put(DwcTerm.coordinatePrecision.simpleName(), getSimpleValue(occurrence.getCoordinatePrecision()));
+    interpretedOccurrence.put(DwcTerm.coordinateUncertaintyInMeters.simpleName(), getSimpleValue(occurrence.getCoordinateUncertaintyInMeters()));
+    interpretedOccurrence.put(GbifTerm.depth.simpleName(), getSimpleValue(occurrence.getDepth()));
+    interpretedOccurrence.put(GbifTerm.depthAccuracy.simpleName(), getSimpleValue(occurrence.getDepthAccuracy()));
+    interpretedOccurrence.put(GbifTerm.elevation.simpleName(), getSimpleValue(occurrence.getElevation()));
+    interpretedOccurrence.put(GbifTerm.elevationAccuracy.simpleName(), getSimpleValue(occurrence.getElevationAccuracy()));
+    interpretedOccurrence.put(DwcTerm.stateProvince.simpleName(), occurrence.getStateProvince());
+    interpretedOccurrence.put(DwcTerm.waterBody.simpleName(), occurrence.getWaterBody());
+    interpretedOccurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(occurrence.hasSpatialIssue()));
+    interpretedOccurrence.put(GbifTerm.hasCoordinate.simpleName(), Boolean.toString(occurrence.getDecimalLatitude() != null && occurrence.getDecimalLongitude() != null));
+    interpretedOccurrence.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(occurrence.getCoordinateAccuracy()));
+    getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
+    interpretedOccurrence.put(DwcTerm.geodeticDatum.simpleName(), occurrence.getGeodeticDatum());
+
+    extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
+    extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+
+    // Sampling
+    interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
+    interpretedOccurrence.put(DwcTerm.sampleSizeValue.simpleName(), getSimpleValue(occurrence.getSampleSizeValue()));
+    interpretedOccurrence.put(DwcTerm.organismQuantity.simpleName(), getSimpleValue(occurrence.getOrganismQuantity()));
+    interpretedOccurrence.put(DwcTerm.organismQuantityType.simpleName(), occurrence.getOrganismQuantityType());
+    interpretedOccurrence.put(GbifTerm.relativeOrganismQuantity.simpleName(), getSimpleValue(occurrence.getRelativeOrganismQuantity()));
+
+    occurrence.getVerbatimFields().forEach( (term, value) -> {
+      if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
+       interpretedOccurrence.put(term.simpleName(), value);
       }
-      occurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(hasGeospatialIssues(row)));
-      occurrence.put(GbifTerm.hasCoordinate.simpleName(),
-                     Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
-                                      && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
-      occurrence.put(GbifTerm.repatriated.simpleName(), getRepatriated(row).orElse(null));
-      return occurrence;
-    }
+    });
+
+    return interpretedOccurrence;
   }
 
   /**
-   * Utility to build an API Occurrence record as a Map<String,Object> from an HBase row.
-   *
-   * @return A complete occurrence, or null
+   * Populate two verbatim fields for CSV downloads
    */
-  public static Map<String, String> buildOccurrenceMap(@Nullable Result row, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    if (row == null || row.isEmpty()) {
-      return null;
-    } else {
-      Map<String, String> occurrence = new HashMap<>();
-      for (Pair<DownloadTerms.Group, Term> termPair : terms) {
-        Term term = termPair.getRight();
-        String simpleName = DownloadTerms.simpleName(termPair);
-        if (termPair.getLeft().equals(DownloadTerms.Group.VERBATIM)) {
-          // In the CSV, the verbatim field should be prefixed "verbatim".
-          occurrence.put(simpleName, getCleanVerbatimString(row, term));
-        } else if (TermUtils.isInterpretedDate(term)) {
-          occurrence.put(simpleName, toISO8601Date(ExtResultReader.getDate(row, term)));
-        } else if (TermUtils.isInterpretedDouble(term)) {
-          Double value = ExtResultReader.getDouble(row, term);
-          occurrence.put(simpleName, value != null ? value.toString() : null);
-        } else if (TermUtils.isInterpretedNumerical(term)) {
-          Integer value = ExtResultReader.getInteger(row, term);
-          occurrence.put(simpleName, value != null ? value.toString() : null);
-        } else if (term == GbifTerm.issue) {
-          occurrence.put(simpleName, extractOccurrenceIssues(row));
-        } else if (term == GbifTerm.mediaType) {
-          occurrence.put(simpleName, extractMediaTypes(row));
-        } else if (term == GbifTerm.hasGeospatialIssues) {
-          occurrence.put(simpleName, Boolean.toString(hasGeospatialIssues(row)));
-        } else if (term == GbifTerm.hasCoordinate) {
-          occurrence.put(simpleName,
-                         Boolean.toString(occurrence.get(DwcTerm.decimalLatitude.simpleName()) != null
-                                          && occurrence.get(DwcTerm.decimalLongitude.simpleName()) != null));
-        } else if (term == GbifTerm.repatriated) {
-          occurrence.put(simpleName, getRepatriated(row).orElse(null));
-        } else if (!TermUtils.isComplexType(term)) {
-          occurrence.put(simpleName, getCleanString(row, term));
-        }
-      }
-      return occurrence;
-    }
+  public static void populateVerbatimCsvFields(Map<String, String> map, Occurrence occurrence) {
+    Function<Term, String> keyFn =
+      t -> "verbatim" + Character.toUpperCase(t.simpleName().charAt(0)) + t.simpleName().substring(1);
+
+    Map<Term, String> verbatimFields = occurrence.getVerbatimFields();
+
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificName))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificName), x));
+    Optional.ofNullable(verbatimFields.get(DwcTerm.scientificNameAuthorship))
+      .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificNameAuthorship), x));
   }
+
+
+  /**
+   * Builds Map that contains a lists of terms.
+   */
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
+    return  buildInterpretedOccurrenceMap(occurrence).entrySet().stream()
+              .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
+              .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+  }
+
+
+  /**
+   * Joins a collection of UUIDs into String.
+   */
+  private static String joinUUIDs(Collection<UUID> uuids) {
+    if (uuids != null ) {
+     return uuids.stream().map(UUID::toString).collect(Collectors.joining(";"));
+    }
+    return null;
+  }
+
+  /**
+   * Extract the Iso2LetterCode from the country.
+   */
+  private static String getCountryCode(Country country) {
+    if (country != null) {
+      return country.getIso2LetterCode();
+    }
+    return null;
+  }
+
+
+  /**
+   * Transform a simple data type into a String.
+   */
+  private static String getSimpleValue(Object value) {
+    if (value != null) {
+      if (value instanceof Number || value instanceof UUID || value instanceof URI) {
+        return value.toString();
+      } else if (value instanceof Date) {
+        return toISO8601Date((Date) value);
+      } else if (value instanceof String) {
+        return cleanString((String) value);
+      } else if (value instanceof Enum<?>) {
+        return ((Enum<?>)value).name();
+      }
+    }
+    return null;
+  }
+
 
   /**
    * Validates if the occurrence record it's a repatriated record.
    */
-  private static Optional<String> getRepatriated(Result result) {
-    String publishingCountry = ExtResultReader.getString(result,Columns.column(GbifTerm.publishingCountry));
-    String countryCode = ExtResultReader.getString(result,Columns.column(DwcTerm.countryCode));
+  private static Optional<String> getRepatriated(Occurrence occurrence) {
+    Country publishingCountry = occurrence.getPublishingCountry();
+    Country countryCode = occurrence.getCountry();
 
     if (publishingCountry != null && countryCode != null) {
-      return Optional.of(Boolean.toString(!publishingCountry.equalsIgnoreCase(countryCode)));
+      return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
   }
 
   /**
-   * Extracts the media types from the hbase result.
+   * Extracts the media types from the record.
    */
-  private static String extractMediaTypes(Result result) {
-    Optional<byte[]> val = Optional.ofNullable(result.getValue(Columns.CF,
-                                                               Bytes.toBytes(Columns.column(Extension.MULTIMEDIA))));
-    return val.map( v -> SEMICOLON_JOINER.join(MediaSerDeserUtils.extractMediaTypes(v))).orElse("");
+  private static Optional<String> extractMediaTypes(Occurrence occurrence) {
+    return  Optional.ofNullable(occurrence.getMedia())
+              .map(media -> media.stream().filter(mediaObject -> Objects.nonNull(mediaObject.getType()))
+                              .map(mediaObject -> mediaObject.getType().name())
+                              .distinct()
+                              .collect(Collectors.joining(";")));
   }
 
   /**
-   * Extracts the spatial issues from the hbase result.
+   * Extracts the spatial issues from the record.
    */
-  private static String extractOccurrenceIssues(Result result) {
-    Set<String> issues = Sets.newHashSet();
-    for (OccurrenceIssue issue : OccurrenceIssue.values()) {
-      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(Columns.column(issue)));
-      if (val != null) {
-        issues.add(issue.name());
-      }
-    }
-
-    return SEMICOLON_JOINER.join(issues);
+  private static Optional<String> extractOccurrenceIssues(Occurrence occurrence) {
+    return  Optional.ofNullable(occurrence.getIssues())
+                .map(issues -> issues.stream().map(OccurrenceIssue::name)
+                                 .collect(Collectors.joining(";")));
   }
+
 
   /**
-   * Extracts the spatial issues from the HBase result.
+   * Extract all the verbatim data into a Map.
    */
-  private static Boolean hasGeospatialIssues(Result result) {
-    for (OccurrenceIssue issue : OccurrenceIssue.GEOSPATIAL_RULES) {
-      String column = Columns.column(issue);
-      byte[] val = result.getValue(Columns.CF, Bytes.toBytes(column));
-      if (val != null) {
-        return true;
-      }
-    }
-    return false;
+  public static Map<String, String> buildVerbatimOccurrenceMap(Occurrence occurrence) {
+    HashMap<String, String> verbatimMap = new HashMap<>();
+    TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(occurrence.getVerbatimField(term))));
+    return verbatimMap;
   }
+
 
   /**
-   * Utility to build an API Occurrence from an HBase row.
-   *
-   * @return A complete occurrence, or null
+   * Removes all delimiters in a string.
    */
-  public static Map<String, String> buildVerbatimOccurrenceMap(@Nullable Result row) {
-    if (row == null || row.isEmpty()) {
-      return null;
-    }
-    Map<String, String> occurrence = new HashMap<>();
-    for (Term term : TermUtils.verbatimTerms()) {
-      occurrence.put(term.simpleName(), getCleanVerbatimString(row, term));
-    }
-    return occurrence;
-  }
-
-  /**
-   * Cleans specials characters from a string value.
-   * Removes tabs, line breaks and new lines.
-   */
-  private static String getCleanString(Result row, Term term) {
-    return cleanString(ExtResultReader.getString(row, term));
-  }
-
-  /**
-   * Cleans specials characters from a string value.
-   * Removes tabs, line breaks and new lines.
-   */
-  private static String getCleanVerbatimString(Result row, Term term) {
-    return cleanString(ExtResultReader.getString(row, Columns.verbatimColumn(term)));
-  }
-
   private static String cleanString(String value) {
     return Optional.ofNullable(value).map(v -> DELIMETERS_MATCH_PATTERN.matcher(v).replaceAll(" ")).orElse(value);
   }
@@ -218,26 +257,8 @@ public class OccurrenceMapReader {
   /**
    * Converts a date object into a String in IS0 8601 format.
    */
-  private static String toISO8601Date(Date date) {
+  protected static String toISO8601Date(Date date) {
     return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
-  }
-
-  @Inject
-  public OccurrenceMapReader(@Named(DownloadWorkflowModule.DefaultSettings.OCC_HBASE_TABLE_KEY) String tableName,
-                             Connection connection) {
-    occurrenceTableName = tableName;
-    this.connection = connection;
-  }
-
-  /**
-   * Reads an occurrence record from HBase into Map.
-   * The occurrence record
-   */
-  public Result get(@Nonnull Long key) throws IOException {
-    Preconditions.checkNotNull(key, "Occurrence key can't be null");
-    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
-      return table.get(new Get(Bytes.toBytes(key)));
-    }
   }
 
 }

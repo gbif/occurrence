@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.109-SNAPSHOT</version>
+    <version>0.115-ES-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws-client</artifactId>
@@ -161,7 +161,7 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-ws</artifactId>
+      <artifactId>es-occurrence-ws</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>

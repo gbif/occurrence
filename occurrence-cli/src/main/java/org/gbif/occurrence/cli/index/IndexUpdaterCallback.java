@@ -1,10 +1,22 @@
 package org.gbif.occurrence.cli.index;
 
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.TimerContext;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.OccurrenceMutatedMessage;
-import org.gbif.occurrence.search.writer.SolrOccurrenceWriter;
+import org.gbif.occurrence.search.es.EsQueryUtils;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,13 +28,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -42,7 +47,9 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
 
   private final Duration updateWithin;
 
-  private final SolrOccurrenceWriter solrOccurrenceWriter;
+  private final RestHighLevelClient esClient;
+
+  private final String esIndex;
 
   private final List<Occurrence> updateBatch;
 
@@ -51,32 +58,34 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
   private final ScheduledExecutorService updateTimer = Executors.newSingleThreadScheduledExecutor();
 
   private void atomicAddOrUpdate() throws IOException, SolrServerException {
-    addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
-            || LocalDateTime.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
+//    addOrUpdate(updateBatch.size() >= UPDATE_BATCH_SIZE
+//            || LocalDateTime.now().minus(updateWithin).compareTo(lastUpdate) >= 0);
   }
 
-  /**
-   * Flushes all the updates/creates into Solr.
-   */
-  private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
-      synchronized (updateBatch) {
-        if(onCondition && !updateBatch.isEmpty()) {
-            try {
-                solrOccurrenceWriter.update(updateBatch);
-            } finally {
-                updateBatch.clear();
-                lastUpdate = LocalDateTime.now();
-            }
-        }
-      }
-  }
+//  /**
+//   * Flushes all the updates/creates into Solr.
+//   */
+//  private void addOrUpdate(boolean onCondition) throws IOException, SolrServerException {
+//      synchronized (updateBatch) {
+//        if(onCondition && !updateBatch.isEmpty()) {
+//            try {
+//                solrOccurrenceWriter.update(updateBatch);
+//            } finally {
+//                updateBatch.clear();
+//                lastUpdate = LocalDateTime.now();
+//            }
+//        }
+//      }
+//  }
 
   /**
    * Default constructor.
    */
-  public IndexUpdaterCallback(SolrOccurrenceWriter solrOccurrenceWriter, int solrUpdateBatchSize,
+  public IndexUpdaterCallback(RestHighLevelClient esClient, String esIndex,
+                              int solrUpdateBatchSize,
                               long solrUpdateWithinMs) {
-    this.solrOccurrenceWriter = solrOccurrenceWriter;
+    this.esClient = esClient;
+    this.esIndex = esIndex;
     updateBatch = Collections.synchronizedList(new ArrayList<>(solrUpdateBatchSize));
     updateWithin = Duration.ofMillis(solrUpdateWithinMs);
     updateTimer.scheduleWithFixedDelay(() -> {
@@ -99,7 +108,7 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
           // create occurrence
           updateBatch.add(message.getNewOccurrence());
           atomicAddOrUpdate();
-          newOccurrencesCount.inc();
+         newOccurrencesCount.inc();
           break;
         case UPDATED:
           // update occurrence
@@ -109,8 +118,7 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
           break;
         case DELETED:
           // delete occurrence
-          solrOccurrenceWriter.delete(message.getOldOccurrence());
-          deletedOccurrencesCount.inc();
+          deleteOccurrence(message.getOldOccurrence());
           break;
         case UNCHANGED:
           break;
@@ -122,13 +130,26 @@ class IndexUpdaterCallback extends AbstractMessageCallback<OccurrenceMutatedMess
     }
   }
 
+
+  /**
+   * Performs a DeleteByQuery.
+   */
+  private void deleteOccurrence(Occurrence occurrence) throws IOException {
+    DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest();
+    deleteByQueryRequest.indices(esIndex);
+    deleteByQueryRequest.setQuery(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), occurrence.getKey()));
+    BulkByScrollResponse response = esClient.deleteByQuery(deleteByQueryRequest, EsQueryUtils.HEADERS.get());
+    deletedOccurrencesCount.inc(response.getDeleted());
+  }
+
   /**
    *  Tries an update and stop the timer.
    */
   @Override
   public void close() {
     try {
-      addOrUpdate(true);
+      //addOrUpdate(true);
+      esClient.close();
     } catch (Exception e) {
       LOG.error("Error closing callback", e);
     }

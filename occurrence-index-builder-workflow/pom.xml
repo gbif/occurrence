@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.109-SNAPSHOT</version>
+    <version>0.115-ES-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-index-builder-workflow</artifactId>
@@ -318,10 +318,6 @@
       <version>${oozie.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.solr</groupId>
-      <artifactId>solr-map-reduce</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.apache.hbase</groupId>
@@ -349,12 +345,6 @@
           <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-spatial</artifactId>
-      <version>${solr-lucene.version}</version>
     </dependency>
 
     <!-- GBIF -->

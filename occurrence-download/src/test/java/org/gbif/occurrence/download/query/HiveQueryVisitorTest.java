@@ -128,7 +128,7 @@ public class HiveQueryVisitorTest {
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("(array_contains(mediatype,'STILLIMAGE') OR array_contains(mediatype,'SOUND'))"));
+    assertThat(query, equalTo("(array_contains(mediatype,'StillImage') OR array_contains(mediatype,'Sound'))"));
   }
 
   @Test
@@ -172,7 +172,7 @@ public class HiveQueryVisitorTest {
   public void testInPredicateMediaType() throws QueryBuildingException {
     Predicate p = new InPredicate(OccurrenceSearchParameter.MEDIA_TYPE, Lists.newArrayList("StillImage", "Sound"));
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("(array_contains(mediatype,'STILLIMAGE') OR array_contains(mediatype,'SOUND'))"));
+    assertThat(query, equalTo("(array_contains(mediatype,'StillImage') OR array_contains(mediatype,'Sound'))"));
   }
 
   @Test

@@ -48,7 +48,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
 <#-- NOTE: Formatted below to generate nice output at expense of ugliness in this template -->
-FROM occurrence_hdfs
+FROM occurrence_pipeline_hdfs
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
 <#list verbatimFields as field>
@@ -73,9 +73,9 @@ SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 SET mapred.reduce.tasks=5;
 -- Disabling hive auto join https://issues.apache.org/jira/browse/HIVE-2601.
 SET hive.auto.convert.join=false;
-CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT m.*
-FROM occurrence_multimedia m
+CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
+AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
+FROM occurrence_pipeline_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 SET hive.auto.convert.join=true;
 

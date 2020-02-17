@@ -23,11 +23,8 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.occurrence.persistence.hbase.HBaseStore;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 
 import static org.gbif.occurrence.persistence.hbase.HBaseStore.saltKey;
@@ -37,6 +34,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 //@Ignore("As per http://dev.gbif.org/issues/browse/OCC-109")
+@Ignore("Not needed for pipelines")
 public class HBaseLockingKeyServiceTest {
 
   private static final String A = "a";

@@ -23,7 +23,7 @@ public class DownloadJobConfiguration {
 
   private final String sourceDir;
 
-  private final String solrQuery;
+  private final String searchQuery;
 
   private final DownloadFormat downloadFormat;
 
@@ -32,14 +32,14 @@ public class DownloadJobConfiguration {
    * Instances must be created using the Builder class.
    */
   private DownloadJobConfiguration(String downloadKey, String downloadTableName, String filter, String user,
-                                   boolean isSmallDownload, String sourceDir, String solrQuery,
+                                   boolean isSmallDownload, String sourceDir, String searchQuery,
                                    DownloadFormat downloadFormat) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
     this.isSmallDownload = isSmallDownload;
     this.sourceDir = sourceDir;
-    this.solrQuery = solrQuery;
+    this.searchQuery = searchQuery;
     this.downloadTableName = downloadTableName;
     this.downloadFormat = downloadFormat;
   }
@@ -75,8 +75,8 @@ public class DownloadJobConfiguration {
   /**
    * Solr query, translation of the query filter.
    */
-  public String getSolrQuery() {
-    return solrQuery;
+  public String getSearchQuery() {
+    return searchQuery;
   }
 
   /**
@@ -187,7 +187,7 @@ public class DownloadJobConfiguration {
 
     private String sourceDir;
 
-    private String solrQuery;
+    private String searchQuery;
 
     private DownloadFormat downloadFormat;
 
@@ -221,8 +221,8 @@ public class DownloadJobConfiguration {
       return this;
     }
 
-    public Builder withSolrQuery(String solrQuery) {
-      this.solrQuery = solrQuery;
+    public Builder withSearchQuery(String searchQuery) {
+      this.searchQuery = searchQuery;
       return this;
     }
 
@@ -241,7 +241,7 @@ public class DownloadJobConfiguration {
                                           user,
                                           isSmallDownload,
                                           sourceDir,
-                                          solrQuery,
+                                          searchQuery,
                                           downloadFormat);
     }
 

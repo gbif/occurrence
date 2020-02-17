@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.109-SNAPSHOT</version>
+  <version>0.115-ES-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -47,7 +47,6 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-beam-hbase-solr</module>
     <module>occurrence-solr</module>
     <module>occurrence-salt-keys</module>
   </modules>
@@ -90,10 +89,6 @@
       changing.
     -->
     <guava.version>18.0</guava.version>
-
-    <!-- Guava version required by HBase libraries -->
-    <guava.hbase.version>12.0.1</guava.hbase.version>
-
     <guice.version>4.0</guice.version>
     <hamcrest.version>1.3</hamcrest.version>
 
@@ -121,7 +116,7 @@
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
     <!--Solr/Lucene projects use the same versioning -->
-    <solr-lucene.version>5.4.1</solr-lucene.version>
+    <solr-lucene.version>7.5.0</solr-lucene.version>
     <jts.version>1.16.1</jts.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
@@ -136,45 +131,33 @@
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <calcite.version>1.0.0-incubating</calcite.version>
+    <avro.version>1.8.2</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.26</download-query-tools.version>
-    <dwc-api.version>1.22</dwc-api.version>
+    <dwc-api.version>1.24</dwc-api.version>
     <dwca-io.version>2.2</dwca-io.version>
-    <gbif-api.version>0.85</gbif-api.version>
+    <gbif-api.version>0.103</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
-    <gbif-common-ws.version>0.46</gbif-common-ws.version>
+    <gbif-common-ws.version>0.48</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
-    <gbif-postal-service.version>0.38</gbif-postal-service.version>
-    <gbif-registry.version>2.123</gbif-registry.version>
-    <gbif-wrangler.version>0.2</gbif-wrangler.version>
+    <gbif-postal-service.version>0.35</gbif-postal-service.version>
+    <gbif-registry.version>2.145</gbif-registry.version>
+    <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
+    <pipelines.version>2.2.9</pipelines.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
-    <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
-    <maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
-    <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
 
-    <!-- Sonar -->
-    <sonar.language>java</sonar.language>
-    <sonar.jacoco.reportPaths>${jacoco.merged.output.file}</sonar.jacoco.reportPaths>
-    <sonar.projectName>GBIF Occurrence</sonar.projectName>
-
-    <!-- JaCoCo -->
-    <coverage.dir>${project.basedir}/../target/coverage</coverage.dir>
-    <coverage.report.it.dir>${project.basedir}/../target/site/jacoco-it</coverage.report.it.dir>
-    <coverage.report.ut.dir>${project.basedir}/../target/site/jacoco-ut</coverage.report.ut.dir>
-    <jacoco.it.output.file>${coverage.dir}/jacoco-it.exec</jacoco.it.output.file>
-    <jacoco.ut.output.file>${coverage.dir}/jacoco-ut.exec</jacoco.ut.output.file>
-    <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
+    <!-- es versions -->
+    <elasticsearch.version>6.5.4</elasticsearch.version>
   </properties>
 
   <repositories>
@@ -429,6 +412,11 @@
         <artifactId>checklistbank-ws-client</artifactId>
         <version>${checklistbank-ws-client.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.gbif.pipelines</groupId>
+        <artifactId>common</artifactId>
+        <version>${pipelines.version}</version>
+      </dependency>
 
       <!-- Other -->
       <dependency>
@@ -445,37 +433,6 @@
         <groupId>org.apache.lucene</groupId>
         <artifactId>lucene-core</artifactId>
         <version>${solr-lucene.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-map-reduce</artifactId>
-        <version>${solr-lucene.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-auth</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>aopalliance</groupId>
@@ -612,33 +569,6 @@
         <scope>runtime</scope>
       </dependency>
       <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-core</artifactId>
-        <version>${solr-lucene.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>commons-logging</artifactId>
-            <groupId>commons-logging</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>slf4j-jdk14</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-          <exclusion>
-          <artifactId>org.restlet</artifactId>
-          <groupId>org.restlet.jee</groupId>
-        </exclusion>
-          <exclusion>
-            <artifactId>org.restlet.ext.servlet</artifactId>
-            <groupId>org.restlet.jee</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>org.restlet.ext.servlet</artifactId>
-            <groupId>org.restlet.jee</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.locationtech.jts</groupId>
         <artifactId>jts-core</artifactId>
         <version>${jts.version}</version>
@@ -663,11 +593,6 @@
             <groupId>commons-logging</groupId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.solr</groupId>
-        <artifactId>solr-solrj</artifactId>
-        <version>${solr-lucene.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -715,6 +640,7 @@
         <artifactId>jsr305</artifactId>
         <version>${findbugs-jsr305.version}</version>
       </dependency>
+
       <!-- hbase -->
       <dependency>
         <groupId>org.apache.hbase</groupId>
@@ -980,17 +906,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-core</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
-	  <dependency>
-		<groupId>org.apache.calcite</groupId>
-		<artifactId>calcite-avatica</artifactId>
-		<version>${calcite.version}</version>
-	  </dependency>
 
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.
@@ -1146,6 +1061,39 @@
         <artifactId>metrics-jersey</artifactId>
         <version>${yammer.version}</version>
         <scope>runtime</scope>
+      </dependency>
+
+      <!-- ES -->
+      <dependency>
+        <groupId>org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-high-level-client</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId> org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-client</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId> org.elasticsearch</groupId>
+        <artifactId>elasticsearch-core</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId> org.elasticsearch</groupId>
+        <artifactId>elasticsearch</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+        <version>${elasticsearch.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
       </dependency>
 
       <!-- TEST PIECES -->

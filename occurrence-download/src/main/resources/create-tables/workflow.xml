@@ -24,37 +24,36 @@
     </configuration>
   </global>
 
-  <start to="create-hbase-table"/>
+  <start to="start-barrier"/>
 
-  <!--
-    Create the table backed by HBase
-  -->
-  <action name="create-hbase-table">
-    <hive xmlns="uri:oozie:hive-action:0.4">
-      <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create-occurrence-hbase.q</script>
-      <param>hiveDB=${hiveDB}</param>
-      <param>occurrenceHBaseTable=${occurrenceHBaseTable}</param>
-    </hive>
-    <ok to="create-hdfs-table"/>
+  <action name="start-barrier">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <arg>START</arg>
+    </java>
+    <ok to="create-avro-table"/>
     <error to="notify-error"/>
   </action>
 
   <!--
-    Creates and populates an HDFS copy of the HBase table
+    Create the table backed by HBase
   -->
-  <action name="create-hdfs-table">
+  <action name="create-avro-table">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <configuration>
-        <property>
-          <name>oozie.action.sharelib.for.hive</name>
-          <value>ignored</value>
-        </property>
-      </configuration>
-      <script>hive-scripts/create-occurrence-hdfs.q</script>
+      <script>hive-scripts/create-occurrence-avro.q</script>
       <param>hiveDB=${hiveDB}</param>
+      <param>env=${occurrence.environment}</param>
     </hive>
+    <ok to="end-barrier"/>
+    <error to="notify-error"/>
+  </action>
+
+  <action name="end-barrier">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <arg>END</arg>
+    </java>
     <ok to="end"/>
     <error to="notify-error"/>
   </action>

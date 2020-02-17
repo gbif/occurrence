@@ -1,8 +1,8 @@
 package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.MediaType;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -10,8 +10,7 @@ import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.SolrQueryProcessor;
-import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -20,6 +19,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import akka.actor.UntypedActor;
 import com.google.common.base.Charsets;
@@ -61,19 +61,20 @@ public class DownloadDwcaActor extends UntypedActor {
     Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] MULTIMEDIA_COLUMNS =
     Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), Term::simpleName).toArray(new String[0]);
-  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {new NotNull(), // coreid
+  private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {
+    new NotNull(), // coreid
     new MediaTypeProcessor(), // type
     new CleanStringProcessor(), // format
     new URIProcessor(), // identifier
     new URIProcessor(), // references
     new CleanStringProcessor(), // title
     new CleanStringProcessor(), // description
+    new CleanStringProcessor(), // source
+    new CleanStringProcessor(), // audience
     new DateProcessor(), // created
     new CleanStringProcessor(), // creator
     new CleanStringProcessor(), // contributor
     new CleanStringProcessor(), // publisher
-    new CleanStringProcessor(), // audience
-    new CleanStringProcessor(), // source
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
   };
@@ -81,13 +82,11 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
-  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter,
-                                        org.apache.hadoop.hbase.client.Result result,
-                                        Long occurrenceKey) throws IOException {
-    List<MediaObject> multimedia = OccurrenceBuilder.buildMedia(result);
+  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, Occurrence occurrence) throws IOException {
+    List<MediaObject> multimedia = occurrence.getMedia();
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrenceKey),
+        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrence.getKey()),
                                   MULTIMEDIA_COLUMNS,
                                   MEDIA_CELL_PROCESSORS);
       }
@@ -114,19 +113,15 @@ public class DownloadDwcaActor extends UntypedActor {
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
                                                                                         Charsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
-      SolrQueryProcessor.processQuery(work, occurrenceKey -> {
+      SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
             // Writes the occurrence record obtained from HBase as Map<String,Object>.
-            org.apache.hadoop.hbase.client.Result result = work.getOccurrenceMapReader().get(occurrenceKey);
-            Map<String, String> occurrenceRecordMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(result);
-            Map<String, String> verbOccurrenceRecordMap = OccurrenceMapReader.buildVerbatimOccurrenceMap(result);
-            if (occurrenceRecordMap != null) {
-              datasetUsagesCollector.incrementDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()));
-              intCsvWriter.write(occurrenceRecordMap, INT_COLUMNS);
-              verbCsvWriter.write(verbOccurrenceRecordMap, VERB_COLUMNS);
-              writeMediaObjects(multimediaCsvWriter, result, occurrenceKey);
-            } else {
-              LOG.error(String.format("Occurrence id %s not found!", occurrenceKey));
+
+            if (occurrence != null) {
+              datasetUsagesCollector.incrementDatasetUsage(occurrence.getDatasetKey().toString());
+              intCsvWriter.write(OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence), INT_COLUMNS);
+              verbCsvWriter.write(OccurrenceMapReader.buildVerbatimOccurrenceMap(occurrence), VERB_COLUMNS);
+              writeMediaObjects(multimediaCsvWriter, occurrence);
             }
           } catch (Exception e) {
             throw Throwables.propagate(e);

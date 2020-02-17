@@ -20,18 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import javax.validation.ValidationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -42,12 +35,9 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.hive.HiveSQL;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
 import org.gbif.ws.response.GbifResponseStatus;
 import org.slf4j.Logger;
@@ -68,8 +58,6 @@ import com.yammer.metrics.core.Counter;
 @Singleton
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
-  private static final String EMPTY = "EMPTY";
-  private static final String ALL = "1 = 1";
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
@@ -178,8 +166,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         throw new WebApplicationException(calm);
       }
 
-      String jobId = request.getFormat().equals(DownloadFormat.SQL)?
-                        runSqlDownload(request) : client.run(parametersBuilder.buildWorkflowParameters(request));
+      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
       LOG.debug("Oozie job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId);
@@ -188,26 +175,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
-  }
-
-  /**
-   * Executes the request as SQLDownload.
-   */
-  private String runSqlDownload(DownloadRequest request) throws OozieClientException {
-    SqlDownloadRequest sqlRequest = (SqlDownloadRequest) request;
-    HiveSQL.Validate.Result result = new HiveSQL.Validate().apply(sqlRequest.getSql());
-    if (!result.isOk()) {
-      throw new ValidationException(String.format("SQL validation failed because of : %s. Please try occurrence/download/request/sql/validate endpoint for more description.", result.issues()));
-    }
-    sqlRequest.setSql(result.transSql());
-    BiFunction<String, String, Map.Entry<String, String>> entry = AbstractMap.SimpleEntry::new;
-    //if where clause is not there, then send empty when no functions used else send all rows for where clause(this is for citation).
-    return client.run(parametersBuilder.buildWorkflowParameters(request,
-        Collections.unmodifiableMap(Stream
-            .of(entry.apply(DownloadWorkflowParameters.SQL_HEADER, result.sqlHeader()),
-                entry.apply(DownloadWorkflowParameters.SQL_WHERE,
-                    result.queryContext().where().orElse(result.queryContext().hasFunctionsInSelectFields() ? EMPTY : ALL)))
-            .collect(Collectors.toMap(Entry::getKey, Entry::getValue)))));
   }
 
   @Nullable
