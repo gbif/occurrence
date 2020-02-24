@@ -9,6 +9,10 @@
         <name>oozie.launcher.mapreduce.task.classpath.user.precedence</name>
         <value>true</value>
       </property>
+      <property>
+        <name>mapred.job.queue.name</name>
+        <value>download-admin</value>
+      </property>
     </configuration>
   </global>
 
