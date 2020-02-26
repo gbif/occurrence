@@ -320,18 +320,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-index-builder</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-index-builder</artifactId>
-        <version>${project.version}</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-ws</artifactId>
         <classifier>classes</classifier>
         <version>${project.version}</version>
@@ -362,11 +350,6 @@
         <classifier>tests</classifier>
         <version>${project.version}</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-parser</artifactId>
-        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
