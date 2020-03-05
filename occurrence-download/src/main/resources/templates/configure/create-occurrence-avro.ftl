@@ -8,12 +8,13 @@
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
 USE ${r"${hiveDB}"};
 
+-- Creates the Avro table pointing to the snapshot
 DROP TABLE IF EXISTS occurrence_pipeline_avro;
 CREATE EXTERNAL TABLE occurrence_pipeline_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '/data/hdfsview/occurrence/'
+LOCATION '/data/hdfsview/occurrence/.snapshot/${r"${snapshot}"}'
 TBLPROPERTIES ('avro.schema.url'='/occurrence-download-workflows-${r"${env}"}/create-tables/avro-schemas/occurrence-hdfs-record.avsc');
 
 -- snappy compression
@@ -62,5 +63,14 @@ occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,s
 SET hive.auto.convert.join=true;
 SET hive.vectorized.execution.reduce.enabled=true;
 SET hive.exec.parallel=true;
+
+-- Re-creates the Avro table pointing to the main directory
+DROP TABLE IF EXISTS occurrence_pipeline_avro;
+CREATE EXTERNAL TABLE occurrence_pipeline_avro
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+LOCATION '/data/hdfsview/occurrence/'
+TBLPROPERTIES ('avro.schema.url'='/occurrence-download-workflows-${r"${env}"}/create-tables/avro-schemas/occurrence-hdfs-record.avsc');
 
 
