@@ -160,7 +160,6 @@ public final class Terms {
                            GbifTerm.acceptedScientificName,
                            DwcTerm.taxonRank,
                            DwcTerm.taxonomicStatus,
-                           // DwcTerm.verbatimCoordinates,
                            GbifTerm.genericName,
                            DwcTerm.specificEpithet,
                            DwcTerm.infraspecificEpithet,
@@ -261,12 +260,16 @@ public final class Terms {
    * Returns the list of all terms which can be present in the verbatim view of an Occurrence.  This is defined as:
    * <ul>
    * <li>The GBIF ID</li>
-   * <li>The complete Dublin Core terms excluding "class" terms</li>
+   * <li>The complete Darwin Core terms excluding "class" terms</li>
    * <li>The Darwin Core terms excluding "class" terms and any not suitable for occurrence records</li>
    * </ul>
    */
   public static List<Term> verbatimTerms() {
-    return ImmutableList.<Term>builder().add(GbifTerm.gbifID).addAll(DC_PROPERTIES).addAll(DwC_PROPERTIES).build();
+    return ImmutableList.<Term>builder()
+      .add(GbifTerm.gbifID, GbifTerm.identifiedByID, GbifTerm.recordedByID)
+      .addAll(DC_PROPERTIES)
+      .addAll(DwC_PROPERTIES)
+      .build();
   }
 
   /**
