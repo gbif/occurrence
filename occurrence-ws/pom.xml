@@ -180,6 +180,7 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-identity</artifactId>
+      <version>${gbif-registry-ws-client.version}</version>
       <exclusions>
       	<exclusion>
       		<groupId>com.google.guava</groupId>
