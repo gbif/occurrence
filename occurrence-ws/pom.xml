@@ -179,7 +179,7 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
-      <artifactId>registry-identity</artifactId>
+      <artifactId>registry-spring-boot-identity</artifactId>
       <exclusions>
       	<exclusion>
       		<groupId>com.google.guava</groupId>
