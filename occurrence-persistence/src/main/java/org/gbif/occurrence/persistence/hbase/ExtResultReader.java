@@ -25,7 +25,7 @@ public class ExtResultReader {
   private static final String ROW_CAN_T_BE_NULL_MSG = "row can't be null";
   private static final String COLUMN_CAN_T_BE_NULL_MSG = "column can't be null";
 
-  private static String CF = Columns.OCCURRENCE_COLUMN_FAMILY;
+  private static final String CF = Columns.OCCURRENCE_COLUMN_FAMILY;
   /**
    * Should never be instantiated.
    */
@@ -129,7 +129,7 @@ public class ExtResultReader {
     String value = getString(row, Columns.column(column), null);
     if (!Strings.isNullOrEmpty(value)) {
       try {
-        return (T) VocabularyUtils.lookupEnum(value, enumClass);
+        return VocabularyUtils.lookupEnum(value, enumClass);
       } catch (IllegalArgumentException e) {
         // value not matching enum!!! LOG???
       }

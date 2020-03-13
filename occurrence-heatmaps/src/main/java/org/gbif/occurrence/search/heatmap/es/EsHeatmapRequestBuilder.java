@@ -58,10 +58,10 @@ class EsHeatmapRequestBuilder {
     GeoBoundingBoxQueryBuilder geoBoundingBoxQuery =
         QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
             .setCorners(
-                Double.valueOf(coords[3]),
-                Double.valueOf(coords[0]),
-                Double.valueOf(coords[1]),
-                Double.valueOf(coords[2]));
+                Double.parseDouble(coords[3]),
+                Double.parseDouble(coords[0]),
+                Double.parseDouble(coords[1]),
+                Double.parseDouble(coords[2]));
 
     FilterAggregationBuilder filterAggs = AggregationBuilders.filter(BOX_AGGS, geoBoundingBoxQuery);
 

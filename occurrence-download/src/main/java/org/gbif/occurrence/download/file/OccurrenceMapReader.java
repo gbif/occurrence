@@ -1,24 +1,37 @@
 package org.gbif.occurrence.download.file;
 
+import java.net.URI;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.UserIdentifier;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
-import org.gbif.dwc.terms.*;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
-import java.net.URI;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
@@ -26,6 +39,10 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  * Reads a occurrence record from HBase and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
+
+  private OccurrenceMapReader() {
+    // NOP
+  }
 
   public static final Map<Rank, Term> rank2KeyTerm =
     ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
@@ -58,6 +75,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.typifiedName.simpleName(), occurrence.getTypifiedName());
     interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
     interpretedOccurrence.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(occurrence.getLastInterpreted()));
+    interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), getSimpleValue(occurrence.getRecordedByIds()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
@@ -200,6 +218,16 @@ public class OccurrenceMapReader {
       }
     }
     return null;
+  }
+
+  /**
+   * Transform a list of UserIdentifier's into simple string, like:
+   * ORCID:1312312,METADATA:123123,OTHER:12312
+   */
+  private static String getSimpleValue(List<UserIdentifier> recordedByIds) {
+    return recordedByIds.stream()
+      .map(x -> x.getType().name() + ":" + x.getValue())
+      .collect(Collectors.joining(","));
   }
 
 

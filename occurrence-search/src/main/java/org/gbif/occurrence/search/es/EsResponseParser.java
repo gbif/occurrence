@@ -7,6 +7,7 @@ import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
+import org.gbif.api.model.occurrence.UserIdentifier;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -124,37 +125,30 @@ public class EsResponseParser {
 
   private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
+
+    Function<Aggregation, Facet<OccurrenceSearchParameter>> mapFn = aggs -> {
+      // get buckets
+      List<? extends Terms.Bucket> buckets = getBuckets(aggs);
+
+      // get facet of the agg
+      OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
+
+      // check for paging in facets
+      long facetOffset = extractFacetOffset(request, facet);
+      long facetLimit = extractFacetLimit(request, facet);
+
+      List<Facet.Count> counts =
+        buckets.stream()
+          .skip(facetOffset)
+          .limit(facetOffset + facetLimit)
+          .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
+          .collect(Collectors.toList());
+
+      return new Facet<>(facet, counts);
+    };
+
     return Optional.ofNullable(esResponse.getAggregations())
-        .map(
-            aggregations ->
-                aggregations.asList().stream()
-                    .map(
-                        aggs -> {
-                          // get buckets
-                          List<? extends Terms.Bucket> buckets = getBuckets(aggs);
-
-                          // get facet of the agg
-                          OccurrenceSearchParameter facet =
-                              ES_TO_SEARCH_MAPPING.get(aggs.getName());
-
-                          // check for paging in facets
-                          long facetOffset = extractFacetOffset(request, facet);
-                          long facetLimit = extractFacetLimit(request, facet);
-
-                          List<Facet.Count> counts =
-                              buckets.stream()
-                                  .skip(facetOffset)
-                                  .limit(facetOffset + facetLimit)
-                                  .map(
-                                      b ->
-                                          new Facet.Count(
-                                              b.getKeyAsString(),
-                                              b.getDocCount()))
-                                  .collect(Collectors.toList());
-
-                          return new Facet<>(facet, counts);
-                        })
-                    .collect(Collectors.toList()));
+      .map(aggregations -> aggregations.asList().stream().map(mapFn).collect(Collectors.toList()));
   }
 
   private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse, boolean excludeInterpreted) {
@@ -269,6 +263,8 @@ public class EsResponseParser {
     // multimedia extension
     parseMultimediaItems(hit, occ);
 
+    parseRecordedByIds(hit, occ);
+
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
     // TODO: add verbatim extensions
@@ -300,8 +296,6 @@ public class EsResponseParser {
       .ifPresent(result -> occ.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
-
-
   private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
     getValue(hit, GBIF_ID, Long::valueOf)
         .ifPresent(
@@ -310,8 +304,7 @@ public class EsResponseParser {
               occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
             });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
-    getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf)
-        .ifPresent(occ::setEstablishmentMeans);
+    getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf).ifPresent(occ::setEstablishmentMeans);
     getValue(hit, LIFE_STAGE, LifeStage::valueOf).ifPresent(occ::setLifeStage);
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
@@ -344,6 +337,19 @@ public class EsResponseParser {
     getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
     getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
+  }
+
+  private static void parseRecordedByIds(SearchHit hit, Occurrence occ) {
+    Function<Map<String, Object>, UserIdentifier> mapFn = m -> {
+      UserIdentifier ui = new UserIdentifier();
+      extractValue(m, "type", UserIdentifierType::valueOf).ifPresent(ui::setType);
+      extractStringValue(m, "value").ifPresent(ui::setValue);
+      return ui;
+    };
+
+    getObjectsListValue(hit, RECORDED_BY_IDS)
+      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+      .ifPresent(occ::setRecordedByIds);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
@@ -421,52 +427,36 @@ public class EsResponseParser {
   }
 
   private static void parseMultimediaItems(SearchHit hit, Occurrence occ) {
+
+    Function<Map<String, Object>, MediaObject> mapFn = m -> {
+      MediaObject mediaObject = new MediaObject();
+
+      extractValue(m, "type", MediaType::valueOf).ifPresent(mediaObject::setType);
+      extractValue(m, "identifier", URI::create).ifPresent(mediaObject::setIdentifier);
+      extractValue(m, "references", URI::create).ifPresent(mediaObject::setReferences);
+      extractValue(m, "created", STRING_TO_DATE).ifPresent(mediaObject::setCreated);
+      extractStringValue(m, "format").ifPresent(mediaObject::setFormat);
+      extractStringValue(m, "audience").ifPresent(mediaObject::setAudience);
+      extractStringValue(m, "contributor").ifPresent(mediaObject::setContributor);
+      extractStringValue(m, "creator").ifPresent(mediaObject::setCreator);
+      extractStringValue(m, "description").ifPresent(mediaObject::setDescription);
+      extractStringValue(m, "publisher").ifPresent(mediaObject::setPublisher);
+      extractStringValue(m, "rightsHolder").ifPresent(mediaObject::setRightsHolder);
+      extractStringValue(m, "source").ifPresent(mediaObject::setSource);
+      extractStringValue(m, "title").ifPresent(mediaObject::setTitle);
+      extractStringValue(m, "license")
+        .map(license ->
+          License.fromString(license)
+            .map(l -> Optional.ofNullable(l.getLicenseUrl()).orElse(license))
+            .orElse(license))
+        .ifPresent(mediaObject::setLicense);
+
+      return mediaObject;
+    };
+
     getObjectsListValue(hit, MEDIA_ITEMS)
-        .ifPresent(
-            items ->
-                occ.setMedia(
-                    items.stream()
-                        .map(
-                            item -> {
-                              MediaObject mediaObject = new MediaObject();
-
-                              extractValue(item, "type", MediaType::valueOf)
-                                  .ifPresent(mediaObject::setType);
-                              extractStringValue(item, "format").ifPresent(mediaObject::setFormat);
-                              extractValue(item, "identifier", URI::create)
-                                  .ifPresent(mediaObject::setIdentifier);
-                              extractStringValue(item, "audience")
-                                  .ifPresent(mediaObject::setAudience);
-                              extractStringValue(item, "contributor")
-                                  .ifPresent(mediaObject::setContributor);
-                              extractValue(item, "created", STRING_TO_DATE)
-                                  .ifPresent(mediaObject::setCreated);
-                              extractStringValue(item, "creator")
-                                  .ifPresent(mediaObject::setCreator);
-                              extractStringValue(item, "description")
-                                  .ifPresent(mediaObject::setDescription);
-                              extractStringValue(item, "license")
-                                  .map(
-                                      license ->
-                                          License.fromString(license)
-                                              .map(
-                                                  l ->
-                                                      Optional.ofNullable(l.getLicenseUrl())
-                                                          .orElse(license))
-                                              .orElse(license))
-                                  .ifPresent(mediaObject::setLicense);
-                              extractStringValue(item, "publisher")
-                                  .ifPresent(mediaObject::setPublisher);
-                              extractValue(item, "references", URI::create)
-                                  .ifPresent(mediaObject::setReferences);
-                              extractStringValue(item, "rightsHolder")
-                                  .ifPresent(mediaObject::setRightsHolder);
-                              extractStringValue(item, "source").ifPresent(mediaObject::setSource);
-                              extractStringValue(item, "title").ifPresent(mediaObject::setTitle);
-
-                              return mediaObject;
-                            })
-                        .collect(Collectors.toList())));
+      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+      .ifPresent(occ::setMedia);
   }
 
   private static Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
@@ -515,15 +505,17 @@ public class EsResponseParser {
   }
 
   private static <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
-      return Optional.ofNullable(fields.get(fieldName)).map(String::valueOf).filter(v -> !v.isEmpty())
-        .map(v -> {
-          try {
-            return mapper.apply(v);
-          } catch (Exception ex) {
-            LOG.error("Error extracting field {} with value {}", fieldName, v);
-            return null;
-          }
-        });
+    return Optional.ofNullable(fields.get(fieldName))
+      .map(String::valueOf)
+      .filter(v -> !v.isEmpty())
+      .map(v -> {
+        try {
+          return mapper.apply(v);
+        } catch (Exception ex) {
+          LOG.error("Error extracting field {} with value {}", fieldName, v);
+          return null;
+        }
+      });
   }
 
   private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
