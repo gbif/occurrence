@@ -369,12 +369,12 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>
-        <artifactId>registry-spring-boot-identity</artifactId>
+        <artifactId>registry-identity</artifactId>
         <version>${gbif-registry.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>
-        <artifactId>registry-spring-boot-metadata</artifactId>
+        <artifactId>registry-metadata</artifactId>
         <version>${gbif-registry.version}</version>
       </dependency>
       <dependency>
