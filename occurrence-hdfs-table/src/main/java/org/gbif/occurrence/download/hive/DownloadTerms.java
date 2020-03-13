@@ -104,7 +104,8 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.establishmentMeans),
     Pair.of(Group.INTERPRETED, GbifTerm.lastInterpreted),
     Pair.of(Group.INTERPRETED, GbifTerm.mediaType),
-    Pair.of(Group.INTERPRETED, GbifTerm.issue)
+    Pair.of(Group.INTERPRETED, GbifTerm.issue),
+    Pair.of(Group.INTERPRETED, GbifTerm.recordedByID)
   );
 
   /**
@@ -136,7 +137,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
     Pair.of(Group.INTERPRETED, DcTerm.license)
   );
-  
+
   /**
    * The terms that will be included in the species list for downloads
    */

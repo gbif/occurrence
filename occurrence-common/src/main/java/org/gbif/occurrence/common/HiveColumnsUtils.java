@@ -70,7 +70,10 @@ public class HiveColumnsUtils {
    * Checks if the term is stored as an Hive array.
    */
   public static boolean isHiveArray(Term term) {
-    return GbifTerm.mediaType == term || GbifTerm.issue == term || GbifInternalTerm.networkKey == term;
+    return GbifTerm.mediaType == term
+      || GbifTerm.issue == term
+      || GbifInternalTerm.networkKey == term
+      || GbifTerm.recordedByID ==  term;
   }
 
   /**

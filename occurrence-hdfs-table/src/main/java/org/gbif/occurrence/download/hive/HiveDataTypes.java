@@ -33,7 +33,8 @@ public final class HiveDataTypes {
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
-  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue, GbifInternalTerm.networkKey);
+  private static final Set<Term> ARRAY_STRING_TERMS =
+    ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue, GbifInternalTerm.networkKey, GbifTerm.recordedByID);
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(

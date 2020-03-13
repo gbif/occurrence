@@ -50,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
@@ -100,13 +101,8 @@ public class HiveQueryVisitor {
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
 
-  private static final String MEDIATYPE_CONTAINS_FMT = "array_contains(" +
-                                                       HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
-  private static final String ISSUE_CONTAINS_FMT = "array_contains(" +
-                                                   HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
-
-  private static final String NETWORK_KEY_CONTAINS_FMT = "array_contains(" +
-                                                   HiveColumnsUtils.getHiveColumn(GbifInternalTerm.networkKey) + ",'%s')";
+  private static final Function<Term, String> ARRAY_FN = t ->
+    "array_contains(" + HiveColumnsUtils.getHiveColumn(t) + ",'%s')";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -186,6 +182,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
       .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID, GbifTerm.recordedByID)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
@@ -313,11 +310,13 @@ public class HiveQueryVisitor {
       appendTaxonKeyFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
-        .ifPresent( mediaType -> builder.append(String.format(MEDIATYPE_CONTAINS_FMT, mediaType.name())));
+        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name())));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
-      builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
-      builder.append(String.format(NETWORK_KEY_CONTAINS_FMT, predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.networkKey), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }

@@ -5,7 +5,6 @@ import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,7 +74,6 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.typifiedName.simpleName(), occurrence.getTypifiedName());
     interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
     interpretedOccurrence.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(occurrence.getLastInterpreted()));
-    interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), getSimpleValue(occurrence.getRecordedByIds()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
@@ -138,6 +136,7 @@ public class OccurrenceMapReader {
 
     extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+    extractRecordedByIds(occurrence).ifPresent(uids -> interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), uids));
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
@@ -221,17 +220,6 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Transform a list of UserIdentifier's into simple string, like:
-   * ORCID:1312312,METADATA:123123,OTHER:12312
-   */
-  private static String getSimpleValue(List<UserIdentifier> recordedByIds) {
-    return recordedByIds.stream()
-      .map(x -> x.getType().name() + ":" + x.getValue())
-      .collect(Collectors.joining(","));
-  }
-
-
-  /**
    * Validates if the occurrence record it's a repatriated record.
    */
   private static Optional<String> getRepatriated(Occurrence occurrence) {
@@ -242,6 +230,15 @@ public class OccurrenceMapReader {
       return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
+  }
+
+  /**
+   * Extracts the recordedById types from the record.
+   */
+  private static Optional<String> extractRecordedByIds(Occurrence occurrence) {
+    return Optional.ofNullable(occurrence.getRecordedByIds())
+      .map(uis -> uis.stream().map(UserIdentifier::getValue)
+        .collect(Collectors.joining(";")));
   }
 
   /**
