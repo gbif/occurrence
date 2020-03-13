@@ -5,9 +5,9 @@ import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
-import org.gbif.api.model.occurrence.UserIdentifier;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -263,7 +263,7 @@ public class EsResponseParser {
     // multimedia extension
     parseMultimediaItems(hit, occ);
 
-    parseRecordedByIds(hit, occ);
+    parseAgentIds(hit, occ);
 
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
@@ -339,17 +339,17 @@ public class EsResponseParser {
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
   }
 
-  private static void parseRecordedByIds(SearchHit hit, Occurrence occ) {
-    Function<Map<String, Object>, UserIdentifier> mapFn = m -> {
-      UserIdentifier ui = new UserIdentifier();
-      extractValue(m, "type", UserIdentifierType::valueOf).ifPresent(ui::setType);
-      extractStringValue(m, "value").ifPresent(ui::setValue);
-      return ui;
+  private static void parseAgentIds(SearchHit hit, Occurrence occ) {
+    Function<Map<String, Object>, AgentIdentifier> mapFn = m -> {
+      AgentIdentifier ai = new AgentIdentifier();
+      extractValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
+      extractStringValue(m, "value").ifPresent(ai::setValue);
+      return ai;
     };
 
-    getObjectsListValue(hit, RECORDED_BY_IDS)
+    getObjectsListValue(hit, AGENT_IDS)
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-      .ifPresent(occ::setRecordedByIds);
+      .ifPresent(occ::setAgentIds);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {

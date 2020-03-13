@@ -13,8 +13,8 @@ import java.util.stream.StreamSupport;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.UserIdentifier;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.util.VocabularyUtils;
@@ -248,7 +248,7 @@ public class OccurrenceBuilder {
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
       occ.setMedia(buildMedia(row));
-      occ.setRecordedByIds(buildRecordedByIds(row));
+      occ.setAgentIds(buildAgentIds(row));
 
       //It  should be replaced by License.fromString(value).orNull() but conflicts of Guava versions avoid its usage
       occ.setLicense(VocabularyUtils.lookupEnum(ExtResultReader.getString(row, DcTerm.license), License.class));
@@ -375,16 +375,16 @@ public class OccurrenceBuilder {
     return media;
   }
 
-  private static List<UserIdentifier> buildRecordedByIds(Result result) {
-    List<UserIdentifier> ids = null;
-    String idsJson = ExtResultReader.getString(result, Columns.column(GbifTerm.recordedByID));
+  private static List<AgentIdentifier> buildAgentIds(Result result) {
+    List<AgentIdentifier> ids = null;
+    String idsJson = ExtResultReader.getString(result, Columns.column(GbifTerm.agentID));
     if (idsJson != null && !idsJson.isEmpty()) {
       try {
         ids = Optional.ofNullable(ListStringSerDeserUtils.fromJson(idsJson))
-          .map(x -> x.stream().map(UserIdentifier::new).collect(Collectors.toList()))
+          .map(x -> x.stream().map(AgentIdentifier::new).collect(Collectors.toList()))
           .orElse(Collections.emptyList());
       } catch (Exception e) {
-        LOG.warn("Unable to deserialize recordedById objects from hbase", e);
+        LOG.warn("Unable to deserialize agentId objects from hbase", e);
       }
     }
 

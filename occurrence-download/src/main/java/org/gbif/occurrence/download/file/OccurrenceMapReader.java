@@ -12,8 +12,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.UserIdentifier;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -136,7 +136,7 @@ public class OccurrenceMapReader {
 
     extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
-    extractRecordedByIds(occurrence).ifPresent(uids -> interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), uids));
+    extractAgentIds(occurrence).ifPresent(uids -> interpretedOccurrence.put(GbifTerm.agentID.simpleName(), uids));
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
@@ -233,11 +233,11 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Extracts the recordedById types from the record.
+   * Extracts the agentIdentifier types from the record.
    */
-  private static Optional<String> extractRecordedByIds(Occurrence occurrence) {
-    return Optional.ofNullable(occurrence.getRecordedByIds())
-      .map(uis -> uis.stream().map(UserIdentifier::getValue)
+  private static Optional<String> extractAgentIds(Occurrence occurrence) {
+    return Optional.ofNullable(occurrence.getAgentIds())
+      .map(a -> a.stream().map(AgentIdentifier::getValue)
         .collect(Collectors.joining(";")));
   }
 

@@ -64,7 +64,7 @@ public class TermUtils {
   private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
                                                                           GbifTerm.issue,
                                                                           GbifInternalTerm.networkKey,
-                                                                          GbifTerm.recordedByID);
+                                                                          GbifTerm.agentID);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,
@@ -160,7 +160,7 @@ public class TermUtils {
                                                                                  GbifTerm.depthAccuracy,
                                                                                  GbifInternalTerm.unitQualifier,
                                                                                  GbifTerm.issue,
-                                                                                 GbifTerm.recordedByID,
+                                                                                 GbifTerm.agentID,
                                                                                  DcTerm.references,
                                                                                  GbifTerm.datasetKey,
                                                                                  GbifTerm.publishingCountry,

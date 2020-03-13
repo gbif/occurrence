@@ -113,8 +113,8 @@ public enum OccurrenceEsField {
   SAMPLE_SIZE_UNIT("sampleSizeUnit", DwcTerm.sampleSizeUnit),
   SAMPLE_SIZE_VALUE("sampleSizeValue", DwcTerm.sampleSizeValue),
   RELATIVE_ORGANISM_QUANTITY("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity),
-  RECORDED_BY_IDS("recordedByIds", GbifTerm.recordedByID),
-  RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
+  AGENT_IDS("agentIds", GbifTerm.agentID),
+  AGENT_ID_VALUE("agentIds.value", GbifTerm.agentID),
 
   //Crawling
   CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
