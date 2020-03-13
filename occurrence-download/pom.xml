@@ -256,7 +256,7 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
-      <artifactId>registry-spring-boot-metadata</artifactId>
+      <artifactId>registry-metadata</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
