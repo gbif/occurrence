@@ -266,9 +266,10 @@ public final class Terms {
    */
   public static List<Term> verbatimTerms() {
     return ImmutableList.<Term>builder()
-      .add(GbifTerm.gbifID, GbifTerm.identifiedByID, GbifTerm.recordedByID)
+      .add(GbifTerm.gbifID)
       .addAll(DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
+      .add(GbifTerm.identifiedByID, GbifTerm.recordedByID)
       .build();
   }
 
