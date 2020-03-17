@@ -283,7 +283,7 @@ public class TermUtils {
    * UnknownTerms are not included as they are open ended.
    */
   public static Iterable<? extends Term> verbatimTerms() {
-    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID),
+    return Iterables.concat(Arrays.asList(GbifTerm.gbifID, GbifTerm.recordedByID, GbifTerm.identifiedByID),
                          Arrays.stream(DcTerm.values()).filter(t -> !t.isClass()).collect(Collectors.toList()),
                          Arrays.stream(DwcTerm.values())
                            .filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)).collect(Collectors.toList()));
