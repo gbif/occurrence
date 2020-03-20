@@ -48,9 +48,7 @@
       <param>env=${occurrence.environment}</param>
       <param>snapshot=${wf:id()}</param>
       <param>sourceDataDir=${source_data_dir}</param>
-      <param>occurrenceTable=${download_table_name}_hdfs</param>
-      <param>occurrenceMultimediaTable=${download_table_name}_multimedia</param>
-      <param>occurrenceAvroTable=${download_table_name}_avro</param>
+      <param>occurrenceTable=${download_table_name}${schema_change ? '_new' : ''}</param>
       <param>wfPath=${wf:appPath()}</param>
     </hive>
     <ok to="delete-snapshot"/>
@@ -64,7 +62,7 @@
       <arg>${source_data_dir}</arg>
       <arg>${wf:id()}</arg>
     </java>
-    <ok to="end"/>
+    <ok to="schema-changed"/>
     <error to="notify-error"/>
   </action>
 
@@ -76,6 +74,29 @@
       <arg>${wf:id()}</arg>
     </java>
     <ok to="notify-error"/>
+    <error to="notify-error"/>
+  </action>
+
+  <decision name="schema-changed">
+    <switch>
+      <!-- All AVRO downloads are done through Hive queries -->
+      <case to="swap-tables">
+        ${schema_changed}
+      </case>
+      <default to="end"/>
+    </switch>
+  </decision>
+
+  <!--
+    Create the table backed by HBase
+  -->
+  <action name="swap-tables">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/swap-tables.q</script>
+      <param>occurrenceTable=${download_table_name}</param>
+    </hive>
+    <ok to="end"/>
     <error to="notify-error"/>
   </action>
 
