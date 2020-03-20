@@ -30,7 +30,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>START</arg>
-      <arg>hdfs://ha-nn/${source_data_dir}/</arg>
+      <arg>${source_data_dir}</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="create-avro-table"/>
@@ -50,6 +50,7 @@
       <param>occurrenceTable=${download_table_name}_hdfs</param>
       <param>occurrenceMultimediaTable=${download_table_name}_multimedia</param>
       <param>occurrenceAvroTable=${download_table_name}_avro</param>
+      <param>wfPath=${wf:appPath()}</param>
     </hive>
     <ok to="delete-snapshot"/>
     <error to="delete-snapshot-error"/>
@@ -59,7 +60,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>END</arg>
-      <arg>hdfs://ha-nn/data/hdfsview/occurrence/</arg>
+      <arg>${source_data_dir}</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="end"/>
@@ -70,7 +71,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>END</arg>
-      <arg>hdfs://ha-nn/data/hdfsview/occurrence/</arg>
+      <arg>${source_data_dir}</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="notify-error"/>
