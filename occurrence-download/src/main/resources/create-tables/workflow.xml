@@ -30,7 +30,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>START</arg>
-      <arg>hdfs://ha-nn/${download_table_name/</arg>
+      <arg>hdfs://ha-nn/${source_data_dir}/</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="create-avro-table"/>
