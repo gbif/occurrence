@@ -47,6 +47,7 @@
       <param>hiveDB=${hiveDB}</param>
       <param>env=${occurrence.environment}</param>
       <param>snapshot=${wf:id()}</param>
+      <param>sourceDataDir=${source_data_dir}_hdfs</param>
       <param>occurrenceTable=${download_table_name}_hdfs</param>
       <param>occurrenceMultimediaTable=${download_table_name}_multimedia</param>
       <param>occurrenceAvroTable=${download_table_name}_avro</param>
