@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -134,9 +135,14 @@ public class OccurrenceMapReader {
     getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
     interpretedOccurrence.put(DwcTerm.geodeticDatum.simpleName(), occurrence.getGeodeticDatum());
 
-    extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
-    extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
-    extractAgentIds(occurrence).ifPresent(uids -> interpretedOccurrence.put(GbifTerm.agentID.simpleName(), uids));
+    extractOccurrenceIssues(occurrence)
+      .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
+    extractMediaTypes(occurrence)
+      .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+    extractAgentIds(occurrence.getRecordedByIds())
+      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), uids));
+    extractAgentIds(occurrence.getIdentifiedByIds())
+      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.identifiedByID.simpleName(), uids));
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
@@ -235,8 +241,8 @@ public class OccurrenceMapReader {
   /**
    * Extracts the agentIdentifier types from the record.
    */
-  private static Optional<String> extractAgentIds(Occurrence occurrence) {
-    return Optional.ofNullable(occurrence.getAgentIds())
+  private static Optional<String> extractAgentIds(List<AgentIdentifier> agents) {
+    return Optional.ofNullable(agents)
       .map(a -> a.stream().map(AgentIdentifier::getValue)
         .collect(Collectors.joining(";")));
   }

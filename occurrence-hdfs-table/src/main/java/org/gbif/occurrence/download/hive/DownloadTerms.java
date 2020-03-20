@@ -105,7 +105,8 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.lastInterpreted),
     Pair.of(Group.INTERPRETED, GbifTerm.mediaType),
     Pair.of(Group.INTERPRETED, GbifTerm.issue),
-    Pair.of(Group.INTERPRETED, GbifTerm.agentID)
+    Pair.of(Group.INTERPRETED, GbifTerm.recordedByID),
+    Pair.of(Group.INTERPRETED, GbifTerm.identifiedByID)
   );
 
   /**

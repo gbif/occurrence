@@ -347,9 +347,13 @@ public class EsResponseParser {
       return ai;
     };
 
-    getObjectsListValue(hit, AGENT_IDS)
+    getObjectsListValue(hit, RECORDED_BY_ID)
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-      .ifPresent(occ::setAgentIds);
+      .ifPresent(occ::setRecordedByIds);
+
+    getObjectsListValue(hit, IDENTIFIED_BY_ID)
+      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+      .ifPresent(occ::setIdentifiedByIds);
   }
 
   private static void setTemporalFields(SearchHit hit, Occurrence occ) {
