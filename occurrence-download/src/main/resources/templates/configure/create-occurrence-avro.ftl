@@ -14,7 +14,7 @@ CREATE EXTERNAL TABLE ${r"${occurrenceAvroTable}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${source_data_dir}.snapshot/${r"${snapshot}"}'
+LOCATION '${r"${source_data_dir}"}.snapshot/${r"${snapshot}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 -- snappy compression
@@ -70,7 +70,7 @@ CREATE EXTERNAL TABLE ${r"${occurrenceAvroTable}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${source_data_dir}'
+LOCATION '${r"${source_data_dir}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 
