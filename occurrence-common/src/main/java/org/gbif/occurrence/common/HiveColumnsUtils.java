@@ -73,7 +73,8 @@ public class HiveColumnsUtils {
     return GbifTerm.mediaType == term
       || GbifTerm.issue == term
       || GbifInternalTerm.networkKey == term
-      || GbifTerm.agentID ==  term;
+      || GbifTerm.identifiedByID == term
+      || GbifTerm.recordedByID ==  term;
   }
 
   /**

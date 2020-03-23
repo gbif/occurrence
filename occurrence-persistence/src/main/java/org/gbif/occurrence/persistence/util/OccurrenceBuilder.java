@@ -248,7 +248,8 @@ public class OccurrenceBuilder {
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
       occ.setMedia(buildMedia(row));
-      occ.setAgentIds(buildAgentIds(row));
+      occ.setIdentifiedByIds(buildAgentIds(GbifTerm.identifiedByID, row));
+      occ.setRecordedByIds(buildAgentIds(GbifTerm.recordedByID, row));
 
       //It  should be replaced by License.fromString(value).orNull() but conflicts of Guava versions avoid its usage
       occ.setLicense(VocabularyUtils.lookupEnum(ExtResultReader.getString(row, DcTerm.license), License.class));
@@ -375,9 +376,9 @@ public class OccurrenceBuilder {
     return media;
   }
 
-  private static List<AgentIdentifier> buildAgentIds(Result result) {
+  private static List<AgentIdentifier> buildAgentIds(Term term, Result result) {
     List<AgentIdentifier> ids = null;
-    String idsJson = ExtResultReader.getString(result, Columns.column(GbifTerm.agentID));
+    String idsJson = ExtResultReader.getString(result, Columns.column(term));
     if (idsJson != null && !idsJson.isEmpty()) {
       try {
         ids = Optional.ofNullable(ListStringSerDeserUtils.fromJson(idsJson))

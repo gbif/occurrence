@@ -1,11 +1,5 @@
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;
@@ -13,6 +7,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -34,7 +34,13 @@ public final class HiveDataTypes {
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS =
-    ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue, GbifInternalTerm.networkKey, GbifTerm.agentID);
+    ImmutableSet.of(
+      GbifTerm.mediaType,
+      GbifTerm.issue,
+      GbifInternalTerm.networkKey,
+      GbifTerm.recordedByID,
+      GbifTerm.identifiedByID
+    );
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
