@@ -1,10 +1,3 @@
-<#--
-  This is a freemarker template which will generate an HQL script.
-  When run in Hive as a parameterized query, this will create a Hive table which is a
-  backed by the HBase table.
--->
-
-<#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
 USE ${r"${hiveDB}"};
 
 -- Rename old tables
