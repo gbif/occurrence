@@ -81,7 +81,7 @@
     <switch>
       <!-- All AVRO downloads are done through Hive queries -->
       <case to="swap-tables">
-        ${schema_changed}
+        ${schema_change}
       </case>
       <default to="end"/>
     </switch>
