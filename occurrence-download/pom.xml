@@ -110,6 +110,8 @@
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>**/config-default.xml</exclude>
                     <exclude>hbase-site.xml</exclude>
+                    <exclude>registry.properties</exclude>
+                    <exclude>logback*.xml</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -193,7 +195,6 @@
           <excludes>
             <exclude>conf/</exclude>
             <exclude>**/config-default.xml</exclude>
-            <exclude>hbase-site.xml</exclude>
           </excludes>
         </configuration>
       </plugin>

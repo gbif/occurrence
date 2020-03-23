@@ -7,7 +7,7 @@ set -o pipefail
 P=$1
 TOKEN=$2
 SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/occurrence/}
-TABLE_NAME=${4:-occurrence}
+TABLE_NAME=${4:-occurrence_pipeline}
 SCHEMA_CHANGED=${5:-true}
 
 
