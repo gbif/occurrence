@@ -94,6 +94,7 @@
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/swap-tables.q</script>
+      <param>hiveDB=${hiveDB}</param>
       <param>occurrenceTable=${download_table_name}</param>
     </hive>
     <ok to="end"/>
