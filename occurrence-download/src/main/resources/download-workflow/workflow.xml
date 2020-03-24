@@ -41,6 +41,10 @@
       <case to="simple_avro_download">
         ${(download_format eq 'SIMPLE_AVRO')}
       </case>
+      <!-- Map of Life downloads must be done through Hive queries -->
+      <case to="map_of_life_download">
+        ${(download_format eq 'MAP_OF_LIFE')}
+      </case>
       <!-- it's a small download -->
       <case to="from_elastic_download">
         ${wf:actionData('download_prepare')['is_small_download']}
@@ -135,6 +139,37 @@
     <error to="kill"/>
   </action>
 
+  <action name="map_of_life_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/map-of-life</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+
   <action name="dwca_download">
     <sub-workflow>
       <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
@@ -165,7 +200,7 @@
     <ok to="end"/>
     <error to="kill"/>
   </action>
-  
+
   <action name="species_list_download">
     <sub-workflow>
       <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/species-list</app-path>

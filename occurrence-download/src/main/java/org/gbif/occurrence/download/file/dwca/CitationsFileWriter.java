@@ -19,8 +19,8 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 
 /**
- * Utility class that creates a datset citations file from Map that contains the dataset usages (record count).
- * The output file contains a list of datasets keys/uuids and its counts of occurrence records.
+ * Utility class that creates a dataset citations file from Map that contains the dataset usages (record count).
+ * The output file contains a list of dataset keys/uuids and its counts of occurrence records.
  */
 public final class CitationsFileWriter {
 
@@ -60,7 +60,7 @@ public final class CitationsFileWriter {
   }
 
   /**
-   * Persist dataset usages and swallow the any exception.
+   * Persist dataset usages and swallow any exception.
    */
   private static void persistUsages(OccurrenceDownloadService occDownloadService, String downloadKey, Map<UUID, Long> datasetUsages) {
     try {

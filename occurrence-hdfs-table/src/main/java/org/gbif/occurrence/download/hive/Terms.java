@@ -291,7 +291,7 @@ public final class Terms {
       // add all Darwin Core terms that are not stripped during interpretation
       DwC_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       .addAll(
-      // add all GBIF terms that are not stripped during interpretation\
+      // add all GBIF terms that are not stripped during interpretation
       GBIF_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
         && GbifTerm.coordinateAccuracy !=t && GbifTerm.numberOfOccurrences != t).collect(Collectors.toList()))
       .build();

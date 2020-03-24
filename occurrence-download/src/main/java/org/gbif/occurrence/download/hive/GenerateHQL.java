@@ -28,6 +28,7 @@ public class GenerateHQL {
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
+  private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
   
   private static final String FIELDS = "fields";
@@ -43,9 +44,8 @@ public class GenerateHQL {
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
+      File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
-
-
 
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
@@ -64,10 +64,11 @@ public class GenerateHQL {
       generateQueryHQL(cfg, downloadDir);
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
+      generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
-      // catastophic effects - e.g. partially complete scripts being run, and resulting in inconsistent
+      // catastrophic effects - e.g. partially complete scripts being run, and resulting in inconsistent
       // data.
       System.err.println("*** Aborting JVM ***");
       System.err.println("Unexpected error building the templated HQL files.  "
@@ -85,7 +86,7 @@ public class GenerateHQL {
 
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-avro.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-avro.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, OccurrenceHDFSTableDefinition.definition());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition());
       template.process(data, out);
     }
   }
@@ -97,17 +98,16 @@ public class GenerateHQL {
   }
 
   /**
-   * Generates the Hive query file used for DwAc downloads.
+   * Generates the Hive query file used for DwCA downloads.
    */
   private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
       Template template = cfg.getTemplate("download/execute-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of("verbatimFields",
-                                                                 Queries.selectVerbatimFields(),
-                                                                 "interpretedFields",
-                                                                 Queries.selectInterpretedFields(false),
-                                                                 "initializedInterpretedFields",
-                                                                 Queries.selectInterpretedFields(true));
+      Map<String, Object> data = ImmutableMap.of(
+        "verbatimFields", Queries.selectVerbatimFields(),
+        "interpretedFields", Queries.selectInterpretedFields(Queries.Initializers.RAW),
+        "initializedInterpretedFields", Queries.selectInterpretedFields(Queries.Initializers.TEXT)
+      );
       template.process(data, out);
     }
   }
@@ -118,7 +118,7 @@ public class GenerateHQL {
   private static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
       Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
   }
@@ -129,9 +129,25 @@ public class GenerateHQL {
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      Map<String, Object> data = ImmutableMap.<String, Object>of(FIELDS, Queries.selectSimpleDownloadFields());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, Queries.selectSimpleDownloadFields());
       template.process(data, out);
     }
   }
 
+  /**
+   * Generates the Hive query file used for Map Of Life's custom format downloads.
+   */
+  private static void generateMapOfLifeQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    //Queries.selectAvroInterpretedFields().keySet().stream().forEach(x -> System.out.println(x));
+    //Queries.selectAvroVerbatimFields().keySet().stream().forEach(x -> System.out.println(x));
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
+      Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
+      Map<String, Object> data = ImmutableMap.of(
+        "verbatimFields", Queries.selectAvroVerbatimFields(),
+        "interpretedFields", Queries.selectAvroInterpretedFields(),
+        "internalFields", Queries.selectAvroInternalFields()
+        );
+      template.process(data, out);
+    }
+  }
 }

@@ -84,7 +84,8 @@ public final class HiveDataTypes {
     DwcTerm.sampleSizeValue,
     GbifTerm.relativeOrganismQuantity);
 
-  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(GbifTerm.hasCoordinate,
+  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(
+    GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues,
     GbifTerm.repatriated);
 
@@ -104,7 +105,7 @@ public final class HiveDataTypes {
    * Provides the Hive data type to use for the given term and context (e.g. verbatim or interpreted) that it is being
    * used.
    *
-   * @param term            to retrive the type for
+   * @param term            to retrieve the type for
    * @param verbatimContext true if the term is being used in the verbatim context, otherwise false
    *
    * @return The correct hive type for the term in the context in which it is being used

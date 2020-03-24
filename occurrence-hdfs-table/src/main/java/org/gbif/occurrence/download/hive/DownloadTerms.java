@@ -18,7 +18,7 @@ import com.google.common.collect.Sets;
 public class DownloadTerms {
 
   /**
-   * Whether the term is from the verbatim fields, or the intepreted fields.
+   * Whether the term is from the verbatim fields, or the interpreted fields.
    */
   public enum Group {
     VERBATIM,
@@ -162,6 +162,13 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey)
+  );
+
+  /**
+   * GBIF-Internal terms
+   */
+  public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
+    GbifInternalTerm.publishingOrgKey
   );
 
   public static String simpleName(Pair<Group, Term> termPair) {

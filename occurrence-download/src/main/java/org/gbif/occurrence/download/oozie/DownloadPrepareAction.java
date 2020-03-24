@@ -41,14 +41,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * This class sets the following parameters required by the download workflow:
- * - is_small_download: define if the occurrence download must be processed as a small(Solr) or a big (Hive) download.\
- * This parameter is calculated by executing a Solr query that counts the number of records.
+ * - is_small_download: define if the occurrence download must be processed as a small(ES) or a big (Hive) download.
+ * This parameter is calculated by executing an ElasticSearch query that counts the number of records.
  * - search_query: query to process small download, it's a translation of the predicate filter.
  * - hive_query: query to process big download, it's a translation of the predicate filter.
  * - hive_db: this parameter is read from a properties file.
  * - download_key: download primary key, it's generated from the Oozie workflow id.
  * - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
- * it's replaced by '_'.
+ * is replaced by '_'.
  */
 public class DownloadPrepareAction {
 
@@ -135,7 +135,7 @@ public class DownloadPrepareAction {
   }
 
   /**
-   * Update the oozie workflow data/parameters and persists the record of the occurrence download.
+   * Update the Oozie workflow data/parameters and persists the records of the occurrence download.
    *
    * @param rawPredicate to be executed
    * @param downloadKey  workflow id
@@ -183,7 +183,7 @@ public class DownloadPrepareAction {
   }
 
   /**
-   * Executes the Solr query and returns the number of records found.
+   * Executes the ElasticSearch query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.
    */
   private long getRecordCount(String esQuery) {

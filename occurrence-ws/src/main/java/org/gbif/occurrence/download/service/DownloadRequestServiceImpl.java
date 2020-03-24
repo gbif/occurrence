@@ -319,6 +319,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    * The download filename with extension.
    */
   private String getDownloadFilename(Download download) {
-    return download.getKey() + (download.getRequest().getFormat() == DownloadFormat.SIMPLE_AVRO ? ".avro" : ".zip");
+    return download.getKey() + download.getRequest().getFormat().getExtension();
   }
 }

@@ -1,0 +1,16 @@
+{
+  "creator": "MattBlissett",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "MAP_OF_LIFE",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "TAXON_KEY",
+        "value": "2605963"
+      }
+    ]
+  }
+}

@@ -230,19 +230,19 @@ public class DownloadMaster extends UntypedActor {
 
     @Override
     public Actor create() throws Exception {
-      if (downloadFormat == DownloadFormat.SIMPLE_CSV) {
-        return new SimpleCsvDownloadActor();
+      switch (downloadFormat) {
+        case SIMPLE_CSV:
+          return new SimpleCsvDownloadActor();
+
+        case DWCA:
+          return new DownloadDwcaActor();
+
+        case SPECIES_LIST:
+          return new SpeciesListDownloadActor();
+
+        default:
+          throw new IllegalStateException("Download format '"+downloadFormat+"' unknown or not supported for small downloads.");
       }
-      if (downloadFormat == DownloadFormat.SIMPLE_AVRO) {
-        throw new IllegalStateException("Small Avro downloads not supported as small downloads.");
-      }
-      if (downloadFormat == DownloadFormat.DWCA) {
-        return new DownloadDwcaActor();
-      }
-      if (downloadFormat == DownloadFormat.SPECIES_LIST) {
-        return new SpeciesListDownloadActor();
-      }
-      throw new IllegalStateException("Unsupported download format");
     }
   }
 

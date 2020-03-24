@@ -82,7 +82,7 @@ import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.RIGHT
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
- * Creates a dwc archive for occurrence downloads based on the hive query result files generated
+ * Creates a DWC archive for occurrence downloads based on the hive query result files generated
  * during the Oozie workflow. It create a local archive folder with an occurrence data file and a dataset subfolder
  * that contains an EML metadata file per dataset involved.
  */
