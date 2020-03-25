@@ -21,6 +21,7 @@
   <!-- Execute the query using sequential approach -->
   <action name="from_hive_download">
     <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
       <configuration>
         <property>
           <name>mapred.job.queue.name</name>
