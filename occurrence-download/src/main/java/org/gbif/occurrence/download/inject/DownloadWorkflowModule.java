@@ -236,6 +236,8 @@ public final class DownloadWorkflowModule extends AbstractModule {
           break;
 
         case SIMPLE_AVRO:
+        case SIMPLE_WITH_VERBATIM_AVRO:
+        case IUCN:
         case MAP_OF_LIFE:
           bind(DownloadAggregator.class).to(NotSupportedDownloadAggregator.class);
           break;

@@ -8,8 +8,18 @@
     "predicates": [
       {
         "type": "equals",
+        "key": "COUNTRY",
+        "value": "AU"
+      },
+      {
+        "type": "equals",
+        "key": "YEAR",
+        "value": "2017"
+      },
+      {
+        "type": "equals",
         "key": "TAXON_KEY",
-        "value": "2605963"
+        "value": "6"
       }
     ]
   }

@@ -33,6 +33,8 @@ public class GenerateHQL {
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
+  private static final String SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR = "download-workflow/simple-with-verbatim-avro/hive-scripts";
+  private static final String IUCN_DOWNLOAD_DIR = "download-workflow/iucn/hive-scripts";
   private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
 
@@ -52,7 +54,9 @@ public class GenerateHQL {
       File createTablesDir = new File(outDir, CREATE_TABLES_DIR);
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
+      File simpleWithVerbatimAvroDownloadDir = new File(outDir, SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
+      File iucnDownloadDir = new File(outDir, IUCN_DOWNLOAD_DIR);
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
 
@@ -60,6 +64,8 @@ public class GenerateHQL {
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
+      simpleWithVerbatimAvroDownloadDir.mkdirs();
+      iucnDownloadDir.mkdirs();
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
 
@@ -74,6 +80,9 @@ public class GenerateHQL {
       generateQueryHQL(cfg, downloadDir);
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
+      generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
+      generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
+      generateIucnQueryHQL(cfg, iucnDownloadDir);
       generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
 
     } catch (Exception e) {
@@ -142,6 +151,69 @@ public class GenerateHQL {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
       // TODO: Using HIVE_QUERIES here, because the current SIMPLE_AVRO download uses all-string types, like SIMPLE_CSV.
       Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
+      template.process(data, out);
+    }
+  }
+
+  /**
+   * Generates the Hive query file used for simple with verbatim AVRO downloads.
+   */
+  private static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-with-verbatim-avro-query.q"))) {
+      Template template = cfg.getTemplate("simple-with-verbatim-avro-download/execute-simple-with-verbatim-avro-query.ftl");
+
+      Map<String, InitializableField> simpleFields = AVRO_QUERIES.selectSimpleDownloadFields(true);
+      Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_QUERIES.selectVerbatimFields());
+
+      // Omit any verbatim fields present in the simple download.
+      for (String field : simpleFields.keySet()) {
+        verbatimFields.remove(field);
+      }
+
+      Map<String, Object> data = ImmutableMap.of(
+        "simpleFields", simpleFields,
+        "verbatimFields", verbatimFields
+      );
+      template.process(data, out);
+    }
+  }
+
+  /**
+   * Generates the Hive schema used for simple with verbatim AVRO downloads.
+   */
+  private static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
+    try (FileWriter out = new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
+
+      Map<String, InitializableField> simpleFields = AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
+      Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
+
+      // Omit any verbatim fields present in the simple download.
+      for (String field : simpleFields.keySet()) {
+        verbatimFields.remove(field);
+      }
+
+      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+        .record("SimpleWithVerbatimOccurrence")
+        .namespace("org.gbif.occurrence.download.avro").fields();
+      simpleFields.values().forEach(initializableField -> avroField(builder, initializableField));
+      verbatimFields.values().forEach(initializableField -> avroField(builder, initializableField));
+      Schema schema = builder.endRecord();
+
+      out.write(schema.toString(true));
+    }
+  }
+
+  /**
+   * Generates the Hive query file used for IUCN's custom format downloads.
+   */
+  private static void generateIucnQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-iucn-query.q"))) {
+      Template template = cfg.getTemplate("iucn-download/execute-iucn-query.ftl");
+      Map<String, Object> data = ImmutableMap.of(
+        "verbatimFields", AVRO_QUERIES.selectVerbatimFields(),
+        "interpretedFields", AVRO_QUERIES.selectInterpretedFields(true),
+        "internalFields", AVRO_QUERIES.selectInternalFields(true)
+      );
       template.process(data, out);
     }
   }

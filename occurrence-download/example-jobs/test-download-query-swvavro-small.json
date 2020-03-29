@@ -2,7 +2,7 @@
   "creator": "MattBlissett",
   "sendNotification": true,
   "notification_address": ["mblissett@gbif.org"],
-  "format": "MAP_OF_LIFE",
+  "format": "SIMPLE_WITH_VERBATIM_AVRO",
   "predicate": {
     "type": "and",
     "predicates": [

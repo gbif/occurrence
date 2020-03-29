@@ -37,9 +37,15 @@
 
   <decision name="download_size_decision">
     <switch>
+      <case to="species_list_download">
+        ${(download_format eq 'SPECIES_LIST')}
+      </case>
       <!-- All AVRO downloads are done through Hive queries -->
       <case to="simple_avro_download">
         ${(download_format eq 'SIMPLE_AVRO')}
+      </case>
+      <case to="simple_with_verbatim_avro_download">
+        ${(download_format eq 'SIMPLE_WITH_VERBATIM_AVRO')}
       </case>
       <case to="map_of_life_download">
         ${(download_format eq 'MAP_OF_LIFE')}
@@ -52,11 +58,11 @@
       <case to="simple_csv_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'SIMPLE_CSV')}
       </case>
+      <case to="iucn_download">
+        ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'IUCN')}
+      </case>
       <case to="dwca_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'DWCA')}
-      </case>
-      <case to="species_list_download">
-      	${(download_format eq 'SPECIES_LIST')}
       </case>
       <default to="kill"/>
     </switch>
@@ -108,9 +114,71 @@
     <error to="kill"/>
   </action>
 
+  <action name="iucn_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/iucn</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+
   <action name="simple_avro_download">
     <sub-workflow>
       <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/simple-avro</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
+  </action>
+
+  <action name="simple_with_verbatim_avro_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/simple-with-verbatim-avro</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
