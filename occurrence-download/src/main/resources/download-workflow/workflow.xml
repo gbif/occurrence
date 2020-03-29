@@ -41,7 +41,6 @@
       <case to="simple_avro_download">
         ${(download_format eq 'SIMPLE_AVRO')}
       </case>
-      <!-- Map of Life downloads must be done through Hive queries -->
       <case to="map_of_life_download">
         ${(download_format eq 'MAP_OF_LIFE')}
       </case>
@@ -49,6 +48,7 @@
       <case to="from_elastic_download">
         ${wf:actionData('download_prepare')['is_small_download']}
       </case>
+      <!-- it's a large download -->
       <case to="simple_csv_download">
         ${!wf:actionData('download_prepare')['is_small_download'] and (download_format eq 'SIMPLE_CSV')}
       </case>

@@ -7,7 +7,7 @@
   "namespace": "org.gbif.occurrence.download.avro",
   "type": "record",
   "fields": [
-    {"name": "gbifID", "type": ["null", "string"], "default": null },
+    {"name": "gbifID", "type": "string" },
     {"name": "datasetKey", "type": ["null", "string"], "default": null },
     {"name": "occurrenceID", "type": ["null", "string"], "default": null },
     {"name": "kingdom", "type": ["null", "string"], "default": null },

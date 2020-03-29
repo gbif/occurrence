@@ -1,26 +1,31 @@
 package org.gbif.occurrence.download.hive;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Map;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition.avroField;
 
 /**
  * Generates HQL scripts dynamically which are used to create the download HDFS tables, and querying when a user issues
  * a download request.
  * <p/>
- * Rather than generating HQL only at runtime, scripts are generated at build time using a maven
+ * Rather than generating HQL only at runtime, scripts are generated at build time using a Maven
  * plugin, to aid testing, development and debugging.  Freemarker is used as a templating language
  * to allow rapid development, but the sections which are verbose, and subject to easy typos are controlled
  * by enumerations in code.  The same enumerations are used in many places in the codebase, including the
- * generation of HBase table columns themselves.
+ * generation of the HBase table columns themselves.
  */
 public class GenerateHQL {
 
@@ -30,9 +35,13 @@ public class GenerateHQL {
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
   private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
-  
+
   private static final String FIELDS = "fields";
-  
+
+  private static final HiveQueries HIVE_QUERIES = new HiveQueries();
+  private static final AvroQueries AVRO_QUERIES = new AvroQueries();
+  private static final AvroSchemaQueries AVRO_SCHEMA_QUERIES = new AvroSchemaQueries();
+
   public static void main(String[] args) {
     try {
       Preconditions.checkState(1 == args.length, "Output path for HQL files is required");
@@ -51,8 +60,9 @@ public class GenerateHQL {
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
+      mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
-      
+
       Configuration cfg = new Configuration();
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
@@ -91,7 +101,7 @@ public class GenerateHQL {
     }
   }
 
-  private static void generateOccurrenceAvroSchema(File outDir) throws IOException, TemplateException {
+  private static void generateOccurrenceAvroSchema(File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "occurrence-hdfs-record.avsc"))) {
       out.write(OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(Boolean.TRUE));
     }
@@ -104,9 +114,9 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
       Template template = cfg.getTemplate("download/execute-query.ftl");
       Map<String, Object> data = ImmutableMap.of(
-        "verbatimFields", Queries.selectVerbatimFields(),
-        "interpretedFields", Queries.selectInterpretedFields(Queries.Initializers.RAW),
-        "initializedInterpretedFields", Queries.selectInterpretedFields(Queries.Initializers.TEXT)
+        "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
+        "interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values(),
+        "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values()
       );
       template.process(data, out);
     }
@@ -118,18 +128,20 @@ public class GenerateHQL {
   private static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
       Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, Queries.selectSimpleDownloadFields());
+
+      Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
       template.process(data, out);
     }
   }
 
   /**
-   * Generates the Hive query file used for AVRO downloads.
+   * Generates the Hive query file used for simple AVRO downloads.
    */
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, Queries.selectSimpleDownloadFields());
+      // TODO: Using HIVE_QUERIES here, because the current SIMPLE_AVRO download uses all-string types, like SIMPLE_CSV.
+      Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
       template.process(data, out);
     }
   }
@@ -138,15 +150,16 @@ public class GenerateHQL {
    * Generates the Hive query file used for Map Of Life's custom format downloads.
    */
   private static void generateMapOfLifeQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    //Queries.selectAvroInterpretedFields().keySet().stream().forEach(x -> System.out.println(x));
-    //Queries.selectAvroVerbatimFields().keySet().stream().forEach(x -> System.out.println(x));
+    //AVRO_QUERIES.selectVerbatimFields().keySet().stream().forEach(System.out::println);
+    //AVRO_QUERIES.selectInterpretedFields(true).keySet().stream().forEach(System.out::println);
+    //AVRO_QUERIES.selectInternalFields(true).keySet().stream().forEach(System.out::println);
     try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
       Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
       Map<String, Object> data = ImmutableMap.of(
-        "verbatimFields", Queries.selectAvroVerbatimFields(),
-        "interpretedFields", Queries.selectAvroInterpretedFields(),
-        "internalFields", Queries.selectAvroInternalFields()
-        );
+        "verbatimFields", AVRO_QUERIES.selectVerbatimFields(),
+        "interpretedFields", AVRO_QUERIES.selectInterpretedFields(true),
+        "internalFields", AVRO_QUERIES.selectInternalFields(true)
+      );
       template.process(data, out);
     }
   }
