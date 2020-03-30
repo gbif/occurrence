@@ -300,7 +300,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setKey(downloadId);
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
-    download.setDownloadLink(downloadLink(wsUrl, downloadId));
+    download.setDownloadLink(downloadLink(wsUrl, downloadId, request.getFormat().getExtension()));
     download.setRequest(request);
     occurrenceDownloadService.create(download);
   }
