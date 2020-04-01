@@ -1,6 +1,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
@@ -101,11 +102,19 @@ abstract class Queries {
         continue; // for safety, we code defensively as it may be added
       }
 
-      result.put(term.simpleName(), new InitializableField(
-        term,
-        useInitializers ? toInterpretedHiveInitializer(term) : toHiveInitializer(term),
-        toHiveDataType(term)
-      ));
+      if (term.equals(GbifTerm.verbatimScientificName)) {
+        result.put(term.simpleName(), new InitializableField(
+          term,
+          toVerbatimHiveInitializer(DwcTerm.scientificName),
+          toVerbatimHiveDataType(DwcTerm.scientificName)
+        ));
+      } else {
+        result.put(term.simpleName(), new InitializableField(
+          term,
+          useInitializers ? toInterpretedHiveInitializer(term) : toHiveInitializer(term),
+          toHiveDataType(term)
+        ));
+      }
     }
 
     return result;

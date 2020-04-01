@@ -58,6 +58,11 @@ public class OccurrenceDownloadMockServices implements OccurrenceDownloadService
     throw new UnsupportedOperationException("Not implemented yet");
   }
 
+  //@Override
+  public String getCitation(String key) {
+    throw new UnsupportedOperationException("Not implemented yet");
+  }
+
   @Override
   public Map<Integer, Map<Integer, Long>> getDownloadsByUserCountry(Date fromDate, Date toDate,
       Country userCountry) {

@@ -25,20 +25,16 @@ public class DownloadTerms {
     INTERPRETED
   }
 
-  //This list of exclusion is used for the download query only
-  public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.of(GbifTerm.gbifID,
-                                                                   // returned multiple times, so excluded and treated by adding once at the beginning
-                                                                   GbifInternalTerm.fragmentHash,
-                                                                   // omitted entirely
-                                                                   GbifInternalTerm.fragment,
-                                                                   // omitted entirely
-                                                                   GbifTerm.numberOfOccurrences,
-                                                                   //this is for aggregation only
-                                                                   GbifTerm.verbatimScientificName
-                                                                   //Does not need to be included since it exists as verbatim
-                                                                   );
+  // This list of exclusion is used for the download query only
+  // Ensure it corresponds with org.gbif.occurrence.download.util.HeadersFileUtil!
+  public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.of(
+    GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
+    GbifInternalTerm.fragmentHash, // omitted entirely
+    GbifInternalTerm.fragment, // omitted entirely
+    GbifTerm.numberOfOccurrences //this is for aggregation only
+  );
 
-  //This set is used fot the HDFS table definition
+  // This set is used fot the HDFS table definition
   public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>().addAll(EXCLUSIONS_INTERPRETED).build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
