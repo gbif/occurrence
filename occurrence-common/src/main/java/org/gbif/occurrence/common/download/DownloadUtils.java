@@ -18,7 +18,7 @@ public class DownloadUtils {
 
   public static final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ISO_INSTANT;
 
-  public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s.%s";
+  public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s%s";
 
   /**
    * Private default constructor.
