@@ -91,19 +91,21 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(occurrence.getLastCrawled()));
 
     //Temporal fields
-    interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getSimpleValue(occurrence.getDateIdentified()));
-    interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue( occurrence.getModified()));
+    interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getLocalDateValue(occurrence.getDateIdentified()));
+    interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue(occurrence.getModified()));
     interpretedOccurrence.put(DwcTerm.day.simpleName(), getSimpleValue(occurrence.getDay()));
     interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
     interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
-    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getSimpleValue(occurrence.getEventDate()));
+    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getLocalDateValue(occurrence.getEventDate()));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
     interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(), getSimpleValue(occurrence.getAcceptedTaxonKey()));
     interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
     interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
+    interpretedOccurrence.put(GbifTerm.verbatimScientificName.simpleName(), occurrence.getVerbatimScientificName());
     interpretedOccurrence.put(GbifTerm.genericName.simpleName(), occurrence.getGenericName());
+    interpretedOccurrence.put(GbifTerm.subgenusKey.simpleName(), getSimpleValue(occurrence.getSubgenusKey()));
     interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
     interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
     interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
@@ -226,6 +228,16 @@ public class OccurrenceMapReader {
   }
 
   /**
+   * Transform a local date data type into a String.
+   */
+  private static String getLocalDateValue(Date value) {
+    if (value != null) {
+      return toLocalISO8601Date(value);
+    }
+    return null;
+  }
+
+  /**
    * Validates if the occurrence record it's a repatriated record.
    */
   private static Optional<String> getRepatriated(Occurrence occurrence) {
@@ -292,4 +304,10 @@ public class OccurrenceMapReader {
     return date != null ? DownloadUtils.ISO_8601_ZONED.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
+  /**
+   * Converts a date object into a String in IS0 8601 format, without timezone.
+   */
+  protected static String toLocalISO8601Date(Date date) {
+    return date != null ? DownloadUtils.ISO_8601_LOCAL.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
+  }
 }

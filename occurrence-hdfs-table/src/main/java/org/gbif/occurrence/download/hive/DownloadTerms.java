@@ -35,7 +35,9 @@ public class DownloadTerms {
   );
 
   // This set is used fot the HDFS table definition
-  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>().addAll(EXCLUSIONS_INTERPRETED).build();
+  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>()
+    .addAll(EXCLUSIONS_INTERPRETED)
+    .add(GbifTerm.verbatimScientificName).build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
     Sets.difference(ImmutableSet.copyOf(Terms.interpretedTerms()), EXCLUSIONS).immutableCopy();

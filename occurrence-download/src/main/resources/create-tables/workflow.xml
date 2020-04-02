@@ -87,9 +87,6 @@
     </switch>
   </decision>
 
-  <!--
-    Create the table backed by HBase
-  -->
   <action name="swap-tables">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
