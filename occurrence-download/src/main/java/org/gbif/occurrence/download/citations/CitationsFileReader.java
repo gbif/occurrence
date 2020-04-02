@@ -67,15 +67,17 @@ public abstract class CitationsFileReader {
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
-        try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()),
-                                                                                      StandardCharsets.UTF_8))) {
+        try (BufferedReader citationReader =
+               new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), StandardCharsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
-              // prepare citation object and add it to list
-                  Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
-                  Map.Entry<UUID, License> licenseEntry = toDatasetOccurrenceDownloadLicense(tsvLine);
-                  datasetsCitation.put(citationEntry.getKey(), citationEntry.getValue());
-                  datasetLicenseCollector.put(licenseEntry.getKey(), licenseEntry.getValue());
+              // Prepare citation object and add it to list
+              // Cope with occurrences within one dataset having different license
+              Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
+              Map.Entry<UUID, License> licenseEntry = toDatasetOccurrenceDownloadLicense(tsvLine);
+              datasetsCitation.merge(citationEntry.getKey(), citationEntry.getValue(), Long::sum);
+              datasetLicenseCollector.merge(licenseEntry.getKey(), licenseEntry.getValue(),
+                (a,b) -> License.getMostRestrictive(a, b, b));
             }
           }
         }
