@@ -87,6 +87,7 @@ SELECT
   ${interpretedFields.recordNumber.initializer},
 
   ${interpretedFields.identifiedBy.initializer},
+  ${interpretedFields.identifiedByID.initializer},
   ${interpretedFields.dateIdentified.initializer},
 
   ${interpretedFields.license.initializer},

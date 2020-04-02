@@ -69,6 +69,7 @@
     {"name": "recordNumber", "type": ["null", "string"], "default": null },
 
     {"name": "identifiedBy", "type": ["null", "string"], "default": null },
+    {"name": "identifiedByID", "type": {"type": "array", "items": "string"}, "default": null },
     {"name": "dateIdentified", "type": ["null", "string"], "default": null },
 
     {"name": "license", "type": ["null", "string"], "default": null },
