@@ -1,0 +1,8 @@
+#!/bin/zsh -e
+
+for i in test-download-format-*.json; do
+  until curl -fi --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$i 'https://api.gbif-uat.org/v1/occurrence/download/request'; do
+    sleep 15
+  done
+  sleep 5
+done
