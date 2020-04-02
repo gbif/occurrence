@@ -66,8 +66,10 @@ public class TermUtilsTest {
 
   @Test
   public void testIsInterpretedDate() throws Exception {
-    assertTrue(TermUtils.isInterpretedDate(DwcTerm.eventDate));
-    assertFalse(TermUtils.isInterpretedDate(DwcTerm.occurrenceID));
+    assertTrue(TermUtils.isInterpretedLocalDate(DwcTerm.eventDate));
+    assertTrue(TermUtils.isInterpretedUtcDate(DcTerm.modified));
+    assertFalse(TermUtils.isInterpretedLocalDate(DwcTerm.occurrenceID));
+    assertFalse(TermUtils.isInterpretedUtcDate(DwcTerm.occurrenceID));
   }
 
   @Test

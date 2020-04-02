@@ -53,7 +53,9 @@ public class HiveColumnsUtils {
   public static String getHiveType(Term term) {
     if (TermUtils.isInterpretedNumerical(term)) {
       return "INT";
-    } else if (TermUtils.isInterpretedDate(term)) {
+    } else if (TermUtils.isInterpretedLocalDate(term)) {
+      return "BIGINT";
+    } else if (TermUtils.isInterpretedUtcDate(term)) {
       return "BIGINT";
     } else if (TermUtils.isInterpretedDouble(term)) {
       return "DOUBLE";

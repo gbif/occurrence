@@ -15,7 +15,9 @@ class AvroQueries extends TsvQueries {
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isInterpretedDate(term)) {
+    if (TermUtils.isInterpretedLocalDate(term)) {
+      return toLocalISO8601Initializer(term);
+    } else if (TermUtils.isInterpretedUtcDate(term)) {
       return toISO8601Initializer(term);
     } else {
       return HiveColumns.columnFor(term);

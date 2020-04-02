@@ -289,7 +289,7 @@ public class OccurrenceMapReader {
    * Converts a date object into a String in IS0 8601 format.
    */
   protected static String toISO8601Date(Date date) {
-    return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
+    return date != null ? DownloadUtils.ISO_8601_ZONED.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
 }

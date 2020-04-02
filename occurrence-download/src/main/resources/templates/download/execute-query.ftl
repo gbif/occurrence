@@ -1,13 +1,13 @@
 <#--
   This is a freemarker template which will generate an HQL script which is run at download time.
   When run in Hive as a parameterized query, this will create a set of tables ...
-  TODO: document when we actually know something accurate to write here...
 -->
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
 
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
+CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 

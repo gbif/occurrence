@@ -16,7 +16,8 @@ public class DownloadUtils {
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
 
-  public static final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ISO_INSTANT;
+  public static final DateTimeFormatter ISO_8601_ZONED = DateTimeFormatter.ISO_INSTANT;
+  public static final DateTimeFormatter ISO_8601_LOCAL = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
   public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s%s";
 
