@@ -293,11 +293,10 @@ if __name__ == '__main__':
 
   #Validates the test results
   if result.testsRun == 0:
-    print 'WARNING -None tests were executed using {0}'.format(', '.join(sys.argv[1:]))
+    print ('WARNING -None tests were executed using {0}'.format(', '.join(sys.argv[1:])))
   if result.wasSuccessful():
-    print 'OK - All tests passed using {0}'.format(', '.join(sys.argv[1:]))
+    print ('OK - All tests passed using {0}'.format(', '.join(sys.argv[1:])))
     sys.exit(0)
   else:
-    print 'CRITICAL - Tests failed using {0}'.format(', '.join(sys.argv[1:]))
+    print ('CRITICAL - Tests failed using {0}'.format(', '.join(sys.argv[1:])))
     sys.exit(2)
-
