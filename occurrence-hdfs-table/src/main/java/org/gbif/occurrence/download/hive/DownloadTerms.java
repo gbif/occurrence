@@ -106,6 +106,24 @@ public class DownloadTerms {
   );
 
   /**
+   * The additional terms that will be included in the SIMPLE_WITH_VERBATIM_AVRO download
+   */
+  private static final Set<Pair<Group, Term>> ADDITIONAL_SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS = ImmutableSet.of(
+    Pair.of(Group.INTERPRETED, GbifTerm.kingdomKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.phylumKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.classKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.orderKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.familyKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.publishingCountry));
+
+  /**
+   * The terms that will be included in the SIMPLE_WITH_VERBATIM_AVRO download
+   */
+  public static final Set<Pair<Group, Term>> SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS = Sets.union(
+    SIMPLE_DOWNLOAD_TERMS, ADDITIONAL_SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS).immutableCopy();
+
+  /**
    * The terms that will be included in the species list
    */
   public static final Set<Pair<Group, Term>> SPECIES_LIST_TERMS = ImmutableSet.of(

@@ -162,7 +162,7 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-with-verbatim-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-with-verbatim-avro-download/execute-simple-with-verbatim-avro-query.ftl");
 
-      Map<String, InitializableField> simpleFields = AVRO_QUERIES.selectSimpleDownloadFields(true);
+      Map<String, InitializableField> simpleFields = AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
       Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_QUERIES.selectVerbatimFields());
 
       // Omit any verbatim fields present in the simple download.
@@ -184,7 +184,7 @@ public class GenerateHQL {
   private static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
 
-      Map<String, InitializableField> simpleFields = AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
+      Map<String, InitializableField> simpleFields = AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
       Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
 
       // Omit any verbatim fields present in the simple download.

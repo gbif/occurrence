@@ -140,6 +140,14 @@ abstract class Queries {
 
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
+   * @return the select fields for the simple-with-verbatim download fields
+   */
+  Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
+    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS, useInitializers);
+  }
+
+  /**
+   * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the (mostly) interpreted table in the simple download
    */
   private Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs, boolean useInitializers) {
