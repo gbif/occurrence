@@ -160,6 +160,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.repatriated)
       .put(OccurrenceSearchParameter.ORGANISM_ID, DwcTerm.organismID)
       .put(OccurrenceSearchParameter.LOCALITY, DwcTerm.locality)
+      .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, DwcTerm.coordinateUncertaintyInMeters)
       .put(OccurrenceSearchParameter.STATE_PROVINCE, DwcTerm.stateProvince)
       .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)

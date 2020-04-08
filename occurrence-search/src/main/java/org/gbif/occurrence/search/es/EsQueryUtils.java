@@ -215,6 +215,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceEsField.ESTABLISHMENT_MEANS)
           .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceEsField.REPATRIATED)
           .put(OccurrenceSearchParameter.LOCALITY, OccurrenceEsField.LOCALITY)
+          .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, OccurrenceEsField.COORDINATE_UNCERTAINTY_IN_METERS)
           .put(OccurrenceSearchParameter.STATE_PROVINCE, OccurrenceEsField.STATE_PROVINCE)
           .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceEsField.WATER_BODY)
           .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)

@@ -58,7 +58,7 @@ public enum OccurrenceEsField {
   WATER_BODY("waterBody", DwcTerm.waterBody),
   LOCALITY("locality", DwcTerm.locality),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
-  COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
+  COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
 
   //Location GBIF specific
   HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue", GbifTerm.hasGeospatialIssues),

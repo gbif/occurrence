@@ -370,7 +370,7 @@ public class EsResponseParser {
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
     getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(occ::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(occ::setCoordinatePrecision);
-    getDoubleValue(hit, COORDINATE_UNCERTAINTY_METERS).ifPresent(occ::setCoordinateUncertaintyInMeters);
+    getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS).ifPresent(occ::setCoordinateUncertaintyInMeters);
     getDoubleValue(hit, LATITUDE).ifPresent(occ::setDecimalLatitude);
     getDoubleValue(hit, LONGITUDE).ifPresent(occ::setDecimalLongitude);
     getDoubleValue(hit, DEPTH).ifPresent(occ::setDepth);
