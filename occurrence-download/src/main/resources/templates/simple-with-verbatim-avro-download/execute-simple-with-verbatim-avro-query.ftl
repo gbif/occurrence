@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
 SET hive.exec.compress.output=true;
 SET hive.exec.compress.intermediate=true;
 SET avro.output.codec=deflate;
+SET avro.mapred.deflate.level=9;
 
 CREATE TABLE ${r"${occurrenceTable}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
