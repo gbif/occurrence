@@ -20,16 +20,15 @@ public class ToLocalISO8601UDF extends UDF {
   private final Text text = new Text();
 
   public Text evaluate(Text field) {
-    if (field == null) {
-      text.set("");
+    if (field == null || field.getLength() == 0) {
+      return null;
     } else {
       try {
         text.set(DownloadUtils.ISO_8601_LOCAL.format(Instant.ofEpochMilli(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC)));
+        return text;
       } catch (NumberFormatException e) {
-        text.set("");
+        return null;
       }
     }
-
-    return text;
   }
 }
