@@ -25,7 +25,7 @@ CREATE TABLE ${r"${occurrenceTable}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/occurrence.avsc');
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/simple-occurrence.avsc');
 
 INSERT INTO ${r"${occurrenceTable}"}
 SELECT

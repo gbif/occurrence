@@ -81,6 +81,7 @@ public class GenerateHQL {
       generateQueryHQL(cfg, downloadDir);
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
+      generateSimpleAvroSchema(cfg, simpleAvroDownloadDir.getParentFile());
       generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
       generateIucnQueryHQL(cfg, iucnDownloadDir);
@@ -146,13 +147,30 @@ public class GenerateHQL {
   }
 
   /**
+   * Generates the schema file used for simple AVRO downloads.
+   */
+  private static void generateSimpleAvroSchema(Configuration cfg, File outDir) throws IOException {
+    try (FileWriter out = new FileWriter(new File(outDir, "simple-occurrence.avsc"))) {
+
+      Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
+
+      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+        .record("SimpleOccurrence")
+        .namespace("org.gbif.occurrence.download.avro").fields();
+      fields.values().forEach(initializableField -> avroField(builder, initializableField));
+      Schema schema = builder.endRecord();
+
+      out.write(schema.toString(true));
+    }
+  }
+
+  /**
    * Generates the Hive query file used for simple AVRO downloads.
    */
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      // TODO: Using HIVE_QUERIES here, because the current SIMPLE_AVRO download uses all-string types, like SIMPLE_CSV.
-      Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values());
       template.process(data, out);
     }
   }
@@ -181,7 +199,7 @@ public class GenerateHQL {
   }
 
   /**
-   * Generates the Hive schema used for simple with verbatim AVRO downloads.
+   * Generates the schema used for simple with verbatim AVRO downloads.
    */
   private static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
@@ -221,7 +239,7 @@ public class GenerateHQL {
   }
 
   /**
-   * Generates the Hive query file used for Map Of Life's custom format downloads.
+   * Generates the AVRO schema for Map Of Life's custom format downloads.
    */
   private static void generateMapOfLifeSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "map-of-life.avsc"))) {
