@@ -26,86 +26,9 @@ TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/map-of-life.avsc');
 
 INSERT INTO ${r"${occurrenceTable}"}
 SELECT
-  ${interpretedFields.gbifID.initializer},
-  ${internalFields.publishingOrgKey.initializer},
-  ${interpretedFields.datasetKey.initializer},
-  ${interpretedFields.occurrenceID.initializer},
-
-  ${interpretedFields.taxonomicStatus.initializer},
-  ${interpretedFields.kingdom.initializer},
-  ${interpretedFields.phylum.initializer},
-  ${interpretedFields.class.initializer},
-  ${interpretedFields.order.initializer},
-  ${interpretedFields.family.initializer},
-  ${interpretedFields.genus.initializer},
-  ${interpretedFields.subgenus.initializer},
-  ${interpretedFields.species.initializer},
-  ${interpretedFields.specificEpithet.initializer},
-  ${interpretedFields.infraspecificEpithet.initializer},
-  ${interpretedFields.taxonRank.initializer},
-  ${interpretedFields.scientificName.initializer},
-  ${verbatimFields.v_verbatimTaxonRank.initializer},
-  ${verbatimFields.v_scientificName.initializer},
-  ${verbatimFields.v_scientificNameAuthorship.initializer},
-  ${verbatimFields.v_vernacularName.initializer},
-
-  ${interpretedFields.taxonKey.initializer},
-  ${interpretedFields.speciesKey.initializer},
-
-  ${interpretedFields.countryCode.initializer},
-  ${interpretedFields.locality.initializer},
-  ${interpretedFields.stateProvince.initializer},
-  ${interpretedFields.occurrenceStatus.initializer},
-  ${interpretedFields.individualCount.initializer},
-
-  ${interpretedFields.hasCoordinate.initializer},
-  ${interpretedFields.decimalLatitude.initializer},
-  ${interpretedFields.decimalLongitude.initializer},
-  ${interpretedFields.coordinateUncertaintyInMeters.initializer},
-  ${interpretedFields.coordinatePrecision.initializer},
-  ${interpretedFields.elevation.initializer},
-  ${interpretedFields.elevationAccuracy.initializer},
-  ${interpretedFields.depth.initializer},
-  ${interpretedFields.depthAccuracy.initializer},
-  ${interpretedFields.hasGeospatialIssues.initializer},
-  ${verbatimFields.v_verbatimCoordinateSystem.initializer},
-  ${verbatimFields.v_verbatimElevation.initializer},
-  ${verbatimFields.v_verbatimDepth.initializer},
-  ${verbatimFields.v_verbatimLocality.initializer},
-  ${verbatimFields.v_verbatimSRS.initializer},
-
-  ${interpretedFields.eventDate.initializer},
-  ${interpretedFields.eventTime.initializer},
-  ${interpretedFields.day.initializer},
-  ${interpretedFields.month.initializer},
-  ${interpretedFields.year.initializer},
-  ${verbatimFields.v_verbatimEventDate.initializer},
-
-  ${interpretedFields.basisOfRecord.initializer},
-  ${interpretedFields.institutionCode.initializer},
-  ${interpretedFields.collectionCode.initializer},
-  ${interpretedFields.catalogNumber.initializer},
-  ${interpretedFields.recordNumber.initializer},
-
-  ${interpretedFields.identifiedBy.initializer},
-  ${interpretedFields.identifiedByID.initializer},
-  ${interpretedFields.dateIdentified.initializer},
-
-  ${interpretedFields.license.initializer},
-  ${interpretedFields.rightsHolder.initializer},
-  ${interpretedFields.recordedBy.initializer},
-
-  ${interpretedFields.typeStatus.initializer},
-  ${interpretedFields.establishmentMeans.initializer},
-
-  ${interpretedFields.sampleSizeUnit.initializer},
-  ${interpretedFields.sampleSizeValue.initializer},
-  ${interpretedFields.samplingEffort.initializer},
-  ${interpretedFields.samplingProtocol.initializer},
-
-  ${interpretedFields.lastInterpreted.initializer},
-  ${interpretedFields.mediaType.initializer},
-  ${interpretedFields.issue.initializer}
+<#list fields as key, field>
+  ${field.hiveField}<#if key_has_next>,</#if>
+</#list>
 FROM occurrence_pipeline_hdfs
 WHERE ${r"${whereClause}"};
 

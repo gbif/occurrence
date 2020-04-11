@@ -91,7 +91,7 @@ abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  private Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
+  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -150,7 +150,7 @@ abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the (mostly) interpreted table in the simple download
    */
-  private Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs, boolean useInitializers) {
+  Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs, boolean useInitializers) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID

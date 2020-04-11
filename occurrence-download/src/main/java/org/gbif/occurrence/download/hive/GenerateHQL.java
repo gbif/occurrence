@@ -43,6 +43,7 @@ public class GenerateHQL {
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
   private static final AvroSchemaQueries AVRO_SCHEMA_QUERIES = new AvroSchemaQueries();
+  private static final SimpleAvroSchemaQueries SIMPLE_AVRO_SCHEMA_QUERIES = new SimpleAvroSchemaQueries();
 
   public static void main(String[] args) {
     try {
@@ -84,6 +85,7 @@ public class GenerateHQL {
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
       generateIucnQueryHQL(cfg, iucnDownloadDir);
       generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
+      generateMapOfLifeSchema(cfg, mapOfLifeDownloadDir.getParentFile());
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
@@ -221,6 +223,24 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for Map Of Life's custom format downloads.
    */
+  private static void generateMapOfLifeSchema(Configuration cfg, File outDir) throws IOException {
+    try (FileWriter out = new FileWriter(new File(outDir, "map-of-life.avsc"))) {
+
+      Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true);
+
+      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+        .record("MapOfLife")
+        .namespace("org.gbif.occurrence.download.avro").fields();
+      fields.values().forEach(initializableField -> avroField(builder, initializableField));
+      Schema schema = builder.endRecord();
+
+      out.write(schema.toString(true));
+    }
+  }
+
+  /**
+   * Generates the Hive query file used for Map Of Life's custom format downloads.
+   */
   private static void generateMapOfLifeQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     //AVRO_QUERIES.selectVerbatimFields().keySet().stream().forEach(System.out::println);
     //AVRO_QUERIES.selectInterpretedFields(true).keySet().stream().forEach(System.out::println);
@@ -228,9 +248,7 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
       Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
       Map<String, Object> data = ImmutableMap.of(
-        "verbatimFields", AVRO_QUERIES.selectVerbatimFields(),
-        "interpretedFields", AVRO_QUERIES.selectInterpretedFields(true),
-        "internalFields", AVRO_QUERIES.selectInternalFields(true)
+        "fields", AVRO_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true)
       );
       template.process(data, out);
     }
