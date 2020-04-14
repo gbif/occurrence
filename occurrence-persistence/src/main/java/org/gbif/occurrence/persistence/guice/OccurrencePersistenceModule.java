@@ -68,6 +68,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
       cfg.occTable = props.getProperty("occurrence.db.table_name");
       cfg.counterTable = props.getProperty("occurrence.db.counter_table_name");
       cfg.lookupTable = props.getProperty("occurrence.db.id_lookup_table_name");
+      cfg.fragmenterTable = props.getProperty("occurrence.db.fragmenter_name");
       cfg.hbasePoolSize = Integer.valueOf(props.getProperty("occurrence.db.max_connection_pool"));
       cfg.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
     } catch (RuntimeException e) {

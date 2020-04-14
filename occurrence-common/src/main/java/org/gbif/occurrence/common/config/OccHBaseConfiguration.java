@@ -28,7 +28,6 @@ public class OccHBaseConfiguration {
   public String lookupTable;
 
   @Parameter(names = "--fragmenter-table")
-  @NotNull
   public String fragmenterTable;
 
   /**
@@ -46,6 +45,7 @@ public class OccHBaseConfiguration {
     occTable = prefix + "_occurrence";
     counterTable = prefix + "_occurrence_counter";
     lookupTable = prefix + "_occurrence_lookup";
+    fragmenterTable = prefix + "_fragment";
   }
 
   @Override

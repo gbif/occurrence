@@ -23,7 +23,6 @@ import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
-import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 import org.slf4j.Logger;
@@ -46,6 +45,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_CACHE_SIZE = 50;
+
   private final String occurrenceTableName;
   private final String fragmenterTableName;
   private final Connection connection;
