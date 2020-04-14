@@ -30,6 +30,9 @@ public class OccHBaseConfiguration {
   @Parameter(names = "--fragmenter-table")
   public String fragmenterTable;
 
+  @Parameter(names = "--fragmenter-salt")
+  public int fragmenterSalt = 100;
+
   /**
    * The zookeeper connection being used to create a lock provider
    */

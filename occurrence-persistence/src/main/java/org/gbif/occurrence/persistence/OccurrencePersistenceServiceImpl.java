@@ -48,12 +48,14 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   private final String occurrenceTableName;
   private final String fragmenterTableName;
+  private final int fragmenterSalt;
   private final Connection connection;
 
   @Inject
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
-    occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
-    fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
+    this.occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
+    this.fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
+    this.fragmenterSalt = cfg.fragmenterSalt;
     this.connection = checkNotNull(connection, "connection can't be null");
   }
 
@@ -68,7 +70,10 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   public String getFragment(long key) {
     String fragment = null;
     try (Table table = connection.getTable(TableName.valueOf(fragmenterTableName))) {
-      Get get = new Get(Bytes.toBytes(key));
+
+      String saltedKey = getSaltedKey(key);
+
+      Get get = new Get(Bytes.toBytes(saltedKey));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
         LOG.info("Couldn't find occurrence for id [{}], returning null", key);
@@ -286,6 +291,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         upd.setVerbatimExtension(extension, newExtensions);
       }
     }
+  }
+
+  private String getSaltedKey(long key) {
+    long mod = key % fragmenterSalt;
+    String saltedKey = mod + ":" + key;
+    return mod >= 10 ? saltedKey : "0" + saltedKey;
   }
 
   /**
