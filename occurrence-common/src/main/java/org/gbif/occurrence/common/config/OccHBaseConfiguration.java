@@ -27,6 +27,10 @@ public class OccHBaseConfiguration {
   @NotNull
   public String lookupTable;
 
+  @Parameter(names = "--fragmenter-table")
+  @NotNull
+  public String fragmenterTable;
+
   /**
    * The zookeeper connection being used to create a lock provider
    */
@@ -51,6 +55,7 @@ public class OccHBaseConfiguration {
       .add("occTable", occTable)
       .add("counterTable", counterTable)
       .add("lookupTable", lookupTable)
+      .add("fragmenterTable", fragmenterTable)
       .add("zkConnectionString", zkConnectionString)
       .toString();
   }

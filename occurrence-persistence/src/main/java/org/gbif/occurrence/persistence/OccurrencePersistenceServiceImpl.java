@@ -47,11 +47,13 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_CACHE_SIZE = 50;
   private final String occurrenceTableName;
+  private final String fragmenterTableName;
   private final Connection connection;
 
   @Inject
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
     occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
+    fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
     this.connection = checkNotNull(connection, "connection can't be null");
   }
 
@@ -65,14 +67,14 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   @Override
   public String getFragment(long key) {
     String fragment = null;
-    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
+    try (Table table = connection.getTable(TableName.valueOf(fragmenterTableName))) {
       Get get = new Get(Bytes.toBytes(key));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
         LOG.info("Couldn't find occurrence for id [{}], returning null", key);
         return null;
       }
-      byte[] rawFragment = ExtResultReader.getBytes(result, Columns.column(GbifInternalTerm.fragment));
+      byte[] rawFragment = result.getValue(Bytes.toBytes("fragment"), Bytes.toBytes("record"));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
