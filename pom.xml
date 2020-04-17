@@ -49,6 +49,7 @@
     <module>occurrence-heatmaps</module>
     <module>occurrence-solr</module>
     <module>occurrence-salt-keys</module>
+    <module>occurrence-hbase-schema-migration</module>
   </modules>
 
   <properties>
