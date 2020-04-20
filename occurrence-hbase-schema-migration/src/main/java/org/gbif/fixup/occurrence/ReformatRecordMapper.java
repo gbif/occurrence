@@ -1,18 +1,29 @@
 package org.gbif.fixup.occurrence;
 
+import java.io.IOException;
+
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.util.Bytes;
-import java.io.IOException;
-import java.util.NavigableMap;
-
 
 /**
  * Reformat the records into the new schema.
  */
 public class ReformatRecordMapper extends TableMapper<ImmutableBytesWritable, Put> {
+
+  private static final byte[] FCF = Bytes.toBytes("fragment");
+  private static final byte[] OCF = Bytes.toBytes("o");
+
+  private static final byte[] DQ = Bytes.toBytes("datasetKey");
+  private static final byte[] PQ = Bytes.toBytes("protocol");
+  private static final byte[] RQ =  Bytes.toBytes("record");
+  private static final byte[] AQ = Bytes.toBytes("attempt");
+  private static final byte[] CQ = Bytes.toBytes("crawlId");
+  private static final byte[] DCQ = Bytes.toBytes("dateCreated");
+  private static final byte[] DUQ = Bytes.toBytes("dateUpdated");
 
   @Override
   protected void map(ImmutableBytesWritable key, Result result, Context context) throws IOException, InterruptedException {
@@ -24,14 +35,14 @@ public class ReformatRecordMapper extends TableMapper<ImmutableBytesWritable, Pu
     // build the new object
     Put put = new Put(saltedKey);
 
-    // If we want Occurrence objects then we can use OccurrenceBuilder from the occurrence-persistence project
+    Cell datasetKeyCell = result.getColumnLatestCell(OCF, DQ);
 
-    // Or for example copy a single cell
-    put.addColumn(
-      Bytes.toBytes("fragment"),
-      Bytes.toBytes("record"),
-      result.getValue(Bytes.toBytes("o"), Bytes.toBytes("fragment"))
-    );
+    put.addColumn(FCF, DQ, result.getValue(OCF, DQ));
+    put.addColumn(FCF, AQ, result.getValue(OCF, CQ));
+    put.addColumn(FCF, PQ, result.getValue(OCF, PQ));
+    put.addColumn(FCF, RQ, result.getValue(OCF, FCF));
+    put.addColumn(FCF, DCQ, Bytes.toBytes(datasetKeyCell.getTimestamp()));
+    put.addColumn(FCF, DUQ, Bytes.toBytes(datasetKeyCell.getTimestamp()));
 
     context.write(new ImmutableBytesWritable(saltedKey), put);
   }
