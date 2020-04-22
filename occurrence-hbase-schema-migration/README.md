@@ -36,6 +36,5 @@ sudo -u hdfs  HADOOP_CLASSPATH=`${HBASE_HOME}/bin/hbase classpath` \
   -zk c5master1-vh.gbif.org,c5master2-vh.gbif.org,c5master3-vh.gbif.org \
   -snapshot tim_fragment_test \
   -target tim_occurrence \
-  -modulo 100
   -tmpPath /tmp/schema-rewrite-tmp
 ```
