@@ -39,11 +39,10 @@ public class SchemaMigrationDriver extends Configured implements Tool {
     System.exit(status);
   }
 
-  private static Job createSubmittableJob(Configuration conf, String snapshotName, String targetTableName, int modulo, Path tmpPath)
+  private static Job createSubmittableJob(Configuration conf, String snapshotName, String targetTableName, Path tmpPath)
       throws IOException {
 
     Job job = Job.getInstance(conf, "HBase occurrence schema migration");
-    job.getConfiguration().setInt("modulo", modulo);
     job.setJarByClass(ReformatRecordMapper.class) ;
 
     Scan scan = new Scan();
@@ -72,21 +71,20 @@ public class SchemaMigrationDriver extends Configured implements Tool {
     List<String> otherArgs = new ArrayList<>(Arrays.asList(new GenericOptionsParser(getConf(), args).getRemainingArgs()));
     if (otherArgs.size() < 5) {
       System.err.println("Wrong number of arguments: " + otherArgs.size());
-      System.err.println("Need five arguments '-zk',  '-snapshot', '-target', '-modulo' and '-tmpPath'");
+      System.err.println("Need five arguments '-zk',  '-snapshot', '-target' and '-tmpPath'");
       return -1;
     }
 
     String zk = StringUtils.popOptionWithArgument("-zk", otherArgs);
     String snapshot = StringUtils.popOptionWithArgument("-snapshot", otherArgs);
     String dest = StringUtils.popOptionWithArgument("-target", otherArgs);
-    int modulo = Integer.valueOf(StringUtils.popOptionWithArgument("-modulo", otherArgs));
     Path tmpPath = new Path(StringUtils.popOptionWithArgument("-tmpPath", otherArgs));
 
     Configuration conf = HBaseConfiguration.create(getConf());
     conf.set("hbase.zookeeper.quorum", zk);
     setConf(conf);
 
-    Job job = createSubmittableJob(conf, snapshot, dest, modulo, tmpPath);
+    Job job = createSubmittableJob(conf, snapshot, dest, tmpPath);
     boolean success = job.waitForCompletion(true);
 
     doBulkLoad(dest, tmpPath);
