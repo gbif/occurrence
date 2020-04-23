@@ -16,6 +16,7 @@ import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
+import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -317,8 +317,8 @@ public class HiveQueryVisitorTest {
 
     String query = visitor.getHiveQuery(p);
     assertThat(query, equalTo(String.format("((lastinterpreted >= %s) AND (lastinterpreted <= %s))",
-                                            String.valueOf(range.lowerEndpoint().getTime()),
-                                            String.valueOf(range.upperEndpoint().getTime()))));
+                                            range.lowerEndpoint().getTime(),
+                                            range.upperEndpoint().getTime())));
   }
 
   @Test

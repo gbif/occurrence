@@ -9,16 +9,15 @@ import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 
 /**
  * Utility for dealing with the decoding of the request parameters to the
@@ -48,7 +47,7 @@ public class PredicateFactory {
    */
   public static Predicate build(Map<String, String[]> params) {
     // predicates for different parameters. If multiple values for the same parameter exist these are in here already
-    List<Predicate> groupedByParam = Lists.newArrayList();
+    List<Predicate> groupedByParam = new ArrayList<>();
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       OccurrenceSearchParameter param = toEnumParam(p.getKey());
@@ -88,7 +87,7 @@ public class PredicateFactory {
   }
 
   private static Predicate buildParamPredicate(OccurrenceSearchParameter param, String... values) {
-    List<Predicate> predicates = Lists.newArrayList();
+    List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
       Predicate p = parsePredicate(param, v);
       if (p != null) {
@@ -133,7 +132,7 @@ public class PredicateFactory {
       } else if (Date.class.equals(param.type())) {
         range = SearchTypeValidator.parseDateRange(value);
         // convert date instances back to strings, but keep the new precision which is now always up to the day!
-        range = SearchTypeValidator.buildRange(
+        range = Range.closed(
           range.hasLowerBound() ? toIsoDate((Date) range.lowerEndpoint()) : null,
           range.hasUpperBound() ? toIsoDate((Date) range.upperEndpoint()) : null
           );
@@ -143,7 +142,7 @@ public class PredicateFactory {
       }
 
 
-      List<Predicate> rangePredicates = Lists.newArrayList();
+      List<Predicate> rangePredicates = new ArrayList<>();
       if (range.hasLowerBound()) {
         rangePredicates.add(new GreaterThanOrEqualsPredicate(param, range.lowerEndpoint().toString()));
       }

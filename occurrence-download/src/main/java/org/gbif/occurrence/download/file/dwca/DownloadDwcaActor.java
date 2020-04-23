@@ -235,7 +235,7 @@ public class DownloadDwcaActor extends UntypedActor {
 
     @Override
     public String execute(Object value, CsvContext context) {
-      return value != null ? DownloadUtils.ISO_8601_FORMAT.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
+      return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
   }
 }

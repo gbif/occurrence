@@ -1,11 +1,5 @@
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;
@@ -13,6 +7,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -33,7 +33,14 @@ public final class HiveDataTypes {
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
-  private static final Set<Term> ARRAY_STRING_TERMS = ImmutableSet.of(GbifTerm.mediaType, GbifTerm.issue, GbifInternalTerm.networkKey);
+  private static final Set<Term> ARRAY_STRING_TERMS =
+    ImmutableSet.of(
+      GbifTerm.mediaType,
+      GbifTerm.issue,
+      GbifInternalTerm.networkKey,
+      GbifTerm.recordedByID,
+      GbifTerm.identifiedByID
+    );
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
@@ -77,7 +84,8 @@ public final class HiveDataTypes {
     DwcTerm.sampleSizeValue,
     GbifTerm.relativeOrganismQuantity);
 
-  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(GbifTerm.hasCoordinate,
+  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(
+    GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues,
     GbifTerm.repatriated);
 
@@ -97,7 +105,7 @@ public final class HiveDataTypes {
    * Provides the Hive data type to use for the given term and context (e.g. verbatim or interpreted) that it is being
    * used.
    *
-   * @param term            to retrive the type for
+   * @param term            to retrieve the type for
    * @param verbatimContext true if the term is being used in the verbatim context, otherwise false
    *
    * @return The correct hive type for the term in the context in which it is being used

@@ -18,28 +18,26 @@ import com.google.common.collect.Sets;
 public class DownloadTerms {
 
   /**
-   * Whether the term is from the verbatim fields, or the intepreted fields.
+   * Whether the term is from the verbatim fields, or the interpreted fields.
    */
   public enum Group {
     VERBATIM,
     INTERPRETED
   }
 
-  //This list of exclusion is used for the download query only
-  public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.of(GbifTerm.gbifID,
-                                                                   // returned multiple times, so excluded and treated by adding once at the beginning
-                                                                   GbifInternalTerm.fragmentHash,
-                                                                   // omitted entirely
-                                                                   GbifInternalTerm.fragment,
-                                                                   // omitted entirely
-                                                                   GbifTerm.numberOfOccurrences,
-                                                                   //this is for aggregation only
-                                                                   GbifTerm.verbatimScientificName
-                                                                   //Does not need to be included since it exists as verbatim
-                                                                   );
+  // This list of exclusion is used for the download query only
+  // Ensure it corresponds with org.gbif.occurrence.download.util.HeadersFileUtil!
+  public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.of(
+    GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
+    GbifInternalTerm.fragmentHash, // omitted entirely
+    GbifInternalTerm.fragment, // omitted entirely
+    GbifTerm.numberOfOccurrences //this is for aggregation only
+  );
 
-  //This set is used fot the HDFS table definition
-  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>().addAll(EXCLUSIONS_INTERPRETED).build();
+  // This set is used fot the HDFS table definition
+  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>()
+    .addAll(EXCLUSIONS_INTERPRETED)
+    .add(GbifTerm.verbatimScientificName).build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
     Sets.difference(ImmutableSet.copyOf(Terms.interpretedTerms()), EXCLUSIONS).immutableCopy();
@@ -108,6 +106,24 @@ public class DownloadTerms {
   );
 
   /**
+   * The additional terms that will be included in the SIMPLE_WITH_VERBATIM_AVRO download
+   */
+  private static final Set<Pair<Group, Term>> ADDITIONAL_SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS = ImmutableSet.of(
+    Pair.of(Group.INTERPRETED, GbifTerm.kingdomKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.phylumKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.classKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.orderKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.familyKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.publishingCountry));
+
+  /**
+   * The terms that will be included in the SIMPLE_WITH_VERBATIM_AVRO download
+   */
+  public static final Set<Pair<Group, Term>> SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS = Sets.union(
+    SIMPLE_DOWNLOAD_TERMS, ADDITIONAL_SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS).immutableCopy();
+
+  /**
    * The terms that will be included in the species list
    */
   public static final Set<Pair<Group, Term>> SPECIES_LIST_TERMS = ImmutableSet.of(
@@ -136,7 +152,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
     Pair.of(Group.INTERPRETED, DcTerm.license)
   );
-  
+
   /**
    * The terms that will be included in the species list for downloads
    */
@@ -162,6 +178,13 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey)
+  );
+
+  /**
+   * GBIF-Internal terms
+   */
+  public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
+    GbifInternalTerm.publishingOrgKey
   );
 
   public static String simpleName(Pair<Group, Term> termPair) {

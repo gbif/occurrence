@@ -1,8 +1,19 @@
 package org.gbif.occurrence.persistence.util;
 
-import com.google.common.base.Splitter;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
@@ -30,32 +41,26 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.hbase.util.ResultReader;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
+import org.gbif.occurrence.common.json.ListStringSerDeserUtils;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.Fragment;
 import org.gbif.occurrence.persistence.hbase.Columns;
 import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-import javax.annotation.Nullable;
-import javax.validation.ValidationException;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import javax.annotation.Nullable;
+import javax.validation.ValidationException;
 
 /**
  * A utility class to build object models from the HBase occurrence "row".
@@ -243,6 +248,8 @@ public class OccurrenceBuilder {
       occ.setIdentifiers(extractIdentifiers(key, row));
       occ.setIssues(extractIssues(row));
       occ.setMedia(buildMedia(row));
+      occ.setIdentifiedByIds(buildAgentIds(GbifTerm.identifiedByID, row));
+      occ.setRecordedByIds(buildAgentIds(GbifTerm.recordedByID, row));
 
       //It  should be replaced by License.fromString(value).orNull() but conflicts of Guava versions avoid its usage
       occ.setLicense(VocabularyUtils.lookupEnum(ExtResultReader.getString(row, DcTerm.license), License.class));
@@ -367,6 +374,22 @@ public class OccurrenceBuilder {
     }
 
     return media;
+  }
+
+  private static List<AgentIdentifier> buildAgentIds(Term term, Result result) {
+    List<AgentIdentifier> ids = null;
+    String idsJson = ExtResultReader.getString(result, Columns.column(term));
+    if (idsJson != null && !idsJson.isEmpty()) {
+      try {
+        ids = Optional.ofNullable(ListStringSerDeserUtils.fromJson(idsJson))
+          .map(x -> x.stream().map(AgentIdentifier::new).collect(Collectors.toList()))
+          .orElse(Collections.emptyList());
+      } catch (Exception e) {
+        LOG.warn("Unable to deserialize agentId objects from hbase", e);
+      }
+    }
+
+    return ids;
   }
 
 }

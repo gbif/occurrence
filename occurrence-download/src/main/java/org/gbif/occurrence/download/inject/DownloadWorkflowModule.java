@@ -12,7 +12,6 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
-import org.gbif.occurrence.download.file.simpleavro.SimpleAvroDownloadAggregator;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
@@ -221,15 +220,30 @@ public final class DownloadWorkflowModule extends AbstractModule {
    */
   private void bindDownloadFilesBuilding() {
     DownloadFormat downloadFormat = workflowConfiguration.getDownloadFormat();
+
     if (downloadFormat != null) {
-      if (DownloadFormat.DWCA == downloadFormat) {
-        bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
-      } else if (DownloadFormat.SIMPLE_CSV == downloadFormat) {
-        bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
-      } else if (DownloadFormat.SIMPLE_AVRO == downloadFormat) {
-        bind(DownloadAggregator.class).to(SimpleAvroDownloadAggregator.class);
-      } else if (DownloadFormat.SPECIES_LIST == downloadFormat) {
-        bind(DownloadAggregator.class).to(SpeciesListDownloadAggregator.class);
+      switch (downloadFormat) {
+        case DWCA:
+          bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
+          break;
+
+        case SIMPLE_CSV:
+          bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
+          break;
+
+        case SPECIES_LIST:
+          bind(DownloadAggregator.class).to(SpeciesListDownloadAggregator.class);
+          break;
+
+        case SIMPLE_AVRO:
+        case SIMPLE_WITH_VERBATIM_AVRO:
+        case IUCN:
+        case MAP_OF_LIFE:
+          bind(DownloadAggregator.class).to(NotSupportedDownloadAggregator.class);
+          break;
+
+        default:
+          throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
       }
     }
   }

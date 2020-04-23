@@ -2,14 +2,19 @@
   "sendNotification": true,
   "creator": "MattBlissett",
   "notification_address": ["mblissett@gbif.org"],
-  "format": "SIMPLE_CSV",
+  "format": "DWCA",
   "predicate": {
-    "type": "and",
+    "type": "or",
     "predicates": [
       {
         "type": "equals",
         "key": "TAXON_KEY",
         "value": "5"
+      },
+      {
+        "type": "equals",
+        "key": "RECORDED_BY_ID",
+        "value": "https://orcid.org/0000-0003-0623-6682"
       }
     ]
   }

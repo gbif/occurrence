@@ -23,7 +23,6 @@ import org.gbif.occurrence.common.json.ExtensionSerDeserUtils;
 import org.gbif.occurrence.common.json.MediaSerDeserUtils;
 import org.gbif.occurrence.persistence.api.OccurrencePersistenceService;
 import org.gbif.occurrence.persistence.hbase.Columns;
-import org.gbif.occurrence.persistence.hbase.ExtResultReader;
 import org.gbif.occurrence.persistence.hbase.RowUpdate;
 import org.gbif.occurrence.persistence.util.OccurrenceBuilder;
 import org.slf4j.Logger;
@@ -46,12 +45,17 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
   private static final int SCANNER_CACHE_SIZE = 50;
+
   private final String occurrenceTableName;
+  private final String fragmenterTableName;
+  private final int fragmenterSalt;
   private final Connection connection;
 
   @Inject
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
-    occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
+    this.occurrenceTableName = checkNotNull(cfg.occTable, "tableName can't be null");
+    this.fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
+    this.fragmenterSalt = cfg.fragmenterSalt;
     this.connection = checkNotNull(connection, "connection can't be null");
   }
 
@@ -65,14 +69,17 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
   @Override
   public String getFragment(long key) {
     String fragment = null;
-    try (Table table = connection.getTable(TableName.valueOf(occurrenceTableName))) {
-      Get get = new Get(Bytes.toBytes(key));
+    try (Table table = connection.getTable(TableName.valueOf(fragmenterTableName))) {
+
+      String saltedKey = getSaltedKey(key);
+
+      Get get = new Get(Bytes.toBytes(saltedKey));
       Result result = table.get(get);
       if (result == null || result.isEmpty()) {
         LOG.info("Couldn't find occurrence for id [{}], returning null", key);
         return null;
       }
-      byte[] rawFragment = ExtResultReader.getBytes(result, Columns.column(GbifInternalTerm.fragment));
+      byte[] rawFragment = result.getValue(Bytes.toBytes("fragment"), Bytes.toBytes("record"));
       if (rawFragment != null) {
         fragment = Bytes.toString(rawFragment);
       }
@@ -284,6 +291,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrencePersistenceSe
         upd.setVerbatimExtension(extension, newExtensions);
       }
     }
+  }
+
+  private String getSaltedKey(long key) {
+    long mod = key % fragmenterSalt;
+    String saltedKey = mod + ":" + key;
+    return mod >= 10 ? saltedKey : "0" + saltedKey;
   }
 
   /**

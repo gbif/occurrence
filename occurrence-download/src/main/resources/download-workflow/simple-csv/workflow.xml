@@ -22,6 +22,12 @@
   <action name="from_hive_download">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/execute-simple-csv-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
@@ -48,7 +54,7 @@
 
   <action name="persist_usages">
     <java>
-      <main-class>org.gbif.occurrence.download.citations.CitationsFileReader</main-class>
+      <main-class>org.gbif.occurrence.download.citations.CitationsPersister</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
       <arg>${download_key}</arg>
       <capture-output/>
@@ -61,6 +67,12 @@
   <action name="drop_tables">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
@@ -73,6 +85,12 @@
   <action name="drop_tables_failure">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>

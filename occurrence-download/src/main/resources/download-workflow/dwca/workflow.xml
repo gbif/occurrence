@@ -24,6 +24,12 @@
   <action name="from_hive_download">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/execute-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>verbatimTable=${download_table_name}_verbatim</param>
@@ -54,6 +60,12 @@
   <action name="drop_table">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
@@ -67,6 +79,12 @@
   <action name="failure_drop_table">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>download-admin</value>
+        </property>
+      </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>

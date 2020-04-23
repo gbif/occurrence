@@ -7,7 +7,7 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Objects;
 
 /**
- * A field encapsulates the information linking the Hive field the Term in the enumeration, the type for the Hive table
+ * A field encapsulates the information linking the Hive field to the Term in the enumeration, the type for the Hive table
  * and a SQL fragment that can be used to initialize the field.  This is useful for create tables as follows:
  * <code>CREATE TABLE t2(id INT)</code>
  * <code>INSERT OVERWRITE TABLE t2 SELECT customUDF(x) FROM t1</code>

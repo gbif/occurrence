@@ -18,11 +18,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -106,8 +106,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   }
 
   @Override
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
-      @Nullable OccurrenceSearchRequest request) {
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(@Nullable OccurrenceSearchRequest request) {
     if (request == null) {
       SearchResponse<Occurrence, OccurrenceSearchParameter> emptyResponse = new SearchResponse<>();
       emptyResponse.setCount(0L);

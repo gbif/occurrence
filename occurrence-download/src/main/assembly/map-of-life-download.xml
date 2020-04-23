@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2012 Global Biodiversity Information Facility (GBIF)
+  ~ Copyright 2020 Global Biodiversity Information Facility (GBIF)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}/download-workflow/sql-download/</directory>
-      <outputDirectory>/download-workflow/sql-download/</outputDirectory>
+      <directory>${project.build.outputDirectory}/download-workflow/map-of-life/</directory>
+      <outputDirectory>/download-workflow/map-of-life/</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${project.build.outputDirectory}/conf</directory>
-      <outputDirectory>/download-workflow/sql-download/conf</outputDirectory>
+      <outputDirectory>/download-workflow/map-of-life/conf</outputDirectory>
     </fileSet>
   </fileSets>
 

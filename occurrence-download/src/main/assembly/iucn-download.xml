@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2012 Global Biodiversity Information Facility (GBIF)
+  ~ Copyright 2020 Global Biodiversity Information Facility (GBIF)
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}/download-workflow/simple-csv/</directory>
-      <outputDirectory>/download-workflow/simple-csv/</outputDirectory>
+      <directory>${project.build.outputDirectory}/download-workflow/iucn/</directory>
+      <outputDirectory>/download-workflow/iucn/</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${project.build.outputDirectory}/conf</directory>
-      <outputDirectory>/download-workflow/simple-csv/conf</outputDirectory>
+      <outputDirectory>/download-workflow/iucn/conf</outputDirectory>
     </fileSet>
   </fileSets>
 

@@ -212,7 +212,7 @@ public class OccurrenceResource {
         // No coordinates
         osr.addHasCoordinateFilter(false);
         count += occurrenceSearchService.search(osr).getCount();
-        osr.getParameters().removeAll(OccurrenceSearchParameter.HAS_COORDINATE);
+        osr.getParameters().remove(OccurrenceSearchParameter.HAS_COORDINATE);
 
         // Has coordinates but with issues
         osr.addHasCoordinateFilter(true);

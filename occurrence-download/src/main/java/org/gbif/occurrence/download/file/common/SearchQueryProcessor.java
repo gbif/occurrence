@@ -51,6 +51,7 @@ public class SearchQueryProcessor {
       // Creates a search request instance using the search request that comes in the fileJob
       SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
 
+
       while (recordCount < nrOfOutputRecords) {
 
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
