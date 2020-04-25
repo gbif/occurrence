@@ -50,6 +50,9 @@
       <case to="map_of_life_download">
         ${(download_format eq 'MAP_OF_LIFE')}
       </case>
+      <case to="bloodhound_download">
+        ${(download_format eq 'BLOODHOUND')}
+      </case>
       <!-- it's a small download -->
       <case to="from_elastic_download">
         ${wf:actionData('download_prepare')['is_small_download']}
@@ -236,6 +239,37 @@
     </sub-workflow>
     <ok to="end"/>
     <error to="notify-error"/>
+  </action>
+
+  <action name="bloodhound_download">
+    <sub-workflow>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/bloodhound</app-path>
+      <propagate-configuration/>
+      <configuration>
+        <property>
+          <name>download_key</name>
+          <value>${wf:actionData('download_prepare')['download_key']}</value>
+        </property>
+        <property>
+          <name>is_small_download</name>
+          <value>${wf:actionData('download_prepare')['is_small_download']}</value>
+        </property>
+        <property>
+          <name>download_table_name</name>
+          <value>${wf:actionData('download_prepare')['download_table_name']}</value>
+        </property>
+        <property>
+          <name>hive_query</name>
+          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+        </property>
+        <property>
+          <name>hive_db</name>
+          <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+      </configuration>
+    </sub-workflow>
+    <ok to="end"/>
+    <error to="kill"/>
   </action>
 
   <action name="dwca_download">
