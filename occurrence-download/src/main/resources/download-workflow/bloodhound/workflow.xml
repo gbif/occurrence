@@ -39,21 +39,22 @@
 
   <action name="archive_table">
     <java>
-      <main-class>org.gbif.occurrence.download.file.archive.MultiFileArchiveBuilder</main-class>
+      <main-class>org.gbif.occurrence.download.file.archive.MultiDirectoryArchiveBuilder</main-class>
       <arg>${occurrence.download.hdfsOutputPath}</arg>
       <arg>${download_key}</arg>
-      <arg>PRE_DEFLATED</arg>
+      <arg>DEFAULT</arg>
 
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
-      <arg>${download_key}.tsv</arg>
-      <arg>gbifID&#x9;datasetKey&#x9;license&#x9;countryCode&#x9;dateIdentified&#x9;eventDate&#x9;hasImage&#x9;v_occurrenceID&#x9;v_dateIdentified&#x9;v_decimalLatitude&#x9;v_decimalLongitude&#x9;v_country&#x9;v_eventDate&#x9;v_year&#x9;v_family&#x9;v_identifiedBy&#x9;v_institutionCode&#x9;v_collectionCode&#x9;v_catalogNumber&#x9;v_recordedBy&#x9;v_scientificName&#x9;v_typeStatus</arg>
+      <!-- Initial character must be a letter for Avro tables. Weird? -->
+      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}/</arg>
+      <arg>occurrence.avro</arg>
+      <arg></arg> <!-- The Avro file doesn't need a header prepended -->
 
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_agents/</arg>
-      <arg>${download_key}_agents.tsv</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}_agents/</arg>
+      <arg>agents.tsv</arg>
       <arg>agent&#x9;total_recordedBy&#x9;total_identifiedBy&#x9;gbifIDs_recordedBy&#x9;gbifIDs_identifiedBy</arg>
 
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_families/</arg>
-      <arg>${download_key}_families.tsv</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}_families/</arg>
+      <arg>families.tsv</arg>
       <arg>v_family&#x9;total&#x9;gbifIDs_family</arg>
       <capture-output/>
     </java>

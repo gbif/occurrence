@@ -11,10 +11,10 @@ SET hive.auto.convert.join=false;
 
 -- setup for our custom, combinable deflated compression
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
-SET hive.exec.compress.output=true;
-SET io.seqfile.compression.type=BLOCK;
-SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
-SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
+SET hive.exec.compress.output=false;
+-- SET io.seqfile.compression.type=BLOCK;
+-- SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
+-- SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
@@ -24,18 +24,18 @@ DROP TABLE IF EXISTS ${occurrenceTable}_agents;
 DROP TABLE IF EXISTS ${occurrenceTable}_families;
 DROP TABLE IF EXISTS ${occurrenceTable}_citation;
 
--- NB! If changing the columns, remember to update the header row in the workflow definition.
 -- datasetKey and license are required for calculating the citation.
-CREATE TABLE ${occurrenceTable}
-  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-  TBLPROPERTIES ("serialization.null.format"="")
+CREATE TABLE dl_${occurrenceTable}
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 AS SELECT
   gbifID,
   datasetKey,
   license,
   countryCode,
-  toLocalISO8601(dateidentified) AS dateIdentified,
-  toLocalISO8601(eventdate) AS eventDate,
+  CAST(toLocalISO8601(dateidentified) AS BIGINT) AS dateIdentified,
+  CAST(toLocalISO8601(eventdate) AS BIGINT) AS eventDate,
   array_contains(mediaType, 'StillImage') AS hasImage,
   v_occurrenceID,
   v_dateIdentified,
@@ -46,10 +46,12 @@ AS SELECT
   v_year,
   v_family,
   v_identifiedBy,
+  v_identifiedByID,
   v_institutionCode,
   v_collectionCode,
   v_catalogNumber,
   v_recordedBy,
+  v_recordedByID,
   v_scientificName,
   v_typeStatus
 FROM occurrence_hdfs
@@ -57,7 +59,7 @@ WHERE (v_identifiedBy IS NOT NULL OR v_recordedBy IS NOT NULL)
   AND ${whereClause};
 
 -- NB! If changing the columns, remember to update the header row in the workflow definition.
-CREATE TABLE ${occurrenceTable}_agents
+CREATE TABLE dl_${occurrenceTable}_agents
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
   TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
@@ -71,7 +73,7 @@ FROM
      v_recordedBy AS agent,
      COUNT(gbifID) AS total_recordedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedBy
-  FROM ${occurrenceTable}
+  FROM dl_${occurrenceTable}
   WHERE v_recordedby IS NOT NULL
   GROUP BY v_recordedby) AS r
 FULL OUTER JOIN
@@ -79,18 +81,18 @@ FULL OUTER JOIN
      v_identifiedBy AS agent,
      COUNT(gbifID) AS total_identifiedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_identifiedBy
-  FROM ${occurrenceTable}
+  FROM dl_${occurrenceTable}
   WHERE v_identifiedBy IS NOT NULL
   GROUP BY v_identifiedBy) AS i
 ON r.agent = i.agent;
 
 -- NB! If changing the columns, remember to update the header row in the workflow definition.
-CREATE TABLE ${occurrenceTable}_families ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE dl_${occurrenceTable}_families ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT
   v_family,
   COUNT(gbifID) total,
   joinArray(collect_set(CAST(gbifID AS STRING)), '\\;') AS gbifIDs_family
-FROM ${occurrenceTable}
+FROM dl_${occurrenceTable}
   WHERE v_family IS NOT NULL
   GROUP BY v_family;
 
@@ -100,4 +102,4 @@ SET hive.exec.compress.intermediate=false;
 SET hive.exec.compress.output=false;
 CREATE TABLE ${occurrenceTable}_citation
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${occurrenceTable} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
+AS SELECT datasetkey, count(*) as num_occurrences, license FROM dl_${occurrenceTable} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;

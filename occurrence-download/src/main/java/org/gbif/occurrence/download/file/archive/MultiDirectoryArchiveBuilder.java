@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.archive;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
@@ -27,13 +28,15 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Utility class that creates a Zip file from one or more directories containing data of one or more Hive tables.
+ * Utility class that creates a Zip file from one or more directories containing data of one
+ * or more tables.  The files in each directory are not combined into a single entry, which
+ * removes a small step for parallel import.
  *
  * TODO: citation file.
  */
-public class MultiFileArchiveBuilder {
+public class MultiDirectoryArchiveBuilder {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MultiFileArchiveBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MultiDirectoryArchiveBuilder.class);
 
   private static final String ZIP_EXTENSION = ".zip";
 
@@ -55,12 +58,12 @@ public class MultiFileArchiveBuilder {
   /**
    * Set the Zip file entries
    */
-  public static MultiFileArchiveBuilder withEntries(String... sources) {
-    return new MultiFileArchiveBuilder(sources);
+  public static MultiDirectoryArchiveBuilder withEntries(String... sources) {
+    return new MultiDirectoryArchiveBuilder(sources);
   }
 
   /**
-   * Merge the content of source entries on the sourceFS into targetFS:outputPath in a file called downloadKey.zip.
+   * Insert the source entries on the sourceFS as separate entries into targetFS:outputPath in a file called downloadKey.zip.
    */
   public void mergeAllToZip(final FileSystem sourceFS, FileSystem targetFS, String targetPath, String downloadKey,
                             ModalZipOutputStream.MODE mode) {
@@ -91,14 +94,16 @@ public class MultiFileArchiveBuilder {
   }
 
   /**
-   * Merge file using the standard Java library java.util.zip.
+   * Create Zip file using the standard Java library java.util.zip.
    */
   private void zipDefault(ZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
     LOG.info("Zipping uncompressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
-    // append the header file
-    appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.DEFAULT, source.header);
+    if (!Strings.isNullOrEmpty(source.header)) {
+      // append the header file
+      appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.DEFAULT, source.header);
+    }
 
     // Get all the files inside the directory and create a list of InputStreams.
     List<InputStream> is = Arrays.stream(sourceFS.listStatus(inputPath)).sorted().map(fileStatus -> {
@@ -109,43 +114,53 @@ public class MultiFileArchiveBuilder {
         }
       }).collect(Collectors.toList());
 
-    java.util.zip.ZipEntry ze = new java.util.zip.ZipEntry(source.name);
-    zos.putNextEntry(ze);
+    int nextEntryNumber = 0;
     for (InputStream fileInZipInputStream : is) {
+      java.util.zip.ZipEntry ze = new java.util.zip.ZipEntry(String.format("%s/%06d", source.name, nextEntryNumber));
+      zos.putNextEntry(ze);
       ByteStreams.copy(fileInZipInputStream, zos);
-      zos.flush();
       fileInZipInputStream.close();
+      zos.closeEntry();
+      nextEntryNumber++;
     }
-    zos.closeEntry();
   }
 
   /**
-   * Merges the pre-deflated content using the Hadoop-compress library.
+   * Inserts the pre-deflated content using the Hadoop-compress library.
    */
   private void zipPreDeflated(ModalZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
     LOG.info("Zipping pre-compressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
-    // append the header file
-    appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED, source.header);
+    if (!Strings.isNullOrEmpty(source.header)) {
+      // append the header file
+      appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED, source.header);
+    }
 
     // Get all the files inside the directory and create a list of InputStreams.
-    D2CombineInputStream in =
-      new D2CombineInputStream(Arrays.stream(sourceFS.listStatus(inputPath)).sorted().map(fileStatus -> {
+    List<InputStream> is = Arrays.stream(sourceFS.listStatus(inputPath)).sorted().map(fileStatus -> {
         try {
           return sourceFS.open(fileStatus.getPath());
         } catch (IOException ex) {
           throw Throwables.propagate(ex);
         }
-      }).collect(Collectors.toList()));
-    ZipEntry ze = new ZipEntry(source.name);
-    zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
-    ByteStreams.copy(in, zos);
-    in.close(); // required to get the sizes
-    ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
-    ze.setCompressedSize(in.getCompressedLength());
-    ze.setCrc(in.getCrc32());
-    zos.closeEntry();
+      }).collect(Collectors.toList());
+
+    int nextEntryNumber = 0;
+    for (InputStream fileInZipInputStream : is) {
+      ZipEntry ze = new ZipEntry(String.format("%s/%06d", source.name, nextEntryNumber));
+      zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
+
+      D2CombineInputStream in = new D2CombineInputStream(ImmutableList.of(fileInZipInputStream));
+
+      ByteStreams.copy(in, zos);
+      in.close(); // required to get the sizes
+      ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
+      ze.setCompressedSize(in.getCompressedLength());
+      ze.setCrc(in.getCrc32());
+      zos.closeEntry();
+      nextEntryNumber++;
+    }
   }
 
   /**
@@ -182,7 +197,7 @@ public class MultiFileArchiveBuilder {
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
 
-    MultiFileArchiveBuilder.withEntries(Arrays.copyOfRange(args, 3, args.length))
+    MultiDirectoryArchiveBuilder.withEntries(Arrays.copyOfRange(args, 3, args.length))
       .mergeAllToZip(sourceFileSystem, sourceFileSystem, args[0], args[1],
         ModalZipOutputStream.MODE.valueOf(args[2]));
   }
@@ -190,7 +205,7 @@ public class MultiFileArchiveBuilder {
   /**
    * Private constructor.
    */
-  private MultiFileArchiveBuilder(String... sources) {
+  private MultiDirectoryArchiveBuilder(String... sources) {
     ImmutableList.Builder sourcesBuilder = ImmutableList.builder();
 
     for (int i = 0; i < sources.length; i+=3) {

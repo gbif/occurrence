@@ -19,7 +19,7 @@ import java.util.zip.ZipFile;
 
 import static org.junit.Assert.assertEquals;
 
-public class MultiFileArchiveBuilderTest {
+public class MultiDirectoryArchiveBuilderTest {
 
   @Test
   public void testBuildDefaultMode() throws Exception {
@@ -33,7 +33,7 @@ public class MultiFileArchiveBuilderTest {
 
       FileUtils.getClasspathFile("multitsv/default/second").getAbsolutePath(),
       "second.csv",
-      "colA,colB,colC",
+      "",
 
       FileUtils.getClasspathFile("multitsv/default/third").getAbsolutePath(),
       "third.csv",
@@ -43,16 +43,16 @@ public class MultiFileArchiveBuilderTest {
       "empty.csv",
       "col一,col二,col三"
     };
-    String targetPath = Files.createTempDirectory("multitsv-default").toString();
+    String targetPath = Files.createTempDirectory("multidir-default").toString();
     String downloadKey = "testArchive";
 
-    MultiFileArchiveBuilder.withEntries(arguments)
+    MultiDirectoryArchiveBuilder.withEntries(arguments)
       .mergeAllToZip(sourceFileSystem, sourceFileSystem, targetPath, downloadKey,
         ModalZipOutputStream.MODE.DEFAULT);
 
     ZipFile zf = new ZipFile(targetPath + "/testArchive.zip");
-    ZipEntry ze = zf.getEntry("third.csv");
-    assertEquals("colⅠ,colⅡ,colⅢ\na,b,c\nг,д,е\nη,θ,ι\n", new InputStreamUtils().readEntireStream(zf.getInputStream(ze)));
+    ZipEntry ze = zf.getEntry("third.csv/000003");
+    assertEquals("η,θ,ι\n", new InputStreamUtils().readEntireStream(zf.getInputStream(ze)));
   }
 
   @Test
@@ -70,7 +70,7 @@ public class MultiFileArchiveBuilderTest {
 
       FileUtils.getClasspathFile("multitsv/pre_deflated/second").getAbsolutePath(),
       "second.csv",
-      "colA,colB,colC",
+      "",
 
       FileUtils.getClasspathFile("multitsv/pre_deflated/third").getAbsolutePath(),
       "third.csv",
@@ -80,15 +80,15 @@ public class MultiFileArchiveBuilderTest {
       "empty.csv",
       "col一,col二,col三"
     };
-    String targetPath = Files.createTempDirectory("multitsv-predeflate").toString();
+    String targetPath = Files.createTempDirectory("multidir-predeflate").toString();
     String downloadKey = "testArchive";
 
-    MultiFileArchiveBuilder.withEntries(arguments)
+    MultiDirectoryArchiveBuilder.withEntries(arguments)
       .mergeAllToZip(sourceFileSystem, sourceFileSystem, targetPath, downloadKey,
         ModalZipOutputStream.MODE.PRE_DEFLATED);
 
     ZipFile zf = new ZipFile(targetPath + "/testArchive.zip");
-    ZipEntry ze = zf.getEntry("third.csv");
-    assertEquals("colⅠ,colⅡ,colⅢ\na,b,c\nг,д,е\nη,θ,ι\n", new InputStreamUtils().readEntireStream(zf.getInputStream(ze)));
+    ZipEntry ze = zf.getEntry("third.csv/000003");
+    assertEquals("η,θ,ι\n", new InputStreamUtils().readEntireStream(zf.getInputStream(ze)));
   }
 }
