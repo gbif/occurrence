@@ -446,6 +446,9 @@ public class HiveQueryVisitor {
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
       builder.append(", ");
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      // Without the "= TRUE", the expression may evaluate to TRUE or FALSE for all records, depending
+      // on the data format (ORC, Avro, Parquet, text) of the table (!).
+      // We could not reproduce the issue on our test cluster, so it seems safest to include this.
       builder.append(") = TRUE");
 
       builder.append(')');
