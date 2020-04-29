@@ -435,7 +435,7 @@ public class HiveQueryVisitor {
         builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
         builder.append(", ");
         builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-        builder.append(')');
+        builder.append(") = TRUE");
         builder.append(CONJUNCTION_OPERATOR);
       } else {
         withinGeometry = within.getGeometry();
@@ -446,7 +446,7 @@ public class HiveQueryVisitor {
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
       builder.append(", ");
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-      builder.append(')');
+      builder.append(") = TRUE");
 
       builder.append(')');
     } catch (Exception e) {
