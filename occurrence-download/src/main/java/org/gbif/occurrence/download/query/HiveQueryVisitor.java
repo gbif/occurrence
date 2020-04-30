@@ -59,7 +59,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -420,22 +419,13 @@ public class HiveQueryVisitor {
       builder.append('(');
       String withinGeometry;
 
-      // Add an additional filter to a bounding box around any shapes that aren't squares, to speed up the query.
+      // Add an additional filter to a bounding box around any shapes that aren't quadrilaterals, to speed up the query.
       if (geometry instanceof JtsGeometry && ((JtsGeometry) geometry).getGeom().getNumPoints() != 5) {
         // Use the Spatial4J-fixed geometry; this is split into a multipolygon if it crosses the antimeridian.
         withinGeometry = ((JtsGeometry) geometry).getGeom().toText();
 
-        GeometryFactory gf = new GeometryFactory();
         Rectangle bounds = geometry.getBoundingBox();
-        Geometry rect = gf.toGeometry(new Envelope(bounds.getMinX(), bounds.getMaxX(), bounds.getMaxY(), bounds.getMinY()));
-
-        builder.append("contains(\"");
-        builder.append(rect.toText());
-        builder.append("\", ");
-        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
-        builder.append(", ");
-        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-        builder.append(") = TRUE");
+        boundingBox(bounds);
         builder.append(CONJUNCTION_OPERATOR);
       } else {
         withinGeometry = within.getGeometry();
@@ -455,6 +445,48 @@ public class HiveQueryVisitor {
     } catch (Exception e) {
       throw new QueryBuildingException(e);
     }
+  }
+
+  /**
+   * Given a bounding box, generates greater than / lesser than queries using decimalLatitude and
+   * decimalLongitude to form a bounding box.
+   */
+  private void boundingBox(Rectangle bounds) {
+    builder.append('(');
+
+    // Latitude is easy:
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(GREATER_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMinY());
+    builder.append(CONJUNCTION_OPERATOR);
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(LESS_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMaxY());
+
+    builder.append(CONJUNCTION_OPERATOR);
+
+    // Longitude must take account of crossing the antimeridian:
+    if (bounds.getMinX() < bounds.getMaxX()) {
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(GREATER_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMinX());
+      builder.append(CONJUNCTION_OPERATOR);
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(LESS_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMaxX());
+    } else {
+      builder.append('(');
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(GREATER_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMinX());
+      builder.append(DISJUNCTION_OPERATOR);
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(LESS_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMaxX());
+      builder.append(')');
+    }
+
+    builder.append(')');
   }
 
   /**

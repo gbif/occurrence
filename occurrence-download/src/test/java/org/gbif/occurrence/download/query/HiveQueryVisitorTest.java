@@ -236,7 +236,7 @@ public class HiveQueryVisitorTest {
     final String wkt = "POLYGON ((-21.4671921 65.441761, -21.3157028 65.9990267, -22.46732 66.4657148, -23.196803 66.3490242, -22.362113 66.2703732, -22.9758561 66.228119, -22.3831844 66.0933255, -22.424131 65.8374539, -23.4703372 66.1972321, -23.2565264 65.6767322, -24.5319933 65.5027259, -21.684764 65.4547893, -24.0482947 64.8794291, -21.3551366 64.3842337, -22.7053151 63.8001572, -19.1269971 63.3980322, -13.4948065 65.076438, -15.1872897 66.1073781, -14.5302343 66.3783121, -16.0235596 66.5371808, -21.4671921 65.441761))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getHiveQuery(p);
-    assertThat(query, equalTo("(contains(\"POLYGON ((-24.5319933 63.3980322, -24.5319933 66.5371808, -13.4948065 66.5371808, -13.4948065 63.3980322, -24.5319933 63.3980322))\", decimallatitude, decimallongitude) = TRUE AND contains(\"" + wkt + "\", decimallatitude, decimallongitude) = TRUE)"));
+    assertThat(query, equalTo("((decimallatitude >= 63.3980322 AND decimallatitude <= 66.5371808 AND decimallongitude >= -24.5319933 AND decimallongitude <= -13.4948065) AND contains(\"" + wkt + "\", decimallatitude, decimallongitude) = TRUE)"));
   }
 
   @Test
@@ -253,19 +253,45 @@ public class HiveQueryVisitorTest {
 
     // A multipolygon around Taveuni, split over the antimeridian
     String wktM = "MULTIPOLYGON (((180 -16.658979090909092, 180 -17.12485513597339, 179.87915 -17.12058, 179.78577 -16.82899, 179.85168 -16.72643, 180 -16.658979090909092)), ((-180 -17.12485513597339, -180 -16.658979090909092, -179.8764 -16.60277, -179.75006 -16.86054, -179.89838 -17.12845, -180 -17.12485513597339)))";
-    String bbox = "POLYGON ((-179.75006 -17.12845, -179.75006 -16.60277, 179.78577 -16.60277, 179.78577 -17.12845, -179.75006 -17.12845))";
+    String bbox = "(decimallatitude >= -17.12845 AND decimallatitude <= -16.60277 AND (decimallongitude >= 179.78577 OR decimallongitude <= -179.75006))";
     query = visitor.getHiveQuery(new WithinPredicate(wktM));
-    assertThat(query, equalTo("(contains(\"" + bbox + "\", decimallatitude, decimallongitude) = TRUE AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
     // A polygon around Taveuni, Fiji, as portal16 produces it.
     // Note the result still contains the multipolygon.
     String wkt16 = "POLYGON((-180.14832 -16.72643, -180.21423 -16.82899, -180.12085 -17.12058, -179.89838 -17.12845, -179.75006 -16.86054, -179.8764 -16.60277, -180.14832 -16.72643))";
     query = visitor.getHiveQuery(new WithinPredicate(wkt16));
-    assertThat(query, equalTo("(contains(\"" + bbox + "\", decimallatitude, decimallongitude) = TRUE AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
     // Same place, but as Wicket draws it:
     // Note the result still contains the same multipolygon.
     String wktWk = "POLYGON((179.85168 -16.72643, 179.78577 -16.82899, 179.87915 -17.12058, -179.89838 -17.12845, -179.75006 -16.86054, -179.8764 -16.60277, 179.85168 -16.72643))";
     query = visitor.getHiveQuery(new WithinPredicate(wktWk));
-    assertThat(query, equalTo("(contains(\"" + bbox + "\", decimallatitude, decimallongitude) = TRUE AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+  }
+
+  @Test
+  public void testWidePolygons() throws Exception {
+    String query;
+
+    // A polygon around Antarctica
+    String wktP = "POLYGON ((180 -64.7, 180 -56.8, 180 -44.3, 173 -44.3, 173 -47.5, 170 -47.5, 157 -47.5, 157 -45.9, 150 -45.9, 150 -47.5, 143 -47.5, 143 -45.8, 140 -45.8, 140 -44.5, 137 -44.5, 137 -43, 135 -43, 135 -41.7, 131 -41.7, 131 -40.1, 115 -40.1, 92 -40.1, 92 -41.4, 78 -41.4, 78 -42.3, 69 -42.3, 69 -43.3, 47 -43.3, 47 -41.7, 30 -41.7, 12 -41.7, 12 -40.3, 10 -40.3, 10 -38.3, -5 -38.3, -5 -38.9, -9 -38.9, -9 -40.2, -13 -40.2, -13 -41.4, -21 -41.4, -21 -42.5, -39 -42.5, -39 -40.7, -49 -40.7, -49 -48.6, -54 -48.6, -54 -55.7, -62.79726 -55.7, -64 -55.7, -64 -57.8, -71 -57.8, -71 -58.9, -80 -58.9, -80 -40, -103.71094 -40.14844, -125 -40, -167 -40, -167 -42.6, -171 -42.6, -171 -44.3, -180 -44.3, -180 -56.8, -180 -64.7, -180 -80, -125 -80, -70 -80, 30 -80, 115 -80, 158 -80, 180 -80, 180 -64.7))";
+    query = visitor.getHiveQuery(new WithinPredicate(wktP));
+    assertThat(query, equalTo("((decimallatitude >= -80.0 AND decimallatitude <= -38.3 AND decimallongitude >= -180.0 AND decimallongitude <= 180.0) AND contains(\"" + wktP + "\", decimallatitude, decimallongitude) = TRUE)"));
+
+    // A multipolygon around the Pacific and Indian oceans, split over the antimeridian
+    String wktM = "MULTIPOLYGON (((180 51.83076923076923, 180 -63, 35 -63, 60 -9, 127 1, 157 49, 180 51.83076923076923)), ((-180 -63, -180 51.83076923076923, -138 57, -127 39, -112 18, -92 13, -84 1, -77 -63, -169 -63, -180 -63)))";
+    String bbox = "(decimallatitude >= -63.0 AND decimallatitude <= 57.0 AND (decimallongitude >= 35.0 OR decimallongitude <= -77.0))";
+    query = visitor.getHiveQuery(new WithinPredicate(wktM));
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+
+    // The same polygon, as portal16 produces it.
+    // Note the result still contains the multipolygon.
+    String wkt16 = "POLYGON((35.0 -63.0, 191.0 -63.0, 283.0 -63.0, 276.0 1.0, 268.0 13.0, 248.0 18.0, 233.0 39.0, 222.0 57.0, 157.0 49.0, 127.0 1.0, 60.0 -9.0, 35.0 -63.0))";
+    query = visitor.getHiveQuery(new WithinPredicate(wkt16));
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
+
+    // A polygon around the Pacific, as Wicket draws it:
+    String wktWk = "POLYGON((157.0 49.0,127.0 1.0,60.0 -9.0,35.0 -63.0,-169.0 -63.0,-77.0 -63.0,-84.0 1.0,-92.0 13.0,-112.0 18.0,-127.0 39.0,-138.0 57.0,157.0 49.0))";
+    assertThat(query, equalTo("(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)"));
   }
 
   @Test
