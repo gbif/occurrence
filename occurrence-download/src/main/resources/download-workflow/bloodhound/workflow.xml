@@ -60,7 +60,7 @@
     </java>
 
     <ok to="persist_usages"/>
-    <error to="kill"/><!--TODO-->
+    <error to="drop_tables_failure"/>
   </action>
 
   <action name="persist_usages">
