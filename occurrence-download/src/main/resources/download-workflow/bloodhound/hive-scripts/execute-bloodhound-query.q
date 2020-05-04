@@ -4,9 +4,6 @@ CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF'
 CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
--- creating the very wide results requires using Spark
---SET hive.execution.engine=spark;
-
 -- don't run joins locally, else risk running out of memory
 SET hive.auto.convert.join=false;
 
@@ -21,7 +18,7 @@ CREATE TABLE ${occurrenceTable}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-TBLPROPERTIES ('avro.schema.url'='${wfPath}/bloodhound.avsc');
+TBLPROPERTIES ('avro.schema.url'='${wfPath}/bloodhound.avsc')
 AS SELECT
   gbifID,
   datasetKey,

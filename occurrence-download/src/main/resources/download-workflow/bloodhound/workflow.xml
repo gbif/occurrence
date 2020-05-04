@@ -32,6 +32,7 @@
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
+      <param>wfPath=${wf:appPath()}</param>
       <param>bloodhoundReducerMemory=${occurrence.download.bloodhound.reducer.memory}</param>
       <param>bloodhoundReducerOpts=${occurrence.download.bloodhound.reducer.opts}</param>
     </hive>
