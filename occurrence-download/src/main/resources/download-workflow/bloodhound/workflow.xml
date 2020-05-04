@@ -32,6 +32,8 @@
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
+      <param>bloodhoundReducerMemory=${occurrence.download.bloodhound.reducer.memory}</param>
+      <param>bloodhoundReducerOpts=${occurrence.download.bloodhound.reducer.opts}</param>
     </hive>
     <ok to="archive_table"/>
     <error to="drop_tables_failure"/>
@@ -42,18 +44,17 @@
       <main-class>org.gbif.occurrence.download.file.archive.MultiDirectoryArchiveBuilder</main-class>
       <arg>${occurrence.download.hdfsOutputPath}</arg>
       <arg>${download_key}</arg>
-      <arg>DEFAULT</arg>
+      <arg>DEFAULT</arg><!-- No pre-compression, as the Avro file isn't pre_deflated -->
 
-      <!-- Initial character must be a letter for Avro tables. Weird? -->
-      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}/</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
       <arg>occurrence.avro</arg>
       <arg></arg> <!-- The Avro file doesn't need a header prepended -->
 
-      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}_agents/</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_agents/</arg>
       <arg>agents.tsv</arg>
       <arg>agent&#x9;total_recordedBy&#x9;total_identifiedBy&#x9;gbifIDs_recordedBy&#x9;gbifIDs_identifiedBy</arg>
 
-      <arg>/user/hive/warehouse/${hive_db}.db/dl_${download_table_name}_families/</arg>
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_families/</arg>
       <arg>families.tsv</arg>
       <arg>v_family&#x9;total&#x9;gbifIDs_family</arg>
       <capture-output/>
