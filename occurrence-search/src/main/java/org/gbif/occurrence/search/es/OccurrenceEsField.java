@@ -10,7 +10,7 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
-/** Enum that contains the mapping of symbolic names and field names of valid Solr fields. */
+/** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField {
 
   ID("id", DcTerm.identifier),

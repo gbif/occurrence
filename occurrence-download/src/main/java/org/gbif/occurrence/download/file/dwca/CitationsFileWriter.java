@@ -26,14 +26,14 @@ public final class CitationsFileWriter {
 
   private static final Logger LOG = LoggerFactory.getLogger(CitationsFileWriter.class);
 
-  // Java fields of class solr.FacetField.Count that are used to create the citations file.
+  // Java fields for facet counts that are used to create the citations file.
   private static final String[] HEADER = {"name", "count"};
 
   // Processors used to create the citations file.
   private static final CellProcessor[] PROCESSORS = {new NotNull(), new ParseLong()};
 
   /**
-   * Creates the dataset citation file using the the Solr query response.
+   * Creates the dataset citation file using the the search query response.
    *
    * @param datasetUsages          record count per dataset
    * @param citationFileName       output file name

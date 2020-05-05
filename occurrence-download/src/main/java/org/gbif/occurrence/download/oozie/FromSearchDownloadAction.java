@@ -20,13 +20,11 @@ import com.google.inject.Key;
 import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;
-import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class that encapsulates the process of creating the occurrence files from Solr/HBase.
+ * Class that encapsulates the process of creating the occurrence files from Elasticsearch/HBase.
  * To start the process
  */
 public class FromSearchDownloadAction {
@@ -46,7 +44,7 @@ public class FromSearchDownloadAction {
    * Executes the download creation process.
    * All the arguments are required and expected in the following order:
    * 0. downloadFormat: output format
-   * 1. solrQuery: Solr query to produce to be used to retrieve the results.
+   * 1. searchQuery: Search query to produce to be used to retrieve the results.
    * 2. downloadKey: occurrence download identifier.
    * 3. filter: filter predicate.
    * 4. downloadTableName: base table/file name.

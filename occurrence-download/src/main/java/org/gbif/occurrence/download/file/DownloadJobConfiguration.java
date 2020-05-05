@@ -73,7 +73,7 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Solr query, translation of the query filter.
+   * Search query, translation of the query filter.
    */
   public String getSearchQuery() {
     return searchQuery;

@@ -126,7 +126,7 @@ public class DownloadMaster extends UntypedActor {
       SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
       return searchResponse.getHits().getTotalHits();
     } catch (Exception e) {
-      LOG.error("Error executing Solr query", e);
+      LOG.error("Error executing query", e);
       return 0L;
     }
   }

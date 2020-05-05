@@ -128,7 +128,7 @@ public class DownloadPrepareAction {
   }
 
   /**
-   * Method that determines if the Solr Query produces a "small" download file.
+   * Method that determines if the search query produces a "small" download file.
    */
   public Boolean isSmallDownloadCount(long recordCount) {
     return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
