@@ -1,6 +1,4 @@
 package org.gbif.occurrence.search.heatmap;
-
-import org.apache.commons.lang3.text.translate.NumericEntityUnescaper;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;

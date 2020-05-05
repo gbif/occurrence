@@ -24,7 +24,7 @@ public interface OccurrenceHeatmapService<S,R> {
 
   /**
    * Performs a search using the request and response types supported by the SearchEngine.
-   * This method is used to perform 'native' queries on the SearchEngine (ElasticSearch, Solr, etc).
+   * This method is used to perform 'native' queries on the SearchEngine.
    * @param searchRequest query
    * @param <S> search engine search request type
    * @param <R> search engine search response type

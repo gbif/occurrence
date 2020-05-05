@@ -166,7 +166,7 @@ public class OccurrenceResource {
 
   /*
    * The following methods implement the Metrics APIs.  These used to be served using the
-   * <a href="https://github.com/gbif/metrics">Metrics project</a>, but with SOLR Cloud we can now use SOLR directly.
+   * <a href="https://github.com/gbif/metrics">Metrics project</a>, but are now served by the search engine.
    */
 
   /**

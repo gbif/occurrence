@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or SOLR queries).
+ * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).
  */
 public class SimpleAvroArchiveBuilder {
 

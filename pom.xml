@@ -35,8 +35,6 @@
     <module>occurrence-cli</module>
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
-    <module>occurrence-deleter</module>
-    <module>occurrence-index-builder-workflow</module>
     <module>occurrence-persistence</module>
     <module>occurrence-parser</module>
     <module>occurrence-processor</module>
@@ -47,9 +45,6 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-solr</module>
-    <module>occurrence-salt-keys</module>
-    <module>occurrence-hbase-schema-migration</module>
   </modules>
 
   <properties>
@@ -92,11 +87,6 @@
     <guava.version>18.0</guava.version>
     <guice.version>4.0</guice.version>
     <hamcrest.version>1.3</hamcrest.version>
-
-    <!-- specific versions for solr -->
-    <httpclient.version>4.4.1</httpclient.version>
-    <httpcore.version>4.4.1</httpcore.version>
-    <httpmime.version>4.4.1</httpmime.version>
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <!-- Normally one ties Jackson versions to Jersey versions, but we need 1.9.5+ of Jackson
@@ -326,18 +316,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-index-builder</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-index-builder</artifactId>
-        <version>${project.version}</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-ws</artifactId>
         <classifier>classes</classifier>
         <version>${project.version}</version>
@@ -368,11 +346,6 @@
         <classifier>tests</classifier>
         <version>${project.version}</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-parser</artifactId>
-        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
@@ -522,37 +495,6 @@
         <artifactId>log4j-over-slf4j</artifactId>
         <version>${slf4j.version}</version>
         <scope>runtime</scope>
-      </dependency>
-      <!-- These needed to guarantee the version solr wants -->
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>${httpclient.version}</version>
-        <type>jar</type>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
-        <version>${httpcore.version}</version>
-        <type>jar</type>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpmime</artifactId>
-        <version>${httpclient.version}</version>
-        <type>jar</type>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <!-- Ships Guice logging to SLF -->

@@ -35,9 +35,10 @@ public class SearchQueryProcessor {
   private static final Logger LOG = LoggerFactory.getLogger(SearchQueryProcessor.class);
 
   /**
-   * Executes a query on the SolrServer parameter and applies the predicate to each result.
+   * Executes a query and applies the predicate to each result.
    *
-   * @param downloadFileWork it's used to determine how to page through the results and the Solr query to be used
+   * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
+   * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
   public static void processQuery(DownloadFileWork downloadFileWork, Consumer<Occurrence> resultHandler) {
@@ -76,7 +77,7 @@ public class SearchQueryProcessor {
       .getResults().forEach(consumer);
   }
   /**
-   * Creates a SolrQuery that contains the query parameter as the filter query value.
+   * Creates a search query that contains the query parameter as the filter query value.
    */
   private static SearchSourceBuilder createSearchQuery(String query) {
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
