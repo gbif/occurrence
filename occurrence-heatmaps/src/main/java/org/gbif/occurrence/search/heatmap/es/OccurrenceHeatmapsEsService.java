@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
 import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
 import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.geocentroid.ParsedGeoCentroid;
@@ -43,7 +42,8 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
   public EsOccurrenceHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(@Nullable OccurrenceHeatmapRequest request) {
     Objects.requireNonNull(request);
 
-    // build request
+    // build request, ensure mode is set.
+    request.setMode(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
     SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
@@ -60,7 +60,8 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
   public EsOccurrenceHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(@Nullable OccurrenceHeatmapRequest request) {
     Objects.requireNonNull(request);
 
-    // build request
+    // build request, ensure mode is set.
+    request.setMode(OccurrenceHeatmapRequest.Mode.GEO_CENTROID);
     SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
@@ -87,8 +88,7 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
    * Transforms the {@link SearchResponse} into a {@link org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse.GeoBoundsResponse}.
    */
   private static EsOccurrenceHeatmapResponse.GeoBoundsResponse parseGeoBoundsResponse(SearchResponse response) {
-    ParsedFilter boxAggs = response.getAggregations().get(BOX_AGGS);
-    ParsedGeoHashGrid heatmapAggs = boxAggs.getAggregations().get(HEATMAP_AGGS);
+    ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
 
     List<EsOccurrenceHeatmapResponse.GeoBoundsGridBucket> buckets =
         heatmapAggs
@@ -138,8 +138,7 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
    * Transforms a {@link SearchResponse} into a {@link org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse.GeoCentroidResponse}.
    */
   private static EsOccurrenceHeatmapResponse.GeoCentroidResponse parseGeoCentroidResponse(SearchResponse response) {
-    ParsedFilter boxAggs = response.getAggregations().get(BOX_AGGS);
-    ParsedGeoHashGrid heatmapAggs = boxAggs.getAggregations().get(HEATMAP_AGGS);
+    ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
 
     List<EsOccurrenceHeatmapResponse.GeoCentroidGridBucket> buckets =
       heatmapAggs

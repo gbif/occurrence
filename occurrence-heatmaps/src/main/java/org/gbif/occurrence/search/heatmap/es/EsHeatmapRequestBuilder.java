@@ -3,11 +3,10 @@ package org.gbif.occurrence.search.heatmap.es;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.geobounds.GeoBoundsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.geocentroid.GeoCentroidAggregationBuilder;
@@ -40,9 +39,23 @@ class EsHeatmapRequestBuilder {
     // size 0
     searchSourceBuilder.size(0);
 
+    // add the geometry filter
+    String[] coords = Iterables.toArray(Splitter.on(",").split(request.getGeometry()), String.class);
+
+    double top = Double.valueOf(coords[3]);
+    double left = Double.valueOf(coords[0]);
+    double bottom = Double.valueOf(coords[1]);
+    double right = Double.valueOf(coords[2]);
+
+    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
+      .setCorners(top, left, bottom, right));
+
     // add hasCoordinate to the filter and create query
     request.addHasCoordinateFilter(true);
-    EsSearchRequestBuilder.buildQueryNode(request).ifPresent(searchSourceBuilder::query);
+    EsSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
+
+    searchSourceBuilder.query(bool);
 
     // add aggs
     searchSourceBuilder.aggregation(buildAggs(request));
@@ -51,20 +64,6 @@ class EsHeatmapRequestBuilder {
   }
 
   private static AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
-    // adding bounding box filter
-    String[] coords =
-        Iterables.toArray(Splitter.on(",").split(request.getGeometry()), String.class);
-
-    GeoBoundingBoxQueryBuilder geoBoundingBoxQuery =
-        QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
-            .setCorners(
-                Double.parseDouble(coords[3]),
-                Double.parseDouble(coords[0]),
-                Double.parseDouble(coords[1]),
-                Double.parseDouble(coords[2]));
-
-    FilterAggregationBuilder filterAggs = AggregationBuilders.filter(BOX_AGGS, geoBoundingBoxQuery);
-
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
             .field(OccurrenceEsField.COORDINATE_POINT.getFieldName())
@@ -80,8 +79,6 @@ class EsHeatmapRequestBuilder {
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
 
-    filterAggs.subAggregation(geoGridAggs);
-
-    return filterAggs;
+    return geoGridAggs;
   }
 }
