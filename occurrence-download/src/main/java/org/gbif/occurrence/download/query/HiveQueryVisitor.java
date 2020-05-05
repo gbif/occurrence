@@ -31,6 +31,7 @@ import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
+import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
@@ -50,15 +51,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Range;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -100,13 +100,8 @@ public class HiveQueryVisitor {
   // where query to execute a select all
   private static final String ALL_QUERY = "true";
 
-  private static final String MEDIATYPE_CONTAINS_FMT = "array_contains(" +
-                                                       HiveColumnsUtils.getHiveColumn(GbifTerm.mediaType) + ",'%s')";
-  private static final String ISSUE_CONTAINS_FMT = "array_contains(" +
-                                                   HiveColumnsUtils.getHiveColumn(GbifTerm.issue) + ",'%s')";
-
-  private static final String NETWORK_KEY_CONTAINS_FMT = "array_contains(" +
-                                                   HiveColumnsUtils.getHiveColumn(GbifInternalTerm.networkKey) + ",'%s')";
+  private static final Function<Term, String> ARRAY_FN = t ->
+    "array_contains(" + HiveColumnsUtils.getHiveColumn(t) + ",'%s')";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -164,6 +159,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.REPATRIATED, GbifTerm.repatriated)
       .put(OccurrenceSearchParameter.ORGANISM_ID, DwcTerm.organismID)
       .put(OccurrenceSearchParameter.LOCALITY, DwcTerm.locality)
+      .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, DwcTerm.coordinateUncertaintyInMeters)
       .put(OccurrenceSearchParameter.STATE_PROVINCE, DwcTerm.stateProvince)
       .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
@@ -186,6 +182,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
       .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID, GbifTerm.recordedByID)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, GbifTerm.identifiedByID)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
@@ -313,11 +311,15 @@ public class HiveQueryVisitor {
       appendTaxonKeyFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
-        .ifPresent( mediaType -> builder.append(String.format(MEDIATYPE_CONTAINS_FMT, mediaType.name())));
+        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name())));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
-      builder.append(String.format(ISSUE_CONTAINS_FMT, predicate.getValue().toUpperCase()));
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
-      builder.append(String.format(NETWORK_KEY_CONTAINS_FMT, predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.networkKey), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }
@@ -417,22 +419,13 @@ public class HiveQueryVisitor {
       builder.append('(');
       String withinGeometry;
 
-      // Add an additional filter to a bounding box around any shapes that aren't squares, to speed up the query.
+      // Add an additional filter to a bounding box around any shapes that aren't quadrilaterals, to speed up the query.
       if (geometry instanceof JtsGeometry && ((JtsGeometry) geometry).getGeom().getNumPoints() != 5) {
         // Use the Spatial4J-fixed geometry; this is split into a multipolygon if it crosses the antimeridian.
         withinGeometry = ((JtsGeometry) geometry).getGeom().toText();
 
-        GeometryFactory gf = new GeometryFactory();
         Rectangle bounds = geometry.getBoundingBox();
-        Geometry rect = gf.toGeometry(new Envelope(bounds.getMinX(), bounds.getMaxX(), bounds.getMaxY(), bounds.getMinY()));
-
-        builder.append("contains(\"");
-        builder.append(rect.toText());
-        builder.append("\", ");
-        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
-        builder.append(", ");
-        builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-        builder.append(')');
+        boundingBox(bounds);
         builder.append(CONJUNCTION_OPERATOR);
       } else {
         withinGeometry = within.getGeometry();
@@ -443,12 +436,57 @@ public class HiveQueryVisitor {
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
       builder.append(", ");
       builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
-      builder.append(')');
+      // Without the "= TRUE", the expression may evaluate to TRUE or FALSE for all records, depending
+      // on the data format (ORC, Avro, Parquet, text) of the table (!).
+      // We could not reproduce the issue on our test cluster, so it seems safest to include this.
+      builder.append(") = TRUE");
 
       builder.append(')');
     } catch (Exception e) {
       throw new QueryBuildingException(e);
     }
+  }
+
+  /**
+   * Given a bounding box, generates greater than / lesser than queries using decimalLatitude and
+   * decimalLongitude to form a bounding box.
+   */
+  private void boundingBox(Rectangle bounds) {
+    builder.append('(');
+
+    // Latitude is easy:
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(GREATER_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMinY());
+    builder.append(CONJUNCTION_OPERATOR);
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(LESS_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMaxY());
+
+    builder.append(CONJUNCTION_OPERATOR);
+
+    // Longitude must take account of crossing the antimeridian:
+    if (bounds.getMinX() < bounds.getMaxX()) {
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(GREATER_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMinX());
+      builder.append(CONJUNCTION_OPERATOR);
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(LESS_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMaxX());
+    } else {
+      builder.append('(');
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(GREATER_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMinX());
+      builder.append(DISJUNCTION_OPERATOR);
+      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(LESS_THAN_EQUALS_OPERATOR);
+      builder.append(bounds.getMaxX());
+      builder.append(')');
+    }
+
+    builder.append(')');
   }
 
   /**

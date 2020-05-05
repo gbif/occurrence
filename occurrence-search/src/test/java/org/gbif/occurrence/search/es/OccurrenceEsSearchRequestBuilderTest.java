@@ -7,6 +7,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -606,7 +607,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, 6);
     groupedParams = EsSearchRequestBuilder.groupParameters(searchRequest);
     assertEquals(2, groupedParams.queryParams.keySet().size());
-    assertEquals(3, groupedParams.queryParams.values().size());
+    assertEquals(3, groupedParams.queryParams.values().stream()
+      .map(Set::size).reduce(0, Integer::sum).intValue());
     assertEquals(2, groupedParams.queryParams.get(OccurrenceSearchParameter.KINGDOM_KEY).size());
   }
 

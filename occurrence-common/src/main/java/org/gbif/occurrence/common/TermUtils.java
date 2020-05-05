@@ -32,14 +32,14 @@ public class TermUtils {
   private static final Set<? extends Term> EXTENSION_TERMS = Arrays.stream(Extension.values())
     .map(ext -> TermFactory.instance().findTerm(ext.getRowType())).collect(Collectors.toSet());
 
+  private static final Set<? extends Term> INTERPRETED_LOCAL_DATES = ImmutableSet.of(DwcTerm.eventDate,
+                                                                                     DwcTerm.dateIdentified);
 
-  private static final Set<? extends Term> INTERPRETED_DATES = ImmutableSet.of(DwcTerm.eventDate,
-                                                                               DwcTerm.dateIdentified,
-                                                                               GbifTerm.lastInterpreted,
-                                                                               GbifTerm.lastParsed,
-                                                                               GbifTerm.lastCrawled,
-                                                                               DcTerm.modified,
-                                                                               GbifInternalTerm.fragmentCreated);
+  private static final Set<? extends Term> INTERPRETED_UTC_DATES = ImmutableSet.of(GbifTerm.lastInterpreted,
+                                                                                   GbifTerm.lastParsed,
+                                                                                   GbifTerm.lastCrawled,
+                                                                                   DcTerm.modified,
+                                                                                   GbifInternalTerm.fragmentCreated);
 
   private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(DwcTerm.year,
                                                                              DwcTerm.month,
@@ -63,7 +63,9 @@ public class TermUtils {
 
   private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
                                                                           GbifTerm.issue,
-                                                                          GbifInternalTerm.networkKey);
+                                                                          GbifInternalTerm.networkKey,
+                                                                          GbifTerm.identifiedByID,
+                                                                          GbifTerm.recordedByID);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,
@@ -159,6 +161,8 @@ public class TermUtils {
                                                                                  GbifTerm.depthAccuracy,
                                                                                  GbifInternalTerm.unitQualifier,
                                                                                  GbifTerm.issue,
+                                                                                 GbifTerm.recordedByID,
+                                                                                 GbifTerm.identifiedByID,
                                                                                  DcTerm.references,
                                                                                  GbifTerm.datasetKey,
                                                                                  GbifTerm.publishingCountry,
@@ -281,10 +285,16 @@ public class TermUtils {
    * UnknownTerms are not included as they are open ended.
    */
   public static Iterable<? extends Term> verbatimTerms() {
-    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID),
-                         Arrays.stream(DcTerm.values()).filter(t -> !t.isClass()).collect(Collectors.toList()),
-                         Arrays.stream(DwcTerm.values())
-                           .filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t)).collect(Collectors.toList()));
+    return Iterables.concat(
+      Collections.singletonList(GbifTerm.gbifID),
+      Arrays.stream(DcTerm.values())
+        .filter(t -> !t.isClass())
+        .collect(Collectors.toList()),
+      Arrays.stream(DwcTerm.values())
+        .filter(t -> !t.isClass() && !NON_OCCURRENCE_TERMS.contains(t))
+        .collect(Collectors.toList()),
+      Arrays.asList(GbifTerm.recordedByID, GbifTerm.identifiedByID)
+    );
   }
 
   /**
@@ -296,10 +306,17 @@ public class TermUtils {
   }
 
   /**
-   * @return true if the term is an interpreted date and stored as a binary in HBase
+   * @return true if the term is an interpreted local date (timezone not relevant) and stored as a binary in HBase
    */
-  public static boolean isInterpretedDate(Term term) {
-    return INTERPRETED_DATES.contains(term);
+  public static boolean isInterpretedLocalDate(Term term) {
+    return INTERPRETED_LOCAL_DATES.contains(term);
+  }
+
+  /**
+   * @return true if the term is an interpreted UTC date with and stored as a binary in HBase
+   */
+  public static boolean isInterpretedUtcDate(Term term) {
+    return INTERPRETED_UTC_DATES.contains(term);
   }
 
   /**

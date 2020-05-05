@@ -119,7 +119,7 @@ public class DownloadResource {
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
 
     String extension = Optional.ofNullable(occurrenceDownloadService.get(downloadKey))
-      .map(download -> (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat())? AVRO_EXT : ZIP_EXT)
+      .map(download -> download.getRequest().getFormat().getExtension())
       .orElse(ZIP_EXT);
 
     LOG.debug("Get download data: [{}]", downloadKey);

@@ -1,9 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-/**
- * Enumeration that holds a map
- */
-
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -62,7 +58,7 @@ public enum OccurrenceEsField {
   WATER_BODY("waterBody", DwcTerm.waterBody),
   LOCALITY("locality", DwcTerm.locality),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
-  COORDINATE_UNCERTAINTY_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
+  COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
 
   //Location GBIF specific
   HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue", GbifTerm.hasGeospatialIssues),
@@ -71,7 +67,7 @@ public enum OccurrenceEsField {
 
   //Taxonomic classification
   TAXON_KEY("gbifClassification.taxonKey", GbifTerm.taxonKey),
-  USAGE_TAXON_KEY("gbifClassification.usage.key",GbifTerm.taxonKey),
+  USAGE_TAXON_KEY("gbifClassification.usage.key", GbifTerm.taxonKey),
   TAXON_RANK("gbifClassification.usage.rank", DwcTerm.taxonRank),
   ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey),
   ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName),
@@ -117,6 +113,10 @@ public enum OccurrenceEsField {
   SAMPLE_SIZE_UNIT("sampleSizeUnit", DwcTerm.sampleSizeUnit),
   SAMPLE_SIZE_VALUE("sampleSizeValue", DwcTerm.sampleSizeValue),
   RELATIVE_ORGANISM_QUANTITY("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity),
+  RECORDED_BY_ID("recordedByIds", GbifTerm.recordedByID),
+  RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
+  IDENTIFIED_BY_ID("identifiedByIds", GbifTerm.identifiedByID),
+  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", GbifTerm.identifiedByID),
 
   //Crawling
   CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
@@ -132,7 +132,6 @@ public enum OccurrenceEsField {
   FACTS("measurementOrFactItems", null),
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null);
-
 
 
   private final String fieldName;

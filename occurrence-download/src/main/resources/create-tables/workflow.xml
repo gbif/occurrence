@@ -24,12 +24,14 @@
     </configuration>
   </global>
 
-  <start to="start-barrier"/>
+  <start to="create-snapshot"/>
 
-  <action name="start-barrier">
+  <action name="create-snapshot">
     <java>
-      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>START</arg>
+      <arg>${source_data_dir}</arg>
+      <arg>${wf:id()}</arg>
     </java>
     <ok to="create-avro-table"/>
     <error to="notify-error"/>
@@ -44,16 +46,54 @@
       <script>hive-scripts/create-occurrence-avro.q</script>
       <param>hiveDB=${hiveDB}</param>
       <param>env=${occurrence.environment}</param>
+      <param>snapshot=${wf:id()}</param>
+      <param>sourceDataDir=${source_data_dir}</param>
+      <param>occurrenceTable=${schema_change ? 'new_' : ''}${download_table_name}</param>
+      <param>wfPath=${wf:appPath()}</param>
     </hive>
-    <ok to="end-barrier"/>
+    <ok to="delete-snapshot"/>
+    <error to="delete-snapshot-error"/>
+  </action>
+
+  <action name="delete-snapshot">
+    <java>
+      <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
+      <arg>END</arg>
+      <arg>${source_data_dir}</arg>
+      <arg>${wf:id()}</arg>
+    </java>
+    <ok to="schema-changed"/>
     <error to="notify-error"/>
   </action>
 
-  <action name="end-barrier">
+  <action name="delete-snapshot-error">
     <java>
-      <main-class>org.gbif.occurrence.download.oozie.BarrierAction</main-class>
+      <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>END</arg>
+      <arg>${source_data_dir}</arg>
+      <arg>${wf:id()}</arg>
     </java>
+    <ok to="notify-error"/>
+    <error to="notify-error"/>
+  </action>
+
+  <decision name="schema-changed">
+    <switch>
+      <!-- All AVRO downloads are done through Hive queries -->
+      <case to="swap-tables">
+        ${schema_change and table_swap}
+      </case>
+      <default to="end"/>
+    </switch>
+  </decision>
+
+  <action name="swap-tables">
+    <hive xmlns="uri:oozie:hive-action:0.4">
+      <job-xml>conf/hive-default.xml</job-xml>
+      <script>hive-scripts/swap-tables.q</script>
+      <param>hiveDB=${hiveDB}</param>
+      <param>occurrenceTable=${download_table_name}</param>
+    </hive>
     <ok to="end"/>
     <error to="notify-error"/>
   </action>

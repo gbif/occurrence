@@ -27,6 +27,12 @@ public class OccHBaseConfiguration {
   @NotNull
   public String lookupTable;
 
+  @Parameter(names = "--fragmenter-table")
+  public String fragmenterTable;
+
+  @Parameter(names = "--fragmenter-salt")
+  public int fragmenterSalt = 100;
+
   /**
    * The zookeeper connection being used to create a lock provider
    */
@@ -42,6 +48,7 @@ public class OccHBaseConfiguration {
     occTable = prefix + "_occurrence";
     counterTable = prefix + "_occurrence_counter";
     lookupTable = prefix + "_occurrence_lookup";
+    fragmenterTable = prefix + "_fragment";
   }
 
   @Override
@@ -51,6 +58,7 @@ public class OccHBaseConfiguration {
       .add("occTable", occTable)
       .add("counterTable", counterTable)
       .add("lookupTable", lookupTable)
+      .add("fragmenterTable", fragmenterTable)
       .add("zkConnectionString", zkConnectionString)
       .toString();
   }

@@ -1,7 +1,6 @@
 <#--
   This is a freemarker template which will generate an HQL script which is run at download time.
   When run in Hive as a parameterized query, this will create a set of tables ...
-  TODO: document when we actually know something accurate to write here...
 -->
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
@@ -16,6 +15,7 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
+CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
@@ -30,7 +30,7 @@ AS SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-FROM occurrence_pipeline_hdfs
+FROM occurrence_hdfs
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.

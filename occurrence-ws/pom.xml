@@ -4,10 +4,10 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.115-SNAPSHOT</version>
+    <version>0.123-SNAPSHOT</version>
   </parent>
 
-  <artifactId>es-occurrence-ws</artifactId>
+  <artifactId>occurrence-ws</artifactId>
   <packaging>jar</packaging>
 
   <name>Occurrence Web service</name>
@@ -162,6 +162,7 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-identity</artifactId>
+      <version>${gbif-registry-ws-client.version}</version>
       <exclusions>
       	<exclusion>
       		<groupId>com.google.guava</groupId>

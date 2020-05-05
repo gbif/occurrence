@@ -16,9 +16,10 @@ public class DownloadUtils {
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
 
-  public static final DateTimeFormatter ISO_8601_FORMAT = DateTimeFormatter.ISO_INSTANT;
+  public static final DateTimeFormatter ISO_8601_ZONED = DateTimeFormatter.ISO_INSTANT;
+  public static final DateTimeFormatter ISO_8601_LOCAL = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-  public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s.zip";
+  public static final String DOWNLOAD_LINK_FMT = "occurrence/download/request/%s%s";
 
   /**
    * Private default constructor.
@@ -47,8 +48,8 @@ public class DownloadUtils {
   /**
    * Creates a URL pointing to the download file.
    */
-  public static String downloadLink(String baseUrl, String downloadId) {
-    return concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, downloadId));
+  public static String downloadLink(String baseUrl, String downloadId, String extension) {
+    return concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, downloadId, extension));
   }
 
   public static String downloadToWorkflowId(String downloadId) {

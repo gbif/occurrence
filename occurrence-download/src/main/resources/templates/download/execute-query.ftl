@@ -1,13 +1,13 @@
 <#--
   This is a freemarker template which will generate an HQL script which is run at download time.
   When run in Hive as a parameterized query, this will create a set of tables ...
-  TODO: document when we actually know something accurate to write here...
 -->
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
 
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
+CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF';
 CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 
@@ -48,7 +48,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
 <#-- NOTE: Formatted below to generate nice output at expense of ugliness in this template -->
-FROM occurrence_pipeline_hdfs
+FROM occurrence_hdfs
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
 <#list verbatimFields as field>
@@ -75,7 +75,7 @@ SET mapred.reduce.tasks=5;
 SET hive.auto.convert.join=false;
 CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
-FROM occurrence_pipeline_multimedia m
+FROM occurrence_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 SET hive.auto.convert.join=true;
 

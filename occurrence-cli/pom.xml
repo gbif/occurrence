@@ -4,10 +4,10 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.115-SNAPSHOT</version>
+    <version>0.123-SNAPSHOT</version>
   </parent>
 
-  <artifactId>es-occurrence-cli</artifactId>
+  <artifactId>occurrence-cli</artifactId>
   <packaging>jar</packaging>
 
   <name>Occurrence CLI</name>

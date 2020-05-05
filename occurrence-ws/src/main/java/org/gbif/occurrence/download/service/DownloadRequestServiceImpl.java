@@ -300,7 +300,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setKey(downloadId);
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
-    download.setDownloadLink(downloadLink(wsUrl, downloadId));
+    download.setDownloadLink(downloadLink(wsUrl, downloadId, request.getFormat().getExtension()));
     download.setRequest(request);
     occurrenceDownloadService.create(download);
   }
@@ -319,6 +319,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
    * The download filename with extension.
    */
   private String getDownloadFilename(Download download) {
-    return download.getKey() + (download.getRequest().getFormat() == DownloadFormat.SIMPLE_AVRO ? ".avro" : ".zip");
+    return download.getKey() + download.getRequest().getFormat().getExtension();
   }
 }

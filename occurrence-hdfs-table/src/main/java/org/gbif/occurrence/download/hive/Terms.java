@@ -160,7 +160,6 @@ public final class Terms {
                            GbifTerm.acceptedScientificName,
                            DwcTerm.taxonRank,
                            DwcTerm.taxonomicStatus,
-                           // DwcTerm.verbatimCoordinates,
                            GbifTerm.genericName,
                            DwcTerm.specificEpithet,
                            DwcTerm.infraspecificEpithet,
@@ -261,12 +260,17 @@ public final class Terms {
    * Returns the list of all terms which can be present in the verbatim view of an Occurrence.  This is defined as:
    * <ul>
    * <li>The GBIF ID</li>
-   * <li>The complete Dublin Core terms excluding "class" terms</li>
+   * <li>The complete Darwin Core terms excluding "class" terms</li>
    * <li>The Darwin Core terms excluding "class" terms and any not suitable for occurrence records</li>
    * </ul>
    */
   public static List<Term> verbatimTerms() {
-    return ImmutableList.<Term>builder().add(GbifTerm.gbifID).addAll(DC_PROPERTIES).addAll(DwC_PROPERTIES).build();
+    return ImmutableList.<Term>builder()
+      .add(GbifTerm.gbifID)
+      .addAll(DC_PROPERTIES)
+      .addAll(DwC_PROPERTIES)
+      .add(GbifTerm.identifiedByID, GbifTerm.recordedByID)
+      .build();
   }
 
   /**
@@ -287,7 +291,7 @@ public final class Terms {
       // add all Darwin Core terms that are not stripped during interpretation
       DwC_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       .addAll(
-      // add all GBIF terms that are not stripped during interpretation\
+      // add all GBIF terms that are not stripped during interpretation
       GBIF_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
         && GbifTerm.coordinateAccuracy !=t && GbifTerm.numberOfOccurrences != t).collect(Collectors.toList()))
       .build();

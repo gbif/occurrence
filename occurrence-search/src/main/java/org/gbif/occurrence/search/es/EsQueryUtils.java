@@ -215,6 +215,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceEsField.ESTABLISHMENT_MEANS)
           .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceEsField.REPATRIATED)
           .put(OccurrenceSearchParameter.LOCALITY, OccurrenceEsField.LOCALITY)
+          .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, OccurrenceEsField.COORDINATE_UNCERTAINTY_IN_METERS)
           .put(OccurrenceSearchParameter.STATE_PROVINCE, OccurrenceEsField.STATE_PROVINCE)
           .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceEsField.WATER_BODY)
           .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)
@@ -236,6 +237,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, OccurrenceEsField.RELATIVE_ORGANISM_QUANTITY)
           .put(OccurrenceSearchParameter.COLLECTION_KEY, OccurrenceEsField.COLLECTION_KEY)
           .put(OccurrenceSearchParameter.INSTITUTION_KEY, OccurrenceEsField.INSTITUTION_KEY)
+          .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
+          .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =

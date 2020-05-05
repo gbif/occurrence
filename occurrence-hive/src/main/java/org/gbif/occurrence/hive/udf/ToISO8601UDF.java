@@ -2,10 +2,8 @@ package org.gbif.occurrence.hive.udf;
 
 import org.gbif.occurrence.common.download.DownloadUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDF;
@@ -23,16 +21,15 @@ public class ToISO8601UDF extends UDF {
   private final Text text = new Text();
 
   public Text evaluate(Text field) {
-    if (field == null) {
-      text.set("");
+    if (field == null || field.getLength() == 0) {
+      return null;
     } else {
       try {
-        text.set(DownloadUtils.ISO_8601_FORMAT.format(Instant.ofEpochMilli(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC)));
+        text.set(DownloadUtils.ISO_8601_ZONED.format(Instant.ofEpochMilli(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC)));
+        return text;
       } catch (NumberFormatException e) {
-        text.set("");
+        return null;
       }
     }
-
-    return text;
   }
 }

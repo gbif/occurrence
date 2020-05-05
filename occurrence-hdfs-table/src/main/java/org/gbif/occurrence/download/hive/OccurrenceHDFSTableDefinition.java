@@ -185,10 +185,9 @@ public class OccurrenceHDFSTableDefinition {
     return new InitializableField(term,
                                   HiveColumns.columnFor(term),
                                   // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
-                                  // column uin HBase for us
+                                  // column in HBase for us
                                   HiveDataTypes.typeForTerm(term, false),
                                   // not verbatim context
                                   initializer);
   }
-
 }

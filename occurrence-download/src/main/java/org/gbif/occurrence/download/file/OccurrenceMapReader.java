@@ -1,24 +1,37 @@
 package org.gbif.occurrence.download.file;
 
+import java.net.URI;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
-import org.gbif.dwc.terms.*;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
-import java.net.URI;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang3.tuple.Pair;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
@@ -26,6 +39,10 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  * Reads a occurrence record from HBase and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
+
+  private OccurrenceMapReader() {
+    // NOP
+  }
 
   public static final Map<Rank, Term> rank2KeyTerm =
     ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
@@ -74,19 +91,21 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(occurrence.getLastCrawled()));
 
     //Temporal fields
-    interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getSimpleValue(occurrence.getDateIdentified()));
-    interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue( occurrence.getModified()));
+    interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getLocalDateValue(occurrence.getDateIdentified()));
+    interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue(occurrence.getModified()));
     interpretedOccurrence.put(DwcTerm.day.simpleName(), getSimpleValue(occurrence.getDay()));
     interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
     interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
-    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getSimpleValue(occurrence.getEventDate()));
+    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getLocalDateValue(occurrence.getEventDate()));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
     interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(), getSimpleValue(occurrence.getAcceptedTaxonKey()));
     interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
     interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
+    interpretedOccurrence.put(GbifTerm.verbatimScientificName.simpleName(), occurrence.getVerbatimScientificName());
     interpretedOccurrence.put(GbifTerm.genericName.simpleName(), occurrence.getGenericName());
+    interpretedOccurrence.put(GbifTerm.subgenusKey.simpleName(), getSimpleValue(occurrence.getSubgenusKey()));
     interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
     interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
     interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
@@ -118,8 +137,14 @@ public class OccurrenceMapReader {
     getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
     interpretedOccurrence.put(DwcTerm.geodeticDatum.simpleName(), occurrence.getGeodeticDatum());
 
-    extractOccurrenceIssues(occurrence).ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
-    extractMediaTypes(occurrence).ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+    extractOccurrenceIssues(occurrence)
+      .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
+    extractMediaTypes(occurrence)
+      .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+    extractAgentIds(occurrence.getRecordedByIds())
+      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), uids));
+    extractAgentIds(occurrence.getIdentifiedByIds())
+      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.identifiedByID.simpleName(), uids));
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());
@@ -202,6 +227,15 @@ public class OccurrenceMapReader {
     return null;
   }
 
+  /**
+   * Transform a local date data type into a String.
+   */
+  private static String getLocalDateValue(Date value) {
+    if (value != null) {
+      return toLocalISO8601Date(value);
+    }
+    return null;
+  }
 
   /**
    * Validates if the occurrence record it's a repatriated record.
@@ -214,6 +248,15 @@ public class OccurrenceMapReader {
       return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
+  }
+
+  /**
+   * Extracts the agentIdentifier types from the record.
+   */
+  private static Optional<String> extractAgentIds(List<AgentIdentifier> agents) {
+    return Optional.ofNullable(agents)
+      .map(a -> a.stream().map(AgentIdentifier::getValue)
+        .collect(Collectors.joining(";")));
   }
 
   /**
@@ -258,7 +301,13 @@ public class OccurrenceMapReader {
    * Converts a date object into a String in IS0 8601 format.
    */
   protected static String toISO8601Date(Date date) {
-    return date != null ? DownloadUtils.ISO_8601_FORMAT.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
+    return date != null ? DownloadUtils.ISO_8601_ZONED.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
   }
 
+  /**
+   * Converts a date object into a String in IS0 8601 format, without timezone.
+   */
+  protected static String toLocalISO8601Date(Date date) {
+    return date != null ? DownloadUtils.ISO_8601_LOCAL.format(date.toInstant().atZone(ZoneOffset.UTC)) : null;
+  }
 }

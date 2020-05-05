@@ -2,14 +2,24 @@
   "creator": "MattBlissett",
   "sendNotification": true,
   "notification_address": ["mblissett@gbif.org"],
-  "format": "SIMPLE_AVRO",
+  "format": "MAP_OF_LIFE",
   "predicate": {
     "type": "and",
     "predicates": [
       {
         "type": "equals",
+        "key": "COUNTRY",
+        "value": "AU"
+      },
+      {
+        "type": "equals",
+        "key": "YEAR",
+        "value": "2017"
+      },
+      {
+        "type": "equals",
         "key": "TAXON_KEY",
-        "value": "2605963"
+        "value": "6"
       }
     ]
   }

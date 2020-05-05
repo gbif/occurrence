@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.115-SNAPSHOT</version>
+    <version>0.123-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -110,6 +110,8 @@
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>**/config-default.xml</exclude>
                     <exclude>hbase-site.xml</exclude>
+                    <exclude>registry.properties</exclude>
+                    <exclude>logback*.xml</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -125,6 +127,10 @@
                 <relocation>
                   <pattern>org.apache.curator</pattern>
                   <shadedPattern>shadedocc.org.apache.curator</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.logging</pattern>
+                  <shadedPattern>shadedspringjcl.org.apache.commons.logging</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -147,7 +153,8 @@
             <descriptor>src/main/assembly/simple-avro-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-csv-download.xml</descriptor>
             <descriptor>src/main/assembly/species-list-download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-sql-download.xml</descriptor>
+            <descriptor>src/main/assembly/iucn-download.xml</descriptor>
+            <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>
         </configuration>
@@ -262,6 +269,12 @@
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-metadata</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -536,6 +549,8 @@
       <artifactId>zookeeper</artifactId>
     </dependency>
 
+    <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
+
     <!-- Test -->
     <dependency>
       <groupId>junit</groupId>
@@ -543,5 +558,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
 </project>

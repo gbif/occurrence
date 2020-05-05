@@ -14,8 +14,6 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
@@ -118,7 +116,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildQuery(
-      Multimap<OccurrenceSearchParameter, String> params, String qParam) {
+      Map<OccurrenceSearchParameter, Set<String>> params, String qParam) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
@@ -143,7 +141,7 @@ public class EsSearchRequestBuilder {
       // adding term queries to bool
       bool.filter()
           .addAll(
-              params.asMap().entrySet().stream()
+              params.entrySet().stream()
                   .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
                   .flatMap(
                       e ->
@@ -167,18 +165,17 @@ public class EsSearchRequestBuilder {
       return groupedParams;
     }
 
-    groupedParams.queryParams = ArrayListMultimap.create();
-    groupedParams.postFilterParams = ArrayListMultimap.create();
+    groupedParams.queryParams = new HashMap<>();
+    groupedParams.postFilterParams = new HashMap<>();
 
     searchRequest
         .getParameters()
-        .asMap()
         .forEach(
             (k, v) -> {
               if (searchRequest.getFacets().contains(k)) {
-                groupedParams.postFilterParams.putAll(k, v);
+                groupedParams.postFilterParams.put(k, v);
               } else {
-                groupedParams.queryParams.putAll(k, v);
+                groupedParams.queryParams.put(k, v);
               }
             });
 
@@ -186,7 +183,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildPostFilter(
-      Multimap<OccurrenceSearchParameter, String> postFilterParams) {
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
@@ -194,7 +191,7 @@ public class EsSearchRequestBuilder {
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     bool.filter()
         .addAll(
-            postFilterParams.asMap().entrySet().stream()
+            postFilterParams.entrySet().stream()
                 .flatMap(
                     e ->
                         buildTermQuery(
@@ -207,7 +204,7 @@ public class EsSearchRequestBuilder {
 
   private static Optional<List<AggregationBuilder>> buildAggs(
       OccurrenceSearchRequest searchRequest,
-      Multimap<OccurrenceSearchParameter, String> postFilterParams,
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams,
       boolean facetsEnabled) {
     if (!facetsEnabled
         || searchRequest.getFacets() == null
@@ -226,7 +223,7 @@ public class EsSearchRequestBuilder {
 
   private static List<AggregationBuilder> buildFacetsMultiselect(
       OccurrenceSearchRequest searchRequest,
-      Multimap<OccurrenceSearchParameter, String> postFilterParams) {
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
 
     if (searchRequest.getFacets().size() == 1) {
       // same case as normal facets
@@ -242,7 +239,7 @@ public class EsSearchRequestBuilder {
               BoolQueryBuilder bool = QueryBuilders.boolQuery();
               bool.filter()
                   .addAll(
-                      postFilterParams.asMap().entrySet().stream()
+                      postFilterParams.entrySet().stream()
                           .filter(entry -> entry.getKey() != facetParam)
                           .flatMap(
                               e ->
@@ -475,7 +472,7 @@ public class EsSearchRequestBuilder {
 
   @VisibleForTesting
   static class GroupedParams {
-    Multimap<OccurrenceSearchParameter, String> postFilterParams;
-    Multimap<OccurrenceSearchParameter, String> queryParams;
+    Map<OccurrenceSearchParameter, Set<String>> postFilterParams;
+    Map<OccurrenceSearchParameter, Set<String>> queryParams;
   }
 }
