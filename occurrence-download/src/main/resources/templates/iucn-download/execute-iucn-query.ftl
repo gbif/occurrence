@@ -107,7 +107,6 @@ SELECT
   ${interpretedFields.mediaType.initializer},
   ${interpretedFields.issue.initializer}
 FROM occurrence
-FROM occurrence
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
