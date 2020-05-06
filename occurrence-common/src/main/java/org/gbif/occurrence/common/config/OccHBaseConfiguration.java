@@ -15,18 +15,6 @@ public class OccHBaseConfiguration {
   @Min(1)
   public int hbasePoolSize = 5;
 
-  @Parameter(names = "--occ-table")
-  @NotNull
-  public String occTable;
-
-  @Parameter(names = "--occ-counter-table")
-  @NotNull
-  public String counterTable;
-
-  @Parameter(names = "--occ-lookup-table")
-  @NotNull
-  public String lookupTable;
-
   @Parameter(names = "--fragmenter-table")
   public String fragmenterTable;
 
@@ -45,9 +33,6 @@ public class OccHBaseConfiguration {
    * @param prefix environment prefix, e.g. prod or uat
    */
   public void setEnvironment(String prefix) {
-    occTable = prefix + "_occurrence";
-    counterTable = prefix + "_occurrence_counter";
-    lookupTable = prefix + "_occurrence_lookup";
     fragmenterTable = prefix + "_fragment";
   }
 
@@ -55,9 +40,6 @@ public class OccHBaseConfiguration {
   public String toString() {
     return Objects.toStringHelper(this)
       .add("hbasePoolSize", hbasePoolSize)
-      .add("occTable", occTable)
-      .add("counterTable", counterTable)
-      .add("lookupTable", lookupTable)
       .add("fragmenterTable", fragmenterTable)
       .add("zkConnectionString", zkConnectionString)
       .toString();

@@ -161,7 +161,7 @@ public class OccurrenceResource {
   @Produces(MediaType.APPLICATION_XML)
   public VerbatimOccurrence getAnnosysVerbatim(@PathParam("key") Long key) {
     LOG.debug("Request Annosys verbatim occurrence [{}]:", key);
-    return occurrenceService.getVerbatim(key);
+    return occurrenceGetByKey.getVerbatim(key);
   }
 
   /*
