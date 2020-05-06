@@ -1,13 +1,16 @@
 # GBIF Occurrence CLI
 
-This provides runnable services that subscribe to, and publish, occurrence events: processing, crawling, interpretation, creation, deletions and updates.
+This provides runnable services that subscribe to occurrence events.
 
-To run this build with maven and then add appropriate cluster configs (e.g. http://github.com/gbif/gbif-configuration/cli/dev/config) to the classpath when running individual services:
+After the migration of most functionality to Pipelines, only two remain:
+
+* EsDatasetDeleter: deletes indices from ElasticSearch.  This should probably be moved to the Pipelines project.
+* RegistryChange: tracks changes to the registry and starts new crawls if necessary.  This should be moved to the Registry project.
+
+To run this build with maven and then add appropriate cluster configs (e.g. https://github.com/gbif/gbif-configuration/cli/dev/config) to the classpath when running individual services:
 ````mvn clean package````
 
 Each service requires config files, both service config and logging config.
-
-Example complete config files are given in the example-conf folder, with placeholders to supply the required values.
 
 Examples (note you can pass a standard logback xml file in the properties as shown in the second example):
 
@@ -29,4 +32,4 @@ It should be noted that you can override any property from the configuration fil
 Command | Description
 --- | ---
 delete-dataset | deletes an existing dataset
-registry-change-listener | update the occurrence table when a dataset or organization changes country (via mapreduce)
+registry-change-listener | request a new crawl when a dataset or organization changes country or publisher.
