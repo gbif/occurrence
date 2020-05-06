@@ -22,15 +22,6 @@
     <value>${hive.metastore.uris}</value>
   </property>
 
-  <!--
-    Enable HBase so we can create HBase backed tables.
-    Note, requires HBase jars on the classpath.
-  -->
-  <property>
-    <name>hbase.zookeeper.quorum</name>
-    <value>${zookeeper.quorum}</value>
-  </property>
-
   <!-- Explicit, to allow us to debug query plans etc -->
   <property>
     <name>hive.exec.scratchdir</name>
