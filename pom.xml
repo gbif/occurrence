@@ -36,7 +36,6 @@
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
-    <module>occurrence-parser</module>
     <module>occurrence-processor</module>
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
