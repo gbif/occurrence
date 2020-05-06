@@ -41,13 +41,14 @@ public class EsHeatmapRequestBuilderTest {
     assertEquals(0, json.get(SIZE).asInt());
 
     // aggs
-    assertTrue(json.path(AGGREGATIONS).path(BOX_AGGS).path(FILTER).has(GEO_BOUNDING_BOX));
+    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(GEO_BOUNDING_BOX));
 
     // assert bbox
     JsonNode bbox =
-        json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
+        json.path(QUERY)
+            .path(BOOL)
             .path(FILTER)
+            .path(0)
             .path(GEO_BOUNDING_BOX)
             .path(OccurrenceEsField.COORDINATE_POINT.getFieldName());
     assertEquals(-44d, bbox.path("top_left").get(0).asDouble(), 0);
@@ -58,14 +59,10 @@ public class EsHeatmapRequestBuilderTest {
     // geohash_grid
     assertTrue(
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .has(GEOHASH_GRID));
     JsonNode jsonGeohashGrid =
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .path(GEOHASH_GRID);
     assertEquals(
@@ -75,16 +72,12 @@ public class EsHeatmapRequestBuilderTest {
     // geo_bounds
     assertTrue(
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .path(AGGREGATIONS)
             .path(CELL_AGGS)
             .has(GEO_BOUNDS));
     JsonNode jsonGeobounds =
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .path(AGGREGATIONS)
             .path(CELL_AGGS)
@@ -97,7 +90,7 @@ public class EsHeatmapRequestBuilderTest {
    * Tries to find a field in the list of term filters.
    */
   private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
-    ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER);
+    ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER);
     return StreamSupport.stream(Spliterators.spliterator(arrayNode.getElements(), 2, Spliterator.ORDERED), false)
               .filter(termNode -> termNode.path(TERM).has(field.getFieldName()))
               .map(termNode -> termNode.path(TERM).get(field.getFieldName()).get(VALUE).asText())
@@ -116,7 +109,7 @@ public class EsHeatmapRequestBuilderTest {
 
     assertEquals(0, json.get(SIZE).asInt());
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());
-    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(0).has(TERM));
+    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER).get(1).has(TERM));
 
     // taxon key
     Optional<String> taxaValue = findTermFilter(json, OccurrenceEsField.TAXON_KEY);
@@ -127,24 +120,15 @@ public class EsHeatmapRequestBuilderTest {
       Assert.fail("TaxaKey term not found");
     }
 
-
-
-    // aggs
-    assertTrue(json.path(AGGREGATIONS).path(BOX_AGGS).path(FILTER).has(GEO_BOUNDING_BOX));
-
     // geohash_grid
     assertTrue(
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .has(GEOHASH_GRID));
 
     // geo_bounds
     assertTrue(
         json.path(AGGREGATIONS)
-            .path(BOX_AGGS)
-            .path(AGGREGATIONS)
             .path(HEATMAP_AGGS)
             .path(AGGREGATIONS)
             .path(CELL_AGGS)
