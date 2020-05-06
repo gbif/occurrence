@@ -38,7 +38,7 @@
   </action>
 
   <!--
-    Create the table backed by HBase
+    Create the Avro table from the HDFS snapshot
   -->
   <action name="create-avro-table">
     <hive xmlns="uri:oozie:hive-action:0.4">

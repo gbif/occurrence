@@ -106,7 +106,7 @@ SELECT
   ${interpretedFields.lastInterpreted.initializer},
   ${interpretedFields.mediaType.initializer},
   ${interpretedFields.issue.initializer}
-FROM occurrence_hdfs
+FROM occurrence
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.

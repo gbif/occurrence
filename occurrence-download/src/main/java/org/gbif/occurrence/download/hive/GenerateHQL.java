@@ -25,7 +25,7 @@ import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinitio
  * plugin, to aid testing, development and debugging.  Freemarker is used as a templating language
  * to allow rapid development, but the sections which are verbose, and subject to easy typos are controlled
  * by enumerations in code.  The same enumerations are used in many places in the codebase, including the
- * generation of the HBase table columns themselves.
+ * generation of the Hive table columns themselves.
  */
 public class GenerateHQL {
 
@@ -102,7 +102,7 @@ public class GenerateHQL {
   }
 
   /**
-   * Generates HQL which is used to take snapshots of the HBase table, and creates an HDFS equivalent.
+   * Generates HQL which is used to create the Hive table, and creates an HDFS equivalent.
    */
   private static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 

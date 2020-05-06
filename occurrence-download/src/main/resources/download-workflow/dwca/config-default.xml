@@ -28,12 +28,4 @@
     <name>hiveDB</name>
     <value>${occurrence.environment}</value>
   </property>
-
-  <!--
-    HBase table to source data from [can be overridden on job config].
-  -->
-  <property>
-    <name>occurrenceHBaseTable</name>
-    <value>${occurrence.environment}_occurrence</value>
-  </property>
 </configuration>

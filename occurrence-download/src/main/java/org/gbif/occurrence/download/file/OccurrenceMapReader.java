@@ -36,7 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
- * Reads a occurrence record from HBase and return it in a Map<String,Object>.
+ * Reads a occurrence record from Elasticsearch and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
 

@@ -306,42 +306,42 @@ public class TermUtils {
   }
 
   /**
-   * @return true if the term is an interpreted local date (timezone not relevant) and stored as a binary in HBase
+   * @return true if the term is an interpreted local date (timezone not relevant)
    */
   public static boolean isInterpretedLocalDate(Term term) {
     return INTERPRETED_LOCAL_DATES.contains(term);
   }
 
   /**
-   * @return true if the term is an interpreted UTC date with and stored as a binary in HBase
+   * @return true if the term is an interpreted UTC date with
    */
   public static boolean isInterpretedUtcDate(Term term) {
     return INTERPRETED_UTC_DATES.contains(term);
   }
 
   /**
-   * @return true if the term is an interpreted numerical and stored as a binary in HBase
+   * @return true if the term is an interpreted numerical
    */
   public static boolean isInterpretedNumerical(Term term) {
     return INTERPRETED_NUM.contains(term);
   }
 
   /**
-   * @return true if the term is an interpreted double and stored as a binary in HBase
+   * @return true if the term is an interpreted double
    */
   public static boolean isInterpretedDouble(Term term) {
     return INTERPRETED_DOUBLE.contains(term);
   }
 
   /**
-   * @return true if the term is an interpreted boolean and stored as a binary in HBase
+   * @return true if the term is an interpreted boolean
    */
   public static boolean isInterpretedBoolean(Term term) {
     return INTERPRETED_BOOLEAN.contains(term);
   }
 
   /**
-   * @return true if the term is an complex type in Hive or Hbase: array, struct, json, etc.
+   * @return true if the term is an complex type in Hive: array, struct, json, etc.
    */
   public static boolean isComplexType(Term term) {
     return COMPLEX_TYPE.contains(term);

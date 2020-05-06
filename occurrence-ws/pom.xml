@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.123-SNAPSHOT</version>
+    <version>0.124-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -270,60 +270,6 @@
       		<groupId>com.google.guava</groupId>
       		<artifactId>guava</artifactId>
       	</exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>
-      <exclusions>
-      <exclusion>
-        <artifactId>jsp-api</artifactId>
-        <groupId>javax.servlet.jsp</groupId>
-      </exclusion>
-      <exclusion>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-continuation</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-deploy</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-http</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-io</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-jmx</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-security</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-xml</artifactId>
-      </exclusion>
-      <exclusion>
-        <groupId>org.eclipse.jetty.orbit</groupId>
-        <artifactId>javax.servlet</artifactId>
-      </exclusion>
-      <exclusion>
-      	<groupId>com.google.guava</groupId>
-      	<artifactId>guava</artifactId>
-      </exclusion>
       </exclusions>
     </dependency>
 

@@ -210,13 +210,13 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Converts a value to the form expected by Hive/Hbase based on the OccurrenceSearchParameter.
+   * Converts a value to the form expected by Hive based on the OccurrenceSearchParameter.
    * Most values pass by unaltered. Quotes are added for values that need to be quoted, escaping any existing quotes.
    *
    * @param param the type of parameter defining the expected type
    * @param value the original query value
    *
-   * @return the converted value expected by HBase
+   * @return the converted value expected by Hive
    */
   private static String toHiveValue(OccurrenceSearchParameter param, String value) {
     if (Enum.class.isAssignableFrom(param.type())) {
@@ -539,7 +539,7 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Searches any of the NUB keys in HBase of any rank.
+   * Searches any of the NUB keys in Hive of any rank.
    *
    * @param taxonKey to append as filter
    */
@@ -559,7 +559,7 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Searches any of the NUB keys in HBase of any rank, for multiple keys.
+   * Searches any of the NUB keys in Hive of any rank, for multiple keys.
    *
    * @param taxonKeys to append as filter
    */

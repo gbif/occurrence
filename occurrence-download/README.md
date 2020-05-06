@@ -2,7 +2,7 @@
 
 This project provides the Oozie workflows used to:
 
-1. Create a set of Hive tables used by occurrence download: occurrence_hdfs, occurrence_avro and occurrence_multimedia.
+1. Create a set of Hive tables used by occurrence download: occurrence, occurrence_avro and occurrence_multimedia.
 2. Occurrence Download through GBIF.org using the occurrence-ws
 
 ## Installation

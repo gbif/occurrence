@@ -48,7 +48,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
 <#-- NOTE: Formatted below to generate nice output at expense of ugliness in this template -->
-FROM occurrence_hdfs
+FROM occurrence
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
 <#list verbatimFields as field>
