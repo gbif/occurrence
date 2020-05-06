@@ -78,7 +78,7 @@ public class OccurrenceResource {
   }
 
   /**
-   * This retrieves a single Occurrence detail by its key from HBase.
+   * This retrieves a single Occurrence detail by its key from the occurrence store.
    *
    * @param key Occurrence key
    * @return requested Occurrence or null if none could be found
@@ -106,7 +106,7 @@ public class OccurrenceResource {
   }
 
   /**
-   * This retrieves a single VerbatimOccurrence detail by its key from HBase and transforms it into the API
+   * This retrieves a single VerbatimOccurrence detail by its key from the occurrence store and transforms it into the API
    * version which uses Maps.
    *
    * @param key The Occurrence key

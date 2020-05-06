@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * This provides the definition required to construct the occurrence hdfs table, for use as a Hive table.
- * The table is populated by a query which scans the HBase backed table, but along the way converts some fields to
+ * The table is populated by a query which scans the Avro files, but along the way converts some fields to
  * e.g. Hive arrays which requires some UDF voodoo captured here.
  * <p/>
  * Note to developers: It is not easy to find a perfectly clean solution to this work.  Here we try and favour long
@@ -55,13 +55,13 @@ public class OccurrenceHDFSTableDefinition {
 
   /**
    * Assemble the mapping for interpreted fields, taking note that in reality, many are mounted onto the verbatim
-   * HBase columns.
+   * columns.
    *
    * @return the list of fields that are used in the interpreted context
    */
   private static List<InitializableField> interpretedFields() {
 
-    // the following terms are manipulated when transposing from HBase to hive by using UDFs and custom HQL
+    // the following terms are manipulated when transposing from Avro to hive by using UDFs and custom HQL
     Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
                                       .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
@@ -82,7 +82,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * The internal fields stored in HBase which we wish to expose through Hive.  The fragment and fragment hash
+   * The internal fields stored in Avro which we wish to expose through Hive.  The fragment and fragment hash
    * are removed and not present.
    *
    * @return the list of fields that are exposed through Hive
@@ -110,7 +110,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * The fields stored in HBase which represent an extension.
+   * The fields stored in Avro which represent an extension.
    *
    * @return the list of fields that are exposed through Hive
    */
@@ -184,8 +184,8 @@ public class OccurrenceHDFSTableDefinition {
   private static InitializableField interpretedField(Term term, String initializer) {
     return new InitializableField(term,
                                   HiveColumns.columnFor(term),
-                                  // note that Columns takes care of whether this is mounted on a verbatim or an interpreted
-                                  // column in HBase for us
+                                  // note that Columns takes care of whether this is mounted
+                                  // on a verbatim or an interpreted column for us
                                   HiveDataTypes.typeForTerm(term, false),
                                   // not verbatim context
                                   initializer);

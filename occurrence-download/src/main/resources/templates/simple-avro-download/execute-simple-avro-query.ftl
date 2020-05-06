@@ -32,7 +32,7 @@ SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-FROM occurrence_hdfs
+FROM occurrence
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.

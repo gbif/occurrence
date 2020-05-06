@@ -115,7 +115,7 @@ public class DownloadDwcaActor extends UntypedActor {
                                                              CsvPreference.TAB_PREFERENCE)) {
       SearchQueryProcessor.processQuery(work, occurrence -> {
           try {
-            // Writes the occurrence record obtained from HBase as Map<String,Object>.
+            // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
 
             if (occurrence != null) {
               datasetUsagesCollector.incrementDatasetUsage(occurrence.getDatasetKey().toString());

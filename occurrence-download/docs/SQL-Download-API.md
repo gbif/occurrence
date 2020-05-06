@@ -77,7 +77,7 @@ cache-control: no-cache
         "    Map Reduce",
         "      Map Operator Tree:",
         "          TableScan",
-        "            alias: occurrence_hdfs",
+        "            alias: occurrence",
         "            Statistics: Num rows: 915 Data size: 7309824 Basic stats: COMPLETE Column stats: NONE",
         "            Select Operator",
         "              expressions: decimallatitude (type: double), decimallongitude (type: double), species (type: string)",

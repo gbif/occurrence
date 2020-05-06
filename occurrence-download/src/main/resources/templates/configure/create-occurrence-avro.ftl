@@ -1,8 +1,7 @@
-<#-- @ftlvariable name="field" type="org.gbif.occurrence.download.hive.HBaseField" -->
+<#-- @ftlvariable name="field" type="org.gbif.occurrence.download.hive.Field" -->
 <#--
   This is a freemarker template which will generate an HQL script.
-  When run in Hive as a parameterized query, this will create a Hive table which is a
-  backed by the HBase table.
+  When run in Hive as a parameterized query, this will create a Hive table from Avro files.
 -->
 
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
@@ -29,15 +28,15 @@ CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UD
 CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION from_json AS 'brickhouse.udf.json.FromJsonUDF';
 
--- re-create the HDFS view of the HBase table
-CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_hdfs (
+-- re-create the HDFS table
+CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"} (
 <#list fields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
 </#list>
 ) STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 -- populate the HDFS view
-INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_hdfs
+INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}
 SELECT
 <#list fields as field>
   ${field.initializer}<#if field_has_next>,</#if>
@@ -58,7 +57,7 @@ STORED AS PARQUET;
 
 INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_multimedia
 SELECT gbifid, cleanDelimiters(mm_record['type']), cleanDelimiters(mm_record['format']), cleanDelimiters(mm_record['identifier']), cleanDelimiters(mm_record['references']), cleanDelimiters(mm_record['title']), cleanDelimiters(mm_record['description']), cleanDelimiters(mm_record['source']), cleanDelimiters(mm_record['audience']), mm_record['created'], cleanDelimiters(mm_record['creator']), cleanDelimiters(mm_record['contributor']), cleanDelimiters(mm_record['publisher']), cleanDelimiters(mm_record['license']), cleanDelimiters(mm_record['rightsHolder'])
-FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM ${r"${occurrenceTable}"}_hdfs occ)
+FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM ${r"${occurrenceTable}"} occ)
 occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;
 
 SET hive.auto.convert.join=true;

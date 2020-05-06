@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class that encapsulates the process of creating the occurrence files from Elasticsearch/HBase.
+ * Class that encapsulates the process of creating the occurrence files from Elasticsearch/Hive.
  * To start the process
  */
 public class FromSearchDownloadAction {
