@@ -24,7 +24,7 @@
 
     <!-- have to match gbif-cli version -->
     <guava.version>17.0</guava.version>
-    <jackson2-annotations.version>2.8.7</jackson2-annotations.version>
+    <jackson2-annotations.version>2.11.0</jackson2-annotations.version>
     <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
 
     <metainf-services.version>1.5</metainf-services.version>
