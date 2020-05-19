@@ -5,6 +5,8 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.DefaultMessageRegistry;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.registry.RegistryChangeListener;
+import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
+import org.gbif.ws.client.guice.AnonymousAuthModule;
 
 import java.util.Properties;
 
@@ -29,7 +31,7 @@ public class RegistryChangeService extends AbstractIdleService {
     Properties properties = new Properties();
     properties.setProperty("registry.ws.url", configuration.registryWsUrl);
 
-    Injector injector = Guice.createInjector();
+    Injector injector = Guice.createInjector(new RegistryWsClientModule(properties), new AnonymousAuthModule());
     OrganizationService orgClient = injector.getInstance(OrganizationService.class);
 
     // we have to create our own object mapper in order to set FAIL_ON_UNKNOWN, without which we can't deser reg objects
