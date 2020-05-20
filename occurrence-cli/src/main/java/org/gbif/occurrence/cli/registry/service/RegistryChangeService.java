@@ -1,6 +1,9 @@
 package org.gbif.occurrence.cli.registry.service;
 
+import java.util.Properties;
+
 import org.gbif.api.service.registry.OrganizationService;
+import org.gbif.api.ws.mixin.Mixins;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.DefaultMessageRegistry;
 import org.gbif.common.messaging.MessageListener;
@@ -8,13 +11,12 @@ import org.gbif.occurrence.cli.registry.RegistryChangeListener;
 import org.gbif.registry.ws.client.guice.RegistryWsClientModule;
 import org.gbif.ws.client.guice.AnonymousAuthModule;
 
-import java.util.Properties;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 
 public class RegistryChangeService extends AbstractIdleService {
 
@@ -34,11 +36,8 @@ public class RegistryChangeService extends AbstractIdleService {
     Injector injector = Guice.createInjector(new RegistryWsClientModule(properties), new AnonymousAuthModule());
     OrganizationService orgClient = injector.getInstance(OrganizationService.class);
 
-    // we have to create our own object mapper in order to set FAIL_ON_UNKNOWN, without which we can't deser reg objects
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     listener = new MessageListener(configuration.messaging.getConnectionParameters(), new DefaultMessageRegistry(),
-      objectMapper, 1);
+      createObjectMapper(), 1);
     listener.listen(configuration.registryChangeQueueName, 1,
       new RegistryChangeListener(new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
         orgClient));
@@ -49,5 +48,18 @@ public class RegistryChangeService extends AbstractIdleService {
     if (listener != null) {
       listener.close();
     }
+  }
+
+  /**
+   * We have to create our own object mapper in order to set FAIL_ON_UNKNOWN, without which we can't deser reg objects
+   */
+  private ObjectMapper createObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Mixins.getPredefinedMixins().forEach((key, value) -> {
+      objectMapper.getSerializationConfig().addMixInAnnotations(key, value);
+      objectMapper.getDeserializationConfig().addMixInAnnotations(key, value);
+    });
+    return objectMapper;
   }
 }
