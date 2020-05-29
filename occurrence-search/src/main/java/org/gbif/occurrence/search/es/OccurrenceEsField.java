@@ -32,6 +32,7 @@ public enum OccurrenceEsField {
   ORGANISM_ID("organismId", DwcTerm.organismID),
   OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID),
   RECORDED_BY("recordedBy", DwcTerm.recordedBy),
+  IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy),
   RECORD_NUMBER("recordNumber", DwcTerm.recordNumber),
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),

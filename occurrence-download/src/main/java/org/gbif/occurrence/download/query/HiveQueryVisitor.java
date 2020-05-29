@@ -140,6 +140,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.CONTINENT, DwcTerm.continent)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, GbifTerm.publishingCountry)
       .put(OccurrenceSearchParameter.RECORDED_BY, DwcTerm.recordedBy)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY, DwcTerm.identifiedBy)
       .put(OccurrenceSearchParameter.RECORD_NUMBER, DwcTerm.recordNumber)
       .put(OccurrenceSearchParameter.TYPE_STATUS, DwcTerm.typeStatus)
       .put(OccurrenceSearchParameter.HAS_COORDINATE, GbifTerm.hasCoordinate)

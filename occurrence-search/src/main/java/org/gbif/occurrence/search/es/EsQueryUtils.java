@@ -182,6 +182,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.MONTH, OccurrenceEsField.MONTH)
           .put(OccurrenceSearchParameter.CATALOG_NUMBER, OccurrenceEsField.CATALOG_NUMBER)
           .put(OccurrenceSearchParameter.RECORDED_BY, OccurrenceEsField.RECORDED_BY)
+          .put(OccurrenceSearchParameter.IDENTIFIED_BY, OccurrenceEsField.IDENTIFIED_BY)
           .put(OccurrenceSearchParameter.RECORD_NUMBER, OccurrenceEsField.RECORD_NUMBER)
           .put(OccurrenceSearchParameter.COLLECTION_CODE, OccurrenceEsField.COLLECTION_CODE)
           .put(OccurrenceSearchParameter.INSTITUTION_CODE, OccurrenceEsField.INSTITUTION_CODE)
