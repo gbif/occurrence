@@ -77,6 +77,7 @@ public class TermUtils {
                                                                                 DwcTerm.coordinateUncertaintyInMeters,
                                                                                 DwcTerm.coordinatePrecision);
 
+  // Used for interpretedTerms() and verbatimTerms()
   private static final Set<? extends Term> NON_OCCURRENCE_TERMS =
     ImmutableSet.copyOf(Iterables.concat(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT),
                                                                DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP),
@@ -106,7 +107,8 @@ public class TermUtils {
   /**
    * Interpreted terms that exist as java properties on Occurrence.
    */
-  private static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet.of(DwcTerm.decimalLatitude,
+  // Used for interpretedTerms(), INTERPRETED_SOURCE_TERMS and isOccurrenceJavaPropertyTerm()
+  public static final Set<? extends Term> JAVA_PROPERTY_TERMS = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                  DwcTerm.decimalLongitude,
                                                                                  DwcTerm.continent,
                                                                                  DwcTerm.waterBody,
@@ -169,11 +171,19 @@ public class TermUtils {
                                                                                  GbifTerm.protocol,
                                                                                  GbifTerm.lastCrawled,
                                                                                  GbifTerm.lastParsed,
+                                                                                 GbifInternalTerm.installationKey,
+                                                                                 GbifInternalTerm.publishingOrgKey,
+                                                                                 GbifInternalTerm.networkKey,
+                                                                                 GbifTerm.mediaType,
                                                                                  DcTerm.license);
 
   /**
    * TODO: is this correct? -> Terms used during interpretation and superseded by an interpreted property
    */
+  // Used for interpretedSourceTerms(), is...() and interpretedTerms()
+  // Used by EsResponseParser to exclude verbatim terms subject to interpretation (to keep only unprocessed verbatim terms)
+  // Change is OK for OccurrenceMapReader.
+  // Change is OK for EsResponesParser.
   private static final Set<? extends Term> INTERPRETED_SOURCE_TERMS =
                           ImmutableSet.copyOf(Iterables.concat(JAVA_PROPERTY_TERMS,
                                                                Lists.newArrayList(DwcTerm.decimalLatitude,

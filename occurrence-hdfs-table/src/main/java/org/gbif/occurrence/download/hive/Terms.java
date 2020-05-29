@@ -72,7 +72,7 @@ public final class Terms {
    *
    * @return the complete list of property terms of Dublin Core, excluding any "class" terms such as Location.
    */
-  private static List<DcTerm> dcPropertyTerms() {
+  protected static List<DcTerm> dcPropertyTerms() {
     return Arrays.stream(DcTerm.values()).filter(t -> !t.isClass())
               .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
@@ -83,7 +83,7 @@ public final class Terms {
    * @return the complete list of property terms of the GBIF namespace, excluding any "class" terms and terms not
    * relevant to occurrences.
    */
-  private static List<GbifTerm> gbifPropertyTerms() {
+  protected static List<GbifTerm> gbifPropertyTerms() {
     // the following have no place on occurrence
     final Set<GbifTerm> exclusions = ImmutableSet.of(GbifTerm.infraspecificMarker,
                                                      GbifTerm.isExtinct,
@@ -119,7 +119,7 @@ public final class Terms {
    * @return the complete list of property terms of Darwin Core, excluding any "class" terms such as Taxon and terms
    * not relevant to occurrence records.
    */
-  private static List<DwcTerm> dwcPropertyTerms() {
+  protected static List<DwcTerm> dwcPropertyTerms() {
     // the following are only used in extensions
     final Set<DwcTerm> exclusions = ImmutableSet.<DwcTerm>builder()
       .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
@@ -136,7 +136,7 @@ public final class Terms {
    *
    * @return the terms with values that will only be populated following some interpretation
    */
-  private static Set<Term> termsPopulatedByInterpretation() {
+  protected static Set<Term> termsPopulatedByInterpretation() {
     return ImmutableSet.of(DwcTerm.decimalLatitude,
                            DwcTerm.decimalLongitude,
                            DwcTerm.continent,
@@ -157,9 +157,9 @@ public final class Terms {
                            DwcTerm.subgenus,
                            GbifTerm.species,
                            DwcTerm.scientificName,
-                           GbifTerm.acceptedScientificName,
                            DwcTerm.taxonRank,
                            DwcTerm.taxonomicStatus,
+                           GbifTerm.acceptedScientificName,
                            GbifTerm.genericName,
                            DwcTerm.specificEpithet,
                            DwcTerm.infraspecificEpithet,
@@ -192,6 +192,8 @@ public final class Terms {
                            GbifTerm.depthAccuracy,
                            GbifInternalTerm.unitQualifier,
                            GbifTerm.issue,
+                           GbifTerm.recordedByID,
+                           GbifTerm.identifiedByID,
                            DcTerm.references,
                            GbifTerm.datasetKey,
                            GbifTerm.publishingCountry,
@@ -201,7 +203,8 @@ public final class Terms {
                            GbifInternalTerm.installationKey,
                            GbifInternalTerm.publishingOrgKey,
                            GbifInternalTerm.networkKey,
-                           GbifTerm.mediaType);
+                           GbifTerm.mediaType,
+                           DcTerm.license);
   }
 
   /**
@@ -210,7 +213,7 @@ public final class Terms {
    *
    * @return the set of terms that will be processed by interpretation routines, and may disappear from the record
    */
-  private static Set<Term> termsSubjectToInterpretation() {
+  protected static Set<Term> termsSubjectToInterpretation() {
     // any term that is populated by interpretation has to be subject to interpretation if present on the
     // verbatim record
     return ImmutableSet.<Term>builder()

@@ -11,11 +11,26 @@ import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
 
-
 /**
- * Check the Terms replacement for TermUtils is consistent.
+ * Temporary tests to show Terms is the same as TermUtils.
  */
 public class TermsTest {
+
+  @Test
+  public void testInterpretedSourceTermsConsistency() {
+    testDifferenceAndOrder(
+      Lists.newArrayList(TermUtils.JAVA_PROPERTY_TERMS),
+      Lists.newArrayList(Terms.termsPopulatedByInterpretation())
+    );
+  }
+
+  @Test
+  public void testSubjectTermsConsistency() {
+    testDifferenceAndOrder(
+      Lists.newArrayList(TermUtils.interpretedSourceTerms()),
+      Lists.newArrayList(Terms.termsSubjectToInterpretation())
+    );
+  }
 
   @Test
   public void testVerbatimTermsConsistency(){
