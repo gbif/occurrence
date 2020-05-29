@@ -269,7 +269,8 @@ public final class Terms {
       .add(GbifTerm.gbifID)
       .addAll(DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
-      .add(GbifTerm.identifiedByID, GbifTerm.recordedByID)
+      // Correction to order https://github.com/gbif/occurrence/issues/170
+      .add(GbifTerm.recordedByID, GbifTerm.identifiedByID)
       .build();
   }
 
