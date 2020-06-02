@@ -4,7 +4,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.Terms;
 
 import java.util.Set;
 
@@ -22,7 +21,7 @@ public class TestDownloadHeaders {
   @Test
   public void testTermsConsistency(){
     Set<Term> interpretedFromTermUtils = Sets.newHashSet(TermUtils.interpretedTerms());
-    Set<Term> interpretedFromTerms = Sets.newHashSet(Terms.interpretedTerms());
+    Set<Term> interpretedFromTerms = Sets.newHashSet(TermUtils.interpretedTerms());
 
     Set<Term> diff = Sets.symmetricDifference(interpretedFromTermUtils, interpretedFromTerms);
     assertEquals("TermUtils.interpretedTerms() and Terms.interpretedTerms() must use the same terms. Difference(s): " +

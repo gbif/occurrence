@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gbif.occurrence.common.TermUtils;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
@@ -40,17 +41,17 @@ public class DownloadTerms {
     .add(GbifTerm.verbatimScientificName).build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
-    Sets.difference(ImmutableSet.copyOf(Terms.interpretedTerms()), EXCLUSIONS).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS).immutableCopy();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
-    Sets.difference(ImmutableSet.copyOf(Terms.interpretedTerms()), EXCLUSIONS_INTERPRETED).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_INTERPRETED).immutableCopy();
 
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
-    Sets.difference(ImmutableSet.copyOf(Terms.verbatimTerms()), EXCLUSIONS).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS).immutableCopy();
 
   /**
    * The terms that will be included in the interpreted table if also present in ${@link
-   * org.gbif.occurrence.download.hive.Terms#interpretedTerms()}
+   * org.gbif.occurrence.common.TermUtils#interpretedTerms()}
    */
   public static final Set<Pair<Group, Term>> SIMPLE_DOWNLOAD_TERMS = ImmutableSet.of(
     Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
