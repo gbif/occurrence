@@ -10,10 +10,10 @@ import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.geocode.api.cache.GeocodeBitmapCache;
 import org.gbif.geocode.api.model.Location;
 import org.gbif.geocode.api.service.GeocodeService;
-import org.gbif.geocode.ws.client.GeocodeWsClient;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
+import org.gbif.ws.client.ClientFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +32,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +73,7 @@ public class CoordinateInterpreter {
    * @param apiWs API webservice base URL
    */
   @Inject
-  public CoordinateInterpreter(WebResource apiWs) {
-
-    GeocodeService realGeocodeService = new GeocodeWsClient(apiWs);
+  public CoordinateInterpreter(GeocodeService realGeocodeService) {
 
     try {
       byte[] bitmap = realGeocodeService.bitmap();

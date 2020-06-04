@@ -1,7 +1,7 @@
 package org.gbif.occurrence.common.json;
 
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.jackson.TermKeyDeserializer;
+import org.gbif.dwc.terms.TermFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -9,19 +9,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.KeyDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.base.Throwables;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.SerializationConfig.Feature;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.std.SerializerBase;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.type.JavaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +40,22 @@ public class ExtensionSerDeserUtils {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   static {
-    MAPPER.enable(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-    MAPPER.enable(SerializationConfig.Feature.INDENT_OUTPUT);
-    MAPPER.setSerializationConfig(MAPPER.getSerializationConfig().withSerializationInclusion(Inclusion.ALWAYS));
+    MAPPER.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+    MAPPER.enable(SerializationFeature.INDENT_OUTPUT);
+    MAPPER.setSerializationInclusion(JsonInclude.Include.ALWAYS);
     TypeFactory typeFactory = MAPPER.getTypeFactory();
     LIST_MAP_TERMS_TYPE =
       typeFactory.constructCollectionType(List.class,
         typeFactory.constructMapType(Map.class, Term.class, String.class));
     SimpleModule extensionsModule = new SimpleModule("Verbatim", Version.unknownVersion());
     extensionsModule.addSerializer(new InnerTermMapListSerializer());
-    extensionsModule.addKeyDeserializer(Term.class, new TermKeyDeserializer());
+    extensionsModule.addKeyDeserializer(Term.class, new KeyDeserializer() {
+      private TermFactory factory = TermFactory.instance();
+      @Override
+      public Object deserializeKey(String key, DeserializationContext ctxt) throws IOException {
+        return factory.findTerm(key);
+      }
+    });
     MAPPER.registerModule(extensionsModule);
 
   }
@@ -57,7 +64,7 @@ public class ExtensionSerDeserUtils {
   /**
    * Inner class that serializes List<Map<Term, String>> objects.
    */
-  private static class InnerTermMapListSerializer extends SerializerBase<List<Map<Term, String>>> {
+  private static class InnerTermMapListSerializer extends StdSerializer<List<Map<Term, String>>> {
 
     protected InnerTermMapListSerializer() {
       super(LIST_MAP_TERMS_TYPE);
@@ -66,7 +73,7 @@ public class ExtensionSerDeserUtils {
     @Override
     public void serialize(List<Map<Term, String>> value, JsonGenerator jgen, SerializerProvider provider)
       throws IOException {
-      if ((value == null || value.isEmpty()) && provider.getConfig().isEnabled(Feature.WRITE_EMPTY_JSON_ARRAYS)) {
+      if ((value == null || value.isEmpty()) && provider.getConfig().isEnabled(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS)) {
         jgen.writeStartArray();
         jgen.writeEndArray();
       } else {

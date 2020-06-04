@@ -53,9 +53,9 @@ public class DownloadSecurityUtil {
   /**
    * Asserts that a user is authenticated, returns the user principal if present.
    */
-  public static Principal assertUserAuthenticated(SecurityContext securityContext) {
+  public static Principal assertUserAuthenticated(Principal principal) {
     // assert authenticated user is the same as in download
-    return Optional.ofNullable(securityContext.getUserPrincipal())
-            .orElseThrow(() -> new NotAuthenticatedException("No user authenticated for creating a download"));
+    return Optional.ofNullable(principal)
+            .orElseThrow(() ->  new NotAuthenticatedException("No user authenticated for creating a download"));
   }
 }

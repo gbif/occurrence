@@ -7,6 +7,8 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.interpreting.clients.GeocodeWsClient;
+import org.gbif.ws.client.ClientFactory;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -26,7 +28,8 @@ public class LocationInterpreterTest {
   static final LocationInterpreter interpreter;
   static {
     cfg.url = URI.create("http://api.gbif-dev.org/v1/");
-    interpreter = new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()));
+    ClientFactory clientFactory = new ClientFactory(cfg.url.toString());
+    interpreter = new LocationInterpreter(new CoordinateInterpreter(clientFactory.newInstance(GeocodeWsClient.class)));
   }
 
   private VerbatimOccurrence verb;

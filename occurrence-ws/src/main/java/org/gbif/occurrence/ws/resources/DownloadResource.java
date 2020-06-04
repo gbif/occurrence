@@ -12,7 +12,6 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import static javax.ws.rs.core.Response.status;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.security.Principal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Objects;
@@ -30,28 +30,11 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.sun.jersey.api.client.ClientResponse;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -63,16 +46,27 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
-import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-@Path("occurrence/download/request")
-@Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
-@Consumes(MediaType.APPLICATION_JSON)
-@Singleton
+@RequestMapping(
+  produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
+  consumes = {MediaType.APPLICATION_JSON_VALUE},
+  value = "occurrence/download/request"
+)
 public class DownloadResource {
 
   private static final String ZIP_EXT = ".zip";
@@ -91,7 +85,7 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
 
-  @Inject
+  @Autowired
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
                           OccurrenceDownloadService occurrenceDownloadService) {
     requestService = service;
@@ -99,21 +93,25 @@ public class DownloadResource {
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
 
-  @DELETE
-  @Path("{key}")
-  public void delDownload(@PathParam("key") String jobId, @Context SecurityContext security) {
+  @RequestMapping(
+    method = RequestMethod.DELETE,
+    value = "{key}"
+  )
+  public void delDownload(@PathVariable("key") String jobId, @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
-    assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), security);
+    assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), principal);
     LOG.debug("Delete download: [{}]", jobId);
     requestService.cancel(jobId);
   }
 
-  @GET
-  @Path("{key}")
-  @Produces(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
-  public Response getResult(@HeaderParam("Range") String range,
-                            @PathParam("key") String downloadKey,
-                            @Context HttpServletRequest request) {
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = "{key}",
+    produces = MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS
+  )
+  public ResponseEntity<StreamingResponseBody> getResult(@RequestHeader("Range") String range,
+                                                         @PathVariable("key") String downloadKey,
+                                                         @Autowired HttpServletRequest request) {
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
@@ -127,17 +125,16 @@ public class DownloadResource {
 
     try {
       if (range == null) {
-        return Response
+        return ResponseEntity
           .ok(new FileInputStream(download))
-          .status(Response.Status.OK)
           // Show that we support Range requests (i.e. can resume downloads)
           .header("Accept-Ranges", "bytes")
           // Suggest filename for download in HTTP headers
           .header("Content-Disposition", "attachment; filename=" + downloadKey + extension)
           // Allow client to show a progress bar
-          .header(HttpHeaders.CONTENT_LENGTH, download.length())
-          .header(HttpHeaders.LAST_MODIFIED, new Date(download.lastModified()))
-          .type(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
+          .header(HttpHeaders.CONTENT_LENGTH, Long.toString(download.length()))
+          .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
+          .type(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS)
           .build();
       } else {
         //LOG.debug("Ranged request, Range: {}", range);
@@ -177,8 +174,8 @@ public class DownloadResource {
         } catch (Exception e) {
           // Error log, as I assume clients shouldn't often make bad requests.
           LOG.error("Unable to parse range request for {}: {}", downloadKey, range);
-          return Response
-            .status(Response.Status.BAD_REQUEST)
+          return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
             .build();
         }
 
@@ -186,7 +183,7 @@ public class DownloadResource {
         if (to < 0 || from >= download.length()) {
           // Error log, since it seems strange that clients would make these requests.
           LOG.error("Unable to satisfy range request for {}: {}", downloadKey, range);
-          return status(ClientResponse.Status.REQUESTED_RANGE_NOT_SATIFIABLE)
+          return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
             .header("Content-Range", String.format("bytes */%d", download.length()))
             .build();
         }
@@ -198,15 +195,14 @@ public class DownloadResource {
         final DownloadStreamer streamer = new DownloadStreamer(downloadRAF, length);
         final String responseRange = String.format("bytes %d-%d/%d", from, to, download.length());
         // Ensure this has the same headers (except Content-Range and Content-Length) as the full response above.
-        return Response
-          .ok(streamer)
-          .status(ClientResponse.Status.PARTIAL_CONTENT)
+        return ResponseEntity
+          .status(HttpStatus.PARTIAL_CONTENT)
+          .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS))
           .header("Accept-Ranges", "bytes")
           .header("Content-Range", responseRange)
           .header("Content-Disposition", "attachment; filename=" + downloadKey + extension)
-          .header(HttpHeaders.CONTENT_LENGTH, length)
-          .header(HttpHeaders.LAST_MODIFIED, new Date(download.lastModified()))
-          .type(MediaType.APPLICATION_OCTET_STREAM + OCT_STREAM_QS)
+          .header(HttpHeaders.CONTENT_LENGTH, Long.toString(length))
+          .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
           .build();
       }
     } catch (IOException e) {
@@ -217,7 +213,7 @@ public class DownloadResource {
   /**
    * Streams some amount of a a pre-sought (hmm…) file.
    */
-  class DownloadStreamer implements StreamingOutput {
+  class DownloadStreamer implements StreamingResponseBody {
     private RandomAccessFile download;
     private long length;
     final byte[] b = new byte[4096];
@@ -228,7 +224,7 @@ public class DownloadResource {
     }
 
     @Override
-    public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+    public void writeTo(OutputStream outputStream) throws IOException {
       try {
         while (length > 0) {
           int read = download.read(b, 0, (int) (b.length > length ? length : b.length));
@@ -241,29 +237,34 @@ public class DownloadResource {
     }
   }
 
-  @GET
-  @Path("callback")
-  public Response oozieCallback(@QueryParam("job_id") String jobId, @QueryParam("status") String status) {
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = "callback"
+  )
+  public ResponseEntity oozieCallback(@RequestParam("job_id") String jobId, @RequestParam("status") String status) {
     LOG.debug("Received callback from Oozie for Job [{}] with status [{}]", jobId, status);
     callbackService.processCallback(jobId, status);
-    return Response.ok().build();
+    return ResponseEntity.ok().build();
   }
 
   /**
    * Request a new predicate download (POST method, public API).
    */
-  @POST
-  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+  @RequestMapping(
+    method = RequestMethod.POST,
+    produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE}
+  )
+  @ResponseBody
   @Validate
-  public String startDownload(@NotNull @Valid PredicateDownloadRequest request, @Context SecurityContext security) {
+  public String startDownload(@NotNull @Valid PredicateDownloadRequest request, @Autowired SecurityContext security) {
     return createDownload(request, security);
   }
 
   /**
    * Creates/Starts an occurrence download.
    */
-  private String createDownload(DownloadRequest downloadRequest, @Context SecurityContext securityContext) {
-    Principal userAuthenticated = assertUserAuthenticated(securityContext);
+  private String createDownload(DownloadRequest downloadRequest, @Autowired Principal principal) {
+    Principal userAuthenticated = assertUserAuthenticated(principal);
     if (Objects.isNull(downloadRequest.getCreator())) {
       downloadRequest.setCreator(userAuthenticated.getName());
     }
@@ -278,34 +279,33 @@ public class DownloadResource {
   /**
    * Request a new download (GET method, internal API used by the portal).
    */
-  @GET
-  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
-  public String download(@Context HttpServletRequest httpRequest, @QueryParam("notification_address") String emails,
-                         @QueryParam("format") String format, @Context SecurityContext securityContext) {
+  @RequestMapping(
+    method = RequestMethod.GET,
+    produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE}
+  )
+  @ResponseBody
+  public String download(@Autowired HttpServletRequest httpRequest, @RequestParam("notification_address") String emails,
+                         @RequestParam("format") String format, @Autowired Principal principal) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
-    return createDownload(downloadPredicate(httpRequest, emails, format, securityContext), securityContext);
+    return createDownload(downloadPredicate(httpRequest, emails, format, principal), principal);
   }
 
-  @GET
-  @Path("predicate")
-  public DownloadRequest downloadPredicate(@Context HttpServletRequest httpRequest,
-                                           @QueryParam("notification_address") String emails,
-                                           @QueryParam("format") String format,
-                                           @Context SecurityContext securityContext) {
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = "predicate"
+  )
+  @ResponseBody
+  public DownloadRequest downloadPredicate(@Autowired HttpServletRequest httpRequest,
+                                           @RequestParam("notification_address") String emails,
+                                           @RequestParam("format") String format,
+                                           @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format,DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
-    String creator = getUserName(securityContext);
+    String creator = principal.getName();
     Set<String> notificationAddress = asSet(emails);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
     return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
-  }
-
-  /**
-   * Gets the user name from the security context.
-   */
-  private static String getUserName(SecurityContext securityContext) {
-    return Objects.nonNull(securityContext.getUserPrincipal()) ? securityContext.getUserPrincipal().getName() : null;
   }
 
   /**

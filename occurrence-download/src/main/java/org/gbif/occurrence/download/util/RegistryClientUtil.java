@@ -14,6 +14,7 @@ import org.gbif.ws.mixin.Mixins;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -22,7 +23,6 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.client.apache.ApacheHttpClient;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 /**
  * Utility class to create registry web service clients.

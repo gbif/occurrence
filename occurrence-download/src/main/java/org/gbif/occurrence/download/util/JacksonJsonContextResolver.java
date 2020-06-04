@@ -6,14 +6,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Singleton;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
- * Provider that initializes the {@link org.codehaus.jackson.map.ObjectMapper} to ignore {@code null} fields and unknown
+ * Provider that initializes the {@link ObjectMapper} to ignore {@code null} fields and unknown
  * properties.
  * Copied and modified from gbif-common-ws to be compatible with jackson 1.8.8 used in the cdh4 environment.
  */
@@ -27,9 +27,9 @@ public class JacksonJsonContextResolver implements ContextResolver<ObjectMapper>
   static {
     // determines whether encountering of unknown properties (ones that do not map to a property, and there is no
     // "any setter" or handler that can handle it) should result in a failure (throwing a JsonMappingException) or not.
-    MAPPER.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    MAPPER.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
-    MAPPER.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
   }
 
   /**
@@ -40,8 +40,7 @@ public class JacksonJsonContextResolver implements ContextResolver<ObjectMapper>
   public static void addMixIns(Map<Class<?>, Class<?>> mixIns) {
     // handle polymorphic JSON
     for (Map.Entry<Class<?>, Class<?>> classClassEntry : mixIns.entrySet()) {
-      MAPPER.getSerializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
-      MAPPER.getDeserializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
+      MAPPER.addMixIn(classClassEntry.getKey(), classClassEntry.getValue());
     }
   }
 

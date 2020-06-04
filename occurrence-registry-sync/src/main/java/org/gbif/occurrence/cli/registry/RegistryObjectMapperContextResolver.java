@@ -3,8 +3,8 @@ package org.gbif.occurrence.cli.registry;
 import java.util.Map;
 import javax.ws.rs.ext.ContextResolver;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * To investigate: Not sure why this class exists, JacksonJsonContextResolver is doing very similar.
@@ -14,7 +14,7 @@ public class RegistryObjectMapperContextResolver implements ContextResolver<Obje
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   static {
-    MAPPER.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   /**
@@ -24,8 +24,7 @@ public class RegistryObjectMapperContextResolver implements ContextResolver<Obje
    */
   public static void addMixIns(Map<Class<?>, Class<?>> mixIns) {
     for (Map.Entry<Class<?>, Class<?>> classClassEntry : mixIns.entrySet()) {
-      MAPPER.getSerializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
-      MAPPER.getDeserializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
+      MAPPER.addMixIn(classClassEntry.getKey(), classClassEntry.getValue());
     }
   }
   @Override

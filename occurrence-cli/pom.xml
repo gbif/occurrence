@@ -256,8 +256,8 @@
 
     <!-- false positive from mvn dep:analyze -->
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
     </dependency>
     <!-- false positive from mvn dep:analyze -->
     <dependency>

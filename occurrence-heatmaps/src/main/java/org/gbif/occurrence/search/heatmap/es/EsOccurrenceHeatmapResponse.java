@@ -3,7 +3,7 @@ package org.gbif.occurrence.search.heatmap.es;
 import java.util.List;
 import java.util.Objects;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** ElasticSearch GeoHashGrid response object. */
 public class EsOccurrenceHeatmapResponse {

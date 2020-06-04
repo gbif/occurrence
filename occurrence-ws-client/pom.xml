@@ -20,6 +20,11 @@
     </site>
   </distributionManagement>
 
+  <properties>
+    <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
+    <feign.version>10.4.0</feign.version>
+  </properties>
+
   <build>
     <resources>
       <resource>
@@ -83,8 +88,8 @@
       <artifactId>jersey-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
       <!-- needed on classpath upgrading from 1.9.1 -> 1.11 to avoid ContainerException: No WebApplication -->
@@ -107,6 +112,18 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-ws</artifactId>
+    </dependency>
+
+    <!-- Sptring dependencies -->
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
+      <version>${spring-cloud-openfeign.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-jackson</artifactId>
+      <version>${feign.version}</version>
     </dependency>
 
     <!-- TESTS -->

@@ -4,7 +4,6 @@ import org.gbif.api.model.metrics.cube.OccurrenceCube;
 import org.gbif.api.model.metrics.cube.ReadBuilder;
 import org.gbif.api.service.metrics.CubeService;
 import org.gbif.metrics.ws.client.guice.MetricsWsClientModule;
-import org.gbif.occurrence.ws.OccurrenceWsListener;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.BaseResourceTest;
 import org.gbif.ws.client.guice.UrlBindingModule;

@@ -50,6 +50,10 @@
     <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
 
+    <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+    <spring-cloud-zookeeper.version>2.2.0.RELEASE</spring-cloud-zookeeper.version>
+    <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
+
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
     <postalservice.threadcount>10</postalservice.threadcount>
@@ -92,10 +96,7 @@
     <httpcore.version>4.4.5</httpcore.version>
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
-    <!-- Normally one ties Jackson versions to Jersey versions, but we need 1.9.5+ of Jackson
-     because of http://jira.codehaus.org/browse/JACKSON-757
-     Jersey 1.18.3 comes with jackson 1.9.2, so its a minor update only -->
-    <jackson.version>1.9.12</jackson.version>
+    <jackson.version>2.10.3</jackson.version>
     <jcommander.version>1.35</jcommander.version>
     <jersey.version>1.18.6</jersey.version>
     <junit.version>4.12</junit.version>
@@ -137,13 +138,13 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
-    <gbif-common-ws.version>0.48</gbif-common-ws.version>
+    <gbif-common-ws.version>0.51</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
-    <gbif-postal-service.version>0.44</gbif-postal-service.version>
-    <gbif-registry.version>2.153</gbif-registry.version>
-    <gbif-registry-ws-client.version>2.153</gbif-registry-ws-client.version>
+    <gbif-postal-service.version>0.45</gbif-postal-service.version>
+    <gbif-registry.version>3.7</gbif-registry.version>
+    <gbif-registry-ws-client.version>3.7</gbif-registry-ws-client.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <checklistbank-ws-client.version>2.72</checklistbank-ws-client.version>
     <name-parser.version>3.1.6</name-parser.version>
@@ -169,6 +170,9 @@
 
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
+
+    <!-- Plugin versions -->
+    <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
   </properties>
 
   <repositories>
@@ -412,6 +416,52 @@
         <version>${pipelines.version}</version>
       </dependency>
 
+      <!-- Spring dependencies -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-zookeeper-discovery</artifactId>
+        <version>${spring-cloud-zookeeper.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-archaius</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-netflix-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-zookeeper-config</artifactId>
+        <version>${spring-cloud-zookeeper.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-openfeign</artifactId>
+        <version>${spring-cloud-openfeign.version}</version>
+      </dependency>
+
       <!-- Other -->
       <dependency>
         <groupId>xml-apis</groupId>
@@ -449,18 +499,23 @@
         <version>${guava.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-jaxrs</artifactId>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.codehaus.jackson</groupId>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
         <artifactId>jackson-core-asl</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
@@ -470,12 +525,6 @@
       </dependency>
 
       <!-- these runtimes to avoid version mismatch dependency hell -->
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-xc</artifactId>
-        <version>${jackson.version}</version>
-        <scope>runtime</scope>
-      </dependency>
       <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>

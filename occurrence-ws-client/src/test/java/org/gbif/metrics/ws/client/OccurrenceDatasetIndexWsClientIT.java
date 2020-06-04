@@ -2,7 +2,6 @@ package org.gbif.metrics.ws.client;
 
 import org.gbif.api.service.occurrence.OccurrenceDatasetIndexService;
 import org.gbif.metrics.ws.client.guice.MetricsWsClientModule;
-import org.gbif.occurrence.ws.OccurrenceWsListener;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.BaseResourceTest;
 import org.gbif.ws.client.guice.UrlBindingModule;

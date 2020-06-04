@@ -1,8 +1,7 @@
 package org.gbif.occurrence.search.heatmap.es;
-
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
@@ -91,7 +90,7 @@ public class EsHeatmapRequestBuilderTest {
    */
   private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
     ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER);
-    return StreamSupport.stream(Spliterators.spliterator(arrayNode.getElements(), 2, Spliterator.ORDERED), false)
+    return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
               .filter(termNode -> termNode.path(TERM).has(field.getFieldName()))
               .map(termNode -> termNode.path(TERM).get(field.getFieldName()).get(VALUE).asText())
               .findFirst();
