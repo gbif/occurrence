@@ -1,14 +1,17 @@
 package org.gbif.occurrence.download.service.conf;
 
 import java.util.Iterator;
-import javax.inject.Inject;
 
 import com.google.common.base.Splitter;
-import com.google.inject.name.Named;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.occurrence.query.PredicateCounter;
 
+@Component
 public class DownloadLimits {
 
   /**
@@ -57,12 +60,12 @@ public class DownloadLimits {
     this.maxPredicates = maxPredicates;
   }
 
-  @Inject
-  public DownloadLimits(@Named("max_user_downloads") int maxUserDownloads,
-                        @Named("downloads_soft_limit") String softLimit,
-                        @Named("downloads_hard_limit") String hardLimit,
-                        @Named("downloads_max_points") int maxPoints,
-                        @Named("downloads_max_predicates") int maxPredicates) {
+  @Autowired
+  public DownloadLimits(@Value("${occurrence.download.max_user_downloads}") int maxUserDownloads,
+                        @Value("${occurrence.download.downloads_soft_limit}") String softLimit,
+                        @Value("${occurrence.download.downloads_hard_limit}") String hardLimit,
+                        @Value("${occurrence.download.downloads_max_points}") int maxPoints,
+                        @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates) {
 
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();

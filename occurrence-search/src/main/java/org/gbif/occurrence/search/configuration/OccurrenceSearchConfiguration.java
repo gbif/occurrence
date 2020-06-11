@@ -1,18 +1,14 @@
-package org.gbif.occurrence.search.guice;
+package org.gbif.occurrence.search.configuration;
 
-import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.occurrence.search.OccurrenceGetByKey;
+import org.gbif.api.service.checklistbank.NameUsageMatchingService;
+import org.gbif.occurrence.search.clb.NameUsageMatchingServiceClient;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.occurrence.search.es.OccurrenceSearchEsImpl;
-import org.gbif.service.guice.PrivateServiceModule;
+import org.gbif.ws.client.ClientFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
 
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
@@ -20,30 +16,29 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /** Occurrence search guice module. */
-public class OccurrenceSearchModule extends PrivateServiceModule {
+@Configuration
+public class OccurrenceSearchConfiguration  {
 
   private static final String PREFIX = "occurrence.search.";
   private static final String ES_PREFIX = "es.";
-  private final EsConfig esConfig;
 
-  public OccurrenceSearchModule(Properties properties) {
-    super(PREFIX, properties);
-    esConfig = EsConfig.fromProperties(getProperties(), ES_PREFIX);
+
+  @ConfigurationProperties(prefix = "occurrence.search.es")
+  @Bean
+  public EsConfig esConfig() {
+    return new EsConfig();
   }
 
-  @Override
-  protected void configureService() {
-    bind(OccurrenceSearchService.class).to(OccurrenceSearchEsImpl.class);
-    bind(OccurrenceGetByKey.class).to(OccurrenceSearchEsImpl.class);
-    expose(OccurrenceSearchService.class);
-    expose(OccurrenceGetByKey.class);
-  }
 
-  @Provides
-  @Singleton
-  private RestHighLevelClient provideEsClient() {
+
+  @Bean
+  public RestHighLevelClient provideEsClient(EsConfig esConfig) {
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
     for (String host : esConfig.getHosts()) {
@@ -56,8 +51,8 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
       }
     }
 
-    SniffOnFailureListener sniffOnFailureListener =
-      new SniffOnFailureListener();
+    /*SniffOnFailureListener sniffOnFailureListener =
+      new SniffOnFailureListener();*/
 
     RestClientBuilder builder =
         RestClient.builder(hosts)
@@ -67,12 +62,12 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
                         .setConnectTimeout(esConfig.getConnectTimeout())
                         .setSocketTimeout(esConfig.getSocketTimeout()))
             .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
-            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
-            .setFailureListener(sniffOnFailureListener);
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+            //.setFailureListener(sniffOnFailureListener);
 
     RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
 
-    Sniffer sniffer =
+    /*Sniffer sniffer =
         Sniffer.builder(highLevelClient.getLowLevelClient())
             .setSniffIntervalMillis(esConfig.getSniffInterval())
             .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
@@ -90,7 +85,13 @@ public class OccurrenceSearchModule extends PrivateServiceModule {
                     throw new IllegalStateException("Couldn't close ES client", e);
                   }
                 }));
-
+*/
     return highLevelClient;
+  }
+
+  @Bean
+  public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("api.url") String apiUrl) {
+    ClientFactory clientFactory = new ClientFactory(apiUrl);
+    return clientFactory.newInstance(NameUsageMatchingServiceClient.class);
   }
 }

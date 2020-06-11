@@ -24,8 +24,8 @@ import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
-import org.gbif.occurrence.query.TitleLookup;
-import org.gbif.occurrence.query.TitleLookupModule;
+import org.gbif.occurrence.query.TitleLookupService;
+import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
@@ -63,9 +63,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -109,7 +106,7 @@ public class DwcaArchiveBuilder {
   private final DatasetService datasetService;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final TitleLookup titleLookup;
+  private final TitleLookupService titleLookup;
   private final File archiveDir;
   private final WorkflowConfiguration workflowConfiguration;
   private final FileSystem sourceFs;
@@ -127,19 +124,16 @@ public class DwcaArchiveBuilder {
 
   public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
     throws IOException {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryWsUrl());
     String tmpDir = workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
     File archiveDir = new File(tmpDir, configuration.getDownloadKey());
 
-    String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
-    DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
-
-    Injector inj = Guice.createInjector(new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
-    TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
+    DatasetService datasetService = registryClientUtil.setupDatasetService();
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService();
+    TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
 
     FileSystem sourceFs = configuration.isSmallDownload()
       ? FileSystem.getLocal(workflowConfiguration.getHadoopConf())
@@ -191,7 +185,7 @@ public class DwcaArchiveBuilder {
 
   @VisibleForTesting
   protected DwcaArchiveBuilder(DatasetService datasetService, OccurrenceDownloadService occurrenceDownloadService,
-                               FileSystem sourceFs, FileSystem targetFs, File archiveDir, TitleLookup titleLookup,
+                               FileSystem sourceFs, FileSystem targetFs, File archiveDir, TitleLookupService titleLookup,
                                DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration) {
     this.datasetService = datasetService;
     this.occurrenceDownloadService = occurrenceDownloadService;
@@ -444,9 +438,6 @@ public class DwcaArchiveBuilder {
             // add original author as content provider to main dataset description
             DwcaContactsUtil.getContentProviderContact(constituent.getDataset())
               .ifPresent(provider -> dataset.getContacts().add(provider));
-          } catch (UniformInterfaceException e) {
-            LOG.error("Registry client http exception: {} \n {}", e.getResponse().getStatus(),
-                       e.getResponse().getEntity(String.class), e);
           } catch (Exception e) {
             LOG.error("Error creating download file", e);
             return licenseSelector.getSelectedLicense();

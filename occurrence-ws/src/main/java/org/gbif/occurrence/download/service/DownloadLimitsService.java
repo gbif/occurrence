@@ -8,17 +8,20 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
-import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Helper service that checks if a download request should be accepted under the allowed limits.
  */
+@Component
 public class DownloadLimitsService {
 
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final DownloadLimits downloadLimits;
 
-  @Inject
+  @Autowired
   public DownloadLimitsService(OccurrenceDownloadService occurrenceDownloadService, DownloadLimits downloadLimits) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadLimits = downloadLimits;

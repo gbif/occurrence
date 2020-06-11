@@ -49,6 +49,7 @@ public class ApiClientConfiguration {
    * @return a new jersey client using a multithreaded http client
    */
   public WebResource newApiClient() {
+
     ClientConfig cc = new DefaultClientConfig();
     cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
     cc.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, timeout);

@@ -28,6 +28,38 @@ public class OccHBaseConfiguration {
   @NotNull
   public String zkConnectionString;
 
+  public int getHbasePoolSize() {
+    return hbasePoolSize;
+  }
+
+  public void setHbasePoolSize(int hbasePoolSize) {
+    this.hbasePoolSize = hbasePoolSize;
+  }
+
+  public String getFragmenterTable() {
+    return fragmenterTable;
+  }
+
+  public void setFragmenterTable(String fragmenterTable) {
+    this.fragmenterTable = fragmenterTable;
+  }
+
+  public int getFragmenterSalt() {
+    return fragmenterSalt;
+  }
+
+  public void setFragmenterSalt(int fragmenterSalt) {
+    this.fragmenterSalt = fragmenterSalt;
+  }
+
+  public String getZkConnectionString() {
+    return zkConnectionString;
+  }
+
+  public void setZkConnectionString(String zkConnectionString) {
+    this.zkConnectionString = zkConnectionString;
+  }
+
   /**
    * Uses conventions to populate all table names based on the environment prefix. Only used in tests!
    * @param prefix environment prefix, e.g. prod or uat

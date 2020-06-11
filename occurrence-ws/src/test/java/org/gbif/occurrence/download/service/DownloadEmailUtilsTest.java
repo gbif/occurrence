@@ -10,7 +10,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.occurrence.query.TitleLookup;
+import org.gbif.occurrence.query.TitleLookupService;
 import org.junit.Test;
 import org.mockito.Matchers;
 
@@ -18,7 +18,7 @@ public class DownloadEmailUtilsTest {
 
   @Test
   public void testSendSuccessNotificationMail() throws Exception {
-    TitleLookup tl = mock(TitleLookup.class);
+    TitleLookupService tl = mock(TitleLookupService.class);
     when(tl.getDatasetTitle(Matchers.any())).thenReturn("The little Mermaid");
     when(tl.getSpeciesName(Matchers.any())).thenReturn("Abies alba Mill.");
 

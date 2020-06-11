@@ -8,19 +8,8 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import java.io.StringWriter;
 import java.util.Date;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -33,18 +22,19 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
- * Custom {@link MessageBodyWriter} to serialize {@link Occurrence} in DarwinCore XML.
+ * Custom {@link ResponseBodyAdvice} to serialize {@link Occurrence} in DarwinCore XML.
  * We do not use JAXB annotations to keep the distinction between the model and its XML representation.
  * It is also easier to manage properties like Country, List, Map.
  *
  */
-@Provider
-@Produces(MediaType.APPLICATION_XML)
-public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence> {
+public class OccurrenceDwcXMLConverter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDwcXMLBodyWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDwcXMLConverter.class);
 
   private static final FastDateFormat FDF = DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT;
 
@@ -53,10 +43,10 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
    *
    * @param occurrence
    * @return the {@link Occurrence} as byte[]
-   * @throws WebApplicationException if something went wrong while generating the XML document
+   * @throws ResponseStatusException if something went wrong while generating the XML document
    */
-  private byte[] occurrenceXMLAsByteArray(Occurrence occurrence) throws WebApplicationException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  public static String occurrenceXMLAsString(Occurrence occurrence) throws ResponseStatusException {
+    StringWriter result = new StringWriter();
 
     try {
       DwcXMLDocument dwcXMLDocument = DwcXMLDocument.newInstance(DwcTerm.Occurrence);
@@ -141,32 +131,12 @@ public class OccurrenceDwcXMLBodyWriter implements MessageBodyWriter<Occurrence>
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       DOMSource source = new DOMSource(dwcXMLDocument.getDocument());
-      StreamResult result = new StreamResult(baos);
-      transformer.transform(source, result);
+      transformer.transform(source, new StreamResult(result));
     } catch (ParserConfigurationException | TransformerException e) {
       LOG.error("Can't generate Dwc XML for Occurrence [{}]", occurrence);
-      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
-    return baos.toByteArray();
-  }
-
-  @Override
-  public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-    return type == Occurrence.class;
-  }
-
-  @Override
-  public long getSize(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
-                      MediaType mediaType) {
-    // deprecated by JAX-RS 2.0 and ignored by Jersey runtime
-    return -1L;
-  }
-
-  @Override
-  public void writeTo(Occurrence occurrence, Class<?> type, Type genericType, Annotation[] annotations,
-                      MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
-                      OutputStream entityStream) throws IOException, WebApplicationException {
-    entityStream.write(occurrenceXMLAsByteArray(occurrence));
+    return result.toString();
   }
 
   private static void appendDwcCountry(DwcXMLDocument dwcXMLDocument, Country value) {

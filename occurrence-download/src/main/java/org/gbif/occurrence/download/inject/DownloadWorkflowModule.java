@@ -123,23 +123,20 @@ public final class DownloadWorkflowModule extends AbstractModule {
 
   @Provides
   @Singleton
-  DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupDatasetUsageService(registryWsUri);
+  DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(RegistryClientUtil registryClientUtil) {
+    return registryClientUtil.setupDatasetUsageService();
   }
 
   @Provides
   @Singleton
-  DatasetService provideDatasetService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri,
-                                       RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupDatasetService(registryWsUri);
+  DatasetService provideDatasetService(RegistryClientUtil registryClientUtil) {
+    return registryClientUtil.setupDatasetService();
   }
 
   @Provides
   @Singleton
-  OccurrenceDownloadService provideOccurrenceDownloadService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
+  OccurrenceDownloadService provideOccurrenceDownloadService(RegistryClientUtil registryClientUtil) {
+    return registryClientUtil.setupOccurrenceDownloadService();
   }
 
   @Provides

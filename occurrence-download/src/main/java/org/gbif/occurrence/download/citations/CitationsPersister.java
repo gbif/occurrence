@@ -54,9 +54,9 @@ public final class CitationsPersister extends CitationsFileReader {
     private final OccurrenceDownloadService downloadService;
 
     public PersistUsage(String downloadKey, String registryWsUrl) {
-      RegistryClientUtil registryClientUtil = new RegistryClientUtil();
+      RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsUrl);
       this.downloadKey = downloadKey;
-      this.downloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsUrl);
+      this.downloadService = registryClientUtil.setupOccurrenceDownloadService();
     }
 
     @Override

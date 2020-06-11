@@ -3,9 +3,11 @@ package org.gbif.occurrence.hive.udf;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.geocode.api.service.GeocodeService;
 import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
+import org.gbif.ws.client.ClientFactory;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -51,9 +53,8 @@ public class ReinterpretLocationUDF extends GenericUDF {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
-          ApiClientConfiguration cfg = new ApiClientConfiguration();
-          cfg.url = apiWs;
-          coordInterpreter = new CoordinateInterpreter(cfg.newApiClient());
+          ClientFactory clientFactory = new ClientFactory(apiWs.toString());
+          coordInterpreter = new CoordinateInterpreter(clientFactory.newInstance(GeocodeService.class));
           locInterpreter = new LocationInterpreter(coordInterpreter);
         }
       }

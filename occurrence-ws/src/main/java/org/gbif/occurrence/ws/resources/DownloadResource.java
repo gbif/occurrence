@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -37,6 +38,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
+
+import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -44,6 +47,7 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.slf4j.Logger;
@@ -53,22 +57,30 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+@RestController
 @RequestMapping(
   produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
-  consumes = {MediaType.APPLICATION_JSON_VALUE},
   value = "occurrence/download/request"
 )
 public class DownloadResource {
 
+  private static final String USER_ROLE = "USER";
   private static final String ZIP_EXT = ".zip";
   private static final String AVRO_EXT = ".avro";
 
@@ -93,10 +105,7 @@ public class DownloadResource {
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
 
-  @RequestMapping(
-    method = RequestMethod.DELETE,
-    value = "{key}"
-  )
+  @DeleteMapping("{key}")
   public void delDownload(@PathVariable("key") String jobId, @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
     assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), principal);
@@ -104,14 +113,15 @@ public class DownloadResource {
     requestService.cancel(jobId);
   }
 
-  @RequestMapping(
-    method = RequestMethod.GET,
+  @GetMapping(
     value = "{key}",
     produces = MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS
   )
-  public ResponseEntity<StreamingResponseBody> getResult(@RequestHeader("Range") String range,
+  public ResponseEntity getResult(@RequestHeader("Range") String range,
                                                          @PathVariable("key") String downloadKey,
-                                                         @Autowired HttpServletRequest request) {
+                                                         @Autowired HttpServletRequest request,
+                                                         @Autowired HttpServletResponse response
+                                                         ) {
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
@@ -125,8 +135,9 @@ public class DownloadResource {
 
     try {
       if (range == null) {
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS);
         return ResponseEntity
-          .ok(new FileInputStream(download))
+          .status(HttpStatus.OK)
           // Show that we support Range requests (i.e. can resume downloads)
           .header("Accept-Ranges", "bytes")
           // Suggest filename for download in HTTP headers
@@ -134,8 +145,8 @@ public class DownloadResource {
           // Allow client to show a progress bar
           .header(HttpHeaders.CONTENT_LENGTH, Long.toString(download.length()))
           .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
-          .type(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS)
-          .build();
+          //.contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS)
+          .body(new FileInputStream(download));
       } else {
         //LOG.debug("Ranged request, Range: {}", range);
         if (LOG.isDebugEnabled()) {
@@ -195,15 +206,16 @@ public class DownloadResource {
         final DownloadStreamer streamer = new DownloadStreamer(downloadRAF, length);
         final String responseRange = String.format("bytes %d-%d/%d", from, to, download.length());
         // Ensure this has the same headers (except Content-Range and Content-Length) as the full response above.
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS);
         return ResponseEntity
           .status(HttpStatus.PARTIAL_CONTENT)
-          .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS))
+          //.contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS)
           .header("Accept-Ranges", "bytes")
           .header("Content-Range", responseRange)
           .header("Content-Disposition", "attachment; filename=" + downloadKey + extension)
           .header(HttpHeaders.CONTENT_LENGTH, Long.toString(length))
           .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
-          .build();
+          .body(streamer);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read download " + downloadKey + " from " + download.getAbsolutePath(), e);
@@ -237,10 +249,7 @@ public class DownloadResource {
     }
   }
 
-  @RequestMapping(
-    method = RequestMethod.GET,
-    value = "callback"
-  )
+  @GetMapping("callback")
   public ResponseEntity oozieCallback(@RequestParam("job_id") String jobId, @RequestParam("status") String status) {
     LOG.debug("Received callback from Oozie for Job [{}] with status [{}]", jobId, status);
     callbackService.processCallback(jobId, status);
@@ -250,14 +259,15 @@ public class DownloadResource {
   /**
    * Request a new predicate download (POST method, public API).
    */
-  @RequestMapping(
-    method = RequestMethod.POST,
-    produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE}
+  @PostMapping(
+    produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
+    consumes = {MediaType.APPLICATION_JSON_VALUE}
   )
   @ResponseBody
   @Validate
-  public String startDownload(@NotNull @Valid PredicateDownloadRequest request, @Autowired SecurityContext security) {
-    return createDownload(request, security);
+  @Secured(USER_ROLE)
+  public String startDownload(@NotNull @Valid @RequestBody PredicateDownloadRequest request, @Autowired Principal principal) {
+    return createDownload(request, principal);
   }
 
   /**
@@ -279,24 +289,22 @@ public class DownloadResource {
   /**
    * Request a new download (GET method, internal API used by the portal).
    */
-  @RequestMapping(
-    method = RequestMethod.GET,
+  @GetMapping(
     produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE}
   )
+  @Secured(USER_ROLE)
   @ResponseBody
-  public String download(@Autowired HttpServletRequest httpRequest, @RequestParam("notification_address") String emails,
-                         @RequestParam("format") String format, @Autowired Principal principal) {
+  public String download(@Autowired HttpServletRequest httpRequest,
+                         @RequestParam(name = "notification_address", required = false) String emails,
+                         @RequestParam("format") String format,
+                         @Autowired Principal principal) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     return createDownload(downloadPredicate(httpRequest, emails, format, principal), principal);
   }
 
-  @RequestMapping(
-    method = RequestMethod.GET,
-    value = "predicate"
-  )
-  @ResponseBody
+  @GetMapping("predicate")
   public DownloadRequest downloadPredicate(@Autowired HttpServletRequest httpRequest,
-                                           @RequestParam("notification_address") String emails,
+                                           @RequestParam(name = "notification_address", required = false) String emails,
                                            @RequestParam("format") String format,
                                            @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format,DownloadFormat.class);

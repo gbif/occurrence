@@ -80,22 +80,8 @@
       <artifactId>guice</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-    </dependency>
-    <dependency>
-      <!-- needed on classpath upgrading from 1.9.1 -> 1.11 to avoid ContainerException: No WebApplication -->
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-server</artifactId>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -163,18 +149,6 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.grizzly</groupId>
-      <artifactId>grizzly-servlet-webserver</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey.jersey-test-framework</groupId>
-      <artifactId>jersey-test-framework-grizzly</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey.jersey-test-framework</groupId>
-      <artifactId>jersey-test-framework-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>

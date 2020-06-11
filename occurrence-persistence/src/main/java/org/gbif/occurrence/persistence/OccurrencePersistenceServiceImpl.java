@@ -15,6 +15,8 @@ import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -24,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An implementation of OccurrenceService for retrieving Occurrence objects in HBase.
  */
-@Singleton
+@Component
 public class OccurrencePersistenceServiceImpl implements OccurrenceService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
@@ -33,7 +35,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService {
   private final int fragmenterSalt;
   private final Connection connection;
 
-  @Inject
+  @Autowired
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
     this.fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
     this.fragmenterSalt = cfg.fragmenterSalt;

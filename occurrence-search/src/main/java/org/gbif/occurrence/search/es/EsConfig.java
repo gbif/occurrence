@@ -26,12 +26,16 @@ public class EsConfig {
   private static final int SNIFF_INTERVAL_DEFAULT = 600000;
   private static final int SNIFF_AFTER_FAILURE_DELAY_DEFAULT = 60000;
 
-  private final String[] hosts;
-  private final String index;
-  private final int connectTimeout;
-  private final int socketTimeout;
-  private final int sniffInterval;
-  private final int sniffAfterFailureDelay;
+  private String[] hosts;
+  private String index;
+  private int connectTimeout;
+  private int socketTimeout;
+  private int sniffInterval;
+  private int sniffAfterFailureDelay;
+
+  public  EsConfig(){
+    super();
+  }
 
   private EsConfig(
       String[] hosts,
@@ -81,23 +85,47 @@ public class EsConfig {
     return hosts;
   }
 
+  public void setHosts(String[] hosts) {
+    this.hosts = hosts;
+  }
+
   public String getIndex() {
     return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
   }
 
   public int getConnectTimeout() {
     return connectTimeout;
   }
 
+  public void setConnectTimeout(int connectTimeout) {
+    this.connectTimeout = connectTimeout;
+  }
+
   public int getSocketTimeout() {
     return socketTimeout;
+  }
+
+  public void setSocketTimeout(int socketTimeout) {
+    this.socketTimeout = socketTimeout;
   }
 
   public int getSniffInterval() {
     return sniffInterval;
   }
 
+  public void setSniffInterval(int sniffInterval) {
+    this.sniffInterval = sniffInterval;
+  }
+
   public int getSniffAfterFailureDelay() {
     return sniffAfterFailureDelay;
+  }
+
+  public void setSniffAfterFailureDelay(int sniffAfterFailureDelay) {
+    this.sniffAfterFailureDelay = sniffAfterFailureDelay;
   }
 }

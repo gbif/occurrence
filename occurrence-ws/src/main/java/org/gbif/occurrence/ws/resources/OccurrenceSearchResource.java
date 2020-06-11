@@ -15,14 +15,6 @@ import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -30,48 +22,63 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.ws.util.ExtraMediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * Occurrence resource.
  */
-@Path(OCC_SEARCH_PATH)
-@Produces({MediaType.APPLICATION_JSON, ExtraMediaTypes.APPLICATION_JAVASCRIPT})
+@RestController
+@RequestMapping(
+  value = OCC_SEARCH_PATH,
+  produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"}
+)
 public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
 
+  private static final String USER_ROLE = "USER";
+
   private final OccurrenceSearchService searchService;
 
-  @Inject
+  @Autowired
   public OccurrenceSearchResource(OccurrenceSearchService searchService, DownloadRequestService downloadRequestService) {
     this.searchService = searchService;
   }
 
-  @GET
-  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@Context OccurrenceSearchRequest request) {
+  @GetMapping
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(OccurrenceSearchRequest request) {
      LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);
   }
 
   /**
-   * Remove after the portal is updated, e.g. during or after December 2018.
+   * Remove after the portal is updated, e.g. during or after December 2018.RegistryMethodSecurityConfiguration
    *
    * Old location for a GET download, doesn't make sense to be within occurrence search.
    */
-  @GET
-  @Path("download")
+  @GetMapping("download")
   @Deprecated
-  public Response download(@Context HttpServletRequest httpRequest,
-                         @QueryParam("notification_address") String emails,
-                         @QueryParam("format") String format,
-                         @Context UriInfo uriInfo) {
+  @Secured(USER_ROLE)
+  public RedirectView download() {
     LOG.warn("Deprecated internal API used! (download)");
-    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request?"+uriInfo.getRequestUri().getQuery())).build();
+    RedirectView redirectView = new RedirectView();
+    redirectView.setContextRelative(true);
+    redirectView.setUrl("/occurrence/download/request");
+    redirectView.setPropagateQueryParams(true);
+    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
+    return redirectView;
   }
 
   /**
@@ -79,85 +86,86 @@ public class OccurrenceSearchResource {
    *
    * Old location for a GET download predicate request, doesn't make sense to be within occurrence search.
    */
-  @GET
-  @Path("predicate")
+  @GetMapping("predicate")
   @Deprecated
-  public Response downloadPredicate(@Context HttpServletRequest httpRequest,
-                         @QueryParam("notification_address") String emails,
-                         @QueryParam("format") String format,
-                         @Context UriInfo uriInfo) {
+  public RedirectView downloadPredicate() {
     LOG.warn("Deprecated internal API used! (predicate)");
-    return Response.status(Response.Status.TEMPORARY_REDIRECT).location(uriInfo.getBaseUri().resolve("occurrence/download/request/predicate?"+uriInfo.getRequestUri().getQuery())).build();
+    RedirectView redirectView = new RedirectView();
+    redirectView.setContextRelative(true);
+    redirectView.setUrl("/occurrence/download/request/predicate");
+    redirectView.setPropagateQueryParams(true);
+    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
+    return redirectView;
   }
 
-  @GET
-  @Path(CATALOG_NUMBER_PATH)
-  public List<String> suggestCatalogNumber(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(CATALOG_NUMBER_PATH)
+  @ResponseBody
+  public List<String> suggestCatalogNumber(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing catalog number suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestCatalogNumbers(prefix, limit);
   }
 
-  @GET
-  @Path(COLLECTION_CODE_PATH)
-  public List<String> suggestCollectionCodes(@QueryParam(QUERY_PARAM) String prefix,
-                                             @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(COLLECTION_CODE_PATH)
+  @ResponseBody
+  public List<String> suggestCollectionCodes(@RequestParam(QUERY_PARAM) String prefix,
+                                             @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing collection codes suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestCollectionCodes(prefix, limit);
   }
 
-  @GET
-  @Path(RECORDED_BY_PATH)
-  public List<String> suggestRecordedBy(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(RECORDED_BY_PATH)
+  @ResponseBody
+  public List<String> suggestRecordedBy(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing recorded_by suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestRecordedBy(prefix, limit);
   }
 
-  @GET
-  @Path(RECORD_NUMBER_PATH)
-  public List<String> suggestRecordNumbers(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(RECORD_NUMBER_PATH)
+  @ResponseBody
+  public List<String> suggestRecordNumbers(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing record number suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestRecordNumbers(prefix, limit);
   }
 
-  @GET
-  @Path(INSTITUTION_CODE_PATH)
-  public List<String> suggestInstitutionCodes(@QueryParam(QUERY_PARAM) String prefix,
-                                              @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(INSTITUTION_CODE_PATH)
+  @ResponseBody
+  public List<String> suggestInstitutionCodes(@RequestParam(QUERY_PARAM) String prefix,
+                                              @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing institution codes suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestInstitutionCodes(prefix, limit);
   }
 
-  @GET
-  @Path(OCCURRENCE_ID_PATH)
-  public List<String> suggestOccurrenceIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(OCCURRENCE_ID_PATH)
+  @ResponseBody
+  public List<String> suggestOccurrenceIds(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing occurrenceId suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestOccurrenceIds(prefix, limit);
   }
 
-  @GET
-  @Path(ORGANISM_ID_PATH)
-  public List<String> suggestOrganismIds(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(ORGANISM_ID_PATH)
+  @ResponseBody
+  public List<String> suggestOrganismIds(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing organismId suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestOrganismIds(prefix, limit);
   }
 
-  @GET
-  @Path(LOCALITY_PATH)
-  public List<String> suggestLocality(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(LOCALITY_PATH)
+  @ResponseBody
+  public List<String> suggestLocality(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing locality suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestLocalities(prefix, limit);
   }
 
-  @GET
-  @Path(STATE_PROVINCE_PATH)
-  public List<String> suggestStateProvince(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(STATE_PROVINCE_PATH)
+  @ResponseBody
+  public List<String> suggestStateProvince(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing stateProvince suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestStateProvinces(prefix, limit);
   }
 
-  @GET
-  @Path(WATER_BODY_PATH)
-  public List<String> suggestWaterBody(@QueryParam(QUERY_PARAM) String prefix, @QueryParam(PARAM_LIMIT) int limit) {
+  @GetMapping(WATER_BODY_PATH)
+  @ResponseBody
+  public List<String> suggestWaterBody(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestWaterBodies(prefix, limit);
   }

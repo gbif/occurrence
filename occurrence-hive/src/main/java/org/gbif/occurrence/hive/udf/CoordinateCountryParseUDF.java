@@ -4,10 +4,11 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.geocode.api.service.GeocodeService;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
+import org.gbif.ws.client.ClientFactory;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -60,9 +61,8 @@ public class CoordinateCountryParseUDF extends GenericUDF {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
-          ApiClientConfiguration cfg = new ApiClientConfiguration();
-          cfg.url = apiWs;
-          coordInterpreter = new CoordinateInterpreter(cfg.newApiClient());
+          ClientFactory clientFactory = new ClientFactory(apiWs.toString());
+          coordInterpreter = new CoordinateInterpreter(clientFactory.newInstance(GeocodeService.class));
           locInterpreter = new LocationInterpreter(coordInterpreter);
         }
       }
