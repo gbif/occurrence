@@ -15,7 +15,6 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
-import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.wrangler.lock.LockFactory;
@@ -27,22 +26,23 @@ import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Optional;
 import java.util.concurrent.Executors;
-
+import java.util.stream.Collectors;
 
 import akka.dispatch.ExecutionContextExecutorService;
 import akka.dispatch.ExecutionContexts;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.MapPropertySource;
 
 /**
  * Private guice module that provides bindings the required Modules and dependencies.
@@ -50,54 +50,67 @@ import org.elasticsearch.client.sniff.Sniffer;
  * - CuratorFramework: this class is exposed only to close the zookeeper connections properly.
  * - OccurrenceFileWriter: class that creates the occurrence data and citations file.
  */
-public final class DownloadWorkflowModule extends AbstractModule {
+@Configuration
+public final class DownloadWorkflowModule  {
 
   public static final String CONF_FILE = "occurrence-download.properties";
 
   //Prefix for static settings
-  public static final String PROPERTIES_PREFIX = "occurrence.download.";
+  public static final String PROPERTIES_PREFIX = "${occurrence.download.";
   private static final String ES_PREFIX = "es.";
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
   private static final String INDEX_LOCKING_PATH = "/indices/";
 
-  private final DownloadJobConfiguration configuration;
 
-  private final WorkflowConfiguration workflowConfiguration;
-
-  /**
-   * Loads the default configuration file name and copies the additionalProperties into it.
-   */
-  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    this.workflowConfiguration = workflowConfiguration;
-    this.configuration = configuration;
+  public static ApplicationContext buildAppContext(WorkflowConfiguration workflowConfiguration) {
+    return buildAppContext(workflowConfiguration, null);
   }
 
-  /**
-   * Loads the default configuration file name 'occurrence-download.properties'.
-   */
-  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration) {
-    this(workflowConfiguration,null);
+
+  public static ApplicationContext buildAppContext(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+
+
+    ctx.registerBean(
+      "workflowConfiguration",
+      WorkflowConfiguration.class,
+      () -> workflowConfiguration);
+
+    if (configuration != null) {
+      ctx.registerBean("jobConfiguration", DownloadJobConfiguration.class, () -> configuration);
+    }
+
+
+    ctx.getEnvironment()
+      .getPropertySources()
+      .addLast(
+        new MapPropertySource(
+          "ManagedProperties", workflowConfiguration.getDownloadSettings()
+                                        .entrySet()
+                                        .stream()
+                                        .collect(Collectors.toMap( e -> e.getKey().toString(), e -> e.getValue().toString()))));
+
+    registerAggregator(workflowConfiguration, ctx);
+    ctx.refresh();
+    ctx.start();
+    return ctx;
   }
 
-  @Override
-  protected void configure() {
-    Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    bind(DownloadPrepareAction.class);
-    bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
-    Optional.ofNullable(configuration).ifPresent(conf -> bind(DownloadJobConfiguration.class).toInstance(conf));
-    bind(RegistryClientUtil.class).toInstance(new RegistryClientUtil(workflowConfiguration.getDownloadSettings()));
-    bindDownloadFilesBuilding();
+  @Bean
+  public RegistryClientUtil registryClientUtil(@Value("${" + DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY + "}") String userName,
+                                               @Value("${" + DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY + "}") String password,
+                                               @Value("${" + DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY + "}") String apiUrl) {
+    return new RegistryClientUtil(userName, password, apiUrl);
   }
 
-  @Provides
-  @Singleton
-  @Named("Downloads")
-  CuratorFramework provideCuratorFrameworkDownloads(@Named(PROPERTIES_PREFIX + "zookeeper.downloads.namespace") String zookeeperNamespace,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
+  @Bean
+  @Qualifier("Downloads")
+  CuratorFramework provideCuratorFrameworkDownloads(@Value(PROPERTIES_PREFIX + "zookeeper.downloads.namespace}") String zookeeperNamespace,
+                                                    @Value(PROPERTIES_PREFIX + "zookeeper.quorum}") String zookeeperConnection,
+                                                    @Value(PROPERTIES_PREFIX + "zookeeper.sleep_time}") Integer sleepTime,
+                                                    @Value(PROPERTIES_PREFIX + "zookeeper.max_retries}") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
@@ -106,13 +119,12 @@ public final class DownloadWorkflowModule extends AbstractModule {
     return curator;
   }
 
-  @Provides
-  @Singleton
-  @Named("Indices")
-  CuratorFramework provideCuratorFrameworkIndices(@Named(PROPERTIES_PREFIX + "zookeeper.indices.namespace") String zookeeperNamespace,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
+  @Bean
+  @Qualifier("Indices")
+  CuratorFramework provideCuratorFrameworkIndices(@Value(PROPERTIES_PREFIX + "zookeeper.indices.namespace}") String zookeeperNamespace,
+                                                  @Value(PROPERTIES_PREFIX + "zookeeper.quorum}") String zookeeperConnection,
+                                                  @Value(PROPERTIES_PREFIX + "zookeeper.sleep_time}") Integer sleepTime,
+                                                  @Value(PROPERTIES_PREFIX + "zookeeper.max_retries}") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
@@ -121,48 +133,44 @@ public final class DownloadWorkflowModule extends AbstractModule {
     return curator;
   }
 
-  @Provides
-  @Singleton
+  @Bean
   DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetUsageService();
   }
 
-  @Provides
-  @Singleton
+  @Bean
   DatasetService provideDatasetService(RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetService();
   }
 
-  @Provides
-  @Singleton
+  @Bean
   OccurrenceDownloadService provideOccurrenceDownloadService(RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupOccurrenceDownloadService();
   }
 
-  @Provides
+  @Bean
   ExecutionContextExecutorService provideExecutionContextExecutorService(
-    @Named(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
+    @Value(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
     return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
   }
 
-  @Provides
-  LockFactory provideLock(@Named("Downloads") CuratorFramework curatorFramework, @Named(PROPERTIES_PREFIX + "max_global_threads") Integer maxGlobalThreads) {
+  @Bean
+  LockFactory provideLock(@Value("Downloads") CuratorFramework curatorFramework, @Value(PROPERTIES_PREFIX + "max_global_threads}") Integer maxGlobalThreads) {
     return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, RUNNING_JOBS_LOCKING_PATH);
   }
 
-  @Provides
-  ReadWriteMutexFactory provideMutexFactory(@Named("Indices") CuratorFramework curatorFramework) {
+  @Bean
+  ReadWriteMutexFactory provideMutexFactory(@Value("Indices") CuratorFramework curatorFramework) {
     return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
   }
 
-  @Provides
-  Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex) {
+  @Bean
+  Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY + "}") String esIndex) {
     return readWriteMutexFactory.createReadMutex(esIndex);
   }
 
-  @Provides
-  @Singleton
-  private RestHighLevelClient provideEsClient() {
+  @Bean
+  private RestHighLevelClient provideEsClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -215,28 +223,29 @@ public final class DownloadWorkflowModule extends AbstractModule {
   /**
    * Binds a DownloadFilesAggregator according to the DownloadFormat set using the key DOWNLOAD_FORMAT_KEY.
    */
-  private void bindDownloadFilesBuilding() {
+
+  private static void registerAggregator(WorkflowConfiguration workflowConfiguration, AnnotationConfigApplicationContext context) {
     DownloadFormat downloadFormat = workflowConfiguration.getDownloadFormat();
 
     if (downloadFormat != null) {
       switch (downloadFormat) {
         case DWCA:
-          bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
+          context.register(DwcaDownloadAggregator.class);
           break;
 
         case SIMPLE_CSV:
-          bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
+          context.register(SimpleCsvDownloadAggregator.class);
           break;
 
         case SPECIES_LIST:
-          bind(DownloadAggregator.class).to(SpeciesListDownloadAggregator.class);
+          context.register(SpeciesListDownloadAggregator.class);
           break;
 
         case SIMPLE_AVRO:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
         case MAP_OF_LIFE:
-          bind(DownloadAggregator.class).to(NotSupportedDownloadAggregator.class);
+          context.register(NotSupportedDownloadAggregator.class);
           break;
 
         default:

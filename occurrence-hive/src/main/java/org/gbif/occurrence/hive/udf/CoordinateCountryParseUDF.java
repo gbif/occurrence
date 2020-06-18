@@ -4,13 +4,10 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.geocode.api.service.GeocodeService;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
-import org.gbif.ws.client.ClientFactory;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -46,23 +43,22 @@ public class CoordinateCountryParseUDF extends GenericUDF {
   private CoordinateInterpreter coordInterpreter;
   private Object lock = new Object();
 
-  public LocationInterpreter getLocInterpreter(URI apiWs) {
+  public LocationInterpreter getLocInterpreter(String apiWs) {
     init(apiWs);
     return locInterpreter;
   }
 
-  public CoordinateInterpreter getCoordInterpreter(URI apiWs) {
+  public CoordinateInterpreter getCoordInterpreter(String apiWs) {
     init(apiWs);
     return coordInterpreter;
   }
 
-  private void init(URI apiWs) {
+  private void init(String apiWs) {
     if (locInterpreter == null) {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
-          ClientFactory clientFactory = new ClientFactory(apiWs.toString());
-          coordInterpreter = new CoordinateInterpreter(clientFactory.newInstance(GeocodeService.class));
+          coordInterpreter = new CoordinateInterpreter(apiWs);
           locInterpreter = new LocationInterpreter(coordInterpreter);
         }
       }
@@ -73,7 +69,7 @@ public class CoordinateCountryParseUDF extends GenericUDF {
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
     assert arguments.length == argLength;
 
-    URI api = URI.create(arguments[0].get().toString());
+    String api = arguments[0].get().toString();
 
     // Interpret the country to pass in to the geo lookup
     String country = arguments[3].get() == null ? null : converters[3].convert(arguments[3].get()).toString();

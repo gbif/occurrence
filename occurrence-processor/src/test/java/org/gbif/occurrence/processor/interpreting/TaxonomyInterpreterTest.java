@@ -3,11 +3,10 @@ package org.gbif.occurrence.processor.interpreting;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.net.URI;
 
 import static org.junit.Assert.*;
 
@@ -16,7 +15,7 @@ public class TaxonomyInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
   static final TaxonomyInterpreter interpreter;
   static {
-    cfg.url = URI.create("http://api.gbif-uat.org/v1/");
+    cfg.url = "http://api.gbif-uat.org/v1/";
     interpreter = new TaxonomyInterpreter(cfg);
   }
 

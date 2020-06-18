@@ -29,12 +29,12 @@ import akka.actor.UntypedActorFactory;
 import akka.routing.RoundRobinRouter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Actor that controls the multi-threaded creation of occurrence downloads.
@@ -56,10 +56,10 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Default constructor.
    */
-  @Inject
+  @Autowired
   public DownloadMaster(LockFactory lockFactory, Configuration configuration,
                         RestHighLevelClient esClient,
-                        @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
+                        @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY+ "}") String esIndex,
                         DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
     conf = configuration;
     this.jobConfiguration = jobConfiguration;
@@ -267,11 +267,11 @@ public class DownloadMaster extends UntypedActor {
     /**
      * Default/full constructor.
      */
-    @Inject
-    public Configuration(@Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
-                         @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName) {
+    @Autowired
+    public Configuration(@Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY + "}") int nrOfWorkers,
+                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY + "}") int minNrOfRecords,
+                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int maximumNrOfRecords,
+                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY + "}") String lockName) {
       this.nrOfWorkers = nrOfWorkers;
       this.minNrOfRecords = minNrOfRecords;
       this.maximumNrOfRecords = maximumNrOfRecords;

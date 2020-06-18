@@ -18,6 +18,10 @@ public class RegistryClientUtil {
 
   private final ClientFactory clientFactory;
 
+  public RegistryClientUtil(String userName, String password, String apiUrl) {
+    clientFactory = new ClientFactory(userName, password, apiUrl);
+  }
+
   /**
    * Constructs an instance using properties class instance.
    */
@@ -27,14 +31,6 @@ public class RegistryClientUtil {
                                       Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
   }
 
-  /**
-   * Constructs an instance using properties class instance.
-   */
-  public RegistryClientUtil(Properties properties) {
-    clientFactory = new ClientFactory(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-                                      properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY),
-                                      properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY));
-  }
 
   private static Properties loadConfig() {
     try {

@@ -13,15 +13,11 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorFactory;
-import com.google.common.base.Throwables;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Class that encapsulates the process of creating the occurrence files from Elasticsearch/Hive.
@@ -69,9 +65,10 @@ public class FromSearchDownloadAction {
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    final Injector injector = createInjector(workflowConfiguration, configuration);
-    try (CuratorFramework curatorDownload = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
-         CuratorFramework curatorIndices = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Indices")))) {
+    ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration, configuration);
+
+    try (CuratorFramework curatorDownload = applicationContext.getBean("Downloads", CuratorFramework.class);
+         CuratorFramework curatorIndices = applicationContext.getBean("Indices", CuratorFramework.class)) {
 
       // Create an Akka system
       ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
@@ -84,11 +81,11 @@ public class FromSearchDownloadAction {
         private static final long serialVersionUID = 1L;
 
         public UntypedActor create() {
-          return injector.getInstance(DownloadMaster.class);
+          return applicationContext.getBean(DownloadMaster.class);
         }
       }), "DownloadMaster" + configuration.getDownloadKey());
 
-      Mutex readMutex = injector.getInstance(Mutex.class);
+      Mutex readMutex = applicationContext.getBean(Mutex.class);
       readMutex.acquire();
       // start the calculation
       master.tell(new DownloadMaster.Start());
@@ -101,18 +98,6 @@ public class FromSearchDownloadAction {
       }
       system.shutdown();
       readMutex.release();
-    }
-  }
-
-  /**
-   * Utility method that creates the Guice injector.
-   */
-  private static Injector createInjector(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    try {
-      return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration, configuration));
-    } catch (IllegalArgumentException e) {
-      LOG.error("Error initializing injection module", e);
-      throw Throwables.propagate(e);
     }
   }
 

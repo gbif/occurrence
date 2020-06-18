@@ -4,12 +4,9 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
-import org.gbif.occurrence.processor.interpreting.clients.GeocodeWsClient;
+import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
-import org.gbif.ws.client.ClientFactory;
 
-import java.net.URI;
 import java.util.Arrays;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -29,9 +26,8 @@ public class CoordinateInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final CoordinateInterpreter interpreter;
   static {
-    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
-    ClientFactory clientFactory = new ClientFactory(cfg.url.toString());
-    interpreter = new CoordinateInterpreter(clientFactory.newInstance(GeocodeWsClient.class));
+    cfg.url = "http://api.gbif-dev.org/v1/";
+    interpreter = new CoordinateInterpreter(cfg.url);
   }
 
   private void assertCoordinate(ParseResult<CoordinateResult> result, double lat, double lng) {

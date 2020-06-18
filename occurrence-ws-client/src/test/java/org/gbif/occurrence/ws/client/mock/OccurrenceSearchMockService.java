@@ -10,18 +10,17 @@ import org.gbif.api.service.occurrence.OccurrenceService;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Min;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Mock service of {@link OccurrenceSearchService}.
  */
 public class OccurrenceSearchMockService implements OccurrenceSearchService {
 
-  @Inject
+  @Autowired
   private OccurrenceService occurrenceService;
 
   private static final int NUM_RESULTS = 20;

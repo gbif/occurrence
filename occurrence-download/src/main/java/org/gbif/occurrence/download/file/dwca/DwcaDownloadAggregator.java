@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Aggregates partials results of files and combine then into the output zip file.
@@ -63,7 +64,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
-  @Inject
+  @Autowired
   public DwcaDownloadAggregator(OccurrenceDownloadService occurrenceDownloadService,
                                 DownloadJobConfiguration configuration) {
     this.occurrenceDownloadService = occurrenceDownloadService;

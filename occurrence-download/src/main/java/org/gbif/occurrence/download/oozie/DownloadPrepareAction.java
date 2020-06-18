@@ -29,13 +29,12 @@ import java.util.Properties;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.name.Named;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -50,6 +49,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
  * is replaced by '_'.
  */
+@Component
 public class DownloadPrepareAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);
@@ -93,30 +93,19 @@ public class DownloadPrepareAction {
    */
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
-    DownloadPrepareAction occurrenceCount = getInjector().getInstance(DownloadPrepareAction.class);
+    DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.buildAppContext(new WorkflowConfiguration()).getBean(DownloadPrepareAction.class);
     occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
   }
 
-  /**
-   * Utility method that creates a instance of a Guice Injector containing the OccurrenceSearchCountModule.
-   */
-  private static Injector getInjector() {
-    try {
-      return Guice.createInjector(new DownloadWorkflowModule(new WorkflowConfiguration()));
-    } catch (IllegalArgumentException e) {
-      LOG.error("Error creating Guice module", e);
-      throw Throwables.propagate(e);
-    }
-  }
 
   /**
    * Default/injectable constructor.
    */
-  @Inject
+  @Autowired
   public DownloadPrepareAction(
     RestHighLevelClient esClient,
-    @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
-    @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int smallDownloadLimit,
+    @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY + "}") String esIndex,
+    @Value("${" + DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int smallDownloadLimit,
     OccurrenceDownloadService occurrenceDownloadService,
     WorkflowConfiguration workflowConfiguration
   ) {

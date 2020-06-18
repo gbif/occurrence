@@ -135,6 +135,10 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-httputils</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.gbif.kvs</groupId>
+      <artifactId>kvs-gbif</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -154,10 +158,6 @@
       <artifactId>commons-io</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
