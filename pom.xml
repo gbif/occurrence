@@ -44,6 +44,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
+    <module>occurrence-integration-tests</module>
   </modules>
 
   <properties>
@@ -71,6 +72,7 @@
     <hikaricp.version>3.2.0</hikaricp.version>
     <amqp-client.version>3.0.2</amqp-client.version>
     <freemarker.version>2.3.26-incubating</freemarker.version>
+
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
     <bval.version>0.5</bval.version>
@@ -171,9 +173,13 @@
 
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
+    <embedded-elasticsearch.version>2.10.0</embedded-elasticsearch.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
+
+    <!-- Tools-->
+    <lombok.version>1.18.10</lombok.version>
   </properties>
 
   <repositories>
@@ -359,6 +365,11 @@
         <classifier>tests</classifier>
         <version>${project.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-ws</artifactId>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
@@ -1150,12 +1161,31 @@
         <version>${dbunit.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>pl.allegro.tech</groupId>
+        <artifactId>embedded-elasticsearch</artifactId>
+        <version>${embedded-elasticsearch.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${spring-boot-maven-plugin.version}</version>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
