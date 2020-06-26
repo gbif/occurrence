@@ -15,11 +15,12 @@ import javax.validation.constraints.Min;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 
 /**
  * Mock service of {@link OccurrenceSearchService}.
  */
-public class OccurrenceSearchMockService implements OccurrenceSearchService {
+public class OccurrenceSearchMockService implements OccurrenceSearchService, OccurrenceRelationshipService {
 
   @Inject
   private OccurrenceService occurrenceService;
@@ -86,5 +87,11 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService {
   @Override
   public List<String> suggestStateProvinces(String prefix, @Nullable Integer limit) {
     return new ImmutableList.Builder<String>().add("Florida").add("New York").add("Texas").build();
+  }
+
+  @Override
+  public List<String> getRelatedOccurrences(long key) {
+    // experimental API, simulate empty results
+    return new ImmutableList.Builder<String>().add("{\"occurrences\": []}").build();
   }
 }
