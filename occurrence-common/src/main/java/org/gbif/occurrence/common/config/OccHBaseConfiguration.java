@@ -21,6 +21,12 @@ public class OccHBaseConfiguration {
   @Parameter(names = "--fragmenter-salt")
   public int fragmenterSalt = 100;
 
+  @Parameter(names = "--relationship-table")
+  public String relationshipTable;
+
+  @Parameter(names = "--relationship-salt")
+  public int relationshipSalt = 10;
+
   /**
    * The zookeeper connection being used to create a lock provider
    */
@@ -41,6 +47,7 @@ public class OccHBaseConfiguration {
     return Objects.toStringHelper(this)
       .add("hbasePoolSize", hbasePoolSize)
       .add("fragmenterTable", fragmenterTable)
+      .add("relationshipTable", relationshipTable)
       .add("zkConnectionString", zkConnectionString)
       .toString();
   }

@@ -21,6 +21,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.ws.server.interceptor.NullToNotFound;
 import org.gbif.ws.util.ExtraMediaTypes;
@@ -63,6 +64,7 @@ public class OccurrenceResource {
 
   private final OccurrenceService occurrenceService;
   private final OccurrenceSearchService occurrenceSearchService;
+  private final OccurrenceRelationshipService occurrenceRelationshipService;
 
   private final OccurrenceGetByKey occurrenceGetByKey;
 
@@ -70,11 +72,13 @@ public class OccurrenceResource {
   public OccurrenceResource(
     OccurrenceService occurrenceService,
     OccurrenceSearchService occurrenceSearchService,
-    OccurrenceGetByKey occurrenceGetByKey
+    OccurrenceGetByKey occurrenceGetByKey,
+    OccurrenceRelationshipService occurrenceRelationshipService
   ) {
     this.occurrenceService = occurrenceService;
     this.occurrenceSearchService = occurrenceSearchService;
     this.occurrenceGetByKey = occurrenceGetByKey;
+    this.occurrenceRelationshipService = occurrenceRelationshipService;
   }
 
   /**
@@ -118,6 +122,18 @@ public class OccurrenceResource {
   public VerbatimOccurrence getVerbatim(@PathParam("key") Long key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
     return occurrenceGetByKey.getVerbatim(key);
+  }
+
+  /**
+   * Removed API call, which supported a stream of featured occurrences on the old GBIF.org homepage.
+   * @return An empty list.
+   */
+  @GET
+  @Path("/{key}/experimental/related")
+  public String getRelatedOccurrences(@PathParam("key") Long key) {
+    LOG.debug("Request RelatedOccurrences [{}]:", key);
+    List<String> relationshipsAsJsonSnippets = occurrenceRelationshipService.getRelatedOccurrences(key);
+    return String.format("{\"occurrences\":[%s]}", String.join(",", relationshipsAsJsonSnippets));
   }
 
   /**

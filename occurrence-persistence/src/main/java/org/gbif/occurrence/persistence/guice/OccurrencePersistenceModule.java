@@ -11,6 +11,7 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.persistence.OccurrencePersistenceServiceImpl;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,8 +70,10 @@ public class OccurrencePersistenceModule extends PrivateModule {
   protected void configure() {
     bind(OccHBaseConfiguration.class).toInstance(cfg);
     bind(OccurrenceService.class).to(OccurrencePersistenceServiceImpl.class);
+    bind(OccurrenceRelationshipService.class).to(OccurrencePersistenceServiceImpl.class);
 
     expose(OccurrenceService.class);
+    expose(OccurrenceRelationshipService.class);
   }
 
   @Provides
