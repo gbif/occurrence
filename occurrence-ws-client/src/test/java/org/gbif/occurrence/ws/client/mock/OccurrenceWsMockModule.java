@@ -27,6 +27,7 @@ public class OccurrenceWsMockModule extends PrivateModule {
     expose(OccurrenceService.class);
     expose(OccurrenceGetByKey.class);
     expose(OccurrenceSearchService.class);
+    expose(OccurrenceRelationshipService.class);
     expose(OccurrenceDownloadService.class);
     expose(DownloadRequestService.class);
     expose(CallbackService.class);
