@@ -125,8 +125,8 @@ public class OccurrenceResource {
   }
 
   /**
-   * Removed API call, which supported a stream of featured occurrences on the old GBIF.org homepage.
-   * @return An empty list.
+   * Provides a list of related occurrence records in JSON.
+   * @return A list of related occurrences or an empty list if relatinships are not configured or none exist.
    */
   @GET
   @Path("/{key}/experimental/related")
