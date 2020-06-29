@@ -52,6 +52,7 @@ public class OccurrencePersistenceModule extends PrivateModule {
     OccHBaseConfiguration cfg = new OccHBaseConfiguration();
     try {
       cfg.fragmenterTable = props.getProperty("occurrence.db.fragmenter_name");
+      cfg.relationshipTable = props.getProperty("occurrence.db.relationship_table_name");
       cfg.hbasePoolSize = Integer.parseInt(props.getProperty("occurrence.db.max_connection_pool"));
       cfg.zkConnectionString = props.getProperty("occurrence.db.zookeeper.connection_string");
 
@@ -59,6 +60,12 @@ public class OccurrencePersistenceModule extends PrivateModule {
       if (fragmenterSalt != null && !fragmenterSalt.isEmpty()) {
         cfg.fragmenterSalt = Integer.parseInt(fragmenterSalt);
       }
+
+      String relationshipSalt = props.getProperty("occurrence.db.relationship_table_salt");
+      if (relationshipSalt != null && !relationshipSalt.isEmpty()) {
+        cfg.relationshipSalt = Integer.parseInt(relationshipSalt);
+      }
+
     } catch (RuntimeException e) {
       LOG.error("Occurrence persistence property configs invalid", e);
       Throwables.propagate(e);

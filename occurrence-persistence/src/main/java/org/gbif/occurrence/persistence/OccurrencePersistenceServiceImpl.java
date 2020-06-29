@@ -106,7 +106,8 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
         }
 
       } catch (IOException e) {
-        throw new ServiceUnavailableException("Could not read from HBase", e);
+        LOG.error("Could not read from HBase", e);
+        throw new ServiceUnavailableException("Could not read from HBase [" + e.getMessage()+ "]");
       }
     }
     return result;
