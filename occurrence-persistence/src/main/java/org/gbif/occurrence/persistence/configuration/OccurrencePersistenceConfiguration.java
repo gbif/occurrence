@@ -1,4 +1,4 @@
-package org.gbif.occurrence.persistence.guice;
+package org.gbif.occurrence.persistence.configuration;
 
 import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
@@ -18,7 +18,6 @@ import java.io.IOException;
  * A convenience module to include the OccurrencePersistenceServiceImpl via Guice. See the README for needed
  * properties.
  */
-@org.springframework.context.annotation.Configuration
 public class OccurrencePersistenceConfiguration {
 
   @ConfigurationProperties(prefix = "occurrence.db")

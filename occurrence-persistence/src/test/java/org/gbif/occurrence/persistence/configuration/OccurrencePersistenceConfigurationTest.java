@@ -1,4 +1,4 @@
-package org.gbif.occurrence.persistence.guice;
+package org.gbif.occurrence.persistence.configuration;
 
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.junit.Ignore;

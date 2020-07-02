@@ -5,7 +5,6 @@ import org.gbif.occurrence.search.clb.NameUsageMatchingServiceClient;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.ws.client.ClientFactory;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -14,15 +13,11 @@ import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.sniff.SniffOnFailureListener;
-import org.elasticsearch.client.sniff.Sniffer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /** Occurrence search configuration. */
-@Configuration
 public class OccurrenceSearchConfiguration  {
 
   private static final String PREFIX = "occurrence.search.";
@@ -34,8 +29,6 @@ public class OccurrenceSearchConfiguration  {
   public EsConfig esConfig() {
     return new EsConfig();
   }
-
-
 
   @Bean
   public RestHighLevelClient provideEsClient(EsConfig esConfig) {

@@ -1,0 +1,85 @@
+api:
+  url: @api.url@
+appkeys:
+  file: @appkeys.file@
+checklistbank:
+  match:
+    ws:
+      url: @checklistbank.match.ws.url@
+  ws:
+    url: @checklistbank.ws.url@
+mail:
+  bcc:
+  cc: helpdesk@gbif.org
+  enabled: true
+  devemail:
+    address: gbifregistry@mailinator.com
+    enabled: true
+
+occurrence:
+  download:
+    downloads_hard_limit: 1,1000
+    downloads_max_points: 5000
+    downloads_max_predicates: 101000
+    downloads_soft_limit: 3,100
+    environment: @occurrence.environment@
+    hdfs:
+      namenode: @hdfs.namenode@
+    hive:
+      hdfs:
+        out: @occurrence.download.hive.hdfs.out@
+    hive_db: @occurrence.download.hive.db@
+    mail:
+      bcc: @occurrence.download.mail.bcc@
+      from: @occurrence.download.mail.from@
+      smtp: @mail.smtp@
+    max_user_downloads: 3
+    oozie:
+      url: @oozie.url@
+      workflow:
+        path: @hdfs.namenode@/occurrence-download-workflows-@occurrence.environment@/
+    portal:
+      url: @occurrence.download.portal.url@
+    username: @occurrence.download.user.name@
+    ws:
+      mount: @occurrence.download.ws.mount@
+      password: @occurrence.download.ws.password@
+      url: @occurrence.download.ws.url@
+      username: @occurrence.download.ws.username@
+  search:
+    es:
+      connect_timeout: 6000
+      index: occurrence
+      sniff_after_failure_delay: 30000
+      sniff_interval: 300000
+      socket_timeout: 90000
+      enabled: false
+    max:
+      limit: 300
+      offset: 200000
+# Database
+registry:
+  datasource:
+    url: @registry.db.url@
+    password: @registry.db.password@
+    username: @registry.db.username@
+    hikari:
+      idleTimeout: @registry.db.hikari.idleTimeout@
+      maximumPoolSize: @registry.db.hikari.maximumPoolSize@
+      minimumIdle: @registry.db.hikari.minimumIdle@
+  ws:
+    url: @registry.ws.url@
+spring:
+  liquibase:
+    enabled: false
+  mail:
+    default-encoding: UTF-8
+    host: localhost
+    password:
+    port: 25
+    test-connection: false
+    username:
+server:
+  error:
+    include-stacktrace: never
+

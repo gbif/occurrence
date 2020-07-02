@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.127-SNAPSHOT</version>
+  <version>0.128-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -55,6 +55,7 @@
     <spring-cloud-zookeeper.version>2.2.0.RELEASE</spring-cloud-zookeeper.version>
     <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
     <mybatis-spring-boot-starter.version>2.0.1</mybatis-spring-boot-starter.version>
+    <mybatis-spring-boot-starter-test.version>2.0.0</mybatis-spring-boot-starter-test.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -106,10 +107,14 @@
     <logback.version>1.1.5</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
-    <mockito.version>1.9.0</mockito.version>
+    <mockito.version>3.1.0</mockito.version>
     <powermock-mockito.version>1.6.1</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
+
+    <junit-jupiter.version>5.5.2</junit-jupiter.version>
+    <mockito-junit-jupiter.version>3.1.0</mockito-junit-jupiter.version>
+
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
@@ -150,7 +155,7 @@
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
-    <pipelines.version>2.4.0</pipelines.version>
+    <pipelines.version>2.5.2</pipelines.version>
     <gbif.kvs.version>1.6</gbif.kvs.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
@@ -240,6 +245,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
       <!-- GBIF -->
       <dependency>
         <groupId>org.gbif</groupId>
@@ -331,12 +343,6 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-hive</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-ws</artifactId>
-        <classifier>classes</classifier>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -782,30 +788,64 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-minicluster</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+        </exclusions>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-testing-util</artifactId>
         <version>${hbase.version}</version>
         <scope>test</scope>
-        <!-- The following are to exclude MR1 artifacts -->
         <exclusions>
-          <!-- ignore MR1 artifacts -->
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
           </exclusion>
-          <!-- ignore MR1 artifacts -->
           <exclusion>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-minicluster</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- bring in Yarn (MR2) -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-minicluster</artifactId>
+        <artifactId>hadoop-common</artifactId>
         <version>${hadoop.version}</version>
-        <scope>test</scope>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <!-- end hbase -->
 
@@ -1167,13 +1207,35 @@
         <version>${embedded-elasticsearch.version}</version>
         <scope>test</scope>
       </dependency>
-
-
       <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <version>${lombok.version}</version>
-        <scope>provided</scope>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito-junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>mybatis-spring-boot-starter-test</artifactId>
+        <version>${mybatis-spring-boot-starter-test.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.pipelines</groupId>
+        <artifactId>ingest-gbif</artifactId>
+        <version>${pipelines.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.pipelines</groupId>
+        <artifactId>ingest-fragmenter</artifactId>
+        <version>${pipelines.version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

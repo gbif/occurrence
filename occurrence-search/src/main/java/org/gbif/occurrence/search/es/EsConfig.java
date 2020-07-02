@@ -28,10 +28,10 @@ public class EsConfig {
 
   private String[] hosts;
   private String index;
-  private int connectTimeout;
-  private int socketTimeout;
-  private int sniffInterval;
-  private int sniffAfterFailureDelay;
+  private int connectTimeout = CONNECT_TIMEOUT_DEFAULT;
+  private int socketTimeout = SOCKET_TIMEOUT_DEFAULT;
+  private int sniffInterval = SNIFF_INTERVAL_DEFAULT;
+  private int sniffAfterFailureDelay = SNIFF_AFTER_FAILURE_DELAY_DEFAULT;
 
   public  EsConfig(){
     super();

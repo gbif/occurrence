@@ -44,18 +44,15 @@ public class OccurrenceResource {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
 
   private final OccurrenceService occurrenceService;
-  private final OccurrenceSearchService occurrenceSearchService;
 
   private final OccurrenceGetByKey occurrenceGetByKey;
 
   @Autowired
   public OccurrenceResource(
     OccurrenceService occurrenceService,
-    OccurrenceSearchService occurrenceSearchService,
     OccurrenceGetByKey occurrenceGetByKey
   ) {
     this.occurrenceService = occurrenceService;
-    this.occurrenceSearchService = occurrenceSearchService;
     this.occurrenceGetByKey = occurrenceGetByKey;
   }
 

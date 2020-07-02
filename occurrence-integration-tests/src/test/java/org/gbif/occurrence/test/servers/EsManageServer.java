@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.test;
+package org.gbif.occurrence.test.servers;
+
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Strings;
-import org.apache.commons.io.IOUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
+import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -38,9 +44,14 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
+import pl.allegro.tech.embeddedelasticsearch.IndexSettings;
 import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
 
-public class EsManageServer implements InitializingBean, DisposableBean {
+@Data
+@Builder
+public class EsManageServer implements DisposableBean, InitializingBean {
+
+  private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapper();
 
   private static final String CLUSTER_NAME = "EsITCluster";
 
@@ -52,37 +63,19 @@ public class EsManageServer implements InitializingBean, DisposableBean {
 
   private EmbeddedElastic embeddedElastic;
 
-  private final Resource mappingFile;
-
-  private final Resource settingsFile;
-
-  private final String indexName;
-
-  private final String typeName;
-
   // needed to assert results against ES server directly
   private RestHighLevelClient restClient;
 
-  public EsManageServer(
-      Resource mappingFile, Resource settingsFile, String indexName, String typeName) {
-    this.mappingFile = mappingFile;
-    this.settingsFile = settingsFile;
-    this.indexName = indexName;
-    this.typeName = typeName;
-  }
+  private final String indexName;
+  private final String type;
+  private final String keyField;
 
-  public EsManageServer() {
-    this.mappingFile = null;
-    this.settingsFile = null;
-    this.indexName = null;
-    this.typeName = null;
-  }
+  private final Resource mappingFile;
+  private final Resource settingsFile;
 
   @Override
   public void destroy() throws Exception {
-    if (embeddedElastic != null) {
-      embeddedElastic.stop();
-    }
+    embeddedElastic.stop();
   }
 
   @Override
@@ -107,11 +100,15 @@ public class EsManageServer implements InitializingBean, DisposableBean {
                 getEnvVariable(ENV_ES_INSTALLATION_DIR)
                     .map(v -> Paths.get(v).toFile())
                     .orElse(Files.createTempDirectory("it-test-elasticsearch").toFile()))
+            .withIndex(indexName, IndexSettings.builder()
+            .withType(type,mappingFile.getInputStream())
+            .withSettings(settingsFile.getInputStream())
+            .build()
+          )
             .build();
 
     embeddedElastic.start();
     restClient = buildRestClient();
-    createIndex();
   }
 
   public RestHighLevelClient getRestClient() {
@@ -123,33 +120,7 @@ public class EsManageServer implements InitializingBean, DisposableBean {
   }
 
   public void refresh() {
-    if (!Strings.isNullOrEmpty(indexName)) {
-      refresh(indexName);
-    }
-  }
-
-  public void refresh(String indexName) {
-    try {
-      restClient.indices().refresh(new RefreshRequest().indices(indexName), RequestOptions.DEFAULT);
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-
-  /** Utility method to create an index. */
-  private void createIndex() throws IOException {
-    if (!Strings.isNullOrEmpty(indexName)) {
-      String mapping = IOUtils.toString(mappingFile.getInputStream(), StandardCharsets.UTF_8);
-      String settings = IOUtils.toString(settingsFile.getInputStream(), StandardCharsets.UTF_8);
-      restClient
-          .indices()
-          .create(
-              new CreateIndexRequest()
-                  .index(indexName)
-                  .settings(settings, XContentType.JSON)
-                  .mapping(typeName, mapping, XContentType.JSON),
-              RequestOptions.DEFAULT);
-    }
+   embeddedElastic.refreshIndices();
   }
 
   private RestHighLevelClient buildRestClient() {
@@ -180,15 +151,32 @@ public class EsManageServer implements InitializingBean, DisposableBean {
   }
 
   public void reCreateIndex() {
-    if (!Strings.isNullOrEmpty(indexName)) {
-      try {
-        restClient
-            .indices()
-            .delete(new DeleteIndexRequest().indices(indexName), RequestOptions.DEFAULT);
-        createIndex();
-      } catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
+    embeddedElastic.recreateIndex(indexName);
+  }
+
+  @SneakyThrows
+  public BulkResponse index(Resource dataFile) {
+    BulkRequest bulkRequest = new BulkRequest();
+    loadJsonFile(dataFile)
+      .forEach(doc -> {
+        try {
+          bulkRequest.add(new IndexRequest()
+                            .index(indexName)
+                            .type(type)
+                            .source(MAPPER.writeValueAsString(doc), XContentType.JSON)
+                            .opType(DocWriteRequest.OpType.INDEX)
+                            .id(doc.get(keyField).asText()));
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
+        }
+      });
+    return restClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+  }
+
+  @SneakyThrows
+  public ArrayNode loadJsonFile(Resource dataFile) {
+    try(InputStream testFile = dataFile.getInputStream()) {
+      return (ArrayNode) MAPPER.readTree(testFile);
     }
   }
 }

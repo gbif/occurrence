@@ -1,0 +1,2088 @@
+ [
+    {
+
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 648006,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 1936518.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 18.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.000009295033663513585,
+        "eventDateSingle": "2010-07-12T00:00",
+        "year": 2010,
+        "month": 7,
+        "day": 12,
+        "eventDate": {
+          "gte": "2010-07-12T00:00"
+        },
+        "coordinates": {
+          "lon": 26.3048,
+          "lat": -35.2421
+        },
+        "decimalLatitude": -35.2421,
+        "decimalLongitude": 26.3048,
+        "scoordinates": "POINT (26.3048 -35.2421)",
+        "country": "South Africa",
+        "countryCode": "ZA",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 30.0,
+        "maximumDepthInMeters": 30.0,
+        "depth": 30.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "repatriated": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 2,
+            "name": "Archaea",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 2,
+              "name": "Archaea",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 2,
+            "name": "Archaea",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Archaea",
+            "genericName": "Archaea"
+          },
+          "kingdomKey": 2,
+          "kingdom": "Archaea",
+          "classificationPath": "_",
+          "taxonKey": [
+            2
+          ],
+          "verbatimScientificName": "Archaea"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167265_Archaea",
+        "eventId": "MGYA00167265",
+        "occurrenceId": "MGYA00167265_Archaea",
+        "all": [
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS490115",
+          "MGYA00167265_Archaea",
+          "-35.2421",
+          "{\"temperature\":\"21.81495\",\"geographic location (longitude)\":\"26.3048\",\"collection date\":\"2010-07-12\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"99999.0\",\"geographic location (latitude)\":\"-35.2421\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "Archaea",
+          "18",
+          "MATERIAL_SAMPLE",
+          "30.0",
+          "1936518",
+          "2010-07-12",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167265#taxonomic.",
+          "DNA sequence reads",
+          "26.3048",
+          "MGYA00167265",
+          "This sample (TARA_N000000965) was collected during the Tara Oceans expedition (2009-2013) at station TARA_065 (latitudeN=-35.2421, longitudeE=26.3048) on date/time=2010-07-12T11:03:22, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 30-30 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (5-20 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics/transcriptomics analysis. This sample has replicate sample(s): TARA_N000000964.",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "1936518",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "18",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167265",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "30.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"21.81495\",\"geographic location (longitude)\":\"26.3048\",\"collection date\":\"2010-07-12\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"99999.0\",\"geographic location (latitude)\":\"-35.2421\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167265_Archaea",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2010-07-12",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000000965) was collected during the Tara Oceans expedition (2009-2013) at station TARA_065 (latitudeN=-35.2421, longitudeE=26.3048) on date/time=2010-07-12T11:03:22, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 30-30 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (5-20 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics/transcriptomics analysis. This sample has replicate sample(s): TARA_N000000964.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "-35.2421",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "26.3048",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "30.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS490115",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167265#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Archaea",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:44.944"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 636002,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 1832466.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 1.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 5.457127171800186e-7,
+        "eventDateSingle": "2011-08-04T00:00",
+        "year": 2011,
+        "month": 8,
+        "day": 4,
+        "eventDate": {
+          "gte": "2011-08-04T00:00"
+        },
+        "coordinates": {
+          "lon": -140.5216,
+          "lat": -9.1504
+        },
+        "decimalLatitude": -9.1504,
+        "decimalLongitude": -140.5216,
+        "scoordinates": "POINT (-140.5216 -9.1504)",
+        "country": "French Polynesia",
+        "countryCode": "PF",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 5.0,
+        "maximumDepthInMeters": 5.0,
+        "depth": 5.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "repatriated": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 2,
+            "name": "Archaea",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 2,
+              "name": "Archaea",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 2,
+            "name": "Archaea",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Archaea",
+            "genericName": "Archaea"
+          },
+          "kingdomKey": 2,
+          "kingdom": "Archaea",
+          "classificationPath": "_",
+          "taxonKey": [
+            2
+          ],
+          "verbatimScientificName": "Archaea"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167083_Archaea",
+        "eventId": "MGYA00167083",
+        "occurrenceId": "MGYA00167083_Archaea",
+        "all": [
+          "{\"temperature\":\"26.518986\",\"geographic location (longitude)\":\"-140.5216\",\"collection date\":\"2011-08-04\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"35.39673\",\"geographic location (latitude)\":\"-9.1504\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167083#taxonomic.",
+          "MGYA00167083",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS492827",
+          "Archaea",
+          "MATERIAL_SAMPLE",
+          "1832466",
+          "MGYA00167083_Archaea",
+          "This sample (TARA_N000002219) was collected during the Tara Oceans expedition (2009-2013) at station TARA_124 (latitudeN=-9.1504, longitudeE=-140.5216) on date/time=2011-08-04T18:33, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (3-20 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000002220.",
+          "DNA sequence reads",
+          "1",
+          "-9.1504",
+          "5.0",
+          "2011-08-04",
+          "-140.5216",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "1832466",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "1",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167083",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"26.518986\",\"geographic location (longitude)\":\"-140.5216\",\"collection date\":\"2011-08-04\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"35.39673\",\"geographic location (latitude)\":\"-9.1504\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167083_Archaea",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-08-04",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000002219) was collected during the Tara Oceans expedition (2009-2013) at station TARA_124 (latitudeN=-9.1504, longitudeE=-140.5216) on date/time=2011-08-04T18:33, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (3-20 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000002220.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "-9.1504",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-140.5216",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS492827",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167083#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Archaea",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:41.668"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 635018,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 1987937.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 9898.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.004979031025631094,
+        "eventDateSingle": "2011-05-31T00:00",
+        "year": 2011,
+        "month": 5,
+        "day": 31,
+        "eventDate": {
+          "gte": "2011-05-31T00:00"
+        },
+        "coordinates": {
+          "lon": -100.6751,
+          "lat": -16.9587
+        },
+        "decimalLatitude": -16.9587,
+        "decimalLongitude": -100.6751,
+        "scoordinates": "POINT (-100.6751 -16.9587)",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 90.0,
+        "maximumDepthInMeters": 90.0,
+        "depth": 90.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 3,
+              "name": "Bacteria",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Bacteria",
+            "genericName": "Bacteria"
+          },
+          "kingdomKey": 3,
+          "kingdom": "Bacteria",
+          "classificationPath": "_",
+          "taxonKey": [
+            3
+          ],
+          "verbatimScientificName": "Bacteria"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167231_Bacteria",
+        "eventId": "MGYA00167231",
+        "occurrenceId": "MGYA00167231_Bacteria",
+        "all": [
+          "90.0",
+          "9898",
+          "MATERIAL_SAMPLE",
+          "2011-05-31",
+          "{\"temperature\":\"19.881449\",\"geographic location (longitude)\":\"-100.6751\",\"collection date\":\"2011-05-31\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"35.68725\",\"geographic location (latitude)\":\"-16.9587\",\"instrument model\":\"Illumina HiSeq 2000\"}",
+          "DNA sequence reads",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167231#taxonomic.",
+          "-100.6751",
+          "1987937",
+          "MGYA00167231",
+          "-16.9587",
+          "Bacteria",
+          "MGYA00167231_Bacteria",
+          "This sample (TARA_N000001816) was collected during the Tara Oceans expedition (2009-2013) at station TARA_111 (latitudeN=-16.9587, longitudeE=-100.6751) on date/time=2011-05-31T20:28:10, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 86-95 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis.",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS492368",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "1987937",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "9898",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167231",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "90.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"19.881449\",\"geographic location (longitude)\":\"-100.6751\",\"collection date\":\"2011-05-31\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"35.68725\",\"geographic location (latitude)\":\"-16.9587\",\"instrument model\":\"Illumina HiSeq 2000\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167231_Bacteria",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-05-31",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000001816) was collected during the Tara Oceans expedition (2009-2013) at station TARA_111 (latitudeN=-16.9587, longitudeE=-100.6751) on date/time=2011-05-31T20:28:10, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 86-95 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "-16.9587",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-100.6751",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "90.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS492368",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167231#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Bacteria",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:42.556"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 635021,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 739373.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 86.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.00011631476940596965,
+        "eventDateSingle": "2011-10-05T00:00",
+        "year": 2011,
+        "month": 10,
+        "day": 5,
+        "eventDate": {
+          "gte": "2011-10-05T00:00"
+        },
+        "coordinates": {
+          "lon": -159.0901,
+          "lat": 31.4794
+        },
+        "decimalLatitude": 31.4794,
+        "decimalLongitude": -159.0901,
+        "scoordinates": "POINT (-159.0901 31.4794)",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 115.0,
+        "maximumDepthInMeters": 115.0,
+        "depth": 115.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 3,
+              "name": "Bacteria",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Bacteria",
+            "genericName": "Bacteria"
+          },
+          "kingdomKey": 3,
+          "kingdom": "Bacteria",
+          "classificationPath": "_",
+          "taxonKey": [
+            3
+          ],
+          "verbatimScientificName": "Bacteria"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167370_Bacteria",
+        "eventId": "MGYA00167370",
+        "occurrenceId": "MGYA00167370_Bacteria",
+        "all": [
+          "MGYA00167370",
+          "MATERIAL_SAMPLE",
+          "This sample (TARA_N000002406) was collected during the Tara Oceans expedition (2009-2013) at station TARA_132 (latitudeN=31.4794, longitudeE=-159.0901) on date/time=2011-10-05T03:35, using a PLANKTON NET, TYPE=Double, MESH_Size_(�m)=20, MOUTH_Opening_(m^2)=0.192442, LENGTH_(m)=2.5.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 113-117 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (20-180 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000002407.",
+          "2011-10-05",
+          "DNA sequence reads",
+          "739373",
+          "MGYA00167370_Bacteria",
+          "{\"temperature\":\"14.804538\",\"geographic location (longitude)\":\"-159.0901\",\"collection date\":\"2011-10-05\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"\"PLANKTON NET, TYPE=Double, MESH_Size_(�m)=20, MOUTH_Opening_(m^2)=0.192442, LENGTH_(m)=2.5\"\",\"salinity\":\"34.37812\",\"geographic location (latitude)\":\"31.4794\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "31.4794",
+          "Bacteria",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS493358",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167370#taxonomic.",
+          "86",
+          "115.0",
+          "-159.0901",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "739373",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "86",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167370",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "115.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"14.804538\",\"geographic location (longitude)\":\"-159.0901\",\"collection date\":\"2011-10-05\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"deep chlorophyll maximum layer (ENVO:xxxxxxxx)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"\"PLANKTON NET, TYPE=Double, MESH_Size_(�m)=20, MOUTH_Opening_(m^2)=0.192442, LENGTH_(m)=2.5\"\",\"salinity\":\"34.37812\",\"geographic location (latitude)\":\"31.4794\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167370_Bacteria",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-10-05",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000002406) was collected during the Tara Oceans expedition (2009-2013) at station TARA_132 (latitudeN=31.4794, longitudeE=-159.0901) on date/time=2011-10-05T03:35, using a PLANKTON NET, TYPE=Double, MESH_Size_(�m)=20, MOUTH_Opening_(m^2)=0.192442, LENGTH_(m)=2.5.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 113-117 m, targeting a deep chlorophyll maximum layer (ENVO:xxxxxxxx) in the marine biome (ENVO:00000447). The sample was size-fractionated (20-180 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000002407.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "31.4794",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-159.0901",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "115.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS493358",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167370#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Bacteria",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:42.564"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 635024,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 1004371.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 370.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.0003683897683226616,
+        "eventDateSingle": "2011-10-24T00:00",
+        "year": 2011,
+        "month": 10,
+        "day": 24,
+        "eventDate": {
+          "gte": "2011-10-24T00:00"
+        },
+        "coordinates": {
+          "lon": -121.8782,
+          "lat": 33.0339
+        },
+        "decimalLatitude": 33.0339,
+        "decimalLongitude": -121.8782,
+        "scoordinates": "POINT (-121.8782 33.0339)",
+        "country": "United States of America",
+        "countryCode": "US",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 650.0,
+        "maximumDepthInMeters": 650.0,
+        "depth": 650.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "repatriated": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 3,
+              "name": "Bacteria",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Bacteria",
+            "genericName": "Bacteria"
+          },
+          "kingdomKey": 3,
+          "kingdom": "Bacteria",
+          "classificationPath": "_",
+          "taxonKey": [
+            3
+          ],
+          "verbatimScientificName": "Bacteria"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167518_Bacteria",
+        "eventId": "MGYA00167518",
+        "occurrenceId": "MGYA00167518_Bacteria",
+        "all": [
+          "650.0",
+          "{\"temperature\":\"5.288977\",\"geographic location (longitude)\":\"-121.8782\",\"collection date\":\"2011-10-24\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"mesopelagic zone (ENVO:00000213)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"34.335445\",\"geographic location (latitude)\":\"33.0339\",\"instrument model\":\"Illumina HiSeq 2000\"}",
+          "MATERIAL_SAMPLE",
+          "This sample (TARA_N000002172) was collected during the Tara Oceans expedition (2009-2013) at station TARA_135 (latitudeN=33.0339, longitudeE=-121.8782) on date/time=2011-10-24T01:01:16, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 646-655 m, targeting a mesopelagic zone (ENVO:00000213) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-3 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis.",
+          "2011-10-24",
+          "370",
+          "DNA sequence reads",
+          "MGYA00167518_Bacteria",
+          "MGYA00167518",
+          "33.0339",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS493592",
+          "Bacteria",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167518#taxonomic.",
+          "1004371",
+          "-121.8782",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "1004371",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "370",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167518",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "650.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"5.288977\",\"geographic location (longitude)\":\"-121.8782\",\"collection date\":\"2011-10-24\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"mesopelagic zone (ENVO:00000213)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles\",\"salinity\":\"34.335445\",\"geographic location (latitude)\":\"33.0339\",\"instrument model\":\"Illumina HiSeq 2000\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167518_Bacteria",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-10-24",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000002172) was collected during the Tara Oceans expedition (2009-2013) at station TARA_135 (latitudeN=33.0339, longitudeE=-121.8782) on date/time=2011-10-24T01:01:16, using a ROSETTE sampler with CTD (sbe9C) and 10 Niskin bottles.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 646-655 m, targeting a mesopelagic zone (ENVO:00000213) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-3 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.0339",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-121.8782",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "650.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS493592",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167518#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Bacteria",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:42.588"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 648016,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 1060430.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 5728.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.00540158237696029,
+        "eventDateSingle": "2011-12-10T00:00",
+        "year": 2011,
+        "month": 12,
+        "day": 10,
+        "eventDate": {
+          "gte": "2011-12-10T00:00"
+        },
+        "coordinates": {
+          "lon": -102.9432,
+          "lat": 6.3332
+        },
+        "decimalLatitude": 6.3332,
+        "decimalLongitude": -102.9432,
+        "scoordinates": "POINT (-102.9432 6.3332)",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 5.0,
+        "maximumDepthInMeters": 5.0,
+        "depth": 5.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 3,
+              "name": "Bacteria",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Bacteria",
+            "genericName": "Bacteria"
+          },
+          "kingdomKey": 3,
+          "kingdom": "Bacteria",
+          "classificationPath": "_",
+          "taxonKey": [
+            3
+          ],
+          "verbatimScientificName": "Bacteria"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167066_Bacteria",
+        "eventId": "MGYA00167066",
+        "occurrenceId": "MGYA00167066_Bacteria",
+        "all": [
+          "{\"temperature\":\"26.6362\",\"geographic location (longitude)\":\"-102.9432\",\"collection date\":\"2011-12-10\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"33.407043\",\"geographic location (latitude)\":\"6.3332\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "-102.9432",
+          "This sample (TARA_N000003001) was collected during the Tara Oceans expedition (2009-2013) at station TARA_138 (latitudeN=6.3332, longitudeE=-102.9432) on date/time=2011-12-10T14:08, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000003002.",
+          "MATERIAL_SAMPLE",
+          "5728",
+          "DNA sequence reads",
+          "1060430",
+          "6.3332",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167066#taxonomic.",
+          "5.0",
+          "2011-12-10",
+          "MGYA00167066",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS493761",
+          "Bacteria",
+          "MGYA00167066_Bacteria",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "1060430",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "5728",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167066",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"26.6362\",\"geographic location (longitude)\":\"-102.9432\",\"collection date\":\"2011-12-10\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"33.407043\",\"geographic location (latitude)\":\"6.3332\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167066_Bacteria",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-12-10",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000003001) was collected during the Tara Oceans expedition (2009-2013) at station TARA_138 (latitudeN=6.3332, longitudeE=-102.9432) on date/time=2011-12-10T14:08, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000003002.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "6.3332",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-102.9432",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS493761",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167066#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Bacteria",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:45.031"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 635033,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 690695.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 1958.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.0028348257914129972,
+        "eventDateSingle": "2011-03-24T00:00",
+        "year": 2011,
+        "month": 3,
+        "day": 24,
+        "eventDate": {
+          "gte": "2011-03-24T00:00"
+        },
+        "coordinates": {
+          "lon": -101.1604,
+          "lat": -29.7238
+        },
+        "decimalLatitude": -29.7238,
+        "decimalLongitude": -101.1604,
+        "scoordinates": "POINT (-101.1604 -29.7238)",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 5.0,
+        "maximumDepthInMeters": 5.0,
+        "depth": 5.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "synonym": false,
+          "usage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 3,
+              "name": "Bacteria",
+              "rank": "KINGDOM"
+            }
+          ],
+          "acceptedUsage": {
+            "key": 3,
+            "name": "Bacteria",
+            "rank": "KINGDOM"
+          },
+          "diagnostics": {
+            "matchType": "EXACT",
+            "status": "ACCEPTED"
+          },
+          "usageParsedName": {
+            "abbreviated": false,
+            "autonym": false,
+            "basionymAuthorship": {
+              "empty": true
+            },
+            "binomial": false,
+            "candidatus": false,
+            "combinationAuthorship": {
+              "empty": true
+            },
+            "doubtful": false,
+            "incomplete": false,
+            "indetermined": false,
+            "rank": "KINGDOM",
+            "state": "COMPLETE",
+            "trinomial": false,
+            "type": "SCIENTIFIC",
+            "uninomial": "Bacteria",
+            "genericName": "Bacteria"
+          },
+          "kingdomKey": 3,
+          "kingdom": "Bacteria",
+          "classificationPath": "_",
+          "taxonKey": [
+            3
+          ],
+          "verbatimScientificName": "Bacteria"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167947_Bacteria",
+        "eventId": "MGYA00167947",
+        "occurrenceId": "MGYA00167947_Bacteria",
+        "all": [
+          "2011-03-24",
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS491538",
+          "MATERIAL_SAMPLE",
+          "-29.7238",
+          "This sample (TARA_N000001256) was collected during the Tara Oceans expedition (2009-2013) at station TARA_096 (latitudeN=-29.7238, longitudeE=-101.1604) on date/time=2011-03-24T13:00, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000001257.",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167947#taxonomic.",
+          "MGYA00167947_Bacteria",
+          "{\"temperature\":\"23.799133\",\"geographic location (longitude)\":\"-101.1604\",\"collection date\":\"2011-03-24\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"35.766117\",\"geographic location (latitude)\":\"-29.7238\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "DNA sequence reads",
+          "MGYA00167947",
+          "5.0",
+          "Bacteria",
+          "690695",
+          "-101.1604",
+          "1958",
+          "super kingdom",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "690695",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "1958",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167947",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"23.799133\",\"geographic location (longitude)\":\"-101.1604\",\"collection date\":\"2011-03-24\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"PUMP (High Volume Peristaltic Pump)\",\"salinity\":\"35.766117\",\"geographic location (latitude)\":\"-29.7238\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167947_Bacteria",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2011-03-24",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_N000001256) was collected during the Tara Oceans expedition (2009-2013) at station TARA_096 (latitudeN=-29.7238, longitudeE=-101.1604) on date/time=2011-03-24T13:00, using a PUMP (High Volume Peristaltic Pump).  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (0.8-5 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_N000001257.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "-29.7238",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-101.1604",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS491538",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167947#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Bacteria",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_NONE",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:42.626"
+      },
+    {
+        "lastCrawled": "2020-06-24T10:49:17.677",
+        "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
+        "crawlId": 83,
+        "datasetTitle": "Amplicon sequencing of Tara Oceans DNA samples corresponding to size fractions for protists.",
+        "installationKey": "fb5e4c2a-579c-434b-a446-3a665dd732ad",
+        "publisherTitle": "MGnify",
+        "publishingOrganizationKey": "ab733144-7043-4e88-bd4f-fca7bf858880",
+        "endorsingNodeKey": "d897a5b9-35ee-4232-94bd-b0bcaac003c2",
+        "protocol": "DWC_ARCHIVE",
+        "license": "CC_BY_4_0",
+        "datasetPublishingCountry": "GB",
+        "institutionCode": "i1",
+        "collectionCode": "c1",
+        "issues": [
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_ASSUMED_WGS84"
+        ],
+        "gbifId": 635039,
+        "basisOfRecord": "MATERIAL_SAMPLE",
+        "sampleSizeValue": 922152.0,
+        "sampleSizeUnit": "DNA sequence reads",
+        "organismQuantity": 26293.0,
+        "organismQuantityType": "DNA sequence reads",
+        "relativeOrganismQuantity": 0.02851265301165101,
+        "eventDateSingle": "2009-09-30T00:00",
+        "year": 2009,
+        "month": 9,
+        "day": 30,
+        "eventDate": {
+          "gte": "2009-09-30T00:00"
+        },
+        "coordinates": {
+          "lon": 2.8652,
+          "lat": 40.688
+        },
+        "decimalLatitude": 40.688,
+        "decimalLongitude": 2.8652,
+        "scoordinates": "POINT (2.8652 40.688)",
+        "country": "Spain",
+        "countryCode": "ES",
+        "publishingCountry": "GB",
+        "minimumDepthInMeters": 5.0,
+        "maximumDepthInMeters": 5.0,
+        "depth": 5.0,
+        "depthAccuracy": 0.0,
+        "hasCoordinate": true,
+        "repatriated": true,
+        "hasGeospatialIssue": false,
+        "gbifClassification": {
+          "usage": {
+            "key": 0,
+            "name": "incertae sedis",
+            "rank": "KINGDOM"
+          },
+          "classification": [
+            {
+              "key": 0,
+              "name": "incertae sedis",
+              "rank": "KINGDOM"
+            }
+          ],
+          "kingdomKey": 0,
+          "kingdom": "incertae sedis",
+          "classificationPath": "_",
+          "taxonKey": [
+            0
+          ],
+          "verbatimScientificName": "Eukaryota"
+        },
+        "measurementOrFactItems": [
+
+        ],
+        "id": "MGYA00167113_Eukaryota",
+        "eventId": "MGYA00167113",
+        "occurrenceId": "MGYA00167113_Eukaryota",
+        "all": [
+          "https://www.ebi.ac.uk/metagenomics/samples/ERS488212",
+          "2.8652",
+          "This sample (TARA_X000001174) was collected during the Tara Oceans expedition (2009-2013) at station TARA_010 (latitudeN=40.688, longitudeE=2.8652) on date/time=2009-09-30T14:32, using a PLANKTON NET, TYPE=Bongo, MESH_Size_(�m)=180, MOUTH_Opening_(m^2)=0.258319, LENGTH_(m)=3.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (180-2000 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_X000001173.",
+          "MATERIAL_SAMPLE",
+          "922152",
+          "MGYA00167113_Eukaryota",
+          "2009-09-30",
+          "DNA sequence reads",
+          "26293",
+          "40.688",
+          "Eukaryota",
+          "5.0",
+          "MGYA00167113",
+          "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167113#taxonomic.",
+          "super kingdom",
+          "{\"temperature\":\"23.65825\",\"geographic location (longitude)\":\"2.8652\",\"collection date\":\"2009-09-30\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"\"PLANKTON NET, TYPE=Bongo, MESH_Size_(�m)=180, MOUTH_Opening_(m^2)=0.258319, LENGTH_(m)=3\"\",\"salinity\":\"38.36215\",\"geographic location (latitude)\":\"40.688\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+          "https://www.ebi.ac.uk/metagenomics/pipelines/4.1"
+        ],
+        "verbatim": {
+          "core": {
+            "http://rs.tdwg.org/dwc/terms/sampleSizeValue": "922152",
+            "http://rs.tdwg.org/dwc/terms/organismQuantity": "26293",
+            "http://rs.tdwg.org/dwc/terms/eventID": "MGYA00167113",
+            "http://rs.tdwg.org/dwc/terms/minimumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/taxonRank": "super kingdom",
+            "http://rs.tdwg.org/dwc/terms/dynamicProperties": "{\"temperature\":\"23.65825\",\"geographic location (longitude)\":\"2.8652\",\"collection date\":\"2009-09-30\",\"environment (biome)\":\"marine biome (ENVO:00000447)\",\"environment (feature)\":\"surface water layer (ENVO:00002042)\",\"environment (material)\":\"\"particulate matter, including plankton (ENVO:xxxxxxxx)\"\",\"environmental package\":\"water\",\"sample collection device or method\":\"\"PLANKTON NET, TYPE=Bongo, MESH_Size_(�m)=180, MOUTH_Opening_(m^2)=0.258319, LENGTH_(m)=3\"\",\"salinity\":\"38.36215\",\"geographic location (latitude)\":\"40.688\",\"instrument model\":\"Illumina Genome Analyzer IIx\"}",
+            "http://rs.tdwg.org/dwc/terms/occurrenceID": "MGYA00167113_Eukaryota",
+            "http://rs.tdwg.org/dwc/terms/basisOfRecord": "MATERIAL_SAMPLE",
+            "http://rs.tdwg.org/dwc/terms/eventDate": "2009-09-30",
+            "http://rs.tdwg.org/dwc/terms/identificationReferences": "https://www.ebi.ac.uk/metagenomics/pipelines/4.1",
+            "http://rs.tdwg.org/dwc/terms/sampleSizeUnit": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/eventRemarks": "This sample (TARA_X000001174) was collected during the Tara Oceans expedition (2009-2013) at station TARA_010 (latitudeN=40.688, longitudeE=2.8652) on date/time=2009-09-30T14:32, using a PLANKTON NET, TYPE=Bongo, MESH_Size_(�m)=180, MOUTH_Opening_(m^2)=0.258319, LENGTH_(m)=3.  The sample material (particulate matter, including plankton (ENVO:xxxxxxxx)) was collected at a depth of 3-7 m, targeting a surface water layer (ENVO:00002042) in the marine biome (ENVO:00000447). The sample was size-fractionated (180-2000 micrometres), and stored in liquid nitrogen for later detection of unicellular eukaryote (protist) nucleic acid sequences by pyrosequencing methods, and for later metagenomics analysis. This sample has replicate sample(s): TARA_X000001173.",
+            "http://rs.tdwg.org/dwc/terms/decimalLatitude": "40.688",
+            "http://rs.tdwg.org/dwc/terms/decimalLongitude": "2.8652",
+            "http://rs.tdwg.org/dwc/terms/maximumDepthInMeters": "5.0",
+            "http://rs.tdwg.org/dwc/terms/organismQuantityType": "DNA sequence reads",
+            "http://rs.tdwg.org/dwc/terms/materialSampleID": "https://www.ebi.ac.uk/metagenomics/samples/ERS488212",
+            "http://rs.tdwg.org/dwc/terms/identificationRemarks": "SSU rRNA annotated using the taxonomic reference database described here: https://www.ebi.ac.uk/metagenomics/pipelines/4.1. This occurrence appeared in following analyses: SSU taxonomy from analyses https://www.ebi.ac.uk/metagenomics/analyses/MGYA00167113#taxonomic.",
+            "http://rs.tdwg.org/dwc/terms/scientificName": "Eukaryota",
+            "http://rs.tdwg.org/dwc/terms/institutionCode": "i1",
+            "http://rs.tdwg.org/dwc/terms/collectionCode": "c1"
+          },
+          "extensions": {
+
+          }
+        },
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "COORDINATE_INVALID",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COORDINATE_OUT_OF_RANGE",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "DEPTH_UNLIKELY",
+          "IDENTIFIED_DATE_INVALID",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "GEODETIC_DATUM_INVALID",
+          "MODIFIED_DATE_UNLIKELY",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "REFERENCES_URI_INVALID",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_REPROJECTION_FAILED",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "MULTIMEDIA_URI_INVALID",
+          "COORDINATE_ACCURACY_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "ELEVATION_UNLIKELY",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "RECORDED_DATE_INVALID",
+          "INDIVIDUAL_COUNT_INVALID",
+          "RECORDED_DATE_MISMATCH",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "ZERO_COORDINATE",
+          "RECORDED_DATE_UNLIKELY",
+          "COUNTRY_MISMATCH"
+        ],
+        "created": "2020-06-24T11:02:42.636"
+      },
+    {
+       "lastCrawled": "2020-06-30T12:45:52.465",
+       "datasetKey": "b89a7f02-021d-4e7a-b19f-575d10578a6d",
+       "crawlId": 158,
+       "datasetTitle": "The Vascular Plants Collection of the University of Goettingen",
+       "installationKey": "6038e54e-f762-11e1-a439-00145eb45e9a",
+       "publisherTitle": "Staatliche Naturwissenschaftliche Sammlungen Bayerns",
+       "publishingOrganizationKey": "0674aea0-a7e1-11d8-9534-b8a03c50a862",
+       "endorsingNodeKey": "4f6826f2-4ff6-443d-b966-e6913bd24013",
+       "protocol": "BIOCASE_XML_ARCHIVE",
+       "license": "CC_BY_4_0",
+       "datasetPublishingCountry": "DE",
+       "institutionCode": "i1",
+        "collectionCode": "c1",
+       "issues": [
+
+       ],
+       "gbifId": 13608,
+       "basisOfRecord": "HUMAN_OBSERVATION",
+       "typeStatus": "ISOTYPE",
+       "typifiedName": "Greigia landbeckii (Lechl. ex Phil.) F.Phil.",
+       "eventDateSingle": "1855-02-01T00:00",
+       "year": 1855,
+       "month": 2,
+       "eventDate": {
+         "gte": "1855-02-01T00:00"
+       },
+       "publishingCountry": "DE",
+       "hasCoordinate": false,
+       "hasGeospatialIssue": false,
+       "locality": "prope Calico (Valdiv.), Chile",
+       "gbifClassification": {
+         "synonym": false,
+         "usage": {
+           "key": 9149117,
+           "name": "Greigia landbeckii F.Phil.",
+           "rank": "SPECIES"
+         },
+         "classification": [
+           {
+             "key": 6,
+             "name": "Plantae",
+             "rank": "KINGDOM"
+           },
+           {
+             "key": 7707728,
+             "name": "Tracheophyta",
+             "rank": "PHYLUM"
+           },
+           {
+             "key": 196,
+             "name": "Liliopsida",
+             "rank": "CLASS"
+           },
+           {
+             "key": 1369,
+             "name": "Poales",
+             "rank": "ORDER"
+           },
+           {
+             "key": 3740,
+             "name": "Bromeliaceae",
+             "rank": "FAMILY"
+           },
+           {
+             "key": 2693919,
+             "name": "Greigia",
+             "rank": "GENUS"
+           },
+           {
+             "key": 9149117,
+             "name": "Greigia landbeckii",
+             "rank": "SPECIES"
+           }
+         ],
+         "acceptedUsage": {
+           "key": 9149117,
+           "name": "Greigia landbeckii F.Phil.",
+           "rank": "SPECIES"
+         },
+         "diagnostics": {
+           "matchType": "EXACT",
+           "status": "ACCEPTED"
+         },
+         "usageParsedName": {
+           "abbreviated": false,
+           "autonym": false,
+           "basionymAuthorship": {
+             "empty": true
+           },
+           "binomial": true,
+           "candidatus": false,
+           "combinationAuthorship": {
+             "authors": [
+               "F.Phil."
+             ],
+             "empty": false
+           },
+           "doubtful": false,
+           "genus": "Greigia",
+           "incomplete": false,
+           "indetermined": false,
+           "rank": "SPECIES",
+           "specificEpithet": "landbeckii",
+           "state": "COMPLETE",
+           "terminalEpithet": "landbeckii",
+           "trinomial": false,
+           "type": "SCIENTIFIC",
+           "genericName": "Greigia"
+         },
+         "kingdomKey": 6,
+         "kingdom": "Plantae",
+         "phylumKey": 7707728,
+         "phylum": "Tracheophyta",
+         "classKey": 196,
+         "class": "Liliopsida",
+         "orderKey": 1369,
+         "order": "Poales",
+         "familyKey": 3740,
+         "family": "Bromeliaceae",
+         "genusKey": 2693919,
+         "genus": "Greigia",
+         "speciesKey": 9149117,
+         "species": "Greigia landbeckii",
+         "classificationPath": "_6_7707728_196_1369_3740_2693919",
+         "taxonKey": [
+           196,
+           7707728,
+           9149117,
+           6,
+           2693919,
+           1369,
+           3740
+         ],
+         "verbatimScientificName": "Greigia landbeckii (Lechl. ex Phil.) F.Phil."
+       },
+       "multimediaItems": [
+         {
+           "type": "StillImage",
+           "format": "image/jpeg",
+           "identifier": "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013996_20141217_135438.jpg",
+           "license": "http://creativecommons.org/licenses/by-sa/3.0/"
+         }
+       ],
+       "mediaTypes": [
+         "StillImage"
+       ],
+       "mediaLicenses": [
+         "http://creativecommons.org/licenses/by-sa/3.0/"
+       ],
+       "measurementOrFactItems": [
+
+       ],
+       "id": "urn:catalog:GOET:GOETvplantscoll:GOET013996 / 800635",
+       "recordedBy": "Lechler W (no. 3098)",
+       "institutionCode": "GOET",
+       "collectionCode": "GOETvplantscoll",
+       "catalogNumber": "GOET013996 / 800635",
+       "all": [
+         "jpg",
+         "isotype",
+         "Plantae",
+         "Lechler W (no. 3098)",
+         "prope Calico (Valdiv.), Chile",
+         "CC BY-SA 3.0",
+         "1855-02",
+         "HumanObservation",
+         "GOETvplantscoll",
+         "GOET",
+         "GOET013996 / 800635",
+         "Greigia landbeckii (Lechl. ex Phil.) F.Phil.",
+         "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013996_20141217_135438.jpg"
+       ],
+       "verbatim": {
+         "core": {
+           "http://rs.tdwg.org/dwc/terms/basisOfRecord": "HumanObservation",
+           "http://rs.tdwg.org/dwc/terms/eventDate": "1855-02",
+           "http://rs.tdwg.org/dwc/terms/kingdom": "Plantae",
+           "http://rs.tdwg.org/dwc/terms/catalogNumber": "GOET013996 / 800635",
+           "http://rs.tdwg.org/dwc/terms/collectionCode": "GOETvplantscoll",
+           "http://rs.tdwg.org/dwc/terms/institutionCode": "GOET",
+           "http://rs.tdwg.org/dwc/terms/typeStatus": "isotype",
+           "http://rs.tdwg.org/dwc/terms/scientificName": "Greigia landbeckii (Lechl. ex Phil.) F.Phil.",
+           "http://rs.tdwg.org/dwc/terms/recordedBy": "Lechler W (no. 3098)",
+           "http://rs.gbif.org/terms/1.0/typifiedName": "Greigia landbeckii (Lechl. ex Phil.) F.Phil.",
+           "http://rs.tdwg.org/dwc/terms/locality": "prope Calico (Valdiv.), Chile"
+         },
+         "extensions": {
+           "http://rs.gbif.org/terms/1.0/Multimedia": [
+             {
+               "http://purl.org/dc/terms/format": "jpg",
+               "http://purl.org/dc/terms/license": "CC BY-SA 3.0",
+               "http://purl.org/dc/terms/identifier": "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013996_20141217_135438.jpg"
+             }
+           ]
+         }
+       },
+       "notIssues": [
+         "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+         "MODIFIED_DATE_INVALID",
+         "CONTINENT_COUNTRY_MISMATCH",
+         "COORDINATE_INVALID",
+         "COORDINATE_PRECISION_INVALID",
+         "ELEVATION_NON_NUMERIC",
+         "COORDINATE_OUT_OF_RANGE",
+         "COUNTRY_INVALID",
+         "ELEVATION_NOT_METRIC",
+         "COORDINATE_REPROJECTION_SUSPICIOUS",
+         "PRESUMED_NEGATED_LONGITUDE",
+         "DEPTH_UNLIKELY",
+         "IDENTIFIED_DATE_INVALID",
+         "ELEVATION_MIN_MAX_SWAPPED",
+         "TAXON_MATCH_NONE",
+         "BASIS_OF_RECORD_INVALID",
+         "TYPE_STATUS_INVALID",
+         "TAXON_MATCH_FUZZY",
+         "CONTINENT_INVALID",
+         "GEODETIC_DATUM_INVALID",
+         "MODIFIED_DATE_UNLIKELY",
+         "COORDINATE_REPROJECTED",
+         "PRESUMED_SWAPPED_COORDINATE",
+         "REFERENCES_URI_INVALID",
+         "COORDINATE_ROUNDED",
+         "IDENTIFIED_DATE_UNLIKELY",
+         "COUNTRY_COORDINATE_MISMATCH",
+         "DEPTH_NON_NUMERIC",
+         "COUNTRY_DERIVED_FROM_COORDINATES",
+         "COORDINATE_REPROJECTION_FAILED",
+         "COORDINATE_UNCERTAINTY_METERS_INVALID",
+         "PRESUMED_NEGATED_LATITUDE",
+         "MULTIMEDIA_URI_INVALID",
+         "COORDINATE_ACCURACY_INVALID",
+         "GEODETIC_DATUM_ASSUMED_WGS84",
+         "TAXON_MATCH_HIGHERRANK",
+         "ELEVATION_UNLIKELY",
+         "CONTINENT_DERIVED_FROM_COORDINATES",
+         "DEPTH_MIN_MAX_SWAPPED",
+         "RECORDED_DATE_INVALID",
+         "INDIVIDUAL_COUNT_INVALID",
+         "RECORDED_DATE_MISMATCH",
+         "DEPTH_NOT_METRIC",
+         "MULTIMEDIA_DATE_INVALID",
+         "INTERPRETATION_ERROR",
+         "ZERO_COORDINATE",
+         "RECORDED_DATE_UNLIKELY",
+         "COUNTRY_MISMATCH"
+       ],
+       "created": "2020-06-30T12:49:18.451"
+     },
+    {
+       "lastCrawled": "2020-06-30T12:45:52.465",
+       "datasetKey": "b89a7f02-021d-4e7a-b19f-575d10578a6d",
+       "crawlId": 158,
+       "datasetTitle": "The Vascular Plants Collection of the University of Goettingen",
+       "installationKey": "6038e54e-f762-11e1-a439-00145eb45e9a",
+       "publisherTitle": "Staatliche Naturwissenschaftliche Sammlungen Bayerns",
+       "publishingOrganizationKey": "0674aea0-a7e1-11d8-9534-b8a03c50a862",
+       "endorsingNodeKey": "4f6826f2-4ff6-443d-b966-e6913bd24013",
+       "protocol": "BIOCASE_XML_ARCHIVE",
+       "license": "CC_BY_4_0",
+       "datasetPublishingCountry": "DE",
+       "issues": [
+
+       ],
+       "gbifId": 17485,
+       "basisOfRecord": "HUMAN_OBSERVATION",
+       "typeStatus": "ISOTYPE",
+       "typifiedName": "Ptaeroxylon utile Eckl. & Zeyh.",
+       "eventDateSingle": "1834-01-01T00:00",
+       "year": 1834,
+       "eventDate": {
+         "gte": "1834-01-01T00:00"
+       },
+       "publishingCountry": "DE",
+       "hasCoordinate": false,
+       "hasGeospatialIssue": false,
+       "locality": "South Africa, Boschesmansrivier, Adow et Coega, Uitenhage",
+       "gbifClassification": {
+         "synonym": false,
+         "usage": {
+           "key": 3990253,
+           "name": "Ptaeroxylon obliquum Radlk.",
+           "rank": "SPECIES"
+         },
+         "classification": [
+           {
+             "key": 6,
+             "name": "Plantae",
+             "rank": "KINGDOM"
+           },
+           {
+             "key": 7707728,
+             "name": "Tracheophyta",
+             "rank": "PHYLUM"
+           },
+           {
+             "key": 220,
+             "name": "Magnoliopsida",
+             "rank": "CLASS"
+           },
+           {
+             "key": 933,
+             "name": "Sapindales",
+             "rank": "ORDER"
+           },
+           {
+             "key": 2396,
+             "name": "Rutaceae",
+             "rank": "FAMILY"
+           },
+           {
+             "key": 7286416,
+             "name": "Ptaeroxylon",
+             "rank": "GENUS"
+           },
+           {
+             "key": 3990253,
+             "name": "Ptaeroxylon obliquum",
+             "rank": "SPECIES"
+           }
+         ],
+         "acceptedUsage": {
+           "key": 3990253,
+           "name": "Ptaeroxylon obliquum Radlk.",
+           "rank": "SPECIES"
+         },
+         "diagnostics": {
+           "matchType": "EXACT",
+           "status": "ACCEPTED"
+         },
+         "usageParsedName": {
+           "abbreviated": false,
+           "autonym": false,
+           "basionymAuthorship": {
+             "empty": true
+           },
+           "binomial": true,
+           "candidatus": false,
+           "combinationAuthorship": {
+             "authors": [
+               "Radlk."
+             ],
+             "empty": false
+           },
+           "doubtful": false,
+           "genus": "Ptaeroxylon",
+           "incomplete": false,
+           "indetermined": false,
+           "rank": "SPECIES",
+           "specificEpithet": "obliquum",
+           "state": "COMPLETE",
+           "terminalEpithet": "obliquum",
+           "trinomial": false,
+           "type": "SCIENTIFIC",
+           "genericName": "Ptaeroxylon"
+         },
+         "kingdomKey": 6,
+         "kingdom": "Plantae",
+         "phylumKey": 7707728,
+         "phylum": "Tracheophyta",
+         "classKey": 220,
+         "class": "Magnoliopsida",
+         "orderKey": 933,
+         "order": "Sapindales",
+         "familyKey": 2396,
+         "family": "Rutaceae",
+         "genusKey": 7286416,
+         "genus": "Ptaeroxylon",
+         "speciesKey": 3990253,
+         "species": "Ptaeroxylon obliquum",
+         "classificationPath": "_6_7707728_220_933_2396_7286416",
+         "taxonKey": [
+           3990253,
+           7707728,
+           933,
+           6,
+           220,
+           2396,
+           7286416
+         ],
+         "verbatimScientificName": "Ptaeroxylon obliquum (Thunb.) Radlk."
+       },
+       "multimediaItems": [
+         {
+           "type": "StillImage",
+           "format": "image/jpeg",
+           "identifier": "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013985_20141204_153943.jpg",
+           "license": "http://creativecommons.org/licenses/by-sa/3.0/"
+         }
+       ],
+       "mediaTypes": [
+         "StillImage"
+       ],
+       "mediaLicenses": [
+         "http://creativecommons.org/licenses/by-sa/3.0/"
+       ],
+       "measurementOrFactItems": [
+
+       ],
+       "id": "urn:catalog:GOET:GOETvplantscoll:GOET013985 / 785859",
+       "recordedBy": "Ecklon, C.F. (no. 418)",
+       "institutionCode": "GOET",
+       "collectionCode": "GOETvplantscoll",
+       "catalogNumber": "GOET013985 / 785859",
+       "all": [
+         "jpg",
+         "isotype",
+         "GOET013985 / 785859",
+         "Plantae",
+         "Ecklon, C.F. (no. 418)",
+         "Ptaeroxylon utile Eckl. & Zeyh.",
+         "CC BY-SA 3.0",
+         "South Africa, Boschesmansrivier, Adow et Coega, Uitenhage",
+         "HumanObservation",
+         "GOETvplantscoll",
+         "Ptaeroxylon obliquum (Thunb.) Radlk.",
+         "GOET",
+         "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013985_20141204_153943.jpg",
+         "1834"
+       ],
+       "verbatim": {
+         "core": {
+           "http://rs.tdwg.org/dwc/terms/basisOfRecord": "HumanObservation",
+           "http://rs.tdwg.org/dwc/terms/eventDate": "1834",
+           "http://rs.tdwg.org/dwc/terms/kingdom": "Plantae",
+           "http://rs.tdwg.org/dwc/terms/catalogNumber": "GOET013985 / 785859",
+           "http://rs.tdwg.org/dwc/terms/collectionCode": "GOETvplantscoll",
+           "http://rs.tdwg.org/dwc/terms/institutionCode": "GOET",
+           "http://rs.tdwg.org/dwc/terms/typeStatus": "isotype",
+           "http://rs.tdwg.org/dwc/terms/scientificName": "Ptaeroxylon obliquum (Thunb.) Radlk.",
+           "http://rs.tdwg.org/dwc/terms/recordedBy": "Ecklon, C.F. (no. 418)",
+           "http://rs.gbif.org/terms/1.0/typifiedName": "Ptaeroxylon utile Eckl. & Zeyh.",
+           "http://rs.tdwg.org/dwc/terms/locality": "South Africa, Boschesmansrivier, Adow et Coega, Uitenhage"
+         },
+         "extensions": {
+           "http://rs.gbif.org/terms/1.0/Multimedia": [
+             {
+               "http://purl.org/dc/terms/format": "jpg",
+               "http://purl.org/dc/terms/license": "CC BY-SA 3.0",
+               "http://purl.org/dc/terms/identifier": "http://pictures.snsb.info/GOETvplantscoll/web/GOET0139/GOET013985_20141204_153943.jpg"
+             }
+           ]
+         }
+       },
+       "notIssues": [
+         "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+         "MODIFIED_DATE_INVALID",
+         "CONTINENT_COUNTRY_MISMATCH",
+         "COORDINATE_INVALID",
+         "COORDINATE_PRECISION_INVALID",
+         "ELEVATION_NON_NUMERIC",
+         "COORDINATE_OUT_OF_RANGE",
+         "COUNTRY_INVALID",
+         "ELEVATION_NOT_METRIC",
+         "COORDINATE_REPROJECTION_SUSPICIOUS",
+         "PRESUMED_NEGATED_LONGITUDE",
+         "DEPTH_UNLIKELY",
+         "IDENTIFIED_DATE_INVALID",
+         "ELEVATION_MIN_MAX_SWAPPED",
+         "TAXON_MATCH_NONE",
+         "BASIS_OF_RECORD_INVALID",
+         "TYPE_STATUS_INVALID",
+         "TAXON_MATCH_FUZZY",
+         "CONTINENT_INVALID",
+         "GEODETIC_DATUM_INVALID",
+         "MODIFIED_DATE_UNLIKELY",
+         "COORDINATE_REPROJECTED",
+         "PRESUMED_SWAPPED_COORDINATE",
+         "REFERENCES_URI_INVALID",
+         "COORDINATE_ROUNDED",
+         "IDENTIFIED_DATE_UNLIKELY",
+         "COUNTRY_COORDINATE_MISMATCH",
+         "DEPTH_NON_NUMERIC",
+         "COUNTRY_DERIVED_FROM_COORDINATES",
+         "COORDINATE_REPROJECTION_FAILED",
+         "COORDINATE_UNCERTAINTY_METERS_INVALID",
+         "PRESUMED_NEGATED_LATITUDE",
+         "MULTIMEDIA_URI_INVALID",
+         "COORDINATE_ACCURACY_INVALID",
+         "GEODETIC_DATUM_ASSUMED_WGS84",
+         "TAXON_MATCH_HIGHERRANK",
+         "ELEVATION_UNLIKELY",
+         "CONTINENT_DERIVED_FROM_COORDINATES",
+         "DEPTH_MIN_MAX_SWAPPED",
+         "RECORDED_DATE_INVALID",
+         "INDIVIDUAL_COUNT_INVALID",
+         "RECORDED_DATE_MISMATCH",
+         "DEPTH_NOT_METRIC",
+         "MULTIMEDIA_DATE_INVALID",
+         "INTERPRETATION_ERROR",
+         "ZERO_COORDINATE",
+         "RECORDED_DATE_UNLIKELY",
+         "COUNTRY_MISMATCH"
+       ],
+       "created": "2020-06-30T12:49:56.641"
+     }
+ ]
