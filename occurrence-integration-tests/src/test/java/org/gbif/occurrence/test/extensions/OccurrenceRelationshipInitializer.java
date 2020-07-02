@@ -31,7 +31,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Builder
 public class OccurrenceRelationshipInitializer implements BeforeAllCallback {
 
-  private final String relationshipTableName;
   private final String testDataFile;
 
   private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapper();
