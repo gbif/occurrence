@@ -42,7 +42,7 @@ public class TermResource {
   }
 
 
-  private static class TermWrapper {
+  public static class TermWrapper {
 
     private final String simpleName;
     private final String qualifiedName;

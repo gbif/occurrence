@@ -4,8 +4,8 @@ package org.gbif.occurrence.ws.resources;
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
@@ -44,16 +44,18 @@ public class OccurrenceResource {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
 
   private final OccurrenceService occurrenceService;
-
+  private final OccurrenceRelationshipService occurrenceRelationshipService;
   private final OccurrenceGetByKey occurrenceGetByKey;
 
   @Autowired
   public OccurrenceResource(
     OccurrenceService occurrenceService,
-    OccurrenceGetByKey occurrenceGetByKey
+    OccurrenceGetByKey occurrenceGetByKey,
+    OccurrenceRelationshipService occurrenceRelationshipService
   ) {
     this.occurrenceService = occurrenceService;
     this.occurrenceGetByKey = occurrenceGetByKey;
+    this.occurrenceRelationshipService = occurrenceRelationshipService;
   }
 
   /**
@@ -98,6 +100,17 @@ public class OccurrenceResource {
   }
 
   /**
+   * Provides a list of related occurrence records in JSON.
+   * @return A list of related occurrences or an empty list if relatinships are not configured or none exist.
+   */
+  @GetMapping("/{key}/experimental/related")
+  public String getRelatedOccurrences(@PathVariable("key") Long key) {
+    LOG.debug("Request RelatedOccurrences [{}]:", key);
+    List<String> relationshipsAsJsonSnippets = occurrenceRelationshipService.getRelatedOccurrences(key);
+    return String.format("{\"occurrences\":[%s]}", String.join(",", relationshipsAsJsonSnippets));
+  }
+
+  /**
    * Removed API call, which supported a stream of featured occurrences on the old GBIF.org homepage.
    * @return An empty list.
    */
@@ -123,7 +136,6 @@ public class OccurrenceResource {
   public String getAnnosysOccurrence(@PathVariable("key") Long key) {
     LOG.debug("Request Annosys occurrence [{}]:", key);
     return OccurrenceDwcXMLConverter.occurrenceXMLAsString(occurrenceGetByKey.get(key));
-
   }
 
   /**

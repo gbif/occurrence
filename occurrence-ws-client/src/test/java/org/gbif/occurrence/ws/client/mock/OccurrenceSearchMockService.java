@@ -6,6 +6,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Mock service of {@link OccurrenceSearchService}.
  */
-public class OccurrenceSearchMockService implements OccurrenceSearchService {
+public class OccurrenceSearchMockService implements OccurrenceSearchService, OccurrenceRelationshipService {
 
   @Autowired
   private OccurrenceService occurrenceService;
@@ -85,5 +86,11 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService {
   @Override
   public List<String> suggestStateProvinces(String prefix, @Nullable Integer limit) {
     return new ImmutableList.Builder<String>().add("Florida").add("New York").add("Texas").build();
+  }
+
+  @Override
+  public List<String> getRelatedOccurrences(long key) {
+    // experimental API, simulate empty results
+    return new ImmutableList.Builder<String>().add("{\"occurrences\": []}").build();
   }
 }

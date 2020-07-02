@@ -26,7 +26,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @Builder
 public class FragmentInitializer implements BeforeAllCallback {
 
-  private final String fragmentTableTable;
   private final String testDataFile;
 
   private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapper();
@@ -48,7 +47,7 @@ public class FragmentInitializer implements BeforeAllCallback {
     HBaseServer hBaseServer = applicationContext.getBean(HBaseServer.class);
     OccHBaseConfiguration occHBaseConfiguration = applicationContext.getBean(OccHBaseConfiguration.class);
 
-    TableName fragmentTableName = TableName.valueOf(fragmentTableTable);
+    TableName fragmentTableName = TableName.valueOf(occHBaseConfiguration.getFragmenterTable());
 
     //Create fragment table
     hBaseServer.getHBaseTestingUtility().createTable(fragmentTableName, HbaseStore.getFragmentFamily());

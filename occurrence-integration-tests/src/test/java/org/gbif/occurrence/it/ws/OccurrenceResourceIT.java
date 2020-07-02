@@ -2,13 +2,18 @@ package org.gbif.occurrence.it.ws;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.occurrence.test.extensions.ElasticsearchInitializer;
 import org.gbif.occurrence.test.extensions.FragmentInitializer;
+import org.gbif.occurrence.test.extensions.OccurrenceRelationshipInitializer;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
 import org.gbif.occurrence.ws.resources.OccurrenceResource;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,20 +32,30 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OccurrenceResourceIT {
 
+  private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapper();
+
   private static final String TEST_DATA_FILE = "classpath:occurrences-test.json";
 
+  private static final String RELATED_DATA_FILE =" classpath:occurrence-relationships.json";
+
   private static final Long TEST_KEY = 648006L;
+
+  private static final Long RELATION_TEST_KEY = 1019596829L;
 
   @RegisterExtension
   static FragmentInitializer fragmentInitializer = FragmentInitializer.builder()
                                                     .testDataFile(TEST_DATA_FILE)
-                                                    .fragmentTableTable(OccurrenceWsItConfiguration.FRAGMENT_TABLE)
                                                     .build();
 
   @RegisterExtension
   static ElasticsearchInitializer elasticsearchInitializer = ElasticsearchInitializer.builder()
                                                               .testDataFile(TEST_DATA_FILE)
                                                               .build();
+
+  @RegisterExtension
+  static OccurrenceRelationshipInitializer occurrenceRelationshipInitializer = OccurrenceRelationshipInitializer.builder()
+                                                                                .testDataFile(RELATED_DATA_FILE)
+                                                                                .build();
 
 
 
@@ -54,38 +69,49 @@ public class OccurrenceResourceIT {
   @Test
   public void testGetByKey() {
     Occurrence occurrence = occurrenceResource.get(TEST_KEY);
-    Assertions.assertNotNull(occurrence);
+    Assertions.assertNotNull(occurrence, "Empty occurrence receuved");
   }
 
   @Test
   public void testGetFragment() {
     String fragment = occurrenceResource.getFragment(TEST_KEY);
-    Assertions.assertNotNull(fragment);
+    Assertions.assertNotNull(fragment, "Empty fragment received");
   }
 
   @Test
   public void testGetVerbatim() {
     VerbatimOccurrence verbatim = occurrenceResource.getVerbatim(TEST_KEY);
-    Assertions.assertNotNull(verbatim);
+    Assertions.assertNotNull(verbatim, "Empty verbatim record!");
+  }
+
+  @Test
+  @SneakyThrows
+  public void testRelatedOccurrences() {
+    String relatedOccurrences = occurrenceResource.getRelatedOccurrences(RELATION_TEST_KEY);
+    Assertions.assertNotNull(relatedOccurrences, "Empty related occurrence response");
+
+    JsonNode jsonNode = MAPPER.readTree(relatedOccurrences);
+    ArrayNode relatedRecords  = (ArrayNode)jsonNode.get("occurrences");
+    Assertions.assertEquals(3, relatedRecords.size(), "Number is related occurrences is not what was expected!");
   }
 
   @Test
   public void testGetAnnosysVerbatim() {
     String annosysVerbatim = occurrenceResource.getAnnosysVerbatim(TEST_KEY);
-    Assertions.assertNotNull(annosysVerbatim);
+    Assertions.assertNotNull(annosysVerbatim, "Empty Annosys response");
 
     String verbatimXml = OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occurrenceResource.getVerbatim(TEST_KEY));
-    Assertions.assertEquals(annosysVerbatim, verbatimXml);
+    Assertions.assertEquals(annosysVerbatim, verbatimXml, "XML records different to expected response");
   }
 
   @Test
   public void testGetAnnosysOccurrence() {
 
     String annosysOccurrence = occurrenceResource.getAnnosysOccurrence(TEST_KEY);
-    Assertions.assertNotNull(annosysOccurrence);
+    Assertions.assertNotNull(annosysOccurrence, "Empty verbatim Annosys!");
 
     String occurrenceXml = OccurrenceDwcXMLConverter.occurrenceXMLAsString(occurrenceResource.get(TEST_KEY));
-    Assertions.assertEquals(annosysOccurrence, occurrenceXml);
+    Assertions.assertEquals(annosysOccurrence, occurrenceXml, "XML records different to expected response");
 
   }
 

@@ -25,6 +25,8 @@ public class OccurrenceWsItConfiguration {
 
   public static final String FRAGMENT_TABLE = "fragment_table";
 
+  public static final String RELATIONSHIPS_TABLE = "relationships_table";
+
   @Bean
   public EsManageServer esManageServer(@Value("classpath:es-settings.json") Resource settings,
                                        @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
@@ -88,6 +90,8 @@ public class OccurrenceWsItConfiguration {
     OccHBaseConfiguration occHBaseConfiguration = new OccHBaseConfiguration();
     occHBaseConfiguration.setZkConnectionString(hBaseServer.getZKClusterKey());
     occHBaseConfiguration.setFragmenterTable(FRAGMENT_TABLE);
+    occHBaseConfiguration.setRelationshipTable(RELATIONSHIPS_TABLE);
+    occHBaseConfiguration.setRelationshipSalt(1);
     occHBaseConfiguration.setFragmenterSalt(1);
     return occHBaseConfiguration;
   }

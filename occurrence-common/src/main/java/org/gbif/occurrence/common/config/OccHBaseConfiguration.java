@@ -21,6 +21,12 @@ public class OccHBaseConfiguration {
   @Parameter(names = "--fragmenter-salt")
   public int fragmenterSalt = 100;
 
+  @Parameter(names = "--relationship-table")
+  public String relationshipTable;
+
+  @Parameter(names = "--relationship-salt")
+  public int relationshipSalt = 10;
+
   /**
    * The zookeeper connection being used to create a lock provider
    */
@@ -60,6 +66,22 @@ public class OccHBaseConfiguration {
     this.zkConnectionString = zkConnectionString;
   }
 
+  public String getRelationshipTable() {
+    return relationshipTable;
+  }
+
+  public void setRelationshipTable(String relationshipTable) {
+    this.relationshipTable = relationshipTable;
+  }
+
+  public int getRelationshipSalt() {
+    return relationshipSalt;
+  }
+
+  public void setRelationshipSalt(int relationshipSalt) {
+    this.relationshipSalt = relationshipSalt;
+  }
+
   /**
    * Uses conventions to populate all table names based on the environment prefix. Only used in tests!
    * @param prefix environment prefix, e.g. prod or uat
@@ -73,6 +95,7 @@ public class OccHBaseConfiguration {
     return Objects.toStringHelper(this)
       .add("hbasePoolSize", hbasePoolSize)
       .add("fragmenterTable", fragmenterTable)
+      .add("relationshipTable", relationshipTable)
       .add("zkConnectionString", zkConnectionString)
       .toString();
   }

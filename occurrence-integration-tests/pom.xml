@@ -5,7 +5,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.128-SNAPSHOT</version>
+    <version>0.130-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
