@@ -35,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest(
-  classes = OccurrenceWsItApp.class,
+  classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OccurrenceSearchResourceIT {
 

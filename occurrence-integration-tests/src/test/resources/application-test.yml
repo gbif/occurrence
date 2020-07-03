@@ -1,5 +1,3 @@
-api:
-  url: @api.url@
 appkeys:
   file: @appkeys.file@
 checklistbank:

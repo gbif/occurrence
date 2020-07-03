@@ -5,9 +5,11 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.test.extensions.ElasticsearchInitializer;
 import org.gbif.occurrence.test.extensions.FragmentInitializer;
 import org.gbif.occurrence.test.extensions.OccurrenceRelationshipInitializer;
+import org.gbif.occurrence.ws.client.OccurrenceWsClient;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
 import org.gbif.occurrence.ws.resources.OccurrenceResource;
+import org.gbif.ws.client.ClientFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -28,7 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest(
-  classes = OccurrenceWsItApp.class,
+  classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OccurrenceResourceIT {
 
@@ -61,26 +64,31 @@ public class OccurrenceResourceIT {
 
   private final OccurrenceResource occurrenceResource;
 
+  private final OccurrenceWsClient occurrenceWsClient;
+
   @Autowired
-  public OccurrenceResourceIT(OccurrenceResource occurrenceResource) {
+  public OccurrenceResourceIT(@LocalServerPort int localServerPort,
+                              OccurrenceResource occurrenceResource) {
     this.occurrenceResource = occurrenceResource;
+    ClientFactory clientFactory = new ClientFactory("http://localhost:" + localServerPort);
+    occurrenceWsClient = clientFactory.newInstance(OccurrenceWsClient.class);
   }
 
   @Test
   public void testGetByKey() {
-    Occurrence occurrence = occurrenceResource.get(TEST_KEY);
+    Occurrence occurrence = occurrenceWsClient.get(TEST_KEY);
     Assertions.assertNotNull(occurrence, "Empty occurrence receuved");
   }
 
   @Test
   public void testGetFragment() {
-    String fragment = occurrenceResource.getFragment(TEST_KEY);
+    String fragment = occurrenceWsClient.getFragment(TEST_KEY);
     Assertions.assertNotNull(fragment, "Empty fragment received");
   }
 
   @Test
   public void testGetVerbatim() {
-    VerbatimOccurrence verbatim = occurrenceResource.getVerbatim(TEST_KEY);
+    VerbatimOccurrence verbatim = occurrenceWsClient.getVerbatim(TEST_KEY);
     Assertions.assertNotNull(verbatim, "Empty verbatim record!");
   }
 

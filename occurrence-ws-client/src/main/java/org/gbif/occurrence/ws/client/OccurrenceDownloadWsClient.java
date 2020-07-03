@@ -36,9 +36,8 @@ public interface OccurrenceDownloadWsClient extends DownloadRequestService {
   @RequestMapping(
     method = RequestMethod.POST,
     produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
-    value = "{downloadKey}"
+    consumes =  MediaType.APPLICATION_JSON_VALUE
   )
-  @ResponseBody
   @Override
   String create(@RequestBody DownloadRequest download);
 

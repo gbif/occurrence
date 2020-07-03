@@ -1,7 +1,10 @@
 package org.gbif.occurrence.ws.client;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
+
+import javax.annotation.Nullable;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,4 +40,11 @@ public interface OccurrenceWsClient extends OccurrenceService {
   @ResponseBody
   @Override
   VerbatimOccurrence getVerbatim(@PathVariable("key") Long key);
+
+  @RequestMapping(
+    value = "/{key}"
+  )
+  @ResponseBody
+  @Override
+  Occurrence get(@PathVariable("key") Long key);
 }
