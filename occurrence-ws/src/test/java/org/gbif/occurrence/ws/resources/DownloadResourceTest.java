@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -15,7 +17,8 @@ import org.gbif.occurrence.download.service.CallbackService;
 
 import java.security.Principal;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
@@ -44,19 +47,21 @@ public class DownloadResourceTest {
     assertThat(jobId, equalTo(JOB_ID));
   }
 
-  @Test(expected = ResponseStatusException.class)
+  @Test
   public void testStartDownloadNotAuthenticated() {
-    prepareMocks("foo");
-    resource.startDownload(dl, principal);
+    Assertions.assertThrows(ResponseStatusException.class, () -> {
+      prepareMocks("foo");
+      resource.startDownload(dl, principal);
+    });
   }
 
   private void prepareMocks(String user) {
     CallbackService callbackService = mock(CallbackService.class);
     DownloadRequestService service = mock(DownloadRequestService.class);
     OccurrenceDownloadService downloadService = mock(OccurrenceDownloadService.class);
-    principal = mock(Principal.class);
-    GbifUserPrincipal userP = mock(GbifUserPrincipal.class);
-    when(userP.getName()).thenReturn(user);
+    GbifUser gbifUser = new GbifUser();
+    gbifUser.setUserName(user);
+    principal = new GbifUserPrincipal(gbifUser);
 
     resource = new DownloadResource(service, callbackService, downloadService, null);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,

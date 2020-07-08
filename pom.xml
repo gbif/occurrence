@@ -108,7 +108,7 @@
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
-    <powermock-mockito.version>1.6.1</powermock-mockito.version>
+    <powermock-mockito.version>2.0.7</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
 
@@ -1180,6 +1180,12 @@
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-core</artifactId>
+        <version>${powermock-mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-api-easymock</artifactId>
         <version>${powermock-mockito.version}</version>
         <scope>test</scope>
       </dependency>

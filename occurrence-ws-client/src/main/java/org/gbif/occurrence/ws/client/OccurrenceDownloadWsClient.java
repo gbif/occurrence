@@ -55,6 +55,12 @@ public interface OccurrenceDownloadWsClient extends DownloadRequestService {
     }
   }
 
+  /**
+   * Streams the download file to a InputStream Consumer.
+   * @param downloadKey download identifier
+   * @param chunkSize the file is streamed in chunks of this size
+   * @param contentConsumer consumers of input streams of sizes of at least chunkSize
+   */
   default void getStreamResult(String downloadKey, long chunkSize, Consumer<InputStream> contentConsumer) {
     try {
       long from = 0;
@@ -66,8 +72,8 @@ public interface OccurrenceDownloadWsClient extends DownloadRequestService {
       while(to < fileLength) {
         from = to + 1;
         to = Math.min(from + chunkSize - 1, fileLength);
-        Response response1 = getDownloadResult(downloadKey, "bytes=" + from + "-" + to);
-        contentConsumer.accept(response1.body().asInputStream());
+        Response partialResponse = getDownloadResult(downloadKey, "bytes=" + from + "-" + to);
+        contentConsumer.accept(partialResponse.body().asInputStream());
       }
     } catch (Exception ex) {
       throw new RuntimeException(ex);

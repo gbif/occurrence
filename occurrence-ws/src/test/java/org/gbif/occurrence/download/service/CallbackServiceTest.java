@@ -1,16 +1,17 @@
 package org.gbif.occurrence.download.service;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.List;
 import javax.mail.MessagingException;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.apache.oozie.client.WorkflowJob;
@@ -25,18 +26,14 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.mockpolicies.Slf4jMockPolicy;
-import org.powermock.core.classloader.annotations.MockPolicy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-
-@MockPolicy(Slf4jMockPolicy.class)
 @PowerMockIgnore({"javax.management.*", "javax.xml.*", "org.xml.*", "com.sun.org.apache.xerces.*", "org.w3c.dom.*"})
 @RunWith(PowerMockRunner.class)
 public class CallbackServiceTest {
@@ -84,7 +81,7 @@ public class CallbackServiceTest {
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.<String, String>newHashMap(), "http://localhost:8080/",
+      new DownloadRequestServiceImpl(oozieClient, Maps.newHashMap(), "http://localhost:8080/",
         "", occurrenceDownloadService, downloadEmailUtils,downloadLimitsService);
   }
 
@@ -132,14 +129,25 @@ public class CallbackServiceTest {
 
   @Test
   public void testNotifyAdminForFailedJobs() {
-    Logger logger = LoggerFactory.getLogger(CallbackService.class);
+
+    Logger logger = (Logger)LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
+    // create and start a ListAppender
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.setName("ListAppender");
+    listAppender.setContext(logger.getLoggerContext());
+    listAppender.start();
+
+    logger.addAppender(listAppender);
+
     service.processCallback(JOB_ID, KILLED);
-    verify(logger).error(eq(Constants.NOTIFY_ADMIN), anyString(), eq(JOB_ID), eq(KILLED));
-    reset(logger);
+    Assertions.assertTrue(
+    listAppender.list.stream().anyMatch(event -> event.getMarker() != null && Constants.NOTIFY_ADMIN == event.getMarker() && event.getFormattedMessage().contains(JOB_ID) && event.getFormattedMessage().contains(KILLED)),
+    "Not admin Marker found for JobId " + JOB_ID + " and Status " + KILLED);
 
     service.processCallback(JOB_ID, FAILED);
-    verify(logger).error(eq(Constants.NOTIFY_ADMIN), anyString(), eq(JOB_ID), eq(FAILED));
-    reset(logger);
+    Assertions.assertTrue(
+      listAppender.list.stream().anyMatch(event -> event.getMarker() != null && Constants.NOTIFY_ADMIN == event.getMarker() && event.getFormattedMessage().contains(JOB_ID) && event.getFormattedMessage().contains(FAILED)),
+      "Not admin Marker found for JobId " + JOB_ID + " and Status " + FAILED);
   }
 
 }

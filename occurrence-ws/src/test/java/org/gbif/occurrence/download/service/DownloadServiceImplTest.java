@@ -4,12 +4,14 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,17 +32,17 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DownloadServiceImplTest {
 
   private static final String DOWNLOAD_ID = "123456789";
@@ -61,13 +63,11 @@ public class DownloadServiceImplTest {
 
   private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar");
 
-  @Before
+  @BeforeEach
   public void setup() {
     props.clear();
     downloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
-    when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class))).thenReturn(null);
-    when(downloadLimitsService.exceedsDownloadComplexity(any(DownloadRequest.class))).thenReturn(null);
     requestService =
       new DownloadRequestServiceImpl(oozieClient, props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
   }
@@ -109,30 +109,27 @@ public class DownloadServiceImplTest {
     allDownloads.add(job1);
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
-    when(downloadService.listByUser(any(String.class), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
+    when(downloadService.listByUser(any(String.class), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
       new PagingResponse<Download>(0L, 0, 0L, emptyDownloads));
-    when(downloadService.listByUser(eq("peter"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
+    when(downloadService.listByUser(eq("peter"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
       new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), peterDownloads));
-    when(downloadService.listByUser(eq("karl"), any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
+    when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
       new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), karlDownloads));
-    when(downloadService.list(any(Pageable.class), Matchers.anySetOf(Download.Status.class))).thenReturn(
+    when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
       new PagingResponse<Download>(0L, allDownloads.size(), new Long(allDownloads.size()), allDownloads));
-    // mock get details
-    when(downloadService.get(eq("1-oozie-oozi-W"))).thenReturn(job1);
-    when(downloadService.get(eq("2-oozie-oozi-W"))).thenReturn(job2);
 
     // test
     PagingRequest req = new PagingRequest(0, 2);
-    PagingResponse<Download> x = downloadService.list(req,null);
+    PagingResponse<Download> x = downloadService.list(req, Collections.emptySet());
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req, null);
+    x = downloadService.listByUser("harald", req, Collections.emptySet());
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req, null);
+    x = downloadService.listByUser("karl", req, Collections.emptySet());
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req, null);
+    x = downloadService.listByUser("peter", req, Collections.emptySet());
     assertEquals(1, x.getResults().size());
   }
 
