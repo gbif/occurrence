@@ -20,14 +20,8 @@
   </distributionManagement>
 
   <properties>
-    <gbif-cli.version>0.13</gbif-cli.version>
-
     <!-- have to match gbif-cli version -->
-    <guava.version>17.0</guava.version>
-    <jackson2-annotations.version>2.8.7</jackson2-annotations.version>
-    <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
-
-    <metainf-services.version>1.5</metainf-services.version>
+    <guava.version>23.0</guava.version>
   </properties>
 
   <build>
@@ -121,7 +115,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson</groupId>
       <artifactId>jackson-datatype-guava</artifactId>
-      <version>${jackson-datatype-guava.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -129,13 +122,11 @@
            Jackson 2 because only that supports YAML so we have to use the annotations from Jackson 2 -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson2-annotations.version}</version>
     </dependency>
     <!--force jackson-databind to match jackson-annotations-->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson2-annotations.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -206,7 +197,6 @@
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-cli</artifactId>
-      <version>${gbif-cli.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.common</groupId>
@@ -245,7 +235,6 @@
     <dependency>
       <groupId>org.kohsuke.metainf-services</groupId>
       <artifactId>metainf-services</artifactId>
-      <version>${metainf-services.version}</version>
       <!-- This is the proper declaration. For details see the homepage of the project. -->
       <optional>true</optional>
     </dependency>
@@ -300,14 +289,8 @@
 
     <!-- testing -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.1.3</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -1,13 +1,14 @@
 package org.gbif.occurrence.persistence.configuration;
 
 import org.gbif.api.service.occurrence.OccurrenceService;
-import org.junit.Ignore;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertNotNull;
 
-@Ignore("Not needed for pipelines")
+@Disabled("Not needed for pipelines")
 public class OccurrencePersistenceConfigurationTest {
 
   private final OccurrenceService occurrenceService;

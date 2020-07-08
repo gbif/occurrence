@@ -10,15 +10,15 @@ import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 
 import java.util.UUID;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Ignore("Requires live webservices")
+@Disabled("Requires live webservices")
 public class LocationInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final LocationInterpreter interpreter;

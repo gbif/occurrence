@@ -5,8 +5,8 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for serialization and deserialization of heatmap responses.
@@ -27,7 +27,7 @@ public class EsOccurrenceHeatmapResponseSerDeserTest {
     try (InputStream  testFile = EsOccurrenceHeatmapResponseSerDeserTest.class.getResourceAsStream(TEST_JSON_FILE)) {
       JsonNode json = MAPPER.readTree(testFile);
       EsOccurrenceHeatmapResponse.GeoBoundsResponse esOccurrenceHeatmapResponse = MAPPER.treeToValue(json.path("aggregations").path("heatmap"), EsOccurrenceHeatmapResponse.GeoBoundsResponse.class);
-      Assert.assertEquals(esOccurrenceHeatmapResponse.getBuckets().size(), 10);
+      Assertions.assertEquals(esOccurrenceHeatmapResponse.getBuckets().size(), 10);
     }
   }
 

@@ -4,13 +4,12 @@ import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.Assert.*;
-
-@Ignore("requires live webservice")
+@Disabled("requires live webservice")
 public class TaxonomyInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();;
   static final TaxonomyInterpreter interpreter;
@@ -56,7 +55,7 @@ public class TaxonomyInterpreterTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void testOtu() {
     ParseResult<NameUsageMatch> result = interpreter.match("Animalia", "Annelida", null, null, "Lumbricidae", null, "BOLD:ACV7160", null, null, null, null, Rank.SPECIES);
     assertEquals("BOLD:ACV7160", result.getPayload().getScientificName());

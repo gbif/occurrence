@@ -10,17 +10,16 @@ import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import java.util.Arrays;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Ignore("Shouldn't be run by Jenkins, it uses an external service")
+@Disabled("Shouldn't be run by Jenkins, it uses an external service")
 public class CoordinateInterpreterTest {
 
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
@@ -129,7 +128,7 @@ public class CoordinateInterpreterTest {
     String lng = null;
     Country country = null;
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat, lng, null, country);
-    Assert.assertNotNull(result);
+    assertNotNull(result);
     assertNull(result.getPayload());
     assertFalse(result.isSuccessful());
     assertTrue(result.getIssues().isEmpty());
@@ -141,7 +140,7 @@ public class CoordinateInterpreterTest {
     String lng = null;
     Country country = null;
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat, lng, null, country);
-    Assert.assertNotNull(result);
+    assertNotNull(result);
     assertNull(result.getPayload());
     assertFalse(result.isSuccessful());
     assertTrue(result.getIssues().isEmpty());
@@ -169,7 +168,7 @@ public class CoordinateInterpreterTest {
   @Test
   public void testNotNumbers() {
     ParseResult<CoordinateResult> result = interpreter.interpretCoordinate("asdf", "qwer", null, null);
-    Assert.assertNotNull(result);
+    assertNotNull(result);
   }
 
   @Test
@@ -242,7 +241,7 @@ public class CoordinateInterpreterTest {
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), "EPSG:4326", providedCountry);
     assertCoordinate(result, expectedLat, expectedLng);
     assertEquals(expectedCountry, result.getPayload().getCountry());
-    assertTrue("Expecting "+expectedIssues+" for "+result.getIssues(), CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()));
+    assertTrue(CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()), "Expecting "+expectedIssues + " for " + result.getIssues());
     assertEquals(expectedIssues.length, result.getIssues().size());
   }
 }

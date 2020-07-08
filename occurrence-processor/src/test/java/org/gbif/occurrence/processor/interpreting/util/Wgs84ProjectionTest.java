@@ -5,12 +5,12 @@ import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.LatLng;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * An online converter to verify results available at:
@@ -121,29 +121,29 @@ public class Wgs84ProjectionTest {
 
   private void assertLatLon(OccurrenceParseResult<LatLng> result, double lat, double lng, boolean assumedWgs, boolean reprojected) {
     if (!assumedWgs) {
-      assertTrue("parsing failed", result.isSuccessful());
+      assertTrue(result.isSuccessful(), "parsing failed");
     }
     System.out.println(result.getIssues());
     if (reprojected) {
-      assertTrue("Expected reprojection issue", result.getIssues().contains(OccurrenceIssue.COORDINATE_REPROJECTED));
+      assertTrue(result.getIssues().contains(OccurrenceIssue.COORDINATE_REPROJECTED), "Expected reprojection issue");
     }
     if (assumedWgs) {
-      assertTrue("Assumed WGS84 issue expected", result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84));
+      assertTrue(result.getIssues().contains(OccurrenceIssue.GEODETIC_DATUM_ASSUMED_WGS84), "Assumed WGS84 issue expected");
     }
     System.out.println(result.getPayload().getLat() + " / " + result.getPayload().getLng());
-    assertEquals("Latitude mismatch", lat, result.getPayload().getLat().doubleValue(), 0.000001);
-    assertEquals("Longitude mismatch", lng, result.getPayload().getLng().doubleValue(), 0.000001);
+    assertEquals(lat, result.getPayload().getLat().doubleValue(), 0.000001, "Latitude mismatch");
+    assertEquals(lng, result.getPayload().getLng().doubleValue(), 0.000001, "Longitude mismatch");
   }
 
   private void assertFailed(OccurrenceParseResult<LatLng> result, double lat, double lng, OccurrenceIssue issue) {
     System.out.println(result.getIssues());
-    assertFalse("parsing expected to fail", result.isSuccessful());
+    assertFalse(result.isSuccessful(), "parsing expected to fail");
     if (issue == null) {
-      assertTrue("Issues found", result.getIssues().isEmpty());
+      assertTrue(result.getIssues().isEmpty(), "Issues found");
     } else {
-      assertTrue("Expected issue "+issue+" missing", result.getIssues().contains(issue));
+      assertTrue(result.getIssues().contains(issue), "Expected issue " + issue + " missing");
     }
-    assertEquals("Latitude mismatch", lat, result.getPayload().getLat().doubleValue(), 0.000001);
-    assertEquals("Longitude mismatch", lng, result.getPayload().getLng().doubleValue(), 0.000001);
+    assertEquals(lat, result.getPayload().getLat().doubleValue(), 0.000001, "Latitude mismatch");
+    assertEquals(lng, result.getPayload().getLng().doubleValue(), 0.000001, "Longitude mismatch");
   }
 }

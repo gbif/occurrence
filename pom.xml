@@ -101,6 +101,7 @@
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <jackson.version>2.10.3</jackson.version>
+    <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
     <jcommander.version>1.35</jcommander.version>
     <jcommander.version>1.35</jcommander.version>
     <junit.version>4.12</junit.version>
@@ -111,6 +112,7 @@
     <powermock-mockito.version>2.0.7</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
+    <metainf-services.version>1.5</metainf-services.version>
 
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <mockito-junit-jupiter.version>3.1.0</mockito-junit-jupiter.version>
@@ -157,6 +159,7 @@
     <name-parser.version>3.1.6</name-parser.version>
     <pipelines.version>2.5.2</pipelines.version>
     <gbif.kvs.version>1.6</gbif.kvs.version>
+    <gbif-cli.version>0.14</gbif-cli.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
     <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
@@ -448,6 +451,11 @@
         <artifactId>kvs-gbif</artifactId>
         <version>${gbif.kvs.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.gbif.common</groupId>
+        <artifactId>gbif-cli</artifactId>
+        <version>${gbif-cli.version}</version>
+      </dependency>
 
       <!-- Spring dependencies -->
       <dependency>
@@ -547,6 +555,11 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-datatype-guava</artifactId>
+        <version>${jackson-datatype-guava.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
         <version>${freemarker.version}</version>
@@ -568,6 +581,13 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.kohsuke.metainf-services</groupId>
+        <artifactId>metainf-services</artifactId>
+        <version>${metainf-services.version}</version>
+        <!-- This is the proper declaration. For details see the homepage of the project. -->
+        <optional>true</optional>
       </dependency>
       <!-- needed for zookeeper -->
       <dependency>
@@ -1163,12 +1183,6 @@
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
         <version>${hamcrest.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

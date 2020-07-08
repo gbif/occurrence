@@ -3,11 +3,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.elasticsearch.action.search.SearchRequest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -17,8 +18,8 @@ import java.util.stream.StreamSupport;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for ElasticSearch heatmap request builders.
@@ -116,7 +117,7 @@ public class EsHeatmapRequestBuilderTest {
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));
     } else {
-      Assert.fail("TaxaKey term not found");
+      Assertions.fail("TaxaKey term not found");
     }
 
     // geohash_grid
