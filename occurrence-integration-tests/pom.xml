@@ -133,6 +133,10 @@
       <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
 
     <!-- HBase Mini Cluster-->
     <dependency>
@@ -165,6 +169,15 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>*.yml</exclude>
+        </excludes>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>

@@ -3,6 +3,8 @@ package org.gbif.occurrence.ws.config;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
+import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
+import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientFactory;
 
@@ -86,5 +88,15 @@ public class OccurrenceWsConfiguration {
                                                              @Value("${occurrence.download.ws.password}") String downloadUserPassword) {
     ClientFactory clientFactory = new ClientFactory(downloadUsername, downloadUserPassword, apiUrl);
     return clientFactory.newInstance(OccurrenceDownloadClient.class);
+  }
+
+  @Configuration
+  public static class OccurrenceSearchConfigurationWs extends OccurrenceSearchConfiguration {
+
+  }
+
+  @Configuration
+  public static class OccurrencePersistenceConfigurationWs extends OccurrencePersistenceConfiguration {
+
   }
 }

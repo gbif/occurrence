@@ -58,7 +58,7 @@ public class DownloadResourceTest {
     GbifUserPrincipal userP = mock(GbifUserPrincipal.class);
     when(userP.getName()).thenReturn(user);
 
-    resource = new DownloadResource(service, callbackService, downloadService);
+    resource = new DownloadResource(service, callbackService, downloadService, null);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
       DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);

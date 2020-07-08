@@ -12,18 +12,30 @@ import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.test.mocks.DownloadCallbackServiceMock;
 import org.gbif.occurrence.test.mocks.DownloadRequestServiceMock;
 import org.gbif.occurrence.test.mocks.OccurrenceDownloadServiceMock;
+import org.gbif.occurrence.test.mocks.UserMapperMock;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
 import org.gbif.occurrence.ws.config.OccurrenceMethodSecurityConfiguration;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
+import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
-import org.gbif.ws.security.GbifUserPrincipal;
+import org.gbif.registry.mail.EmailSender;
+import org.gbif.registry.mail.identity.IdentityEmailManager;
+import org.gbif.registry.persistence.mapper.DatasetMapper;
+import org.gbif.registry.persistence.mapper.InstallationMapper;
+import org.gbif.registry.persistence.mapper.OrganizationMapper;
+import org.gbif.registry.persistence.mapper.UserMapper;
+import org.gbif.registry.persistence.mapper.UserRightsMapper;
+import org.gbif.registry.security.EditorAuthorizationServiceImpl;
+import org.gbif.registry.security.LegacyAuthorizationService;
+import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
+import org.gbif.registry.surety.ChallengeCodeManager;
+import org.gbif.registry.surety.OrganizationChallengeCodeManager;
+import org.gbif.registry.surety.UserChallengeCodeManager;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.hbase.client.Connection;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.mockito.Mockito;
@@ -47,15 +59,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -76,15 +79,26 @@ import org.springframework.test.context.ActiveProfiles;
  basePackages = {
    "org.gbif.ws.server.interceptor",
    "org.gbif.ws.server.aspect",
+   "org.gbif.ws.server.filter",
    "org.gbif.ws.server.advice",
    "org.gbif.ws.server.mapper",
+   "org.gbif.ws.security",
+   "org.gbif.registry.security",
+   "org.gbif.registry.persistence",
+   "org.gbif.registry.identity",
+   "org.gbif.registry.surety",
    "org.gbif.occurrence.search",
    "org.gbif.occurrence.ws.resources",
    "org.gbif.occurrence.persistence",
    "org.gbif.occurrence.it.ws"
  },
  excludeFilters = {
-   @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {DownloadRequestServiceImpl.class})
+   @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {DownloadRequestServiceImpl.class,
+                                                                      EditorAuthorizationServiceImpl.class,
+                                                                      LegacyAuthorizationServiceImpl.class,
+                                                                      UserSuretyDelegateImpl.class,
+                                                                      UserChallengeCodeManager.class,
+                                                                      OrganizationChallengeCodeManager.class})
  }
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
@@ -92,11 +106,14 @@ import org.springframework.test.context.ActiveProfiles;
 public class OccurrenceWsItConfiguration {
 
   public static final GbifUser TEST_USER = new GbifUser();
+  public static final String TEST_USER_PASSWORD = "hi";
+
+  public static final RegistryPasswordEncoder PASSWORD_ENCODER = new RegistryPasswordEncoder();
 
   static {
     TEST_USER.setUserName("admin");
     TEST_USER.setEmail("nothing@gbif.org");
-    TEST_USER.setPasswordHash("hi");
+    TEST_USER.setPasswordHash(PASSWORD_ENCODER.encode(TEST_USER_PASSWORD));
     TEST_USER.setRoles(Collections.singleton(UserRole.USER));
   }
 
@@ -206,59 +223,34 @@ public class OccurrenceWsItConfiguration {
     return occHBaseConfiguration;
   }
 
-  /**
-   * Security config for ITs.
-   */
-  @Configuration
-  public static class WebSecurityConfigurerIT extends WebSecurityConfigurerAdapter {
+  @Bean
+  public UserMapper userMapperMock() {
+    UserMapper userMapper = new UserMapperMock();
+    userMapper.create(TEST_USER);
+    return userMapper;
+  }
 
-    /**
-     * Uses an in-memory map of know users.
-     */
-    public static class TestAuthenticationProvider implements UserDetailsService {
 
-      private Map<String, GbifUser> usersMap = ImmutableMap.<String, GbifUser>builder()
-                                                .put(TEST_USER.getUserName(), TEST_USER)
-                                                .build();
+  @Bean
+  public EditorAuthorizationServiceImpl editorAuthorizationServiceSutb() {
+    return new EditorAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
+                                              Mockito.mock(DatasetMapper.class),
+                                              Mockito.mock(InstallationMapper.class),
+                                              Mockito.mock(UserRightsMapper.class));
+  }
 
-      @Override
-      public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        return new GbifUserPrincipal(usersMap.get(userName));
-      }
-    }
+  @Bean
+  public UserSuretyDelegateImpl userSuretyDelegate() {
+    return new UserSuretyDelegateImpl(Mockito.mock(EmailSender.class),
+                                      Mockito.mock(ChallengeCodeManager.class),
+                                      Mockito.mock(IdentityEmailManager.class));
+  }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-      auth.authenticationProvider(dbAuthenticationProvider());
-    }
-
-    /**
-     * Simple authentication provider.
-     */
-    private DaoAuthenticationProvider dbAuthenticationProvider() {
-      final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-      authProvider.setUserDetailsService(new TestAuthenticationProvider());
-      authProvider.setPasswordEncoder(passwordEncoder());
-      return authProvider;
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      //Disable authentication
-      http
-        .httpBasic()
-        .disable()
-        .authorizeRequests()
-        .anyRequest()
-        .authenticated();
-
-      http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-      return new RegistryPasswordEncoder();
-    }
+  @Bean
+  public LegacyAuthorizationService legacyAuthorizationService() {
+    return new LegacyAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
+                                       Mockito.mock(DatasetMapper.class),
+                                       Mockito.mock(InstallationMapper.class));
   }
 
   /**

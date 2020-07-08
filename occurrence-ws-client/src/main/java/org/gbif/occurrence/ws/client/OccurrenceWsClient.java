@@ -4,8 +4,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 
-import javax.annotation.Nullable;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,11 +21,15 @@ public interface OccurrenceWsClient extends OccurrenceService {
 
   @RequestMapping(
     method = RequestMethod.GET,
-    value = FRAGMENT_PATH + "/{key}"
+    value = "/{key}/" + FRAGMENT_PATH
   )
   @ResponseBody
+  JsonNode getFragmentJson(@PathVariable("key") long key);
+
   @Override
-  String getFragment(@PathVariable("key") long key);
+  default String getFragment(long key){
+    return getFragmentJson(key).toPrettyString();
+  }
 
   /**
    * Gets the VerbatimOccurrence object.
@@ -35,7 +38,7 @@ public interface OccurrenceWsClient extends OccurrenceService {
    */
   @RequestMapping(
     method = RequestMethod.GET,
-    value = VERBATIM_PATH + "/{key}"
+    value = "/{key}/" + VERBATIM_PATH
   )
   @ResponseBody
   @Override
