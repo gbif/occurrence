@@ -17,7 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -99,9 +101,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
         Result row = s.next();
         int count=0;
         while (row != null && count++<100) {
-          String type = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("relationshipType")));
+          String reasons = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("reasons")));
+          // convert a -> ["a"] or a,b,c -> ["a","b", "c"]
+          String reasonsAsJsonArray = "[\"" + reasons.replaceAll(",", "\",\"") + "\"]";
+
           String occurrence = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence2")));
-          result.add(String.format("{\n  \"relationshipType\":\"%s\",\n  \"occurrence\":%s\n}", type, occurrence));
+          result.add(String.format("{\n  \"reasons\": %s,\n  \"occurrence\":%s\n}", reasonsAsJsonArray, occurrence));
           row = s.next();
         }
 
