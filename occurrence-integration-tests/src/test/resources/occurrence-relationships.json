@@ -97,9 +97,15 @@
     "occurrenceID": "http://coldb.mnhn.fr/catalognumber/mnhn/p/p02089448",
     "identifiedBy": "Swenson"
   },
-  "relationships": [
+  "relatedOccurrences": [
     {
-      "relationshipType": "RELATED_SPECIMEN",
+      "reasons": [
+        "SAME_ACCEPTED_SPECIES",
+        "SAME_DATE",
+        "NEARBY_COORDINATES",
+        "SAME_COUNTRY",
+        "TYPIFICATION_RELATION"
+      ],
       "occurrence": {
         "publishingOrgKey": "4c415e40-1e21-11de-9e40-a0d6ecebb8bf",
         "classKey": 220,
@@ -152,7 +158,9 @@
       }
     },
     {
-      "relationshipType": "RELATED_SPECIMEN",
+      "reasons": [
+        "RELATED_SPECIMEN"
+      ],
       "occurrence": {
         "publishingOrgKey": "ae447c50-b8a8-11d8-92a4-b8a03c50a862",
         "classKey": 220,
@@ -223,7 +231,10 @@
       }
     },
     {
-      "relationshipType": "RELATED_SPECIMEN",
+      "reasons": [
+        "SAME_DATE",
+        "SAME_COUNTRY"
+      ],
       "occurrence": {
         "publishingOrgKey": "2853c0e7-c758-4c9c-83a2-7c2d18967fb9",
         "classKey": 220,

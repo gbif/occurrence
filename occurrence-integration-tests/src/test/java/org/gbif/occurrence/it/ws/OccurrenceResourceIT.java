@@ -99,7 +99,7 @@ public class OccurrenceResourceIT {
     Assertions.assertNotNull(relatedOccurrences, "Empty related occurrence response");
 
     JsonNode jsonNode = MAPPER.readTree(relatedOccurrences);
-    ArrayNode relatedRecords  = (ArrayNode)jsonNode.get("occurrences");
+    ArrayNode relatedRecords  = (ArrayNode)jsonNode.get("relatedOccurrences");
     Assertions.assertEquals(3, relatedRecords.size(), "Number is related occurrences is not what was expected!");
   }
 
@@ -114,7 +114,6 @@ public class OccurrenceResourceIT {
 
   @Test
   public void testGetAnnosysOccurrence() {
-
     String annosysOccurrence = occurrenceResource.getAnnosysOccurrence(TEST_KEY);
     Assertions.assertNotNull(annosysOccurrence, "Empty verbatim Annosys!");
 

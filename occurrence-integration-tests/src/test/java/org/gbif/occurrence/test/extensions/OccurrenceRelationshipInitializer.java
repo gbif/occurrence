@@ -7,6 +7,7 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,7 +50,7 @@ public class OccurrenceRelationshipInitializer implements BeforeAllCallback {
 
   private static final byte[] DATASE2_COLUMN = Bytes.toBytes("dataset2");
 
-  private static final byte[] RELATIONSHIP_TYPE_COLUMN = Bytes.toBytes("relationshipType");
+  private static final byte[] REASONS_TYPE_COLUMN = Bytes.toBytes("reasons");
 
   /**
    * Calculates the fragment salted key.
@@ -86,7 +87,7 @@ public class OccurrenceRelationshipInitializer implements BeforeAllCallback {
         byte[] datasetKey1 = Bytes.toBytes(jsonNode.get("occurrence").get("datasetKey").asText());
         String saltedKey = getSaltedKey(Long.parseLong(id1), occHBaseConfiguration.getRelationshipSalt());
         byte[] occurrence1 = Bytes.toBytes(toString(jsonNode.get("occurrence")));
-        StreamSupport.stream(((ArrayNode)jsonNode.get("relationships")).spliterator(), false)
+        StreamSupport.stream(((ArrayNode)jsonNode.get("relatedOccurrences")).spliterator(), false)
           .forEach(relation -> {
               String id2 = relation.get("occurrence").get("gbifId").asText();
               Put put = new Put(Bytes.toBytes(saltedKey + ":" + id2));
@@ -96,7 +97,10 @@ public class OccurrenceRelationshipInitializer implements BeforeAllCallback {
               put.addColumn(COLUMN_FAMILY, DATASE2_COLUMN, Bytes.toBytes(relation.get("occurrence").get("datasetKey").asText()));
               put.addColumn(COLUMN_FAMILY, OCCURRENCE1_COLUMN, occurrence1);
               put.addColumn(COLUMN_FAMILY, OCCURRENCE2_COLUMN, Bytes.toBytes(toString(relation.get("occurrence"))));
-              put.addColumn(COLUMN_FAMILY, RELATIONSHIP_TYPE_COLUMN, Bytes.toBytes(relation.get("relationshipType").asText()));
+              Iterable<JsonNode> it = () -> relation.get("reasons").elements();
+              put.addColumn(COLUMN_FAMILY, REASONS_TYPE_COLUMN, Bytes.toBytes( StreamSupport.stream(it.spliterator(), false)
+                                                                                 .map(JsonNode::asText)
+                                                                                 .collect(Collectors.joining(","))));
               puts.add(put);
         });
       });
