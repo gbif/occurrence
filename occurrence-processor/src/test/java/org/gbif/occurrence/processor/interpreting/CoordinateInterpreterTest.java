@@ -8,6 +8,7 @@ import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.jupiter.api.Disabled;
@@ -241,7 +242,9 @@ public class CoordinateInterpreterTest {
     OccurrenceParseResult<CoordinateResult> result = interpreter.interpretCoordinate(lat.toString(), lng.toString(), "EPSG:4326", providedCountry);
     assertCoordinate(result, expectedLat, expectedLng);
     assertEquals(expectedCountry, result.getPayload().getCountry());
-    assertTrue(CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()), "Expecting "+expectedIssues + " for " + result.getIssues());
+    assertTrue(CollectionUtils.isEqualCollection(Arrays.asList(expectedIssues), result.getIssues()), "Expecting " +
+                                                                                                     Arrays.stream(expectedIssues).map(OccurrenceIssue::name).collect(Collectors.joining(","))
+                                                                                                     + " for " + result.getIssues());
     assertEquals(expectedIssues.length, result.getIssues().size());
   }
 }

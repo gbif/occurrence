@@ -81,6 +81,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
+  @Override
   public void aggregate(List<Result> results) {
     init();
     try (

@@ -80,6 +80,7 @@ public class FromSearchDownloadAction {
          */
         private static final long serialVersionUID = 1L;
 
+        @Override
         public UntypedActor create() {
           return applicationContext.getBean(DownloadMaster.class);
         }

@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.gbif.metrics.ws.client;
 
 import org.gbif.api.service.occurrence.OccurrenceDatasetIndexService;
@@ -24,6 +21,7 @@ public interface OccurrenceDatasetIndexWsClient extends OccurrenceDatasetIndexSe
   String NUBKEY_PARAM = "nubKey";
   String COUNTRY_PARAM = "country";
 
+  @Override
   default SortedMap<UUID, Long> occurrenceDatasetsForCountry(@RequestParam(COUNTRY_PARAM) Country country) {
     return occurrenceDatasetsForCountry(OccurrenceCountryIndexWsClient.COUNTRY_TO_ISO2.apply(country));
   }
