@@ -239,6 +239,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <artifactId>org.restlet</artifactId>
       <groupId>org.restlet.jee</groupId>
       <version>${restlet.version}</version>
