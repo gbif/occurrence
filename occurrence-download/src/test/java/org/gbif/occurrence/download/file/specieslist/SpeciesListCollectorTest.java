@@ -1,7 +1,7 @@
 package org.gbif.occurrence.download.file.specieslist;
 
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +11,8 @@ import java.util.Objects;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 public class SpeciesListCollectorTest {
 
@@ -35,7 +36,6 @@ public class SpeciesListCollectorTest {
 
     SpeciesListCollector collector = new SpeciesListCollector();
     occurrenceRecords.forEach(collector::collect);
-
     assertEquals(3, collector.getDistinctSpecies().size());
   }
 

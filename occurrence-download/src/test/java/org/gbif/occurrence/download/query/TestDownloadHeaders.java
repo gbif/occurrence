@@ -9,7 +9,7 @@ import org.gbif.occurrence.download.hive.Terms;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static junit.framework.Assert.assertEquals;
 

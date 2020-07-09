@@ -1,19 +1,18 @@
 package org.gbif.occurrence.download.file.dwca;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 
 public class DwcArchiveUtilsTest {
-
-  @Rule
-  public TemporaryFolder testFolder = new TemporaryFolder();
 
   /**
    * Just test that the meta.xml is created without exceptions.
    */
   @Test
-  public void testCreateArchiveDescriptor() {
-    DwcArchiveUtils.createArchiveDescriptor(testFolder.getRoot());
+  public void testCreateArchiveDescriptor(@TempDir Path testFolder) {
+    DwcArchiveUtils.createArchiveDescriptor(testFolder.toFile());
   }
 }
