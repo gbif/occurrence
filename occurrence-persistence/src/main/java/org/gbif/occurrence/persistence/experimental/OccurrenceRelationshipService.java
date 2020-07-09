@@ -14,4 +14,12 @@ public interface OccurrenceRelationshipService {
    * @return A list of related occurrences in the structure stored in the table (a JSON String)
    */
   List<String> getRelatedOccurrences(long key);
+
+  /**
+   * Provides the cached view of the "current" occurrence within the relationship (it may be stale compared to live
+   * data).
+   * @param key The record key for which we seek related occurrences
+   * @return A JSON String for the current occurrence
+   */
+  String getCurrentOccurrence(long key);
 }

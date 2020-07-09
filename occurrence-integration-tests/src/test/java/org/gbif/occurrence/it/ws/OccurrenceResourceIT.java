@@ -101,6 +101,9 @@ public class OccurrenceResourceIT {
     JsonNode jsonNode = MAPPER.readTree(relatedOccurrences);
     ArrayNode relatedRecords  = (ArrayNode)jsonNode.get("relatedOccurrences");
     Assertions.assertEquals(3, relatedRecords.size(), "Number is related occurrences is not what was expected!");
+
+    JsonNode currentOccurrence = jsonNode.get("currentOccurrence");
+    Assertions.assertNotNull(currentOccurrence);
   }
 
   @Test

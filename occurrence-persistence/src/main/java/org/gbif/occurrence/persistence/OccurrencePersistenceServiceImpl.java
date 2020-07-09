@@ -116,7 +116,30 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
     return result;
   }
 
-  private String getSaltedKey(long key) {
+  @Override
+  public String getCurrentOccurrence(long key) {
+    if (this.relationshipTableName != null) {
+      try (Table table = connection.getTable(TableName.valueOf(relationshipTableName))) {
+        Scan scan = new Scan();
+        scan.addFamily(Bytes.toBytes("o"));
+        int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
+        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key));
+        ResultScanner s = table.getScanner(scan);
+        Result row = s.next();
+        if (row != null) {
+          return Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence1")));
+        }
+
+      } catch (IOException e) {
+        LOG.error("Could not read from HBase", e);
+        throw new ServiceUnavailableException("Could not read from HBase [" + e.getMessage()+ "]");
+      }
+    }
+    return "{}";
+  }
+
+
+    private String getSaltedKey(long key) {
     long mod = key % fragmenterSalt;
     String saltedKey = mod + ":" + key;
     return mod >= 10 ? saltedKey : "0" + saltedKey;
