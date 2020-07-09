@@ -94,4 +94,10 @@ public class OccurrenceSearchMockService implements OccurrenceSearchService, Occ
     // experimental API, simulate empty results
     return new ImmutableList.Builder<String>().add("{\"occurrences\": []}").build();
   }
+
+  @Override
+  public String getCurrentOccurrence(long key) {
+    // experimental API, simulate empty results
+    return "{}";
+  }
 }
