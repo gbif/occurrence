@@ -1,10 +1,10 @@
 package org.gbif.occurrence.common.config;
 
+import java.util.StringJoiner;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Objects;
 
 /**
  * Configs needed to connect to the occurrence HBase db.
@@ -90,14 +90,16 @@ public class OccHBaseConfiguration {
     fragmenterTable = prefix + "_fragment";
   }
 
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-      .add("hbasePoolSize", hbasePoolSize)
-      .add("fragmenterTable", fragmenterTable)
-      .add("relationshipTable", relationshipTable)
-      .add("zkConnectionString", zkConnectionString)
+    return new StringJoiner(", ", OccHBaseConfiguration.class.getSimpleName() + "[", "]")
+      .add("hbasePoolSize=" + hbasePoolSize)
+      .add("fragmenterTable='" + fragmenterTable + "'")
+      .add("fragmenterSalt=" + fragmenterSalt)
+      .add("relationshipTable='" + relationshipTable + "'")
+      .add("relationshipSalt=" + relationshipSalt)
+      .add("zkConnectionString='" + zkConnectionString + "'")
       .toString();
   }
-
 }

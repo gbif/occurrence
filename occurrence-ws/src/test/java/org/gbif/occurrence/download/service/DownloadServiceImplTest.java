@@ -110,13 +110,13 @@ public class DownloadServiceImplTest {
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
     when(downloadService.listByUser(any(String.class), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<Download>(0L, 0, 0L, emptyDownloads));
+      new PagingResponse<>(0L, 0, 0L, emptyDownloads));
     when(downloadService.listByUser(eq("peter"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), peterDownloads));
+      new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), peterDownloads));
     when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<Download>(0L, peterDownloads.size(), new Long(peterDownloads.size()), karlDownloads));
+      new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), karlDownloads));
     when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<Download>(0L, allDownloads.size(), new Long(allDownloads.size()), allDownloads));
+      new PagingResponse<>(0L, allDownloads.size(), (long)allDownloads.size(), allDownloads));
 
     // test
     PagingRequest req = new PagingRequest(0, 2);

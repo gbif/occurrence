@@ -77,7 +77,7 @@ public class OccurrenceResourceIT {
   @Test
   public void testGetByKey() {
     Occurrence occurrence = occurrenceWsClient.get(TEST_KEY);
-    Assertions.assertNotNull(occurrence, "Empty occurrence receuved");
+    Assertions.assertNotNull(occurrence, "Empty occurrence received");
   }
 
   @Test

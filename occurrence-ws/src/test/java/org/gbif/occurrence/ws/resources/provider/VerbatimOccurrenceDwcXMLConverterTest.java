@@ -12,9 +12,9 @@ import java.io.IOException;
 
 import com.google.common.base.CharMatcher;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test for {@link OccurrenceVerbatimDwcXMLConverter} behavior.
