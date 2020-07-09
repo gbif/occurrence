@@ -144,8 +144,7 @@ public class DownloadResource {
       .orElse(ZIP_EXT);
 
     LOG.debug("Get download data: [{}]", downloadKey);
-    //File download = requestService.getResultFile(downloadKey);
-    File download = resourceLoader.getResource("classpath:0011066-200127171203522.zip").getFile();
+    File download = requestService.getResultFile(downloadKey);
 
     try {
       if (range == null) {
