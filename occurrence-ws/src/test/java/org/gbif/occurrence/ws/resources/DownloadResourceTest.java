@@ -43,8 +43,8 @@ public class DownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    String jobId = resource.startDownload(dl, principal);
-    assertThat(jobId, equalTo(JOB_ID));
+    ResponseEntity<String> response = resource.startDownload(dl, principal);
+    assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test

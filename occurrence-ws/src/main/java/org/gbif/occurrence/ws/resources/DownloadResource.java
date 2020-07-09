@@ -18,7 +18,6 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUs
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.Channels;
 import java.security.Principal;
@@ -30,7 +29,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -39,10 +37,8 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import org.apache.bval.guice.Validate;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -50,21 +46,17 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,10 +64,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
@@ -109,7 +101,6 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
 
-  private final ResourceLoader resourceLoader;
 
   @Autowired
   public DownloadResource(DownloadRequestService service, CallbackService callbackService,
@@ -117,7 +108,6 @@ public class DownloadResource {
     requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.resourceLoader = resourceLoader;
   }
 
   @DeleteMapping("{key}")
@@ -270,8 +260,13 @@ public class DownloadResource {
   @ResponseBody
   @Validate
   @Secured(USER_ROLE)
-  public String startDownload(@NotNull @Valid @RequestBody PredicateDownloadRequest request, @Autowired Principal principal) {
-    return createDownload(request, principal);
+  public ResponseEntity<String> startDownload(@NotNull @Valid @RequestBody PredicateDownloadRequest request,
+                                              @Autowired Principal principal) {
+    try {
+      return ResponseEntity.ok(createDownload(request, principal));
+    } catch (ResponseStatusException rse) {
+      return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
+    }
   }
 
   /**

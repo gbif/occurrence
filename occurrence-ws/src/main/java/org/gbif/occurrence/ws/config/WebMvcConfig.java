@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -59,7 +60,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Override
   public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
     StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
-    stringHttpMessageConverter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_XML));
+    stringHttpMessageConverter.setSupportedMediaTypes(Lists.newArrayList(MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN));
     converters.add(stringHttpMessageConverter);
   }
 
