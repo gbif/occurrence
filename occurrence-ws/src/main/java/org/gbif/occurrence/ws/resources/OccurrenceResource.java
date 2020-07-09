@@ -107,7 +107,7 @@ public class OccurrenceResource {
   public String getRelatedOccurrences(@PathVariable("key") Long key) {
     LOG.debug("Request RelatedOccurrences [{}]:", key);
     List<String> relationshipsAsJsonSnippets = occurrenceRelationshipService.getRelatedOccurrences(key);
-    return String.format("{\"occurrences\":[%s]}", String.join(",", relationshipsAsJsonSnippets));
+    return String.format("{\"relatedOccurrences\":[%s]}", String.join(",", relationshipsAsJsonSnippets));
   }
 
   /**
