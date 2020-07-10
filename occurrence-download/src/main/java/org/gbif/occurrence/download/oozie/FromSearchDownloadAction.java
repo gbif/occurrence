@@ -10,9 +10,6 @@ import java.util.Properties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
@@ -32,7 +29,7 @@ public class FromSearchDownloadAction {
   /**
    * Private constructor.
    */
-  private FromSearchDownloadAction(){
+  private FromSearchDownloadAction() {
     //Instances of this class are not allowed
   }
 
@@ -74,17 +71,7 @@ public class FromSearchDownloadAction {
       ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
 
       // create the master
-      ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public UntypedActor create() {
-          return applicationContext.getBean(DownloadMaster.class);
-        }
-      }), "DownloadMaster" + configuration.getDownloadKey());
+      ActorRef master = applicationContext.getBean(DownloadMaster.MasterFactory.class).build(system);
 
       Mutex readMutex = applicationContext.getBean(Mutex.class);
       readMutex.acquire();

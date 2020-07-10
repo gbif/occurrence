@@ -29,7 +29,8 @@ public class WorkflowConfiguration {
    * @param settings properties class load with the workflow settings
    */
   public WorkflowConfiguration(Properties settings) {
-    this.settings = new Properties(settings);
+    this.settings = new Properties();
+    this.settings.putAll(settings);
     hadoopConf = new Configuration();
     hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
   }

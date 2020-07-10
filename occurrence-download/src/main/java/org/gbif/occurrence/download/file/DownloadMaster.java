@@ -1,5 +1,7 @@
 package org.gbif.occurrence.download.file;
 
+import akka.actor.ActorSystem;
+import lombok.Data;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -35,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * Actor that controls the multi-threaded creation of occurrence downloads.
@@ -45,7 +49,7 @@ public class DownloadMaster extends UntypedActor {
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  private final Configuration conf;
+  private final MasterConfiguration conf;
   private final LockFactory lockFactory;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
@@ -56,12 +60,13 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Default constructor.
    */
-  @Autowired
-  public DownloadMaster(LockFactory lockFactory, Configuration configuration,
+  public DownloadMaster(LockFactory lockFactory,
+                        MasterConfiguration masterConfiguration,
                         RestHighLevelClient esClient,
-                        @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY+ "}") String esIndex,
-                        DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
-    conf = configuration;
+                        String esIndex,
+                        DownloadJobConfiguration jobConfiguration,
+                        DownloadAggregator aggregator) {
+    conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
     this.lockFactory = lockFactory;
     this.esClient = esClient;
@@ -249,7 +254,8 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Utility class that holds the general execution settings.
    */
-  public static class Configuration {
+  @Configuration
+  public static class MasterConfiguration {
 
     // Maximum number of workers
     private final int nrOfWorkers;
@@ -268,15 +274,50 @@ public class DownloadMaster extends UntypedActor {
      * Default/full constructor.
      */
     @Autowired
-    public Configuration(@Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY + "}") int nrOfWorkers,
-                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY + "}") int minNrOfRecords,
-                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int maximumNrOfRecords,
-                         @Value("${"+ DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY + "}") String lockName) {
+    public MasterConfiguration(@Value("${" + DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY + "}") int nrOfWorkers,
+                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY + "}") int minNrOfRecords,
+                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int maximumNrOfRecords,
+                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY + "}") String lockName) {
       this.nrOfWorkers = nrOfWorkers;
       this.minNrOfRecords = minNrOfRecords;
       this.maximumNrOfRecords = maximumNrOfRecords;
       this.lockName = lockName;
     }
+  }
 
+  @Data
+  @Component
+  public static class MasterFactory {
+    private final LockFactory lockFactory;
+    private final  MasterConfiguration masterConfiguration;
+    private final RestHighLevelClient esClient;
+    private final String esIndex;
+    private final DownloadJobConfiguration jobConfiguration;
+    private final DownloadAggregator aggregator;
+
+    @Autowired
+    public MasterFactory(
+      LockFactory lockFactory,
+      MasterConfiguration masterConfiguration,
+      RestHighLevelClient esClient,
+      String esIndex,
+      DownloadJobConfiguration jobConfiguration,
+      DownloadAggregator aggregator
+    ) {
+      this.lockFactory = lockFactory;
+      this.masterConfiguration = masterConfiguration;
+      this.esClient = esClient;
+      this.esIndex = esIndex;
+      this.jobConfiguration = jobConfiguration;
+      this.aggregator = aggregator;
+    }
+
+    public ActorRef build(ActorSystem system) {
+      return
+      system.actorOf(
+        new Props( () -> new DownloadMaster(lockFactory, masterConfiguration, esClient, esIndex, jobConfiguration, aggregator)),
+        "DownloadMaster" + jobConfiguration.getDownloadKey());
+
+    }
   }
 }

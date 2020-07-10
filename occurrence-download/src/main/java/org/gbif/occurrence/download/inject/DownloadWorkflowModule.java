@@ -12,9 +12,11 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
+import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.wrangler.lock.LockFactory;
@@ -42,6 +44,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.MapPropertySource;
 
 /**
@@ -51,12 +55,12 @@ import org.springframework.core.env.MapPropertySource;
  * - OccurrenceFileWriter: class that creates the occurrence data and citations file.
  */
 @Configuration
-public final class DownloadWorkflowModule  {
+public class DownloadWorkflowModule  {
 
   public static final String CONF_FILE = "occurrence-download.properties";
 
   //Prefix for static settings
-  public static final String PROPERTIES_PREFIX = "${occurrence.download.";
+  public static final String PROPERTIES_PREFIX = "occurrence.download.";
   private static final String ES_PREFIX = "es.";
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
@@ -72,6 +76,7 @@ public final class DownloadWorkflowModule  {
   public static ApplicationContext buildAppContext(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
     AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
 
+    ctx.register(DownloadWorkflowModule.class);
 
     ctx.registerBean(
       "workflowConfiguration",
@@ -92,6 +97,9 @@ public final class DownloadWorkflowModule  {
                                         .stream()
                                         .collect(Collectors.toMap( e -> e.getKey().toString(), e -> e.getValue().toString()))));
 
+    ctx.register(DownloadPrepareAction.class);
+    ctx.register(DownloadMaster.MasterConfiguration.class);
+
     registerAggregator(workflowConfiguration, ctx);
     ctx.refresh();
     ctx.start();
@@ -107,10 +115,10 @@ public final class DownloadWorkflowModule  {
 
   @Bean
   @Qualifier("Downloads")
-  CuratorFramework provideCuratorFrameworkDownloads(@Value(PROPERTIES_PREFIX + "zookeeper.downloads.namespace}") String zookeeperNamespace,
-                                                    @Value(PROPERTIES_PREFIX + "zookeeper.quorum}") String zookeeperConnection,
-                                                    @Value(PROPERTIES_PREFIX + "zookeeper.sleep_time}") Integer sleepTime,
-                                                    @Value(PROPERTIES_PREFIX + "zookeeper.max_retries}") Integer maxRetries) {
+  CuratorFramework provideCuratorFrameworkDownloads(@Value("${" + DefaultSettings.ZK_DOWNLOADS_NS_KEY +"}") String zookeeperNamespace,
+                                                    @Value("${" + DefaultSettings.ZK_QUORUM_KEY + "}") String zookeeperConnection,
+                                                    @Value("${" + DefaultSettings.ZK_SLEEP_TIME_KEY + "}") Integer sleepTime,
+                                                    @Value("${" + DefaultSettings.ZK_MAX_RETRIES_KEY + "}") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
@@ -121,10 +129,10 @@ public final class DownloadWorkflowModule  {
 
   @Bean
   @Qualifier("Indices")
-  CuratorFramework provideCuratorFrameworkIndices(@Value(PROPERTIES_PREFIX + "zookeeper.indices.namespace}") String zookeeperNamespace,
-                                                  @Value(PROPERTIES_PREFIX + "zookeeper.quorum}") String zookeeperConnection,
-                                                  @Value(PROPERTIES_PREFIX + "zookeeper.sleep_time}") Integer sleepTime,
-                                                  @Value(PROPERTIES_PREFIX + "zookeeper.max_retries}") Integer maxRetries) {
+  CuratorFramework provideCuratorFrameworkIndices(@Value("${" + DefaultSettings.ZK_INDICES_NS_KEY +"}") String zookeeperNamespace,
+                                                  @Value("${" + DefaultSettings.ZK_QUORUM_KEY + "}") String zookeeperConnection,
+                                                  @Value("${" + DefaultSettings.ZK_SLEEP_TIME_KEY + "}") Integer sleepTime,
+                                                  @Value("${" + DefaultSettings.ZK_MAX_RETRIES_KEY + "}") Integer maxRetries) {
     CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
       .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
       .connectString(zookeeperConnection)
@@ -150,17 +158,17 @@ public final class DownloadWorkflowModule  {
 
   @Bean
   ExecutionContextExecutorService provideExecutionContextExecutorService(
-    @Value(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
+    @Value("${" + PROPERTIES_PREFIX + "job.max_threads}") int maxThreads) {
     return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
   }
 
   @Bean
-  LockFactory provideLock(@Value("Downloads") CuratorFramework curatorFramework, @Value(PROPERTIES_PREFIX + "max_global_threads}") Integer maxGlobalThreads) {
+  LockFactory provideLock(@Qualifier("Downloads") CuratorFramework curatorFramework, @Value("${" +  DefaultSettings.MAX_GLOBAL_THREADS_KEY + "}") Integer maxGlobalThreads) {
     return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, RUNNING_JOBS_LOCKING_PATH);
   }
 
   @Bean
-  ReadWriteMutexFactory provideMutexFactory(@Value("Indices") CuratorFramework curatorFramework) {
+  ReadWriteMutexFactory provideMutexFactory(@Qualifier("Indices") CuratorFramework curatorFramework) {
     return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
   }
 
@@ -170,7 +178,7 @@ public final class DownloadWorkflowModule  {
   }
 
   @Bean
-  private RestHighLevelClient provideEsClient(WorkflowConfiguration workflowConfiguration) {
+  RestHighLevelClient provideEsClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -220,6 +228,15 @@ public final class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
+  @Bean
+  DownloadMaster.MasterFactory downloadMaster(LockFactory lockFactory,
+                                DownloadMaster.MasterConfiguration masterConfiguration,
+                                RestHighLevelClient esClient,
+                                @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY+ "}") String esIndex,
+                                DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
+    return new DownloadMaster.MasterFactory(lockFactory, masterConfiguration, esClient, esIndex, jobConfiguration, aggregator);
+  }
+
   /**
    * Binds a DownloadFilesAggregator according to the DownloadFormat set using the key DOWNLOAD_FORMAT_KEY.
    */
@@ -230,22 +247,23 @@ public final class DownloadWorkflowModule  {
     if (downloadFormat != null) {
       switch (downloadFormat) {
         case DWCA:
-          context.register(DwcaDownloadAggregator.class);
+          context.registerBean(DwcaDownloadAggregator.class);
           break;
 
         case SIMPLE_CSV:
-          context.register(SimpleCsvDownloadAggregator.class);
+          context.registerBean(SimpleCsvDownloadAggregator.class);
           break;
 
         case SPECIES_LIST:
-          context.register(SpeciesListDownloadAggregator.class);
+          context.registerBean(SpeciesListDownloadAggregator.class);
           break;
 
         case SIMPLE_AVRO:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
         case MAP_OF_LIFE:
-          context.register(NotSupportedDownloadAggregator.class);
+        case BLOODHOUND:
+          context.registerBean(NotSupportedDownloadAggregator.class);
           break;
 
         default:
@@ -283,6 +301,7 @@ public final class DownloadWorkflowModule  {
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";
+    public static final String ES_HOSTS_KEY = "es.hosts";
 
     /**
      * Hidden constructor.
@@ -294,6 +313,7 @@ public final class DownloadWorkflowModule  {
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";
     public static final String ZK_LOCK_NAME_KEY = PROPERTIES_PREFIX + "zookeeper.lock_name";
+    public static final String MAX_GLOBAL_THREADS_KEY = PROPERTIES_PREFIX + "max_global_threads";
 
     public static final String DOWNLOAD_USER_KEY = PROPERTIES_PREFIX + "ws.username";
     public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
@@ -301,6 +321,13 @@ public final class DownloadWorkflowModule  {
     public static final String HDFS_OUTPUT_PATH_KEY = PROPERTIES_PREFIX + "hdfsOutputPath";
     public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
     public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.hdfs.out";
+
+
+    public static final String ZK_INDICES_NS_KEY = PROPERTIES_PREFIX + "zookeeper.indices.namespace";
+    public static final String ZK_DOWNLOADS_NS_KEY = PROPERTIES_PREFIX + "zookeeper.downloads.namespace";
+    public static final String ZK_QUORUM_KEY = PROPERTIES_PREFIX + "zookeeper.quorum";
+    public static final String ZK_SLEEP_TIME_KEY = PROPERTIES_PREFIX + "zookeeper.sleep_time";
+    public static final String ZK_MAX_RETRIES_KEY = PROPERTIES_PREFIX + "zookeeper.max_retries";
 
   }
 
