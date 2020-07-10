@@ -4,6 +4,9 @@ import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.registry.ws.client.DatasetClient;
+import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageClient;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.ClientFactory;
 
@@ -60,7 +63,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetService setupDatasetService() {
-    return clientFactory.newInstance(DatasetService.class);
+    return clientFactory.newInstance(DatasetClient.class);
   }
 
   /**
@@ -69,7 +72,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService() {
-    return clientFactory.newInstance(DatasetOccurrenceDownloadUsageService.class);
+    return clientFactory.newInstance(DatasetOccurrenceDownloadUsageClient.class);
   }
 
   /**
@@ -78,7 +81,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService() {
-    return clientFactory.newInstance(OccurrenceDownloadService.class);
+    return clientFactory.newInstance(OccurrenceDownloadClient.class);
   }
 
 }

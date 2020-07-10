@@ -221,7 +221,7 @@ public class DwcaArchiveBuilder {
       License downloadLicense = addConstituentMetadata();
 
       // persist the License assigned to the download
-      persistDownloadLicense(configuration.getDownloadKey(), downloadLicense);
+      persistDownloadLicense(downloadLicense);
 
       // metadata about the entire archive data
       generateMetadata();
@@ -520,16 +520,15 @@ public class DwcaArchiveBuilder {
   /**
    * Persist download license that was assigned to the occurrence download.
    *
-   * @param downloadKey
    * @param license
    */
-  private void persistDownloadLicense(String downloadKey, License license) {
+  private void persistDownloadLicense(License license) {
     try {
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      LOG.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
+      LOG.error("Error updating download license, downloadKey: {}, license: {}", configuration.getDownloadKey(), license, ex);
     }
   }
 
