@@ -6,6 +6,7 @@ import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
+import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,6 +14,7 @@ import java.util.Properties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.context.ApplicationContext;
 import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
 import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
@@ -131,6 +134,16 @@ public class DownloadWorkflowModuleTestIT {
 
     DownloadAggregator aggregator = applicationContext.getBean(DownloadAggregator.class);
     Assertions.assertNotNull(aggregator);
+
+    LockFactory lockFactory = applicationContext.getBean(LockFactory.class);
+    Assertions.assertNotNull(lockFactory);
+
+
+    CuratorFramework curatorFrameworkDownloads = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Downloads");
+    Assertions.assertNotNull(curatorFrameworkDownloads);
+
+    CuratorFramework curatorFrameworkIndices = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Indices");
+    Assertions.assertNotNull(curatorFrameworkIndices);
   }
 
   @Test

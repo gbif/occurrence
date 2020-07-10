@@ -14,6 +14,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -62,10 +63,11 @@ public class FromSearchDownloadAction {
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
+
     ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration, configuration);
 
-    try (CuratorFramework curatorDownload = applicationContext.getBean("Downloads", CuratorFramework.class);
-         CuratorFramework curatorIndices = applicationContext.getBean("Indices", CuratorFramework.class)) {
+    try (CuratorFramework curatorDownload = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Downloads");
+         CuratorFramework curatorIndices = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Indices")) {
 
       // Create an Akka system
       ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
