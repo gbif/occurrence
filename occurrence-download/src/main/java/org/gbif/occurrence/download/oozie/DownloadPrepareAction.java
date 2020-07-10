@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -50,6 +51,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * is replaced by '_'.
  */
 @Component
+@Lazy
 public class DownloadPrepareAction {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);

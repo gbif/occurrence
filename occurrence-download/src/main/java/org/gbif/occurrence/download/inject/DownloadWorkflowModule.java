@@ -40,6 +40,7 @@ import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -85,8 +86,11 @@ public class DownloadWorkflowModule  {
 
     if (configuration != null) {
       ctx.registerBean("jobConfiguration", DownloadJobConfiguration.class, () -> configuration);
+      ctx.register(DownloadMaster.MasterConfiguration.class);
+      registerAggregator(workflowConfiguration, ctx);
     }
 
+    ctx.register(DownloadPrepareAction.class);
 
     ctx.getEnvironment()
       .getPropertySources()
@@ -96,11 +100,6 @@ public class DownloadWorkflowModule  {
                                         .entrySet()
                                         .stream()
                                         .collect(Collectors.toMap( e -> e.getKey().toString(), e -> e.getValue().toString()))));
-
-    ctx.register(DownloadPrepareAction.class);
-    ctx.register(DownloadMaster.MasterConfiguration.class);
-
-    registerAggregator(workflowConfiguration, ctx);
     ctx.refresh();
     ctx.start();
     return ctx;
@@ -115,6 +114,7 @@ public class DownloadWorkflowModule  {
 
   @Bean
   @Qualifier("Downloads")
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   CuratorFramework provideCuratorFrameworkDownloads(@Value("${" + DefaultSettings.ZK_DOWNLOADS_NS_KEY +"}") String zookeeperNamespace,
                                                     @Value("${" + DefaultSettings.ZK_QUORUM_KEY + "}") String zookeeperConnection,
                                                     @Value("${" + DefaultSettings.ZK_SLEEP_TIME_KEY + "}") Integer sleepTime,
@@ -129,6 +129,7 @@ public class DownloadWorkflowModule  {
 
   @Bean
   @Qualifier("Indices")
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   CuratorFramework provideCuratorFrameworkIndices(@Value("${" + DefaultSettings.ZK_INDICES_NS_KEY +"}") String zookeeperNamespace,
                                                   @Value("${" + DefaultSettings.ZK_QUORUM_KEY + "}") String zookeeperConnection,
                                                   @Value("${" + DefaultSettings.ZK_SLEEP_TIME_KEY + "}") Integer sleepTime,
@@ -142,11 +143,13 @@ public class DownloadWorkflowModule  {
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetUsageService();
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   DatasetService provideDatasetService(RegistryClientUtil registryClientUtil) {
     return registryClientUtil.setupDatasetService();
   }
@@ -157,22 +160,26 @@ public class DownloadWorkflowModule  {
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   ExecutionContextExecutorService provideExecutionContextExecutorService(
     @Value("${" + PROPERTIES_PREFIX + "job.max_threads}") int maxThreads) {
     return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   LockFactory provideLock(@Qualifier("Downloads") CuratorFramework curatorFramework, @Value("${" +  DefaultSettings.MAX_GLOBAL_THREADS_KEY + "}") Integer maxGlobalThreads) {
     return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, RUNNING_JOBS_LOCKING_PATH);
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   ReadWriteMutexFactory provideMutexFactory(@Qualifier("Indices") CuratorFramework curatorFramework) {
     return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY + "}") String esIndex) {
     return readWriteMutexFactory.createReadMutex(esIndex);
   }
@@ -229,11 +236,13 @@ public class DownloadWorkflowModule  {
   }
 
   @Bean
+  @ConditionalOnBean(DownloadJobConfiguration.class)
   DownloadMaster.MasterFactory downloadMaster(LockFactory lockFactory,
                                 DownloadMaster.MasterConfiguration masterConfiguration,
                                 RestHighLevelClient esClient,
                                 @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY+ "}") String esIndex,
-                                DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
+                                DownloadJobConfiguration jobConfiguration,
+                                DownloadAggregator aggregator) {
     return new DownloadMaster.MasterFactory(lockFactory, masterConfiguration, esClient, esIndex, jobConfiguration, aggregator);
   }
 

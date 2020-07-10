@@ -17,8 +17,10 @@ import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
 import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
@@ -129,5 +131,17 @@ public class DownloadWorkflowModuleTestIT {
 
     DownloadAggregator aggregator = applicationContext.getBean(DownloadAggregator.class);
     Assertions.assertNotNull(aggregator);
+  }
+
+  @Test
+  public void DownloadPrepareActionCreationTest() {
+
+    ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration(DownloadFormat.DWCA));
+    Assertions.assertNotNull(applicationContext);
+
+    DownloadPrepareAction downloadPrepareAction = applicationContext.getBean(DownloadPrepareAction.class);
+    Assertions.assertNotNull(downloadPrepareAction);
+
+    Assertions.assertThrows(NoSuchBeanDefinitionException.class, () -> applicationContext.getBean(DownloadMaster.MasterFactory.class));
   }
 }
