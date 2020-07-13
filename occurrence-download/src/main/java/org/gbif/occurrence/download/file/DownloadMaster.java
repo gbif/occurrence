@@ -1,7 +1,8 @@
 package org.gbif.occurrence.download.file;
 
-import akka.actor.ActorSystem;
+import lombok.Builder;
 import lombok.Data;
+import org.apache.curator.framework.CuratorFramework;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -9,6 +10,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
@@ -16,6 +18,7 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,21 +38,21 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 /**
  * Actor that controls the multi-threaded creation of occurrence downloads.
  */
+@Data
 public class DownloadMaster extends UntypedActor {
+
+  private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
   private final RestHighLevelClient esClient;
   private final String esIndex;
   private final MasterConfiguration conf;
+  private final CuratorFramework curatorFramework;
   private final LockFactory lockFactory;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
@@ -60,15 +63,21 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Default constructor.
    */
-  public DownloadMaster(LockFactory lockFactory,
-                        MasterConfiguration masterConfiguration,
-                        RestHighLevelClient esClient,
-                        String esIndex,
-                        DownloadJobConfiguration jobConfiguration,
-                        DownloadAggregator aggregator) {
+  @Builder
+  public DownloadMaster(
+    WorkflowConfiguration workflowConfiguration,
+    MasterConfiguration masterConfiguration,
+    RestHighLevelClient esClient,
+    String esIndex,
+    DownloadJobConfiguration jobConfiguration,
+    DownloadAggregator aggregator,
+    int maxGlobalJobs) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
-    this.lockFactory = lockFactory;
+    this.curatorFramework = DownloadWorkflowModule.curatorFramework(workflowConfiguration);
+    this.lockFactory = new ZooKeeperLockFactory(curatorFramework,
+                                                maxGlobalJobs,
+                                                RUNNING_JOBS_LOCKING_PATH);
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
@@ -81,6 +90,7 @@ public class DownloadMaster extends UntypedActor {
   private void aggregateAndShutdown() {
     aggregator.aggregate(results);
     shutDownEsClientSilently();
+    curatorFramework.close();
     getContext().stop(getSelf());
   }
 
@@ -254,7 +264,8 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Utility class that holds the general execution settings.
    */
-  @Configuration
+  @Data
+  @Builder
   public static class MasterConfiguration {
 
     // Maximum number of workers
@@ -269,55 +280,6 @@ public class DownloadMaster extends UntypedActor {
 
     // Occurrence download lock/counter name
     private final String lockName;
-
-    /**
-     * Default/full constructor.
-     */
-    @Autowired
-    public MasterConfiguration(@Value("${" + DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY + "}") int nrOfWorkers,
-                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY + "}") int minNrOfRecords,
-                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int maximumNrOfRecords,
-                               @Value("${"+ DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY + "}") String lockName) {
-      this.nrOfWorkers = nrOfWorkers;
-      this.minNrOfRecords = minNrOfRecords;
-      this.maximumNrOfRecords = maximumNrOfRecords;
-      this.lockName = lockName;
-    }
   }
 
-  @Data
-  @Component
-  public static class MasterFactory {
-    private final LockFactory lockFactory;
-    private final  MasterConfiguration masterConfiguration;
-    private final RestHighLevelClient esClient;
-    private final String esIndex;
-    private final DownloadJobConfiguration jobConfiguration;
-    private final DownloadAggregator aggregator;
-
-    @Autowired
-    public MasterFactory(
-      LockFactory lockFactory,
-      MasterConfiguration masterConfiguration,
-      RestHighLevelClient esClient,
-      String esIndex,
-      DownloadJobConfiguration jobConfiguration,
-      DownloadAggregator aggregator
-    ) {
-      this.lockFactory = lockFactory;
-      this.masterConfiguration = masterConfiguration;
-      this.esClient = esClient;
-      this.esIndex = esIndex;
-      this.jobConfiguration = jobConfiguration;
-      this.aggregator = aggregator;
-    }
-
-    public ActorRef build(ActorSystem system) {
-      return
-      system.actorOf(
-        new Props( () -> new DownloadMaster(lockFactory, masterConfiguration, esClient, esIndex, jobConfiguration, aggregator)),
-        "DownloadMaster" + jobConfiguration.getDownloadKey());
-
-    }
-  }
 }

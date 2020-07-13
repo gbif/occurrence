@@ -2,6 +2,8 @@ package org.gbif.occurrence.download.oozie;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
+import lombok.Data;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -19,6 +21,7 @@ import org.gbif.occurrence.download.query.EsQueryVisitor;
 import org.gbif.occurrence.download.query.HiveQueryVisitor;
 import org.gbif.occurrence.download.query.QueryBuildingException;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,10 +35,6 @@ import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -50,9 +49,9 @@ import static com.google.common.base.Preconditions.checkArgument;
  * - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
  * is replaced by '_'.
  */
-@Component
-@Lazy
-public class DownloadPrepareAction {
+@Data
+@Builder
+public class DownloadPrepareAction implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);
 
@@ -95,28 +94,16 @@ public class DownloadPrepareAction {
    */
   public static void main(String[] args) throws Exception {
     checkArgument(args.length > 0 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
-    DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.buildAppContext(new WorkflowConfiguration()).getBean(DownloadPrepareAction.class);
-    occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
+    try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
+                                                  .workflowConfiguration(new WorkflowConfiguration())
+                                                  .build()
+                                                    .downloadPrepareAction()) {
+      occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
+    }
   }
 
 
-  /**
-   * Default/injectable constructor.
-   */
-  @Autowired
-  public DownloadPrepareAction(
-    RestHighLevelClient esClient,
-    @Value("${" + DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY + "}") String esIndex,
-    @Value("${" + DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY + "}") int smallDownloadLimit,
-    OccurrenceDownloadService occurrenceDownloadService,
-    WorkflowConfiguration workflowConfiguration
-  ) {
-    this.esClient = esClient;
-    this.esIndex = esIndex;
-    this.smallDownloadLimit = smallDownloadLimit;
-    this.occurrenceDownloadService = occurrenceDownloadService;
-    this.workflowConfiguration = workflowConfiguration;
-  }
+
 
   /**
    * Method that determines if the search query produces a "small" download file.
@@ -190,8 +177,6 @@ public class DownloadPrepareAction {
     } catch (Exception e) {
       LOG.error("Error getting the records count", e);
       return ERROR_COUNT;
-    } finally {
-      shutDownEsClientSilently();
     }
   }
 
@@ -224,6 +209,11 @@ public class DownloadPrepareAction {
     } catch (Exception ex) {
       LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
     }
+  }
+
+  @Override
+  public void close() {
+    shutDownEsClientSilently();
   }
 
 }

@@ -14,12 +14,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Aggregates partials results of files and combine then into the output zip file.
@@ -64,9 +62,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
-  @Autowired
-  public DwcaDownloadAggregator(OccurrenceDownloadService occurrenceDownloadService,
-                                DownloadJobConfiguration configuration) {
+  public DwcaDownloadAggregator(DownloadJobConfiguration configuration,
+                                OccurrenceDownloadService occurrenceDownloadService) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
   }

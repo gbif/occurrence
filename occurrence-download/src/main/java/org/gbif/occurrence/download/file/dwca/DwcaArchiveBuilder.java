@@ -152,29 +152,25 @@ public class DwcaArchiveBuilder {
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
-  private static String writeCitation(Writer citationWriter, Dataset dataset)
+  private static void writeCitation(Writer citationWriter, Dataset dataset)
     throws IOException {
     // citation
-    String citationLink = null;
     if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
       citationWriter.write(dataset.getCitation().getText());
       citationWriter.write('\n');
     } else {
       LOG.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
     }
-    return citationLink;
   }
 
   /**
    * Write rights text.
    */
-  private static void writeRights(Writer rightsWriter, Dataset dataset, String citationLink)
+  private static void writeRights(Writer rightsWriter, Dataset dataset)
     throws IOException {
     // write rights
     rightsWriter.write("\nDataset: " + dataset.getTitle());
-    if (!Strings.isNullOrEmpty(citationLink)) {
-      rightsWriter.write(citationLink);
-    }
+
     rightsWriter.write("\nRights as supplied: ");
     if (dataset.getLicense() != null && dataset.getLicense().isConcrete()) {
       rightsWriter.write(dataset.getLicense().getLicenseUrl());
@@ -429,9 +425,9 @@ public class DwcaArchiveBuilder {
 
             licenseSelector.collectLicense(constituent.getDataset().getLicense());
             // citation
-            String citationLink = writeCitation(citationWriter, constituent.getDataset());
+            writeCitation(citationWriter, constituent.getDataset());
             // rights
-            writeRights(rightsWriter, constituent.getDataset(), citationLink);
+            writeRights(rightsWriter, constituent.getDataset());
             // eml file
             createEmlFile(dataset.getKey(), emlDir);
 

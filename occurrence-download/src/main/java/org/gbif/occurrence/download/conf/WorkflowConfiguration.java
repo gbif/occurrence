@@ -137,6 +137,14 @@ public class WorkflowConfiguration {
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.API_URL_KEY);
   }
 
+  public String getSetting(String key) {
+    return settings.getProperty(key);
+  }
+
+  public Integer getIntSetting(String key) {
+    return Integer.parseInt(settings.getProperty(key));
+  }
+
   /**
    *
    * @return HDFS Hadoop configuration

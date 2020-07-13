@@ -2,11 +2,8 @@ package org.gbif.occurrence.download.inject;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
-import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
-import org.gbif.wrangler.lock.LockFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,17 +11,12 @@ import java.util.Properties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
-import org.springframework.context.ApplicationContext;
 import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
 import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
 
@@ -120,41 +112,19 @@ public class DownloadWorkflowModuleTestIT {
   public void downloadModuleCreationTest(DownloadFormat downloadFormat) {
      DownloadJobConfiguration downloadJobConfiguration =downloadJobConfiguration(downloadFormat);
 
-    ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration(downloadFormat),
-                                                                                   downloadJobConfiguration);
+    DownloadWorkflowModule module = DownloadWorkflowModule.builder()
+                                      .workflowConfiguration(workflowConfiguration(downloadFormat))
+                                      .downloadJobConfiguration(downloadJobConfiguration).build();
 
-    Assertions.assertNotNull(applicationContext);
+    Assertions.assertNotNull(module);
 
-    DownloadPrepareAction downloadPrepareAction = applicationContext.getBean(DownloadPrepareAction.class);
+    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction();
     Assertions.assertNotNull(downloadPrepareAction);
+
 
     ActorSystem system = ActorSystem.create("DownloadSystem" + downloadJobConfiguration.getDownloadKey());
-    ActorRef downloadMaster = applicationContext.getBean(DownloadMaster.MasterFactory.class).build(system);
+
+    ActorRef downloadMaster = module.downloadMaster(system);
     Assertions.assertNotNull(downloadMaster);
-
-    DownloadAggregator aggregator = applicationContext.getBean(DownloadAggregator.class);
-    Assertions.assertNotNull(aggregator);
-
-    LockFactory lockFactory = applicationContext.getBean(LockFactory.class);
-    Assertions.assertNotNull(lockFactory);
-
-
-    CuratorFramework curatorFrameworkDownloads = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Downloads");
-    Assertions.assertNotNull(curatorFrameworkDownloads);
-
-    CuratorFramework curatorFrameworkIndices = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Indices");
-    Assertions.assertNotNull(curatorFrameworkIndices);
-  }
-
-  @Test
-  public void DownloadPrepareActionCreationTest() {
-
-    ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration(DownloadFormat.DWCA));
-    Assertions.assertNotNull(applicationContext);
-
-    DownloadPrepareAction downloadPrepareAction = applicationContext.getBean(DownloadPrepareAction.class);
-    Assertions.assertNotNull(downloadPrepareAction);
-
-    Assertions.assertThrows(NoSuchBeanDefinitionException.class, () -> applicationContext.getBean(DownloadMaster.MasterFactory.class));
   }
 }

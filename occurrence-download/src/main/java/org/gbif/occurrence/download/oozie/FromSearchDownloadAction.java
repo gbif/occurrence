@@ -14,8 +14,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Class that encapsulates the process of creating the occurrence files from Elasticsearch/Hive.
@@ -64,18 +62,20 @@ public class FromSearchDownloadAction {
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
 
-    ApplicationContext applicationContext = DownloadWorkflowModule.buildAppContext(workflowConfiguration, configuration);
+    DownloadWorkflowModule module = DownloadWorkflowModule.builder()
+      .workflowConfiguration(workflowConfiguration)
+      .downloadJobConfiguration(configuration)
+      .build();
 
-    try (CuratorFramework curatorDownload = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Downloads");
-         CuratorFramework curatorIndices = BeanFactoryAnnotationUtils.qualifiedBeanOfType(applicationContext.getAutowireCapableBeanFactory(), CuratorFramework.class, "Indices")) {
+    try (CuratorFramework curatorIndices = module.curatorFramework()) {
 
       // Create an Akka system
       ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
 
       // create the master
-      ActorRef master = applicationContext.getBean(DownloadMaster.MasterFactory.class).build(system);
+      ActorRef master = module.downloadMaster(system);
 
-      Mutex readMutex = applicationContext.getBean(Mutex.class);
+      Mutex readMutex = module.provideReadLock(curatorIndices);
       readMutex.acquire();
       // start the calculation
       master.tell(new DownloadMaster.Start());
