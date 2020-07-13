@@ -21,10 +21,8 @@ import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregat
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;
-import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import org.gbif.ws.client.ClientFactory;
 
@@ -42,10 +40,7 @@ import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
 
 /**
- * Private guice module that provides bindings the required Modules and dependencies.
- * The following class are exposed:
- * - CuratorFramework: this class is exposed only to close the zookeeper connections properly.
- * - OccurrenceFileWriter: class that creates the occurrence data and citations file.
+ * Utility factory class to create instances of common complex objects required by Download Actions.
  */
 @Data
 @Builder
@@ -55,6 +50,7 @@ public class DownloadWorkflowModule  {
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
+
   private static final String ES_PREFIX = "es.";
 
   private static final String INDEX_LOCKING_PATH = "/indices/";
@@ -63,6 +59,10 @@ public class DownloadWorkflowModule  {
 
   private final DownloadJobConfiguration downloadJobConfiguration;
 
+  /**
+   * DownloadPrepare action factory method.
+   * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
+   */
   public DownloadPrepareAction downloadPrepareAction() {
     return DownloadPrepareAction.builder().esClient(esClient())
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
@@ -72,45 +72,49 @@ public class DownloadWorkflowModule  {
             .build();
   }
 
+  /**
+   * GBIF Ws client factory.
+   */
   public ClientFactory clientFactory() {
     return new ClientFactory(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
                              workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY),
                              workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY));
   }
 
+  /**
+   * Creates am started CuratorFramework instance using the settings in workflowConfiguration.
+   */
   public  CuratorFramework curatorFramework() {
-      return curatorFramework(this.workflowConfiguration);
+      return curatorFramework(workflowConfiguration);
   }
 
+  /**
+   * Creates and started CuratorFramework using the provided configuration.
+   */
   public static CuratorFramework curatorFramework(WorkflowConfiguration workflowConfiguration) {
-
     CuratorFramework curator = CuratorFrameworkFactory.builder()
       .namespace(workflowConfiguration.getSetting(DefaultSettings.ZK_DOWNLOADS_NS_KEY))
       .retryPolicy(new ExponentialBackoffRetry(workflowConfiguration.getIntSetting(DefaultSettings.ZK_SLEEP_TIME_KEY),
                                                workflowConfiguration.getIntSetting(DefaultSettings.ZK_MAX_RETRIES_KEY)))
       .connectString( workflowConfiguration.getSetting(DefaultSettings.ZK_QUORUM_KEY))
       .build();
+
     curator.start();
     return curator;
   }
 
-
-  public ExecutionContextExecutorService executionContextExecutorService() {
-    return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(workflowConfiguration.getIntSetting(DefaultSettings.MAX_THREADS_KEY)));
-  }
-
-
-
-  private ReadWriteMutexFactory indicesMutexFactory(CuratorFramework curatorFramework) {
-    return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
-  }
-
-
+  /**
+   * Creates a RW Mutex, used later to create a mutex to synchronize modification to the ES index.
+   */
   public Mutex provideReadLock(CuratorFramework curatorFramework) {
-    return indicesMutexFactory(curatorFramework)
+    ReadWriteMutexFactory readWriteMutexFactory = new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
+    return readWriteMutexFactory
             .createReadMutex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY));
   }
 
+  /**
+   * Factory method for Elasticsearch client.
+   */
   public RestHighLevelClient esClient() {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
@@ -161,6 +165,9 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
+  /**
+   *  Configuration for the DownloadMater actor.
+   */
   private DownloadMaster.MasterConfiguration masterConfiguration() {
     return  DownloadMaster.MasterConfiguration.builder()
             .nrOfWorkers(workflowConfiguration.getIntSetting(DefaultSettings.MAX_THREADS_KEY))
@@ -170,6 +177,9 @@ public class DownloadWorkflowModule  {
             .build();
   }
 
+  /**
+   * Creates an ActorRef that holds an instance of {@link DownloadMaster}.
+   */
   public ActorRef downloadMaster(ActorSystem system) {
     return system.actorOf(new Props(() -> new DownloadMaster(workflowConfiguration,
                                                        masterConfiguration(),
