@@ -20,11 +20,6 @@
     </site>
   </distributionManagement>
 
-  <properties>
-    <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
-    <feign.version>10.4.0</feign.version>
-  </properties>
-
   <build>
     <resources>
       <resource>
@@ -96,16 +91,14 @@
       <artifactId>gbif-common-ws</artifactId>
     </dependency>
 
-    <!-- Sptring dependencies -->
+    <!-- Spring dependencies -->
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-openfeign</artifactId>
-      <version>${spring-cloud-openfeign.version}</version>
     </dependency>
     <dependency>
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-jackson</artifactId>
-      <version>${feign.version}</version>
     </dependency>
   </dependencies>
 </project>
