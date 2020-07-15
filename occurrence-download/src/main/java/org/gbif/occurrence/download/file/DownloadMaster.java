@@ -89,6 +89,13 @@ public class DownloadMaster extends UntypedActor {
    */
   private void aggregateAndShutdown() {
     aggregator.aggregate(results);
+    shutdown();
+  }
+
+  /**
+   * Shutdown the system of actors
+   */
+  private void shutdown() {
     shutDownEsClientSilently();
     curatorFramework.close();
     getContext().stop(getSelf());
@@ -117,6 +124,9 @@ public class DownloadMaster extends UntypedActor {
       if (nrOfResults == calcNrOfWorkers) {
         aggregateAndShutdown();
       }
+    } else if (message instanceof Exception) {
+      LOG.error("Received an exception from a worker. Aborting.", message);
+      shutdown();
     }
   }
 

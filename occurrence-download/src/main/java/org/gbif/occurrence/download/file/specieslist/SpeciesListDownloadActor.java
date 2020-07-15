@@ -54,15 +54,17 @@ public class SpeciesListDownloadActor extends UntypedActor {
             speciesCollector.collect(occurrenceRecordMap);
           }
         } catch (Exception e) {
+          getSender().tell(e, getSelf()); // inform our master
           throw Throwables.propagate(e);
         }
       });
+
+      getSender().tell(new SpeciesListResult(work, datasetUsagesCollector.getDatasetUsages(), datasetUsagesCollector.getDatasetLicenses(),
+        speciesCollector.getDistinctSpecies()), getSelf());
     } finally {
       // Release the lock
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
     }
-    getSender().tell(new SpeciesListResult(work, datasetUsagesCollector.getDatasetUsages(), datasetUsagesCollector.getDatasetLicenses(),
-        speciesCollector.getDistinctSpecies()), getSelf());
   }
 }

@@ -75,17 +75,19 @@ public class SimpleCsvDownloadActor extends UntypedActor {
             csvMapWriter.write(occurrenceRecordMap, COLUMNS);
 
           } catch (Exception e) {
+            getSender().tell(e, getSelf()); // inform our master
             throw Throwables.propagate(e);
           }
         }
       );
+
+      getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
+        datasetUsagesCollector.getDatasetLicenses()), getSelf());
     } finally {
       // Release the lock
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
     }
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
-      datasetUsagesCollector.getDatasetLicenses()), getSelf());
   }
 
 }

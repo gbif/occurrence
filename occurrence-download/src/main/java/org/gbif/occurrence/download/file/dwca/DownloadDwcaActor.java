@@ -124,15 +124,17 @@ public class DownloadDwcaActor extends UntypedActor {
               writeMediaObjects(multimediaCsvWriter, occurrence);
             }
           } catch (Exception e) {
+            getSender().tell(e, getSelf()); // inform our master
             throw Throwables.propagate(e);
           }
         });
+
+      getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
       // Unlock the assigned lock.
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
     }
-    getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
   }
 
   @Override
