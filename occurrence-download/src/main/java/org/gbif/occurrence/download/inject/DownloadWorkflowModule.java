@@ -135,8 +135,11 @@ public class DownloadWorkflowModule  {
           requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
             .setSocketTimeout(esConfig.getSocketTimeout()))
         .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
-        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
-        .setFailureListener(sniffOnFailureListener);
+        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+
+    if (esConfig.getSniffInterval() > 0) {
+      builder.setFailureListener(sniffOnFailureListener);
+    }
 
     RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
 

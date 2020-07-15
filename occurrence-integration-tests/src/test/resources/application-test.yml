@@ -34,8 +34,8 @@ occurrence:
     es:
       connect_timeout: 6000
       index: occurrence
-      sniff_after_failure_delay: 30000
-      sniff_interval: 300000
+      sniff_after_failure_delay: 0
+      sniff_interval: 0
       socket_timeout: 90000
       enabled: false
     max:
