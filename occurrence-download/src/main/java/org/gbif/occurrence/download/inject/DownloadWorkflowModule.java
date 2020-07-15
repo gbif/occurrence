@@ -29,10 +29,7 @@ import org.gbif.ws.client.ClientFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.Executors;
 
-import akka.dispatch.ExecutionContextExecutorService;
-import akka.dispatch.ExecutionContexts;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -143,24 +140,22 @@ public class DownloadWorkflowModule  {
 
     RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
 
-    Sniffer sniffer =
-      Sniffer.builder(highLevelClient.getLowLevelClient())
+    if (esConfig.getSniffInterval() > 0) {
+      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
-    sniffOnFailureListener.setSniffer(sniffer);
+      sniffOnFailureListener.setSniffer(sniffer);
 
-    Runtime.getRuntime()
-      .addShutdownHook(
-        new Thread(
-          () -> {
-            sniffer.close();
-            try {
-              highLevelClient.close();
-            } catch (IOException e) {
-              throw new IllegalStateException("Couldn't close ES client", e);
-            }
-          }));
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        sniffer.close();
+        try {
+          highLevelClient.close();
+        } catch (IOException e) {
+          throw new IllegalStateException("Couldn't close ES client", e);
+        }
+      }));
+    }
 
     return highLevelClient;
   }
@@ -254,6 +249,10 @@ public class DownloadWorkflowModule  {
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";
     public static final String ES_HOSTS_KEY = "es.hosts";
+    public static final String ES_CONNECT_TIMEOUT_KEY = "es.connect_timeout";
+    public static final String ES_SOCKET_TIMEOUT_KEY = "es.socket_timeout";
+    public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
+    public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
 
     /**
      * Hidden constructor.
