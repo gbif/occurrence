@@ -27,9 +27,6 @@ public class SearchQueryProcessor {
   // Default page size for queries.
   private static final int LIMIT = 300;
 
-  //Keep alive time for the scroll session
-  private static final long SCROLL_TIME_VALUE = 5L;
-
   private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getFieldName();
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchQueryProcessor.class);

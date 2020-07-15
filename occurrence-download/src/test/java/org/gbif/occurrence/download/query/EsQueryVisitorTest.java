@@ -15,8 +15,8 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for the Elasticsearch query visitor.
@@ -55,7 +55,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -81,7 +81,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -107,7 +107,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -133,7 +133,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -159,7 +159,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -242,7 +242,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -293,7 +293,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -318,7 +318,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -400,7 +400,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -438,7 +438,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery,query);
+    Assertions.assertEquals(expectedQuery,query);
   }
 
   @Test
@@ -512,7 +512,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -535,7 +535,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -615,7 +615,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -636,7 +636,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -644,7 +644,7 @@ public class EsQueryVisitorTest {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getQuery(p);
-    Assert.assertNotNull(query);
+    Assertions.assertNotNull(query);
   }
 
   @Test
@@ -765,7 +765,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -896,7 +896,7 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -1067,6 +1067,6 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
-    Assert.assertEquals(expectedQuery, query);
+    Assertions.assertEquals(expectedQuery, query);
   }
 }

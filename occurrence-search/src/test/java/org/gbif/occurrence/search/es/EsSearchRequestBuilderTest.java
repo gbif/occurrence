@@ -1,7 +1,7 @@
 package org.gbif.occurrence.search.es;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 
 /** Tests the {@link EsSearchRequestBuilder}. */
@@ -33,6 +33,6 @@ public class EsSearchRequestBuilderTest {
     Coordinate[] normalizedCoords =
         EsSearchRequestBuilder.normalizePolygonCoordinates(duplicateCoords);
 
-    Assert.assertArrayEquals(expectedCoords, normalizedCoords);
+    Assertions.assertArrayEquals(expectedCoords, normalizedCoords);
   }
 }

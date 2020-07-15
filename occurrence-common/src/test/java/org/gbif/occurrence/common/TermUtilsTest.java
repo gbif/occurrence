@@ -11,11 +11,11 @@ import org.gbif.dwc.terms.TermFactory;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -37,7 +37,7 @@ public class TermUtilsTest {
     Set<Term> terms = Sets.newHashSet();
     for (Term t : TermUtils.interpretedTerms()) {
       System.out.println(t.toString());
-      assertFalse("Interpreted term exists twice: " + t, terms.contains(t));
+      assertFalse(terms.contains(t), "Interpreted term exists twice: " + t);
       terms.add(t);
     }
   }
@@ -59,7 +59,7 @@ public class TermUtilsTest {
     Set<Term> terms = Sets.newHashSet();
     for (Term t : TermUtils.verbatimTerms()) {
       System.out.println(t.toString());
-      assertFalse("Verbatim term exists twice: " + t, terms.contains(t));
+      assertFalse(terms.contains(t), "Verbatim term exists twice: " + t);
       terms.add(t);
     }
   }

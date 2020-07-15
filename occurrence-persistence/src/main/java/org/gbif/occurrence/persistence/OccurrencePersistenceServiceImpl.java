@@ -1,42 +1,46 @@
 package org.gbif.occurrence.persistence;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.common.collect.Lists;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An implementation of OccurrenceService for retrieving Occurrence objects in HBase.
  */
-@Singleton
-public class OccurrencePersistenceServiceImpl implements OccurrenceService {
+@Component
+public class OccurrencePersistenceServiceImpl implements OccurrenceService, OccurrenceRelationshipService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrencePersistenceServiceImpl.class);
 
   private final String fragmenterTableName;
   private final int fragmenterSalt;
+  private final String relationshipTableName;
+  private final int relationshipSalt;
   private final Connection connection;
 
-  @Inject
+  @Autowired
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
     this.fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
     this.fragmenterSalt = cfg.fragmenterSalt;
+    this.relationshipTableName = cfg.relationshipTable;
+    this.relationshipSalt = cfg.relationshipSalt;
     this.connection = checkNotNull(connection, "connection can't be null");
   }
 
@@ -81,7 +85,61 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService {
     throw new UnsupportedOperationException("Replaced by pipelines");
   }
 
-  private String getSaltedKey(long key) {
+  @Override
+  public List<String> getRelatedOccurrences(long key) {
+    List<String> result = Lists.newArrayList();
+    if (this.relationshipTableName != null) {
+      try (Table table = connection.getTable(TableName.valueOf(relationshipTableName))) {
+        Scan scan = new Scan();
+        scan.addFamily(Bytes.toBytes("o"));
+        int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
+        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key));
+        ResultScanner s = table.getScanner(scan);
+
+        Result row = s.next();
+        int count=0;
+        while (row != null && count++<100) {
+          String reasons = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("reasons")));
+          // convert a -> ["a"] or a,b,c -> ["a","b", "c"]
+          String reasonsAsJsonArray = "[\"" + reasons.replaceAll(",", "\",\"") + "\"]";
+
+          String occurrence = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence2")));
+          result.add(String.format("{\n  \"reasons\": %s,\n  \"occurrence\":%s\n}", reasonsAsJsonArray, occurrence));
+          row = s.next();
+        }
+
+      } catch (IOException e) {
+        LOG.error("Could not read from HBase", e);
+        throw new ServiceUnavailableException("Could not read from HBase [" + e.getMessage()+ "]");
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public String getCurrentOccurrence(long key) {
+    if (this.relationshipTableName != null) {
+      try (Table table = connection.getTable(TableName.valueOf(relationshipTableName))) {
+        Scan scan = new Scan();
+        scan.addFamily(Bytes.toBytes("o"));
+        int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
+        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key));
+        ResultScanner s = table.getScanner(scan);
+        Result row = s.next();
+        if (row != null) {
+          return Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence1")));
+        }
+
+      } catch (IOException e) {
+        LOG.error("Could not read from HBase", e);
+        throw new ServiceUnavailableException("Could not read from HBase [" + e.getMessage()+ "]");
+      }
+    }
+    return "{}";
+  }
+
+
+    private String getSaltedKey(long key) {
     long mod = key % fragmenterSalt;
     String saltedKey = mod + ":" + key;
     return mod >= 10 ? saltedKey : "0" + saltedKey;

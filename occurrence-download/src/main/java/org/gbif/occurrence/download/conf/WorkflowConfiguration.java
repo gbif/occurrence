@@ -29,7 +29,8 @@ public class WorkflowConfiguration {
    * @param settings properties class load with the workflow settings
    */
   public WorkflowConfiguration(Properties settings) {
-    this.settings = new Properties(settings);
+    this.settings = new Properties();
+    this.settings.putAll(settings);
     hadoopConf = new Configuration();
     hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
   }
@@ -134,6 +135,14 @@ public class WorkflowConfiguration {
   public String getApiUrl() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.API_URL_KEY);
+  }
+
+  public String getSetting(String key) {
+    return settings.getProperty(key);
+  }
+
+  public Integer getIntSetting(String key) {
+    return Integer.parseInt(settings.getProperty(key));
   }
 
   /**

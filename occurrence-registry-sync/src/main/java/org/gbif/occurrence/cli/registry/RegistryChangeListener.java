@@ -38,13 +38,13 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
   private static final int PAGING_LIMIT = 20;
 
-  private static final Set<EndpointType> CRAWLABLE_ENDPOINT_TYPES = new ImmutableSet.Builder<EndpointType>().add(
+  private static final EnumSet<EndpointType> CRAWLABLE_ENDPOINT_TYPES = EnumSet.of(
     EndpointType.BIOCASE,
     EndpointType.DIGIR,
     EndpointType.DIGIR_MANIS,
     EndpointType.TAPIR,
     EndpointType.DWC_ARCHIVE,
-    EndpointType.EML).build();
+    EndpointType.EML);
 
   // pipelines
   private static final String METADATA_INTERPRETATION = "METADATA";

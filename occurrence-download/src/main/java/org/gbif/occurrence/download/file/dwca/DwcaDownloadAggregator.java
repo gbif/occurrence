@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -63,9 +62,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
   }
 
-  @Inject
-  public DwcaDownloadAggregator(OccurrenceDownloadService occurrenceDownloadService,
-                                DownloadJobConfiguration configuration) {
+  public DwcaDownloadAggregator(DownloadJobConfiguration configuration,
+                                OccurrenceDownloadService occurrenceDownloadService) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.configuration = configuration;
   }
@@ -80,6 +78,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
+  @Override
   public void aggregate(List<Result> results) {
     init();
     try (

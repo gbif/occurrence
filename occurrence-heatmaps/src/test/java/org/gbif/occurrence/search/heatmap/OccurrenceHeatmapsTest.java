@@ -1,13 +1,14 @@
 package org.gbif.occurrence.search.heatmap;
 
 import com.google.common.collect.Maps;
+import org.junit.jupiter.api.Test;
+
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +21,6 @@ public class OccurrenceHeatmapsTest {
 
   @Test
   public void heatmapRequestBuildTest() {
-
     OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
       .buildOccurrenceHeatmapRequest(getMockRequest());
 

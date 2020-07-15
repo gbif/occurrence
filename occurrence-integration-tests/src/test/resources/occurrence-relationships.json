@@ -1,0 +1,309 @@
+[
+{
+  "occurrence": {
+    "key": 1019596829,
+    "datasetKey": "b5cdf794-8fa4-4a85-8b26-755d087bf531",
+    "publishingOrgKey": "2cd829bb-b713-433d-99cf-64bef11e5b3e",
+    "installationKey": "86c2834b-fcd6-418d-9b32-aca45110a0fe",
+    "publishingCountry": "FR",
+    "protocol": "DWC_ARCHIVE",
+    "lastCrawled": "2020-07-01T09:58:18.892+0000",
+    "lastParsed": "2020-07-01T10:44:44.000+0000",
+    "crawlId": 286,
+    "extensions": {
+
+    },
+    "basisOfRecord": "PRESERVED_SPECIMEN",
+    "taxonKey": 10224887,
+    "kingdomKey": 6,
+    "phylumKey": 7707728,
+    "classKey": 220,
+    "orderKey": 1353,
+    "familyKey": 8802,
+    "genusKey": 9462488,
+    "speciesKey": 10224887,
+    "acceptedTaxonKey": 10224887,
+    "scientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+    "acceptedScientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+    "kingdom": "Plantae",
+    "phylum": "Tracheophyta",
+    "order": "Ericales",
+    "family": "Sapotaceae",
+    "genus": "Pleioluma",
+    "species": "Pleioluma tenuipedicellata",
+    "genericName": "Pleioluma",
+    "specificEpithet": "tenuipedicellata",
+    "taxonRank": "SPECIES",
+    "taxonomicStatus": "ACCEPTED",
+    "decimalLongitude": 164.20194,
+    "decimalLatitude": -20.46028,
+    "elevation": 500.0,
+    "year": 1969,
+    "month": 10,
+    "day": 17,
+    "eventDate": "1969-10-17T00:00:00",
+    "typeStatus": "ISOTYPE",
+    "issues": [
+      "GEODETIC_DATUM_ASSUMED_WGS84"
+    ],
+    "modified": "2017-06-15T14:52:31.000+0000",
+    "lastInterpreted": "2020-07-01T10:44:44.000+0000",
+    "license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+    "identifiers": [
+
+    ],
+    "media": [
+      {
+        "type": "StillImage",
+        "format": "image/jpeg",
+        "identifier": "http://mediaphoto.mnhn.fr/media/1452511750340szoWw1obAQxy3XjH",
+        "creator": "Picturae",
+        "license": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      {
+        "type": "StillImage",
+        "format": "image/jpeg",
+        "identifier": "http://mediaphoto.mnhn.fr/media/1512738498537j5P7oXF7KaqMR6md",
+        "creator": "H. Sinivassin",
+        "license": "http://creativecommons.org/licenses/by-nc-nd/4.0/"
+      }
+    ],
+    "facts": [
+
+    ],
+    "relations": [
+
+    ],
+    "geodeticDatum": "WGS84",
+    "class": "Magnoliopsida",
+    "countryCode": "NC",
+    "recordedByIDs": [
+
+    ],
+    "identifiedByIDs": [
+
+    ],
+    "country": "New Caledonia",
+    "preparations": "hb",
+    "identifier": "http://coldb.mnhn.fr/catalognumber/mnhn/p/p02089448",
+    "catalogNumber": "P02089448",
+    "recordedBy": "MacKee, H.S.",
+    "institutionCode": "MNHN",
+    "fieldNotes": "Sapotacée: Arbuste élancé 3 m ; feuilles vert très foncé brillant en dessus, vert clair brillant en dessous ; fleurs blanches odorantes ; latex blanc",
+    "fieldNumber": "21015",
+    "collectionCode": "P",
+    "verbatimLocality": "Plateau du Dôme de Tiébaghi",
+    "gbifID": "1019596829",
+    "occurrenceID": "http://coldb.mnhn.fr/catalognumber/mnhn/p/p02089448",
+    "identifiedBy": "Swenson"
+  },
+  "relatedOccurrences": [
+    {
+      "reasons": [
+        "SAME_ACCEPTED_SPECIES",
+        "SAME_DATE",
+        "NEARBY_COORDINATES",
+        "SAME_COUNTRY",
+        "TYPIFICATION_RELATION"
+      ],
+      "occurrence": {
+        "publishingOrgKey": "4c415e40-1e21-11de-9e40-a0d6ecebb8bf",
+        "classKey": 220,
+        "isTreatmentRecord": false,
+        "scientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "genericName": "Pleioluma",
+        "year": 1969,
+        "taxonRank": "SPECIES",
+        "fieldNumber": "21015",
+        "decimalLatitude": -20.46,
+        "kingdomKey": 6,
+        "preparations": "Typherbariet",
+        "catalogNumber": "S14-34468",
+        "basisOfRecord": "PRESERVED_SPECIMEN",
+        "institutionCode": "S",
+        "countryCode": "NC",
+        "phylumKey": 7707728,
+        "publishingOrgName": "GBIF-Sweden",
+        "genusKey": 9462488,
+        "isSequenceRecord": false,
+        "recordedByID": [
+
+        ],
+        "acceptedScientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "day": 17,
+        "order": "Ericales",
+        "orderKey": 1353,
+        "recordNumber": "21015",
+        "datasetKey": "0943f690-fde5-11dd-83f4-b8a03c50a862",
+        "acceptedTaxonKey": 10224887,
+        "typeStatus": null,
+        "datasetName": "Phanerogamic Botanical Collections (S)",
+        "decimalLongitude": 164.2,
+        "gbifId": 1096854608,
+        "collectionCode": "VascularPlants",
+        "occurrenceID": "S:VascularPlants:S14-34468",
+        "kingdom": "Plantae",
+        "familyKey": 8802,
+        "specificEpithet": "tenuipedicellata",
+        "recordedBy": "H. S. MacKee",
+        "multimedia": null,
+        "phylum": "Tracheophyta",
+        "otherCatalogNumbers": null,
+        "month": 10,
+        "genus": "Pleioluma",
+        "species": "Pleioluma tenuipedicellata",
+        "speciesKey": 10224887,
+        "family": "Sapotaceae",
+        "eventDate": "1969-10-17 00:00:00"
+      }
+    },
+    {
+      "reasons": [
+        "RELATED_SPECIMEN"
+      ],
+      "occurrence": {
+        "publishingOrgKey": "ae447c50-b8a8-11d8-92a4-b8a03c50a862",
+        "classKey": 220,
+        "isTreatmentRecord": false,
+        "scientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "genericName": "Pleioluma",
+        "year": 1969,
+        "taxonRank": "SPECIES",
+        "fieldNumber": null,
+        "decimalLatitude": -20.4603,
+        "kingdomKey": 6,
+        "preparations": "sheet",
+        "catalogNumber": "02473472",
+        "basisOfRecord": "PRESERVED_SPECIMEN",
+        "institutionCode": "NY",
+        "countryCode": "NC",
+        "phylumKey": 7707728,
+        "publishingOrgName": "The New York Botanical Garden",
+        "genusKey": 9462488,
+        "isSequenceRecord": false,
+        "recordedByID": [
+
+        ],
+        "acceptedScientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "day": 17,
+        "order": "Ericales",
+        "orderKey": 1353,
+        "recordNumber": "21015",
+        "datasetKey": "d415c253-4d61-4459-9d25-4015b9084fb0",
+        "acceptedTaxonKey": 10224887,
+        "typeStatus": "ISOTYPE",
+        "datasetName": "The New York Botanical Garden Herbarium (NY)",
+        "decimalLongitude": 164.2019,
+        "gbifId": 1929029473,
+        "collectionCode": "NY",
+        "occurrenceID": "59333249-533b-477d-86df-f1f9dc31bd8b",
+        "kingdom": "Plantae",
+        "familyKey": 8802,
+        "specificEpithet": "tenuipedicellata",
+        "recordedBy": "H. S. MacKee",
+        "multimedia": [
+          {
+            "type": "StillImage",
+            "format": "image/jpeg",
+            "identifier": "http://sweetgum.nybg.org/images3/2380/631/02473472.jpg",
+            "references": null,
+            "title": null,
+            "description": null,
+            "source": null,
+            "audience": null,
+            "created": null,
+            "creator": "The New York Botanical Garden",
+            "contributor": null,
+            "publisher": null,
+            "license": "http://creativecommons.org/licenses/by/4.0/",
+            "rightsHolder": "The New York Botanical Garden",
+            "datasetId": null
+          }
+        ],
+        "phylum": "Tracheophyta",
+        "otherCatalogNumbers": null,
+        "month": 10,
+        "genus": "Pleioluma",
+        "species": "Pleioluma tenuipedicellata",
+        "speciesKey": 10224887,
+        "family": "Sapotaceae",
+        "eventDate": "1969-10-17 00:00:00"
+      }
+    },
+    {
+      "reasons": [
+        "SAME_DATE",
+        "SAME_COUNTRY"
+      ],
+      "occurrence": {
+        "publishingOrgKey": "2853c0e7-c758-4c9c-83a2-7c2d18967fb9",
+        "classKey": 220,
+        "isTreatmentRecord": false,
+        "scientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "genericName": "Pleioluma",
+        "year": 1969,
+        "taxonRank": "SPECIES",
+        "fieldNumber": "21015",
+        "decimalLatitude": -20.46028,
+        "kingdomKey": 6,
+        "preparations": "hb",
+        "catalogNumber": "MPU312269",
+        "basisOfRecord": "PRESERVED_SPECIMEN",
+        "institutionCode": "UM",
+        "countryCode": "NC",
+        "phylumKey": 7707728,
+        "publishingOrgName": "Herbarium of Université de Montpellier 2, Institut de Botanique",
+        "genusKey": 9462488,
+        "isSequenceRecord": false,
+        "recordedByID": [
+
+        ],
+        "acceptedScientificName": "Pleioluma tenuipedicellata Swenson & Munzinger, 2018",
+        "day": 17,
+        "order": "Ericales",
+        "orderKey": 1353,
+        "recordNumber": null,
+        "datasetKey": "cb9beff3-a185-486f-975a-732251444158",
+        "acceptedTaxonKey": 10224887,
+        "typeStatus": "ISOTYPE",
+        "datasetName": "Herbarium specimens of Université de Montpellier 2, Institut de Botanique (MPU))",
+        "decimalLongitude": 164.20194,
+        "gbifId": 2029137938,
+        "collectionCode": "MPU",
+        "occurrenceID": "http://coldb.mnhn.fr/catalognumber/um/mpu/mpu312269",
+        "kingdom": "Plantae",
+        "familyKey": 8802,
+        "specificEpithet": "tenuipedicellata",
+        "recordedBy": "MacKee, H.S.",
+        "multimedia": [
+          {
+            "type": "StillImage",
+            "format": "image/jpeg",
+            "identifier": "https://mediaphoto.mnhn.fr/media/1584094529934XeJtnVN7DIlUeoV9",
+            "references": null,
+            "title": null,
+            "description": null,
+            "source": null,
+            "audience": null,
+            "created": null,
+            "creator": null,
+            "contributor": null,
+            "publisher": null,
+            "license": "http://creativecommons.org/licenses/by/4.0/",
+            "rightsHolder": null,
+            "datasetId": null
+          }
+        ],
+        "phylum": "Tracheophyta",
+        "otherCatalogNumbers": null,
+        "month": 10,
+        "genus": "Pleioluma",
+        "species": "Pleioluma tenuipedicellata",
+        "speciesKey": 10224887,
+        "family": "Sapotaceae",
+        "eventDate": "1969-10-17 00:00:00"
+      }
+    }
+  ]
+}
+  ]

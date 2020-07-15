@@ -1,43 +1,35 @@
 package org.gbif.occurrence.download.inject;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import lombok.Builder;
+import lombok.Data;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
-import org.gbif.api.service.registry.DatasetService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
-import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;
-import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
+import org.gbif.ws.client.ClientFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Optional;
-import java.util.concurrent.Executors;
 
-
-import akka.dispatch.ExecutionContextExecutorService;
-import akka.dispatch.ExecutionContexts;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -45,127 +37,82 @@ import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
 
 /**
- * Private guice module that provides bindings the required Modules and dependencies.
- * The following class are exposed:
- * - CuratorFramework: this class is exposed only to close the zookeeper connections properly.
- * - OccurrenceFileWriter: class that creates the occurrence data and citations file.
+ * Utility factory class to create instances of common complex objects required by Download Actions.
  */
-public final class DownloadWorkflowModule extends AbstractModule {
+@Data
+@Builder
+public class DownloadWorkflowModule  {
 
   public static final String CONF_FILE = "occurrence-download.properties";
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
-  private static final String ES_PREFIX = "es.";
 
-  private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
+  private static final String ES_PREFIX = "es.";
 
   private static final String INDEX_LOCKING_PATH = "/indices/";
 
-  private final DownloadJobConfiguration configuration;
-
   private final WorkflowConfiguration workflowConfiguration;
 
-  /**
-   * Loads the default configuration file name and copies the additionalProperties into it.
-   */
-  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    this.workflowConfiguration = workflowConfiguration;
-    this.configuration = configuration;
-  }
+  private final DownloadJobConfiguration downloadJobConfiguration;
 
   /**
-   * Loads the default configuration file name 'occurrence-download.properties'.
+   * DownloadPrepare action factory method.
+   * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
-  public DownloadWorkflowModule(WorkflowConfiguration workflowConfiguration) {
-    this(workflowConfiguration,null);
+  public DownloadPrepareAction downloadPrepareAction() {
+    return DownloadPrepareAction.builder().esClient(esClient())
+            .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+            .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
+            .workflowConfiguration(workflowConfiguration)
+            .occurrenceDownloadService(clientFactory().newInstance(OccurrenceDownloadClient.class))
+            .build();
   }
 
-  @Override
-  protected void configure() {
-    Names.bindProperties(binder(), workflowConfiguration.getDownloadSettings());
-    bind(DownloadPrepareAction.class);
-    bind(WorkflowConfiguration.class).toInstance(workflowConfiguration);
-    Optional.ofNullable(configuration).ifPresent(conf -> bind(DownloadJobConfiguration.class).toInstance(conf));
-    bind(RegistryClientUtil.class).toInstance(new RegistryClientUtil(workflowConfiguration.getDownloadSettings()));
-    bindDownloadFilesBuilding();
+  /**
+   * GBIF Ws client factory.
+   */
+  public ClientFactory clientFactory() {
+    return new ClientFactory(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+                             workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY),
+                             workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY));
   }
 
-  @Provides
-  @Singleton
-  @Named("Downloads")
-  CuratorFramework provideCuratorFrameworkDownloads(@Named(PROPERTIES_PREFIX + "zookeeper.downloads.namespace") String zookeeperNamespace,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-                                                    @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
-    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
-      .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
-      .connectString(zookeeperConnection)
+  /**
+   * Creates am started CuratorFramework instance using the settings in workflowConfiguration.
+   */
+  public  CuratorFramework curatorFramework() {
+      return curatorFramework(workflowConfiguration);
+  }
+
+  /**
+   * Creates and started CuratorFramework using the provided configuration.
+   */
+  public static CuratorFramework curatorFramework(WorkflowConfiguration workflowConfiguration) {
+    CuratorFramework curator = CuratorFrameworkFactory.builder()
+      .namespace(workflowConfiguration.getSetting(DefaultSettings.ZK_DOWNLOADS_NS_KEY))
+      .retryPolicy(new ExponentialBackoffRetry(workflowConfiguration.getIntSetting(DefaultSettings.ZK_SLEEP_TIME_KEY),
+                                               workflowConfiguration.getIntSetting(DefaultSettings.ZK_MAX_RETRIES_KEY)))
+      .connectString( workflowConfiguration.getSetting(DefaultSettings.ZK_QUORUM_KEY))
       .build();
+
     curator.start();
     return curator;
   }
 
-  @Provides
-  @Singleton
-  @Named("Indices")
-  CuratorFramework provideCuratorFrameworkIndices(@Named(PROPERTIES_PREFIX + "zookeeper.indices.namespace") String zookeeperNamespace,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.quorum") String zookeeperConnection,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.sleep_time") Integer sleepTime,
-                                                  @Named(PROPERTIES_PREFIX + "zookeeper.max_retries") Integer maxRetries) {
-    CuratorFramework curator = CuratorFrameworkFactory.builder().namespace(zookeeperNamespace)
-      .retryPolicy(new ExponentialBackoffRetry(sleepTime, maxRetries))
-      .connectString(zookeeperConnection)
-      .build();
-    curator.start();
-    return curator;
+  /**
+   * Creates a RW Mutex, used later to create a mutex to synchronize modification to the ES index.
+   */
+  public Mutex provideReadLock(CuratorFramework curatorFramework) {
+    ReadWriteMutexFactory readWriteMutexFactory = new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
+    return readWriteMutexFactory
+            .createReadMutex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY));
   }
 
-  @Provides
-  @Singleton
-  DatasetOccurrenceDownloadUsageService provideDatasetOccurrenceDownloadUsageService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupDatasetUsageService(registryWsUri);
-  }
-
-  @Provides
-  @Singleton
-  DatasetService provideDatasetService(@Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri,
-                                       RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupDatasetService(registryWsUri);
-  }
-
-  @Provides
-  @Singleton
-  OccurrenceDownloadService provideOccurrenceDownloadService(
-    @Named(DefaultSettings.REGISTRY_URL_KEY) String registryWsUri, RegistryClientUtil registryClientUtil) {
-    return registryClientUtil.setupOccurrenceDownloadService(registryWsUri);
-  }
-
-  @Provides
-  ExecutionContextExecutorService provideExecutionContextExecutorService(
-    @Named(PROPERTIES_PREFIX + "job.max_threads") int maxThreads) {
-    return ExecutionContexts.fromExecutorService(Executors.newFixedThreadPool(maxThreads));
-  }
-
-  @Provides
-  LockFactory provideLock(@Named("Downloads") CuratorFramework curatorFramework, @Named(PROPERTIES_PREFIX + "max_global_threads") Integer maxGlobalThreads) {
-    return new ZooKeeperLockFactory(curatorFramework, maxGlobalThreads, RUNNING_JOBS_LOCKING_PATH);
-  }
-
-  @Provides
-  ReadWriteMutexFactory provideMutexFactory(@Named("Indices") CuratorFramework curatorFramework) {
-    return new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
-  }
-
-  @Provides
-  Mutex provideReadLock(ReadWriteMutexFactory readWriteMutexFactory,  @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex) {
-    return readWriteMutexFactory.createReadMutex(esIndex);
-  }
-
-  @Provides
-  @Singleton
-  private RestHighLevelClient provideEsClient() {
+  /**
+   * Factory method for Elasticsearch client.
+   */
+  public RestHighLevelClient esClient() {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -188,64 +135,91 @@ public final class DownloadWorkflowModule extends AbstractModule {
           requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
             .setSocketTimeout(esConfig.getSocketTimeout()))
         .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
-        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
-        .setFailureListener(sniffOnFailureListener);
+        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+
+    if (esConfig.getSniffInterval() > 0) {
+      builder.setFailureListener(sniffOnFailureListener);
+    }
 
     RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
 
-    Sniffer sniffer =
-      Sniffer.builder(highLevelClient.getLowLevelClient())
+    if (esConfig.getSniffInterval() > 0) {
+      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
-    sniffOnFailureListener.setSniffer(sniffer);
+      sniffOnFailureListener.setSniffer(sniffer);
 
-    Runtime.getRuntime()
-      .addShutdownHook(
-        new Thread(
-          () -> {
-            sniffer.close();
-            try {
-              highLevelClient.close();
-            } catch (IOException e) {
-              throw new IllegalStateException("Couldn't close ES client", e);
-            }
-          }));
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        sniffer.close();
+        try {
+          highLevelClient.close();
+        } catch (IOException e) {
+          throw new IllegalStateException("Couldn't close ES client", e);
+        }
+      }));
+    }
 
     return highLevelClient;
   }
 
   /**
+   *  Configuration for the DownloadMater actor.
+   */
+  private DownloadMaster.MasterConfiguration masterConfiguration() {
+    return  DownloadMaster.MasterConfiguration.builder()
+            .nrOfWorkers(workflowConfiguration.getIntSetting(DefaultSettings.MAX_THREADS_KEY))
+            .minNrOfRecords(workflowConfiguration.getIntSetting(DefaultSettings.JOB_MIN_RECORDS_KEY))
+            .maximumNrOfRecords(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
+            .lockName(workflowConfiguration.getSetting(DefaultSettings.ZK_LOCK_NAME_KEY))
+            .build();
+  }
+
+  /**
+   * Creates an ActorRef that holds an instance of {@link DownloadMaster}.
+   */
+  public ActorRef downloadMaster(ActorSystem system) {
+    return system.actorOf(new Props(() -> new DownloadMaster(workflowConfiguration,
+                                                       masterConfiguration(),
+                                                       esClient(),
+                                                       workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY),
+                                                       downloadJobConfiguration,
+                                                       getAggregator(),
+                                                       workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))),
+                                    "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
+  }
+
+  /**
    * Binds a DownloadFilesAggregator according to the DownloadFormat set using the key DOWNLOAD_FORMAT_KEY.
    */
-  private void bindDownloadFilesBuilding() {
+
+  public DownloadAggregator getAggregator() {
     DownloadFormat downloadFormat = workflowConfiguration.getDownloadFormat();
 
     if (downloadFormat != null) {
       switch (downloadFormat) {
         case DWCA:
-          bind(DownloadAggregator.class).to(DwcaDownloadAggregator.class);
-          break;
+          return new DwcaDownloadAggregator(downloadJobConfiguration,
+                                            clientFactory().newInstance(OccurrenceDownloadClient.class));
 
         case SIMPLE_CSV:
-          bind(DownloadAggregator.class).to(SimpleCsvDownloadAggregator.class);
-          break;
+          return new SimpleCsvDownloadAggregator(downloadJobConfiguration,
+                                                 workflowConfiguration,
+                                                 clientFactory().newInstance(OccurrenceDownloadClient.class));
 
         case SPECIES_LIST:
-          bind(DownloadAggregator.class).to(SpeciesListDownloadAggregator.class);
-          break;
-
+          return new SpeciesListDownloadAggregator(downloadJobConfiguration,
+                                               workflowConfiguration,
+                                               clientFactory().newInstance(OccurrenceDownloadClient.class));
         case SIMPLE_AVRO:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
         case MAP_OF_LIFE:
-          bind(DownloadAggregator.class).to(NotSupportedDownloadAggregator.class);
-          break;
-
-        default:
-          throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
+        case BLOODHOUND:
+          return new NotSupportedDownloadAggregator();
       }
     }
+    throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
   }
 
   /**
@@ -277,6 +251,11 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";
+    public static final String ES_HOSTS_KEY = "es.hosts";
+    public static final String ES_CONNECT_TIMEOUT_KEY = "es.connect_timeout";
+    public static final String ES_SOCKET_TIMEOUT_KEY = "es.socket_timeout";
+    public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
+    public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
 
     /**
      * Hidden constructor.
@@ -288,6 +267,7 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";
     public static final String ZK_LOCK_NAME_KEY = PROPERTIES_PREFIX + "zookeeper.lock_name";
+    public static final String MAX_GLOBAL_THREADS_KEY = PROPERTIES_PREFIX + "max_global_threads";
 
     public static final String DOWNLOAD_USER_KEY = PROPERTIES_PREFIX + "ws.username";
     public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
@@ -295,6 +275,13 @@ public final class DownloadWorkflowModule extends AbstractModule {
     public static final String HDFS_OUTPUT_PATH_KEY = PROPERTIES_PREFIX + "hdfsOutputPath";
     public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
     public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.hdfs.out";
+
+
+    public static final String ZK_INDICES_NS_KEY = PROPERTIES_PREFIX + "zookeeper.indices.namespace";
+    public static final String ZK_DOWNLOADS_NS_KEY = PROPERTIES_PREFIX + "zookeeper.downloads.namespace";
+    public static final String ZK_QUORUM_KEY = PROPERTIES_PREFIX + "zookeeper.quorum";
+    public static final String ZK_SLEEP_TIME_KEY = PROPERTIES_PREFIX + "zookeeper.sleep_time";
+    public static final String ZK_MAX_RETRIES_KEY = PROPERTIES_PREFIX + "zookeeper.max_retries";
 
   }
 

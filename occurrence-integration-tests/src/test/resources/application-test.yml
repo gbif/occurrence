@@ -1,0 +1,58 @@
+appkeys:
+  file: /usr/local/gbif/conf/appkeys.properties
+occurrence:
+  download:
+    downloads_hard_limit: 1,1000
+    downloads_max_points: 5000
+    downloads_max_predicates: 101000
+    downloads_soft_limit: 3,100
+    environment: test
+    hdfs:
+      namenode: no_namenode
+    hive:
+      hdfs:
+        out: no_hive
+    hive_db: test
+    mail:
+      bcc: it-test@gbif.org
+      from: it-test@gbif.org
+      smtp: no_smtp
+    max_user_downloads: 3
+    oozie:
+      url: no_oozie
+      workflow:
+        path: no_oozie_path
+    portal:
+      url: http://www.gbif-dev-test.org
+    username: download
+    ws:
+      mount: no_mount
+      username: download_username
+      password: download_password
+      url: http://www.gbif-dev-test.org
+  search:
+    es:
+      connect_timeout: 6000
+      index: occurrence
+      sniff_after_failure_delay: 0
+      sniff_interval: 0
+      socket_timeout: 90000
+      enabled: false
+    max:
+      limit: 300
+      offset: 200000
+# Database
+spring:
+  liquibase:
+    enabled: false
+  mail:
+    default-encoding: UTF-8
+    host: localhost
+    password:
+    port: 25
+    test-connection: false
+    username:
+server:
+  error:
+    include-stacktrace: never
+

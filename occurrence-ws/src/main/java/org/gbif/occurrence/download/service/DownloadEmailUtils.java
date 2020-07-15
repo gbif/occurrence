@@ -4,8 +4,8 @@ import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
-import org.gbif.occurrence.query.HumanFilterBuilder;
-import org.gbif.occurrence.query.TitleLookup;
+import org.gbif.occurrence.query.HumanPredicateBuilder;
+import org.gbif.occurrence.query.TitleLookupService;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -28,13 +28,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
@@ -43,6 +44,7 @@ import static freemarker.template.Configuration.VERSION_2_3_25;
 /**
  * Utility class that sends notification emails of occurrence downloads.
  */
+@Component
 public class DownloadEmailUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
@@ -54,11 +56,11 @@ public class DownloadEmailUtils {
   private final Set<Address> bccAddresses;
   private final URI portalUrl;
   private final Session session;
-  private final TitleLookup titleLookup;
+  private final TitleLookupService titleLookup;
 
-  @Inject
-  public DownloadEmailUtils(@Named("mail.bcc") String bccAddresses, @Named("portal.url") String portalUrl,
-                            IdentityAccessService identityAccessService, Session session, TitleLookup titleLookup) {
+  @Autowired
+  public DownloadEmailUtils(@Value("${mail.bcc}") String bccAddresses, @Value("${occurrence.download.portal.url}") String portalUrl,
+                            IdentityAccessService identityAccessService, Session session, TitleLookupService titleLookup) {
     this.identityAccessService = identityAccessService;
     this.titleLookup = titleLookup;
     this.bccAddresses = Sets.newHashSet(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
@@ -107,7 +109,7 @@ public class DownloadEmailUtils {
   public String getHumanQuery(Download download) {
     try {
       String query =
-        new HumanFilterBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+        new HumanPredicateBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
       if (query.length() > 1000) {
         query = query.substring(0, 1000) + "\n… abbreviated, view the full query on the landing page.";
       }

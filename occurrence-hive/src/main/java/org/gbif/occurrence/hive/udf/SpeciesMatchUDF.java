@@ -5,10 +5,9 @@ import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.RankParser;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.TaxonomyInterpreter;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class SpeciesMatchUDF extends GenericUDF {
   private TaxonomyInterpreter taxonomyInterpreter;
   private Object lock = new Object();
 
-  public TaxonomyInterpreter getInterpreter(URI apiWs) {
+  public TaxonomyInterpreter getInterpreter(String apiWs) {
     TaxonomyInterpreter ti = taxonomyInterpreter;
     if (ti == null) {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
@@ -76,7 +75,7 @@ public class SpeciesMatchUDF extends GenericUDF {
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
     assert arguments.length == ARG_LENGTH;
 
-    URI api = URI.create(arguments[0].get().toString());
+    String api = arguments[0].get().toString();
 
     String k    = clean(arguments[1].get());
     String p    = clean(arguments[2].get());

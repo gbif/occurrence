@@ -3,11 +3,9 @@ package org.gbif.occurrence.hive.udf;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,19 +39,17 @@ public class ReinterpretLocationUDF extends GenericUDF {
   private CoordinateInterpreter coordInterpreter;
   private Object lock = new Object();
 
-  public LocationInterpreter getLocInterpreter(URI apiWs) {
+  public LocationInterpreter getLocInterpreter(String apiWs) {
     init(apiWs);
     return locInterpreter;
   }
 
-  private void init(URI apiWs) {
+  private void init(String apiWs) {
     if (locInterpreter == null) {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
-          ApiClientConfiguration cfg = new ApiClientConfiguration();
-          cfg.url = apiWs;
-          coordInterpreter = new CoordinateInterpreter(cfg.newApiClient());
+          coordInterpreter = new CoordinateInterpreter(apiWs);
           locInterpreter = new LocationInterpreter(coordInterpreter);
         }
       }
@@ -69,7 +65,7 @@ public class ReinterpretLocationUDF extends GenericUDF {
     assert arguments.length == argLength;
 
     List<Object> result = Lists.newArrayList(1);
-    URI api = URI.create(arguments[0].get().toString());
+    String api = arguments[0].get().toString();
 
     String latitude = getConvertArguments(1, arguments);
     String longitude = getConvertArguments(2, arguments);

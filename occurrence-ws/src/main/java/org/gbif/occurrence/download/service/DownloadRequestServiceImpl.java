@@ -25,21 +25,17 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
-import org.gbif.ws.response.GbifResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,14 +44,16 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.sun.jersey.api.NotFoundException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
-@Singleton
+@Component
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
@@ -103,11 +101,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final DownloadLimitsService downloadLimitsService;
 
 
-  @Inject
+  @Autowired
   public DownloadRequestServiceImpl(OozieClient client,
-                                    @Named("oozie.default_properties") Map<String, String> defaultProperties,
-                                    @Named("ws.url") String wsUrl,
-                                    @Named("ws.mount") String wsMountDir,
+                                    @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
+                                    @Value("${occurrence.download.ws.url}") String wsUrl,
+                                    @Value("${occurrence.download.ws.mount}") String wsMountDir,
                                     OccurrenceDownloadService occurrenceDownloadService,
                                     DownloadEmailUtils downloadEmailUtils,
                                     DownloadLimitsService downloadLimitsService) {
@@ -132,7 +130,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           LOG.info("Download {} cancelled", downloadKey);
         }
       } else {
-        throw new NotFoundException(String.format("Download %s not found", downloadKey));
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Download %s not found", downloadKey));
       }
     } catch (OozieClientException e) {
       throw new ServiceUnavailableException("Failed to cancel download " + downloadKey, e);
@@ -147,23 +145,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
       if (exceedComplexityLimit != null) {
         LOG.info("Download request refused as it would exceed complexity limits");
-        Response tooBig = Response
-          .status(GbifResponseStatus.PAYLOAD_TOO_LARGE)
-          .entity("A download limitation is exceeded:\n" + exceedComplexityLimit + "\n")
-          .type("text/plain")
-          .build();
-        throw new WebApplicationException(tooBig);
+        throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
       }
 
       String exceedSimultaneousLimit = downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
       if (exceedSimultaneousLimit != null) {
         LOG.info("Download request refused as it would exceed simultaneous limits");
-        Response calm = Response
-          .status(GbifResponseStatus.ENHANCE_YOUR_CALM)
-          .entity("A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n")
-          .type("text/plain")
-          .build();
-        throw new WebApplicationException(calm);
+        //TODO: ENHANCE_YOUR_CALM
+        throw new ResponseStatusException(HttpStatus.METHOD_FAILURE, "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
       String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
@@ -187,20 +176,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       Download d = occurrenceDownloadService.get(downloadKey);
 
       if (d == null) {
-        throw new NotFoundException("Download " + downloadKey + " doesn't exist");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Download " + downloadKey + " doesn't exist");
       }
 
       if (d.getStatus() == Download.Status.FILE_ERASED) {
-        Response gone = Response
-          .status(Response.Status.GONE)
-          .entity("Download " + downloadKey + " has been erased\n")
-          .type("text/plain")
-          .build();
-        throw new WebApplicationException(gone);
+        throw new ResponseStatusException(HttpStatus.GONE, "Download " + downloadKey + " has been erased\n");
       }
 
       if (!d.isAvailable()) {
-        throw new NotFoundException("Download " + downloadKey + " is not ready yet");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Download " + downloadKey + " is not ready yet");
       }
 
       filename = getDownloadFilename(d);

@@ -1,41 +1,33 @@
 package org.gbif.occurrence.processor.interpreting;
 
-import com.google.common.cache.CacheLoader;
-import com.google.common.io.ByteStreams;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
-import org.gbif.geocode.api.cache.GeocodeBitmapCache;
-import org.gbif.geocode.api.model.Location;
-import org.gbif.geocode.api.service.GeocodeService;
-import org.gbif.geocode.ws.client.GeocodeWsClient;
+import org.gbif.kvs.KeyValueStore;
+import org.gbif.kvs.geocode.GeocodeKVStoreFactory;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
+import org.gbif.rest.client.configuration.ClientConfiguration;
+import org.gbif.rest.client.geocode.GeocodeResponse;
+import org.gbif.rest.client.geocode.Location;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
-import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Attempts to parse given string latitude and longitude into doubles, and compares the given country (if any) to a reverse
@@ -46,69 +38,30 @@ public class CoordinateInterpreter {
 
   private static final Logger LOG = LoggerFactory.getLogger(CoordinateInterpreter.class);
 
-  // if the WS is not responding, we drop into a retry count
-  private static final int NUM_RETRIES = 15;
-  private static final int RETRY_PERIOD_MSEC = 2000;
-
   // Coordinate transformations to attempt in order
   private static final Map<List<OccurrenceIssue>, BiFunction<Double, Double, LatLng>> TRANSFORMS = new LinkedHashMap<>();
 
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
 
+  private KeyValueStore<org.gbif.kvs.geocode.LatLng, GeocodeResponse> kvStore;
+
   static {
-    TRANSFORMS.put(Collections.emptyList(), (lat, lng) -> new LatLng(lat, lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), (lat, lng) -> new LatLng(-1 * lat, lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(lat, -1 * lng));
+    TRANSFORMS.put(Collections.emptyList(), LatLng::new);
+    TRANSFORMS.put(Collections.singletonList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE), (lat, lng) -> new LatLng(-1 * lat, lng));
+    TRANSFORMS.put(Collections.singletonList(OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(lat, -1 * lng));
     TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_NEGATED_LATITUDE, OccurrenceIssue.PRESUMED_NEGATED_LONGITUDE), (lat, lng) -> new LatLng(-1 * lat, -1 * lng));
-    TRANSFORMS.put(Arrays.asList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), (lat, lng) -> new LatLng(lng, lat));
+    TRANSFORMS.put(Collections.singletonList(OccurrenceIssue.PRESUMED_SWAPPED_COORDINATE), (lat, lng) -> new LatLng(lng, lat));
   }
 
-  // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private final LoadingCache<LatLng, Collection<Location>> CACHE;
-
-  private final GeocodeService geocodeService;
 
   /**
    * Should not be instantiated.
-   * @param apiWs API webservice base URL
+   * @param apisWsUrl API webservice base URL
    */
-  @Inject
-  public CoordinateInterpreter(WebResource apiWs) {
-
-    GeocodeService realGeocodeService = new GeocodeWsClient(apiWs);
-
-    try {
-      byte[] bitmap = realGeocodeService.bitmap();
-      this.geocodeService = new GeocodeBitmapCache(realGeocodeService, ByteStreams.asByteSource(bitmap).openStream());
-
-      CACHE = CacheBuilder.newBuilder().maximumSize(50000).expireAfterAccess(1, TimeUnit.HOURS).build(
-        new CacheLoader<LatLng, Collection<Location>>() {
-          @Override
-          public Collection<Location> load(LatLng ll) throws Exception {
-
-            for (int attempt = 1; attempt <= NUM_RETRIES; attempt++) {
-              try {
-                return geocodeService.get(ll.getLat(), ll.getLng(), null);
-              } catch (Exception e) {
-                LOG.debug("Error geocoding [{}], attempt[{}] of max[{}]", ll, attempt, NUM_RETRIES, e);
-                if (attempt >= NUM_RETRIES) {
-                  LOG.error("Error geocoding [{}] after {} attempts", ll, NUM_RETRIES, e);
-                  throw e;
-                }
-                if (RETRY_PERIOD_MSEC > 0) {
-                  TimeUnit.MILLISECONDS.sleep(RETRY_PERIOD_MSEC);
-                }
-              }
-            }
-            // Should not ever happen as we propagate the underlying exception above
-            throw new IllegalStateException("Retry count exhausted");
-          }
-        });
-
-    } catch (Exception e) {
-      throw new RuntimeException("Unable to initialize GeocodeService bitmap cache", e);
-    }
+  @Autowired
+  public CoordinateInterpreter(String apisWsUrl) {
+    kvStore = GeocodeKVStoreFactory.simpleGeocodeKVStore(ClientConfiguration.builder().withBaseApiUrl(apisWsUrl).build());
   }
 
   /**
@@ -190,7 +143,7 @@ public class CoordinateInterpreter {
 
     if (interpretedLatLon.getPayload() == null) {
       // something has gone very wrong
-      LOG.warn("Supposed coordinate interpretation success produced no latlng", interpretedLatLon);
+      LOG.warn("Supposed coordinate interpretation success produced no latlng {}", interpretedLatLon);
       return OccurrenceParseResult.fail(issues);
     }
 
@@ -276,23 +229,22 @@ public class CoordinateInterpreter {
       return Collections.emptyList();
     }
 
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    queryParams.add("lat", coord.getLat().toString());
-    queryParams.add("lng", coord.getLng().toString());
 
-    LOG.debug("Attempt to lookup coord {}", coord);
+    org.gbif.kvs.geocode.LatLng latLng = new org.gbif.kvs.geocode.LatLng(coord.getLat(), coord.getLng());
+
+    LOG.debug("Attempt to lookup coord {}", latLng);
     try {
-      Collection<Location> lookups = CACHE.get(coord);
-      if (lookups != null && lookups.size() > 0) {
-        LOG.debug("Successfully retrieved [{}] locations for coord {}", lookups.size(), coord);
-        for (Location loc : lookups) {
+      GeocodeResponse response = kvStore.get(latLng);
+      if (response != null && response.getLocations() != null && response.getLocations().size() > 0) {
+        LOG.debug("Successfully retrieved [{}] locations for coord {}", response.getLocations().size(), coord);
+        for (Location loc : response.getLocations()) {
           if (loc.getIsoCountryCode2Digit() != null) {
             countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
           }
         }
         LOG.debug("Countries are {}", countries);
       }
-      else if (lookups.size() == 0 && isAntarctica(coord.getLat(), null)) {
+      else if (response != null && response.getLocations() != null && response.getLocations().size() == 0 && isAntarctica(coord.getLat(), null)) {
         // If no country is returned from the geocode, add Antarctica if we're sufficiently far south
         countries.add(Country.ANTARCTICA);
       }

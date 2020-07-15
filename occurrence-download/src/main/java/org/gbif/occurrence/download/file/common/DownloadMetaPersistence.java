@@ -28,8 +28,8 @@ public class DownloadMetaPersistence {
     // persists citation information.
     CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL));
 
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWsURL);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService();
     // persists species count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
   }

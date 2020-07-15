@@ -24,8 +24,8 @@ import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
-import org.gbif.occurrence.query.TitleLookup;
-import org.gbif.occurrence.query.TitleLookupModule;
+import org.gbif.occurrence.query.TitleLookupService;
+import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
@@ -53,6 +53,7 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
@@ -62,15 +63,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +106,7 @@ public class DwcaArchiveBuilder {
   private final DatasetService datasetService;
 
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final TitleLookup titleLookup;
+  private final TitleLookupService titleLookup;
   private final File archiveDir;
   private final WorkflowConfiguration workflowConfiguration;
   private final FileSystem sourceFs;
@@ -127,19 +124,16 @@ public class DwcaArchiveBuilder {
 
   public static void buildArchive(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration)
     throws IOException {
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil();
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryWsUrl());
     String tmpDir = workflowConfiguration.getTempDir();
 
     // create temporary, local, download specific directory
     File archiveDir = new File(tmpDir, configuration.getDownloadKey());
 
-    String registryWs = workflowConfiguration.getRegistryWsUrl();
     // create registry client and services
-    DatasetService datasetService = registryClientUtil.setupDatasetService(registryWs);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(registryWs);
-
-    Injector inj = Guice.createInjector(new TitleLookupModule(true, workflowConfiguration.getApiUrl()));
-    TitleLookup titleLookup = inj.getInstance(TitleLookup.class);
+    DatasetService datasetService = registryClientUtil.setupDatasetService();
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService();
+    TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
 
     FileSystem sourceFs = configuration.isSmallDownload()
       ? FileSystem.getLocal(workflowConfiguration.getHadoopConf())
@@ -158,29 +152,25 @@ public class DwcaArchiveBuilder {
     generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
   }
 
-  private static String writeCitation(Writer citationWriter, Dataset dataset)
+  private static void writeCitation(Writer citationWriter, Dataset dataset)
     throws IOException {
     // citation
-    String citationLink = null;
     if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
       citationWriter.write(dataset.getCitation().getText());
       citationWriter.write('\n');
     } else {
       LOG.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
     }
-    return citationLink;
   }
 
   /**
    * Write rights text.
    */
-  private static void writeRights(Writer rightsWriter, Dataset dataset, String citationLink)
+  private static void writeRights(Writer rightsWriter, Dataset dataset)
     throws IOException {
     // write rights
     rightsWriter.write("\nDataset: " + dataset.getTitle());
-    if (!Strings.isNullOrEmpty(citationLink)) {
-      rightsWriter.write(citationLink);
-    }
+
     rightsWriter.write("\nRights as supplied: ");
     if (dataset.getLicense() != null && dataset.getLicense().isConcrete()) {
       rightsWriter.write(dataset.getLicense().getLicenseUrl());
@@ -191,7 +181,7 @@ public class DwcaArchiveBuilder {
 
   @VisibleForTesting
   protected DwcaArchiveBuilder(DatasetService datasetService, OccurrenceDownloadService occurrenceDownloadService,
-                               FileSystem sourceFs, FileSystem targetFs, File archiveDir, TitleLookup titleLookup,
+                               FileSystem sourceFs, FileSystem targetFs, File archiveDir, TitleLookupService titleLookup,
                                DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration) {
     this.datasetService = datasetService;
     this.occurrenceDownloadService = occurrenceDownloadService;
@@ -227,7 +217,7 @@ public class DwcaArchiveBuilder {
       License downloadLicense = addConstituentMetadata();
 
       // persist the License assigned to the download
-      persistDownloadLicense(configuration.getDownloadKey(), downloadLicense);
+      persistDownloadLicense(downloadLicense);
 
       // metadata about the entire archive data
       generateMetadata();
@@ -435,18 +425,15 @@ public class DwcaArchiveBuilder {
 
             licenseSelector.collectLicense(constituent.getDataset().getLicense());
             // citation
-            String citationLink = writeCitation(citationWriter, constituent.getDataset());
+            writeCitation(citationWriter, constituent.getDataset());
             // rights
-            writeRights(rightsWriter, constituent.getDataset(), citationLink);
+            writeRights(rightsWriter, constituent.getDataset());
             // eml file
             createEmlFile(dataset.getKey(), emlDir);
 
             // add original author as content provider to main dataset description
             DwcaContactsUtil.getContentProviderContact(constituent.getDataset())
               .ifPresent(provider -> dataset.getContacts().add(provider));
-          } catch (UniformInterfaceException e) {
-            LOG.error("Registry client http exception: {} \n {}", e.getResponse().getStatus(),
-                       e.getResponse().getEntity(String.class), e);
           } catch (Exception e) {
             LOG.error("Error creating download file", e);
             return licenseSelector.getSelectedLicense();
@@ -529,16 +516,15 @@ public class DwcaArchiveBuilder {
   /**
    * Persist download license that was assigned to the occurrence download.
    *
-   * @param downloadKey
    * @param license
    */
-  private void persistDownloadLicense(String downloadKey, License license) {
+  private void persistDownloadLicense(License license) {
     try {
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      LOG.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
+      LOG.error("Error updating download license, downloadKey: {}, license: {}", configuration.getDownloadKey(), license, ex);
     }
   }
 

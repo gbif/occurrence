@@ -5,13 +5,12 @@ import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.LOWER_BOUND_RANGE_PARSER;
 import static org.gbif.occurrence.search.es.EsQueryUtils.STRING_TO_DATE;
 import static org.gbif.occurrence.search.es.EsQueryUtils.UPPER_BOUND_RANGE_PARSER;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EsQueryUtilsTest {
 

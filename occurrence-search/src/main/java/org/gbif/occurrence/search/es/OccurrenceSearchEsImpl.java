@@ -34,10 +34,14 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 /** Occurrence search service. */
+@Component
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
@@ -45,21 +49,18 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final NameUsageMatchingService nameUsageMatchingService;
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  private final boolean facetsEnabled;
   private final int maxLimit;
   private final int maxOffset;
 
-  @Inject
+  @Autowired
   public OccurrenceSearchEsImpl(
       RestHighLevelClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
-      @Named("max.offset") int maxOffset,
-      @Named("max.limit") int maxLimit,
-      @Named("facets.enable") boolean facetsEnable,
-      @Named("es.index") String esIndex) {
+      @Value("${occurrence.search.max.offset}") int maxOffset,
+      @Value("${occurrence.search.max.limit}") int maxLimit,
+      @Value("${occurrence.search.es.index}") String esIndex) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
-    facetsEnabled = facetsEnable;
     this.maxOffset = maxOffset;
     this.maxLimit = maxLimit;
     this.esIndex = esIndex;
@@ -133,7 +134,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
 
     // build request
-    SearchRequest esRequest = EsSearchRequestBuilder.buildSearchRequest(request, facetsEnabled, esIndex);
+    SearchRequest esRequest = EsSearchRequestBuilder.buildSearchRequest(request, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search

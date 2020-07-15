@@ -9,13 +9,76 @@ To produce the artifact that will be deployed just run `mvn clean package`. This
 provide configs that match your destination environment (i.e. dev, uat, or prod – get the configs from gbif-configuration).
 
 ## Usage
-For local development and testing you can run this project using `mvn -Pdev jetty:run`. You will need to configure a local dev profile like the following, and you need to provide a maven profile that contains these two parameters:
-  1. occurrence.download.ws.password
-  2. drupal.db.password (out of date!)
+To run this project from your machine you have to:
+ 1. Configure profile like the following than contains the following entries:
 
-The dev profile from http://github.com/gbif/gbif-configuration/maven/settings.xml should do the job.
+```
+        api.url
+        registry.ws.url
+        checklistbank.match.ws.url
+        checklistbank.ws.url
+        occurrence.env_prefix
+        occurrence.environment
 
-Then test it with `http://localhost:8080/occurrence/12345`
+        registry.db.url
+        registry.db.password
+        registry.db.username
+        registry.db.hikari.idleTimeout
+        registry.db.hikari.maximumPoolSize
+        registry.db.hikari.minimumIdle
+
+        occurrence.db.fragmenterTable
+        occurrence.db.fragmenterSalt
+        occurrence.db.hbasePoolSize
+        occurrence.db.zkConnectionString
+
+
+        occurrence.search.es.hosts
+        occurrence.search.es.index
+        occurrence.search.es.connect_timeout
+        occurrence.search.es.socket_timeout
+        occurrence.search.max.offset
+        occurrence.search.max.limit
+
+        occurrence.download.ws.username
+        occurrence.download.ws.password
+        occurrence.download.ws.url
+        occurrence.download.portal.url
+        occurrence.download.ws.mount
+        occurrence.download.oozie.url
+        occurrence.download.hive.db
+        occurrence.download.hdfs.namenode
+        occurrence.download.environment
+        occurrence.download.hive.hdfs.out
+        occurrence.download.user.name
+        occurrence.download.max_user_downloads
+
+        occurrence.download.downloads_max_points
+
+        occurrence.download.downloads_max_predicates
+        occurrence.download.downloads_soft_limit
+        occurrence.download.downloads_hard_limit
+
+
+        occurrence.download.mail.smtp
+        occurrence.download.mail.from
+        occurrence.download.mail.bcc
+
+        appkeys.testfile
+        appkeys.file
+        appkeys.whitelist
+``` 
+
+ 2. Copy the reference config files located in [src/test/resources/ref-conf/](src/test/resources/ref-conf/) to
+*src/main/resources*.
+ 3. Run the Maven wrapper command:
+ 
+``` 
+  ./mvnw -Poccurrence-dev spring-boot:run
+``` 
+  
+
+Then test it with [http://localhost:8080/occurrence/search](http://localhost:8080/occurrence/search)
 
 ## Downloads
 This is the webservice that orchestrates occurrence downloads by accepting a JSON download string, translating it

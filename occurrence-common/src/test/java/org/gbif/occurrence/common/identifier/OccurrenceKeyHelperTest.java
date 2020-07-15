@@ -6,8 +6,8 @@ import org.gbif.occurrence.common.identifier.PublisherProvidedUniqueIdentifier;
 
 import java.util.UUID;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class OccurrenceKeyHelperTest {
 
@@ -24,12 +24,12 @@ public class OccurrenceKeyHelperTest {
   @Test
   public void testTripletKey() {
     String testKey = OccurrenceKeyHelper.buildKey(TRIPLET);
-    Assert.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + IC + "|" + CC + "|" + CN + "|" + UQ));
+    Assertions.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + IC + "|" + CC + "|" + CN + "|" + UQ));
   }
 
   @Test
   public void testSingleDwcKey() {
     String testKey = OccurrenceKeyHelper.buildKey(PUB_PROVIDED);
-    Assert.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + DWC));
+    Assertions.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + DWC));
   }
 }

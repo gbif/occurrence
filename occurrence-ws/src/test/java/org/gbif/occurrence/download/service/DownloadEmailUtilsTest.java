@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.service;
 
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.time.OffsetDateTime;
@@ -10,17 +9,19 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.occurrence.query.TitleLookup;
-import org.junit.Test;
-import org.mockito.Matchers;
+import org.gbif.occurrence.query.TitleLookupService;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 public class DownloadEmailUtilsTest {
 
   @Test
   public void testSendSuccessNotificationMail() throws Exception {
-    TitleLookup tl = mock(TitleLookup.class);
-    when(tl.getDatasetTitle(Matchers.any())).thenReturn("The little Mermaid");
-    when(tl.getSpeciesName(Matchers.any())).thenReturn("Abies alba Mill.");
+    TitleLookupService tl = mock(TitleLookupService.class);
+    when(tl.getDatasetTitle(ArgumentMatchers.any())).thenReturn("The little Mermaid");
+    when(tl.getSpeciesName(ArgumentMatchers.any())).thenReturn("Abies alba Mill.");
 
     DownloadEmailUtils utils = new DownloadEmailUtils("1@mailinator.com; 2@mailinator.com", "https://www.gbif.org", null, null, tl);
     Download d = new Download();
@@ -41,13 +42,10 @@ public class DownloadEmailUtilsTest {
     d.setRequest(req);
     String body = utils.buildBody(d, "success.ftl");
 
-    //System.out.println(body);
-    assertNotNull(body);
-
+    Assertions.assertNotNull(body);
 
     d.setStatus(Download.Status.FAILED);
     body = utils.buildBody(d, "error.ftl");
-    //System.out.println(body);
-    assertNotNull(body);
+    Assertions.assertNotNull(body);
   }
 }

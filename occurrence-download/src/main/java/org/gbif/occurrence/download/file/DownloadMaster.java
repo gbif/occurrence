@@ -1,5 +1,8 @@
 package org.gbif.occurrence.download.file;
 
+import lombok.Builder;
+import lombok.Data;
+import org.apache.curator.framework.CuratorFramework;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -7,6 +10,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
@@ -14,6 +18,7 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +34,6 @@ import akka.actor.UntypedActorFactory;
 import akka.routing.RoundRobinRouter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
@@ -39,13 +42,17 @@ import org.slf4j.LoggerFactory;
 /**
  * Actor that controls the multi-threaded creation of occurrence downloads.
  */
+@Data
 public class DownloadMaster extends UntypedActor {
+
+  private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  private final Configuration conf;
+  private final MasterConfiguration conf;
+  private final CuratorFramework curatorFramework;
   private final LockFactory lockFactory;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
@@ -56,14 +63,21 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Default constructor.
    */
-  @Inject
-  public DownloadMaster(LockFactory lockFactory, Configuration configuration,
-                        RestHighLevelClient esClient,
-                        @Named(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY) String esIndex,
-                        DownloadJobConfiguration jobConfiguration, DownloadAggregator aggregator) {
-    conf = configuration;
+  @Builder
+  public DownloadMaster(
+    WorkflowConfiguration workflowConfiguration,
+    MasterConfiguration masterConfiguration,
+    RestHighLevelClient esClient,
+    String esIndex,
+    DownloadJobConfiguration jobConfiguration,
+    DownloadAggregator aggregator,
+    int maxGlobalJobs) {
+    conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
-    this.lockFactory = lockFactory;
+    this.curatorFramework = DownloadWorkflowModule.curatorFramework(workflowConfiguration);
+    this.lockFactory = new ZooKeeperLockFactory(curatorFramework,
+                                                maxGlobalJobs,
+                                                RUNNING_JOBS_LOCKING_PATH);
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
@@ -75,7 +89,15 @@ public class DownloadMaster extends UntypedActor {
    */
   private void aggregateAndShutdown() {
     aggregator.aggregate(results);
+    shutdown();
+  }
+
+  /**
+   * Shutdown the system of actors
+   */
+  private void shutdown() {
     shutDownEsClientSilently();
+    curatorFramework.close();
     getContext().stop(getSelf());
   }
 
@@ -102,6 +124,9 @@ public class DownloadMaster extends UntypedActor {
       if (nrOfResults == calcNrOfWorkers) {
         aggregateAndShutdown();
       }
+    } else if (message instanceof Exception) {
+      LOG.error("Received an exception from a worker. Aborting.", message);
+      shutdown();
     }
   }
 
@@ -249,7 +274,9 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Utility class that holds the general execution settings.
    */
-  public static class Configuration {
+  @Data
+  @Builder
+  public static class MasterConfiguration {
 
     // Maximum number of workers
     private final int nrOfWorkers;
@@ -263,20 +290,6 @@ public class DownloadMaster extends UntypedActor {
 
     // Occurrence download lock/counter name
     private final String lockName;
-
-    /**
-     * Default/full constructor.
-     */
-    @Inject
-    public Configuration(@Named(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY) int nrOfWorkers,
-                         @Named(DownloadWorkflowModule.DefaultSettings.JOB_MIN_RECORDS_KEY) int minNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY) int maximumNrOfRecords,
-                         @Named(DownloadWorkflowModule.DefaultSettings.ZK_LOCK_NAME_KEY) String lockName) {
-      this.nrOfWorkers = nrOfWorkers;
-      this.minNrOfRecords = minNrOfRecords;
-      this.maximumNrOfRecords = maximumNrOfRecords;
-      this.lockName = lockName;
-    }
-
   }
+
 }

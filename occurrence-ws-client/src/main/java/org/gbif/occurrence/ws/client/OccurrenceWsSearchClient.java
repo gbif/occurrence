@@ -5,19 +5,19 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.ws.client.BaseWsFacetedSearchClient;
 
 import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.MoreObjects;
-import com.google.inject.Inject;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
-import static org.gbif.api.model.common.search.SearchConstants.DEFAULT_SUGGEST_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
@@ -34,85 +34,101 @@ import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 /**
  * Ws client for {@link OccurrenceSearchService}.
  */
-public class OccurrenceWsSearchClient extends BaseWsFacetedSearchClient<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest>
-  implements OccurrenceSearchService {
+@RequestMapping(
+  value = OCCURRENCE_PATH,
+  produces = MediaType.APPLICATION_JSON_VALUE
+)
+public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
 
-  private static final String SEARCH_PATH ="search/";
+  String SEARCH_PATH ="search/";
 
-  // Response type.
-  private static final GenericType<SearchResponse<Occurrence, OccurrenceSearchParameter>> GENERIC_TYPE =
-    new GenericType<SearchResponse<Occurrence, OccurrenceSearchParameter>>() {
-    };
-
-  // List<String> type
-  private static final GenericType<List<String>> LIST_OF_STRINGS_TYPE =
-    new GenericType<List<String>>() {
-    };
-
-  /**
-   * @param resource to the occurrence webapp
-   */
-  @Inject
-  protected OccurrenceWsSearchClient(WebResource resource) {
-    super(resource.path(OCCURRENCE_PATH), GENERIC_TYPE);
-  }
-
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestCatalogNumbers(String prefix, @Nullable Integer limit) {
-    return suggestTerms(CATALOG_NUMBER_PATH, prefix, limit);
-  }
+  SearchResponse<Occurrence, OccurrenceSearchParameter> search(@RequestBody OccurrenceSearchRequest occurrenceSearchRequest);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = CATALOG_NUMBER_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestCollectionCodes(String prefix, @Nullable Integer limit) {
-    return suggestTerms(COLLECTION_CODE_PATH, prefix, limit);
-  }
+  List<String> suggestCatalogNumbers(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + COLLECTION_CODE_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestRecordedBy(String prefix, @Nullable Integer limit) {
-    return suggestTerms(RECORDED_BY_PATH, prefix, limit);
-  }
+  List<String> suggestCollectionCodes(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + RECORDED_BY_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestRecordNumbers(String prefix, @Nullable Integer limit) {
-    return suggestTerms(RECORD_NUMBER_PATH, prefix, limit);
-  }
+  List<String> suggestRecordedBy(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + RECORD_NUMBER_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
-    return suggestTerms(INSTITUTION_CODE_PATH, prefix, limit);
-  }
+  List<String> suggestRecordNumbers(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + INSTITUTION_CODE_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestOccurrenceIds(String prefix, @Nullable Integer limit) {
-    return suggestTerms(OCCURRENCE_ID_PATH, prefix, limit);
-  }
+  List<String> suggestInstitutionCodes(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + OCCURRENCE_ID_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestOrganismIds(String prefix, @Nullable Integer limit) {
-    return suggestTerms(ORGANISM_ID_PATH, prefix, limit);
-  }
+  List<String> suggestOccurrenceIds(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + ORGANISM_ID_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestLocalities(String prefix, @Nullable Integer limit) {
-    return suggestTerms(LOCALITY_PATH, prefix, limit);
-  }
+  List<String> suggestOrganismIds(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + LOCALITY_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestWaterBodies(String prefix, @Nullable Integer limit) {
-    return suggestTerms(WATER_BODY_PATH, prefix, limit);
-  }
+  List<String> suggestLocalities(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + WATER_BODY_PATH
+  )
+  @ResponseBody
   @Override
-  public List<String> suggestStateProvinces(String prefix, @Nullable Integer limit) {
-    return suggestTerms(STATE_PROVINCE_PATH, prefix, limit);
-  }
+  List<String> suggestWaterBodies(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
-  /**
-   * Utility function that execute a search term query.
-   */
-  private List<String> suggestTerms(String resourceName, String prefix, @Nullable Integer limit) {
-    String limitParam = Integer.toString(MoreObjects.firstNonNull(limit, DEFAULT_SUGGEST_LIMIT));
-    return getResource(SEARCH_PATH + resourceName).queryParam(QUERY_PARAM, prefix).queryParam(PARAM_LIMIT, limitParam)
-      .get(LIST_OF_STRINGS_TYPE);
-  }
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + STATE_PROVINCE_PATH
+  )
+  @ResponseBody
+  @Override
+  List<String> suggestStateProvinces(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
+
 }

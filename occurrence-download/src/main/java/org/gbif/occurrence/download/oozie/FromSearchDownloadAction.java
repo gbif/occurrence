@@ -10,14 +10,6 @@ import java.util.Properties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
-import com.google.common.base.Throwables;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
 import org.apache.curator.framework.CuratorFramework;
 import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
@@ -36,7 +28,7 @@ public class FromSearchDownloadAction {
   /**
    * Private constructor.
    */
-  private FromSearchDownloadAction(){
+  private FromSearchDownloadAction() {
     //Instances of this class are not allowed
   }
 
@@ -69,26 +61,21 @@ public class FromSearchDownloadAction {
    * This method it's mirror of the 'main' method, is kept for clarity in parameters usage.
    */
   public static void run(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    final Injector injector = createInjector(workflowConfiguration, configuration);
-    try (CuratorFramework curatorDownload = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Downloads")));
-         CuratorFramework curatorIndices = injector.getInstance(Key.get(CuratorFramework.class, Names.named("Indices")))) {
+
+    DownloadWorkflowModule module = DownloadWorkflowModule.builder()
+      .workflowConfiguration(workflowConfiguration)
+      .downloadJobConfiguration(configuration)
+      .build();
+
+    try (CuratorFramework curatorIndices = module.curatorFramework()) {
 
       // Create an Akka system
       ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
 
       // create the master
-      ActorRef master = system.actorOf(new Props(new UntypedActorFactory() {
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
+      ActorRef master = module.downloadMaster(system);
 
-        public UntypedActor create() {
-          return injector.getInstance(DownloadMaster.class);
-        }
-      }), "DownloadMaster" + configuration.getDownloadKey());
-
-      Mutex readMutex = injector.getInstance(Mutex.class);
+      Mutex readMutex = module.provideReadLock(curatorIndices);
       readMutex.acquire();
       // start the calculation
       master.tell(new DownloadMaster.Start());
@@ -101,18 +88,6 @@ public class FromSearchDownloadAction {
       }
       system.shutdown();
       readMutex.release();
-    }
-  }
-
-  /**
-   * Utility method that creates the Guice injector.
-   */
-  private static Injector createInjector(WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration configuration) {
-    try {
-      return Guice.createInjector(new DownloadWorkflowModule(workflowConfiguration, configuration));
-    } catch (IllegalArgumentException e) {
-      LOG.error("Error initializing injection module", e);
-      throw Throwables.propagate(e);
     }
   }
 

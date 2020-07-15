@@ -58,7 +58,7 @@ public class RegistryBasedOccurrenceMutator {
     if (!newOrg.isEndorsementApproved()) {
       return false;
     }
-    return !(Objects.equals(currentOrg.getCountry(), newOrg.getCountry()));
+    return !Objects.equals(currentOrg.getCountry(), newOrg.getCountry());
   }
 
   /**

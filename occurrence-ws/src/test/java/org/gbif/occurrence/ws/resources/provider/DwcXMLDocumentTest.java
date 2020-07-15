@@ -6,15 +6,13 @@ import org.gbif.occurrence.ws.provider.DwcXMLDocument;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -25,7 +23,6 @@ public class DwcXMLDocumentTest {
 
   @Test
   public void testDwcXMLDocumentTryAppend() throws ParserConfigurationException {
-
     DwcXMLDocument doc = DwcXMLDocument.newInstance(DwcTerm.Occurrence);
     assertTrue(doc.tryAppend(DwcTerm.behavior, "calm"));
     // This UnknownTerm should be ignored

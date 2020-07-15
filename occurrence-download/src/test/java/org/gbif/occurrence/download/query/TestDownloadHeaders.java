@@ -8,9 +8,10 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This test makes sure the Terms used for headers in the download are available in the HDFS table.
@@ -24,8 +25,9 @@ public class TestDownloadHeaders {
     Set<Term> interpretedFromTerms = Sets.newHashSet(TermUtils.interpretedTerms());
 
     Set<Term> diff = Sets.symmetricDifference(interpretedFromTermUtils, interpretedFromTerms);
-    assertEquals("TermUtils.interpretedTerms() and Terms.interpretedTerms() must use the same terms. Difference(s): " +
-                    diff, 0, diff.size());
+    assertEquals(0, diff.size(),
+                 "TermUtils.interpretedTerms() and Terms.interpretedTerms() must use the same terms. Difference(s): " +
+                                 diff);
 
     Set<Term> hdfsTerms = DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS;
     diff = Sets.newHashSet(Sets.symmetricDifference(interpretedFromTermUtils, hdfsTerms));
@@ -33,8 +35,9 @@ public class TestDownloadHeaders {
     diff.remove(GbifTerm.mediaType);
     diff.remove(GbifTerm.numberOfOccurrences);
     diff.remove(GbifTerm.verbatimScientificName);
-    assertEquals("TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
-            diff, 0, diff.size());
+    assertEquals(0, diff.size(),
+                 "TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
+                                 diff);
 
   }
 

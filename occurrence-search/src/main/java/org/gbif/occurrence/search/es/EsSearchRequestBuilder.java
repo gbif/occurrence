@@ -47,7 +47,7 @@ public class EsSearchRequestBuilder {
   private EsSearchRequestBuilder() {}
 
   public static SearchRequest buildSearchRequest(
-      OccurrenceSearchRequest searchRequest, boolean facetsEnabled, String index) {
+      OccurrenceSearchRequest searchRequest, String index) {
 
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -76,7 +76,7 @@ public class EsSearchRequestBuilder {
         .ifPresent(searchSourceBuilder::query);
 
     // add aggs
-    buildAggs(searchRequest, groupedParams.postFilterParams, facetsEnabled)
+    buildAggs(searchRequest, groupedParams.postFilterParams)
         .ifPresent(aggsList -> aggsList.forEach(searchSourceBuilder::aggregation));
 
     // post-filter
@@ -204,11 +204,8 @@ public class EsSearchRequestBuilder {
 
   private static Optional<List<AggregationBuilder>> buildAggs(
       OccurrenceSearchRequest searchRequest,
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams,
-      boolean facetsEnabled) {
-    if (!facetsEnabled
-        || searchRequest.getFacets() == null
-        || searchRequest.getFacets().isEmpty()) {
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
+    if (searchRequest.getFacets() == null || searchRequest.getFacets().isEmpty()) {
       return Optional.empty();
     }
 

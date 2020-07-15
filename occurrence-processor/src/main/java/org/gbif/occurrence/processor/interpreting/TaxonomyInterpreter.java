@@ -7,6 +7,7 @@ import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.checklistbank.NameParser;
+import org.gbif.api.v2.RankedName;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
@@ -17,24 +18,25 @@ import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.kvs.KeyValueStore;
+import org.gbif.kvs.species.NameUsageMatchKVStoreFactory;
+import org.gbif.kvs.species.SpeciesMatchRequest;
 import org.gbif.nameparser.NameParserGbifV1;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
-import org.gbif.occurrence.processor.interpreting.util.RetryingWebserviceClient;
+import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
+import org.gbif.occurrence.processor.interpreting.clients.SpeciesWsClient;
+import org.gbif.rest.client.configuration.ClientConfiguration;
+import org.gbif.ws.client.ClientFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import com.google.inject.Inject;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,34 +50,31 @@ public class TaxonomyInterpreter implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(TaxonomyInterpreter.class);
   private static final NameParser PARSER = new NameParserGbifV1();
   private static final RankParser RANK_PARSER = RankParser.getInstance();
-  private static final String SPECIES_PATH = "species";
-  private static final String MATCH_PATH = "species/match";
-
-  // The repetitive nature of our data encourages use of a light cache to reduce WS load
-  private static final LoadingCache<WebResource, NameUsageMatch> MATCH_CACHE =
-    CacheBuilder.newBuilder()
-      .maximumSize(10_000)
-      .expireAfterAccess(120, TimeUnit.MINUTES)
-      .build(RetryingWebserviceClient.newInstance(NameUsageMatch.class, 5, 2000));
-
-  private static final LoadingCache<WebResource, NameUsage> SPECIES_CACHE =
-    CacheBuilder.newBuilder()
-      .maximumSize(10_000)
-      .expireAfterAccess(120, TimeUnit.MINUTES)
-      .build(RetryingWebserviceClient.newInstance(NameUsage.class, 5, 1000));
 
 
-  private final WebResource matchingWs;
-  private final WebResource speciesWs;
+  private final KeyValueStore<SpeciesMatchRequest, org.gbif.rest.client.species.NameUsageMatch> matchingWs;
+  private final KeyValueStore<String,NameUsage> speciesWs;
 
   @Inject
-  public TaxonomyInterpreter(WebResource apiBaseWs) {
-    matchingWs = apiBaseWs.path(MATCH_PATH);
-    speciesWs = apiBaseWs.path(SPECIES_PATH);
+  public TaxonomyInterpreter(String apiUrl) {
+    matchingWs = NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(ClientConfiguration.builder().withBaseApiUrl(apiUrl).build());
+
+    speciesWs = new KeyValueStore<String, NameUsage>(){
+      private SpeciesWsClient speciesWsClient = new ClientFactory(apiUrl).newInstance(SpeciesWsClient.class);
+      @Override
+      public NameUsage get(String nubKey) {
+        return speciesWsClient.get(nubKey);
+      }
+
+      @Override
+      public void close() throws IOException {
+      //do nothing
+      }
+    };
   }
 
   public TaxonomyInterpreter(ApiClientConfiguration cfg) {
-    this(cfg.newApiClient());
+    this(cfg.url);
   }
 
   /**
@@ -140,24 +139,29 @@ public class TaxonomyInterpreter implements Serializable {
     String sciname = buildScientificName(scientificName, cleanAuthorship, cleanGenericName, cleanGenus,
                                                cleanSpecificEpithet, cleanInfraspecificEpithet);
     OccurrenceParseResult<NameUsageMatch> result;
-    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-    queryParams.add("kingdom", ClassificationUtils.clean(kingdom));
-    queryParams.add("phylum",  ClassificationUtils.clean(phylum));
-    queryParams.add("class",   ClassificationUtils.clean(clazz));
-    queryParams.add("order",   ClassificationUtils.clean(order));
-    queryParams.add("family",  ClassificationUtils.clean(family));
-    queryParams.add("genus",  cleanGenus);
 
-    queryParams.add("name",   sciname);
+    SpeciesMatchRequest.Builder speciesRequestBuilder =
+
+      SpeciesMatchRequest.builder()
+      .withKingdom(ClassificationUtils.clean(kingdom))
+      .withPhylum(ClassificationUtils.clean(phylum))
+      .withClazz(ClassificationUtils.clean(clazz))
+      .withOrder(ClassificationUtils.clean(order))
+      .withFamily(ClassificationUtils.clean(family))
+      .withGenus(cleanGenus)
+      .withScientificName(sciname);
+
     if (rank != null) {
-      queryParams.add("rank", rank.name());
+      speciesRequestBuilder.withRank(rank.name());
     }
 
     LOG.debug("Attempt to match name [{}]", sciname);
-    WebResource res = matchingWs.queryParams(queryParams);
-    LOG.debug("WS call with: {}", res.getURI());
+
+
     try {
-      NameUsageMatch lookup = MATCH_CACHE.get(res);
+      NameUsageMatch lookup = toNameUsageMatch(matchingWs.get(speciesRequestBuilder.build()));
+
+
       result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, lookup);
       switch (lookup.getMatchType()) {
         case NONE:
@@ -175,11 +179,72 @@ public class TaxonomyInterpreter implements Serializable {
       }
     } catch (Exception e) {
       // Log the error
-      LOG.error("Failed WS call with: {}", res.getURI());
+      LOG.error("Failed WS call with {}", speciesRequestBuilder, e);
       result = OccurrenceParseResult.error(e);
     }
 
     return result;
+  }
+
+  private NameUsageMatch toNameUsageMatch(org.gbif.rest.client.species.NameUsageMatch match) {
+
+    NameUsageMatch nameUsageMatch = new NameUsageMatch();
+
+    if (match.getAcceptedUsage() != null) {
+      nameUsageMatch.setScientificName(match.getAcceptedUsage().getName());
+      nameUsageMatch.setAcceptedUsageKey(match.getAcceptedUsage().getKey());
+      nameUsageMatch.setRank(match.getAcceptedUsage().getRank());
+    } else {
+      nameUsageMatch.setScientificName(match.getUsage().getName());
+      nameUsageMatch.setRank(match.getUsage().getRank());
+    }
+
+    nameUsageMatch.setCanonicalName(ClassificationUtils.canonicalName(nameUsageMatch.getScientificName(), nameUsageMatch.getRank()));
+
+    if (match.getDiagnostics().getAlternatives() != null) {
+      nameUsageMatch.setAlternatives(match.getDiagnostics().getAlternatives().stream().map(this::toNameUsageMatch).collect(Collectors.toList()));
+    }
+
+    Optional.ofNullable(match.getAcceptedUsage()).map(RankedName::getKey).ifPresent(nameUsageMatch::setAcceptedUsageKey);
+
+
+    nameUsageMatch.setUsageKey(match.getUsage().getKey());
+
+    nameUsageMatch.setMatchType(match.getDiagnostics().getMatchType());
+    nameUsageMatch.setStatus(match.getDiagnostics().getStatus());
+    nameUsageMatch.setConfidence(match.getDiagnostics().getConfidence());
+
+
+    match.getClassification().forEach( rankedName -> {
+      if (Rank.KINGDOM == rankedName.getRank()) {
+        nameUsageMatch.setKingdom(rankedName.getName());
+        nameUsageMatch.setKingdomKey(rankedName.getKey());
+      } else if (Rank.PHYLUM == rankedName.getRank()) {
+        nameUsageMatch.setPhylum(rankedName.getName());
+        nameUsageMatch.setPhylumKey(rankedName.getKey());
+      } else if (Rank.CLASS == rankedName.getRank()) {
+        nameUsageMatch.setClazz(rankedName.getName());
+        nameUsageMatch.setClassKey(rankedName.getKey());
+      } else if (Rank.ORDER == rankedName.getRank()) {
+        nameUsageMatch.setOrder(rankedName.getName());
+        nameUsageMatch.setOrderKey(rankedName.getKey());
+      } else if (Rank.FAMILY == rankedName.getRank()) {
+        nameUsageMatch.setFamily(rankedName.getName());
+        nameUsageMatch.setFamilyKey(rankedName.getKey());
+      } else if (Rank.GENUS == rankedName.getRank()) {
+        nameUsageMatch.setGenus(rankedName.getName());
+        nameUsageMatch.setGenusKey(rankedName.getKey());
+      } else if (Rank.SUBGENUS == rankedName.getRank()) {
+        nameUsageMatch.setSubgenus(rankedName.getName());
+        nameUsageMatch.setSubgenusKey(rankedName.getKey());
+      } else if (Rank.SPECIES == rankedName.getRank()) {
+        nameUsageMatch.setSpecies(rankedName.getName());
+        nameUsageMatch.setSpeciesKey(rankedName.getKey());
+      }
+
+    });
+
+    return nameUsageMatch;
   }
 
   private void applyMatch(Occurrence occ, NameUsageMatch match, Collection<OccurrenceIssue> issues) {
@@ -226,12 +291,11 @@ public class TaxonomyInterpreter implements Serializable {
    * Gets a name usage by its key.
    */
   private Optional<NameUsage> getNameUsage(Integer nubKey) {
-    WebResource resource = speciesWs.path(nubKey.toString());
     try {
-      return  Optional.ofNullable(SPECIES_CACHE.get(resource));
+      return  Optional.ofNullable(speciesWs.get(nubKey.toString()));
     } catch (Exception ex) {
       // Log the error
-      LOG.error("Error getting accepted name usage: {}", resource.getURI());
+      LOG.error("Error getting accepted name usage: {}", nubKey);
     }
     return Optional.empty();
   }

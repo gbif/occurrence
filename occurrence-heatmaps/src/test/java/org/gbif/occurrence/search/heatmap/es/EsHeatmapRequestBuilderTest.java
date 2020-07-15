@@ -1,14 +1,14 @@
 package org.gbif.occurrence.search.heatmap.es;
-
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.elasticsearch.action.search.SearchRequest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -18,8 +18,8 @@ import java.util.stream.StreamSupport;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for ElasticSearch heatmap request builders.
@@ -91,7 +91,7 @@ public class EsHeatmapRequestBuilderTest {
    */
   private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
     ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER);
-    return StreamSupport.stream(Spliterators.spliterator(arrayNode.getElements(), 2, Spliterator.ORDERED), false)
+    return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
               .filter(termNode -> termNode.path(TERM).has(field.getFieldName()))
               .map(termNode -> termNode.path(TERM).get(field.getFieldName()).get(VALUE).asText())
               .findFirst();
@@ -117,7 +117,7 @@ public class EsHeatmapRequestBuilderTest {
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));
     } else {
-      Assert.fail("TaxaKey term not found");
+      Assertions.fail("TaxaKey term not found");
     }
 
     // geohash_grid

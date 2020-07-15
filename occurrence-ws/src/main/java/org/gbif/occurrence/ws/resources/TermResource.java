@@ -5,54 +5,44 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
-import java.util.Set;
-import javax.annotation.Nullable;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.inject.Singleton;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * List {@link Term} used in the context of an occurrence.
  *
  */
-@Path("occurrence/term")
-@Produces(MediaType.APPLICATION_JSON)
-@Singleton
+@RestController
+@RequestMapping(
+  value = "occurrence/term",
+  produces = MediaType.APPLICATION_JSON_VALUE
+)
 public class TermResource {
 
-  /**
-   * Function to "wrap" a DwcTerm inside a TermWrapper.
-   * @return a TermWrapper instance that contains a term
-   */
-  private static final Function<Term, TermWrapper> TO_TERM_WRAPPER = new Function<Term, TermWrapper>() {
-    @Override
-    public TermWrapper apply(@Nullable Term term) {
-      return new TermWrapper(term);
-    }
-  };
 
-
-  private static final Set<TermWrapper> OCCURRENCE_TERMS =
-          ImmutableSet.copyOf(
-                  Iterables.transform(ImmutableSet.copyOf(
-                          ImmutableSet.<Term>builder()
-                                  .addAll(TermUtils.interpretedTerms())
-                                  .addAll(TermUtils.verbatimTerms())
-                                  .build()), TO_TERM_WRAPPER));
-
-  @GET
-  public Set<TermWrapper> getInterpretation() {
+  private static final List<TermWrapper>
+    OCCURRENCE_TERMS = Stream.concat(StreamSupport.stream(TermUtils.interpretedTerms().spliterator(), false),
+                                     StreamSupport.stream(TermUtils.verbatimTerms().spliterator(), false))
+                                                            .map(TermWrapper::new)
+                                                            .sorted(Comparator.comparing(TermWrapper::getSource)
+                                                                      .thenComparing(TermWrapper::getGroup, Comparator.nullsLast(String::compareTo))
+                                                                      .thenComparing(TermWrapper::getSimpleName))
+                                                            .collect(Collectors.toList());
+  @GetMapping
+  public List<TermWrapper> getInterpretation() {
     return OCCURRENCE_TERMS;
   }
 
 
-  private static class TermWrapper {
+  public static class TermWrapper {
 
     private final String simpleName;
     private final String qualifiedName;

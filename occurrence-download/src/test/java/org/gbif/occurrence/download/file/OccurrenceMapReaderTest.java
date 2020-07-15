@@ -7,12 +7,12 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 
-import org.junit.Assert;
-import org.junit.Test;
 
 import java.net.URI;
 import java.util.*;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for the class {@link OccurrenceMapReader}.
@@ -73,29 +73,29 @@ public class OccurrenceMapReaderTest {
 
     Map<String,String> occurrenceMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence);
 
-    Assert.assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
-    Assert.assertEquals(Country.TRINIDAD_TOBAGO.getIso2LetterCode(), occurrenceMap.get(GbifTerm.publishingCountry.simpleName()));
-    Assert.assertEquals(Continent.NORTH_AMERICA.name(), occurrenceMap.get(DwcTerm.continent.simpleName()));
-    Assert.assertEquals(BasisOfRecord.HUMAN_OBSERVATION.name(), occurrenceMap.get(DwcTerm.basisOfRecord.simpleName()));
-    Assert.assertEquals(scientificName, occurrenceMap.get(GbifTerm.acceptedScientificName.simpleName()));
-    Assert.assertEquals(scientificName, occurrenceMap.get(DwcTerm.scientificName.simpleName()));
-    Assert.assertEquals("1", occurrenceMap.get(GbifTerm.kingdomKey.simpleName()));
-    Assert.assertEquals("2440897", occurrenceMap.get(GbifTerm.taxonKey.simpleName()));
-    Assert.assertEquals(OccurrenceMapReader.toISO8601Date(today), occurrenceMap.get(GbifTerm.lastInterpreted.simpleName()));
-    Assert.assertEquals("89.2", occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()));
-    Assert.assertEquals("100.2", occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()));
-    Assert.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasCoordinate.simpleName()));
-    Assert.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.repatriated.simpleName()));
-    Assert.assertEquals(datasetKey.toString(), occurrenceMap.get(GbifTerm.datasetKey.simpleName()));
-    Assert.assertEquals(reference.toString(), occurrenceMap.get(DcTerm.references.simpleName()));
-    Assert.assertEquals(License.CC_BY_4_0.name(), occurrenceMap.get(DcTerm.license.simpleName()));
-    Assert.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.StillImage.name()));
-    Assert.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.MovingImage.name()));
-    Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH.name()));
-    Assert.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.TAXON_MATCH_FUZZY.name()));
-    Assert.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasGeospatialIssues.simpleName()));
-    Assert.assertEquals(occurrenceMap.get(DwcTerm.institutionCode.simpleName()), "INST");
-    Assert.assertEquals(occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()), "89.2");
-    Assert.assertEquals(occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()), "100.2");
+    Assertions.assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
+    Assertions.assertEquals(Country.TRINIDAD_TOBAGO.getIso2LetterCode(), occurrenceMap.get(GbifTerm.publishingCountry.simpleName()));
+    Assertions.assertEquals(Continent.NORTH_AMERICA.name(), occurrenceMap.get(DwcTerm.continent.simpleName()));
+    Assertions.assertEquals(BasisOfRecord.HUMAN_OBSERVATION.name(), occurrenceMap.get(DwcTerm.basisOfRecord.simpleName()));
+    Assertions.assertEquals(scientificName, occurrenceMap.get(GbifTerm.acceptedScientificName.simpleName()));
+    Assertions.assertEquals(scientificName, occurrenceMap.get(DwcTerm.scientificName.simpleName()));
+    Assertions.assertEquals("1", occurrenceMap.get(GbifTerm.kingdomKey.simpleName()));
+    Assertions.assertEquals("2440897", occurrenceMap.get(GbifTerm.taxonKey.simpleName()));
+    Assertions.assertEquals(OccurrenceMapReader.toISO8601Date(today), occurrenceMap.get(GbifTerm.lastInterpreted.simpleName()));
+    Assertions.assertEquals("89.2", occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()));
+    Assertions.assertEquals("100.2", occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()));
+    Assertions.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasCoordinate.simpleName()));
+    Assertions.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.repatriated.simpleName()));
+    Assertions.assertEquals(datasetKey.toString(), occurrenceMap.get(GbifTerm.datasetKey.simpleName()));
+    Assertions.assertEquals(reference.toString(), occurrenceMap.get(DcTerm.references.simpleName()));
+    Assertions.assertEquals(License.CC_BY_4_0.name(), occurrenceMap.get(DcTerm.license.simpleName()));
+    Assertions.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.StillImage.name()));
+    Assertions.assertTrue(occurrenceMap.get(GbifTerm.mediaType.simpleName()).contains(MediaType.MovingImage.name()));
+    Assertions.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.COUNTRY_COORDINATE_MISMATCH.name()));
+    Assertions.assertTrue(occurrenceMap.get(GbifTerm.issue.simpleName()).contains(OccurrenceIssue.TAXON_MATCH_FUZZY.name()));
+    Assertions.assertEquals(Boolean.TRUE.toString(), occurrenceMap.get(GbifTerm.hasGeospatialIssues.simpleName()));
+    Assertions.assertEquals(occurrenceMap.get(DwcTerm.institutionCode.simpleName()), "INST");
+    Assertions.assertEquals(occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()), "89.2");
+    Assertions.assertEquals(occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()), "100.2");
   }
 }

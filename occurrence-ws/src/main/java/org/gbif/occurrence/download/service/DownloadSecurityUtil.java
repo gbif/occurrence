@@ -1,16 +1,15 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.ws.security.NotAllowedException;
-import org.gbif.ws.security.NotAuthenticatedException;
 
 import java.security.AccessControlException;
 import java.security.Principal;
 import java.util.Optional;
-import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Common security checks used for occurrence downloads.
@@ -27,16 +26,6 @@ public class DownloadSecurityUtil {
   }
 
   /**
-   * Checks that a user is authenticated and the same user is the creator of the download.
-   *
-   * @throws AccessControlException if no or wrong user is authenticated
-   */
-  public static void assertLoginMatches(DownloadRequest request, SecurityContext security) {
-    // assert authenticated user is the same as in download
-    assertLoginMatches(request, assertUserAuthenticated(security));
-  }
-
-  /**
    * Checks that the user principal.name is the creator of the download.
    *
    * @throws AccessControlException if no or wrong user is authenticated
@@ -45,17 +34,17 @@ public class DownloadSecurityUtil {
     if (!principal.getName().equals(request.getCreator())) {
       LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
         request.getCreator());
-      throw new NotAllowedException(principal.getName() + " not allowed to create download with creator "
-        + request.getCreator());
+      throw new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED, principal.getName() + " not allowed to create download with creator "
+                                                            + request.getCreator());
     }
   }
 
   /**
    * Asserts that a user is authenticated, returns the user principal if present.
    */
-  public static Principal assertUserAuthenticated(SecurityContext securityContext) {
+  public static Principal assertUserAuthenticated(Principal principal) {
     // assert authenticated user is the same as in download
-    return Optional.ofNullable(securityContext.getUserPrincipal())
-            .orElseThrow(() -> new NotAuthenticatedException("No user authenticated for creating a download"));
+    return Optional.ofNullable(principal)
+            .orElseThrow(() ->  new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No user authenticated for creating a download"));
   }
 }

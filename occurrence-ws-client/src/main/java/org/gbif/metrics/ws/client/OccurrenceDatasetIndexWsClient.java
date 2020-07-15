@@ -1,61 +1,44 @@
-/**
- *
- */
 package org.gbif.metrics.ws.client;
 
 import org.gbif.api.service.occurrence.OccurrenceDatasetIndexService;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.ws.client.BaseWsClient;
-import org.gbif.ws.client.QueryParamBuilder;
-
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.UUID;
-import javax.ws.rs.core.MultivaluedMap;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Ordering;
-import com.google.inject.Inject;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
-
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * A web service client to support the accession of occurrence dataset indexes.
  */
-public class OccurrenceDatasetIndexWsClient extends BaseWsClient implements OccurrenceDatasetIndexService {
+public interface OccurrenceDatasetIndexWsClient extends OccurrenceDatasetIndexService {
 
-  private static final String DATASETS_PATH = "occurrence/counts/datasets";
+  String DATASETS_PATH = "occurrence/counts/datasets";
 
-  private static final String NUBKEY_PARAM = "nubKey";
-  private static final String COUNTRY_PARAM = "country";
-
-  private static final GenericType<Map<UUID, Long>> GENERIC_TYPE = new GenericType<Map<UUID, Long>>() {
-  };
-
-  @Inject
-  public OccurrenceDatasetIndexWsClient(WebResource resource) {
-    super(resource);
-  }
+  String NUBKEY_PARAM = "nubKey";
+  String COUNTRY_PARAM = "country";
 
   @Override
-  public SortedMap<UUID, Long> occurrenceDatasetsForCountry(Country country) {
-    return getRequest(QueryParamBuilder.create(COUNTRY_PARAM, country.getIso2LetterCode()).build(),
-      DATASETS_PATH);
+  default SortedMap<UUID, Long> occurrenceDatasetsForCountry(@RequestParam(COUNTRY_PARAM) Country country) {
+    return occurrenceDatasetsForCountry(OccurrenceCountryIndexWsClient.COUNTRY_TO_ISO2.apply(country));
   }
 
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = DATASETS_PATH,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  SortedMap<UUID, Long> occurrenceDatasetsForCountry(@RequestParam(COUNTRY_PARAM) String country);
+
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = DATASETS_PATH,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
   @Override
-  public SortedMap<UUID, Long> occurrenceDatasetsForNubKey(int nubKey) {
-    return getRequest(QueryParamBuilder.create(NUBKEY_PARAM, nubKey).build(), DATASETS_PATH);
-  }
+  SortedMap<UUID, Long> occurrenceDatasetsForNubKey(@RequestParam(NUBKEY_PARAM) int nubKey);
 
-  /**
-   * Executes a get request whose returned value is a SortedMap<UUID, Integer>.
-   */
-  private SortedMap<UUID, Long> getRequest(MultivaluedMap<String, String> params, String path) {
-    final Map<UUID, Long> res = get(GENERIC_TYPE, params, path);
-    return ImmutableSortedMap.copyOf(res,
-      Ordering.natural().onResultOf(Functions.forMap(res)).compound(Ordering.natural()).reverse());
-  }
 }

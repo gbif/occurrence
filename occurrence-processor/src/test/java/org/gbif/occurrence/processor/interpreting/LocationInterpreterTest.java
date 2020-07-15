@@ -6,27 +6,25 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.processor.guice.ApiClientConfiguration;
+import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 
-import java.math.BigDecimal;
-import java.net.URI;
 import java.util.UUID;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Ignore("Requires live webservices")
+@Disabled("Requires live webservices")
 public class LocationInterpreterTest {
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();
   static final LocationInterpreter interpreter;
   static {
-    cfg.url = URI.create("http://api.gbif-dev.org/v1/");
-    interpreter = new LocationInterpreter(new CoordinateInterpreter(cfg.newApiClient()));
+    cfg.url = "http://api.gbif-dev.org/v1/";
+    interpreter = new LocationInterpreter(new CoordinateInterpreter(cfg.url));
   }
 
   private VerbatimOccurrence verb;

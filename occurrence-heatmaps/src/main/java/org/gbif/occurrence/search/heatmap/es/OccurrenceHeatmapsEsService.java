@@ -1,6 +1,5 @@
 package org.gbif.occurrence.search.heatmap.es;
 
-import com.google.inject.Inject;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -12,6 +11,8 @@ import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 /**
  * Elasticsearch heatmap service.
  */
+@Component
 public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<SearchRequest,SearchResponse> {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
@@ -32,7 +34,7 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
   private final RestHighLevelClient esClient;
   private final String esIndex;
 
-  @Inject
+  @Autowired
   public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex) {
     this.esIndex = esIndex;
     this.esClient = esClient;

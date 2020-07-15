@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.127-SNAPSHOT</version>
+    <version>0.133-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-search</artifactId>
@@ -22,7 +22,6 @@
     <jts-core.version>1.15.0</jts-core.version>
     <spatial4j.version>0.7</spatial4j.version>
     <log4j-api.version>2.11.1</log4j-api.version>
-    <jackson-core.es.version>2.8.6</jackson-core.es.version>
   </properties>
 
   <name>Occurrence Search service</name>
@@ -83,6 +82,17 @@
   </repositories>
 
   <dependencies>
+
+    <!-- Spring dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-openfeign</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
@@ -90,10 +100,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -109,8 +115,16 @@
       <artifactId>gbif-common-service</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common-ws</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common-mybatis</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -125,6 +139,10 @@
       <artifactId>commons-beanutils</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-persistence</artifactId>
+    </dependency>
     <!-- ES -->
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
@@ -150,6 +168,19 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId> org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId> org.elasticsearch</groupId>
+      <artifactId>elasticsearch-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId> org.elasticsearch</groupId>
+      <artifactId>elasticsearch</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
@@ -179,7 +210,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson-core.es.version}</version>
     </dependency>
 
     <!-- Test scope -->
@@ -194,11 +224,6 @@
       <version>${logback.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>net.sf.supercsv</groupId>
@@ -208,6 +233,16 @@
     </dependency>
 
     <!-- required by it tests -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <artifactId>org.restlet</artifactId>
       <groupId>org.restlet.jee</groupId>
