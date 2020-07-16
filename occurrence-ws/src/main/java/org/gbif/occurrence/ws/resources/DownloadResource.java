@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.Channels;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -53,7 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -103,8 +101,7 @@ public class DownloadResource {
   public DownloadResource(
     DownloadRequestService service,
     CallbackService callbackService,
-    OccurrenceDownloadService occurrenceDownloadService,
-    ResourceLoader resourceLoader
+    OccurrenceDownloadService occurrenceDownloadService
   ) {
     requestService = service;
     this.callbackService = callbackService;
