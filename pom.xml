@@ -152,7 +152,7 @@
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
-    <gbif-postal-service.version>0.45</gbif-postal-service.version>
+    <gbif-postal-service.version>0.46</gbif-postal-service.version>
     <gbif-registry.version>3.10</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
