@@ -102,7 +102,6 @@
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <jackson.version>2.10.3</jackson.version>
-    <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
     <jcommander.version>1.35</jcommander.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
@@ -557,9 +556,9 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-guava</artifactId>
-        <version>${jackson-datatype-guava.version}</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
