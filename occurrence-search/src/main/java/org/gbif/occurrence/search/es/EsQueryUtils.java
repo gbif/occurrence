@@ -240,7 +240,6 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.INSTITUTION_KEY, OccurrenceEsField.INSTITUTION_KEY)
           .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
-          .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
           .build();
 
