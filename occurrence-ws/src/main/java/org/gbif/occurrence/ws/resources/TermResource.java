@@ -31,6 +31,7 @@ public class TermResource {
   private static final List<TermWrapper>
     OCCURRENCE_TERMS = Stream.concat(StreamSupport.stream(TermUtils.interpretedTerms().spliterator(), false),
                                      StreamSupport.stream(TermUtils.verbatimTerms().spliterator(), false))
+                                                            .distinct()
                                                             .map(TermWrapper::new)
                                                             .sorted(Comparator.comparing(TermWrapper::getSource)
                                                                       .thenComparing(TermWrapper::getGroup, Comparator.nullsLast(String::compareTo))
