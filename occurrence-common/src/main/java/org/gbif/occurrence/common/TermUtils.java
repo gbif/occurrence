@@ -214,8 +214,7 @@ public class TermUtils {
                                                                                   DwcTerm.maximumDepthInMeters,
                                                                                   DwcTerm.minimumElevationInMeters,
                                                                                   DwcTerm.maximumElevationInMeters,
-                                                                                  DwcTerm.associatedMedia,
-                                                                                  DwcTerm.occurrenceStatus)));
+                                                                                  DwcTerm.associatedMedia)));
 
   /**
    * Term list of the extension excluding the coreid just as defined by:
