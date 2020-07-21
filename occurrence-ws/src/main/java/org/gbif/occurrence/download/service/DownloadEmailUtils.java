@@ -59,7 +59,7 @@ public class DownloadEmailUtils {
   private final TitleLookupService titleLookup;
 
   @Autowired
-  public DownloadEmailUtils(@Value("${mail.bcc}") String bccAddresses, @Value("${occurrence.download.portal.url}") String portalUrl,
+  public DownloadEmailUtils(@Value("${occurrence.download.mail.bcc}") String bccAddresses, @Value("${occurrence.download.portal.url}") String portalUrl,
                             IdentityAccessService identityAccessService, Session session, TitleLookupService titleLookup) {
     this.identityAccessService = identityAccessService;
     this.titleLookup = titleLookup;

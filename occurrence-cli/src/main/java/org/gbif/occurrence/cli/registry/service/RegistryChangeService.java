@@ -6,6 +6,7 @@ import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.DefaultMessageRegistry;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.registry.RegistryChangeListener;
+import org.gbif.registry.ws.client.OrganizationClient;
 import org.gbif.ws.client.ClientFactory;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -26,7 +27,7 @@ public class RegistryChangeService extends AbstractIdleService {
     // Create Registry WS Client
 
     ClientFactory clientFactory = new ClientFactory(configuration.registryWsUrl);
-    OrganizationService orgClient = clientFactory.newInstance(OrganizationService.class);
+    OrganizationService orgClient = clientFactory.newInstance(OrganizationClient.class);
 
     listener = new MessageListener(configuration.messaging.getConnectionParameters(), new DefaultMessageRegistry(),
       createObjectMapper(), 1);

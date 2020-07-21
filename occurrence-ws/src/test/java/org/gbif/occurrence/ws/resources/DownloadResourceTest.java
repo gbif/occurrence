@@ -63,7 +63,7 @@ public class DownloadResourceTest {
     gbifUser.setUserName(user);
     principal = new GbifUserPrincipal(gbifUser);
 
-    resource = new DownloadResource(service, callbackService, downloadService, null);
+    resource = new DownloadResource(service, callbackService, downloadService);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1"), USER, null, true,
       DownloadFormat.DWCA);
     when(service.create(dl)).thenReturn(JOB_ID);

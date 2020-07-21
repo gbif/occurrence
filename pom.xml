@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.133-SNAPSHOT</version>
+  <version>0.140.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -102,7 +102,6 @@
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <jackson.version>2.10.3</jackson.version>
-    <jackson-datatype-guava.version>1.9.2</jackson-datatype-guava.version>
     <jcommander.version>1.35</jcommander.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
@@ -148,11 +147,11 @@
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
-    <gbif-common-ws.version>1.4</gbif-common-ws.version>
+    <gbif-common-ws.version>1.5-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
-    <gbif-postal-service.version>0.45</gbif-postal-service.version>
+    <gbif-postal-service.version>0.46</gbif-postal-service.version>
     <gbif-registry.version>3.10</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
@@ -557,9 +556,9 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-guava</artifactId>
-        <version>${jackson-datatype-guava.version}</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>

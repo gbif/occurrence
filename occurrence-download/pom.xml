@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.133-SNAPSHOT</version>
+    <version>0.140.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -414,6 +414,10 @@
         <exclusion>
           <groupId>org.gbif.common</groupId>
           <artifactId>gbif-postal-service</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>hbase-server</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

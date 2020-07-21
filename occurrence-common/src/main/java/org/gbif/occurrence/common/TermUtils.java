@@ -280,7 +280,8 @@ public class TermUtils {
       GbifInternalTerm.publishingOrgKey,
       GbifInternalTerm.networkKey,
       GbifTerm.mediaType,
-      DcTerm.license);
+      DcTerm.license,
+      DwcTerm.occurrenceStatus);
   }
 
   /**

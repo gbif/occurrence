@@ -41,6 +41,7 @@ public enum OccurrenceEsField {
   RECORD_NUMBER("recordNumber", DwcTerm.recordNumber),
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
+  OCCURRENCE_STATUS("occurrenceStatus", DwcTerm.occurrenceStatus),
 
   //Temporal
   YEAR("year", DwcTerm.year),

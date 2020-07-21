@@ -10,12 +10,6 @@ checklistbank:
     url: @checklistbank.ws.url@
 mail:
   bcc:
-  cc: helpdesk@gbif.org
-  enabled: true
-  devemail:
-    address: gbifregistry@mailinator.com
-    enabled: true
-
 occurrence:
   db:
     hbasePoolSize: @occurrence.db.hbasePoolSize@

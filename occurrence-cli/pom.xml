@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.133-SNAPSHOT</version>
+    <version>0.140.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -121,7 +121,7 @@
       <artifactId>jcommander</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson</groupId>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-guava</artifactId>
       <scope>runtime</scope>
     </dependency>

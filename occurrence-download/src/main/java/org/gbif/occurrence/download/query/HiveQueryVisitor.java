@@ -195,6 +195,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
       .put(OccurrenceSearchParameter.RECORDED_BY_ID, GbifTerm.recordedByID)
       .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, GbifTerm.identifiedByID)
+      .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, DwcTerm.occurrenceStatus)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();

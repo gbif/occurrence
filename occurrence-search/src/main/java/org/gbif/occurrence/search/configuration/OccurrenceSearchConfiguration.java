@@ -89,7 +89,7 @@ public class OccurrenceSearchConfiguration  {
   }
 
   @Bean
-  public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("api.url") String apiUrl) {
+  public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("${api.url}") String apiUrl) {
     ClientFactory clientFactory = new ClientFactory(apiUrl);
     return clientFactory.newInstance(NameUsageMatchingServiceClient.class);
   }
