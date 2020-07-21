@@ -169,7 +169,8 @@ public class TermUtils {
                                                                                  GbifTerm.protocol,
                                                                                  GbifTerm.lastCrawled,
                                                                                  GbifTerm.lastParsed,
-                                                                                 DcTerm.license);
+                                                                                 DcTerm.license,
+                                                                                 DwcTerm.occurrenceStatus);
 
   /**
    * TODO: is this correct? -> Terms used during interpretation and superseded by an interpreted property
@@ -213,7 +214,8 @@ public class TermUtils {
                                                                                   DwcTerm.maximumDepthInMeters,
                                                                                   DwcTerm.minimumElevationInMeters,
                                                                                   DwcTerm.maximumElevationInMeters,
-                                                                                  DwcTerm.associatedMedia)));
+                                                                                  DwcTerm.associatedMedia,
+                                                                                  DwcTerm.occurrenceStatus)));
 
   /**
    * Term list of the extension excluding the coreid just as defined by:
