@@ -2,6 +2,7 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -33,6 +34,10 @@ public enum OccurrenceEsField {
   OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID),
   RECORDED_BY("recordedBy", DwcTerm.recordedBy),
   IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy),
+  RECORDED_BY_ID("recordedByIds", GbifTerm.recordedByID),
+  RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
+  IDENTIFIED_BY_ID("identifiedByIds", GbifTerm.identifiedByID),
+  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", GbifTerm.identifiedByID),
   RECORD_NUMBER("recordNumber", DwcTerm.recordNumber),
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
@@ -60,6 +65,14 @@ public enum OccurrenceEsField {
   LOCALITY("locality", DwcTerm.locality),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
   COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
+  GADM_0_GID("gadm_0_gid", GadmTerm.level0Gid),
+  GADM_0_NAME("gadm_0_gid", GadmTerm.level0Name),
+  GADM_1_GID("gadm_1_gid", GadmTerm.level1Gid),
+  GADM_1_NAME("gadm_1_gid", GadmTerm.level1Name),
+  GADM_2_GID("gadm_2_gid", GadmTerm.level2Gid),
+  GADM_2_NAME("gadm_2_gid", GadmTerm.level2Name),
+  GADM_3_GID("gadm_3_gid", GadmTerm.level3Gid),
+  GADM_3_NAME("gadm_3_gid", GadmTerm.level3Name),
 
   //Location GBIF specific
   HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue", GbifTerm.hasGeospatialIssues),
@@ -114,10 +127,6 @@ public enum OccurrenceEsField {
   SAMPLE_SIZE_UNIT("sampleSizeUnit", DwcTerm.sampleSizeUnit),
   SAMPLE_SIZE_VALUE("sampleSizeValue", DwcTerm.sampleSizeValue),
   RELATIVE_ORGANISM_QUANTITY("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity),
-  RECORDED_BY_ID("recordedByIds", GbifTerm.recordedByID),
-  RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
-  IDENTIFIED_BY_ID("identifiedByIds", GbifTerm.identifiedByID),
-  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", GbifTerm.identifiedByID),
 
   //Crawling
   CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
@@ -125,8 +134,11 @@ public enum OccurrenceEsField {
   LAST_CRAWLED("lastCrawled", GbifTerm.lastCrawled),
   LAST_PARSED("created", GbifTerm.lastParsed),
 
+  //Media
   MEDIA_TYPE("mediaTypes", GbifTerm.mediaType),
   MEDIA_ITEMS("multimediaItems", null),
+
+  //Issues
   ISSUE("issues", GbifTerm.issue),
 
   ESTABLISHMENT_MEANS("establishmentMeans", DwcTerm.establishmentMeans),

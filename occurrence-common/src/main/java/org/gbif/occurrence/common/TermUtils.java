@@ -3,6 +3,7 @@ package org.gbif.occurrence.common;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -46,6 +47,12 @@ public class TermUtils {
    * relevant to occurrence records.
    */
   private static final List<GbifTerm> GBIF_PROPERTIES = gbifPropertyTerms();
+
+  /**
+   * The list of GADM properties applicable to occurrence records, excluding any classes and terms that are not
+   * relevant to occurrence records.
+   */
+  private static final List<GadmTerm> GADM_PROPERTIES = gadmPropertyTerms();
 
   /**
    * The list of terms that are subject to interpretation and <strong>may</strong> not be present in the
@@ -111,6 +118,16 @@ public class TermUtils {
 
     //We should handle deprecated terms here. Waiting for https://dev.gbif.org/issues/browse/GBIF-132/
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
+      .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+  }
+
+  /**
+   * Utility to strip out classes from the complete Gadm enumeration.
+   *
+   * @return the complete list of property terms of Gadm, excluding any "class" terms (though there are none yet)
+   */
+  private static List<GadmTerm> gadmPropertyTerms() {
+    return Arrays.stream(GadmTerm.values()).filter(t -> !t.isClass())
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
 
@@ -181,7 +198,7 @@ public class TermUtils {
 
   /**
    * Lists all the terms which are populated on the occurrence object by interpretation, explicit processing or are
-   * internally generated.  These are all explicit java properties on the
+   * internally generated.  These are all explicit Java properties on the
    * {@link org.gbif.api.model.occurrence.Occurrence} class.
    *
    * @return the terms with values that will only be populated following some interpretation
@@ -241,6 +258,14 @@ public class TermUtils {
       GbifTerm.elevationAccuracy,
       GbifTerm.depth,
       GbifTerm.depthAccuracy,
+      GadmTerm.level0Gid,
+      GadmTerm.level0Name,
+      GadmTerm.level1Gid,
+      GadmTerm.level1Name,
+      GadmTerm.level2Gid,
+      GadmTerm.level2Name,
+      GadmTerm.level3Gid,
+      GadmTerm.level3Name,
       GbifInternalTerm.unitQualifier,
       GbifTerm.issue,
       GbifTerm.recordedByID,
@@ -390,6 +415,9 @@ public class TermUtils {
         // add all GBIF terms that are not stripped during interpretation
         GBIF_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t) && GbifTerm.gbifID != t
           && GbifTerm.coordinateAccuracy != t && GbifTerm.numberOfOccurrences != t).collect(Collectors.toList()))
+      .addAll(
+        // add all GADM terms (none are stripped during interpretation, but filter anyway).
+        GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       .build();
   }
 
