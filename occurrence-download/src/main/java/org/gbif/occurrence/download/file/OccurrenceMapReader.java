@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.GadmFeature;
-import org.gbif.api.model.occurrence.GadmLevel;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
@@ -139,14 +138,10 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(occurrence.getCoordinateAccuracy()));
     getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
     interpretedOccurrence.put(DwcTerm.geodeticDatum.simpleName(), occurrence.getGeodeticDatum());
-    putGadmGid(interpretedOccurrence, GadmTerm.level0Gid, occurrence, GadmLevel.LEVEL_0);
-    putGadmGid(interpretedOccurrence, GadmTerm.level1Gid, occurrence, GadmLevel.LEVEL_1);
-    putGadmGid(interpretedOccurrence, GadmTerm.level2Gid, occurrence, GadmLevel.LEVEL_2);
-    putGadmGid(interpretedOccurrence, GadmTerm.level3Gid, occurrence, GadmLevel.LEVEL_3);
-    putGadmName(interpretedOccurrence, GadmTerm.level0Name, occurrence, GadmLevel.LEVEL_0);
-    putGadmName(interpretedOccurrence, GadmTerm.level1Name, occurrence, GadmLevel.LEVEL_1);
-    putGadmName(interpretedOccurrence, GadmTerm.level2Name, occurrence, GadmLevel.LEVEL_2);
-    putGadmName(interpretedOccurrence, GadmTerm.level3Name, occurrence, GadmLevel.LEVEL_3);
+    putGadmFeature(interpretedOccurrence, GadmTerm.level0Name, GadmTerm.level0Gid, occurrence.getGadm().getLevel0());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level1Name, GadmTerm.level1Gid, occurrence.getGadm().getLevel1());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level2Name, GadmTerm.level2Gid, occurrence.getGadm().getLevel2());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level3Name, GadmTerm.level3Gid, occurrence.getGadm().getLevel3());
 
     extractOccurrenceIssues(occurrence)
       .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
@@ -171,16 +166,6 @@ public class OccurrenceMapReader {
     });
 
     return interpretedOccurrence;
-  }
-
-  private static void putGadmGid(Map<String,String> interpretedOccurrence, GadmTerm term, Occurrence occurrence, GadmLevel level) {
-    Optional.ofNullable(occurrence.getGadm().get(level)).map(GadmFeature::getGid)
-      .ifPresent(gid -> interpretedOccurrence.put(term.simpleName(), gid));
-  }
-
-  private static void putGadmName(Map<String,String> interpretedOccurrence, GadmTerm term, Occurrence occurrence, GadmLevel level) {
-    Optional.ofNullable(occurrence.getGadm().get(level)).map(GadmFeature::getName)
-      .ifPresent(name -> interpretedOccurrence.put(term.simpleName(), name));
   }
 
   /**
@@ -269,6 +254,16 @@ public class OccurrenceMapReader {
       return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
+  }
+
+  /**
+   * If present, populates the GADM gid and name.
+   */
+  private static void putGadmFeature(Map<String,String> interpretedOccurrence, GadmTerm nameTerm, GadmTerm gidTerm, GadmFeature gadmFeature) {
+    Optional.ofNullable(gadmFeature).ifPresent(gf -> {
+      interpretedOccurrence.put(nameTerm.simpleName(), gf.getName());
+      interpretedOccurrence.put(gidTerm.simpleName(), gf.getGid());
+    });
   }
 
   /**
