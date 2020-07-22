@@ -8,10 +8,10 @@ import org.gbif.registry.ws.client.DatasetClient;
 import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.time.Duration;
 import java.util.Properties;
 
 /**
@@ -19,19 +19,28 @@ import java.util.Properties;
  */
 public class RegistryClientUtil {
 
-  private final ClientFactory clientFactory;
+  private static final Duration BACKOFF_INITIAL_INTERVAL = Duration.ofSeconds(4);
+  private static final double BACKOFF_MULTIPLIER = 2d;
+  private static final int BACKOFF_MAX_ATTEMPTS = 8;
+
+  private final ClientBuilder clientBuilder = new ClientBuilder();
 
   public RegistryClientUtil(String userName, String password, String apiUrl) {
-    clientFactory = new ClientFactory(userName, password, apiUrl);
+    clientBuilder
+      .withUrl(apiUrl)
+      .withCredentials(userName, password)
+      .withExponentialBackoffRetry(BACKOFF_INITIAL_INTERVAL, BACKOFF_MULTIPLIER, BACKOFF_MAX_ATTEMPTS);
   }
 
   /**
    * Constructs an instance using properties class instance.
    */
   public RegistryClientUtil(Properties properties, String apiUrl) {
-    clientFactory = new ClientFactory(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-                                      properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY),
-                                      Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+    clientBuilder
+      .withUrl(apiUrl)
+      .withCredentials(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
+                       properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY))
+      .withExponentialBackoffRetry(BACKOFF_INITIAL_INTERVAL, BACKOFF_MULTIPLIER, BACKOFF_MAX_ATTEMPTS);
   }
 
 
@@ -63,7 +72,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetService setupDatasetService() {
-    return clientFactory.newInstance(DatasetClient.class);
+    return clientBuilder.build(DatasetClient.class);
   }
 
   /**
@@ -72,7 +81,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService() {
-    return clientFactory.newInstance(DatasetOccurrenceDownloadUsageClient.class);
+    return clientBuilder.build(DatasetOccurrenceDownloadUsageClient.class);
   }
 
   /**
@@ -81,7 +90,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService() {
-    return clientFactory.newInstance(OccurrenceDownloadClient.class);
+    return clientBuilder.build(OccurrenceDownloadClient.class);
   }
 
 }

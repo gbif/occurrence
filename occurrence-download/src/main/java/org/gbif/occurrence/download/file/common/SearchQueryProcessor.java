@@ -2,8 +2,13 @@ package org.gbif.occurrence.download.file.common;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -17,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.function.Consumer;
 
 /**
@@ -30,6 +36,11 @@ public class SearchQueryProcessor {
   private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getFieldName();
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchQueryProcessor.class);
+
+  private static final RetryRegistry RETRY_REGISTRY = RetryRegistry.of(RetryConfig.custom()
+                                                        .maxAttempts(5)
+                                                        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(3), 2d))
+                                                        .build());
 
   /**
    * Executes a query and applies the predicate to each result.
@@ -49,7 +60,6 @@ public class SearchQueryProcessor {
       // Creates a search request instance using the search request that comes in the fileJob
       SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
 
-
       while (recordCount < nrOfOutputRecords) {
 
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
@@ -57,16 +67,32 @@ public class SearchQueryProcessor {
         searchSourceBuilder.fetchSource(null, "all"); //All field is not needed in the response
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
-        SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
+        SearchResponse searchResponse = trySearch(searchRequest, downloadFileWork.getEsClient());
         consume(searchResponse, resultHandler);
 
         SearchHit[] searchHits = searchResponse.getHits().getHits();
         recordCount += searchHits.length;
 
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
+      LOG.error("Error querying Elasticsearch", ex);
       throw Throwables.propagate(ex);
     }
+  }
+
+  /**
+   * This functions acts as a defensive retry mechanism to perform queries against an Elasticsearch cluster.
+   * The index being queried can potentially being modified.
+   */
+  private static SearchResponse trySearch(SearchRequest searchRequest, RestHighLevelClient restHighLevelClient) {
+    return Retry.decorateSupplier(RETRY_REGISTRY.retry("SearchRetry"), () -> {
+            try {
+              return restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+            } catch (IOException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
+          ).get();
   }
 
   private static void consume(SearchResponse searchResponse, Consumer<Occurrence> consumer) {

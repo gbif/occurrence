@@ -112,6 +112,7 @@
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
     <metainf-services.version>1.5</metainf-services.version>
+    <resilience4j.version>1.5.0</resilience4j.version>
 
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <mockito-junit-jupiter.version>3.1.0</mockito-junit-jupiter.version>
@@ -720,6 +721,11 @@
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${findbugs-jsr305.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-retry</artifactId>
+        <version>${resilience4j.version}</version>
       </dependency>
 
       <!-- hbase -->

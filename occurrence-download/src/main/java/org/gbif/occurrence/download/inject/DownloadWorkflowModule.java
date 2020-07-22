@@ -19,13 +19,8 @@ import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
+import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;;
-import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
-import org.gbif.ws.client.ClientFactory;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,8 +45,6 @@ public class DownloadWorkflowModule  {
 
   private static final String ES_PREFIX = "es.";
 
-  private static final String INDEX_LOCKING_PATH = "/indices/";
-
   private final WorkflowConfiguration workflowConfiguration;
 
   private final DownloadJobConfiguration downloadJobConfiguration;
@@ -61,21 +54,21 @@ public class DownloadWorkflowModule  {
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
   public DownloadPrepareAction downloadPrepareAction() {
+
+    //Using the registry client util because it configures the retry mechanism
+
     return DownloadPrepareAction.builder().esClient(esClient())
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
-            .occurrenceDownloadService(clientFactory().newInstance(OccurrenceDownloadClient.class))
+            .occurrenceDownloadService(registryClientUtil().setupOccurrenceDownloadService())
             .build();
   }
 
-  /**
-   * GBIF Ws client factory.
-   */
-  public ClientFactory clientFactory() {
-    return new ClientFactory(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
-                             workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY),
-                             workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY));
+  public RegistryClientUtil registryClientUtil() {
+    return new RegistryClientUtil(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+                                  workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY),
+                                  workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY));
   }
 
   /**
@@ -100,14 +93,6 @@ public class DownloadWorkflowModule  {
     return curator;
   }
 
-  /**
-   * Creates a RW Mutex, used later to create a mutex to synchronize modification to the ES index.
-   */
-  public Mutex provideReadLock(CuratorFramework curatorFramework) {
-    ReadWriteMutexFactory readWriteMutexFactory = new ZookeeperSharedReadWriteMutex(curatorFramework, INDEX_LOCKING_PATH);
-    return readWriteMutexFactory
-            .createReadMutex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY));
-  }
 
   /**
    * Factory method for Elasticsearch client.
@@ -200,17 +185,17 @@ public class DownloadWorkflowModule  {
       switch (downloadFormat) {
         case DWCA:
           return new DwcaDownloadAggregator(downloadJobConfiguration,
-                                            clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                            registryClientUtil().setupOccurrenceDownloadService());
 
         case SIMPLE_CSV:
           return new SimpleCsvDownloadAggregator(downloadJobConfiguration,
                                                  workflowConfiguration,
-                                                 clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                                 registryClientUtil().setupOccurrenceDownloadService());
 
         case SPECIES_LIST:
           return new SpeciesListDownloadAggregator(downloadJobConfiguration,
-                                               workflowConfiguration,
-                                               clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                                   workflowConfiguration,
+                                                   registryClientUtil().setupOccurrenceDownloadService());
         case SIMPLE_AVRO:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
