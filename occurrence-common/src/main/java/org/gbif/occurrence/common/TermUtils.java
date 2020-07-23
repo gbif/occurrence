@@ -1,5 +1,7 @@
 package org.gbif.occurrence.common;
 
+import com.google.common.collect.ImmutableMap;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -12,6 +14,7 @@ import org.gbif.dwc.terms.TermFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,6 +64,13 @@ public class TermUtils {
    * to the gbif:depth term.
    */
   private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION = termsSubjectToInterpretation();
+
+  /**
+   * The map of term→value for terms that, after interpretation, have the same value for all occurrences.
+   *
+   * For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all occurrences.
+   */
+  private static final Map<Term,String> TERMS_IDENTICAL_AFTER_INTERPRETATION = termsIdenticalAfterInterpretation();
 
   /**
    * The terms that are present only due to explicit interpretation.  These are often typed explicitly, such as Dates
@@ -338,6 +348,17 @@ public class TermUtils {
   }
 
   /**
+   * Lists all terms that, after interpretation, hold the same value, and that value.
+   *
+   * @return a map of term→value for term that, due to standardization, now have identical values on all records.
+   */
+  private static Map<Term,String> termsIdenticalAfterInterpretation() {
+    return ImmutableMap.<Term,String>builder()
+      .put(DwcTerm.geodeticDatum, Occurrence.GEO_DATUM)
+      .build();
+  }
+
+  /**
    * Term list of the extension excluding the coreid just as defined by:
    * http://rs.gbif.org/extension/gbif/1.0/multimedia.xml
    */
@@ -420,6 +441,14 @@ public class TermUtils {
         // add all GADM terms (none are stripped during interpretation, but filter anyway).
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       .build();
+  }
+
+  /**
+   * Returns the map of term→value for all terms which, after interpretation, have the same value on all occurrences.
+   * In Darwin Core Archive terms, this is a default value.
+   */
+  public static Map<Term,String> identicalInterpretedTerms() {
+    return TERMS_IDENTICAL_AFTER_INTERPRETATION;
   }
 
   /**
