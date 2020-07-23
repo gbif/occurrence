@@ -12,6 +12,8 @@ import org.gbif.occurrence.common.TermUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 import com.google.common.base.Charsets;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTI
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
- * Utility class for Dwc archive handling during the download file creation.
+ * Utility class for Darwin Core Archive handling during the download file creation.
  */
 public class DwcArchiveUtils {
 
@@ -32,10 +34,19 @@ public class DwcArchiveUtils {
   private static final String DEFAULT_DELIMITER = ";";
 
   /**
-   * Creates a new archive file description for a dwc archive and sets the id field to the column of gbifID.
+   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
    * Used to generate the meta.xml with the help of the dwca-writer
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
+    return createArchiveFile(filename, rowType, columns, Collections.EMPTY_MAP);
+  }
+
+  /**
+   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
+   * Used to generate the meta.xml with the help of the dwca-writer
+   */
+  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns,
+                                              Map<? extends Term,String> defaultColumns) {
     ArchiveFile af = buildBaseArchive(filename, rowType);
     int index = 0;
     for (Term term : columns) {
@@ -47,6 +58,12 @@ public class DwcArchiveUtils {
       }
       af.addField(field);
       index++;
+    }
+    for (Map.Entry<? extends Term,String> defaultTerm : defaultColumns.entrySet()) {
+      ArchiveField defaultField = new ArchiveField();
+      defaultField.setTerm(defaultTerm.getKey());
+      defaultField.setDefaultValue(defaultTerm.getValue());
+      af.addField(defaultField);
     }
     ArchiveField coreId = af.getField(GbifTerm.gbifID);
     if (coreId == null) {
@@ -80,7 +97,8 @@ public class DwcArchiveUtils {
     Archive downloadArchive = new Archive();
     downloadArchive.setMetadataLocation(METADATA_FILENAME);
 
-    ArchiveFile occurrence = createArchiveFile(INTERPRETED_FILENAME, DwcTerm.Occurrence, TermUtils.interpretedTerms());
+    ArchiveFile occurrence = createArchiveFile(INTERPRETED_FILENAME, DwcTerm.Occurrence, TermUtils.interpretedTerms(),
+      TermUtils.identicalInterpretedTerms());
     downloadArchive.setCore(occurrence);
 
     ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, DwcTerm.Occurrence, TermUtils.verbatimTerms());

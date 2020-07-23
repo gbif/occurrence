@@ -6,6 +6,8 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.AgentIdentifier;
+import org.gbif.api.model.occurrence.Gadm;
+import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -380,6 +382,36 @@ public class EsResponseParser {
     getDoubleValue(hit, ELEVATION).ifPresent(occ::setElevation);
     getDoubleValue(hit, ELEVATION_ACCURACY).ifPresent(occ::setElevationAccuracy);
     getStringValue(hit, WATER_BODY).ifPresent(occ::setWaterBody);
+    parseGadm(hit, occ);
+  }
+
+  private static void parseGadm(SearchHit hit, Occurrence occ) {
+    Function<Map<String, Object>, Gadm> mapFn = m -> {
+      Gadm g = new Gadm();
+      extractStringValue(m, GADM_LEVEL_0_GID.getFieldName()).ifPresent(gid -> {
+        g.setLevel0(new GadmFeature());
+        g.getLevel0().setGid(gid);
+      });
+      extractStringValue(m, GADM_LEVEL_1_GID.getFieldName()).ifPresent(gid -> {
+        g.setLevel1(new GadmFeature());
+        g.getLevel1().setGid(gid);
+      });
+      extractStringValue(m, GADM_LEVEL_2_GID.getFieldName()).ifPresent(gid -> {
+        g.setLevel2(new GadmFeature());
+        g.getLevel2().setGid(gid);
+      });
+      extractStringValue(m, GADM_LEVEL_3_GID.getFieldName()).ifPresent(gid -> {
+        g.setLevel3(new GadmFeature());
+        g.getLevel3().setGid(gid);
+      });
+      extractStringValue(m, GADM_LEVEL_0_NAME.getFieldName()).ifPresent(name -> g.getLevel0().setName(name));
+      extractStringValue(m, GADM_LEVEL_1_NAME.getFieldName()).ifPresent(name -> g.getLevel1().setName(name));
+      extractStringValue(m, GADM_LEVEL_2_NAME.getFieldName()).ifPresent(name -> g.getLevel2().setName(name));
+      extractStringValue(m, GADM_LEVEL_3_NAME.getFieldName()).ifPresent(name -> g.getLevel3().setName(name));
+      return g;
+    };
+
+    getObjectsListValue(hit, GADM).ifPresent(y -> y.stream().findFirst().map(mapFn).ifPresent(occ::setGadm));
   }
 
   private static void setTaxonFields(SearchHit hit, Occurrence occ) {

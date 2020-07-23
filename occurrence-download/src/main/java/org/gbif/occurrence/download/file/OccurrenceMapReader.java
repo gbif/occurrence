@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.gbif.api.model.occurrence.AgentIdentifier;
+import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
@@ -21,6 +22,7 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -137,6 +139,10 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(occurrence.getCoordinateAccuracy()));
     getRepatriated(occurrence).ifPresent(repatriated -> interpretedOccurrence.put(GbifTerm.repatriated.simpleName(), repatriated));
     interpretedOccurrence.put(DwcTerm.geodeticDatum.simpleName(), occurrence.getGeodeticDatum());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level0Name, GadmTerm.level0Gid, occurrence.getGadm().getLevel0());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level1Name, GadmTerm.level1Gid, occurrence.getGadm().getLevel1());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level2Name, GadmTerm.level2Gid, occurrence.getGadm().getLevel2());
+    putGadmFeature(interpretedOccurrence, GadmTerm.level3Name, GadmTerm.level3Gid, occurrence.getGadm().getLevel3());
 
     extractOccurrenceIssues(occurrence)
       .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
@@ -249,6 +255,16 @@ public class OccurrenceMapReader {
       return Optional.of(Boolean.toString(countryCode != publishingCountry));
     }
     return Optional.empty();
+  }
+
+  /**
+   * If present, populates the GADM gid and name.
+   */
+  private static void putGadmFeature(Map<String,String> interpretedOccurrence, GadmTerm nameTerm, GadmTerm gidTerm, GadmFeature gadmFeature) {
+    Optional.ofNullable(gadmFeature).ifPresent(gf -> {
+      interpretedOccurrence.put(nameTerm.simpleName(), gf.getName());
+      interpretedOccurrence.put(gidTerm.simpleName(), gf.getGid());
+    });
   }
 
   /**
