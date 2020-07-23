@@ -411,7 +411,7 @@ public class EsResponseParser {
       return g;
     };
 
-    getObjectsListValue(hit, GADM).ifPresent(y -> y.stream().findFirst().map(mapFn).ifPresent(occ::setGadm));
+    getMapValue(hit, GADM).ifPresent(y -> occ.setGadm(mapFn.apply(y)));
   }
 
   private static void setTaxonFields(SearchHit hit, Occurrence occ) {
@@ -517,6 +517,12 @@ public class EsResponseParser {
     return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty());
+  }
+
+  private static Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+        .map(v -> (Map<String,Object>) v)
+        .filter(v -> !v.keySet().isEmpty());
   }
 
   private static Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
