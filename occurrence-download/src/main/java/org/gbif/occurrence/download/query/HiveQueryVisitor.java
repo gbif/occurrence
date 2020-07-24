@@ -37,6 +37,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -57,6 +58,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
@@ -163,6 +165,14 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, DwcTerm.coordinateUncertaintyInMeters)
       .put(OccurrenceSearchParameter.STATE_PROVINCE, DwcTerm.stateProvince)
       .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_0_GID, GadmTerm.level0Gid)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_0_NAME, GadmTerm.level0Name)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_1_GID, GadmTerm.level1Gid)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_1_NAME, GadmTerm.level1Name)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_2_GID, GadmTerm.level2Gid)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_2_NAME, GadmTerm.level2Name)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_3_GID, GadmTerm.level3Gid)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_3_NAME, GadmTerm.level3Name)
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
