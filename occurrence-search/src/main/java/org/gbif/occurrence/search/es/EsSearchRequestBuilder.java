@@ -104,7 +104,7 @@ public class EsSearchRequestBuilder {
         new SuggestBuilder()
             .addSuggestion(
                 esField.getFieldName(),
-                SuggestBuilders.completionSuggestion(esField.getFieldName() + ".suggest")
+                SuggestBuilders.completionSuggestion(esField.getSuggestFieldName())
                     .prefix(prefix)
                     .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
                     .skipDuplicates(true)));
@@ -250,12 +250,12 @@ public class EsSearchRequestBuilder {
               // add filter to the aggs
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
               FilterAggregationBuilder filterAggs =
-                  AggregationBuilders.filter(esField.getFieldName(), bool);
+                  AggregationBuilders.filter(esField.getExactMatchFieldName(), bool);
 
               // build terms aggs and add it to the filter aggs
               TermsAggregationBuilder termsAggs =
                   buildTermsAggs(
-                      "filtered_" + esField.getFieldName(),
+                      "filtered_" + esField.getExactMatchFieldName(),
                       esField,
                       extractFacetOffset(searchRequest, facetParam),
                       extractFacetLimit(searchRequest, facetParam),
@@ -274,7 +274,7 @@ public class EsSearchRequestBuilder {
             facetParam -> {
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
               return buildTermsAggs(
-                  esField.getFieldName(),
+                  esField.getExactMatchFieldName(),
                   esField,
                   extractFacetOffset(searchRequest, facetParam),
                   extractFacetLimit(searchRequest, facetParam),
@@ -291,7 +291,7 @@ public class EsSearchRequestBuilder {
       Integer minCount) {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
-        AggregationBuilders.terms(aggsName).field(esField.getFieldName());
+        AggregationBuilders.terms(aggsName).field(esField.getExactMatchFieldName());
 
     // min count
     Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
@@ -355,17 +355,17 @@ public class EsSearchRequestBuilder {
 
     if (parsedValues.size() == 1) {
       // single term
-      queries.add(QueryBuilders.termQuery(esField.getFieldName(), parsedValues.get(0)));
+      queries.add(QueryBuilders.termQuery(esField.getExactMatchFieldName(), parsedValues.get(0)));
     } else if (parsedValues.size() > 1) {
       // multi term query
-      queries.add(QueryBuilders.termsQuery(esField.getFieldName(), parsedValues));
+      queries.add(QueryBuilders.termsQuery(esField.getExactMatchFieldName(), parsedValues));
     }
 
     return queries;
   }
 
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
-    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
+    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
 
     if (DATE_FIELDS.contains(esField)) {
       String[] values = value.split(RANGE_SEPARATOR);

@@ -26,19 +26,19 @@ public enum OccurrenceEsField {
   INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Core identification
-  INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode),
-  COLLECTION_CODE("collectionCode", DwcTerm.collectionCode),
-  CATALOG_NUMBER("catalogNumber", DwcTerm.catalogNumber),
+  INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
+  COLLECTION_CODE("collectionCode", DwcTerm.collectionCode, true),
+  CATALOG_NUMBER("catalogNumber", DwcTerm.catalogNumber, true),
 
-  ORGANISM_ID("organismId", DwcTerm.organismID),
-  OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID),
-  RECORDED_BY("recordedBy", DwcTerm.recordedBy),
-  IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy),
+  ORGANISM_ID("organismId", DwcTerm.organismID, true),
+  OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID, true),
+  RECORDED_BY("recordedBy", DwcTerm.recordedBy, true),
+  IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy, true),
   RECORDED_BY_ID("recordedByIds", GbifTerm.recordedByID),
   RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
   IDENTIFIED_BY_ID("identifiedByIds", GbifTerm.identifiedByID),
   IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", GbifTerm.identifiedByID),
-  RECORD_NUMBER("recordNumber", DwcTerm.recordNumber),
+  RECORD_NUMBER("recordNumber", DwcTerm.recordNumber, true),
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
   OCCURRENCE_STATUS("occurrenceStatus", DwcTerm.occurrenceStatus),
@@ -61,9 +61,9 @@ public enum OccurrenceEsField {
   DEPTH_ACCURACY("depthAccuracy", GbifTerm.depthAccuracy),
   ELEVATION("elevation", GbifTerm.elevation),
   DEPTH("depth", GbifTerm.depth),
-  STATE_PROVINCE("stateProvince", DwcTerm.stateProvince), //NOT INTERPRETED
-  WATER_BODY("waterBody", DwcTerm.waterBody),
-  LOCALITY("locality", DwcTerm.locality),
+  STATE_PROVINCE("stateProvince", DwcTerm.stateProvince, true), //NOT INTERPRETED
+  WATER_BODY("waterBody", DwcTerm.waterBody, true),
+  LOCALITY("locality", DwcTerm.locality, true),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
   COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
   GADM_LEVEL_0_GID("gadm.level0Gid", GadmTerm.level0Gid),
@@ -111,8 +111,8 @@ public enum OccurrenceEsField {
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
 
   //Sampling
-  EVENT_ID("eventId", DwcTerm.eventID),
-  PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID),
+  EVENT_ID("eventId.keyword", DwcTerm.eventID, true),
+  PARENT_EVENT_ID("parentEventId.keyword", DwcTerm.parentEventID, true),
   SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol),
   LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
@@ -152,9 +152,18 @@ public enum OccurrenceEsField {
 
   private final Term term;
 
+  private boolean autosuggest;
+
   OccurrenceEsField(String fieldName, Term term) {
     this.fieldName = fieldName;
     this.term = term;
+    this.autosuggest = false;
+  }
+
+  OccurrenceEsField(String fieldName, Term term, boolean autosuggest) {
+    this.fieldName = fieldName;
+    this.term = term;
+    this.autosuggest = autosuggest;
   }
 
   /** @return the fieldName */
@@ -162,8 +171,26 @@ public enum OccurrenceEsField {
     return fieldName;
   }
 
+  public String getExactMatchFieldName() {
+    if (autosuggest) {
+      return fieldName + ".keyword";
+    }
+    return fieldName;
+  }
+
+  public String getSuggestFieldName() {
+    if (autosuggest) {
+      return fieldName + ".suggest";
+    }
+    return fieldName;
+  }
+
   /** @return the term */
   public Term getTerm() {
     return term;
+  }
+
+  public boolean isAutosuggest() {
+    return autosuggest;
   }
 }
