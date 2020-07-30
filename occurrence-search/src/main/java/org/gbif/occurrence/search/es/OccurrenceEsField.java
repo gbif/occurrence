@@ -111,8 +111,8 @@ public enum OccurrenceEsField {
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
 
   //Sampling
-  EVENT_ID("eventId.keyword", DwcTerm.eventID, true),
-  PARENT_EVENT_ID("parentEventId.keyword", DwcTerm.parentEventID, true),
+  EVENT_ID("eventId", DwcTerm.eventID, true),
+  PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID, true),
   SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol),
   LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
