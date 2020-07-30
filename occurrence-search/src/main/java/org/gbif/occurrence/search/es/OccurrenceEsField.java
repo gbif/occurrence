@@ -178,6 +178,13 @@ public enum OccurrenceEsField {
     return fieldName;
   }
 
+  public String getVerbatimFieldName() {
+    if (autosuggest) {
+      return fieldName + ".verbatim";
+    }
+    return fieldName;
+  }
+
   public String getSuggestFieldName() {
     if (autosuggest) {
       return fieldName + ".suggest";
