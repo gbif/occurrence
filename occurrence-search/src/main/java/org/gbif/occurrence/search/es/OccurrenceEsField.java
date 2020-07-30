@@ -113,7 +113,7 @@ public enum OccurrenceEsField {
   //Sampling
   EVENT_ID("eventId", DwcTerm.eventID, true),
   PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID, true),
-  SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol),
+  SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol, true),
   LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
   MODIFIED("modified", DcTerm.modified),
