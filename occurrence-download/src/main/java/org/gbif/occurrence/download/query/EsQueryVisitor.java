@@ -41,7 +41,7 @@ public class EsQueryVisitor {
 
 
   private static String getElasticField(OccurrenceSearchParameter param) {
-    return EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param).getFieldName();
+    return EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param).getExactMatchFieldName();
   }
 
   private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
@@ -65,7 +65,7 @@ public class EsQueryVisitor {
    *
    * @return body clause
    */
-  public synchronized String getQuery(Predicate predicate) throws QueryBuildingException {
+  public String getQuery(Predicate predicate) throws QueryBuildingException {
     if (predicate != null) {
       BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
       visit(predicate, queryBuilder);

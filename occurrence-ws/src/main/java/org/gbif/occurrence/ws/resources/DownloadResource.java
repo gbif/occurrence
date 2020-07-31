@@ -16,7 +16,6 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLo
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.security.Principal;
@@ -51,7 +50,7 @@ import org.gbif.occurrence.download.service.PredicateFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -213,7 +212,7 @@ public class DownloadResource {
    */
   @GetMapping(value = "{key}", produces = {APPLICATION_OCTET_STREAM_QS_VALUE, MediaType.APPLICATION_JSON_VALUE,
     "application/x-javascript"})
-  public ResponseEntity<InputStreamResource> getResult(@PathVariable("key") String downloadKey) throws IOException {
+  public ResponseEntity<FileSystemResource> getResult(@PathVariable("key") String downloadKey) throws IOException {
 
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
@@ -227,7 +226,6 @@ public class DownloadResource {
     File download = requestService.getResultFile(downloadKey);
 
     try {
-
       return ResponseEntity.status(HttpStatus.OK)
         // Show that we support Range requests (i.e. can resume downloads)
         .header(HttpHeaders.ACCEPT_RANGES, "bytes")
@@ -237,7 +235,7 @@ public class DownloadResource {
         .header(HttpHeaders.CONTENT_LENGTH, Long.toString(download.length()))
         .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
         .contentType(APPLICATION_OCTET_STREAM_QS)
-        .body(new InputStreamResource(new FileInputStream(download)));
+        .body(new FileSystemResource(download));
     } catch (Exception e) {
       throw new IllegalStateException("Failed to read download " + downloadKey + " from " + download.getAbsolutePath(),
                                       e);

@@ -72,7 +72,7 @@ public class EsSearchRequestBuilder {
     GroupedParams groupedParams = groupParameters(searchRequest);
 
     // add query
-    buildQuery(groupedParams.queryParams, searchRequest.getQ())
+    buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isVerbatimMatch())
         .ifPresent(searchSourceBuilder::query);
 
     // add aggs
@@ -80,13 +80,13 @@ public class EsSearchRequestBuilder {
         .ifPresent(aggsList -> aggsList.forEach(searchSourceBuilder::aggregation));
 
     // post-filter
-    buildPostFilter(groupedParams.postFilterParams).ifPresent(searchSourceBuilder::postFilter);
+    buildPostFilter(groupedParams.postFilterParams, searchRequest.isVerbatimMatch()).ifPresent(searchSourceBuilder::postFilter);
 
     return esRequest;
   }
 
   public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
-    return buildQuery(searchRequest.getParameters(), searchRequest.getQ());
+    return buildQuery(searchRequest.getParameters(), searchRequest.getQ(), searchRequest.isVerbatimMatch());
   }
 
   static SearchRequest buildSuggestQuery(
@@ -104,7 +104,7 @@ public class EsSearchRequestBuilder {
         new SuggestBuilder()
             .addSuggestion(
                 esField.getFieldName(),
-                SuggestBuilders.completionSuggestion(esField.getFieldName() + ".suggest")
+                SuggestBuilders.completionSuggestion(esField.getSuggestFieldName())
                     .prefix(prefix)
                     .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
                     .skipDuplicates(true)));
@@ -116,7 +116,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildQuery(
-      Map<OccurrenceSearchParameter, Set<String>> params, String qParam) {
+      Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchVerbatim) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
@@ -145,8 +145,7 @@ public class EsSearchRequestBuilder {
                   .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
                   .flatMap(
                       e ->
-                          buildTermQuery(
-                              e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchVerbatim)
                               .stream())
                   .collect(Collectors.toList()));
     }
@@ -183,7 +182,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildPostFilter(
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams, boolean matchVerbatim) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
@@ -194,10 +193,9 @@ public class EsSearchRequestBuilder {
             postFilterParams.entrySet().stream()
                 .flatMap(
                     e ->
-                        buildTermQuery(
-                            e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()))
-                            .stream())
-                .collect(Collectors.toList()));
+                        buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchVerbatim)
+                          .stream())
+                          .collect(Collectors.toList()));
 
     return Optional.of(bool);
   }
@@ -243,7 +241,8 @@ public class EsSearchRequestBuilder {
                                   buildTermQuery(
                                       e.getValue(),
                                       e.getKey(),
-                                      SEARCH_TO_ES_MAPPING.get(e.getKey()))
+                                      SEARCH_TO_ES_MAPPING.get(e.getKey()),
+                                      searchRequest.isVerbatimMatch())
                                       .stream())
                           .collect(Collectors.toList()));
 
@@ -257,9 +256,8 @@ public class EsSearchRequestBuilder {
                   buildTermsAggs(
                       "filtered_" + esField.getFieldName(),
                       esField,
-                      extractFacetOffset(searchRequest, facetParam),
-                      extractFacetLimit(searchRequest, facetParam),
-                      searchRequest.getFacetMinCount());
+                      searchRequest,
+                      facetParam);
               filterAggs.subAggregation(termsAggs);
 
               return filterAggs;
@@ -273,31 +271,26 @@ public class EsSearchRequestBuilder {
         .map(
             facetParam -> {
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
-              return buildTermsAggs(
-                  esField.getFieldName(),
-                  esField,
-                  extractFacetOffset(searchRequest, facetParam),
-                  extractFacetLimit(searchRequest, facetParam),
-                  searchRequest.getFacetMinCount());
+              return buildTermsAggs(esField.getFieldName(), esField, searchRequest, facetParam);
             })
         .collect(Collectors.toList());
   }
 
   private static TermsAggregationBuilder buildTermsAggs(
-      String aggsName,
+      String aggName,
       OccurrenceEsField esField,
-      int facetOffset,
-      int facetLimit,
-      Integer minCount) {
+      OccurrenceSearchRequest searchRequest,
+      OccurrenceSearchParameter facetParam) {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
-        AggregationBuilders.terms(aggsName).field(esField.getFieldName());
+        AggregationBuilders.terms(aggName)
+          .field(searchRequest.isVerbatimMatch()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
 
     // min count
-    Optional.ofNullable(minCount).ifPresent(termsAggsBuilder::minDocCount);
+    Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
 
     // aggs size
-    int size = calculateAggsSize(esField, facetOffset, facetLimit);
+    int size = calculateAggsSize(esField, extractFacetOffset(searchRequest, facetParam), extractFacetLimit(searchRequest, facetParam));
     termsAggsBuilder.size(size);
 
     // aggs shard size
@@ -339,7 +332,8 @@ public class EsSearchRequestBuilder {
   }
 
   private static List<QueryBuilder> buildTermQuery(
-      Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField) {
+      Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField,
+      boolean matchVerbatim) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // collect queries for each value
@@ -353,19 +347,20 @@ public class EsSearchRequestBuilder {
       parsedValues.add(parseParamValue(value, param));
     }
 
+    String fieldName = matchVerbatim? esField.getExactMatchFieldName() : esField.getExactMatchFieldName();
     if (parsedValues.size() == 1) {
       // single term
-      queries.add(QueryBuilders.termQuery(esField.getFieldName(), parsedValues.get(0)));
+      queries.add(QueryBuilders.termQuery(fieldName, parsedValues.get(0)));
     } else if (parsedValues.size() > 1) {
       // multi term query
-      queries.add(QueryBuilders.termsQuery(esField.getFieldName(), parsedValues));
+      queries.add(QueryBuilders.termsQuery(fieldName, parsedValues));
     }
 
     return queries;
   }
 
   private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
-    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getFieldName());
+    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
 
     if (DATE_FIELDS.contains(esField)) {
       String[] values = value.split(RANGE_SEPARATOR);

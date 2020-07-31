@@ -37,7 +37,7 @@ public class EsQueryVisitorTest {
       "    \"filter\" : [\n" +
       "      {\n" +
       "        \"match\" : {\n" +
-      "          \"catalogNumber\" : {\n" +
+      "          \"catalogNumber.keyword\" : {\n" +
       "            \"query\" : \"value\",\n" +
       "            \"operator\" : \"OR\",\n" +
       "            \"prefix_length\" : 0,\n" +
@@ -177,7 +177,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
+      "                \"catalogNumber.keyword\" : {\n" +
       "                  \"query\" : \"value_1\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -200,7 +200,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"institutionCode\" : {\n" +
+      "                \"institutionCode.keyword\" : {\n" +
       "                  \"query\" : \"value_2\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -261,7 +261,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"institutionCode\" : {\n" +
+      "                \"institutionCode.keyword\" : {\n" +
       "                  \"query\" : \"value_2\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -281,7 +281,7 @@ public class EsQueryVisitorTest {
       "      },\n" +
       "      {\n" +
       "        \"terms\" : {\n" +
-      "          \"catalogNumber\" : [\n" +
+      "          \"catalogNumber.keyword\" : [\n" +
       "            \"value_3\",\n" +
       "            \"value_1\"\n" +
       "          ],\n" +
@@ -305,7 +305,7 @@ public class EsQueryVisitorTest {
       "    \"filter\" : [\n" +
       "      {\n" +
       "        \"terms\" : {\n" +
-      "          \"catalogNumber\" : [\n" +
+      "          \"catalogNumber.keyword\" : [\n" +
       "            \"value_1\",\n" +
       "            \"value_2\",\n" +
       "            \"value_3\"\n" +
@@ -336,7 +336,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
+      "                \"catalogNumber.keyword\" : {\n" +
       "                  \"query\" : \"value_1\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -359,7 +359,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"terms\" : {\n" +
-      "                \"catalogNumber\" : [\n" +
+      "                \"catalogNumber.keyword\" : [\n" +
       "                  \"value_1\",\n" +
       "                  \"value_2\",\n" +
       "                  \"value_3\"\n" +
@@ -377,7 +377,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"institutionCode\" : {\n" +
+      "                \"institutionCode.keyword\" : {\n" +
       "                  \"query\" : \"value_2\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -415,7 +415,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
+      "                \"catalogNumber.keyword\" : {\n" +
       "                  \"query\" : \"value\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -461,7 +461,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"query\" : \"value_1\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -484,7 +484,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"institutionCode\" : {\n" +
+      "                      \"institutionCode.keyword\" : {\n" +
       "                        \"query\" : \"value_2\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -524,7 +524,7 @@ public class EsQueryVisitorTest {
       "    \"filter\" : [\n" +
       "      {\n" +
       "        \"wildcard\" : {\n" +
-      "          \"catalogNumber\" : {\n" +
+      "          \"catalogNumber.keyword\" : {\n" +
       "            \"wildcard\" : \"value_1**\",\n" +
       "            \"boost\" : 1.0\n" +
       "          }\n" +
@@ -553,7 +553,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
+      "                \"catalogNumber.keyword\" : {\n" +
       "                  \"query\" : \"value_1\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -576,7 +576,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"wildcard\" : {\n" +
-      "                \"catalogNumber\" : {\n" +
+      "                \"catalogNumber.keyword\" : {\n" +
       "                  \"wildcard\" : \"value_1**\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
@@ -592,7 +592,7 @@ public class EsQueryVisitorTest {
       "          \"filter\" : [\n" +
       "            {\n" +
       "              \"match\" : {\n" +
-      "                \"institutionCode\" : {\n" +
+      "                \"institutionCode.keyword\" : {\n" +
       "                  \"query\" : \"value_2\",\n" +
       "                  \"operator\" : \"OR\",\n" +
       "                  \"prefix_length\" : 0,\n" +
@@ -627,7 +627,7 @@ public class EsQueryVisitorTest {
       "    \"filter\" : [\n" +
       "      {\n" +
       "        \"exists\" : {\n" +
-      "          \"field\" : \"catalogNumber\",\n" +
+      "          \"field\" : \"catalogNumber.keyword\",\n" +
       "          \"boost\" : 1.0\n" +
       "        }\n" +
       "      }\n" +
@@ -667,7 +667,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"query\" : \"value_1\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -693,7 +693,7 @@ public class EsQueryVisitorTest {
       "                      \"filter\" : [\n" +
       "                        {\n" +
       "                          \"match\" : {\n" +
-      "                            \"catalogNumber\" : {\n" +
+      "                            \"catalogNumber.keyword\" : {\n" +
       "                              \"query\" : \"value_1\",\n" +
       "                              \"operator\" : \"OR\",\n" +
       "                              \"prefix_length\" : 0,\n" +
@@ -716,7 +716,7 @@ public class EsQueryVisitorTest {
       "                      \"filter\" : [\n" +
       "                        {\n" +
       "                          \"wildcard\" : {\n" +
-      "                            \"catalogNumber\" : {\n" +
+      "                            \"catalogNumber.keyword\" : {\n" +
       "                              \"wildcard\" : \"value_1**\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
@@ -732,7 +732,7 @@ public class EsQueryVisitorTest {
       "                      \"filter\" : [\n" +
       "                        {\n" +
       "                          \"match\" : {\n" +
-      "                            \"institutionCode\" : {\n" +
+      "                            \"institutionCode.keyword\" : {\n" +
       "                              \"query\" : \"value_2\",\n" +
       "                              \"operator\" : \"OR\",\n" +
       "                              \"prefix_length\" : 0,\n" +
@@ -790,7 +790,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"query\" : \"value_1\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -813,7 +813,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"institutionCode\" : {\n" +
+      "                      \"institutionCode.keyword\" : {\n" +
       "                        \"query\" : \"value_2\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -847,7 +847,7 @@ public class EsQueryVisitorTest {
       "                      \"filter\" : [\n" +
       "                        {\n" +
       "                          \"match\" : {\n" +
-      "                            \"catalogNumber\" : {\n" +
+      "                            \"catalogNumber.keyword\" : {\n" +
       "                              \"query\" : \"value_1\",\n" +
       "                              \"operator\" : \"OR\",\n" +
       "                              \"prefix_length\" : 0,\n" +
@@ -870,7 +870,7 @@ public class EsQueryVisitorTest {
       "                      \"filter\" : [\n" +
       "                        {\n" +
       "                          \"wildcard\" : {\n" +
-      "                            \"catalogNumber\" : {\n" +
+      "                            \"catalogNumber.keyword\" : {\n" +
       "                              \"wildcard\" : \"value_1**\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
@@ -924,7 +924,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"query\" : \"value_1\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -947,7 +947,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"institutionCode\" : {\n" +
+      "                      \"institutionCode.keyword\" : {\n" +
       "                        \"query\" : \"value_2\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -1023,7 +1023,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"match\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"query\" : \"value_1\",\n" +
       "                        \"operator\" : \"OR\",\n" +
       "                        \"prefix_length\" : 0,\n" +
@@ -1046,7 +1046,7 @@ public class EsQueryVisitorTest {
       "                \"filter\" : [\n" +
       "                  {\n" +
       "                    \"wildcard\" : {\n" +
-      "                      \"catalogNumber\" : {\n" +
+      "                      \"catalogNumber.keyword\" : {\n" +
       "                        \"wildcard\" : \"value_1**\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
