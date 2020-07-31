@@ -45,7 +45,7 @@ public class CallbackServiceTest {
   private static final String SUCCEEDED = "SUCCEEDED";
   private static final String RUNNING = "RUNNING";
   private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(OccurrenceSearchParameter.CATALOG_NUMBER,
-    "bar");
+                                                                              "bar", false);
   private static final String TEST_USER = "admin";
   private static final List<String> EMAILS = Lists.newArrayList("tests@gbif.org");
 

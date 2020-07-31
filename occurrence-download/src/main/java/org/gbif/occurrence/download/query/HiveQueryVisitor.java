@@ -209,10 +209,10 @@ public class HiveQueryVisitor {
     return "lower(" + val + ")";
   }
 
-  private static String toHiveField(OccurrenceSearchParameter param) {
+  private static String toHiveField(OccurrenceSearchParameter param, boolean matchVerbatim) {
     if (PARAM_TO_TERM.containsKey(param)) {
       String hiveCol = HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param) {
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchVerbatim) {
         return toHiveLower(hiveCol);
       }
       return hiveCol;
@@ -230,7 +230,7 @@ public class HiveQueryVisitor {
    *
    * @return the converted value expected by Hive
    */
-  private static String toHiveValue(OccurrenceSearchParameter param, String value) {
+    private static String toHiveValue(OccurrenceSearchParameter param, String value, boolean matchVerbatim) {
     if (Enum.class.isAssignableFrom(param.type())) {
       // all enum parameters are uppercase
       return '\'' + value.toUpperCase() + '\'';
@@ -248,7 +248,7 @@ public class HiveQueryVisitor {
     } else {
       // quote value, escape existing quotes
       String strVal =  '\'' + APOSTROPHE_MATCHER.replaceFrom(value, "\\\'") + '\'';
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param) {
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchVerbatim) {
         return toHiveLower(strVal);
       }
       return strVal;
@@ -309,7 +309,7 @@ public class HiveQueryVisitor {
     }
 
     if (useIn) {
-      visit(new InPredicate(parameter, values));
+      visit(new InPredicate(parameter, values, false));
     } else {
       visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
     }
@@ -362,7 +362,7 @@ public class HiveQueryVisitor {
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
         // Use the equals predicate to get the behaviour for array.
-        visit(new EqualsPredicate(predicate.getKey(), iterator.next()));
+        visit(new EqualsPredicate(predicate.getKey(), iterator.next(), predicate.isMatchVerbatim()));
         if (iterator.hasNext()) {
           builder.append(DISJUNCTION_OPERATOR);
         }
@@ -375,12 +375,12 @@ public class HiveQueryVisitor {
 
     } else {
       builder.append('(');
-      builder.append(toHiveField(predicate.getKey()));
+      builder.append(toHiveField(predicate.getKey(), predicate.isMatchVerbatim()));
       builder.append(IN_OPERATOR);
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
-        builder.append(toHiveValue(predicate.getKey(), iterator.next()));
+        builder.append(toHiveValue(predicate.getKey(), iterator.next(), predicate.isMatchVerbatim()));
         if (iterator.hasNext()) {
           builder.append(", ");
         }
@@ -409,9 +409,9 @@ public class HiveQueryVisitor {
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
     if (isHiveArray(predicate.getParameter())) {
-      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter())));
+      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), false)));
     } else {
-      builder.append(toHiveField(predicate.getParameter()));
+      builder.append(toHiveField(predicate.getParameter(), false));
       builder.append(IS_NOT_NULL_OPERATOR);
     }
   }
@@ -538,9 +538,9 @@ public class HiveQueryVisitor {
       }
 
     }
-    builder.append(toHiveField(predicate.getKey()));
+    builder.append(toHiveField(predicate.getKey(), predicate.isMatchVerbatim()));
     builder.append(op);
-    builder.append(toHiveValue(predicate.getKey(), predicate.getValue()));
+    builder.append(toHiveValue(predicate.getKey(), predicate.getValue(), predicate.isMatchVerbatim()));
   }
 
   /**

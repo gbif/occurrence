@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utility for dealing with the decoding of the request parameters to the
@@ -51,10 +52,11 @@ public class PredicateFactory {
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       OccurrenceSearchParameter param = toEnumParam(p.getKey());
+      boolean matchVerbatim = Optional.ofNullable(params.get("matchVerbatim")).map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
       String[] values = p.getValue();
       if (param != null && values != null && values.length > 0) {
         // valid parameter
-        Predicate predicate = buildParamPredicate(param, values);
+        Predicate predicate = buildParamPredicate(param, matchVerbatim, values);
         if (predicate != null) {
           groupedByParam.add(predicate);
         }
@@ -86,10 +88,10 @@ public class PredicateFactory {
     }
   }
 
-  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, String... values) {
+  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchVerbatim, String... values) {
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
-      Predicate p = parsePredicate(param, v);
+      Predicate p = parsePredicate(param, v, matchVerbatim);
       if (p != null) {
         predicates.add(p);
       }
@@ -114,7 +116,7 @@ public class PredicateFactory {
   /**
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
-  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value) {
+  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, boolean matchVerbatim) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
@@ -163,7 +165,7 @@ public class PredicateFactory {
         return new IsNotNullPredicate(param);
       } else {
         // defaults to an equals predicate with the original value
-        return new EqualsPredicate(param, value);
+        return new EqualsPredicate(param, value, matchVerbatim);
       }
     }
   }

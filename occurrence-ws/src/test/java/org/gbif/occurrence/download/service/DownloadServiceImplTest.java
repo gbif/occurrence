@@ -61,7 +61,7 @@ public class DownloadServiceImplTest {
 
   private DownloadLimitsService downloadLimitsService;
 
-  private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar");
+  private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar", false);
 
   @BeforeEach
   public void setup() {
