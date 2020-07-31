@@ -30,7 +30,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
-    Predicate p = new EqualsPredicate(PARAM, "value");
+    Predicate p = new EqualsPredicate(PARAM, "value", false);
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
@@ -55,6 +55,36 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
+    Assertions.assertEquals(expectedQuery, query);
+  }
+
+  @Test
+  public void testEqualsPredicateMatchVerbatim() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(PARAM, "value", true);
+    String query = visitor.getQuery(p);
+    String expectedQuery = "{\n" +
+                           "  \"bool\" : {\n" +
+                           "    \"filter\" : [\n" +
+                           "      {\n" +
+                           "        \"match\" : {\n" +
+                           "          \"catalogNumber.verbatim\" : {\n" +
+                           "            \"query\" : \"value\",\n" +
+                           "            \"operator\" : \"OR\",\n" +
+                           "            \"prefix_length\" : 0,\n" +
+                           "            \"max_expansions\" : 50,\n" +
+                           "            \"fuzzy_transpositions\" : true,\n" +
+                           "            \"lenient\" : false,\n" +
+                           "            \"zero_terms_query\" : \"NONE\",\n" +
+                           "            \"auto_generate_synonyms_phrase_query\" : true,\n" +
+                           "            \"boost\" : 1.0\n" +
+                           "          }\n" +
+                           "        }\n" +
+                           "      }\n" +
+                           "    ],\n" +
+                           "    \"adjust_pure_negative\" : true,\n" +
+                           "    \"boost\" : 1.0\n" +
+                           "  }\n" +
+                           "}";
     Assertions.assertEquals(expectedQuery, query);
   }
 
@@ -164,8 +194,8 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testConjunctionPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
     Predicate p3 = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.MONTH, "12");
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
@@ -247,9 +277,9 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testDisjunctionPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
-    Predicate p3 = new EqualsPredicate(PARAM, "value_3");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
+    Predicate p3 = new EqualsPredicate(PARAM, "value_3", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
@@ -297,8 +327,47 @@ public class EsQueryVisitorTest {
   }
 
   @Test
+  public void testDisjunctionMatchCasePredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM, "value_2", false);
+
+    Predicate p3 = new EqualsPredicate(PARAM, "value_3", true);
+    Predicate p4 = new EqualsPredicate(PARAM, "value_4", true);
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3, p4));
+    String query = visitor.getQuery(p);
+    String expectedQuery = "{\n"
+                           + "  \"bool\" : {\n"
+                           + "    \"should\" : [\n"
+                           + "      {\n"
+                           + "        \"terms\" : {\n"
+                           + "          \"catalogNumber.keyword\" : [\n"
+                           + "            \"value_2\",\n"
+                           + "            \"value_1\"\n"
+                           + "          ],\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      },\n"
+                           + "      {\n"
+                           + "        \"terms\" : {\n"
+                           + "          \"catalogNumber.verbatim\" : [\n"
+                           + "            \"value_4\",\n"
+                           + "            \"value_3\"\n"
+                           + "          ],\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      }\n"
+                           + "    ],\n"
+                           + "    \"adjust_pure_negative\" : true,\n"
+                           + "    \"boost\" : 1.0\n"
+                           + "  }\n"
+                           + "}";
+    Assertions.assertEquals(expectedQuery, query);
+  }
+
+  @Test
   public void testInPredicate() throws QueryBuildingException {
-    Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
+    Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
@@ -323,9 +392,9 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testComplexInPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
-    Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
+    Predicate p3 = new EqualsPredicate(PARAM2, "value_2", false);
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
@@ -405,7 +474,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testNotPredicate() throws QueryBuildingException {
-    Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
+    Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value", false));
     String query = visitor.getQuery(p);
     String expectedQuery =  "{\n" +
       "  \"bool\" : {\n" +
@@ -443,8 +512,8 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testNotPredicateComplex() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
 
     ConjunctionPredicate cp = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
 
@@ -517,7 +586,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testLikePredicate() throws QueryBuildingException {
-    LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*");
+    LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*", false);
     String query = visitor.getQuery(likePredicate);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
@@ -539,10 +608,33 @@ public class EsQueryVisitorTest {
   }
 
   @Test
+  public void testLikeVerbatimPredicate() throws QueryBuildingException {
+    LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*", true);
+    String query = visitor.getQuery(likePredicate);
+    String expectedQuery = "{\n" +
+                           "  \"bool\" : {\n" +
+                           "    \"filter\" : [\n" +
+                           "      {\n" +
+                           "        \"wildcard\" : {\n" +
+                           "          \"catalogNumber.verbatim\" : {\n" +
+                           "            \"wildcard\" : \"value_1**\",\n" +
+                           "            \"boost\" : 1.0\n" +
+                           "          }\n" +
+                           "        }\n" +
+                           "      }\n" +
+                           "    ],\n" +
+                           "    \"adjust_pure_negative\" : true,\n" +
+                           "    \"boost\" : 1.0\n" +
+                           "  }\n" +
+                           "}";
+    Assertions.assertEquals(expectedQuery, query);
+  }
+
+  @Test
   public void testComplexLikePredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new LikePredicate(PARAM, "value_1*");
-    Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new LikePredicate(PARAM, "value_1*", false);
+    Predicate p3 = new EqualsPredicate(PARAM2, "value_2", false);
     Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     String query = visitor.getQuery(p);
     String expectedQuery = "{\n" +
@@ -649,9 +741,9 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testComplexPredicateOne() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new LikePredicate(PARAM, "value_1*");
-    Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new LikePredicate(PARAM, "value_1*", false);
+    Predicate p3 = new EqualsPredicate(PARAM2, "value_2", false);
     Predicate pcon = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
     Predicate pdis = new DisjunctionPredicate(Lists.newArrayList(p1, pcon));
     Predicate p = new NotPredicate(pdis);
@@ -770,9 +862,9 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testComplexPredicateTwo() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new LikePredicate(PARAM, "value_1*");
-    Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new LikePredicate(PARAM, "value_1*", false);
+    Predicate p3 = new EqualsPredicate(PARAM2, "value_2", false);
 
     Predicate p4 = new DisjunctionPredicate(Lists.newArrayList(p1, p3));
     Predicate p5 = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
@@ -903,9 +995,9 @@ public class EsQueryVisitorTest {
   public void testComplexPredicateThree() throws QueryBuildingException {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
 
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new LikePredicate(PARAM, "value_1*");
-    Predicate p3 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new LikePredicate(PARAM, "value_1*", false);
+    Predicate p3 = new EqualsPredicate(PARAM2, "value_2", false);
     Predicate p4 = new WithinPredicate(wkt);
 
     Predicate p5 = new DisjunctionPredicate(Lists.newArrayList(p1, p3, p4));

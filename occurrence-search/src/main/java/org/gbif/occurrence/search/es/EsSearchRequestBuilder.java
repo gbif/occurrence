@@ -72,7 +72,7 @@ public class EsSearchRequestBuilder {
     GroupedParams groupedParams = groupParameters(searchRequest);
 
     // add query
-    buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isVerbatimMatch())
+    buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isMatchCase())
         .ifPresent(searchSourceBuilder::query);
 
     // add aggs
@@ -80,13 +80,13 @@ public class EsSearchRequestBuilder {
         .ifPresent(aggsList -> aggsList.forEach(searchSourceBuilder::aggregation));
 
     // post-filter
-    buildPostFilter(groupedParams.postFilterParams, searchRequest.isVerbatimMatch()).ifPresent(searchSourceBuilder::postFilter);
+    buildPostFilter(groupedParams.postFilterParams, searchRequest.isMatchCase()).ifPresent(searchSourceBuilder::postFilter);
 
     return esRequest;
   }
 
   public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
-    return buildQuery(searchRequest.getParameters(), searchRequest.getQ(), searchRequest.isVerbatimMatch());
+    return buildQuery(searchRequest.getParameters(), searchRequest.getQ(), searchRequest.isMatchCase());
   }
 
   static SearchRequest buildSuggestQuery(
@@ -242,7 +242,7 @@ public class EsSearchRequestBuilder {
                                       e.getValue(),
                                       e.getKey(),
                                       SEARCH_TO_ES_MAPPING.get(e.getKey()),
-                                      searchRequest.isVerbatimMatch())
+                                      searchRequest.isMatchCase())
                                       .stream())
                           .collect(Collectors.toList()));
 
@@ -284,7 +284,7 @@ public class EsSearchRequestBuilder {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggName)
-          .field(searchRequest.isVerbatimMatch()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
+          .field(searchRequest.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
 
     // min count
     Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
