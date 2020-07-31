@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.query;
 
+import org.apache.commons.collections.functors.EqualPredicate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
@@ -53,12 +54,12 @@ public class EsQueryVisitor {
 
   private static String getExactMatchOrVerbatimField(SimplePredicate predicate) {
     OccurrenceEsField esField = getElasticField(predicate.getKey());
-    return predicate.isMatchVerbatim()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    return predicate.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
   }
 
   private static String getExactMatchOrVerbatimField(InPredicate predicate) {
     OccurrenceEsField esField = getElasticField(predicate.getKey());
-    return predicate.isMatchVerbatim()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    return predicate.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
   }
 
   private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
@@ -133,7 +134,7 @@ public class EsQueryVisitor {
     });
     if (!equalsPredicatesReplaceableByIn.isEmpty()) {
       toInPredicates(equalsPredicatesReplaceableByIn)
-        .forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getElasticFieldName(ep.getKey()),
+        .forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getExactMatchOrVerbatimField(ep),
                                                                           ep.getValues().stream()
                                                                             .map(v -> parseParamValue(v, ep.getKey()))
                                                                             .collect(Collectors.toList()))));
@@ -169,7 +170,15 @@ public class EsQueryVisitor {
   private List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
     return equalPredicates.entrySet()
             .stream()
-            .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), false))
+            .map(e ->
+              e.getValue().stream()
+                .collect(Collectors.groupingBy(EqualsPredicate::isMatchCase))
+                .entrySet()
+                .stream()
+                .map(group -> new InPredicate(e.getKey(), group.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), group.getKey()))
+                 .collect(Collectors.toList())
+            )
+            .flatMap(List::stream)
             .collect(Collectors.toList());
   }
 

@@ -327,6 +327,45 @@ public class EsQueryVisitorTest {
   }
 
   @Test
+  public void testDisjunctionMatchCasePredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM, "value_2", false);
+
+    Predicate p3 = new EqualsPredicate(PARAM, "value_3", true);
+    Predicate p4 = new EqualsPredicate(PARAM, "value_4", true);
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3, p4));
+    String query = visitor.getQuery(p);
+    String expectedQuery = "{\n"
+                           + "  \"bool\" : {\n"
+                           + "    \"should\" : [\n"
+                           + "      {\n"
+                           + "        \"terms\" : {\n"
+                           + "          \"catalogNumber.keyword\" : [\n"
+                           + "            \"value_2\",\n"
+                           + "            \"value_1\"\n"
+                           + "          ],\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      },\n"
+                           + "      {\n"
+                           + "        \"terms\" : {\n"
+                           + "          \"catalogNumber.verbatim\" : [\n"
+                           + "            \"value_4\",\n"
+                           + "            \"value_3\"\n"
+                           + "          ],\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      }\n"
+                           + "    ],\n"
+                           + "    \"adjust_pure_negative\" : true,\n"
+                           + "    \"boost\" : 1.0\n"
+                           + "  }\n"
+                           + "}";
+    Assertions.assertEquals(expectedQuery, query);
+  }
+
+  @Test
   public void testInPredicate() throws QueryBuildingException {
     Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
     String query = visitor.getQuery(p);

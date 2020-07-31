@@ -209,10 +209,10 @@ public class HiveQueryVisitor {
     return "lower(" + val + ")";
   }
 
-  private static String toHiveField(OccurrenceSearchParameter param, boolean matchVerbatim) {
+  private static String toHiveField(OccurrenceSearchParameter param, boolean matchCase) {
     if (PARAM_TO_TERM.containsKey(param)) {
       String hiveCol = HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchVerbatim) {
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
         return toHiveLower(hiveCol);
       }
       return hiveCol;
@@ -230,7 +230,7 @@ public class HiveQueryVisitor {
    *
    * @return the converted value expected by Hive
    */
-    private static String toHiveValue(OccurrenceSearchParameter param, String value, boolean matchVerbatim) {
+    private static String toHiveValue(OccurrenceSearchParameter param, String value, boolean matchCase) {
     if (Enum.class.isAssignableFrom(param.type())) {
       // all enum parameters are uppercase
       return '\'' + value.toUpperCase() + '\'';
@@ -248,7 +248,7 @@ public class HiveQueryVisitor {
     } else {
       // quote value, escape existing quotes
       String strVal =  '\'' + APOSTROPHE_MATCHER.replaceFrom(value, "\\\'") + '\'';
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchVerbatim) {
+      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
         return toHiveLower(strVal);
       }
       return strVal;
@@ -362,7 +362,7 @@ public class HiveQueryVisitor {
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
         // Use the equals predicate to get the behaviour for array.
-        visit(new EqualsPredicate(predicate.getKey(), iterator.next(), predicate.isMatchVerbatim()));
+        visit(new EqualsPredicate(predicate.getKey(), iterator.next(), predicate.isMatchCase()));
         if (iterator.hasNext()) {
           builder.append(DISJUNCTION_OPERATOR);
         }
@@ -375,12 +375,12 @@ public class HiveQueryVisitor {
 
     } else {
       builder.append('(');
-      builder.append(toHiveField(predicate.getKey(), predicate.isMatchVerbatim()));
+      builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
       builder.append(IN_OPERATOR);
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
-        builder.append(toHiveValue(predicate.getKey(), iterator.next(), predicate.isMatchVerbatim()));
+        builder.append(toHiveValue(predicate.getKey(), iterator.next(), predicate.isMatchCase()));
         if (iterator.hasNext()) {
           builder.append(", ");
         }
@@ -538,9 +538,9 @@ public class HiveQueryVisitor {
       }
 
     }
-    builder.append(toHiveField(predicate.getKey(), predicate.isMatchVerbatim()));
+    builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
     builder.append(op);
-    builder.append(toHiveValue(predicate.getKey(), predicate.getValue(), predicate.isMatchVerbatim()));
+    builder.append(toHiveValue(predicate.getKey(), predicate.getValue(), predicate.isMatchCase()));
   }
 
   /**
