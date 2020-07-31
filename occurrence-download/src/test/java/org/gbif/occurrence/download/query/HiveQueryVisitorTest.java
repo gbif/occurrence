@@ -39,11 +39,11 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testComplexQuery() throws QueryBuildingException {
-    Predicate aves = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "212");
-    Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer%");
-    Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB");
+    Predicate aves = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "212", false);
+    Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer%", false);
+    Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB", false);
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
-    Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true");
+    Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true", false);
 
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(aves, UK, passer, before1989, georeferencedPredicate));
     String where = visitor.getHiveQuery(p);
@@ -54,18 +54,18 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testMoreComplexQuery() throws QueryBuildingException {
-    Predicate taxon1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1");
-    Predicate taxon2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2");
+    Predicate taxon1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false);
+    Predicate taxon2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2", false);
     DisjunctionPredicate taxa = new DisjunctionPredicate(Lists.newArrayList(taxon1, taxon2));
 
-    Predicate basis = new InPredicate(OccurrenceSearchParameter.BASIS_OF_RECORD, Lists.newArrayList("HUMAN_OBSERVATION", "MACHINE_OBSERVATION"));
+    Predicate basis = new InPredicate(OccurrenceSearchParameter.BASIS_OF_RECORD, Lists.newArrayList("HUMAN_OBSERVATION", "MACHINE_OBSERVATION"), false);
 
-    Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB");
-    Predicate IE = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "IE");
+    Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB", false);
+    Predicate IE = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "IE", false);
     DisjunctionPredicate countries = new DisjunctionPredicate(Lists.newArrayList(UK, IE));
 
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
-    Predicate in2000 = new EqualsPredicate(OccurrenceSearchParameter.YEAR, "2000");
+    Predicate in2000 = new EqualsPredicate(OccurrenceSearchParameter.YEAR, "2000", false);
     DisjunctionPredicate years = new DisjunctionPredicate(Lists.newArrayList(before1989, in2000));
 
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(taxa, basis, countries, years));
@@ -80,8 +80,8 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testConjunctionPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
 
     ConjunctionPredicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
@@ -90,8 +90,8 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testDisjunctionPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
@@ -100,8 +100,8 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testDisjunctionToInPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM, "value_2", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
@@ -110,8 +110,8 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testDisjunctionToInTaxonPredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1");
-    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2");
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false);
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "2", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
@@ -121,8 +121,8 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testDisjunctionMediaTypePredicate() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "StillImage");
-    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "Sound");
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "StillImage", false);
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "Sound", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
@@ -131,9 +131,30 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
-    Predicate p = new EqualsPredicate(PARAM, "value");
+    Predicate p = new EqualsPredicate(PARAM, "value", false);
     String query = visitor.getHiveQuery(p);
     assertEquals(query, "lower(catalognumber) = lower(\'value\')");
+  }
+
+  @Test
+  public void testLikePredicate() throws QueryBuildingException {
+    Predicate p = new LikePredicate(PARAM, "value", false);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "lower(catalognumber) LIKE lower(\'value\')");
+  }
+
+  @Test
+  public void testLikeVerbatimPredicate() throws QueryBuildingException {
+    Predicate p = new LikePredicate(PARAM, "value", true);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "catalognumber LIKE \'value\'");
+  }
+
+  @Test
+  public void testEqualsVerbatimPredicate() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(PARAM, "value", true);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "catalognumber = \'value\'");
   }
 
   @Test
@@ -152,15 +173,23 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testInPredicate() throws QueryBuildingException {
-    Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"));
+    Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
     String query = visitor.getHiveQuery(p);
     assertEquals(query,
       "(lower(catalognumber) IN(lower(\'value_1\'), lower(\'value_2\'), lower(\'value_3\')))");
   }
 
   @Test
+  public void testInVerbatimPredicate() throws QueryBuildingException {
+    Predicate p = new InPredicate(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), true);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query,
+                 "(catalognumber IN(\'value_1\', \'value_2\', \'value_3\'))");
+  }
+
+  @Test
   public void testInPredicateTaxonKey() throws QueryBuildingException {
-    Predicate p = new InPredicate(OccurrenceSearchParameter.TAXON_KEY, Lists.newArrayList("1", "2"));
+    Predicate p = new InPredicate(OccurrenceSearchParameter.TAXON_KEY, Lists.newArrayList("1", "2"), false);
     String query = visitor.getHiveQuery(p);
     assertEquals(query,
       "(taxonkey IN(1, 2) OR acceptedtaxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))");
@@ -168,7 +197,7 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testInPredicateMediaType() throws QueryBuildingException {
-    Predicate p = new InPredicate(OccurrenceSearchParameter.MEDIA_TYPE, Lists.newArrayList("StillImage", "Sound"));
+    Predicate p = new InPredicate(OccurrenceSearchParameter.MEDIA_TYPE, Lists.newArrayList("StillImage", "Sound"), false);
     String query = visitor.getHiveQuery(p);
     assertEquals(query, "(array_contains(mediatype,'StillImage') OR array_contains(mediatype,'Sound'))");
   }
@@ -189,15 +218,15 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testNotPredicate() throws QueryBuildingException {
-    Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value"));
+    Predicate p = new NotPredicate(new EqualsPredicate(PARAM, "value", false));
     String query = visitor.getHiveQuery(p);
     assertEquals(query, "NOT lower(catalognumber) = lower(\'value\')");
   }
 
   @Test
   public void testNotPredicateComplex() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(PARAM, "value_1");
-    Predicate p2 = new EqualsPredicate(PARAM2, "value_2");
+    Predicate p1 = new EqualsPredicate(PARAM, "value_1", false);
+    Predicate p2 = new EqualsPredicate(PARAM2, "value_2", false);
 
     ConjunctionPredicate cp = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
 
@@ -208,7 +237,7 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testQuotes() throws QueryBuildingException {
-    Predicate p = new EqualsPredicate(PARAM, "my \'pleasure\'");
+    Predicate p = new EqualsPredicate(PARAM, "my \'pleasure\'", false);
     String query = visitor.getHiveQuery(p);
     assertEquals(query, "lower(catalognumber) = lower(\'my \\\'pleasure\\\'\')");
 
@@ -337,7 +366,7 @@ public class HiveQueryVisitorTest {
       range = Range.closed(lowerDate,upperDate);
     }
 
-    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED,value);
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, value, false);
 
     String query = visitor.getHiveQuery(p);
     assertEquals(query, String.format("((lastinterpreted >= %s) AND (lastinterpreted <= %s))",
@@ -348,29 +377,29 @@ public class HiveQueryVisitorTest {
   @Test
   public void testIssues() throws QueryBuildingException {
     // EqualsPredicate
-    String query = visitor.getHiveQuery(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK"));
+    String query = visitor.getHiveQuery(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false));
     assertEquals(query, "array_contains(issue,'TAXON_MATCH_HIGHERRANK')");
 
     // InPredicate
-    query = visitor.getHiveQuery(new InPredicate(OccurrenceSearchParameter.ISSUE, Lists.newArrayList("TAXON_MATCH_HIGHERRANK", "TAXON_MATCH_NONE")));
+    query = visitor.getHiveQuery(new InPredicate(OccurrenceSearchParameter.ISSUE, Lists.newArrayList("TAXON_MATCH_HIGHERRANK", "TAXON_MATCH_NONE"), false));
     assertEquals(query, "(array_contains(issue,'TAXON_MATCH_HIGHERRANK') OR array_contains(issue,'TAXON_MATCH_NONE'))");
 
     // LikePredicate
     try {
-      new LikePredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK");
+      new LikePredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false);
       fail();
     } catch (IllegalArgumentException e) {}
 
     // Not
-    query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK")));
+    query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false)));
     assertEquals(query, "NOT array_contains(issue,'TAXON_MATCH_HIGHERRANK')");
 
     // Not disjunction
     query = visitor.getHiveQuery(new NotPredicate(new DisjunctionPredicate(Lists.newArrayList(
-      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_INVALID"),
-      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_OUT_OF_RANGE"),
-      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "ZERO_COORDINATE"),
-      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "RECORDED_DATE_INVALID")
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_INVALID", false),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "COORDINATE_OUT_OF_RANGE", false),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "ZERO_COORDINATE", false),
+      new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "RECORDED_DATE_INVALID", false)
     ))));
     assertEquals(query, "NOT (array_contains(issue,'COORDINATE_INVALID') OR array_contains(issue,'COORDINATE_OUT_OF_RANGE') OR array_contains(issue,'ZERO_COORDINATE') OR array_contains(issue,'RECORDED_DATE_INVALID'))");
 
@@ -404,7 +433,7 @@ public class HiveQueryVisitorTest {
       }
 
       if (OccurrenceSearchParameter.GEOMETRY != param) {
-        predicates.add(new EqualsPredicate(param, value));
+        predicates.add(new EqualsPredicate(param, value, false));
       }
     }
     ConjunctionPredicate and = new ConjunctionPredicate(predicates);

@@ -99,7 +99,7 @@ public class PredicateOptimizer {
   private static List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
     return equalPredicates.entrySet()
       .stream()
-      .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet())))
+      .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), false))
       .collect(Collectors.toList());
   }
 

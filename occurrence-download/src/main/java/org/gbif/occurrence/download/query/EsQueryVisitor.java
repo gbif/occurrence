@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.query;
 
+import org.apache.commons.collections.functors.EqualPredicate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
@@ -14,6 +15,7 @@ import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
 import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +30,8 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +44,22 @@ public class EsQueryVisitor {
   private static final Logger LOG = LoggerFactory.getLogger(EsQueryVisitor.class);
 
 
-  private static String getElasticField(OccurrenceSearchParameter param) {
+  private static OccurrenceEsField getElasticField(OccurrenceSearchParameter param) {
+    return EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param);
+  }
+
+  private static String getElasticFieldName(OccurrenceSearchParameter param) {
     return EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param).getExactMatchFieldName();
+  }
+
+  private static String getExactMatchOrVerbatimField(SimplePredicate predicate) {
+    OccurrenceEsField esField = getElasticField(predicate.getKey());
+    return predicate.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+  }
+
+  private static String getExactMatchOrVerbatimField(InPredicate predicate) {
+    OccurrenceEsField esField = getElasticField(predicate.getKey());
+    return predicate.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
   }
 
   private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
@@ -116,7 +134,7 @@ public class EsQueryVisitor {
     });
     if (!equalsPredicatesReplaceableByIn.isEmpty()) {
       toInPredicates(equalsPredicatesReplaceableByIn)
-        .forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getElasticField(ep.getKey()),
+        .forEach(ep -> queryBuilder.should().add(QueryBuilders.termsQuery(getExactMatchOrVerbatimField(ep),
                                                                           ep.getValues().stream()
                                                                             .map(v -> parseParamValue(v, ep.getKey()))
                                                                             .collect(Collectors.toList()))));
@@ -152,7 +170,15 @@ public class EsQueryVisitor {
   private List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
     return equalPredicates.entrySet()
             .stream()
-            .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet())))
+            .map(e ->
+              e.getValue().stream()
+                .collect(Collectors.groupingBy(EqualsPredicate::isMatchCase))
+                .entrySet()
+                .stream()
+                .map(group -> new InPredicate(e.getKey(), group.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), group.getKey()))
+                 .collect(Collectors.toList())
+            )
+            .flatMap(List::stream)
             .collect(Collectors.toList());
   }
 
@@ -165,7 +191,7 @@ public class EsQueryVisitor {
    */
   public void visit(EqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.matchQuery(getElasticField(parameter), parseParamValue(predicate.getValue(), parameter)));
+    queryBuilder.filter().add(QueryBuilders.matchQuery(getExactMatchOrVerbatimField(predicate), parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -176,7 +202,7 @@ public class EsQueryVisitor {
    */
   public void visit(GreaterThanOrEqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter)).gte(parseParamValue(predicate.getValue(), parameter)));
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticFieldName(parameter)).gte(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -187,7 +213,7 @@ public class EsQueryVisitor {
    */
   public void visit(GreaterThanPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter)).gt(parseParamValue(predicate.getValue(), parameter)));
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticFieldName(parameter)).gt(parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**
@@ -198,7 +224,7 @@ public class EsQueryVisitor {
    */
   public void visit(InPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.termsQuery(getElasticField(parameter),
+    queryBuilder.filter().add(QueryBuilders.termsQuery(getExactMatchOrVerbatimField(predicate),
                                                        predicate.getValues().stream()
                                                          .map(v -> parseParamValue(v, parameter))
                                                          .collect(Collectors.toList())));
@@ -212,7 +238,7 @@ public class EsQueryVisitor {
    */
   public void visit(LessThanOrEqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter))
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticFieldName(parameter))
                                 .lte(parseParamValue(predicate.getValue(), parameter)));
   }
 
@@ -224,7 +250,7 @@ public class EsQueryVisitor {
    */
   public void visit(LessThanPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticField(parameter))
+    queryBuilder.filter().add(QueryBuilders.rangeQuery(getElasticFieldName(parameter))
                                 .lt(parseParamValue(predicate.getValue(), parameter)));
   }
 
@@ -235,7 +261,8 @@ public class EsQueryVisitor {
    * @param queryBuilder  root query builder
    */
   public void visit(LikePredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.wildcardQuery(getElasticField(predicate.getKey()), predicate.getValue() + "*"));
+    queryBuilder.filter().add(QueryBuilders.wildcardQuery(getExactMatchOrVerbatimField(predicate),
+                                                          predicate.getValue() + "*"));
   }
 
   /**
@@ -254,7 +281,7 @@ public class EsQueryVisitor {
    * handles within predicate
    *
    * @param within   Within predicate
-   * @param queryBuilder toor query builder
+   * @param queryBuilder root query builder
    */
   public void visit(WithinPredicate within, BoolQueryBuilder queryBuilder) {
     queryBuilder.filter(EsSearchRequestBuilder.buildGeoShapeQuery(within.getGeometry()));
@@ -266,7 +293,7 @@ public class EsQueryVisitor {
    * @param predicate ISNOTNULL predicate
    */
   public void visit(IsNotNullPredicate predicate, BoolQueryBuilder queryBuilder) {
-    queryBuilder.filter().add(QueryBuilders.existsQuery(getElasticField(predicate.getParameter())));
+    queryBuilder.filter().add(QueryBuilders.existsQuery(getElasticFieldName(predicate.getParameter())));
   }
 
   private void visit(Object object, BoolQueryBuilder queryBuilder) throws QueryBuildingException {
