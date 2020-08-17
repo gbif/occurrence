@@ -12,6 +12,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
+import org.gbif.occurrence.search.SearchTermService;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +44,7 @@ import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 /** Occurrence search service. */
 @Component
-public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey {
+public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey, SearchTermService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
@@ -196,6 +198,23 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return suggestTermByField(prefix, OccurrenceSearchParameter.STATE_PROVINCE, limit);
   }
 
+  private SearchRequest buildSearchRequest(SearchSourceBuilder searchSourceBuilder) {
+    return new SearchRequest(new String[]{esIndex}, searchSourceBuilder);
+  }
+
+  @Override
+  public List<String> searchFieldTerms(String query, OccurrenceSearchParameter parameter, @Nullable Integer limit) {
+    try {
+      SearchRequest searchRequest = buildSearchRequest(EsFulltextSuggestBuilder.buildSuggestFullTextQuery(query, parameter, limit));
+      org.elasticsearch.action.search.SearchResponse response = esClient.search(searchRequest, HEADERS.get());
+      return EsFulltextSuggestBuilder.buildSuggestFullTextResponse(parameter, response);
+    } catch (IOException e) {
+      LOG.error("Error executing the search operation", e);
+      throw new SearchException(e);
+    }
+
+  }
+
   /**
    * Searches a indexed terms of a field that matched against the prefix parameter.
    *
@@ -205,23 +224,20 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
    *
    * @return a list of elements that matched against the prefix
    */
-  public List<String> suggestTermByField(
-      String prefix, OccurrenceSearchParameter parameter, Integer limit) {
-    SearchRequest esRequest =
-        EsSearchRequestBuilder.buildSuggestQuery(prefix, parameter, limit, esIndex);
+  public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
 
+    SearchRequest esRequest = EsSearchRequestBuilder.buildSuggestQuery(prefix, parameter, limit, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
-    // perform the search
-    org.elasticsearch.action.search.SearchResponse response = null;
     try {
-      response = esClient.search(esRequest, HEADERS.get());
+      // perform the search
+      org.elasticsearch.action.search.SearchResponse response = esClient.search(esRequest, HEADERS.get());
+      return EsResponseParser.buildSuggestResponse(response, parameter);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
 
-    return EsResponseParser.buildSuggestResponse(response, parameter);
   }
 
   /**

@@ -22,6 +22,9 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.occurrence.search.SearchTermService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -51,9 +55,12 @@ public class OccurrenceSearchResource {
 
   private final OccurrenceSearchService searchService;
 
+  private final SearchTermService searchTermService;
+
   @Autowired
-  public OccurrenceSearchResource(OccurrenceSearchService searchService, DownloadRequestService downloadRequestService) {
+  public OccurrenceSearchResource(OccurrenceSearchService searchService, SearchTermService searchTermService) {
     this.searchService = searchService;
+    this.searchTermService = searchTermService;
   }
 
   @GetMapping
@@ -168,5 +175,15 @@ public class OccurrenceSearchResource {
   public List<String> suggestWaterBody(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestWaterBodies(prefix, limit);
+  }
+
+  @GetMapping("experimental/term/{term}")
+  @ResponseBody
+  public List<String> searchTerm(@PathVariable("term") String term, @RequestParam(QUERY_PARAM) String query, @RequestParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing term suggest/search, term {}, query {}, limit {}", term, query, limit);
+    return
+      VocabularyUtils.lookup(term, OccurrenceSearchParameter.class)
+        .map(parameter -> searchTermService.searchFieldTerms(query, parameter, limit))
+        .orElseThrow(() -> new IllegalArgumentException("Search not supported for term " +  term));
   }
 }
