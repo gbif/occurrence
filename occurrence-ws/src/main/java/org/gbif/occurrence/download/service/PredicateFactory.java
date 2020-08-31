@@ -52,11 +52,11 @@ public class PredicateFactory {
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       OccurrenceSearchParameter param = toEnumParam(p.getKey());
-      boolean matchVerbatim = Optional.ofNullable(params.get("matchVerbatim")).map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
+      boolean matchCase = Optional.ofNullable(params.get("matchCase")).map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
       String[] values = p.getValue();
       if (param != null && values != null && values.length > 0) {
         // valid parameter
-        Predicate predicate = buildParamPredicate(param, matchVerbatim, values);
+        Predicate predicate = buildParamPredicate(param, matchCase, values);
         if (predicate != null) {
           groupedByParam.add(predicate);
         }
@@ -88,10 +88,10 @@ public class PredicateFactory {
     }
   }
 
-  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchVerbatim, String... values) {
+  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchCase, String... values) {
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
-      Predicate p = parsePredicate(param, v, matchVerbatim);
+      Predicate p = parsePredicate(param, v, matchCase);
       if (p != null) {
         predicates.add(p);
       }
@@ -116,7 +116,7 @@ public class PredicateFactory {
   /**
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
-  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, boolean matchVerbatim) {
+  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, Boolean matchCase) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
@@ -165,7 +165,7 @@ public class PredicateFactory {
         return new IsNotNullPredicate(param);
       } else {
         // defaults to an equals predicate with the original value
-        return new EqualsPredicate(param, value, matchVerbatim);
+        return new EqualsPredicate(param, value, matchCase);
       }
     }
   }

@@ -374,13 +374,14 @@ public class HiveQueryVisitor {
       appendTaxonKeyFilter(predicate.getValues());
 
     } else {
+      boolean matchCase = Optional.ofNullable(predicate.isMatchCase()).orElse(false);
       builder.append('(');
-      builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
+      builder.append(toHiveField(predicate.getKey(), matchCase));
       builder.append(IN_OPERATOR);
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
-        builder.append(toHiveValue(predicate.getKey(), iterator.next(), predicate.isMatchCase()));
+        builder.append(toHiveValue(predicate.getKey(), iterator.next(), matchCase));
         if (iterator.hasNext()) {
           builder.append(", ");
         }
@@ -538,6 +539,7 @@ public class HiveQueryVisitor {
       }
 
     }
+    boolean matchCase = Optional.ofNullable(predicate.isMatchCase()).orElse(false);
     builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
     builder.append(op);
     builder.append(toHiveValue(predicate.getKey(), predicate.getValue(), predicate.isMatchCase()));
