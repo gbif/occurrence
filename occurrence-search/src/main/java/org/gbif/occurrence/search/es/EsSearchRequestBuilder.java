@@ -116,7 +116,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildQuery(
-      Map<OccurrenceSearchParameter, Set<String>> params, String qParam, Boolean matchCase) {
+      Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
@@ -145,7 +145,7 @@ public class EsSearchRequestBuilder {
                   .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
                   .flatMap(
                       e ->
-                          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), Optional.ofNullable(matchCase).orElse(false))
+                          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchCase)
                               .stream())
                   .collect(Collectors.toList()));
     }
@@ -182,7 +182,7 @@ public class EsSearchRequestBuilder {
   }
 
   private static Optional<QueryBuilder> buildPostFilter(
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams, Boolean matchCase) {
+      Map<OccurrenceSearchParameter, Set<String>> postFilterParams, boolean matchCase) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
@@ -193,7 +193,7 @@ public class EsSearchRequestBuilder {
             postFilterParams.entrySet().stream()
                 .flatMap(
                     e ->
-                        buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), Optional.ofNullable(matchCase).orElse(false))
+                        buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchCase)
                           .stream())
                           .collect(Collectors.toList()));
 
@@ -333,7 +333,7 @@ public class EsSearchRequestBuilder {
 
   private static List<QueryBuilder> buildTermQuery(
       Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField,
-      Boolean matchCase) {
+      boolean matchCase) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // collect queries for each value
@@ -347,7 +347,7 @@ public class EsSearchRequestBuilder {
       parsedValues.add(parseParamValue(value, param));
     }
 
-    String fieldName = Optional.ofNullable(matchCase).orElse(false)? esField.getExactMatchFieldName() : esField.getExactMatchFieldName();
+    String fieldName = matchCase? esField.getExactMatchFieldName() : esField.getExactMatchFieldName();
     if (parsedValues.size() == 1) {
       // single term
       queries.add(QueryBuilders.termQuery(fieldName, parsedValues.get(0)));

@@ -116,7 +116,7 @@ public class PredicateFactory {
   /**
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
-  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, Boolean matchCase) {
+  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, boolean matchCase) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
