@@ -54,7 +54,12 @@ public class UserMapperMock implements UserMapper {
   }
 
   @Override
-  public void delete(int key) {
+  public void delete(GbifUser gbifUser) {
+    Optional.ofNullable(getByKey(gbifUser.getKey())).ifPresent(user -> users.remove(user.getUserName()));
+  }
+
+  @Override
+  public void deleteByKey(int key) {
     Optional.ofNullable(getByKey(key)).ifPresent(user -> users.remove(user.getUserName()));
   }
 
@@ -103,4 +108,6 @@ public class UserMapperMock implements UserMapper {
   public boolean updateChallengeCodeKey(Integer key, Integer challengeCodeKey) {
     return false;
   }
+
+
 }
