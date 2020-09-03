@@ -356,13 +356,15 @@ public class HiveQueryVisitor {
    */
   public void visit(InPredicate predicate) throws QueryBuildingException {
 
+    boolean isMatchCase = Optional.ofNullable(predicate.isMatchCase()).orElse(Boolean.FALSE);
+
     if (isHiveArray(predicate.getKey())) {
       // Array values must be converted to ORs.
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
         // Use the equals predicate to get the behaviour for array.
-        visit(new EqualsPredicate(predicate.getKey(), iterator.next(), predicate.isMatchCase()));
+        visit(new EqualsPredicate(predicate.getKey(), iterator.next(), isMatchCase));
         if (iterator.hasNext()) {
           builder.append(DISJUNCTION_OPERATOR);
         }
@@ -375,12 +377,12 @@ public class HiveQueryVisitor {
 
     } else {
       builder.append('(');
-      builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
+      builder.append(toHiveField(predicate.getKey(), isMatchCase));
       builder.append(IN_OPERATOR);
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
       while (iterator.hasNext()) {
-        builder.append(toHiveValue(predicate.getKey(), iterator.next(), predicate.isMatchCase()));
+        builder.append(toHiveValue(predicate.getKey(), iterator.next(), isMatchCase));
         if (iterator.hasNext()) {
           builder.append(", ");
         }
