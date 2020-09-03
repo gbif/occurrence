@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
@@ -59,7 +60,7 @@ public class EsQueryVisitor {
 
   private static String getExactMatchOrVerbatimField(InPredicate predicate) {
     OccurrenceEsField esField = getElasticField(predicate.getKey());
-    return predicate.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    return Optional.ofNullable(predicate.isMatchCase()).orElse(Boolean.FALSE)? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
   }
 
   private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
