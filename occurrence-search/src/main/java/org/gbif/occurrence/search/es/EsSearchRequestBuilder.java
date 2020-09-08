@@ -347,7 +347,7 @@ public class EsSearchRequestBuilder {
       parsedValues.add(parseParamValue(value, param));
     }
 
-    String fieldName = matchCase? esField.getExactMatchFieldName() : esField.getExactMatchFieldName();
+    String fieldName = matchCase? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     if (parsedValues.size() == 1) {
       // single term
       queries.add(QueryBuilders.termQuery(fieldName, parsedValues.get(0)));
