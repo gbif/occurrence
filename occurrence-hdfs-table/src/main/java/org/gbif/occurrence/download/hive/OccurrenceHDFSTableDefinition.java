@@ -91,8 +91,6 @@ public class OccurrenceHDFSTableDefinition {
     Map<Term, String> initializers = new ImmutableMap.Builder<Term,String>()
                                                       .put(GbifInternalTerm.publishingOrgKey, HiveColumns.columnFor(GbifInternalTerm.publishingOrgKey))
                                                       .put(GbifInternalTerm.installationKey, HiveColumns.columnFor(GbifInternalTerm.installationKey))
-                                                      .put(GbifInternalTerm.institutionKey, HiveColumns.columnFor(GbifInternalTerm.institutionKey))
-                                                      .put(GbifInternalTerm.collectionKey, HiveColumns.columnFor(GbifInternalTerm.collectionKey))
                                                       .put(GbifInternalTerm.projectId, HiveColumns.columnFor(GbifInternalTerm.projectId))
                                                       .put(GbifInternalTerm.programmeAcronym, HiveColumns.columnFor(GbifInternalTerm.programmeAcronym))
                                             .build();
