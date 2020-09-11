@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.144-SNAPSHOT</version>
+  <version>0.145-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
