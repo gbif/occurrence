@@ -162,6 +162,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   public List<String> suggestRecordedBy(String prefix, @Nullable Integer limit) {
     return suggestTermByField(prefix, OccurrenceSearchParameter.RECORDED_BY, limit);
   }
+  @Override
+  public List<String> suggestIdentifiedBy(String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.IDENTIFIED_BY, limit);
+  }
 
   @Override
   public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
