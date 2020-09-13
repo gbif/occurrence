@@ -45,6 +45,7 @@
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
+    <module>occurrence-mail</module>
   </modules>
 
   <properties>
@@ -339,6 +340,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-persistence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-mail</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -1,4 +1,3 @@
-<#-- @ftlvariable name="" type="org.gbif.occurrence.download.service.EmailModel" -->
 Hello ${download.request.creator},
 
 We are sorry, but an error has occurred processing your download.

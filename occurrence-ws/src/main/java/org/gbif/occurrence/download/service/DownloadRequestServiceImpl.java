@@ -36,6 +36,9 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
+import org.gbif.occurrence.mail.BaseEmailModel;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -90,33 +93,36 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private static final Counter FAILED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS = Metrics.newCounter(CallbackService.class, "cancelled_downloads");
 
-
   private final OozieClient client;
+  private final String portalUrl;
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final DownloadEmailUtils downloadEmailUtils;
   private final DownloadWorkflowParametersBuilder parametersBuilder;
+  private final OccurrenceEmailManager emailManager;
+  private final EmailSender emailSender;
 
   private final DownloadLimitsService downloadLimitsService;
-
 
   @Autowired
   public DownloadRequestServiceImpl(OozieClient client,
                                     @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
+                                    @Value("${occurrence.download.portal.url}") String portalUrl,
                                     @Value("${occurrence.download.ws.url}") String wsUrl,
                                     @Value("${occurrence.download.ws.mount}") String wsMountDir,
                                     OccurrenceDownloadService occurrenceDownloadService,
-                                    DownloadEmailUtils downloadEmailUtils,
-                                    DownloadLimitsService downloadLimitsService) {
-
+                                    DownloadLimitsService downloadLimitsService,
+                                    OccurrenceEmailManager emailManager,
+                                    EmailSender emailSender) {
     this.client = client;
+    this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
-    downloadMount = new File(wsMountDir);
+    this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.downloadEmailUtils = downloadEmailUtils;
-    parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
+    this.parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
     this.downloadLimitsService = downloadLimitsService;
+    this.emailManager = emailManager;
+    this.emailSender = emailSender;
   }
 
   @Override
@@ -233,6 +239,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       return;
     }
 
+    BaseEmailModel emailModel;
     Download.Status newStatus = STATUSES_MAP.get(opStatus.get());
     switch (newStatus) {
       case KILLED:
@@ -245,7 +252,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       case FAILED:
         LOG.error(NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
         updateDownloadStatus(download, newStatus);
-        downloadEmailUtils.sendErrorNotificationMail(download);
+        emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
+        emailSender.send(emailModel);
         FAILED_DOWNLOADS.inc();
         break;
 
@@ -254,7 +262,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         updateDownloadStatus(download, newStatus);
         // notify about download
         if (download.getRequest().getSendNotification()) {
-          downloadEmailUtils.sendSuccessNotificationMail(download);
+          emailModel = emailManager.generateSuccessfulDownloadEmailModel(download, portalUrl);
+          emailSender.send(emailModel);
         }
         break;
 

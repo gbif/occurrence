@@ -24,6 +24,8 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -52,7 +54,8 @@ public class CallbackServiceTest {
   private OozieClient oozieClient;
   private CallbackService service;
   private OccurrenceDownloadService occurrenceDownloadService;
-  private DownloadEmailUtils downloadEmailUtils;
+  private OccurrenceEmailManager emailManager;
+  private EmailSender emailSender;
   private DownloadLimitsService downloadLimitsService;
 
   /**
@@ -73,7 +76,8 @@ public class CallbackServiceTest {
 
   @Before
   public void setup() {
-    downloadEmailUtils = mock(DownloadEmailUtils.class);
+    emailManager = mock(OccurrenceEmailManager.class);
+    emailSender = mock(EmailSender.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService= mock(DownloadLimitsService.class);
     when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class))).thenReturn(null);
@@ -81,8 +85,9 @@ public class CallbackServiceTest {
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl(oozieClient, Maps.newHashMap(), "http://localhost:8080/",
-        "", occurrenceDownloadService, downloadEmailUtils,downloadLimitsService);
+      new DownloadRequestServiceImpl(
+          oozieClient, Maps.newHashMap(), "http://gbif-dev.org/occurrence", "http://localhost:8080/",
+        "", occurrenceDownloadService, downloadLimitsService, emailManager, emailSender);
   }
 
 
@@ -96,7 +101,8 @@ public class CallbackServiceTest {
   @Test(expected = IllegalArgumentException.class)
   public void testIgnoreWrongStatuses() {
     service.processCallback(JOB_ID, "INVALID");
-    verifyNoMoreInteractions(downloadEmailUtils);
+    verifyNoMoreInteractions(emailManager);
+    verifyNoMoreInteractions(emailSender);
   }
 
   @Test

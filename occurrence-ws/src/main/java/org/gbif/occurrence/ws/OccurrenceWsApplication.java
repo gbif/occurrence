@@ -35,7 +35,8 @@ import org.springframework.context.annotation.FilterType;
     "org.gbif.registry.mail",
     "org.gbif.occurrence.ws",
     "org.gbif.occurrence.download.service",
-    "org.gbif.occurrence.persistence"
+    "org.gbif.occurrence.persistence",
+    "org.gbif.occurrence.mail"
   },
   excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE)})
 @EnableFeignClients

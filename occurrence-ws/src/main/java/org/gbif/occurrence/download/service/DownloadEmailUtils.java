@@ -43,8 +43,10 @@ import static freemarker.template.Configuration.VERSION_2_3_25;
 
 /**
  * Utility class that sends notification emails of occurrence downloads.
+ * Will be deleted in the future releases, use occurrence-mail module instead.
  */
 @Component
+@Deprecated
 public class DownloadEmailUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadEmailUtils.class);
   private static final Splitter EMAIL_SPLITTER = Splitter.on(';').omitEmptyStrings().trimResults();
