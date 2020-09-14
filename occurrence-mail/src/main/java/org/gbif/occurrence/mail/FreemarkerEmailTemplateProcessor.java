@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 
 /**
  * Email template processor allows to generate a {@link BaseEmailModel} from a Freemarker template.
@@ -38,9 +39,12 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
 
   static {
     FREEMARKER_CONFIG.setDefaultEncoding(StandardCharsets.UTF_8.name());
-    FREEMARKER_CONFIG.setLocale(Locale.US);
+    FREEMARKER_CONFIG.setLocale(Locale.UK);
+    FREEMARKER_CONFIG.setTimeZone(TimeZone.getTimeZone("GMT"));
     FREEMARKER_CONFIG.setNumberFormat("0.####");
-    FREEMARKER_CONFIG.setDateFormat("yyyy-mm-dd");
+    FREEMARKER_CONFIG.setDateFormat("d MMMM yyyy");
+    FREEMARKER_CONFIG.setTimeFormat("HH:mm:ss");
+    FREEMARKER_CONFIG.setDateTimeFormat("HH:mm:ss d MMMM yyyy");
     FREEMARKER_CONFIG.setClassForTemplateLoading(
         FreemarkerEmailTemplateProcessor.class, "/email/templates");
   }
