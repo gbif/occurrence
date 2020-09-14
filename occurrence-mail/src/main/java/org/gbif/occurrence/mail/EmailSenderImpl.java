@@ -45,7 +45,7 @@ import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddres
  * Allows to send {@link BaseEmailModel}
  */
 @Service
-@Qualifier("emailSender")
+@Qualifier("occurrenceEmailSender")
 public class EmailSenderImpl implements EmailSender {
 
   private static final Logger LOG = LoggerFactory.getLogger(EmailSenderImpl.class);

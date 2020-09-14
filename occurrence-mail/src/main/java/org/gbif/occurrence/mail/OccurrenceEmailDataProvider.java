@@ -1,6 +1,5 @@
 package org.gbif.occurrence.mail;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -8,7 +7,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 @Service
-@Qualifier("occurrenceEmailDataProvider")
 public class OccurrenceEmailDataProvider implements EmailDataProvider {
 
   public static final String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/subjects/occurrence_email_subjects";
