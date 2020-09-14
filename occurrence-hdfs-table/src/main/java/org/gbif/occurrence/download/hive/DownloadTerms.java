@@ -103,7 +103,9 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.establishmentMeans),
     Pair.of(Group.INTERPRETED, GbifTerm.lastInterpreted),
     Pair.of(Group.INTERPRETED, GbifTerm.mediaType),
-    Pair.of(Group.INTERPRETED, GbifTerm.issue)
+    Pair.of(Group.INTERPRETED, GbifTerm.issue),
+    Pair.of(Group.INTERPRETED, GbifInternalTerm.institutionKey),
+    Pair.of(Group.INTERPRETED, GbifInternalTerm.collectionKey)
   );
 
   /**

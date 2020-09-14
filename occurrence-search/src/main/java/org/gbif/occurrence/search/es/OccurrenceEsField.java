@@ -109,8 +109,8 @@ public enum OccurrenceEsField {
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
 
   // GrSciColl
-  COLLECTION_KEY("grscicoll.collectionKey", GbifInternalTerm.collectionKey),
-  INSTITUTION_KEY("grscicoll.institutionKey", GbifInternalTerm.institutionKey),
+  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
+  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Sampling
   EVENT_ID("eventId", DwcTerm.eventID, true),
