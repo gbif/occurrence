@@ -92,33 +92,35 @@
                             GBIF.org (${download.created?date}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #71bc37;text-decoration: none;">${download.doi.getUrl()}</a>
                         </p>
 
+
+                        <h3 style="margin: 0;padding: 0;font-size: 24px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Информация о загрузке</h3>
+
                         <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            Информация о загрузке:
                         <ul style="list-style: none;margin: 0;padding: 0;font-size: 16px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                DOI: <a href="${download.doi.getUrl()}"
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">DOI:</b> <a href="${download.doi.getUrl()}"
                                         style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #71bc37;text-decoration: none;">${download.doi.getUrl()}</a>
                                 (активация может занять несколько часов)
                             </li>
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Дата создания: ${download.created?datetime}</li>
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">Дата создания:</b> ${download.created?datetime}</li>
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Количество записей: ${download.totalRecords} записей из ${download.numberDatasets!0}
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">Количество записей:</b> ${download.totalRecords} записей из ${download.numberDatasets!0}
                                 опубликованных наборов данных
                             </li>
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Размер сжатых данных: ${size}</li>
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">Размер сжатых данных:</b> ${size}</li>
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Формат загрузки: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if></li>
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">Формат загрузки:</b> <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if></li>
                             <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Использованный фильтр: ${query!"        All occurrence records"}</li>
+                                <b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">Использованный фильтр:</b> ${query!"        All occurrence records"}</li>
                         </ul>
                         </p>
 
 
+                        <h3 style="margin: 0;padding: 0;font-size: 24px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Хранение файла загрузки</h3>
+
                         <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            Хранение файла загрузки:
-                            <br>
                             Информация об этой загрузке всегда будет доступна по адресам <a href="${download.doi.getUrl()}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #71bc37;text-decoration: none;">${download.doi.getUrl()}</a>
                             и <a href="${portal}occurrence/download/${download.key}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #71bc37;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
                         </p>
@@ -140,8 +142,10 @@
                         </p>
 
 
+                        <h3 style="margin: 0;padding: 0;font-size: 24px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Информация / FAQ</h3>
+
                         <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            Чтобы получить помощь по открытию загруженных файлов, см.
+                            Для получения информация об открытии загружаемых файлов, см.
                             <br>
                             <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Avenir Next', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #71bc37;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
                             <br>
