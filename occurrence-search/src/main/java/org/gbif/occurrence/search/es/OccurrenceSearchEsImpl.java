@@ -162,6 +162,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   public List<String> suggestRecordedBy(String prefix, @Nullable Integer limit) {
     return suggestTermByField(prefix, OccurrenceSearchParameter.RECORDED_BY, limit);
   }
+  @Override
+  public List<String> suggestIdentifiedBy(String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.IDENTIFIED_BY, limit);
+  }
 
   @Override
   public List<String> suggestInstitutionCodes(String prefix, @Nullable Integer limit) {
@@ -196,6 +200,21 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Override
   public List<String> suggestStateProvinces(@Min(1L) String prefix, @Nullable Integer limit) {
     return suggestTermByField(prefix, OccurrenceSearchParameter.STATE_PROVINCE, limit);
+  }
+
+  @Override
+  public List<String> suggestSamplingProtocol(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.SAMPLING_PROTOCOL, limit);
+  }
+
+  @Override
+  public List<String> suggestEventId(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.EVENT_ID, limit);
+  }
+
+  @Override
+  public List<String> suggestParentEventId(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.PARENT_EVENT_ID, limit);
   }
 
   private SearchRequest buildSearchRequest(SearchSourceBuilder searchSourceBuilder) {
