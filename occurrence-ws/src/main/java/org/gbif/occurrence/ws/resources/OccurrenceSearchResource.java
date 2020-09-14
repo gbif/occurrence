@@ -4,14 +4,17 @@ import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.EVENT_ID_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.PARENT_EVENT_ID_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.IDENTIFIED_BY_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.SAMPLING_PROTOCOL_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 import java.util.List;
@@ -181,6 +184,28 @@ public class OccurrenceSearchResource {
   public List<String> suggestWaterBody(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
     LOG.debug("Executing waterBody suggest/search, query {}, limit {}", prefix, limit);
     return searchService.suggestWaterBodies(prefix, limit);
+  }
+
+
+  @GetMapping(SAMPLING_PROTOCOL_PATH)
+  @ResponseBody
+  public List<String> suggestSamplingProtocol(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing samplingProtocol suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestSamplingProtocol(prefix, limit);
+  }
+
+  @GetMapping(EVENT_ID_PATH)
+  @ResponseBody
+  public List<String> suggestEventId(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing eventId suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestEventId(prefix, limit);
+  }
+
+  @GetMapping(PARENT_EVENT_ID_PATH)
+  @ResponseBody
+  public List<String> suggestParentEventId(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) int limit) {
+    LOG.debug("Executing parentEventId suggest/search, query {}, limit {}", prefix, limit);
+    return searchService.suggestParentEventId(prefix, limit);
   }
 
   @GetMapping("experimental/term/{term}")
