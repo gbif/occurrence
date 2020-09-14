@@ -18,7 +18,6 @@ package org.gbif.occurrence.mail;
 import org.gbif.occurrence.mail.util.OccurrenceMailUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -45,10 +44,9 @@ import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddres
  * Allows to send {@link BaseEmailModel}
  */
 @Service
-@Qualifier("occurrenceEmailSender")
-public class EmailSenderImpl implements EmailSender {
+public class OccurrenceEmailSender implements EmailSender {
 
-  private static final Logger LOG = LoggerFactory.getLogger(EmailSenderImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceEmailSender.class);
 
   private static final String HTML_CONTENT_TYPE = "text/html; charset=UTF-8";
 
@@ -56,7 +54,7 @@ public class EmailSenderImpl implements EmailSender {
   private final JavaMailSender mailSender;
   private final Set<Address> bccAddresses;
 
-  public EmailSenderImpl(
+  public OccurrenceEmailSender(
       Session session,
       JavaMailSender mailSender,
       @Value("${occurrence.download.mail.bcc}") String bccAddresses) {
