@@ -120,6 +120,16 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testDisjunctionToInGadmGidPredicate() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.GADM_GID, "IRL_1", false);
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.GADM_GID, "GBR.2_1", false);
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query,"(level0gid IN('IRL_1', 'GBR.2_1') OR level1gid IN('IRL_1', 'GBR.2_1') OR level2gid IN('IRL_1', 'GBR.2_1') OR level3gid IN('IRL_1', 'GBR.2_1'))");
+  }
+
+  @Test
   public void testDisjunctionMediaTypePredicate() throws QueryBuildingException {
     Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "StillImage", false);
     Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.MEDIA_TYPE, "Sound", false);
@@ -193,6 +203,13 @@ public class HiveQueryVisitorTest {
     String query = visitor.getHiveQuery(p);
     assertEquals(query,
       "(taxonkey IN(1, 2) OR acceptedtaxonkey IN(1, 2) OR kingdomkey IN(1, 2) OR phylumkey IN(1, 2) OR classkey IN(1, 2) OR orderkey IN(1, 2) OR familykey IN(1, 2) OR genuskey IN(1, 2) OR subgenuskey IN(1, 2) OR specieskey IN(1, 2))");
+  }
+
+  @Test
+  public void testInPredicateGadmGid() throws QueryBuildingException {
+    Predicate p = new InPredicate(OccurrenceSearchParameter.GADM_GID, Lists.newArrayList("IRL_1", "GBR.2_1"), false);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query,"(level0gid IN('IRL_1', 'GBR.2_1') OR level1gid IN('IRL_1', 'GBR.2_1') OR level2gid IN('IRL_1', 'GBR.2_1') OR level3gid IN('IRL_1', 'GBR.2_1'))");
   }
 
   @Test
