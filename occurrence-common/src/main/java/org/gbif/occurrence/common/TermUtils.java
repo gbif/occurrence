@@ -291,9 +291,7 @@ public class TermUtils {
       GbifInternalTerm.networkKey,
       GbifTerm.mediaType,
       DcTerm.license,
-      DwcTerm.occurrenceStatus,
-      GbifInternalTerm.institutionKey,
-      GbifInternalTerm.collectionKey);
+      DwcTerm.occurrenceStatus);
   }
 
   /**
@@ -507,4 +505,7 @@ public class TermUtils {
     return EXTENSION_TERMS.contains(term);
   }
 
+  public static void main(String[] args) {
+    interpretedTerms().forEach(t  -> System.out.println(t.simpleName()));
+  }
 }

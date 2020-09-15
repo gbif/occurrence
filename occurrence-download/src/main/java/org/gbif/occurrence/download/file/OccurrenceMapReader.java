@@ -121,10 +121,6 @@ public class OccurrenceMapReader {
                                 .ifPresent(rankClassification -> interpretedOccurrence.put(rank2Term.get(rank).simpleName(), rankClassification));
                            });
 
-    // collections
-    interpretedOccurrence.put(GbifInternalTerm.institutionKey.simpleName(), occurrence.getInstitutionKey());
-    interpretedOccurrence.put(GbifInternalTerm.collectionKey.simpleName(), occurrence.getCollectionKey());
-
     //location fields
     interpretedOccurrence.put(DwcTerm.countryCode.simpleName(), getCountryCode(occurrence.getCountry()));
     interpretedOccurrence.put(DwcTerm.continent.simpleName(), getSimpleValue(occurrence.getContinent()));
