@@ -66,6 +66,7 @@ public enum OccurrenceEsField {
   LOCALITY("locality", DwcTerm.locality, true),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
   COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
+  GADM_GID("gadm.gid", null),
   GADM_LEVEL_0_GID("gadm.level0Gid", GadmTerm.level0Gid),
   GADM_LEVEL_0_NAME("gadm.level0Name", GadmTerm.level0Name),
   GADM_LEVEL_1_GID("gadm.level1Gid", GadmTerm.level1Gid),

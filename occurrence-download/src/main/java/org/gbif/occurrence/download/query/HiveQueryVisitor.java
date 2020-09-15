@@ -107,18 +107,25 @@ public class HiveQueryVisitor {
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
-  private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(GbifTerm.taxonKey,
-                                                                  GbifTerm.acceptedTaxonKey,
-                                                                  GbifTerm.kingdomKey,
-                                                                  GbifTerm.phylumKey,
-                                                                  GbifTerm.classKey,
-                                                                  GbifTerm.orderKey,
-                                                                  GbifTerm.familyKey,
-                                                                  GbifTerm.genusKey,
-                                                                  GbifTerm.subgenusKey,
-                                                                  GbifTerm.speciesKey);
+  private static final List<GbifTerm> NUB_KEYS = ImmutableList.of(
+    GbifTerm.taxonKey,
+    GbifTerm.acceptedTaxonKey,
+    GbifTerm.kingdomKey,
+    GbifTerm.phylumKey,
+    GbifTerm.classKey,
+    GbifTerm.orderKey,
+    GbifTerm.familyKey,
+    GbifTerm.genusKey,
+    GbifTerm.subgenusKey,
+    GbifTerm.speciesKey
+  );
 
-  // parameter that map directly to Hive, boundingBox, coordinate and taxonKey are treated special !
+  private static final List<GadmTerm> GADM_GIDS = ImmutableList.of(
+    GadmTerm.level0Gid, GadmTerm.level1Gid, GadmTerm.level2Gid, GadmTerm.level3Gid
+  );
+
+  // parameters that map directly to Hive.
+  // boundingBox, coordinate, taxonKey and gadmGid are treated specially!
   private static final Map<OccurrenceSearchParameter, ? extends Term> PARAM_TO_TERM =
     ImmutableMap.<OccurrenceSearchParameter, Term>builder()
       .put(OccurrenceSearchParameter.DATASET_KEY, GbifTerm.datasetKey)
@@ -166,13 +173,9 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.STATE_PROVINCE, DwcTerm.stateProvince)
       .put(OccurrenceSearchParameter.WATER_BODY, DwcTerm.waterBody)
       .put(OccurrenceSearchParameter.GADM_LEVEL_0_GID, GadmTerm.level0Gid)
-      .put(OccurrenceSearchParameter.GADM_LEVEL_0_NAME, GadmTerm.level0Name)
       .put(OccurrenceSearchParameter.GADM_LEVEL_1_GID, GadmTerm.level1Gid)
-      .put(OccurrenceSearchParameter.GADM_LEVEL_1_NAME, GadmTerm.level1Name)
       .put(OccurrenceSearchParameter.GADM_LEVEL_2_GID, GadmTerm.level2Gid)
-      .put(OccurrenceSearchParameter.GADM_LEVEL_2_NAME, GadmTerm.level2Name)
       .put(OccurrenceSearchParameter.GADM_LEVEL_3_GID, GadmTerm.level3Gid)
-      .put(OccurrenceSearchParameter.GADM_LEVEL_3_NAME, GadmTerm.level3Name)
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
@@ -230,7 +233,7 @@ public class HiveQueryVisitor {
    *
    * @return the converted value expected by Hive
    */
-    private static String toHiveValue(OccurrenceSearchParameter param, String value, boolean matchCase) {
+  private static String toHiveValue(OccurrenceSearchParameter param, String value, boolean matchCase) {
     if (Enum.class.isAssignableFrom(param.type())) {
       // all enum parameters are uppercase
       return '\'' + value.toUpperCase() + '\'';
@@ -321,6 +324,8 @@ public class HiveQueryVisitor {
   public void visit(EqualsPredicate predicate) throws QueryBuildingException {
     if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       appendTaxonKeyFilter(predicate.getValue());
+    } else if (OccurrenceSearchParameter.GADM_GID == predicate.getKey()) {
+      appendGadmGidFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
         .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name())));
@@ -374,6 +379,10 @@ public class HiveQueryVisitor {
     } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       // Taxon keys must be expanded into a disjunction of in predicates
       appendTaxonKeyFilter(predicate.getValues());
+
+    } else if (OccurrenceSearchParameter.GADM_GID == predicate.getKey()) {
+      // GADM GIDs must be expanded into a disjunction of in predicates
+      appendGadmGidFilter(predicate.getValues());
 
     } else {
       builder.append('(');
@@ -573,6 +582,29 @@ public class HiveQueryVisitor {
   }
 
   /**
+   * Searches every level of GADM GID in Hive.
+   *
+   * @param gadmGid to append as filter
+   */
+  private void appendGadmGidFilter(String gadmGid) {
+    builder.append('(');
+    boolean first = true;
+    for (Term term : GADM_GIDS) {
+      if (!first) {
+        builder.append(DISJUNCTION_OPERATOR);
+      }
+      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(EQUALS_OPERATOR);
+      // Hardcoded GADM_LEVEL_0_GID since the type of all these parameters is the same.
+      // Using .toUpperCase() is safe, GIDs must be ASCII anyway.
+      builder.append(toHiveValue(OccurrenceSearchParameter.GADM_LEVEL_0_GID, gadmGid.toUpperCase(), true));
+      builder.append(gadmGid);
+      first = false;
+    }
+    builder.append(')');
+  }
+
+  /**
    * Searches any of the NUB keys in Hive of any rank, for multiple keys.
    *
    * @param taxonKeys to append as filter
@@ -589,6 +621,36 @@ public class HiveQueryVisitor {
       builder.append('(');
       builder.append(commaJoiner.join(taxonKeys));
       builder.append(')');
+      first = false;
+    }
+    builder.append(')');
+  }
+
+  /**
+   * Searches every level of GADM GID in Hive for multiple keys.
+   *
+   * @param gadmGids to append as filter
+   */
+  private void appendGadmGidFilter(Collection<String> gadmGids) {
+    builder.append('(');
+    boolean first = true;
+    for (Term term : GADM_GIDS) {
+      if (!first) {
+        builder.append(DISJUNCTION_OPERATOR);
+      }
+      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(IN_OPERATOR);
+      builder.append('(');
+      Iterator<String> iterator = gadmGids.iterator();
+      while (iterator.hasNext()) {
+        // Hardcoded GADM_LEVEL_0_GID since the type of all these parameters is the same.
+        // Using .toUpperCase() is safe, GIDs must be ASCII anyway.
+        builder.append(toHiveValue(OccurrenceSearchParameter.GADM_LEVEL_0_GID, iterator.next().toUpperCase(), true));
+        if (iterator.hasNext()) {
+          builder.append(", ");
+        }
+      }
+      builder.append(")");
       first = false;
     }
     builder.append(')');
