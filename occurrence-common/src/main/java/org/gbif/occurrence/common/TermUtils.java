@@ -505,7 +505,4 @@ public class TermUtils {
     return EXTENSION_TERMS.contains(term);
   }
 
-  public static void main(String[] args) {
-    interpretedTerms().forEach(t  -> System.out.println(t.simpleName()));
-  }
 }
