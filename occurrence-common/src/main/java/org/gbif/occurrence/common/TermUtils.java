@@ -291,7 +291,9 @@ public class TermUtils {
       GbifInternalTerm.networkKey,
       GbifTerm.mediaType,
       DcTerm.license,
-      DwcTerm.occurrenceStatus);
+      DwcTerm.occurrenceStatus,
+      GbifInternalTerm.institutionKey,
+      GbifInternalTerm.collectionKey);
   }
 
   /**
