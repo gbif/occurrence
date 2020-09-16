@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddresses;
@@ -51,13 +52,14 @@ public class OccurrenceEmailManager {
   }
 
   public BaseEmailModel generateSuccessfulDownloadEmailModel(Download download, String portal) {
+    GbifUser creator = getCreator(download);
+    Locale locale = creator != null && creator.getLocale() != null
+        ? creator.getLocale() : Locale.ENGLISH;
+
     try {
       DownloadTemplateDataModel dataModel =
-          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download));
+          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale));
 
-      GbifUser creator = getCreator(download);
-      Locale locale = creator != null && creator.getLocale() != null
-          ? creator.getLocale() : Locale.ENGLISH;
       return emailTemplateProcessor.buildEmail(
           OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, getNotificationAddresses(download,creator), dataModel, locale);
     } catch (TemplateException | IOException e) {
@@ -70,13 +72,14 @@ public class OccurrenceEmailManager {
   }
 
   public BaseEmailModel generateFailedDownloadEmailModel(Download download, String portal) {
+    GbifUser creator = getCreator(download);
+    Locale locale = creator != null && creator.getLocale() != null
+        ? creator.getLocale() : Locale.ENGLISH;
+
     try {
       DownloadTemplateDataModel dataModel =
-          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download));
+          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale));
 
-      GbifUser creator = getCreator(download);
-      Locale locale = creator != null && creator.getLocale() != null
-          ? creator.getLocale() : Locale.ENGLISH;
       return emailTemplateProcessor.buildEmail(
           OccurrenceEmailType.FAILED_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
     } catch (TemplateException | IOException e) {
@@ -91,16 +94,23 @@ public class OccurrenceEmailManager {
   /**
    * Gets a human readable version of the occurrence search query used.
    */
-  public String getHumanQuery(Download download) {
+  public String getHumanQuery(Download download, Locale locale) {
+    ResourceBundle bundle = ResourceBundle.getBundle("email/subjects/messages", locale);
     try {
       String query =
-          new HumanPredicateBuilder(titleLookup).humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
-      if (query.length() > 1000) {
-        query = query.substring(0, 1000) + "\n… abbreviated, view the full query on the landing page.";
+          new HumanPredicateBuilder(titleLookup)
+              .humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+
+      if ("{ }".equals(query)) {
+        query = bundle.getString("download.query.all");
       }
-      return "        " + query.replace("\n", "\n        ");
+
+      if (query.length() > 1000) {
+        query = query.substring(0, 1000) + "\n" + bundle.getString("download.query.abbreviated");
+      }
+      return query;
     } catch (Exception e) {
-      return "        The query is too complex.  View it on the landing page.";
+      return bundle.getString("download.query.complex");
     }
   }
 
