@@ -22,8 +22,6 @@ public enum OccurrenceEsField {
   LICENSE("license", DcTerm.license),
   PROJECT_ID("projectId", GbifInternalTerm.projectId),
   PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
-  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
-  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Core identification
   INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
@@ -110,6 +108,10 @@ public enum OccurrenceEsField {
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
   TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
+
+  // GrSciColl
+  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
+  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Sampling
   EVENT_ID("eventId", DwcTerm.eventID, true),
