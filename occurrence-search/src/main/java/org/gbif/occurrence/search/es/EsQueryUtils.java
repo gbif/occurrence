@@ -246,6 +246,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
+          .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, OccurrenceEsField.HOSTING_ORGANIZATION_KEY)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =

@@ -22,6 +22,7 @@ public enum OccurrenceEsField {
   LICENSE("license", DcTerm.license),
   PROJECT_ID("projectId", GbifInternalTerm.projectId),
   PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
+  HOSTING_ORGANIZATION_KEY("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey),
 
   //Core identification
   INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
