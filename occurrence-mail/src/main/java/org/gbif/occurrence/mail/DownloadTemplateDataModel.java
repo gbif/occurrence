@@ -22,7 +22,6 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
   }
 
   /**
-   *
    * @return occurrence download to be notified in this email
    */
   public Download getDownload() {
@@ -30,7 +29,6 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
   }
 
   /**
-   *
    * @return base url to the GBIF portal
    */
   public URL getPortal() {
@@ -38,7 +36,6 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
   }
 
   /**
-   *
    * @return query used to produce the occurrence download
    */
   public String getQuery() {
@@ -46,8 +43,7 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
   }
 
   /**
-   *
-   * @return huma readeable size of the download file
+   * @return human readable size of the download file
    */
   public String getSize() {
     return FileUtils.humanReadableByteCount(download.getSize(), true);
