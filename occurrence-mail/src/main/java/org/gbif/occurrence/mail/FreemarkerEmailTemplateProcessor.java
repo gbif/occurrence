@@ -21,32 +21,20 @@ import freemarker.template.TemplateException;
 import javax.mail.Address;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.TimeZone;
 
 /**
  * Email template processor allows to generate a {@link BaseEmailModel} from a Freemarker template.
  */
 public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateProcessor {
 
-  // shared config among all instances
-  private static final Configuration FREEMARKER_CONFIG =
-      new Configuration(Configuration.VERSION_2_3_25);
+  private final Configuration freemarkerConfig;
 
-  static {
-    FREEMARKER_CONFIG.setDefaultEncoding(StandardCharsets.UTF_8.name());
-    FREEMARKER_CONFIG.setLocale(Locale.UK);
-    FREEMARKER_CONFIG.setTimeZone(TimeZone.getTimeZone("GMT"));
-    FREEMARKER_CONFIG.setNumberFormat("0.####");
-    FREEMARKER_CONFIG.setDateFormat("d MMMM yyyy");
-    FREEMARKER_CONFIG.setTimeFormat("HH:mm:ss");
-    FREEMARKER_CONFIG.setDateTimeFormat("HH:mm:ss d MMMM yyyy");
-    FREEMARKER_CONFIG.setClassForTemplateLoading(
-        FreemarkerEmailTemplateProcessor.class, "/email/occurrence/templates");
+  protected FreemarkerEmailTemplateProcessor(Configuration freemarkerConfig) {
+    this.freemarkerConfig = freemarkerConfig;
   }
 
   /**
@@ -97,15 +85,14 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
 
     // Prepare the E-Mail body text
     StringWriter contentBuffer = new StringWriter();
-    FREEMARKER_CONFIG
-        .getTemplate(getEmailDataProvider().getTemplate(locale, emailType))
+    freemarkerConfig.setLocale(locale);
+    freemarkerConfig
+        .getTemplate(emailType.getTemplate())
         .process(templateDataModel, contentBuffer);
     return new BaseEmailModel(
         emailAddresses,
-        getEmailDataProvider().getSubject(locale, emailType, subjectParams),
+        emailType.getSubject(locale, emailType, subjectParams),
         contentBuffer.toString(),
         ccAddresses);
   }
-
-  public abstract EmailDataProvider getEmailDataProvider();
 }

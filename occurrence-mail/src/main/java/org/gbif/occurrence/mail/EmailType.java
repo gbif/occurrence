@@ -15,9 +15,27 @@
  */
 package org.gbif.occurrence.mail;
 
-/** Represents email type, provides with email subject and raw template. */
+import java.util.Locale;
+
+/**
+ * Represents email type, provides with email subject and raw template.
+ */
 public interface EmailType {
 
-  /** Returns email key to search for subject and template. */
+  String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/occurrence/subjects/occurrence_email_subjects";
+
+  /**
+   * Returns email key to search for subject.
+   */
   String getKey();
+
+  /**
+   * Returns email template name.
+   */
+  String getTemplate();
+
+  /**
+   * Returns email subject.
+   */
+  String getSubject(Locale locale, EmailType emailType, String... subjectParams);
 }
