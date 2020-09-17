@@ -95,7 +95,7 @@ public class OccurrenceEmailManager {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download, Locale locale) {
-    ResourceBundle bundle = ResourceBundle.getBundle("email/subjects/messages", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("email/occurrence/messages", locale);
     try {
       String query =
           new HumanPredicateBuilder(titleLookup)

@@ -9,7 +9,7 @@ import java.util.ResourceBundle;
 @Service
 public class OccurrenceEmailDataProvider implements EmailDataProvider {
 
-  public static final String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/subjects/occurrence_email_subjects";
+  public static final String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/occurrence/subjects/occurrence_email_subjects";
 
   @Override
   public String getSubject(Locale locale, EmailType emailType, String... subjectParams) {

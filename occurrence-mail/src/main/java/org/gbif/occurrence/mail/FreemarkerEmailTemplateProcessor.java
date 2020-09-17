@@ -46,7 +46,7 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
     FREEMARKER_CONFIG.setTimeFormat("HH:mm:ss");
     FREEMARKER_CONFIG.setDateTimeFormat("HH:mm:ss d MMMM yyyy");
     FREEMARKER_CONFIG.setClassForTemplateLoading(
-        FreemarkerEmailTemplateProcessor.class, "/email/templates");
+        FreemarkerEmailTemplateProcessor.class, "/email/occurrence/templates");
   }
 
   /**

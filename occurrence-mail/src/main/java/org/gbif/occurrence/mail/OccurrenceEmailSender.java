@@ -122,6 +122,6 @@ public class OccurrenceEmailSender implements EmailSender {
     if (classLoader == null) {
       classLoader = this.getClass().getClassLoader();
     }
-    return new URLDataSource(classLoader.getResource("email/images/GBIF-2015-full.jpg"));
+    return new URLDataSource(classLoader.getResource("email/occurrence/images/GBIF-2015-full.jpg"));
   }
 }
