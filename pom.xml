@@ -396,6 +396,12 @@
         <groupId>org.gbif.registry</groupId>
         <artifactId>registry-identity</artifactId>
         <version>${gbif-registry.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.gbif.registry</groupId>
+            <artifactId>registry-mail</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>
