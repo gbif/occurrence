@@ -251,6 +251,7 @@ public class EsResponseParser {
     setCrawlingFields(hit, occ);
     setDatasetFields(hit, occ);
     setTaxonFields(hit, occ);
+    setGrscicollFields(hit, occ);
 
     // issues
     getListValue(hit, ISSUE)
@@ -434,6 +435,11 @@ public class EsResponseParser {
     getIntValue(hit, ACCEPTED_TAXON_KEY).ifPresent(occ::setAcceptedTaxonKey);
     getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setAcceptedScientificName);
     getValue(hit, TAXONOMIC_STATUS, TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
+  }
+
+  private static void setGrscicollFields(SearchHit hit, Occurrence occ) {
+    getStringValue(hit, INSTITUTION_KEY).ifPresent(occ::setInstitutionKey);
+    getStringValue(hit, COLLECTION_KEY).ifPresent(occ::setCollectionKey);
   }
 
   private static void setDatasetFields(SearchHit hit, Occurrence occ) {

@@ -22,8 +22,6 @@ public enum OccurrenceEsField {
   LICENSE("license", DcTerm.license),
   PROJECT_ID("projectId", GbifInternalTerm.projectId),
   PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
-  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
-  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Core identification
   INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
@@ -66,6 +64,7 @@ public enum OccurrenceEsField {
   LOCALITY("locality", DwcTerm.locality, true),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
   COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
+  GADM_GID("gadm.gid", null),
   GADM_LEVEL_0_GID("gadm.level0Gid", GadmTerm.level0Gid),
   GADM_LEVEL_0_NAME("gadm.level0Name", GadmTerm.level0Name),
   GADM_LEVEL_1_GID("gadm.level1Gid", GadmTerm.level1Gid),
@@ -109,6 +108,10 @@ public enum OccurrenceEsField {
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
   TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
+
+  // GrSciColl
+  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
+  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Sampling
   EVENT_ID("eventId", DwcTerm.eventID, true),
