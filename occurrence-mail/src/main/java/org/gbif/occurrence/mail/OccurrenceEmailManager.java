@@ -43,7 +43,8 @@ public class OccurrenceEmailManager {
   public OccurrenceEmailManager(
       @Qualifier("occurrenceEmailTemplateProcessor")
           EmailTemplateProcessor emailTemplateProcessor,
-      IdentityAccessService identityAccessService,
+      @Qualifier("baseIdentityAccessService")
+          IdentityAccessService identityAccessService,
       TitleLookupService titleLookup) {
     Objects.requireNonNull(emailTemplateProcessor, "emailTemplateProcessor shall be provided");
     this.identityAccessService = identityAccessService;

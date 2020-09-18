@@ -19,8 +19,6 @@ import org.gbif.occurrence.ws.config.OccurrenceMethodSecurityConfiguration;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
 import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
-import org.gbif.registry.mail.EmailSender;
-import org.gbif.registry.mail.identity.IdentityEmailManager;
 import org.gbif.registry.persistence.mapper.DatasetMapper;
 import org.gbif.registry.persistence.mapper.InstallationMapper;
 import org.gbif.registry.persistence.mapper.OrganizationMapper;
@@ -237,13 +235,6 @@ public class OccurrenceWsItConfiguration {
                                               Mockito.mock(DatasetMapper.class),
                                               Mockito.mock(InstallationMapper.class),
                                               Mockito.mock(UserRightsMapper.class));
-  }
-
-  @Bean
-  public UserSuretyDelegateImpl userSuretyDelegate() {
-    return new UserSuretyDelegateImpl(Mockito.mock(EmailSender.class),
-                                      Mockito.mock(ChallengeCodeManager.class),
-                                      Mockito.mock(IdentityEmailManager.class));
   }
 
   @Bean
