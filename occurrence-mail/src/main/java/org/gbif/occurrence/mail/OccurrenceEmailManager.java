@@ -1,6 +1,7 @@
 package org.gbif.occurrence.mail;
 
 import freemarker.template.TemplateException;
+import org.gbif.api.model.common.AbstractGbifUser;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -18,9 +19,11 @@ import javax.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
@@ -35,6 +38,9 @@ import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddres
 public class OccurrenceEmailManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceEmailManager.class);
+
+  // supported locales
+  private static final List<String> SUPPORTED_LOCALES = Arrays.asList("en", "ru");
 
   private final EmailTemplateProcessor emailTemplateProcessor;
   private final IdentityAccessService identityAccessService;
@@ -54,15 +60,14 @@ public class OccurrenceEmailManager {
 
   public BaseEmailModel generateSuccessfulDownloadEmailModel(Download download, String portal) {
     GbifUser creator = getCreator(download);
-    Locale locale = creator != null && creator.getLocale() != null
-        ? creator.getLocale() : Locale.ENGLISH;
+    Locale locale = getLocale(creator);
 
     try {
       DownloadTemplateDataModel dataModel =
           new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale));
 
       return emailTemplateProcessor.buildEmail(
-          OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, getNotificationAddresses(download,creator), dataModel, locale);
+          OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
     } catch (TemplateException | IOException e) {
       LOG.error(
           NOTIFY_ADMIN,
@@ -74,8 +79,7 @@ public class OccurrenceEmailManager {
 
   public BaseEmailModel generateFailedDownloadEmailModel(Download download, String portal) {
     GbifUser creator = getCreator(download);
-    Locale locale = creator != null && creator.getLocale() != null
-        ? creator.getLocale() : Locale.ENGLISH;
+    Locale locale = getLocale(creator);
 
     try {
       DownloadTemplateDataModel dataModel =
@@ -90,6 +94,14 @@ public class OccurrenceEmailManager {
     }
 
     return null;
+  }
+
+  private Locale getLocale(GbifUser creator) {
+    return Optional.ofNullable(creator)
+        .map(AbstractGbifUser::getLocale)
+        .map(this::findSuitableLocaleTagAmongAvailable)
+        .map(Locale::forLanguageTag)
+        .orElse(Locale.ENGLISH);
   }
 
   /**
@@ -141,5 +153,9 @@ public class OccurrenceEmailManager {
 
   private GbifUser getCreator(Download download) {
     return identityAccessService.get(download.getRequest().getCreator());
+  }
+
+  private String findSuitableLocaleTagAmongAvailable(Locale locale) {
+    return Locale.lookupTag(Locale.LanguageRange.parse(locale.toLanguageTag()), SUPPORTED_LOCALES);
   }
 }
