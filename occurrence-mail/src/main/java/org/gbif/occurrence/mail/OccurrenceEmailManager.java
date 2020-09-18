@@ -103,14 +103,17 @@ public class OccurrenceEmailManager {
               .humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
 
       if ("{ }".equals(query)) {
+        LOG.debug("Empty query was used");
         query = bundle.getString("download.query.all");
       }
 
       if (query.length() > 1000) {
-        query = query.substring(0, 1000) + "\n" + bundle.getString("download.query.abbreviated");
+        LOG.debug("Query is too long, abbreviate");
+        query = query.substring(0, 1000) + bundle.getString("download.query.abbreviated");
       }
       return query;
     } catch (Exception e) {
+      LOG.debug("Exception while getting human query: {}", e.getMessage());
       return bundle.getString("download.query.complex");
     }
   }
