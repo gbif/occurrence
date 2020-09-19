@@ -17,31 +17,31 @@ package org.gbif.occurrence.mail;
 
 import com.google.common.base.MoreObjects;
 
-import javax.mail.Address;
+import javax.mail.internet.InternetAddress;
 import java.util.Collections;
 import java.util.List;
 
 /** Very basic email model that holds the main components of an email to send. */
 public class BaseEmailModel {
 
-  private final List<Address> emailAddresses;
+  private final List<InternetAddress> emailAddresses;
   private final String subject;
   private final String body;
   private final List<String> ccAddresses;
 
-  public BaseEmailModel(List<Address> emailAddresses, String subject, String body) {
+  public BaseEmailModel(List<InternetAddress> emailAddresses, String subject, String body) {
     this(emailAddresses, subject, body, Collections.emptyList());
   }
 
   public BaseEmailModel(
-      List<Address> emailAddresses, String subject, String body, List<String> ccAddresses) {
+      List<InternetAddress> emailAddresses, String subject, String body, List<String> ccAddresses) {
     this.emailAddresses = emailAddresses != null ? emailAddresses : Collections.emptyList();
     this.subject = subject;
     this.body = body;
     this.ccAddresses = ccAddresses != null ? ccAddresses : Collections.emptyList();
   }
 
-  public List<Address> getEmailAddresses() {
+  public List<InternetAddress> getEmailAddresses() {
     return emailAddresses;
   }
 

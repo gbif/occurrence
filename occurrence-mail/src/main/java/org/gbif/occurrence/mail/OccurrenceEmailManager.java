@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.IOException;
@@ -110,7 +109,7 @@ public class OccurrenceEmailManager {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download, Locale locale) {
-    ResourceBundle bundle = ResourceBundle.getBundle("email/occurrence/messages", locale);
+    ResourceBundle bundle = ResourceBundle.getBundle("email/messages", locale);
     try {
       String query =
           new HumanPredicateBuilder(titleLookup)
@@ -136,8 +135,8 @@ public class OccurrenceEmailManager {
    * Gets the list of notification addresses from the download object.
    * If the list of addresses is empty, the email of the creator is used.
    */
-  private List<Address> getNotificationAddresses(Download download, GbifUser creator) {
-    List<Address> emails = new ArrayList<>();
+  private List<InternetAddress> getNotificationAddresses(Download download, GbifUser creator) {
+    List<InternetAddress> emails = new ArrayList<>();
     if (download.getRequest().getNotificationAddresses() == null
         || download.getRequest().getNotificationAddresses().isEmpty()) {
       if (creator != null) {

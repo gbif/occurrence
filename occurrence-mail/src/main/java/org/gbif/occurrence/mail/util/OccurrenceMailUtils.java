@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import javax.mail.Address;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.util.ArrayList;
@@ -24,8 +23,8 @@ public final class OccurrenceMailUtils {
   /**
    * Transforms a iterable of string into a list of email addresses.
    */
-  public static List<Address> toInternetAddresses(Iterable<String> strEmails) {
-    List<Address> emails = new ArrayList<>();
+  public static List<InternetAddress> toInternetAddresses(Iterable<String> strEmails) {
+    List<InternetAddress> emails = new ArrayList<>();
     for (String address : strEmails) {
       try {
         emails.add(new InternetAddress(address));

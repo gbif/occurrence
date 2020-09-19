@@ -19,20 +19,14 @@ import org.gbif.occurrence.mail.util.OccurrenceMailUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.URLDataSource;
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,18 +42,19 @@ public class OccurrenceEmailSender implements EmailSender {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceEmailSender.class);
 
-  private static final String HTML_CONTENT_TYPE = "text/html; charset=UTF-8";
-
-  private final Session session;
   private final JavaMailSender mailSender;
-  private final Set<Address> bccAddresses;
+  private final String fromAddress;
+  private final Set<InternetAddress> bccAddresses;
+
+  @Value("classpath:email/images/GBIF-2015-full.jpg")
+  private Resource logoFile;
 
   public OccurrenceEmailSender(
-      Session session,
       JavaMailSender mailSender,
+      @Value("${occurrence.download.mail.from}") String fromAddress,
       @Value("${occurrence.download.mail.bcc}") String bccAddresses) {
-    this.session = session;
     this.mailSender = mailSender;
+    this.fromAddress = fromAddress;
     this.bccAddresses = new HashSet<>(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
   }
 
@@ -85,27 +80,16 @@ public class OccurrenceEmailSender implements EmailSender {
   private void prepareAndSend(BaseEmailModel emailModel) {
     try {
       // Send E-Mail
-      final MimeMessage msg = new MimeMessage(session);
-      msg.setFrom();
-      msg.setRecipients(
-          Message.RecipientType.TO, emailModel.getEmailAddresses().toArray(new Address[0]));
-      msg.setRecipients(
-          Message.RecipientType.BCC, bccAddresses.toArray(new Address[0]));
-      msg.setSubject(emailModel.getSubject());
-      msg.setSentDate(new Date());
+      final MimeMessage msg = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
 
-      MimeMultipart multipart = new MimeMultipart();
-
-      BodyPart htmlPart = new MimeBodyPart();
-      htmlPart.setContent(emailModel.getBody(), HTML_CONTENT_TYPE);
-      multipart.addBodyPart(htmlPart);
-
-      BodyPart imagePart = new MimeBodyPart();
-      imagePart.setDataHandler(new DataHandler(getImage()));
-      imagePart.setHeader("Content-ID", "<image>");
-      multipart.addBodyPart(imagePart);
-
-      msg.setContent(multipart);
+      helper.setFrom(fromAddress);
+      helper.setTo(emailModel.getEmailAddresses().toArray(new InternetAddress[0]));
+      helper.setBcc(bccAddresses.toArray(new InternetAddress[0]));
+      helper.setSubject(emailModel.getSubject());
+      helper.setSentDate(new Date());
+      helper.setText(emailModel.getBody(), true);
+      helper.addInline("logo.png", logoFile);
 
       mailSender.send(msg);
     } catch (MessagingException e) {
@@ -115,13 +99,5 @@ public class OccurrenceEmailSender implements EmailSender {
           emailModel.getEmailAddresses(),
           e);
     }
-  }
-
-  private DataSource getImage() {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = this.getClass().getClassLoader();
-    }
-    return new URLDataSource(classLoader.getResource("email/occurrence/images/GBIF-2015-full.jpg"));
   }
 }

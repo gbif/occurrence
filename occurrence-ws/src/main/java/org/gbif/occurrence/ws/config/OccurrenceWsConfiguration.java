@@ -12,9 +12,6 @@ import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 
 import java.util.Map;
-import java.util.Properties;
-
-import javax.mail.Session;
 
 import com.google.common.collect.ImmutableMap;
 import com.zaxxer.hikari.HikariDataSource;
@@ -51,15 +48,6 @@ public class OccurrenceWsConfiguration {
   public OozieClient providesOozieClient(@Value("${occurrence.download.oozie.url}") String url) {
     return new OozieClient(url);
   }
-
-  @Bean
-  public Session providesMailSession(@Value("${occurrence.download.mail.smtp}") String smtpServer, @Value("${occurrence.download.mail.from}") String fromAddress) {
-    Properties props = new Properties();
-    props.setProperty("mail.smtp.host", smtpServer);
-    props.setProperty("mail.from", fromAddress);
-    return Session.getInstance(props, null);
-  }
-
 
   @Bean
   @Qualifier("oozie.default_properties")

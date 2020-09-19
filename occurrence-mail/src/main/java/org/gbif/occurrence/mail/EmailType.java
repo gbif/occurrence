@@ -22,7 +22,7 @@ import java.util.Locale;
  */
 public interface EmailType {
 
-  String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/occurrence/subjects/occurrence_email_subjects";
+  String OCCURRENCE_EMAIL_SUBJECTS_PATH = "email/subjects/occurrence_email_subjects";
 
   /**
    * Returns email key to search for subject.
