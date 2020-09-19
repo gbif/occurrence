@@ -10,15 +10,17 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
   private final Download download;
   private final URL portal;
   private final String query;
+  private final String downloadCreatedDateDefaultLocale;
 
   /**
    * Full constructor.
    */
-  public DownloadTemplateDataModel(Download download, URL portal, String query) {
+  public DownloadTemplateDataModel(Download download, URL portal, String query, String downloadCreatedDateDefaultLocale) {
     super(download.getRequest().getCreator());
     this.download = download;
     this.portal = portal;
     this.query = query;
+    this.downloadCreatedDateDefaultLocale = downloadCreatedDateDefaultLocale;
   }
 
   /**
@@ -40,6 +42,13 @@ public class DownloadTemplateDataModel extends BaseTemplateDataModel {
    */
   public String getQuery() {
     return query;
+  }
+
+  /**
+   * @return download created date in default locale (english)
+   */
+  public String getDownloadCreatedDateDefaultLocale() {
+    return downloadCreatedDateDefaultLocale;
   }
 
   /**

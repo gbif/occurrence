@@ -61,10 +61,11 @@ public class OccurrenceEmailManager {
   public BaseEmailModel generateSuccessfulDownloadEmailModel(Download download, String portal) {
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
+    String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
-          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale));
+          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale), downloadCreatedDate);
 
       return emailTemplateProcessor.buildEmail(
           OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
@@ -80,10 +81,11 @@ public class OccurrenceEmailManager {
   public BaseEmailModel generateFailedDownloadEmailModel(Download download, String portal) {
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
+    String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
-          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale));
+          new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale), downloadCreatedDate);
 
       return emailTemplateProcessor.buildEmail(
           OccurrenceEmailType.FAILED_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
