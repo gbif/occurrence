@@ -20,13 +20,12 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import javax.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -38,7 +37,7 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
    * Build a {@link BaseEmailModel} from
    *
    * @param emailType template type (new user, reset password or welcome)
-   * @param emailAddresses email address
+   * @param emailAddresses email addresses
    * @param templateDataModel source data
    * @param locale locale
    * @param subjectParams computable params for subject message formatting
@@ -47,20 +46,20 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
   @Override
   public BaseEmailModel buildEmail(
       EmailType emailType,
-      List<InternetAddress> emailAddresses,
+      Set<String> emailAddresses,
       Object templateDataModel,
       Locale locale,
       String... subjectParams)
       throws IOException, TemplateException {
     return buildEmail(
-        emailType, emailAddresses, templateDataModel, locale, Collections.emptyList(), subjectParams);
+        emailType, emailAddresses, templateDataModel, locale, Collections.emptySet(), subjectParams);
   }
 
   /**
    * Build a {@link BaseEmailModel} from
    *
    * @param emailType template type (new user, reset password or welcome)
-   * @param emailAddresses email address
+   * @param emailAddresses email addresses
    * @param templateDataModel source data
    * @param locale locale
    * @param ccAddresses carbon copy addresses
@@ -70,10 +69,10 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
   @Override
   public BaseEmailModel buildEmail(
       EmailType emailType,
-      List<InternetAddress> emailAddresses,
+      Set<String> emailAddresses,
       Object templateDataModel,
       Locale locale,
-      List<String> ccAddresses,
+      Set<String> ccAddresses,
       String... subjectParams)
       throws IOException, TemplateException {
     Objects.requireNonNull(emailAddresses, "emailAddresses shall be provided");

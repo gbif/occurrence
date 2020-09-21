@@ -13,20 +13,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
-import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddresses;
 
 /**
  * Manager handling the different types of email related to occurrence downloads.
@@ -135,19 +133,15 @@ public class OccurrenceEmailManager {
    * Gets the list of notification addresses from the download object.
    * If the list of addresses is empty, the email of the creator is used.
    */
-  private List<InternetAddress> getNotificationAddresses(Download download, GbifUser creator) {
-    List<InternetAddress> emails = new ArrayList<>();
+  private Set<String> getNotificationAddresses(Download download, GbifUser creator) {
+    Set<String> emails = new HashSet<>();
     if (download.getRequest().getNotificationAddresses() == null
         || download.getRequest().getNotificationAddresses().isEmpty()) {
       if (creator != null) {
-        try {
-          emails.add(new InternetAddress(creator.getEmail()));
-        } catch (AddressException e) {
-          LOG.warn("Ignore corrupt email address {}", creator.getEmail());
-        }
+        emails.add(creator.getEmail());
       }
     } else {
-      emails = toInternetAddresses(download.getRequest().getNotificationAddresses());
+      emails.addAll(download.getRequest().getNotificationAddresses());
     }
     return emails;
   }

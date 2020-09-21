@@ -15,6 +15,7 @@
  */
 package org.gbif.occurrence.mail;
 
+import com.google.common.collect.Sets;
 import org.gbif.occurrence.mail.util.OccurrenceMailUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +26,11 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.EMAIL_SPLITTER;
-import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.toInternetAddresses;
 
 /**
  * Allows to send {@link BaseEmailModel}
@@ -44,7 +42,7 @@ public class OccurrenceEmailSender implements EmailSender {
 
   private final JavaMailSender mailSender;
   private final String fromAddress;
-  private final Set<InternetAddress> bccAddresses;
+  private final Set<String> bccAddresses;
 
   @Value("classpath:email/images/GBIF-2015-full.jpg")
   private Resource logoFile;
@@ -55,7 +53,7 @@ public class OccurrenceEmailSender implements EmailSender {
       @Value("${occurrence.download.mail.bcc}") String bccAddresses) {
     this.mailSender = mailSender;
     this.fromAddress = fromAddress;
-    this.bccAddresses = new HashSet<>(toInternetAddresses(EMAIL_SPLITTER.split(bccAddresses)));
+    this.bccAddresses = Sets.newHashSet(EMAIL_SPLITTER.split(bccAddresses));
   }
 
   /**
@@ -84,8 +82,8 @@ public class OccurrenceEmailSender implements EmailSender {
       MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
 
       helper.setFrom(fromAddress);
-      helper.setTo(emailModel.getEmailAddresses().toArray(new InternetAddress[0]));
-      helper.setBcc(bccAddresses.toArray(new InternetAddress[0]));
+      helper.setTo(emailModel.getEmailAddresses().toArray(new String[0]));
+      helper.setBcc(bccAddresses.toArray(new String[0]));
       helper.setSubject(emailModel.getSubject());
       helper.setSentDate(new Date());
       helper.setText(emailModel.getBody(), true);

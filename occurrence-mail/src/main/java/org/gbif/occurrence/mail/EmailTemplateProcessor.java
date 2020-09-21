@@ -17,10 +17,9 @@ package org.gbif.occurrence.mail;
 
 import freemarker.template.TemplateException;
 
-import javax.mail.internet.InternetAddress;
 import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /** Email helper class which process template and prepare data to send. */
 public interface EmailTemplateProcessor {
@@ -37,7 +36,7 @@ public interface EmailTemplateProcessor {
    */
   BaseEmailModel buildEmail(
       EmailType emailType,
-      List<InternetAddress> emailAddresses,
+      Set<String> emailAddresses,
       Object templateDataModel,
       Locale locale,
       String... subjectParams)
@@ -56,10 +55,10 @@ public interface EmailTemplateProcessor {
    */
   BaseEmailModel buildEmail(
       EmailType emailType,
-      List<InternetAddress> emailAddresses,
+      Set<String> emailAddresses,
       Object templateDataModel,
       Locale locale,
-      List<String> ccAddresses,
+      Set<String> ccAddresses,
       String... subjectParams)
       throws IOException, TemplateException;
 }

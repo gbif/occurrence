@@ -17,31 +17,30 @@ package org.gbif.occurrence.mail;
 
 import com.google.common.base.MoreObjects;
 
-import javax.mail.internet.InternetAddress;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 /** Very basic email model that holds the main components of an email to send. */
 public class BaseEmailModel {
 
-  private final List<InternetAddress> emailAddresses;
+  private final Set<String> emailAddresses;
   private final String subject;
   private final String body;
-  private final List<String> ccAddresses;
+  private final Set<String> ccAddresses;
 
-  public BaseEmailModel(List<InternetAddress> emailAddresses, String subject, String body) {
-    this(emailAddresses, subject, body, Collections.emptyList());
+  public BaseEmailModel(Set<String> emailAddresses, String subject, String body) {
+    this(emailAddresses, subject, body, Collections.emptySet());
   }
 
   public BaseEmailModel(
-      List<InternetAddress> emailAddresses, String subject, String body, List<String> ccAddresses) {
-    this.emailAddresses = emailAddresses != null ? emailAddresses : Collections.emptyList();
+      Set<String> emailAddresses, String subject, String body, Set<String> ccAddresses) {
+    this.emailAddresses = emailAddresses != null ? emailAddresses : Collections.emptySet();
     this.subject = subject;
     this.body = body;
-    this.ccAddresses = ccAddresses != null ? ccAddresses : Collections.emptyList();
+    this.ccAddresses = ccAddresses != null ? ccAddresses : Collections.emptySet();
   }
 
-  public List<InternetAddress> getEmailAddresses() {
+  public Set<String> getEmailAddresses() {
     return emailAddresses;
   }
 
@@ -53,7 +52,7 @@ public class BaseEmailModel {
     return body;
   }
 
-  public List<String> getCcAddresses() {
+  public Set<String> getCcAddresses() {
     return ccAddresses;
   }
 
