@@ -4,7 +4,7 @@
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Уважаемый/ая ${download.request.creator},</p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Ваша загрузка доступна по следующему адресу:
+  Ваша скачиваемый файл доступна по следующему адресу:
   <br>
   <a href="${download.downloadLink}" style="color: #509E2F;text-decoration: none;">${download.downloadLink}</a>
 </p>
@@ -30,7 +30,7 @@
 <br>
   Размер сжатых данных: ${size}
 <br>
-  Формат загрузки: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>
+  Формат загрузки: <#if download.request.format == "SIMPLE_CSV">TSV (simple tab-separated values)<#else>${download.request.format}</#if>
 <br>
   Использованный фильтр:
   <pre style="white-space: pre-wrap;margin: 0;padding: 0;">${query}</pre>
@@ -45,12 +45,12 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Файл <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>, будет храниться в течение шести месяцев (до ${download.eraseAfter? date}). Вы можете попросить
+  <#if download.request.format == "SIMPLE_CSV">TSV (simple tab-separated values)<#else>${download.request.format}</#if> файл, будет храниться в течение шести месяцев (до ${download.eraseAfter? date}). Вы можете попросить
   нас хранить файл дольше <a href="${portal}ru/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}ru/occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Если вы цитируете эту загрузку с использованием DOI, мы обычно это обнаруживаем и храним файл на неопределенный срок.
+  Если вы цитируете скачанные данные с помощью DOI, мы обычно это обнаруживаем и храним файл на неопределенный срок.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
