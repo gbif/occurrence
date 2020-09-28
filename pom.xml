@@ -120,8 +120,6 @@
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
-    <!--Solr/Lucene projects use the same versioning -->
-    <solr-lucene.version>7.5.0</solr-lucene.version>
     <jts.version>1.16.1</jts.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
@@ -146,7 +144,6 @@
     <gbif-api.version>0.119</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
     <gbif-common-ws.version>1.8</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
@@ -180,7 +177,7 @@
     <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
-    <elasticsearch.version>6.5.4</elasticsearch.version>
+    <elasticsearch.version>7.9.1</elasticsearch.version>
     <embedded-elasticsearch.version>2.10.0</embedded-elasticsearch.version>
 
     <!-- Plugin versions -->
@@ -306,11 +303,6 @@
         <version>${gbif-common-ws.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif</groupId>
-        <artifactId>gbif-common-search</artifactId>
-        <version>${gbif-common-search.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
@@ -531,11 +523,6 @@
         <groupId>com.rabbitmq</groupId>
         <artifactId>amqp-client</artifactId>
         <version>${amqp-client.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-core</artifactId>
-        <version>${solr-lucene.version}</version>
       </dependency>
       <dependency>
         <groupId>aopalliance</groupId>

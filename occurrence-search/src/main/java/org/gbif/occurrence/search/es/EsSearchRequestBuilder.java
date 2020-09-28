@@ -58,6 +58,7 @@ public class EsSearchRequestBuilder {
     // size and offset
     searchSourceBuilder.size(searchRequest.getLimit());
     searchSourceBuilder.from((int) searchRequest.getOffset());
+    searchSourceBuilder.trackTotalHits(true);
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
