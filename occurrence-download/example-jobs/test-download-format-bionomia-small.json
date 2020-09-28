@@ -2,7 +2,7 @@
   "creator": "MattBlissett",
   "sendNotification": true,
   "notification_address": ["mblissett@gbif.org"],
-  "format": "BLOODHOUND",
+  "format": "BIONOMIA",
   "predicate": {
     "type": "and",
     "predicates": [

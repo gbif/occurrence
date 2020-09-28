@@ -50,6 +50,7 @@
           <include>**/hbase-site.xml</include>
           <include>**/regular-download-workflow/*.properties</include>
           <include>**/simple-avro-download/execute-simple-avro-query.ftl</include>
+          <include>**/species-list-download/execute-species-list-query.ftl</include>
         </includes>
       </resource>
       <resource>
@@ -154,7 +155,7 @@
             <descriptor>src/main/assembly/iucn-download.xml</descriptor>
             <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-with-verbatim-avro-download.xml</descriptor>
-            <descriptor>src/main/assembly/bloodhound-download.xml</descriptor>
+            <descriptor>src/main/assembly/bionomia-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>
         </configuration>

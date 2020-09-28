@@ -18,7 +18,7 @@ CREATE TABLE ${occurrenceTable}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-TBLPROPERTIES ('avro.schema.url'='${wfPath}/bloodhound.avsc')
+TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia.avsc')
 AS SELECT
   gbifID,
   datasetKey,
@@ -61,8 +61,8 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
 -- Increase memory to support the very wide collect.
-SET mapreduce.reduce.memory.mb=${bloodhoundReducerMemory};
-SET mapreduce.reduce.java.opts=${bloodhoundReducerOpts};
+SET mapreduce.reduce.memory.mb=${bionomiaReducerMemory};
+SET mapreduce.reduce.java.opts=${bionomiaReducerOpts};
 
 -- NB! If changing the columns, remember to update the header row in the workflow definition.
 CREATE TABLE ${occurrenceTable}_agents

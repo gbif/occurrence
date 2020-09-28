@@ -50,8 +50,8 @@
       <case to="map_of_life_download">
         ${(download_format eq 'MAP_OF_LIFE')}
       </case>
-      <case to="bloodhound_download">
-        ${(download_format eq 'BLOODHOUND')}
+      <case to="bionomia_download">
+        ${(download_format eq 'bionomia')}
       </case>
       <!-- it's a small download -->
       <case to="from_elastic_download">
@@ -241,9 +241,9 @@
     <error to="notify-error"/>
   </action>
 
-  <action name="bloodhound_download">
+  <action name="bionomia_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/bloodhound</app-path>
+      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/download-workflow/bionomia</app-path>
       <propagate-configuration/>
       <configuration>
         <property>

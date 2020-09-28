@@ -26,12 +26,12 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}/download-workflow/bloodhound/</directory>
-      <outputDirectory>/download-workflow/bloodhound/</outputDirectory>
+      <directory>${project.build.outputDirectory}/download-workflow/bionomia/</directory>
+      <outputDirectory>/download-workflow/bionomia/</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${project.build.outputDirectory}/conf</directory>
-      <outputDirectory>/download-workflow/bloodhound/conf</outputDirectory>
+      <outputDirectory>/download-workflow/bionomia/conf</outputDirectory>
     </fileSet>
   </fileSets>
 

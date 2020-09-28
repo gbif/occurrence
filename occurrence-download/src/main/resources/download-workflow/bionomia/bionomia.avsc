@@ -1,9 +1,9 @@
 /**
- * Bloodhound occurrence table record format.
+ * Bionomia occurrence table record format.
  */
 
 {
-  "name": "Bloodhound",
+  "name": "Bionomia",
   "namespace": "org.gbif.occurrence.download.avro",
   "type": "record",
   "fields": [
