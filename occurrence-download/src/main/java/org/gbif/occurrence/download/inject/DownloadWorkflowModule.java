@@ -216,11 +216,8 @@ public class DownloadWorkflowModule  {
         case IUCN:
         case MAP_OF_LIFE:
         case BIONOMIA:
-          bind(DownloadAggregator.class).to(NotSupportedDownloadAggregator.class);
-          break;
-
         default:
-          throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
+          return new NotSupportedDownloadAggregator();
       }
     }
     throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
