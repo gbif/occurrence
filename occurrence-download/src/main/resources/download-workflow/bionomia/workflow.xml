@@ -49,15 +49,15 @@
 
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
       <arg>occurrence.avro</arg>
-      <arg></arg> <!-- The Avro file doesn't need a header prepended -->
+      <arg></arg>
 
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_agents/</arg>
-      <arg>agents.tsv</arg>
-      <arg>agent&#x9;total_recordedBy&#x9;total_identifiedBy&#x9;gbifIDs_recordedBy&#x9;gbifIDs_identifiedBy</arg>
+      <arg>agents.avro</arg>
+      <arg></arg>
 
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_families/</arg>
-      <arg>families.tsv</arg>
-      <arg>v_family&#x9;total&#x9;gbifIDs_family</arg>
+      <arg>families.avro</arg>
+      <arg></arg>
       <capture-output/>
     </java>
 

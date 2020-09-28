@@ -1,0 +1,14 @@
+/**
+ * Bionomia families table record format.
+ */
+
+{
+  "name": "BionomiaFamilies",
+  "namespace": "org.gbif.occurrence.download.bionomia.avro",
+  "type": "record",
+  "fields": [
+    {"name": "v_family",            "type": "string" },
+    {"name": "total",               "type": "long" },
+    {"name": "gbifIDsFamily",       "type": {"type": "array", "items": "string"}, "default": null }
+  ]
+}

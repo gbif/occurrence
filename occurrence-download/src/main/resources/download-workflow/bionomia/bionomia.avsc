@@ -4,7 +4,7 @@
 
 {
   "name": "Bionomia",
-  "namespace": "org.gbif.occurrence.download.avro",
+  "namespace": "org.gbif.occurrence.download.bionomia.avro",
   "type": "record",
   "fields": [
     {"name": "gbifID",             "type": "long" },

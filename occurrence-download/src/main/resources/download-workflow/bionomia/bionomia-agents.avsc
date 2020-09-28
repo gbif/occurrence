@@ -1,0 +1,16 @@
+/**
+ * Bionomia agents table record format.
+ */
+
+{
+  "name": "BionomiaAgents",
+  "namespace": "org.gbif.occurrence.download.bionomia.avro",
+  "type": "record",
+  "fields": [
+    {"name": "agent",               "type": "string" },
+    {"name": "totalRecordedBy",     "type": "long" },
+    {"name": "totalIdentifiedBy",   "type": "long" },
+    {"name": "gbifIDsRecordedBy",   "type": {"type": "array", "items": "string"}, "default": null },
+    {"name": "gbifIDsIdentifiedBy", "type": {"type": "array", "items": "string"}, "default": null }
+  ]
+}

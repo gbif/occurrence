@@ -56,24 +56,22 @@ CREATE TABLE ${occurrenceTable}_citation
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${occurrenceTable} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
--- Other tables are also not compressed, as they will be added to the same Zip as the Avro files.
-SET hive.merge.mapfiles=false;
-SET hive.merge.mapredfiles=false;
-
 -- Increase memory to support the very wide collect.
 SET mapreduce.reduce.memory.mb=${bionomiaReducerMemory};
 SET mapreduce.reduce.java.opts=${bionomiaReducerOpts};
 
 -- NB! If changing the columns, remember to update the header row in the workflow definition.
 CREATE TABLE ${occurrenceTable}_agents
-  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-  TBLPROPERTIES ("serialization.null.format"="")
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-agents.avsc')
 AS SELECT
   COALESCE(r.agent, i.agent) AS agent,
   r.total_recordedBy,
   i.total_identifiedBy,
-  if(r.gbifIDs_recordedBy IS NULL, NULL, joinArray(r.gbifIDs_recordedBy, '\\;')) AS gbifIDs_recordedBy,
-  if(i.gbifIDs_identifiedBy IS NULL, NULL, joinArray(i.gbifIDs_identifiedBy, '\\;')) AS gbifIDs_identifiedBy
+  r.gbifIDs_recordedBy,
+  i.gbifIDs_identifiedBy
 FROM
   (SELECT
      v_recordedBy AS agent,
@@ -94,7 +92,10 @@ ON r.agent = i.agent;
 
 -- NB! If changing the columns, remember to update the header row in the workflow definition.
 CREATE TABLE ${occurrenceTable}_families
-  ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-families.avsc')
 AS SELECT
   v_family,
   COUNT(gbifID) total,
