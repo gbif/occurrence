@@ -51,7 +51,7 @@
         ${(download_format eq 'MAP_OF_LIFE')}
       </case>
       <case to="bionomia_download">
-        ${(download_format eq 'bionomia')}
+        ${(download_format eq 'BIONOMIA')}
       </case>
       <!-- it's a small download -->
       <case to="from_elastic_download">
