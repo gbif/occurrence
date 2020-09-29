@@ -2,11 +2,11 @@
 <#include "header.ftl">
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Уважаемый/ая ${download.request.creator},
+  Уважаемый пользователь, ${download.request.creator},
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Сожалеем, но при обработке загрузки произошла ошибка.
+  Сожалеем, но при обработке скачиваемого файла произошла ошибка.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
@@ -14,7 +14,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Если проблема не исчезнет, свяжитесь с нами, используя систему обратной связи на веб-сайте или по адресу <a href="mailto:helpdesk@gbif.org" style="color: #509E2F;text-decoration: none;">helpdesk@gbif.org</a> Пожалуйста, укажите ключ неудавшейся загрузки (${download.key}).
+  Если проблема не исчезнет, свяжитесь с нами, используя систему обратной связи на вебсайте или по адресу <a href="mailto:helpdesk@gbif.org" style="color: #509E2F;text-decoration: none;">helpdesk@gbif.org</a> Пожалуйста, укажите ключ неудавшегося скачивания (${download.key}).
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
