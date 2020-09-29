@@ -9,8 +9,10 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.occurrence.test.mocks.ChallengeCodeManagerMock;
 import org.gbif.occurrence.test.mocks.DownloadCallbackServiceMock;
 import org.gbif.occurrence.test.mocks.DownloadRequestServiceMock;
+import org.gbif.occurrence.test.mocks.GrSciCollEditorAuthorizationServiceMock;
 import org.gbif.occurrence.test.mocks.OccurrenceDownloadServiceMock;
 import org.gbif.occurrence.test.mocks.UserMapperMock;
 import org.gbif.occurrence.test.servers.EsManageServer;
@@ -27,10 +29,10 @@ import org.gbif.registry.persistence.mapper.UserRightsMapper;
 import org.gbif.registry.security.EditorAuthorizationServiceImpl;
 import org.gbif.registry.security.LegacyAuthorizationService;
 import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
+import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationService;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
-import org.gbif.ws.server.filter.IdentityFilter;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -88,6 +90,7 @@ import org.springframework.test.context.ActiveProfiles;
    "org.gbif.registry.surety",
    "org.gbif.occurrence.search",
    "org.gbif.occurrence.ws.resources",
+   "org.gbif.occurrence.ws.identity",
    "org.gbif.occurrence.persistence",
    "org.gbif.occurrence.it.ws"
  },
@@ -97,7 +100,8 @@ import org.springframework.test.context.ActiveProfiles;
                                                                       LegacyAuthorizationServiceImpl.class,
                                                                       UserSuretyDelegateImpl.class,
                                                                       UserChallengeCodeManager.class,
-                                                                      OrganizationChallengeCodeManager.class})
+                                                                      OrganizationChallengeCodeManager.class,
+                                                                      GrSciCollEditorAuthorizationService.class})
  }
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
@@ -131,7 +135,6 @@ public class OccurrenceWsItConfiguration {
                                        @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
     return EsManageServer.builder()
       .indexName("occurrence")
-      .type("record")
       .keyField("gbifId")
       .settingsFile(settings)
       .mappingFile(mappings).build();
@@ -229,6 +232,11 @@ public class OccurrenceWsItConfiguration {
     return userMapper;
   }
 
+  @Bean
+  public ChallengeCodeManager<Integer> challengeCodeManagerMock() {
+    return new ChallengeCodeManagerMock();
+  }
+
 
   @Bean
   public EditorAuthorizationServiceImpl editorAuthorizationServiceSutb() {
@@ -243,6 +251,11 @@ public class OccurrenceWsItConfiguration {
     return new LegacyAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
                                        Mockito.mock(DatasetMapper.class),
                                        Mockito.mock(InstallationMapper.class));
+  }
+
+  @Bean
+  public GrSciCollEditorAuthorizationService grSciCollEditorAuthorization() {
+    return new GrSciCollEditorAuthorizationServiceMock();
   }
 
   /**
