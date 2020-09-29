@@ -4,7 +4,7 @@
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Уважаемый/ая ${download.request.creator},</p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Ваша скачиваемый файл доступна по следующему адресу:
+  Ваш скачиваемый файл доступен по следующему адресу:
   <br>
   <a href="${download.downloadLink}" style="color: #509E2F;text-decoration: none;">${download.downloadLink}</a>
 </p>
