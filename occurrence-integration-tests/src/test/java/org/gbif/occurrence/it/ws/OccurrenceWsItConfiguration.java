@@ -30,6 +30,7 @@ import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
+import org.gbif.ws.server.filter.IdentityFilter;
 
 import java.io.IOException;
 import java.util.Collections;
