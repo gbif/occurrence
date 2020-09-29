@@ -1,194 +1,74 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-<head style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-    <meta name="viewport" content="width=device-width" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
+<#include "header.ftl">
 
-    <style type="text/css" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
+<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Hello ${download.request.creator},</p>
 
-        /* Your custom styles go here */
-        * { margin: 0; padding: 0; font-size: 100%; font-family: 'Roboto', "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; line-height: 1.65; }
-
-        img { max-width: 100%; margin: 0 auto; display: block; }
-
-        body, .body-wrap { width: 100% !important; height: 100%; background: #f8f8f8; }
-
-        a { color: #509E2F; text-decoration: none; }
-
-        a:hover { text-decoration: underline; }
-
-        .text-center { text-align: center; }
-
-        .text-right { text-align: right; }
-
-        .text-left { text-align: left; }
-
-        .button { display: inline-block; color: white; background: #509E2F; border: solid #509E2F; border-width: 10px 20px 8px; font-weight: bold; border-radius: 4px; }
-
-        .button:hover { text-decoration: none; }
-
-        h1, h2, h3, h4, h5, h6 { margin-bottom: 20px; line-height: 1.25; }
-
-        h1 { font-size: 32px; }
-
-        h2 { font-size: 28px; }
-
-        h3 { font-size: 24px; }
-
-        h4 { font-size: 20px; }
-
-        h5 { font-size: 16px; }
-
-        p, ul, ol { font-size: 16px; font-weight: normal; margin-bottom: 20px; }
-
-        .container { display: block !important; clear: both !important; margin: 0 auto !important; max-width: 580px !important; }
-
-        .container table { width: 100% !important; border-collapse: collapse; }
-
-        .container .citation { padding: 10px; background: #e8e8e8;}
-
-        .container .masthead { padding: 10px 0; background: #509E2F; color: white; }
-
-        .container .masthead h1 { margin: 0 auto !important; max-width: 90%; text-transform: uppercase; }
-
-        .container .content { background: white; padding: 30px 35px; }
-
-        .container .content.footer { background: none; }
-
-        .container .content.footer p { margin-bottom: 0; color: #888; text-align: center; font-size: 14px; }
-
-        .container .content.footer a { color: #888; text-decoration: none; font-weight: bold; }
-
-        .container .content.footer a:hover { text-decoration: underline; }
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  Your download is available at the following address:
+  <br>
+  <a href="${download.downloadLink}" style="color: #509E2F;text-decoration: none;">${download.downloadLink}</a>
+</p>
 
 
-    </style>
-</head>
-<body style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;height: 100%;background: #f8f8f8;width: 100% !important;">
-<table class="body-wrap" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;height: 100%;background: #f8f8f8;width: 100% !important;">
-    <tr style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-        <td class="container" style="margin: 0 auto !important;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;display: block !important;clear: both !important;max-width: 580px !important;">
-
-            <!-- Message start -->
-            <table style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;border-collapse: collapse;width: 100% !important;">
-                <tr style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                    <td class="masthead" style="margin: 0;padding: 10px 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;background: #509E2F;color: white;">
-
-                        <img src="cid:logo.png" style="margin: 0 auto;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;max-width: 100%;display: block;">
-
-                    </td>
-                </tr>
-                <tr style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                    <td class="content" style="margin: 0;padding: 30px 35px;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;background: white;">
-                        <h4 style="margin: 0;padding: 0;font-size: 20px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Hello ${download.request.creator},</h4>
-
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            Your download is available at the following address:
-                            <br>
-                            <a href="${download.downloadLink}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${download.downloadLink}</a>
-                        </p>
-
-                        <h4 style="margin: 0;padding: 0;font-size: 20px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Citation</h4>
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            When using this dataset <b>please use the following citation:</b>
-                        </p>
-                        <p style="background: #e8e8e8;margin: 0;padding: 10px;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-                        </p>
-
-                        <h4 style="margin: 0;padding: 0;font-size: 20px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Download Information</h4>
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                        <ul style="list-style: none;margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                DOI: <a href="${download.doi.getUrl()}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-                                (may take some hours before being active)
-                            </li>
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Creation Date: ${download.created?datetime}</li>
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Records included: ${download.totalRecords} records from ${download.numberDatasets!0}
-                                published datasets
-                            </li>
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Compressed data size: ${size}</li>
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Download format: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if></li>
-                            <li style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                Filter used:
-                                <br>
-                                <pre style="white-space: pre-wrap;margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">${query}</pre>
-                            </li>
-                        </ul>
-                        </p>
+<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Citation</h4>
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  When using this dataset <strong>please use the following citation:</strong>
+</p>
+<p style="background: #e8e8e8;margin: 0 0 20px;padding: 10px;line-height: 1.65;">
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
+</p>
 
 
-                        <h4 style="margin: 0;padding: 0;font-size: 20px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Download file retention</h4>
-
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            Information about this download will always be available at <a href="${download.doi.getUrl()}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-                            and <a href="${portal}occurrence/download/${download.key}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
-                        </p>
-
-
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
-                            us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
-                        </p>
-
-
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            If you cite this download using the DOI, we will usually detect this and keep the file indefinitely.
-                        </p>
-
-
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
-                        </p>
+<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Download Information</h4>
+<p style="margin: 0;padding: 0;line-height: 1.65;">
+  DOI: <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
+  (may take some hours before being active)
+<br>
+  Creation Date: ${download.created?datetime}
+<br>
+  Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
+<br>
+  Compressed data size: ${size}
+<br>
+  Download format: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>
+<br>
+  Filter used:
+  <pre style="white-space: pre-wrap;margin: 0;padding: 0;">${query}</pre>
+</p>
 
 
-                        <h4 style="margin: 0;padding: 0;font-size: 20px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.25;margin-bottom: 20px;">Information / FAQ</h4>
+<h4 style="margin: 20px 0;padding: 0;font-size: 20px;line-height: 1.25;">Download file retention</h4>
 
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            For help with opening downloaded files, see
-                            <br>
-                            <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
-                            <br>
-                            or the FAQ section of the GBIF website:
-                            <br>
-                            <a href="${portal}faq" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #509E2F;text-decoration: none;">${portal}faq</a>
-                        </p>
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  Information about this download will always be available at <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
+  and <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+</p>
+
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
+  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+</p>
+
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  If you cite this download using the DOI, we will usually detect this and keep the file indefinitely.
+</p>
+
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #509E2F;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+</p>
 
 
+<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Information / FAQ</h4>
 
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  For help with opening downloaded files, see
+  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
+  or the FAQ section of the GBIF website:
+  <a href="${portal}faq" style="color: #509E2F;text-decoration: none;">${portal}faq</a>
+</p>
 
-                        <p style="margin: 0;padding: 0;font-size: 16px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 20px;">
-                            <em style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                                The GBIF Secretariat
-                            </em>
-                        </p>
+<p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
+  <em>The GBIF Secretariat</em>
+</p>
 
-                    </td>
-                </tr>
-            </table>
-
-        </td>
-    </tr>
-    <tr style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-        <td class="container" style="margin: 0 auto !important;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;display: block !important;clear: both !important;max-width: 580px !important;">
-
-            <!-- Message start -->
-            <table style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;border-collapse: collapse;width: 100% !important;">
-                <tr style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">
-                    <td class="content footer" align="center" style="margin: 0;padding: 30px 35px;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;background: none;">
-                        <p style="margin: 0;padding: 0;font-size: 14px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 0;color: #888;text-align: center;"><b style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;">GBIF Secretariat</b> Universitetsparken 15 | DK-2100 Copenhagen Ø | Denmark</p>
-                        <p style="margin: 0;padding: 0;font-size: 14px;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;font-weight: normal;margin-bottom: 0;color: #888;text-align: center;"><a href="mailto:helpdesk@gbif.org" style="margin: 0;padding: 0;font-size: 100%;font-family: 'Roboto', &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, Helvetica, Arial, sans-serif;line-height: 1.65;color: #888;text-decoration: none;font-weight: bold;">helpdesk@gbif.org</a></p>
-                    </td>
-                </tr>
-            </table>
-
-        </td>
-    </tr>
-</table>
-</body>
-</html>
+<#include "footer.ftl">

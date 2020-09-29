@@ -44,7 +44,7 @@ public class OccurrenceEmailSender implements EmailSender {
   private final String fromAddress;
   private final Set<String> bccAddresses;
 
-  @Value("classpath:email/images/GBIF-2015-full.jpg")
+  @Value("classpath:email/images/GBIF-2015-full.png")
   private Resource logoFile;
 
   public OccurrenceEmailSender(
