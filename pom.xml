@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>46</version>
+    <version>49</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -159,9 +159,6 @@
     <gbif-cli.version>0.14</gbif-cli.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
-    <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
-    <maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
-    <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -1147,17 +1144,17 @@
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch.client</groupId>
+        <groupId>org.elasticsearch.client</groupId>
         <artifactId>elasticsearch-rest-client</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch</groupId>
+        <groupId>org.elasticsearch</groupId>
         <artifactId>elasticsearch-core</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch</groupId>
+        <groupId>org.elasticsearch</groupId>
         <artifactId>elasticsearch</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
@@ -1268,104 +1265,21 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <topSiteURL>http://gbif.github.io/occurrence/</topSiteURL>
+        </configuration>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
           <version>${spring-boot-maven-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven-surefire-plugin.version}</version>
-          <configuration>
-            <argLine>${surefireArgLine}</argLine>
-            <excludes>
-              <exclude>**/*IT.java</exclude>
-            </excludes>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven-failsafe-plugin.version}</version>
-          <configuration>
-            <argLine>${failsafeArgLine}</argLine>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco-maven-plugin.version}</version>
-          <configuration>
-            <append>true</append>
-          </configuration>
-          <executions>
-            <execution>
-              <id>prepare-agent-ut</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-              <configuration>
-                <destFile>${jacoco.ut.output.file}</destFile>
-                <propertyName>surefireArgLine</propertyName>
-              </configuration>
-            </execution>
-            <execution>
-              <id>report-ut-coverage</id>
-              <phase>test</phase>
-              <goals>
-                <goal>report</goal>
-              </goals>
-              <configuration>
-                <dataFile>${jacoco.ut.output.file}</dataFile>
-                <outputDirectory>${coverage.report.ut.dir}</outputDirectory>
-              </configuration>
-            </execution>
-            <execution>
-              <id>prepare-agent-it</id>
-              <goals>
-                <goal>prepare-agent-integration</goal>
-              </goals>
-              <phase>package</phase>
-              <configuration>
-                <destFile>${jacoco.it.output.file}</destFile>
-                <propertyName>failsafeArgLine</propertyName>
-              </configuration>
-            </execution>
-            <execution>
-              <id>report-it-coverage</id>
-              <phase>post-integration-test</phase>
-              <goals>
-                <goal>report-integration</goal>
-              </goals>
-              <configuration>
-                <dataFile>${jacoco.it.output.file}</dataFile>
-                <outputDirectory>${coverage.report.it.dir}</outputDirectory>
-              </configuration>
-            </execution>
-            <execution>
-              <id>merge-exec-files</id>
-              <phase>post-integration-test</phase>
-              <goals>
-                <goal>merge</goal>
-              </goals>
-              <configuration>
-                <fileSets>
-                  <fileSet>
-                    <directory>${coverage.dir}</directory>
-                    <includes>
-                      <include>*.exec</include>
-                    </includes>
-                  </fileSet>
-                </fileSets>
-                <destFile>${jacoco.merged.output.file}</destFile>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

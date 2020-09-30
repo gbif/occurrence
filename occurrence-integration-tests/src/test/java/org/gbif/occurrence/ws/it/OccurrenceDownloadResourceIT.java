@@ -1,4 +1,4 @@
-package org.gbif.occurrence.it.ws;
+package org.gbif.occurrence.ws.it;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -28,8 +28,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StreamUtils;
 
-import static org.gbif.occurrence.it.ws.OccurrenceWsItConfiguration.TEST_USER;
-import static org.gbif.occurrence.it.ws.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
+import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
+import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")

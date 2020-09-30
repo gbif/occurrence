@@ -1,4 +1,4 @@
-package org.gbif.occurrence.it.ws;
+package org.gbif.occurrence.ws.it;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
