@@ -1064,8 +1064,7 @@ public class EsQueryVisitorTest {
       "                    \"geo_shape\" : {\n" +
       "                      \"scoordinates\" : {\n" +
       "                        \"shape\" : {\n" +
-      "                          \"type\" : \"polygon\",\n" +
-      "                          \"orientation\" : \"right\",\n" +
+      "                          \"type\" : \"Polygon\",\n" +
       "                          \"coordinates\" : [\n" +
       "                            [\n" +
       "                              [\n" +
