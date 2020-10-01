@@ -152,7 +152,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("polygon", shape.get(TYPE).asText());
+    assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(5, shape.get(COORDINATES).get(0).size());
   }
@@ -191,7 +191,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         .path(GEO_SHAPE)
         .path(COORDINATE_SHAPE.getFieldName())
         .path(SHAPE);
-    assertEquals("polygon", shape.get(TYPE).asText());
+    assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(5, shape.get(COORDINATES).get(0).size());
   }
@@ -231,7 +231,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("polygon", shape.get(TYPE).asText());
+    assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
     assertEquals(5, shape.get(COORDINATES).get(0).size());
@@ -273,7 +273,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("multipolygon", shape.get(TYPE).asText());
+    assertEquals("MultiPolygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
     assertEquals(1, shape.get(COORDINATES).get(0).size());
@@ -317,7 +317,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("linestring", shape.get(TYPE).asText());
+    assertEquals("LineString", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
     assertEquals(-77.03653, shape.get(COORDINATES).get(0).get(0).asDouble(), 0);
@@ -357,7 +357,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("linestring", shape.get(TYPE).asText());
+    assertEquals("LineString", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(4, shape.get(COORDINATES).size());
     assertEquals(12, shape.get(COORDINATES).get(0).get(0).asDouble(), 0);
@@ -397,7 +397,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(GEO_SHAPE)
             .path(COORDINATE_SHAPE.getFieldName())
             .path(SHAPE);
-    assertEquals("point", shape.get(TYPE).asText());
+    assertEquals("Point", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
     assertEquals(2, shape.get(COORDINATES).size());
     assertEquals(-77.03653d, shape.get(COORDINATES).get(0).asDouble(), 0);
