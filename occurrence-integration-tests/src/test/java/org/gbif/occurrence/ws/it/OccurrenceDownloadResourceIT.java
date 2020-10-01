@@ -128,8 +128,8 @@ public class OccurrenceDownloadResourceIT {
     Assertions.assertNotNull(downloadKey, "DownloadKey is null!");
 
     //Is the content what it was expected
-    Assertions.assertEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
-                            StreamUtils.copyToByteArray(downloadWsClient.getResult(downloadKey)),
+    Assertions.assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
+                                 StreamUtils.copyToByteArray(downloadWsClient.getResult(downloadKey)),
                             "Content file of download file differs to expected content!");
   }
 
@@ -160,9 +160,9 @@ public class OccurrenceDownloadResourceIT {
     });
 
     //Is the content what it was expected
-    Assertions.assertEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
-                            byteArrayOutputStream.toByteArray(),
-                            "Content file of download file differs to expected content!");
+    Assertions.assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
+                                 byteArrayOutputStream.toByteArray(),
+                                 "Content file of download file differs to expected content!");
   }
 
 
