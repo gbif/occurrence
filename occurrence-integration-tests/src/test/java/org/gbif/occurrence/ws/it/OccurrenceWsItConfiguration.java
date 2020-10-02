@@ -131,7 +131,7 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public EsManageServer esManageServer(@Value("classpath:es-settings.json") Resource settings,
+  public EsManageServer esManageServer(@Value("classpath:elasticsearch/es-settings.json") Resource settings,
                                        @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
     return EsManageServer.builder()
       .indexName("occurrence")

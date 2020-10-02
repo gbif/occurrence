@@ -118,16 +118,6 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.pipelines</groupId>
-      <artifactId>ingest-gbif-java</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.elasticsearch.client</groupId>
-          <artifactId>elasticsearch-rest-high-level-client</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
       <artifactId>ingest-gbif-fragmenter</artifactId>
     </dependency>
 
