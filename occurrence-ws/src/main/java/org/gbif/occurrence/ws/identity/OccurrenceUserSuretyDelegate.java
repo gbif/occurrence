@@ -64,12 +64,12 @@ public class OccurrenceUserSuretyDelegate implements UserSuretyDelegate {
   }
 
   @Override
-  public void onChangeEmail(GbifUser gbifUser) {
+  public void onChangeEmail(GbifUser gbifUser, String newEmail) {
     throw new UnsupportedOperationException("OccurrenceUserSuretyDelegate does not support this operation");
   }
 
   @Override
-  public void onEmailChanged(GbifUser gbifUser, String s) {
+  public void onEmailChanged(GbifUser gbifUser, String oldEmail) {
     throw new UnsupportedOperationException("OccurrenceUserSuretyDelegate does not support this operation");
   }
 }
