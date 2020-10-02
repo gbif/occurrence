@@ -1,0 +1,22 @@
+{
+  "index": {
+    "number_of_shards": "1"
+  },
+  "analysis": {
+    "normalizer": {
+      "lowercase_normalizer": {
+        "filter": ["lowercase"],
+        "type": "custom",
+        "char_filter": []
+      }
+    },
+    "analyzer": {
+      "lowercase_analyzer": {
+        "filter": ["lowercase"],
+        "char_filter": [],
+        "type": "custom",
+        "tokenizer": "keyword"
+      }
+    }
+  }
+}

@@ -6,7 +6,6 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.Properties;
 
 import akka.actor.ActorRef;
@@ -17,24 +16,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
-import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 public class DownloadWorkflowModuleTestIT {
 
    private static TestingCluster curatorTestingCluster;
-   private static EmbeddedElastic embeddedElastic;
+   private static ElasticsearchContainer embeddedElastic;
 
    @BeforeAll
    public static void setup() throws Exception {
      curatorTestingCluster = new TestingCluster(1);
      curatorTestingCluster.start();
-     embeddedElastic = EmbeddedElastic.builder()
-       .withIndex("occurrence")
-       .withElasticVersion(getEsVersion())
-       .withSetting(
-       PopularProperties.HTTP_PORT, getAvailablePort())
-       .build();
+     embeddedElastic =
+       new ElasticsearchContainer(
+         "docker.elastic.co/elasticsearch/elasticsearch:" + getEsVersion());
      embeddedElastic.start();
    }
 
@@ -47,14 +42,6 @@ public class DownloadWorkflowModuleTestIT {
        embeddedElastic.stop();
      }
    }
-
-  private static int getAvailablePort() throws IOException {
-    ServerSocket serverSocket = new ServerSocket(0);
-    int port = serverSocket.getLocalPort();
-    serverSocket.close();
-
-    return port;
-  }
 
   private static String getEsVersion() throws IOException {
     Properties properties = new Properties();
@@ -69,7 +56,7 @@ public class DownloadWorkflowModuleTestIT {
     properties.put(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY, "http://localhost:8080");
     properties.put(DownloadWorkflowModule.DefaultSettings.API_URL_KEY, "http://localhost:8080");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY, "occurrence");
-    properties.put(DownloadWorkflowModule.DefaultSettings.ES_HOSTS_KEY, "http://localhost:" + embeddedElastic.getHttpPort());
+    properties.put(DownloadWorkflowModule.DefaultSettings.ES_HOSTS_KEY, "http://localhost:" + embeddedElastic.getMappedPort(9200));
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_SNIFF_INTERVAL_KEY, "-1");
 
     properties.put(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY, "2");
