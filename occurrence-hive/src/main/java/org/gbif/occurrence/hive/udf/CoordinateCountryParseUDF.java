@@ -8,6 +8,7 @@ import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -58,7 +59,12 @@ public class CoordinateCountryParseUDF extends GenericUDF {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
-          coordInterpreter = new CoordinateInterpreter(apiWs);
+          try {
+            coordInterpreter = new CoordinateInterpreter(apiWs, "geocode_gadm_kv", 50, "c5zk1.gbif.org,c5zk2.gbif.org,c5zk3.gbif.org");
+          } catch (IOException e) {
+            LOG.error("Problem instantiating CoordinateInterpreter", e);
+            throw new RuntimeException(e);
+          }
           locInterpreter = new LocationInterpreter(coordInterpreter);
         }
       }

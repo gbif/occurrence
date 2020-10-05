@@ -6,7 +6,9 @@ import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.gbif.kvs.KeyValueStore;
+import org.gbif.kvs.conf.CachedHBaseKVStoreConfiguration;
 import org.gbif.kvs.geocode.GeocodeKVStoreFactory;
+import org.gbif.kvs.hbase.HBaseKVStoreConfiguration;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
@@ -14,6 +16,7 @@ import org.gbif.rest.client.configuration.ClientConfiguration;
 import org.gbif.rest.client.geocode.GeocodeResponse;
 import org.gbif.rest.client.geocode.Location;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -62,6 +65,30 @@ public class CoordinateInterpreter {
   @Autowired
   public CoordinateInterpreter(String apisWsUrl) {
     kvStore = GeocodeKVStoreFactory.simpleGeocodeKVStore(ClientConfiguration.builder().withBaseApiUrl(apisWsUrl).build());
+  }
+
+  public CoordinateInterpreter(String apisWsUrl, String tableName, int numBuckets, String hbaseZk) throws IOException {
+    ClientConfiguration clientConfig =
+      ClientConfiguration.builder()
+        .withBaseApiUrl(apisWsUrl)
+        //.withFileCacheMaxSizeMb()
+        //.withTimeOut()
+        .build();
+
+    CachedHBaseKVStoreConfiguration geocodeKvStoreConfig =
+      CachedHBaseKVStoreConfiguration.builder()
+        .withValueColumnQualifier("j") // stores JSON data
+        .withHBaseKVStoreConfiguration(
+          HBaseKVStoreConfiguration.builder()
+            .withTableName(tableName)
+            .withColumnFamily("v") // Column in which qualifiers are stored
+            .withNumOfKeyBuckets(numBuckets)
+            .withHBaseZk(hbaseZk)
+            .build())
+        .withCacheCapacity(15_000L)
+        .build();
+
+    kvStore = GeocodeKVStoreFactory.simpleGeocodeKVStore(geocodeKvStoreConfig, clientConfig);
   }
 
   /**
