@@ -22,7 +22,7 @@
 <h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Información del archivo de descarga</h4>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
   DOI: <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  (podría tardar algunas es activarse)
+  (podría tardar algunas horas en activarse)
 <br>
   Fecha de creación: ${download.created?datetime}
 <br>
@@ -37,7 +37,7 @@
 </p>
 
 
-<h4 style="margin: 20px 0;padding: 0;font-size: 20px;line-height: 1.25;">Política de rentención de archivos de descarga</h4>
+<h4 style="margin: 20px 0;padding: 0;font-size: 20px;line-height: 1.25;">Política de rentención</h4>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   La información acerca de esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
@@ -46,7 +46,7 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}).<br>
-  Puede solicitarnos extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  Puede solicitar extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
