@@ -10,9 +10,9 @@
 </p>
 
 
-<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Citation</h4>
+<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Citas</h4>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Al utilizar este conjunto de datos <strong> favor usar la siguiente cita:</strong>
+  Al referenciar este archivo <strong> favor usar la siguiente cita:</strong>
 </p>
 <p style="background: #e8e8e8;margin: 0 0 20px;padding: 10px;line-height: 1.65;">
   GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
@@ -45,12 +45,12 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta ${download.eraseAfter?date}). Usted puede solicitarnos
+  Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}). Puede solicitarnos
   extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Si el archivo de descarga es citado utilizando el DOI, dicha cita es usualmente detectada y el archivo es mantenido indefinidamente.
+  Si el archivo de descarga es citado utilizando el DOI, dicha referencia es usualmente detectada y el archivo es mantenido indefinidamente.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -61,14 +61,14 @@
 <h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Información / FAQ</h4>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Para ayuda  de cómo abrir archivos de descarga, ver
+  Para obtener ayuda de cómo abrir archivos de descarga, ver
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
   ó consultar la sección FAQ en el sitio web de GBIF
   <a href="${portal}faq" style="color: #509E2F;text-decoration: none;">${portal}faq</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <em>El Secretariado de GBIF</em>
+  <em>Secretariado de GBIF</em>
 </p>
 
 <#include "footer.ftl">
