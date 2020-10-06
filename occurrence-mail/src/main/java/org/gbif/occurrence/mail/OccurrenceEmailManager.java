@@ -56,6 +56,8 @@ public class OccurrenceEmailManager {
   }
 
   public BaseEmailModel generateSuccessfulDownloadEmailModel(Download download, String portal) {
+    LOG.debug("Generating data for user email notification (successful download). " +
+        "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
     String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
@@ -76,6 +78,8 @@ public class OccurrenceEmailManager {
   }
 
   public BaseEmailModel generateFailedDownloadEmailModel(Download download, String portal) {
+    LOG.debug("Generating data for user email notification (failed download). " +
+        "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
     String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
@@ -96,11 +100,15 @@ public class OccurrenceEmailManager {
   }
 
   private Locale getLocale(GbifUser creator) {
-    return Optional.ofNullable(creator)
+    LOG.debug("Get creator's locale. Creator: {}", creator);
+    Locale locale = Optional.ofNullable(creator)
         .map(AbstractGbifUser::getLocale)
         .map(this::findSuitableLocaleTagAmongAvailable)
         .map(Locale::forLanguageTag)
         .orElse(Locale.ENGLISH);
+
+    LOG.debug("Creator's locale is [{}]", locale);
+    return locale;
   }
 
   /**
@@ -124,7 +132,7 @@ public class OccurrenceEmailManager {
       }
       return query;
     } catch (Exception e) {
-      LOG.debug("Exception while getting human query: {}", e.getMessage());
+      LOG.warn("Exception while getting human query: {}", e.getMessage());
       return bundle.getString("download.query.complex");
     }
   }
@@ -134,6 +142,7 @@ public class OccurrenceEmailManager {
    * If the list of addresses is empty, the email of the creator is used.
    */
   private Set<String> getNotificationAddresses(Download download, GbifUser creator) {
+    LOG.debug("Get notification addresses. Download: [{}]", download.getKey());
     Set<String> emails = new HashSet<>();
     if (download.getRequest().getNotificationAddresses() == null
         || download.getRequest().getNotificationAddresses().isEmpty()) {
@@ -143,14 +152,25 @@ public class OccurrenceEmailManager {
     } else {
       emails.addAll(download.getRequest().getNotificationAddresses());
     }
+
+    LOG.debug("Notification addresses are: [{}]", emails);
     return emails;
   }
 
   private GbifUser getCreator(Download download) {
-    return identityAccessService.get(download.getRequest().getCreator());
+    String creator = download.getRequest().getCreator();
+    LOG.debug("Download's creator name: [{}]", creator);
+    GbifUser user = identityAccessService.get(creator);
+    if (creator != null && user == null) {
+      LOG.warn("User with name [{}] was not found!", creator);
+    }
+    return user;
   }
 
   private String findSuitableLocaleTagAmongAvailable(Locale locale) {
-    return Locale.lookupTag(Locale.LanguageRange.parse(locale.toLanguageTag()), SUPPORTED_LOCALES);
+    LOG.debug("Trying to find a suitable locale tag for locale [{}]", locale);
+    String localeTag = Locale.lookupTag(Locale.LanguageRange.parse(locale.toLanguageTag()), SUPPORTED_LOCALES);
+    LOG.debug("Use locale tag [{}]", localeTag);
+    return localeTag;
   }
 }
