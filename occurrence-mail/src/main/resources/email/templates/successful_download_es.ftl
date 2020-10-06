@@ -45,12 +45,12 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}). Puede solicitarnos
-  extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}).<br>
+  Puede solicitarnos extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Si el archivo de descarga es citado utilizando el DOI, dicha referencia es usualmente detectada y el archivo es mantenido indefinidamente.
+  Si el archivo de descarga es citado utilizando el DOI, dicha referencia es usualmente detectada y el archivo mantenido indefinidamente.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
