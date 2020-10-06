@@ -22,7 +22,7 @@
 <h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Información del archivo de descarga</h4>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
   DOI: <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  (podría tardar algunas horas antes de ser activado)
+  (podría tardar algunas es activarse)
 <br>
   Fecha de creación: ${download.created?datetime}
 <br>
