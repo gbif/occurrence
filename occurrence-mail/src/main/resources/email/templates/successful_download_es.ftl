@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Hello ${download.request.creator},</p>
+<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Hola ${download.request.creator},</p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Su archivo de descarga se encuentra disponible en la siguiente dirección:

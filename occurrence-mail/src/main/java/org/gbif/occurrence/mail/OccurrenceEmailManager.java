@@ -37,7 +37,7 @@ public class OccurrenceEmailManager {
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceEmailManager.class);
 
   // supported locales
-  private static final List<String> SUPPORTED_LOCALES = Arrays.asList("en", "ru");
+  private static final List<String> SUPPORTED_LOCALES = Arrays.asList("en", "ru", "es");
 
   private final EmailTemplateProcessor emailTemplateProcessor;
   private final IdentityAccessService identityAccessService;
