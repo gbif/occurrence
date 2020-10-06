@@ -598,7 +598,6 @@ public class HiveQueryVisitor {
       // Hardcoded GADM_LEVEL_0_GID since the type of all these parameters is the same.
       // Using .toUpperCase() is safe, GIDs must be ASCII anyway.
       builder.append(toHiveValue(OccurrenceSearchParameter.GADM_LEVEL_0_GID, gadmGid.toUpperCase(), true));
-      builder.append(gadmGid);
       first = false;
     }
     builder.append(')');
