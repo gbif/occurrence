@@ -41,12 +41,12 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   La información acerca de esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  y en <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  y en <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}).<br>
-  Puede solicitar extender dicho período desde <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  Puede solicitar extender dicho período desde <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -54,7 +54,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Para más información acerca de esto, ver <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #509E2F;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+  Para más información acerca de esto, ver <a href="${portal}es/faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #509E2F;text-decoration: none;">${portal}es/faq/?question=for-how-long-will-does-gbif-store-downloads</a>
 </p>
 
 
@@ -62,9 +62,9 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Para obtener ayuda de cómo abrir archivos de descarga, ver
-  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
+  <a href="${portal}es/faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}es/faq?question=opening-gbif-csv-in-excel</a>
   ó consultar la sección FAQ en el sitio web de GBIF
-  <a href="${portal}faq" style="color: #509E2F;text-decoration: none;">${portal}faq</a>
+  <a href="${portal}es/faq" style="color: #509E2F;text-decoration: none;">${portal}es/faq</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
