@@ -29,6 +29,9 @@ import java.util.zip.ZipOutputStream;
 /**
  * Utility class that creates a Zip file from one or more directories containing data of one or more Hive tables.
  *
+ * Each directory of data files is combined into a single entry in the Zip file.
+ * See MultiDirectoryArchiveBuilder for the alternative.
+ *
  * TODO: citation file.
  */
 public class MultiFileArchiveBuilder {

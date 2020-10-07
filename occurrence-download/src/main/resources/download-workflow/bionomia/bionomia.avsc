@@ -1,5 +1,7 @@
 /**
  * Bionomia occurrence table record format.
+ *
+ * This schema may change according to the requirements of the Bionomia project.
  */
 
 {
@@ -9,11 +11,15 @@
   "fields": [
     {"name": "gbifID",             "type": "long" },
     {"name": "datasetKey",         "type": "string" },
-    {"name": "license",            "type": ["null", "string"], "default": null },
+    {"name": "license",            "type": "string" },
     {"name": "countryCode",        "type": ["null", "string"], "default": null },
     {"name": "dateIdentified",     "type": ["null", "string"], "default": null },
     {"name": "eventDate",          "type": ["null", "string"], "default": null },
     {"name": "hasImage",           "type": "boolean" },
+    {"name": "family",             "type": ["null", "string"], "default": null },
+    {"name": "recordedBy",         "type": ["null", "string"], "default": null },
+    {"name": "identifiedBy",       "type": ["null", "string"], "default": null },
+    {"name": "scientificName",     "type": ["null", "string"], "default": null },
     {"name": "v_occurrenceID",     "type": ["null", "string"], "default": null },
     {"name": "v_dateIdentified",   "type": ["null", "string"], "default": null },
     {"name": "v_decimalLatitude",  "type": ["null", "string"], "default": null },
@@ -21,7 +27,6 @@
     {"name": "v_country",          "type": ["null", "string"], "default": null },
     {"name": "v_eventDate",        "type": ["null", "string"], "default": null },
     {"name": "v_year",             "type": ["null", "string"], "default": null },
-    {"name": "v_family",           "type": ["null", "string"], "default": null },
     {"name": "v_identifiedBy",     "type": ["null", "string"], "default": null },
     {"name": "v_identifiedByID",   "type": ["null", "string"], "default": null },
     {"name": "v_institutionCode",  "type": ["null", "string"], "default": null },

@@ -1,5 +1,7 @@
 /**
  * Bionomia families table record format.
+ *
+ * This schema may change according to the requirements of the Bionomia project.
  */
 
 {
@@ -7,7 +9,7 @@
   "namespace": "org.gbif.occurrence.download.bionomia.avro",
   "type": "record",
   "fields": [
-    {"name": "v_family",            "type": "string" },
+    {"name": "family",              "type": "string" },
     {"name": "total",               "type": "long" },
     {"name": "gbifIDsFamily",       "type": {"type": "array", "items": "string"}, "default": null }
   ]

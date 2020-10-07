@@ -32,6 +32,8 @@ import java.util.zip.ZipOutputStream;
  * or more tables.  The files in each directory are not combined into a single entry, which
  * removes a small step for parallel import.
  *
+ * See MultiFileArchiveBuilder for the alternative, which merges files into a single Zip entry.
+ *
  * TODO: citation file.
  */
 public class MultiDirectoryArchiveBuilder {

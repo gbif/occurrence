@@ -1,3 +1,9 @@
+-- Extract necessary information for further processing by the Bionomia project.
+-- Based on https://github.com/bionomia/bionomia/blob/master/spark.md
+--
+-- Users of Bionomia format downloads should note the format may be changed according to the
+-- requirements of the Bionomia project.
+
 USE ${hiveDB};
 
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
@@ -23,10 +29,16 @@ AS SELECT
   gbifID,
   datasetKey,
   license,
+  -- Interpreted terms
   countryCode,
   toLocalISO8601(dateidentified) AS dateIdentified,
   toLocalISO8601(eventdate) AS eventDate,
   array_contains(mediaType, 'StillImage') AS hasImage,
+  family,
+  recordedBy,
+  identifiedBy,
+  scientificName,
+  -- Verbatim terms
   v_occurrenceID,
   v_dateIdentified,
   v_decimalLatitude,
@@ -34,7 +46,6 @@ AS SELECT
   v_country,
   v_eventDate,
   v_year,
-  v_family,
   v_identifiedBy,
   v_identifiedByID,
   v_institutionCode,
@@ -44,7 +55,7 @@ AS SELECT
   v_recordedByID,
   v_scientificName,
   v_typeStatus
-FROM occurrence_hdfs
+FROM occurrence
 WHERE (v_identifiedBy IS NOT NULL OR v_recordedBy IS NOT NULL)
   AND ${whereClause};
 
@@ -60,7 +71,6 @@ AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${occurrenceTabl
 SET mapreduce.reduce.memory.mb=${bionomiaReducerMemory};
 SET mapreduce.reduce.java.opts=${bionomiaReducerOpts};
 
--- NB! If changing the columns, remember to update the header row in the workflow definition.
 CREATE TABLE ${occurrenceTable}_agents
   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
   STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
@@ -68,10 +78,10 @@ CREATE TABLE ${occurrenceTable}_agents
   TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-agents.avsc')
 AS SELECT
   COALESCE(r.agent, i.agent) AS agent,
-  r.total_recordedBy,
-  i.total_identifiedBy,
-  r.gbifIDs_recordedBy,
-  i.gbifIDs_identifiedBy
+  COALESCE(r.total_recordedBy, 0) AS totalRecordedBy,
+  COALESCE(i.total_identifiedBy, 0) AS totalIdentifiedBy,
+  r.gbifIDs_recordedBy AS gbifIDsRecordedBy,
+  i.gbifIDs_identifiedBy AS gbifIDsIdentifiedBy
 FROM
   (SELECT
      v_recordedBy AS agent,
@@ -90,16 +100,15 @@ FULL OUTER JOIN
   GROUP BY v_identifiedBy) AS i
 ON r.agent = i.agent;
 
--- NB! If changing the columns, remember to update the header row in the workflow definition.
 CREATE TABLE ${occurrenceTable}_families
   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
   STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
   OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
   TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-families.avsc')
 AS SELECT
-  v_family,
+  family,
   COUNT(gbifID) total,
-  joinArray(collect_set(CAST(gbifID AS STRING)), '\\;') AS gbifIDs_family
+  collect_set(CAST(gbifID AS STRING)) AS gbifIDs_family
 FROM ${occurrenceTable}
-  WHERE v_family IS NOT NULL
-  GROUP BY v_family;
+  WHERE family IS NOT NULL
+  GROUP BY family;

@@ -4,8 +4,62 @@
   "notification_address": ["mblissett@gbif.org"],
   "format": "BIONOMIA",
   "predicate": {
-    "type": "in",
-    "key": "BASIS_OF_RECORD",
-    "values": [ "UNKNOWN", "LIVING_SPECIMEN", "FOSSIL_SPECIMEN", "PRESERVED_SPECIMEN" ]
+    "type": "and",
+    "predicates": [
+      {
+        "type": "in",
+        "key": "BASIS_OF_RECORD",
+        "values": [ "UNKNOWN", "LIVING_SPECIMEN", "FOSSIL_SPECIMEN", "PRESERVED_SPECIMEN" ]
+      },
+      {
+        "type": "greaterThanOrEquals",
+        "key": "YEAR",
+        "value": "1950"
+      },
+      {
+        "type": "lessThanOrEquals",
+        "key": "YEAR",
+        "value": "2018"
+      },
+      {
+        "type": "or",
+        "predicates": [
+          {
+            "type": "isNotNull",
+            "parameter": "IDENTIFIED_BY"
+          },
+          {
+            "type": "isNotNull",
+            "parameter": "RECORDED_BY"
+          }
+        ]
+      },
+      {
+        "type": "not",
+        "predicate": {
+          "type": "or",
+          "predicates": [
+            {
+              "type": "like",
+              "key": "VERBATIM_SCIENTIFIC_NAME",
+              "value": "%BOLD:%",
+              "matchCase": "true"
+            },
+            {
+              "type": "like",
+              "key": "VERBATIM_SCIENTIFIC_NAME",
+              "value": "%BOLD-%",
+              "matchCase": "true"
+            },
+            {
+              "type": "like",
+              "key": "VERBATIM_SCIENTIFIC_NAME",
+              "value": "%BIOUG%",
+              "matchCase": "true"
+            }
+          ]
+        }
+      }
+    ]
   }
 }
