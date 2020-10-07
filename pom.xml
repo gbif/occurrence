@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>46</version>
+    <version>49</version>
   </parent>
 
   <groupId>org.gbif.occurrence</groupId>
@@ -109,6 +109,7 @@
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
+    <okhttp.version>3.14.7</okhttp.version>
     <powermock-mockito.version>2.0.7</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
@@ -120,8 +121,6 @@
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
-    <!--Solr/Lucene projects use the same versioning -->
-    <solr-lucene.version>7.5.0</solr-lucene.version>
     <jts.version>1.16.1</jts.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
@@ -146,25 +145,21 @@
     <gbif-api.version>0.119</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
-    <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
     <gbif-common-ws.version>1.8</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>0.46</gbif-postal-service.version>
-    <gbif-registry.version>3.27</gbif-registry.version>
+    <gbif-registry.version>3.32</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
-    <pipelines.version>2.5.6.1</pipelines.version>
+    <pipelines.version>2.6.7</pipelines.version>
     <gbif.kvs.version>1.8</gbif.kvs.version>
     <gbif-cli.version>0.14</gbif-cli.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
-    <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
-    <maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
-    <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -181,7 +176,7 @@
 
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
-    <embedded-elasticsearch.version>2.10.0</embedded-elasticsearch.version>
+    <testcontainers-elasticsearch.version>1.14.3</testcontainers-elasticsearch.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -306,11 +301,6 @@
         <version>${gbif-common-ws.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif</groupId>
-        <artifactId>gbif-common-search</artifactId>
-        <version>${gbif-common-search.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
@@ -451,7 +441,7 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.pipelines</groupId>
-        <artifactId>common</artifactId>
+        <artifactId>variables</artifactId>
         <version>${pipelines.version}</version>
       </dependency>
       <dependency>
@@ -531,11 +521,6 @@
         <groupId>com.rabbitmq</groupId>
         <artifactId>amqp-client</artifactId>
         <version>${amqp-client.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.lucene</groupId>
-        <artifactId>lucene-core</artifactId>
-        <version>${solr-lucene.version}</version>
       </dependency>
       <dependency>
         <groupId>aopalliance</groupId>
@@ -628,6 +613,13 @@
         <artifactId>httpcore</artifactId>
         <version>${httpcore.version}</version>
         <type>jar</type>
+      </dependency>
+
+      <!-- Version used by KVS -->
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>${okhttp.version}</version>
       </dependency>
 
       <!-- Ships Guice logging to SLF -->
@@ -1159,17 +1151,17 @@
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch.client</groupId>
+        <groupId>org.elasticsearch.client</groupId>
         <artifactId>elasticsearch-rest-client</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch</groupId>
+        <groupId>org.elasticsearch</groupId>
         <artifactId>elasticsearch-core</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId> org.elasticsearch</groupId>
+        <groupId>org.elasticsearch</groupId>
         <artifactId>elasticsearch</artifactId>
         <version>${elasticsearch.version}</version>
       </dependency>
@@ -1235,9 +1227,9 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>pl.allegro.tech</groupId>
-        <artifactId>embedded-elasticsearch</artifactId>
-        <version>${embedded-elasticsearch.version}</version>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>elasticsearch</artifactId>
+        <version>${testcontainers-elasticsearch.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -1266,13 +1258,13 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.pipelines</groupId>
-        <artifactId>ingest-gbif</artifactId>
+        <artifactId>ingest-gbif-java</artifactId>
         <version>${pipelines.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.gbif.pipelines</groupId>
-        <artifactId>ingest-fragmenter</artifactId>
+        <artifactId>ingest-gbif-fragmenter</artifactId>
         <version>${pipelines.version}</version>
         <scope>test</scope>
       </dependency>
@@ -1280,104 +1272,21 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <topSiteURL>http://gbif.github.io/occurrence/</topSiteURL>
+        </configuration>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
           <version>${spring-boot-maven-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven-surefire-plugin.version}</version>
-          <configuration>
-            <argLine>${surefireArgLine}</argLine>
-            <excludes>
-              <exclude>**/*IT.java</exclude>
-            </excludes>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven-failsafe-plugin.version}</version>
-          <configuration>
-            <argLine>${failsafeArgLine}</argLine>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco-maven-plugin.version}</version>
-          <configuration>
-            <append>true</append>
-          </configuration>
-          <executions>
-            <execution>
-              <id>prepare-agent-ut</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-              <configuration>
-                <destFile>${jacoco.ut.output.file}</destFile>
-                <propertyName>surefireArgLine</propertyName>
-              </configuration>
-            </execution>
-            <execution>
-              <id>report-ut-coverage</id>
-              <phase>test</phase>
-              <goals>
-                <goal>report</goal>
-              </goals>
-              <configuration>
-                <dataFile>${jacoco.ut.output.file}</dataFile>
-                <outputDirectory>${coverage.report.ut.dir}</outputDirectory>
-              </configuration>
-            </execution>
-            <execution>
-              <id>prepare-agent-it</id>
-              <goals>
-                <goal>prepare-agent-integration</goal>
-              </goals>
-              <phase>package</phase>
-              <configuration>
-                <destFile>${jacoco.it.output.file}</destFile>
-                <propertyName>failsafeArgLine</propertyName>
-              </configuration>
-            </execution>
-            <execution>
-              <id>report-it-coverage</id>
-              <phase>post-integration-test</phase>
-              <goals>
-                <goal>report-integration</goal>
-              </goals>
-              <configuration>
-                <dataFile>${jacoco.it.output.file}</dataFile>
-                <outputDirectory>${coverage.report.it.dir}</outputDirectory>
-              </configuration>
-            </execution>
-            <execution>
-              <id>merge-exec-files</id>
-              <phase>post-integration-test</phase>
-              <goals>
-                <goal>merge</goal>
-              </goals>
-              <configuration>
-                <fileSets>
-                  <fileSet>
-                    <directory>${coverage.dir}</directory>
-                    <includes>
-                      <include>*.exec</include>
-                    </includes>
-                  </fileSet>
-                </fileSets>
-                <destFile>${jacoco.merged.output.file}</destFile>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

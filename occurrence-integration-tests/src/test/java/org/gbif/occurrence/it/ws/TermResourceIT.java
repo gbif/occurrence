@@ -1,4 +1,4 @@
-package org.gbif.occurrence.it.ws;
+package org.gbif.occurrence.ws.it;
 
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.ws.resources.TermResource;

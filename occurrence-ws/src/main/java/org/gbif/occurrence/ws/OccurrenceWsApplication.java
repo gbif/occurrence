@@ -1,6 +1,5 @@
 package org.gbif.occurrence.ws;
 
-import org.gbif.registry.identity.service.IdentityServiceImpl;
 import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -41,14 +40,12 @@ import org.springframework.context.annotation.FilterType;
   },
   excludeFilters = {
       @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {
-          IdentityServiceImpl.class,
           UserSuretyDelegateImpl.class})
     }
 )
 @EnableFeignClients
 public class OccurrenceWsApplication {
-
-    public static void main(String[] args) {
-      SpringApplication.run(OccurrenceWsApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(OccurrenceWsApplication.class, args);
+  }
 }
