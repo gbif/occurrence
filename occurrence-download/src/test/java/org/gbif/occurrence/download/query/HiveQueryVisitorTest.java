@@ -342,7 +342,7 @@ public class HiveQueryVisitorTest {
   public void testIsNotNullPredicate() throws QueryBuildingException {
     Predicate p = new IsNotNullPredicate(PARAM);
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "lower(catalognumber) IS NOT NULL ");
+    assertEquals(query, "catalognumber IS NOT NULL ");
   }
 
   @Test
