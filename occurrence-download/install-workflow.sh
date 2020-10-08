@@ -17,16 +17,26 @@ ENV=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*
 OOZIE=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="'$P'"]]/*[name()="properties"]/*[name()="oozie.url"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 HIVE_DB=$(echo 'cat /*[name()="settings"]/*[name()="profiles"]/*[name()="profile"][*[name()="id" and text()="'$P'"]]/*[name()="properties"]/*[name()="hive.db"]/text()' | xmllint --shell profiles.xml | sed '/^\/ >/d' | sed 's/<[^>]*.//g')
 
+echo "Assembling jar for $ENV"
+#Oozie uses timezone UTC
+mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
+
+#Is any download running?
+IFS=$'\n'
+WFS=($(oozie jobs -oozie $OOZIE  -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-species-list-download;name=${ENV}-create-tables"))
+unset IFS
+if [ ${#WFS[@]} > 1  ]; then
+  echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
+  ( IFS=$'\n'; echo "${WFS[*]}" )
+  exit 1
+fi
+
 #gets the oozie id of the current coordinator job if it exists
 WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV | awk 'NR==3 {print $1}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
   sudo -u hdfs oozie job -oozie $OOZIE -kill $WID
 fi
-
-echo "Assembling jar for $ENV"
-#Oozie uses timezone UTC
-mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
