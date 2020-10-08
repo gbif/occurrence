@@ -25,16 +25,11 @@ echo "Assembling jar for $ENV"
 mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 #Is any download running?
-IFS=$'\n'
-WFS=($(oozie jobs -oozie $OOZIE  -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-species-list-download;name=${ENV}-create-tables"))
-if [ ${#WFS[@]} > 1  ]; then
+while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
   echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
-  ( IFS=$'\n'; echo "${WFS[*]}" )
-  echo -e "$(tput setaf 2)Waiting for 15 seconds before trying again!!$(tput sgr0) \n"
+  oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables"
   sleep 15
-  WFS=($(oozie jobs -oozie $OOZIE  -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-species-list-download;name=${ENV}-create-tables"))
-fi
-unset IFS
+done
 
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
