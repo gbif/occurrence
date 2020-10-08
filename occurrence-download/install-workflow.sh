@@ -24,12 +24,14 @@ mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean instal
 #Is any download running?
 IFS=$'\n'
 WFS=($(oozie jobs -oozie $OOZIE  -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-species-list-download;name=${ENV}-create-tables"))
-unset IFS
 if [ ${#WFS[@]} > 1  ]; then
   echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
   ( IFS=$'\n'; echo "${WFS[*]}" )
-  exit 1
+  echo -e "$(tput setaf 2)Waiting for 15 seconds before trying again!!$(tput sgr0) \n"
+  sleep 15
+  WFS=($(oozie jobs -oozie $OOZIE  -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-species-list-download;name=${ENV}-create-tables"))
 fi
+unset IFS
 
 #gets the oozie id of the current coordinator job if it exists
 WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=OccurrenceHDFSBuild-$ENV | awk 'NR==3 {print $1}')
