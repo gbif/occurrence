@@ -3,11 +3,12 @@ package org.gbif.occurrence.download.file.archive;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
+import org.junit.jupiter.api.Test;
+
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.utils.file.InputStreamUtils;
-import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,7 +18,7 @@ import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MultiDirectoryArchiveBuilderTest {
 
