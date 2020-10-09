@@ -24,6 +24,13 @@ echo "Assembling jar for $ENV"
 #Oozie uses timezone UTC
 mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
+#Is any download running?
+while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
+  echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
+  oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables"
+  sleep 15
+done
+
 java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/occurrence-download-workflows-$ENV/lib/occurrence-download.properties profiles.xml
 echo "Copy to hadoop"
 sudo -u hdfs hdfs dfs -rm -r -f /occurrence-download-workflows-new-schema-$ENV/

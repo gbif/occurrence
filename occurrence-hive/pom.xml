@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.146-SNAPSHOT</version>
+    <version>0.147-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-hive</artifactId>
@@ -123,6 +123,11 @@
           <artifactId>logback-classic</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
     </dependency>
 
     <!-- Runtime dependencies -->

@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.146-SNAPSHOT</version>
+  <version>0.147-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -109,6 +109,7 @@
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
+    <okhttp.version>3.14.7</okhttp.version>
     <powermock-mockito.version>2.0.7</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
@@ -120,6 +121,8 @@
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
     <slf4j.version>1.7.16</slf4j.version>
+    <!--Solr/Lucene projects use the same versioning -->
+    <solr-lucene.version>7.5.0</solr-lucene.version>
     <jts.version>1.16.1</jts.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
     <xml-apis.version>1.4.01</xml-apis.version>
@@ -139,18 +142,19 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.33</download-query-tools.version>
-    <dwc-api.version>1.28</dwc-api.version>
+    <dwc-api.version>1.29-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.8</dwca-io.version>
-    <gbif-api.version>0.119</gbif-api.version>
+    <gbif-api.version>0.122</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
+    <gbif-common-search.version>0.35</gbif-common-search.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
     <gbif-common-ws.version>1.8</gbif-common-ws.version>
     <geocode.version>0.13</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>0.46</gbif-postal-service.version>
-    <gbif-registry.version>3.29-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>3.32</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
@@ -613,6 +617,13 @@
         <artifactId>httpcore</artifactId>
         <version>${httpcore.version}</version>
         <type>jar</type>
+      </dependency>
+
+      <!-- Version used by KVS -->
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>${okhttp.version}</version>
       </dependency>
 
       <!-- Ships Guice logging to SLF -->
