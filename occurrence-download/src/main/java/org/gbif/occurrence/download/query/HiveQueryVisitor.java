@@ -179,6 +179,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
+      .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, GbifInternalTerm.hostingOrganizationKey)
       .put(OccurrenceSearchParameter.CRAWL_ID, GbifInternalTerm.crawlId)
       .put(OccurrenceSearchParameter.INSTALLATION_KEY, GbifInternalTerm.installationKey)
       .put(OccurrenceSearchParameter.NETWORK_KEY, GbifInternalTerm.networkKey)
