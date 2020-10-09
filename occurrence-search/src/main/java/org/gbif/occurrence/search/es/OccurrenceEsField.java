@@ -16,13 +16,13 @@ public enum OccurrenceEsField {
   DATASET_KEY("datasetKey", GbifTerm.datasetKey),
   PUBLISHING_COUNTRY("publishingCountry", GbifTerm.publishingCountry),
   PUBLISHING_ORGANIZATION_KEY("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey),
+  HOSTING_ORGANIZATION_KEY("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey),
   INSTALLATION_KEY("installationKey", GbifInternalTerm.installationKey),
   NETWORK_KEY("networkKeys", GbifInternalTerm.networkKey),
   PROTOCOL("protocol", GbifTerm.protocol),
   LICENSE("license", DcTerm.license),
   PROJECT_ID("projectId", GbifInternalTerm.projectId),
   PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
-  HOSTING_ORGANIZATION_KEY("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey),
 
   //Core identification
   INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
@@ -65,7 +65,7 @@ public enum OccurrenceEsField {
   LOCALITY("locality", DwcTerm.locality, true),
   COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
   COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
-  GADM_GID("gadm.gid", null),
+  GADM_GID("gadm.gids", null),
   GADM_LEVEL_0_GID("gadm.level0Gid", GadmTerm.level0Gid),
   GADM_LEVEL_0_NAME("gadm.level0Name", GadmTerm.level0Name),
   GADM_LEVEL_1_GID("gadm.level1Gid", GadmTerm.level1Gid),

@@ -1,4 +1,4 @@
-package org.gbif.occurrence.it.ws;
+package org.gbif.occurrence.ws.it;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
@@ -9,8 +9,10 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.occurrence.test.mocks.ChallengeCodeManagerMock;
 import org.gbif.occurrence.test.mocks.DownloadCallbackServiceMock;
 import org.gbif.occurrence.test.mocks.DownloadRequestServiceMock;
+import org.gbif.occurrence.test.mocks.GrSciCollEditorAuthorizationServiceMock;
 import org.gbif.occurrence.test.mocks.OccurrenceDownloadServiceMock;
 import org.gbif.occurrence.test.mocks.UserMapperMock;
 import org.gbif.occurrence.test.servers.EsManageServer;
@@ -19,8 +21,6 @@ import org.gbif.occurrence.ws.config.OccurrenceMethodSecurityConfiguration;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
 import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
-import org.gbif.registry.mail.EmailSender;
-import org.gbif.registry.mail.identity.IdentityEmailManager;
 import org.gbif.registry.persistence.mapper.DatasetMapper;
 import org.gbif.registry.persistence.mapper.InstallationMapper;
 import org.gbif.registry.persistence.mapper.OrganizationMapper;
@@ -29,6 +29,7 @@ import org.gbif.registry.persistence.mapper.UserRightsMapper;
 import org.gbif.registry.security.EditorAuthorizationServiceImpl;
 import org.gbif.registry.security.LegacyAuthorizationService;
 import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
+import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationService;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
@@ -89,6 +90,7 @@ import org.springframework.test.context.ActiveProfiles;
    "org.gbif.registry.surety",
    "org.gbif.occurrence.search",
    "org.gbif.occurrence.ws.resources",
+   "org.gbif.occurrence.ws.identity",
    "org.gbif.occurrence.persistence",
    "org.gbif.occurrence.it.ws"
  },
@@ -98,7 +100,8 @@ import org.springframework.test.context.ActiveProfiles;
                                                                       LegacyAuthorizationServiceImpl.class,
                                                                       UserSuretyDelegateImpl.class,
                                                                       UserChallengeCodeManager.class,
-                                                                      OrganizationChallengeCodeManager.class})
+                                                                      OrganizationChallengeCodeManager.class,
+                                                                      GrSciCollEditorAuthorizationService.class})
  }
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
@@ -128,7 +131,7 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public EsManageServer esManageServer(@Value("classpath:es-settings.json") Resource settings,
+  public EsManageServer esManageServer(@Value("classpath:elasticsearch/es-settings.json") Resource settings,
                                        @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
     return EsManageServer.builder()
       .indexName("occurrence")
@@ -230,6 +233,11 @@ public class OccurrenceWsItConfiguration {
     return userMapper;
   }
 
+  @Bean
+  public ChallengeCodeManager<Integer> challengeCodeManagerMock() {
+    return new ChallengeCodeManagerMock();
+  }
+
 
   @Bean
   public EditorAuthorizationServiceImpl editorAuthorizationServiceSutb() {
@@ -240,17 +248,15 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public UserSuretyDelegateImpl userSuretyDelegate() {
-    return new UserSuretyDelegateImpl(Mockito.mock(EmailSender.class),
-                                      Mockito.mock(ChallengeCodeManager.class),
-                                      Mockito.mock(IdentityEmailManager.class));
-  }
-
-  @Bean
   public LegacyAuthorizationService legacyAuthorizationService() {
     return new LegacyAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
                                        Mockito.mock(DatasetMapper.class),
                                        Mockito.mock(InstallationMapper.class));
+  }
+
+  @Bean
+  public GrSciCollEditorAuthorizationService grSciCollEditorAuthorization() {
+    return new GrSciCollEditorAuthorizationServiceMock();
   }
 
   /**

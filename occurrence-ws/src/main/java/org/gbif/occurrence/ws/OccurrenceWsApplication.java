@@ -1,5 +1,6 @@
 package org.gbif.occurrence.ws;
 
+import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
@@ -32,16 +33,19 @@ import org.springframework.context.annotation.FilterType;
     "org.gbif.registry.persistence",
     "org.gbif.registry.identity",
     "org.gbif.registry.surety",
-    "org.gbif.registry.mail",
     "org.gbif.occurrence.ws",
     "org.gbif.occurrence.download.service",
-    "org.gbif.occurrence.persistence"
+    "org.gbif.occurrence.persistence",
+    "org.gbif.occurrence.mail"
   },
-  excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE)})
+  excludeFilters = {
+      @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {
+          UserSuretyDelegateImpl.class})
+    }
+)
 @EnableFeignClients
 public class OccurrenceWsApplication {
-
-    public static void main(String[] args) {
-      SpringApplication.run(OccurrenceWsApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(OccurrenceWsApplication.class, args);
+  }
 }

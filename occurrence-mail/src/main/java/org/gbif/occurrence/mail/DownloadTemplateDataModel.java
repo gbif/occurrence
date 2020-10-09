@@ -1,30 +1,29 @@
-package org.gbif.occurrence.download.service;
+package org.gbif.occurrence.mail;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.utils.file.FileUtils;
 
-import java.net.URI;
+import java.net.URL;
 
-/**
- *  Encapsulates the email data sent from the occurrence download services.
- */
-public class EmailModel {
+public class DownloadTemplateDataModel extends BaseTemplateDataModel {
 
   private final Download download;
-  private final URI portal;
+  private final URL portal;
   private final String query;
+  private final String downloadCreatedDateDefaultLocale;
 
   /**
    * Full constructor.
    */
-  public EmailModel(Download download, URI portal, String query) {
+  public DownloadTemplateDataModel(Download download, URL portal, String query, String downloadCreatedDateDefaultLocale) {
+    super(download.getRequest().getCreator());
     this.download = download;
     this.portal = portal;
     this.query = query;
+    this.downloadCreatedDateDefaultLocale = downloadCreatedDateDefaultLocale;
   }
 
   /**
-   *
    * @return occurrence download to be notified in this email
    */
   public Download getDownload() {
@@ -32,15 +31,13 @@ public class EmailModel {
   }
 
   /**
-   *
    * @return base url to the GBIF portal
    */
-  public URI getPortal() {
+  public URL getPortal() {
     return portal;
   }
 
   /**
-   *
    * @return query used to produce the occurrence download
    */
   public String getQuery() {
@@ -48,8 +45,14 @@ public class EmailModel {
   }
 
   /**
-   *
-   * @return huma readeable size of the download file
+   * @return download created date in default locale (english)
+   */
+  public String getDownloadCreatedDateDefaultLocale() {
+    return downloadCreatedDateDefaultLocale;
+  }
+
+  /**
+   * @return human readable size of the download file
    */
   public String getSize() {
     return FileUtils.humanReadableByteCount(download.getSize(), true);

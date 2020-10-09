@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.server.ResponseStatusException;
 
 public class DownloadResourceTest {
 
@@ -49,10 +48,9 @@ public class DownloadResourceTest {
 
   @Test
   public void testStartDownloadNotAuthenticated() {
-    Assertions.assertThrows(ResponseStatusException.class, () -> {
-      prepareMocks("foo");
-      resource.startDownload(dl, principal);
-    });
+    prepareMocks("foo");
+    ResponseEntity<String> response = resource.startDownload(dl, principal);
+    Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
   }
 
   private void prepareMocks(String user) {

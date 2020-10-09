@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.145-SNAPSHOT</version>
+    <version>0.147-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -562,8 +562,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pl.allegro.tech</groupId>
-      <artifactId>embedded-elasticsearch</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>elasticsearch</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

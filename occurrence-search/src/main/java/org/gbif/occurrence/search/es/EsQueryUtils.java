@@ -228,6 +228,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceEsField.PROTOCOL)
           .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceEsField.ORGANISM_ID)
           .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
+          .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, OccurrenceEsField.HOSTING_ORGANIZATION_KEY)
           .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceEsField.CRAWL_ID)
           .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceEsField.INSTALLATION_KEY)
           .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceEsField.NETWORK_KEY)
@@ -246,7 +247,6 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
-          .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, OccurrenceEsField.HOSTING_ORGANIZATION_KEY)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =

@@ -32,6 +32,8 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +71,7 @@ public class DownloadServiceImplTest {
     downloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     requestService =
-      new DownloadRequestServiceImpl(oozieClient, props, "", "", downloadService, mock(DownloadEmailUtils.class), downloadLimitsService);
+      new DownloadRequestServiceImpl(oozieClient, props, "", "", "", downloadService, downloadLimitsService, mock(OccurrenceEmailManager.class), mock(EmailSender.class));
   }
 
 

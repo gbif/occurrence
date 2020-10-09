@@ -1,4 +1,4 @@
-package org.gbif.occurrence.it.ws;
+package org.gbif.occurrence.ws.it;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;

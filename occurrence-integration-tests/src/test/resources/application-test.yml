@@ -1,5 +1,5 @@
 appkeys:
-  file: /usr/local/gbif/conf/appkeys.properties
+  file: @appkeys.testfile@
 occurrence:
   download:
     downloads_hard_limit: 1,1000

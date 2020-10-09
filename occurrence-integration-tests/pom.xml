@@ -3,7 +3,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.145-SNAPSHOT</version>
+    <version>0.147-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -39,6 +39,10 @@
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.elasticsearch.client</groupId>
+          <artifactId>elasticsearch-rest-client</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -78,20 +82,20 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch.client</groupId>
+      <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client</artifactId>
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch</groupId>
+      <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch-core</artifactId>
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch</groupId>
+      <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
     </dependency>
     <dependency>
-      <groupId>pl.allegro.tech</groupId>
-      <artifactId>embedded-elasticsearch</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>elasticsearch</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -114,11 +118,11 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.pipelines</groupId>
-      <artifactId>ingest-gbif</artifactId>
+      <artifactId>ingest-gbif-java</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.pipelines</groupId>
-      <artifactId>ingest-fragmenter</artifactId>
+      <artifactId>ingest-gbif-fragmenter</artifactId>
     </dependency>
 
     <!-- Third party dependencies -->
