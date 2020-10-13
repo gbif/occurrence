@@ -3,15 +3,11 @@ package org.gbif.occurrence.download.file.archive;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
-import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.utils.file.InputStreamUtils;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.zip.ZipEntry;
@@ -33,7 +29,7 @@ public class MultiFileArchiveBuilderTest {
 
       FileUtils.getClasspathFile("multitsv/default/second").getAbsolutePath(),
       "second.csv",
-      "colA,colB,colC",
+      "",
 
       FileUtils.getClasspathFile("multitsv/default/third").getAbsolutePath(),
       "third.csv",
@@ -43,7 +39,7 @@ public class MultiFileArchiveBuilderTest {
       "empty.csv",
       "col一,col二,col三"
     };
-    String targetPath = Files.createTempDirectory("multitsv-default").toString();
+    String targetPath = Files.createTempDirectory("multifile-default").toString();
     String downloadKey = "testArchive";
 
     MultiFileArchiveBuilder.withEntries(arguments)
@@ -57,9 +53,6 @@ public class MultiFileArchiveBuilderTest {
 
   @Test
   public void testBuildPreDeflatedMode() throws Exception {
-    D2Utils.compress(new ByteArrayInputStream("г,д,е\n".getBytes()), new FileOutputStream(new File("/tmp/def")));
-    D2Utils.compress(new ByteArrayInputStream("η,θ,ι\n".getBytes()), new FileOutputStream(new File("/tmp/ghi")));
-
     FileSystem sourceFileSystem = new LocalFileSystem();
     sourceFileSystem.initialize(URI.create("file:///"), new Configuration());
 
@@ -70,7 +63,7 @@ public class MultiFileArchiveBuilderTest {
 
       FileUtils.getClasspathFile("multitsv/pre_deflated/second").getAbsolutePath(),
       "second.csv",
-      "colA,colB,colC",
+      "",
 
       FileUtils.getClasspathFile("multitsv/pre_deflated/third").getAbsolutePath(),
       "third.csv",
@@ -80,7 +73,7 @@ public class MultiFileArchiveBuilderTest {
       "empty.csv",
       "col一,col二,col三"
     };
-    String targetPath = Files.createTempDirectory("multitsv-predeflate").toString();
+    String targetPath = Files.createTempDirectory("multifile-predeflate").toString();
     String downloadKey = "testArchive";
 
     MultiFileArchiveBuilder.withEntries(arguments)

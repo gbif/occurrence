@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.file.archive;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
@@ -101,7 +102,10 @@ public class MultiFileArchiveBuilder {
 
     Path inputPath = new Path(source.path);
     // append the header file
-    appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.DEFAULT, source.header);
+    if (!Strings.isNullOrEmpty(source.header)) {
+      // append the header file
+      appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.DEFAULT, source.header);
+    }
 
     // Get all the files inside the directory and create a list of InputStreams.
     List<InputStream> is = Arrays.stream(sourceFS.listStatus(inputPath)).sorted().map(fileStatus -> {
@@ -130,7 +134,10 @@ public class MultiFileArchiveBuilder {
 
     Path inputPath = new Path(source.path);
     // append the header file
-    appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED, source.header);
+    if (!Strings.isNullOrEmpty(source.header)) {
+      // append the header file
+      appendHeaderFile(sourceFS, inputPath, ModalZipOutputStream.MODE.PRE_DEFLATED, source.header);
+    }
 
     // Get all the files inside the directory and create a list of InputStreams.
     D2CombineInputStream in =

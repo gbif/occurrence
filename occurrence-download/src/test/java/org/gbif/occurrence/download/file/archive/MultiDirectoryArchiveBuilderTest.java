@@ -5,14 +5,10 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.junit.jupiter.api.Test;
 
-import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.utils.file.InputStreamUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.zip.ZipEntry;
@@ -28,18 +24,35 @@ public class MultiDirectoryArchiveBuilderTest {
     sourceFileSystem.initialize(URI.create("file:///"), new Configuration());
 
     String[] arguments = {
+      /* Resulting directory should be "first.csv" containing:
+       * 000000: col1,col2,col3
+       * 000001: a,b,c
+       */
       FileUtils.getClasspathFile("multitsv/default/first").getAbsolutePath(),
       "first.csv",
       "col1,col2,col3",
 
+      /* Resulting directory should be "second.csv" containing:
+       * 000000: a,b,c
+       * 000001: г,д,е
+       */
       FileUtils.getClasspathFile("multitsv/default/second").getAbsolutePath(),
       "second.csv",
       "",
 
+      /* Resulting directory should be "third.csv" containing:
+       * 000000: colⅠ,colⅡ,colⅢ
+       * 000001: a,b,c
+       * 000002: г,д,е
+       * 000003: η,θ,ι
+       */
       FileUtils.getClasspathFile("multitsv/default/third").getAbsolutePath(),
       "third.csv",
       "colⅠ,colⅡ,colⅢ",
 
+      /* Resulting directory should be "empty.csv" containing:
+       * 000000: col一,col二,col三
+       */
       FileUtils.createTempDir().getAbsolutePath(),
       "empty.csv",
       "col一,col二,col三"
@@ -58,25 +71,44 @@ public class MultiDirectoryArchiveBuilderTest {
 
   @Test
   public void testBuildPreDeflatedMode() throws Exception {
-    D2Utils.compress(new ByteArrayInputStream("г,д,е\n".getBytes()), new FileOutputStream(new File("/tmp/def")));
-    D2Utils.compress(new ByteArrayInputStream("η,θ,ι\n".getBytes()), new FileOutputStream(new File("/tmp/ghi")));
-
     FileSystem sourceFileSystem = new LocalFileSystem();
     sourceFileSystem.initialize(URI.create("file:///"), new Configuration());
 
+    // The pre-deflated files are generated with
+    // D2Utils.compress(new ByteArrayInputStream("a,b,c\n".getBytes(StandardCharsets.UTF_8)),
+    //   new FileOutputStream(new File("multitsv/pre_deflated/first/abc.def2")));
+    // etc.
+
     String[] arguments = {
+      /* Resulting directory should be "first.csv" containing:
+       * 000000: col1,col2,col3
+       * 000001: a,b,c
+       */
       FileUtils.getClasspathFile("multitsv/pre_deflated/first").getAbsolutePath(),
       "first.csv",
       "col1,col2,col3",
 
+      /* Resulting directory should be "second.csv" containing:
+       * 000000: a,b,c
+       * 000001: г,д,е
+       */
       FileUtils.getClasspathFile("multitsv/pre_deflated/second").getAbsolutePath(),
       "second.csv",
       "",
 
+      /* Resulting directory should be "third.csv" containing:
+       * 000000: colⅠ,colⅡ,colⅢ
+       * 000001: a,b,c
+       * 000002: г,д,е
+       * 000003: η,θ,ι
+       */
       FileUtils.getClasspathFile("multitsv/pre_deflated/third").getAbsolutePath(),
       "third.csv",
       "colⅠ,colⅡ,colⅢ",
 
+      /* Resulting directory should be "empty.csv" containing:
+       * 000000: col一,col二,col三
+       */
       FileUtils.createTempDir().getAbsolutePath(),
       "empty.csv",
       "col一,col二,col三"
