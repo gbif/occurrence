@@ -421,9 +421,10 @@ public class HiveQueryVisitor {
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
     if (isHiveArray(predicate.getParameter())) {
-      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), false)));
+      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), true)));
     } else {
-      builder.append(toHiveField(predicate.getParameter(), false));
+      // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
+      builder.append(toHiveField(predicate.getParameter(), true));
       builder.append(IS_NOT_NULL_OPERATOR);
     }
   }

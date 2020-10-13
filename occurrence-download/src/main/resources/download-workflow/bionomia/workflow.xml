@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-species-list-download" xmlns="uri:oozie:workflow:0.4.5">
-<global>
+<workflow-app name="${occurrence.environment}-bionomia-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+
+  <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
     <name-node>${hdfs.namenode}</name-node>
     <configuration>
@@ -27,10 +28,13 @@
           <value>download-admin</value>
         </property>
       </configuration>
-      <script>hive-scripts/execute-species-list-query.q</script>
+      <script>hive-scripts/execute-bionomia-query.q</script>
       <param>hiveDB=${hive_db}</param>
-      <param>speciesListTable=${download_table_name}</param>
+      <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
+      <param>wfPath=${wf:appPath()}</param>
+      <param>bionomiaReducerMemory=${occurrence.download.bionomia.reducer.memory}</param>
+      <param>bionomiaReducerOpts=${occurrence.download.bionomia.reducer.opts}</param>
     </hive>
     <ok to="archive_table"/>
     <error to="drop_tables_failure"/>
@@ -38,27 +42,36 @@
 
   <action name="archive_table">
     <java>
-      <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
+      <main-class>org.gbif.occurrence.download.file.archive.MultiDirectoryArchiveBuilder</main-class>
       <arg>${occurrence.download.hdfsOutputPath}</arg>
       <arg>${download_key}</arg>
-      <arg>PRE_DEFLATED</arg>
-      <arg>${download_format}</arg>
+      <arg>DEFAULT</arg><!-- No pre-compression, as the Avro file isn't pre_deflated -->
+
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
+      <arg>occurrence.avro</arg>
+      <arg></arg>
+
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_agents/</arg>
+      <arg>agents.avro</arg>
+      <arg></arg>
+
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_families/</arg>
+      <arg>families.avro</arg>
+      <arg></arg>
       <capture-output/>
     </java>
 
-    <ok to="persist_species_meta"/>
+    <ok to="persist_usages"/>
     <error to="drop_tables_failure"/>
   </action>
 
-  <action name="persist_species_meta">
+  <action name="persist_usages">
     <java>
-      <main-class>org.gbif.occurrence.download.file.common.DownloadMetaPersistence</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
-      <arg>${download_key}</arg>
+      <main-class>org.gbif.occurrence.download.citations.CitationsPersister</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <arg>${download_key}</arg>
       <capture-output/>
-     </java>
+    </java>
 
     <ok to="drop_tables"/>
     <error to="drop_tables_failure"/>
@@ -74,7 +87,7 @@
         </property>
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
-      <param>speciesListTable=${download_table_name}</param>
+      <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 
@@ -92,7 +105,7 @@
         </property>
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
-      <param>speciesListTable=${download_table_name}</param>
+      <param>occurrenceTable=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 
