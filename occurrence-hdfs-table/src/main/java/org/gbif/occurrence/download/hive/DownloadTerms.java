@@ -32,7 +32,8 @@ public class DownloadTerms {
     GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
-    GbifTerm.numberOfOccurrences //this is for aggregation only
+    GbifTerm.numberOfOccurrences, //this is for aggregation only
+    GbifInternalTerm.hostingOrganizationKey  //temporary removing this term since it is not populated
   );
 
   // This set is used fot the HDFS table definition
