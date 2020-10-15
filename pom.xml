@@ -151,12 +151,12 @@
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>0.46</gbif-postal-service.version>
-    <gbif-registry.version>3.33</gbif-registry.version>
+    <gbif-registry.version>3.34</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
-    <pipelines.version>2.6.7</pipelines.version>
-    <gbif.kvs.version>1.8</gbif.kvs.version>
+    <pipelines.version>2.6.10</pipelines.version>
+    <gbif.kvs.version>1.11</gbif.kvs.version>
     <gbif-cli.version>0.14</gbif-cli.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
