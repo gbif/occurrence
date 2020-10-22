@@ -308,7 +308,7 @@ public class EsResponseParser {
             });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
     getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf).ifPresent(occ::setEstablishmentMeans);
-    getValue(hit, LIFE_STAGE, LifeStage::valueOf).ifPresent(occ::setLifeStage);
+    getStringValue(hit, LIFE_STAGE).ifPresent(occ::setLifeStage);
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
     getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
