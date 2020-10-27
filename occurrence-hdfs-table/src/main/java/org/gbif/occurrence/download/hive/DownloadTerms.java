@@ -1,17 +1,18 @@
 package org.gbif.occurrence.download.hive;
 
-import org.apache.commons.lang3.tuple.Pair;
+import java.util.Set;
+
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
-import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gbif.occurrence.common.TermUtils;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
@@ -32,8 +33,7 @@ public class DownloadTerms {
     GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
-    GbifTerm.numberOfOccurrences, //this is for aggregation only
-    GbifInternalTerm.hostingOrganizationKey  //temporary removing this term since it is not populated
+    GbifTerm.numberOfOccurrences //this is for aggregation only
   );
 
   // This set is used fot the HDFS table definition
