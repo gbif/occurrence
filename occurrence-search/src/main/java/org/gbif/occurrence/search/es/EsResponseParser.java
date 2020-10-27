@@ -270,7 +270,11 @@ public class EsResponseParser {
 
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
-    // TODO: add verbatim extensions
+
+    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    if (verbatimData.containsKey("extensions" )) {
+      occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
+    }
 
     setIdentifier(hit, occ);
 
