@@ -176,7 +176,7 @@
 
     <!-- es versions -->
     <elasticsearch.version>6.5.4</elasticsearch.version>
-    <testcontainers-elasticsearch.version>1.14.3</testcontainers-elasticsearch.version>
+    <testcontainers-elasticsearch.version>1.15.0-rc2</testcontainers-elasticsearch.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
