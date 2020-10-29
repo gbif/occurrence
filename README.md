@@ -16,6 +16,12 @@ To skip the integration tests (e.g. working without access to the GBIF dev netwo
 
 e.g. `mvn -Pdev -pl \!occurrence-integration-tests clean install`
 
+## Contributing
+* All changes must go to the **dev** branch for testing before merging to master.
+* PR are preferred for complex functionality. **Please target the dev branch**.
+* Simple changes can be committed without review.
+
+
 ## Testing
 
 Run unit and integration tests:
