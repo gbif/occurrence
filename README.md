@@ -1,17 +1,20 @@
 # GBIF Occurrence
 
-The GBIF Occurrence project is a component of the architecture responsible for everything to do with occurrence records.
+The GBIF Occurrence project is a component of the architecture responsible for search and download of GBIF-mediated occurrence records. For data processing please see the [pipelines](https://github.com/gbif/pipelines) project.
 
-Initial parsing and interpretation is handled by the [Pipelines](https://github.com/gbif/pipelines/) project.  This project handles occurrence
-web services, downloads, search and maps.
+This project handles occurrence web services, downloads, search and maps.
 
 This project has many submodules and each of those has a README which you should read for more detail.
 
 ## Building
 
-Jenkins builds this project without a profile, and the produced artifacts (JARs) are used together with the corresponding configuration found in the gbif-configuration project. To run locally most modules require the dev profile to be activated, which itself can be found in https://github.com/gbif/gbif-configuration/maven/settings.xml.
+Jenkins builds this project without a profile, and the produced artifacts (JARs) are used together with the corresponding configuration found in the gbif-configuration project.
 
-e.g. `mvn -Pdev clean install`
+This project contains integration tests which use the GBIF `dev` environment and requires configuration of the `appkeys` providing the tokens to interact with the services and to be on a GBIF network.
+
+To skip the integration tests (e.g. working without access to the GBIF dev network) please build using:
+
+e.g. `mvn -Pdev -pl \!occurrence-integration-tests clean install`
 
 ## Contributing
 * All changes must go to the **dev** branch for testing before merging to master.
