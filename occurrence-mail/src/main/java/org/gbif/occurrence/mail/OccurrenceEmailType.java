@@ -21,7 +21,7 @@ public enum OccurrenceEmailType implements EmailType {
 
   static {
     MESSAGE_SOURCE = new ResourceBundleMessageSource();
-    MESSAGE_SOURCE.setBasename("email/subjects/identity_email_subjects");
+    MESSAGE_SOURCE.setBasename("email/subjects/occurrence_email_subjects");
     MESSAGE_SOURCE.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
   }
 

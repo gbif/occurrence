@@ -11,17 +11,18 @@ import org.gbif.occurrence.query.TitleLookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
@@ -36,12 +37,20 @@ public class OccurrenceEmailManager {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceEmailManager.class);
 
+  private static final ResourceBundleMessageSource MESSAGE_SOURCE;
+
   // supported locales
   private static final List<String> SUPPORTED_LOCALES = Arrays.asList("en", "ru", "es");
 
   private final EmailTemplateProcessor emailTemplateProcessor;
   private final IdentityAccessService identityAccessService;
   private final TitleLookupService titleLookup;
+
+  static {
+    MESSAGE_SOURCE = new ResourceBundleMessageSource();
+    MESSAGE_SOURCE.setBasename("email/messages");
+    MESSAGE_SOURCE.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
+  }
 
   public OccurrenceEmailManager(
       @Qualifier("occurrenceEmailTemplateProcessor")
@@ -115,7 +124,6 @@ public class OccurrenceEmailManager {
    * Gets a human readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download, Locale locale) {
-    ResourceBundle bundle = ResourceBundle.getBundle("email/messages", locale);
     try {
       String query =
           new HumanPredicateBuilder(titleLookup)
@@ -123,17 +131,17 @@ public class OccurrenceEmailManager {
 
       if ("{ }".equals(query)) {
         LOG.debug("Empty query was used");
-        query = bundle.getString("download.query.all");
+        query = MESSAGE_SOURCE.getMessage("download.query.all", null, locale);
       }
 
       if (query.length() > 1000) {
         LOG.debug("Query is too long, abbreviate");
-        query = query.substring(0, 1000) + bundle.getString("download.query.abbreviated");
+        query = query.substring(0, 1000) + MESSAGE_SOURCE.getMessage("download.query.abbreviated", null, locale);
       }
       return query;
     } catch (Exception e) {
       LOG.warn("Exception while getting human query: {}", e.getMessage());
-      return bundle.getString("download.query.complex");
+      return MESSAGE_SOURCE.getMessage("download.query.complex", null, locale);
     }
   }
 
