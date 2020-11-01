@@ -1,0 +1,11 @@
+{
+  "creator": "download.gbif.org",
+  "format": "DWCA",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "predicate": {
+    "type":"equals",
+    "key":"OCCURRENCE_STATUS",
+    "value":"present"
+  }
+}

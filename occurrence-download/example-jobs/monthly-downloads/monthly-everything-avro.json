@@ -1,0 +1,6 @@
+{
+  "creator": "download.gbif.org",
+  "format": "SIMPLE_AVRO",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"]
+}
