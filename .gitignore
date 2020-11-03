@@ -7,6 +7,9 @@ logs
 pom.xml.releaseBackup
 **/application.properties
 
+**/application.properties
+**/conf
+
 # Package Files #
 *.jar
 *.war
