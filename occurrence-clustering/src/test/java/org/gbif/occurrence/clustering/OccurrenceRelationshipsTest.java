@@ -10,6 +10,7 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -245,6 +246,7 @@ public class OccurrenceRelationshipsTest {
    * Test to simply verify that a Spark dataset row operates the same as the isolated Row tests.
    */
   @Test
+  @Ignore("https://github.com/gbif/occurrence/issues/207")
   public void testWithSpark() {
     SparkConf conf = new SparkConf()
       .setMaster("local[*]")
