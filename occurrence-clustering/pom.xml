@@ -113,6 +113,16 @@
       <artifactId>hadoop-client</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <!-- These needed for embedded Spark tests https://stackoverflow.com/a/50114083 -->
+    <dependency>
+      <groupId>org.codehaus.janino</groupId>
+      <artifactId>commons-compiler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.janino</groupId>
+      <artifactId>janino</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

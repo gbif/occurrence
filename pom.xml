@@ -116,6 +116,10 @@
     <servlet-api.version>2.5</servlet-api.version>
     <metainf-services.version>1.5</metainf-services.version>
 
+    <!-- These must be compatible with Spark version (see https://stackoverflow.com/a/50114083) -->
+    <janino.version>3.0.8</janino.version>
+    <commons-compiler.version>3.0.8</commons-compiler.version>
+
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <mockito-junit-jupiter.version>3.1.0</mockito-junit-jupiter.version>
 
@@ -1268,6 +1272,18 @@
         <groupId>org.gbif.pipelines</groupId>
         <artifactId>ingest-gbif-fragmenter</artifactId>
         <version>${pipelines.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.janino</groupId>
+        <artifactId>commons-compiler</artifactId>
+        <version>${commons-compiler.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.janino</groupId>
+        <artifactId>janino</artifactId>
+        <version>${janino.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
