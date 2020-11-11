@@ -1,8 +1,9 @@
 package org.gbif.occurrence.mail;
 
-import java.text.MessageFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.ResourceBundle;
+
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
  * Type of emails related to occurrence
@@ -13,8 +14,16 @@ public enum OccurrenceEmailType implements EmailType {
 
   FAILED_DOWNLOAD("failedDownload", "failed_download.ftl");
 
+  private static final ResourceBundleMessageSource MESSAGE_SOURCE;
+
   private final String key;
   private final String template;
+
+  static {
+    MESSAGE_SOURCE = new ResourceBundleMessageSource();
+    MESSAGE_SOURCE.setBasename("email/subjects/occurrence_email_subjects");
+    MESSAGE_SOURCE.setDefaultEncoding(StandardCharsets.UTF_8.displayName());
+  }
 
   OccurrenceEmailType(String key, String template) {
     this.key = key;
@@ -32,13 +41,7 @@ public enum OccurrenceEmailType implements EmailType {
   }
 
   @Override
-  public String getSubject(Locale locale, EmailType emailType, String... subjectParams) {
-    ResourceBundle bundle = ResourceBundle.getBundle(OCCURRENCE_EMAIL_SUBJECTS_PATH, locale);
-    String rawSubjectString = bundle.getString(emailType.getKey());
-    if (subjectParams.length == 0) {
-      return rawSubjectString;
-    } else {
-      return MessageFormat.format(rawSubjectString, (Object[]) subjectParams);
-    }
+  public String getSubject(Locale locale, String... subjectParams) {
+    return MESSAGE_SOURCE.getMessage(this.getKey(), subjectParams, locale);
   }
 }

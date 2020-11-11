@@ -37,5 +37,5 @@ public interface EmailType {
   /**
    * Returns email subject.
    */
-  String getSubject(Locale locale, EmailType emailType, String... subjectParams);
+  String getSubject(Locale locale, String... subjectParams);
 }

@@ -11,12 +11,7 @@
 
   <!--
     Use the Hive thrift metastore.
-    TODO: this will change when we move to the Hive2 server and CDH5
   -->
-  <property>
-    <name>hive.metastore.local</name>
-    <value>false</value>
-  </property>
   <property>
     <name>hive.metastore.uris</name>
     <value>${hive.metastore.uris}</value>

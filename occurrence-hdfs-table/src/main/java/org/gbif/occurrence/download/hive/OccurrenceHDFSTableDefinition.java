@@ -95,6 +95,7 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.collectionKey, HiveColumns.columnFor(GbifInternalTerm.collectionKey))
                                                       .put(GbifInternalTerm.projectId, HiveColumns.columnFor(GbifInternalTerm.projectId))
                                                       .put(GbifInternalTerm.programmeAcronym, HiveColumns.columnFor(GbifInternalTerm.programmeAcronym))
+                                                      .put(GbifInternalTerm.hostingOrganizationKey, HiveColumns.columnFor(GbifInternalTerm.hostingOrganizationKey))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {

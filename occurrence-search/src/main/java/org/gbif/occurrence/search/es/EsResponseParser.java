@@ -270,7 +270,11 @@ public class EsResponseParser {
 
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
-    // TODO: add verbatim extensions
+
+    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    if (verbatimData.containsKey("extensions" )) {
+      occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
+    }
 
     setIdentifier(hit, occ);
 
@@ -308,7 +312,7 @@ public class EsResponseParser {
             });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
     getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf).ifPresent(occ::setEstablishmentMeans);
-    getValue(hit, LIFE_STAGE, LifeStage::valueOf).ifPresent(occ::setLifeStage);
+    getStringValue(hit, LIFE_STAGE).ifPresent(occ::setLifeStage);
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
     getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
@@ -451,6 +455,7 @@ public class EsResponseParser {
         .ifPresent(occ::setPublishingOrgKey);
     getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
+    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
 
     getListValue(hit, NETWORK_KEY)
         .ifPresent(

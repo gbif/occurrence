@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.147-SNAPSHOT</version>
+    <version>0.149-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -61,6 +61,10 @@
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
+        <filtering>false</filtering>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources-filtered</directory>
         <filtering>true</filtering>
       </testResource>
     </testResources>
@@ -155,6 +159,7 @@
             <descriptor>src/main/assembly/iucn-download.xml</descriptor>
             <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-with-verbatim-avro-download.xml</descriptor>
+            <descriptor>src/main/assembly/bionomia-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>
         </configuration>
