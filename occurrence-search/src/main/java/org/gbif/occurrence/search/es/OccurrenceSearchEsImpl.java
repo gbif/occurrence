@@ -81,7 +81,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     searchRequest.source(searchSourceBuilder);
     try {
       SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
-      if (hits != null && hits.totalHits > 0) {
+      if (hits != null && hits.getTotalHits().value > 0) {
         return mapper.apply(hits.getAt(0));
       }
       return null;

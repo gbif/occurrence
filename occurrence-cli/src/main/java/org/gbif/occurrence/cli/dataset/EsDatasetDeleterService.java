@@ -110,7 +110,6 @@ public class EsDatasetDeleterService extends AbstractIdleService {
                     requestConfigBuilder
                         .setConnectTimeout(config.esConnectTimeout)
                         .setSocketTimeout(config.esSocketTimeout))
-            .setMaxRetryTimeoutMillis(config.esSocketTimeout)
             .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
             .setFailureListener(sniffOnFailureListener);
 

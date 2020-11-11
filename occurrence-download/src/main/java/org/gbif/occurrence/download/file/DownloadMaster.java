@@ -143,13 +143,14 @@ public class DownloadMaster extends UntypedActor {
   private Long getSearchCount(String query) {
     try {
       SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
+      searchSourceBuilder.trackTotalHits(true);
       if (!Strings.isNullOrEmpty(query)) {
         searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
       } else {
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
       }
       SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
-      return searchResponse.getHits().getTotalHits();
+      return searchResponse.getHits().getTotalHits().value;
     } catch (Exception e) {
       LOG.error("Error executing query", e);
       return 0L;

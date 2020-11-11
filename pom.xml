@@ -100,7 +100,7 @@
 
     <!-- Version for ES client -->
     <httpclient.version>4.5.2</httpclient.version>
-    <httpcore.version>4.4.5</httpcore.version>
+    <httpcore.version>4.4.13</httpcore.version>
 
     <javax-validation-api.version>1.0.0.GA</javax-validation-api.version>
     <jackson.version>2.10.3</jackson.version>
@@ -180,8 +180,8 @@
     <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
-    <elasticsearch.version>6.5.4</elasticsearch.version>
-    <testcontainers-elasticsearch.version>1.15.0-rc2</testcontainers-elasticsearch.version>
+    <elasticsearch.version>7.9.1</elasticsearch.version>
+    <testcontainers-elasticsearch.version>1.14.3</testcontainers-elasticsearch.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -1260,12 +1260,6 @@
         <groupId>org.mybatis.spring.boot</groupId>
         <artifactId>mybatis-spring-boot-starter-test</artifactId>
         <version>${mybatis-spring-boot-starter-test.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>ingest-gbif-java</artifactId>
-        <version>${pipelines.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

@@ -171,7 +171,7 @@ public class DownloadPrepareAction implements Closeable {
         searchSourceBuilder.query(QueryBuilders.wrapperQuery(esQuery));
       }
       SearchResponse response = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
-      long count = response.getHits().getTotalHits();
+      long count = response.getHits().getTotalHits().value;
       LOG.info("Download record count {}", count);
       return count;
     } catch (Exception e) {

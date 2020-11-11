@@ -135,7 +135,6 @@ public class OccurrenceWsItConfiguration {
                                        @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
     return EsManageServer.builder()
       .indexName("occurrence")
-      .type("record")
       .keyField("gbifId")
       .settingsFile(settings)
       .mappingFile(mappings).build();
