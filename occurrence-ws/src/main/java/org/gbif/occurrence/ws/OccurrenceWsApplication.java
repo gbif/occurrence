@@ -43,7 +43,6 @@ import org.springframework.context.annotation.FilterType;
           UserSuretyDelegateImpl.class})
     }
 )
-@EnableFeignClients
 public class OccurrenceWsApplication {
   public static void main(String[] args) {
     SpringApplication.run(OccurrenceWsApplication.class, args);
