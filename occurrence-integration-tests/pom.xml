@@ -118,10 +118,6 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.pipelines</groupId>
-      <artifactId>ingest-gbif-java</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
       <artifactId>ingest-gbif-fragmenter</artifactId>
     </dependency>
 

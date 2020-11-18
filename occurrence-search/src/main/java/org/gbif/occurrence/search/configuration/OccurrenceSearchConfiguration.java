@@ -3,7 +3,7 @@ package org.gbif.occurrence.search.configuration;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.occurrence.search.clb.NameUsageMatchingServiceClient;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -57,7 +57,6 @@ public class OccurrenceSearchConfiguration  {
                     requestConfigBuilder
                         .setConnectTimeout(esConfig.getConnectTimeout())
                         .setSocketTimeout(esConfig.getSocketTimeout()))
-            .setMaxRetryTimeoutMillis(esConfig.getSocketTimeout())
             .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
 
@@ -90,7 +89,6 @@ public class OccurrenceSearchConfiguration  {
 
   @Bean
   public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("${api.url}") String apiUrl) {
-    ClientFactory clientFactory = new ClientFactory(apiUrl);
-    return clientFactory.newInstance(NameUsageMatchingServiceClient.class);
+    return new ClientBuilder().withUrl(apiUrl).build(NameUsageMatchingServiceClient.class);
   }
 }

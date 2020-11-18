@@ -6,7 +6,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -49,7 +48,6 @@ public class OccurrenceFeaturesTest {
    * Test to ensure that JSON is generated correctly for nested JSON.
    */
   @Test
-  @Ignore("https://github.com/gbif/occurrence/issues/207")
   public void testAsJsonWithMultimedia() throws IOException {
     Dataset<Row> data = sqlContext.read().parquet("src/test/resources/sample.parquet");
     Row first = data.first();

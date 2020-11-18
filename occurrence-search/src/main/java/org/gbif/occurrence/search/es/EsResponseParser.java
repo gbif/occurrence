@@ -71,7 +71,7 @@ public class EsResponseParser {
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
-    response.setCount(esResponse.getHits().getTotalHits());
+    response.setCount(esResponse.getHits().getTotalHits().value);
     parseHits(esResponse, true).ifPresent(response::setResults);
     parseFacets(esResponse, request).ifPresent(response::setFacets);
 
@@ -88,7 +88,7 @@ public class EsResponseParser {
       org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
-    response.setCount(esResponse.getHits().getTotalHits());
+    response.setCount(esResponse.getHits().getTotalHits().value);
     parseHits(esResponse, false).ifPresent(response::setResults);
     return response;
   }
