@@ -166,7 +166,7 @@ public class DownloadPrepareAction implements Closeable {
    */
   private long getRecordCount(String esQuery) {
     try {
-      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
+      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0).trackTotalHits(true);
       if(!Strings.isNullOrEmpty(esQuery)) {
         searchSourceBuilder.query(QueryBuilders.wrapperQuery(esQuery));
       }
