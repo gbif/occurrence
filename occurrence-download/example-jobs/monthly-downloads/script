@@ -1,14 +1,24 @@
 #!/bin/bash
+#
+# $GBIF_AUTH must be set to the download.gbif.org user.
+#
 
 cd $(dirname $(realpath $0))
 
-curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-csv.json 'https://api.gbif.org/v1/occurrence/download/request'
-sleep 1m
-curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-dwc.json 'https://api.gbif.org/v1/occurrence/download/request'
-sleep 1m
-curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-everything-avro.json 'https://api.gbif.org/v1/occurrence/download/request'
-sleep 5h
+function waitDl() {
+  while [[ $(curl -Ss --user $GBIF_AUTH 'https://api.gbif.org/v1/occurrence/download/user/download.gbif.org?status=PREPARING&status=RUNNING' | jq -r .count) -ge $1 ]]; do
+    sleep 1m
+  done
+}
 
-curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-georeferenced-csv.json 'https://api.gbif.org/v1/occurrence/download/request'
-sleep 1m
-curl -Ssi --user download.gbif.org:IW5jFvtI4uTN -H "Content-Type: application/json" -X POST -d @monthly-georeferenced-dwc.json 'https://api.gbif.org/v1/occurrence/download/request'
+for i in monthly-georeferenced-csv.json monthly-everything-csv.json monthly-everything-dwc.json monthly-georeferenced-dwc.json monthly-present-csv.json monthly-present-dwc.json monthly-ebird-csv.json monthly-everything-avro.json; do
+  echo "Starting download '$i'"
+  curl -Ssi --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$i 'https://api.gbif.org/v1/occurrence/download/request'
+  echo
+  echo
+  sleep 1m
+  waitDl 3
+done
+
+echo
+echo "Monthly downloads completed.  Now run the script to backup the monthly downloads to C4, then to AWS, set the replication factors and create the Map of Life download."

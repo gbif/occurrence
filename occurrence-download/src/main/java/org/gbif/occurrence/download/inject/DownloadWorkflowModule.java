@@ -216,6 +216,7 @@ public class DownloadWorkflowModule  {
         case IUCN:
         case MAP_OF_LIFE:
         case BIONOMIA:
+        default:
           return new NotSupportedDownloadAggregator();
       }
     }

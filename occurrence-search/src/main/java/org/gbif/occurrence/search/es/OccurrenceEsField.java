@@ -16,6 +16,7 @@ public enum OccurrenceEsField {
   DATASET_KEY("datasetKey", GbifTerm.datasetKey),
   PUBLISHING_COUNTRY("publishingCountry", GbifTerm.publishingCountry),
   PUBLISHING_ORGANIZATION_KEY("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey),
+  HOSTING_ORGANIZATION_KEY("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey),
   INSTALLATION_KEY("installationKey", GbifInternalTerm.installationKey),
   NETWORK_KEY("networkKeys", GbifInternalTerm.networkKey),
   PROTOCOL("protocol", GbifTerm.protocol),

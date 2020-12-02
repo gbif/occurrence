@@ -48,7 +48,7 @@
     </java>
 
     <ok to="persist_species_meta"/>
-    <error to="kill"/>
+    <error to="drop_tables_failure"/>
   </action>
 
   <action name="persist_species_meta">

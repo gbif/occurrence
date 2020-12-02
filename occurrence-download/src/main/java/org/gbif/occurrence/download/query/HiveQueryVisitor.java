@@ -179,6 +179,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.PROTOCOL, GbifTerm.protocol)
       .put(OccurrenceSearchParameter.LICENSE, DcTerm.license)
       .put(OccurrenceSearchParameter.PUBLISHING_ORG, GbifInternalTerm.publishingOrgKey)
+      .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, GbifInternalTerm.hostingOrganizationKey)
       .put(OccurrenceSearchParameter.CRAWL_ID, GbifInternalTerm.crawlId)
       .put(OccurrenceSearchParameter.INSTALLATION_KEY, GbifInternalTerm.installationKey)
       .put(OccurrenceSearchParameter.NETWORK_KEY, GbifInternalTerm.networkKey)
@@ -420,9 +421,10 @@ public class HiveQueryVisitor {
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
     if (isHiveArray(predicate.getParameter())) {
-      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), false)));
+      builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), true)));
     } else {
-      builder.append(toHiveField(predicate.getParameter(), false));
+      // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
+      builder.append(toHiveField(predicate.getParameter(), true));
       builder.append(IS_NOT_NULL_OPERATOR);
     }
   }
@@ -598,7 +600,6 @@ public class HiveQueryVisitor {
       // Hardcoded GADM_LEVEL_0_GID since the type of all these parameters is the same.
       // Using .toUpperCase() is safe, GIDs must be ASCII anyway.
       builder.append(toHiveValue(OccurrenceSearchParameter.GADM_LEVEL_0_GID, gadmGid.toUpperCase(), true));
-      builder.append(gadmGid);
       first = false;
     }
     builder.append(')');

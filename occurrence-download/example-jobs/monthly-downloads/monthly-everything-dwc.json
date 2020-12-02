@@ -1,0 +1,6 @@
+{
+  "creator": "download.gbif.org",
+  "format": "DWCA",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"]
+}

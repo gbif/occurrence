@@ -49,7 +49,7 @@
     </java>
 
     <ok to="persist_usages"/>
-    <error to="kill"/>
+    <error to="drop_tables_failure"/>
   </action>
 
   <action name="persist_usages">

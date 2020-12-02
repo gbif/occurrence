@@ -451,6 +451,7 @@ public class EsResponseParser {
         .ifPresent(occ::setPublishingOrgKey);
     getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
+    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
 
     getListValue(hit, NETWORK_KEY)
         .ifPresent(

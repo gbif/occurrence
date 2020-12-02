@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.146-SNAPSHOT</version>
+  <version>0.149-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -139,10 +139,10 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.33</download-query-tools.version>
-    <dwc-api.version>1.28</dwc-api.version>
+    <download-query-tools.version>1.34</download-query-tools.version>
+    <dwc-api.version>1.29</dwc-api.version>
     <dwca-io.version>2.8</dwca-io.version>
-    <gbif-api.version>0.119</gbif-api.version>
+    <gbif-api.version>0.123</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
@@ -151,12 +151,12 @@
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>0.46</gbif-postal-service.version>
-    <gbif-registry.version>3.32</gbif-registry.version>
+    <gbif-registry.version>3.34</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
-    <pipelines.version>2.6.7</pipelines.version>
-    <gbif.kvs.version>1.8</gbif.kvs.version>
+    <pipelines.version>2.6.10</pipelines.version>
+    <gbif.kvs.version>1.11</gbif.kvs.version>
     <gbif-cli.version>0.14</gbif-cli.version>
 
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
