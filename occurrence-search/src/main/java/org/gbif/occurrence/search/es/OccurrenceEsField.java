@@ -150,7 +150,7 @@ public enum OccurrenceEsField {
   FACTS("measurementOrFactItems", null),
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
-  IS_CLUSTERED("isClustered", GbifInternalTerm.isClustered),
+  IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
   EXTENSIONS("extensions", GbifInternalTerm.extensions);
 
 

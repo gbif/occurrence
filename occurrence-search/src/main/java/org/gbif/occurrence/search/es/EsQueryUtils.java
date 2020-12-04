@@ -248,7 +248,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
           .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE)
-          .put(OccurrenceSearchParameter.IS_CLUSTERED, OccurrenceEsField.IS_CLUSTERED)
+          .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
           .put(OccurrenceSearchParameter.HAS_EXTENSION, OccurrenceEsField.EXTENSIONS)
           .build();
 

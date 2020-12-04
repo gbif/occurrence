@@ -201,7 +201,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, GbifTerm.identifiedByID)
       .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, DwcTerm.occurrenceStatus)
       .put(OccurrenceSearchParameter.LIFE_STAGE, DwcTerm.lifeStage)
-      .put(OccurrenceSearchParameter.IS_CLUSTERED, GbifInternalTerm.isClustered)
+      .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
       .put(OccurrenceSearchParameter.HAS_EXTENSION, GbifInternalTerm.extensions)
       .build();
 

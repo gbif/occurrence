@@ -346,7 +346,7 @@ public class EsResponseParser {
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
 
     getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
-    getBooleanValue(hit, IS_CLUSTERED).ifPresent(occ::setIsClustered);
+    getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(occ::setIsInCluster);
   }
 
   private static void parseAgentIds(SearchHit hit, Occurrence occ) {
