@@ -149,7 +149,9 @@ public enum OccurrenceEsField {
   ESTABLISHMENT_MEANS("establishmentMeans", DwcTerm.establishmentMeans),
   FACTS("measurementOrFactItems", null),
   GBIF_ID("gbifId", GbifTerm.gbifID),
-  FULL_TEXT("all", null);
+  FULL_TEXT("all", null),
+  IS_CLUSTERED("isClustered", GbifInternalTerm.isClustered),
+  EXTENSIONS("extensions", GbifInternalTerm.extensions);
 
 
   private final String fieldName;

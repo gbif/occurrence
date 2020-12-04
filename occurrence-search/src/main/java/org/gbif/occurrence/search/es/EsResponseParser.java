@@ -346,6 +346,7 @@ public class EsResponseParser {
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
 
     getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
+    getBooleanValue(hit, IS_CLUSTERED).ifPresent(occ::setIsClustered);
   }
 
   private static void parseAgentIds(SearchHit hit, Occurrence occ) {
@@ -516,6 +517,10 @@ public class EsResponseParser {
 
   private static Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, STRING_TO_DATE);
+  }
+
+  private static Optional<Boolean> getBooleanValue(SearchHit hit, OccurrenceEsField esField) {
+    return getValue(hit, esField, Boolean::valueOf);
   }
 
   private static Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
