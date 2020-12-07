@@ -76,7 +76,8 @@ public class HiveColumnsUtils {
       || GbifTerm.issue == term
       || GbifInternalTerm.networkKey == term
       || GbifTerm.identifiedByID == term
-      || GbifTerm.recordedByID ==  term;
+      || GbifTerm.recordedByID ==  term
+      || GbifInternalTerm.extensions == term;
   }
 
   /**

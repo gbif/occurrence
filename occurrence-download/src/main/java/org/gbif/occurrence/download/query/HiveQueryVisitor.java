@@ -337,6 +337,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.networkKey), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.HAS_EXTENSION == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.extensions), predicate.getValue()));
     } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
