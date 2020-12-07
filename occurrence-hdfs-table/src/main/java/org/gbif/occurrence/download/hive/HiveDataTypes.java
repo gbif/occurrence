@@ -87,7 +87,8 @@ public final class HiveDataTypes {
   private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(
     GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues,
-    GbifTerm.repatriated);
+    GbifTerm.repatriated,
+    GbifInternalTerm.isInCluster);
 
   static {
     // build the term type index of Term -> Type
