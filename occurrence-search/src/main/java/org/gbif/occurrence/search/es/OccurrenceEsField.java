@@ -151,7 +151,7 @@ public enum OccurrenceEsField {
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
   IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
-  EXTENSIONS("extensions", GbifInternalTerm.extensions);
+  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension);
 
 
   private final String fieldName;
