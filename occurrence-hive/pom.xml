@@ -22,6 +22,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
@@ -124,6 +125,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Avoid NoSuchMethodError io.github.resilience4j.retry.RetryConfig$Builder.intervalFunction -->
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-retry</artifactId>
+    </dependency>
+
 
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
