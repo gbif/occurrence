@@ -249,7 +249,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
           .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE)
           .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
-          .put(OccurrenceSearchParameter.HAS_EXTENSION, OccurrenceEsField.EXTENSIONS)
+          .put(OccurrenceSearchParameter.DWC_EXTENSION, OccurrenceEsField.EXTENSIONS)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
