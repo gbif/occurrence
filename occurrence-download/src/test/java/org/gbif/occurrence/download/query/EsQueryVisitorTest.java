@@ -36,16 +36,9 @@ public class EsQueryVisitorTest {
       "  \"bool\" : {\n" +
       "    \"filter\" : [\n" +
       "      {\n" +
-      "        \"match\" : {\n" +
+      "        \"term\" : {\n" +
       "          \"catalogNumber.keyword\" : {\n" +
-      "            \"query\" : \"value\",\n" +
-      "            \"operator\" : \"OR\",\n" +
-      "            \"prefix_length\" : 0,\n" +
-      "            \"max_expansions\" : 50,\n" +
-      "            \"fuzzy_transpositions\" : true,\n" +
-      "            \"lenient\" : false,\n" +
-      "            \"zero_terms_query\" : \"NONE\",\n" +
-      "            \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "            \"value\" : \"value\",\n" +
       "            \"boost\" : 1.0\n" +
       "          }\n" +
       "        }\n" +
@@ -66,16 +59,9 @@ public class EsQueryVisitorTest {
                            "  \"bool\" : {\n" +
                            "    \"filter\" : [\n" +
                            "      {\n" +
-                           "        \"match\" : {\n" +
+                           "        \"term\" : {\n" +
                            "          \"catalogNumber.verbatim\" : {\n" +
-                           "            \"query\" : \"value\",\n" +
-                           "            \"operator\" : \"OR\",\n" +
-                           "            \"prefix_length\" : 0,\n" +
-                           "            \"max_expansions\" : 50,\n" +
-                           "            \"fuzzy_transpositions\" : true,\n" +
-                           "            \"lenient\" : false,\n" +
-                           "            \"zero_terms_query\" : \"NONE\",\n" +
-                           "            \"auto_generate_synonyms_phrase_query\" : true,\n" +
+                           "            \"value\" : \"value\",\n" +
                            "            \"boost\" : 1.0\n" +
                            "          }\n" +
                            "        }\n" +
@@ -206,16 +192,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"catalogNumber.keyword\" : {\n" +
-      "                  \"query\" : \"value_1\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_1\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -229,16 +208,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"institutionCode.keyword\" : {\n" +
-      "                  \"query\" : \"value_2\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_2\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -290,16 +262,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"institutionCode.keyword\" : {\n" +
-      "                  \"query\" : \"value_2\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_2\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -404,16 +369,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"catalogNumber.keyword\" : {\n" +
-      "                  \"query\" : \"value_1\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_1\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -445,16 +403,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"institutionCode.keyword\" : {\n" +
-      "                  \"query\" : \"value_2\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_2\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -483,16 +434,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"catalogNumber.keyword\" : {\n" +
-      "                  \"query\" : \"value\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -529,16 +473,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"query\" : \"value_1\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_1\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -552,16 +489,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"institutionCode.keyword\" : {\n" +
-      "                        \"query\" : \"value_2\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_2\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -644,16 +574,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"catalogNumber.keyword\" : {\n" +
-      "                  \"query\" : \"value_1\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_1\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -683,16 +606,9 @@ public class EsQueryVisitorTest {
       "        \"bool\" : {\n" +
       "          \"filter\" : [\n" +
       "            {\n" +
-      "              \"match\" : {\n" +
+      "              \"term\" : {\n" +
       "                \"institutionCode.keyword\" : {\n" +
-      "                  \"query\" : \"value_2\",\n" +
-      "                  \"operator\" : \"OR\",\n" +
-      "                  \"prefix_length\" : 0,\n" +
-      "                  \"max_expansions\" : 50,\n" +
-      "                  \"fuzzy_transpositions\" : true,\n" +
-      "                  \"lenient\" : false,\n" +
-      "                  \"zero_terms_query\" : \"NONE\",\n" +
-      "                  \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                  \"value\" : \"value_2\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -758,16 +674,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"query\" : \"value_1\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_1\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -784,16 +693,9 @@ public class EsQueryVisitorTest {
       "                    \"bool\" : {\n" +
       "                      \"filter\" : [\n" +
       "                        {\n" +
-      "                          \"match\" : {\n" +
+      "                          \"term\" : {\n" +
       "                            \"catalogNumber.keyword\" : {\n" +
-      "                              \"query\" : \"value_1\",\n" +
-      "                              \"operator\" : \"OR\",\n" +
-      "                              \"prefix_length\" : 0,\n" +
-      "                              \"max_expansions\" : 50,\n" +
-      "                              \"fuzzy_transpositions\" : true,\n" +
-      "                              \"lenient\" : false,\n" +
-      "                              \"zero_terms_query\" : \"NONE\",\n" +
-      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"value\" : \"value_1\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
       "                          }\n" +
@@ -823,16 +725,9 @@ public class EsQueryVisitorTest {
       "                    \"bool\" : {\n" +
       "                      \"filter\" : [\n" +
       "                        {\n" +
-      "                          \"match\" : {\n" +
+      "                          \"term\" : {\n" +
       "                            \"institutionCode.keyword\" : {\n" +
-      "                              \"query\" : \"value_2\",\n" +
-      "                              \"operator\" : \"OR\",\n" +
-      "                              \"prefix_length\" : 0,\n" +
-      "                              \"max_expansions\" : 50,\n" +
-      "                              \"fuzzy_transpositions\" : true,\n" +
-      "                              \"lenient\" : false,\n" +
-      "                              \"zero_terms_query\" : \"NONE\",\n" +
-      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"value\" : \"value_2\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
       "                          }\n" +
@@ -881,16 +776,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"query\" : \"value_1\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_1\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -904,16 +792,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"institutionCode.keyword\" : {\n" +
-      "                        \"query\" : \"value_2\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_2\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -938,16 +819,9 @@ public class EsQueryVisitorTest {
       "                    \"bool\" : {\n" +
       "                      \"filter\" : [\n" +
       "                        {\n" +
-      "                          \"match\" : {\n" +
+      "                          \"term\" : {\n" +
       "                            \"catalogNumber.keyword\" : {\n" +
-      "                              \"query\" : \"value_1\",\n" +
-      "                              \"operator\" : \"OR\",\n" +
-      "                              \"prefix_length\" : 0,\n" +
-      "                              \"max_expansions\" : 50,\n" +
-      "                              \"fuzzy_transpositions\" : true,\n" +
-      "                              \"lenient\" : false,\n" +
-      "                              \"zero_terms_query\" : \"NONE\",\n" +
-      "                              \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                              \"value\" : \"value_1\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
       "                          }\n" +
@@ -1015,16 +889,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"query\" : \"value_1\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_1\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -1038,16 +905,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"institutionCode.keyword\" : {\n" +
-      "                        \"query\" : \"value_2\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_2\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
@@ -1113,16 +973,9 @@ public class EsQueryVisitorTest {
       "              \"bool\" : {\n" +
       "                \"filter\" : [\n" +
       "                  {\n" +
-      "                    \"match\" : {\n" +
+      "                    \"term\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"query\" : \"value_1\",\n" +
-      "                        \"operator\" : \"OR\",\n" +
-      "                        \"prefix_length\" : 0,\n" +
-      "                        \"max_expansions\" : 50,\n" +
-      "                        \"fuzzy_transpositions\" : true,\n" +
-      "                        \"lenient\" : false,\n" +
-      "                        \"zero_terms_query\" : \"NONE\",\n" +
-      "                        \"auto_generate_synonyms_phrase_query\" : true,\n" +
+      "                        \"value\" : \"value_1\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +
