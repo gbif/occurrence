@@ -1,0 +1,25 @@
+{
+  "creator":"admin",
+  "notification_addresses": ["gbif@mailinator.com"],
+  "send_notification":"true",
+  "format": "DWCA",
+  "predicate":{
+    "type":"and",
+    "predicates":[
+      {
+        "type":"equals",
+        "key":"IS_IN_CLUSTER",
+        "value":"FALSE"
+      },
+      {
+        "type":"in",
+        "key": "DWCA_EXTENSION",
+        "values":
+        [
+          "http://rs.tdwg.org/ac/terms/Multimedia",
+          "http://rs.tdwg.org/dwc/terms/ResourceRelationship"
+        ]
+      }
+    ]
+  }
+}
