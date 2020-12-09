@@ -192,7 +192,7 @@ public class EsQueryVisitor {
    */
   public void visit(EqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
-    queryBuilder.filter().add(QueryBuilders.matchQuery(getExactMatchOrVerbatimField(predicate), parseParamValue(predicate.getValue(), parameter)));
+    queryBuilder.filter().add(QueryBuilders.termQuery(getExactMatchOrVerbatimField(predicate), parseParamValue(predicate.getValue(), parameter)));
   }
 
   /**

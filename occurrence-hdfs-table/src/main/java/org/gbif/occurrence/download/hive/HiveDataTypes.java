@@ -40,7 +40,7 @@ public final class HiveDataTypes {
       GbifInternalTerm.networkKey,
       GbifTerm.recordedByID,
       GbifTerm.identifiedByID,
-      GbifInternalTerm.extensions
+      GbifInternalTerm.dwcaExtension
     );
 
   // dates are all stored as BigInt

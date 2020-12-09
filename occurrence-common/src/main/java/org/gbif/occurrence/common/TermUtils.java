@@ -195,7 +195,7 @@ public class TermUtils {
                                                                           GbifInternalTerm.networkKey,
                                                                           GbifTerm.identifiedByID,
                                                                           GbifTerm.recordedByID,
-                                                                          GbifInternalTerm.extensions);
+                                                                          GbifInternalTerm.dwcaExtension);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,

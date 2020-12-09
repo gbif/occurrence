@@ -58,9 +58,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -202,7 +199,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, DwcTerm.occurrenceStatus)
       .put(OccurrenceSearchParameter.LIFE_STAGE, DwcTerm.lifeStage)
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
-      .put(OccurrenceSearchParameter.HAS_EXTENSION, GbifInternalTerm.extensions)
+      .put(OccurrenceSearchParameter.DWCA_EXTENSION, GbifInternalTerm.dwcaExtension)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
@@ -337,8 +334,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
     } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.networkKey), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.HAS_EXTENSION == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.extensions), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.DWCA_EXTENSION == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.dwcaExtension), predicate.getValue()));
     } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
