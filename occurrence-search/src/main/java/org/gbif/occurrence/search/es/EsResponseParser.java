@@ -5,27 +5,17 @@ import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.AgentIdentifier;
-import org.gbif.api.model.occurrence.Gadm;
-import org.gbif.api.model.occurrence.GadmFeature;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.OccurrenceRelation;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.*;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -33,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.Maps;
-
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -201,23 +190,16 @@ public class EsResponseParser {
     return vOcc;
   }
 
-  private static Map<Extension, List<Map<Term, String>>> parseExtensionsMap(Map<String, Object> extensions) {
+  private static Map<String, List<Map<Term, String>>> parseExtensionsMap(Map<String, Object> extensions) {
     // parse extensions
-    Map<Extension, List<Map<Term, String>>> extTerms = Maps.newHashMap();
+    Map<String, List<Map<Term, String>>> extTerms = Maps.newHashMap();
     for (String rowType : extensions.keySet()) {
-      // first pare into a term cause the extension lookup by rowType is very strict
-      Term rowTypeTerm = TERM_FACTORY.findTerm(rowType);
-      Extension ext = Extension.fromRowType(rowTypeTerm.qualifiedName());
-      if (ext == null) {
-        LOG.debug("Ignore unknown extension {}", rowType);
-      } else {
-        List<Map<Term, String>> records = new ArrayList<>();
-        // transform records to term based map
-        for (Map<String, Object> rawRecord : (List<Map<String, Object>>) extensions.get(rowType)) {
-          records.add(parseVerbatimTermMap(rawRecord));
-        }
-        extTerms.put(ext, records);
+      List<Map<Term, String>> records = new ArrayList<>();
+      // transform records to term based map
+      for (Map<String, Object> rawRecord : (List<Map<String, Object>>) extensions.get(rowType)) {
+        records.add(parseVerbatimTermMap(rawRecord));
       }
+      extTerms.put(rowType, records);
     }
     return extTerms;
   }
