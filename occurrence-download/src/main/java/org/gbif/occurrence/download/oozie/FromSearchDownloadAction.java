@@ -10,8 +10,6 @@ import java.util.Properties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import org.apache.curator.framework.CuratorFramework;
-import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,28 +65,24 @@ public class FromSearchDownloadAction {
       .downloadJobConfiguration(configuration)
       .build();
 
-    try (CuratorFramework curatorIndices = module.curatorFramework()) {
+    // Create an Akka system
+    ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
 
-      // Create an Akka system
-      ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
+    // create the master
+    ActorRef master = module.downloadMaster(system);
 
-      // create the master
-      ActorRef master = module.downloadMaster(system);
 
-      Mutex readMutex = module.provideReadLock(curatorIndices);
-      readMutex.acquire();
-      // start the calculation
-      master.tell(new DownloadMaster.Start());
-      while (!master.isTerminated()) {
-        try {
-          Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
-        } catch (InterruptedException ie) {
-          LOG.error("Thread interrupted", ie);
-        }
+    // start the calculation
+    master.tell(new DownloadMaster.Start());
+    while (!master.isTerminated()) {
+      try {
+        Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
+      } catch (InterruptedException ie) {
+        LOG.error("Thread interrupted", ie);
       }
-      system.shutdown();
-      readMutex.release();
     }
+    system.shutdown();
+
   }
 
 }
