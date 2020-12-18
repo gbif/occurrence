@@ -30,7 +30,6 @@ AS SELECT
   datasetKey,
   license,
   -- Interpreted terms
-  country,
   countryCode,
   toLocalISO8601(dateidentified) AS dateIdentified,
   toLocalISO8601(eventdate) AS eventDate,
@@ -44,6 +43,7 @@ AS SELECT
   v_dateIdentified,
   v_decimalLatitude,
   v_decimalLongitude,
+  v_country,
   v_eventDate,
   v_year,
   v_identifiedBy,
