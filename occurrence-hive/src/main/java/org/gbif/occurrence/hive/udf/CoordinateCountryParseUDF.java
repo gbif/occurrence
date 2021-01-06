@@ -33,9 +33,16 @@ import org.slf4j.LoggerFactory;
  * are BOTH dropped.
  * Note: This is used for the GBIF EU BON analysis.
  */
-@Description(name = "parseCoordinates", value = "_FUNC_(apiUrl, latitude, longitude, verbatim_country)")
+@Description(name = "parseCoordinates", value = "_FUNC_(apiUrl, cacheTable, cacheBuckets, cacheZk, latitude, longitude, verbatim_country)")
 public class CoordinateCountryParseUDF extends GenericUDF {
-  private static final int argLength = 4;
+  private static final int ARG_LENGTH = 7;
+  private static final int ARG_API = 0;
+  private static final int ARG_CACHE_TABLE = 1;
+  private static final int ARG_CACHE_BUCKETS = 2;
+  private static final int ARG_CACHE_ZK = 3;
+  private static final int ARG_LAT = 4;
+  private static final int ARG_LNG = 5;
+  private static final int ARG_COUNTRY = 6;
 
   private ObjectInspectorConverters.Converter[] converters;
   private static final Logger LOG = LoggerFactory.getLogger(CoordinateCountryParseUDF.class);
@@ -44,23 +51,23 @@ public class CoordinateCountryParseUDF extends GenericUDF {
   private CoordinateInterpreter coordInterpreter;
   private Object lock = new Object();
 
-  public LocationInterpreter getLocInterpreter(String apiWs) {
-    init(apiWs);
+  public LocationInterpreter getLocInterpreter(String apiWs, String cacheTable, Integer cacheBuckets, String cacheZk) {
+    init(apiWs, cacheTable, cacheBuckets, cacheZk);
     return locInterpreter;
   }
 
-  public CoordinateInterpreter getCoordInterpreter(String apiWs) {
-    init(apiWs);
+  public CoordinateInterpreter getCoordInterpreter(String apiWs, String cacheTable, Integer cacheBuckets, String cacheZk) {
+    init(apiWs, cacheTable, cacheBuckets, cacheZk);
     return coordInterpreter;
   }
 
-  private void init(String apiWs) {
+  private void init(String apiWs, String cacheTable, Integer cacheBuckets, String cacheZk) {
     if (locInterpreter == null) {
       synchronized (lock) {    // while we were waiting for the lock, another thread may have instantiated the object
         if (locInterpreter == null) {
           LOG.info("Create new coordinate & location interpreter using API at {}", apiWs);
           try {
-            coordInterpreter = new CoordinateInterpreter(apiWs, "geocode_gadm_kv", 50, "c5zk1.gbif.org,c5zk2.gbif.org,c5zk3.gbif.org");
+            coordInterpreter = new CoordinateInterpreter(apiWs, cacheTable, cacheBuckets, cacheZk);
           } catch (IOException e) {
             LOG.error("Problem instantiating CoordinateInterpreter", e);
             throw new RuntimeException(e);
@@ -73,15 +80,18 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
-    assert arguments.length == argLength;
+    assert arguments.length == ARG_LENGTH;
 
-    String api = arguments[0].get().toString();
+    String api = arguments[ARG_API].get().toString();
+    String cacheTable = arguments[ARG_CACHE_TABLE].get().toString();
+    Integer cacheBuckets = Integer.parseInt(arguments[ARG_CACHE_BUCKETS].get().toString());
+    String cacheZk = arguments[ARG_CACHE_ZK].get().toString();
 
     // Interpret the country to pass in to the geo lookup
-    String country = arguments[3].get() == null ? null : converters[3].convert(arguments[3].get()).toString();
+    String country = arguments[ARG_COUNTRY].get() == null ? null : converters[3].convert(arguments[ARG_COUNTRY].get()).toString();
     Country interpretedCountry = Country.UNKNOWN;
     if (country != null) {
-      ParseResult<Country> r = getLocInterpreter(api).interpretCountry(country);
+      ParseResult<Country> r = getLocInterpreter(api, cacheTable, cacheBuckets, cacheZk).interpretCountry(country);
       if (r.isSuccessful() && r.getPayload() != null) {
         interpretedCountry = r.getPayload();
       }
@@ -90,23 +100,23 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
     List<Object> result = Lists.newArrayList(3);
 
-    if (arguments[1].get() == null || arguments[2].get() == null
-      || Strings.isNullOrEmpty(arguments[1].get().toString()) || Strings.isNullOrEmpty(arguments[2].get().toString())) {
+    if (arguments[ARG_LAT].get() == null || arguments[ARG_LNG].get() == null
+      || Strings.isNullOrEmpty(arguments[ARG_LAT].get().toString()) || Strings.isNullOrEmpty(arguments[ARG_LNG].get().toString())) {
       result.add(null);
       result.add(null);
       result.add(iso); // no coords to dispute the iso
       return result;
     }
 
-    String latitude = converters[1].convert(arguments[1].get()).toString();
-    String longitude = converters[2].convert(arguments[2].get()).toString();
+    String latitude = converters[1].convert(arguments[ARG_LAT].get()).toString();
+    String longitude = converters[2].convert(arguments[ARG_LNG].get()).toString();
 
     // while we have interpreted the country to try and pass something sensible to the CoordinateInterpreter,
     // it will not infer countries if we pass in UNKNOWN, as it likes NULL.
     interpretedCountry = Country.UNKNOWN == interpretedCountry ? null : interpretedCountry;
 
     // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
-    OccurrenceParseResult<CoordinateResult> response = getCoordInterpreter(api)
+    OccurrenceParseResult<CoordinateResult> response = getCoordInterpreter(api, cacheTable, cacheBuckets, cacheZk)
       .interpretCoordinate(latitude, longitude, null, interpretedCountry);
 
     if (response != null && response.isSuccessful() && !hasSpatialIssue(response.getIssues())) {
@@ -141,14 +151,14 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
   @Override
   public String getDisplayString(String[] strings) {
-    assert strings.length == 4;
-    return "parseCoordinates(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ')';
+    assert strings.length == ARG_LENGTH;
+    return "parseCoordinates(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ", " + strings[4] + ", " + strings[5] + ", " + strings[6] + ')';
   }
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-    if (arguments.length != 4) {
-      throw new UDFArgumentException("parseCoordinates takes four arguments");
+    if (arguments.length != ARG_LENGTH) {
+      throw new UDFArgumentException("parseCoordinates takes seven arguments");
     }
 
     converters = new ObjectInspectorConverters.Converter[arguments.length];

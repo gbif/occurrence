@@ -67,12 +67,13 @@ public class CoordinateInterpreter {
     kvStore = GeocodeKVStoreFactory.simpleGeocodeKVStore(ClientConfiguration.builder().withBaseApiUrl(apisWsUrl).build());
   }
 
+  /**
+   * Use the Key Value Store to cache geocode lookups.
+   */
   public CoordinateInterpreter(String apisWsUrl, String tableName, int numBuckets, String hbaseZk) throws IOException {
     ClientConfiguration clientConfig =
       ClientConfiguration.builder()
         .withBaseApiUrl(apisWsUrl)
-        //.withFileCacheMaxSizeMb()
-        //.withTimeOut()
         .build();
 
     CachedHBaseKVStoreConfiguration geocodeKvStoreConfig =
