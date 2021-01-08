@@ -47,7 +47,6 @@ import org.springframework.boot.actuate.autoconfigure.metrics.export.elastic.Ela
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -68,7 +67,6 @@ import org.springframework.test.context.ActiveProfiles;
 @TestConfiguration
 @SpringBootApplication(
   exclude = {
-    ElasticsearchAutoConfiguration.class,
     ElasticSearchRestHealthContributorAutoConfiguration.class,
     RabbitAutoConfiguration.class,
     ElasticMetricsExportAutoConfiguration.class,
@@ -91,8 +89,7 @@ import org.springframework.test.context.ActiveProfiles;
    "org.gbif.occurrence.search",
    "org.gbif.occurrence.ws.resources",
    "org.gbif.occurrence.ws.identity",
-   "org.gbif.occurrence.persistence",
-   "org.gbif.occurrence.it.ws"
+   "org.gbif.occurrence.persistence"
  },
  excludeFilters = {
    @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {DownloadRequestServiceImpl.class,
