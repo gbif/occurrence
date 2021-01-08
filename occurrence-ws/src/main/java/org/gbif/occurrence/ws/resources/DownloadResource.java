@@ -34,7 +34,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import org.apache.bval.guice.Validate;
 import org.apache.commons.lang3.StringUtils;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -56,6 +55,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,6 +70,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
+@Validated
 @RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,
   "application/x-javascript"}, value = "occurrence/download/request")
 public class DownloadResource {
@@ -271,7 +272,6 @@ public class DownloadResource {
   @PostMapping(produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE}, consumes = {
     MediaType.APPLICATION_JSON_VALUE})
   @ResponseBody
-  @Validate
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
     @NotNull @Valid @RequestBody PredicateDownloadRequest request, @Autowired Principal principal

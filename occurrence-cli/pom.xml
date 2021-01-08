@@ -189,18 +189,8 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <!--
-           This has an explicit compile time dependency even though it is only used at runtime.
-           The assembly:plugin seems to not process META-INF/services files for runtime dependency but that's
-           needed to be automatically found. One way of doing it would be to explicitly request an
-           ApacheValidatorFactory but that too implies a compile time dependency.
-           See http://blog.xebia.com/2011/07/20/jar-with-deps-dont-like-meta-infservices/ for more details.
-           Their solutions require custom POM work on the client side. So changing this from runtime to compile seems to
-           be the safest and easiest solution for now.
-      -->
-      <groupId>org.apache.bval</groupId>
-      <artifactId>bval-jsr303</artifactId>
-      <scope>compile</scope>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
     </dependency>
 
     <dependency>
