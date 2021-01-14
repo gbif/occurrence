@@ -200,6 +200,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.LIFE_STAGE, DwcTerm.lifeStage)
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
       .put(OccurrenceSearchParameter.DWCA_EXTENSION, GbifInternalTerm.dwcaExtension)
+      .put(OccurrenceSearchParameter.LIFE_STAGE, GbifInternalTerm.lifeStageLineage)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
@@ -340,6 +341,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
+    } else if (OccurrenceSearchParameter.LIFE_STAGE == predicate.getKey()) {
+      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.lifeStageLineage), predicate.getValue()));
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }

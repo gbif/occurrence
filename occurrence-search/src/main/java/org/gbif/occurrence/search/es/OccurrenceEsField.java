@@ -119,6 +119,7 @@ public enum OccurrenceEsField {
   PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID, true),
   SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol, true),
   LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
+  LIFE_STAGE_LINEAGE("lifeStageLineage", GbifInternalTerm.lifeStageLineage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
   MODIFIED("modified", DcTerm.modified),
   REFERENCES("references", DcTerm.references),
