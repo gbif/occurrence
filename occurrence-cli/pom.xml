@@ -126,8 +126,7 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <!-- This dependency is needed for the JsonIgnore annotations on the configuration objects. gbif-cli uses
-           Jackson 2 because only that supports YAML so we have to use the annotations from Jackson 2 -->
+      <!-- This dependency is needed for the JsonIgnore annotations on the configuration objects -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
     </dependency>
