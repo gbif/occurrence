@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- *
  * Test for {@link DwcXMLDocument} behavior.
- *
  */
 public class DwcXMLDocumentTest {
 
@@ -32,7 +30,7 @@ public class DwcXMLDocumentTest {
     assertEquals(1, xmlDoc.getChildNodes().getLength());
 
     Node occurrenceElement = xmlDoc.getChildNodes().item(0);
-    assertEquals("Occurrence element has only one child", 1, occurrenceElement.getChildNodes().getLength());
+    assertEquals(1, occurrenceElement.getChildNodes().getLength(), "Occurrence element has only one child");
     Node firstChild = occurrenceElement.getFirstChild();
 
     assertEquals("dwc" + ":" + DwcTerm.behavior.simpleName(), firstChild.getNodeName());

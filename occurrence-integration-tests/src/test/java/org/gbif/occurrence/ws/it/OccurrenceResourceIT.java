@@ -27,6 +27,9 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -77,51 +80,51 @@ public class OccurrenceResourceIT {
   @Test
   public void testGetByKey() {
     Occurrence occurrence = occurrenceWsClient.get(TEST_KEY);
-    Assertions.assertNotNull(occurrence, "Empty occurrence received");
+    assertNotNull(occurrence, "Empty occurrence received");
   }
 
   @Test
   public void testGetFragment() {
     String fragment = occurrenceWsClient.getFragment(TEST_KEY);
-    Assertions.assertNotNull(fragment, "Empty fragment received");
+    assertNotNull(fragment, "Empty fragment received");
   }
 
   @Test
   public void testGetVerbatim() {
     VerbatimOccurrence verbatim = occurrenceWsClient.getVerbatim(TEST_KEY);
-    Assertions.assertNotNull(verbatim, "Empty verbatim record!");
+    assertNotNull(verbatim, "Empty verbatim record!");
   }
 
   @Test
   @SneakyThrows
   public void testRelatedOccurrences() {
     String relatedOccurrences = occurrenceResource.getRelatedOccurrences(RELATION_TEST_KEY);
-    Assertions.assertNotNull(relatedOccurrences, "Empty related occurrence response");
+    assertNotNull(relatedOccurrences, "Empty related occurrence response");
 
     JsonNode jsonNode = MAPPER.readTree(relatedOccurrences);
     ArrayNode relatedRecords  = (ArrayNode)jsonNode.get("relatedOccurrences");
-    Assertions.assertEquals(3, relatedRecords.size(), "Number is related occurrences is not what was expected!");
+    assertEquals(3, relatedRecords.size(), "Number is related occurrences is not what was expected!");
 
     JsonNode currentOccurrence = jsonNode.get("currentOccurrence");
-    Assertions.assertNotNull(currentOccurrence);
+    assertNotNull(currentOccurrence);
   }
 
   @Test
   public void testGetAnnosysVerbatim() {
     String annosysVerbatim = occurrenceResource.getAnnosysVerbatim(TEST_KEY);
-    Assertions.assertNotNull(annosysVerbatim, "Empty Annosys response");
+    assertNotNull(annosysVerbatim, "Empty Annosys response");
 
     String verbatimXml = OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occurrenceResource.getVerbatim(TEST_KEY));
-    Assertions.assertEquals(annosysVerbatim, verbatimXml, "XML records different to expected response");
+    assertEquals(annosysVerbatim, verbatimXml, "XML records different to expected response");
   }
 
   @Test
   public void testGetAnnosysOccurrence() {
     String annosysOccurrence = occurrenceResource.getAnnosysOccurrence(TEST_KEY);
-    Assertions.assertNotNull(annosysOccurrence, "Empty verbatim Annosys!");
+    assertNotNull(annosysOccurrence, "Empty verbatim Annosys!");
 
     String occurrenceXml = OccurrenceDwcXMLConverter.occurrenceXMLAsString(occurrenceResource.get(TEST_KEY));
-    Assertions.assertEquals(annosysOccurrence, occurrenceXml, "XML records different to expected response");
+    assertEquals(annosysOccurrence, occurrenceXml, "XML records different to expected response");
 
   }
 

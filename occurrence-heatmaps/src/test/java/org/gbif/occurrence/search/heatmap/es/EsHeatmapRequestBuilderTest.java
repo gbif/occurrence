@@ -20,6 +20,7 @@ import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for ElasticSearch heatmap request builders.
@@ -117,7 +118,7 @@ public class EsHeatmapRequestBuilderTest {
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));
     } else {
-      Assertions.fail("TaxaKey term not found");
+      fail("TaxaKey term not found");
     }
 
     // geohash_grid

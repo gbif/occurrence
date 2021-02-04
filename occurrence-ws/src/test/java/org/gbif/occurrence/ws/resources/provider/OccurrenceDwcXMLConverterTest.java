@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test for {@link OccurrenceDwcXMLConverter} behavior.
- *
  */
+@SuppressWarnings("UnstableApiUsage")
 public class OccurrenceDwcXMLConverterTest {
 
   @Test
@@ -36,6 +36,7 @@ public class OccurrenceDwcXMLConverterTest {
     occ.setVerbatimField(customTerm, "MyTerm value");
 
     String expectedContent = IOUtils.toString(new FileInputStream(FileUtils.getClasspathFile("dwc_xml/occurrence.xml")));
-    assertEquals(CharMatcher.WHITESPACE.removeFrom(expectedContent), CharMatcher.WHITESPACE.removeFrom(OccurrenceDwcXMLConverter.occurrenceXMLAsString(occ)));
+    assertEquals(CharMatcher.WHITESPACE.removeFrom(expectedContent),
+        CharMatcher.WHITESPACE.removeFrom(OccurrenceDwcXMLConverter.occurrenceXMLAsString(occ)));
   }
 }

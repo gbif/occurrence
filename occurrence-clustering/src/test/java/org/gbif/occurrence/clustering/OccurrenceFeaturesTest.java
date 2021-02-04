@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for OccurrenceFeatures.
@@ -29,7 +29,7 @@ public class OccurrenceFeaturesTest {
   private JavaSparkContext jsc;
   private SQLContext sqlContext;
 
-  @Before
+  @BeforeEach
   public void setup() {
     SparkConf conf = new SparkConf()
       .setMaster("local[*]")
@@ -39,7 +39,7 @@ public class OccurrenceFeaturesTest {
     sqlContext = new SQLContext(jsc);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     jsc.stop();
   }

@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test for {@link OccurrenceVerbatimDwcXMLConverter} behavior.
- *
  */
+@SuppressWarnings("UnstableApiUsage")
 public class VerbatimOccurrenceDwcXMLConverterTest {
 
   @Test
@@ -30,7 +30,9 @@ public class VerbatimOccurrenceDwcXMLConverterTest {
     Term customTerm = TermFactory.instance().findTerm("MyTerm");
     occ.setVerbatimField(customTerm, "MyTerm value");
 
-    String expectedContent = IOUtils.toString(new FileInputStream(FileUtils.getClasspathFile("dwc_xml/verbatim_occurrence.xml")));
-    assertEquals(CharMatcher.WHITESPACE.removeFrom(expectedContent), CharMatcher.WHITESPACE.removeFrom(OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occ)));
+    String expectedContent = IOUtils.toString(
+        new FileInputStream(FileUtils.getClasspathFile("dwc_xml/verbatim_occurrence.xml")));
+    assertEquals(CharMatcher.WHITESPACE.removeFrom(expectedContent),
+        CharMatcher.WHITESPACE.removeFrom(OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occ)));
   }
 }

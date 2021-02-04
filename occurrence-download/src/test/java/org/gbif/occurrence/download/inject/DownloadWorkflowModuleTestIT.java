@@ -12,11 +12,12 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DownloadWorkflowModuleTestIT {
 
@@ -104,15 +105,15 @@ public class DownloadWorkflowModuleTestIT {
                                       .workflowConfiguration(workflowConfiguration(downloadFormat))
                                       .downloadJobConfiguration(downloadJobConfiguration).build();
 
-    Assertions.assertNotNull(module);
+    assertNotNull(module);
 
     DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction();
-    Assertions.assertNotNull(downloadPrepareAction);
+    assertNotNull(downloadPrepareAction);
 
 
     ActorSystem system = ActorSystem.create("DownloadSystem" + downloadJobConfiguration.getDownloadKey());
 
     ActorRef downloadMaster = module.downloadMaster(system);
-    Assertions.assertNotNull(downloadMaster);
+    assertNotNull(downloadMaster);
   }
 }

@@ -10,14 +10,22 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.*;
-import static org.junit.Assert.*;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.APPROXIMATE_DATE;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.SAME_ACCEPTED_SPECIES;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.SAME_COUNTRY;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.SAME_DATE;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.SAME_RECORDER_NAME;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.SAME_SPECIMEN;
+import static org.gbif.occurrence.clustering.RelationshipAssertion.FEATURE_ASSERTION.WITHIN_200m;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for relationship assertion.
@@ -76,7 +84,7 @@ public class OccurrenceRelationshipsTest {
   );
 
   @Test
-  public void testSimpleAssertions() throws IOException {
+  public void testSimpleAssertions() {
     OccurrenceFeatures o1 = new OccurrenceFeatures(new RowBuilder()
       .with("occurrenceID", "1")
       .with("speciesKey", 1)
@@ -109,7 +117,7 @@ public class OccurrenceRelationshipsTest {
    * Real data from records 2332470913, 2571156410 which should cluster.
    */
   @Test
-  public void testCortinarius() throws IOException {
+  public void testCortinarius() {
     OccurrenceFeatures o1 = new OccurrenceFeatures(new RowBuilder()
       .with("occurrenceID", "urn:catalog:O:F:304835")
       .with("recordNumber", "TEB 12-16")
@@ -144,7 +152,7 @@ public class OccurrenceRelationshipsTest {
 
   // Test even with nonsense a Holotype of the same name must be the same specimen (or worth investigating a data issue)
   @Test
-  public void testHolotype() throws IOException {
+  public void testHolotype() {
     OccurrenceFeatures o1 = new OccurrenceFeatures(new RowBuilder()
       .with("taxonKey", 3350984)
       .with("decimalLatitude", 10d)
@@ -169,7 +177,7 @@ public class OccurrenceRelationshipsTest {
   // Test that two records with same collector, approximate location but a day apart match.
   // https://github.com/gbif/occurrence/issues/177
   @Test
-  public void testDayApart() throws IOException {
+  public void testDayApart() {
     // real records where a trap set one evening and visited the next day is shared twice using different
     // days
     OccurrenceFeatures o1 = new OccurrenceFeatures(new RowBuilder()
@@ -203,7 +211,7 @@ public class OccurrenceRelationshipsTest {
 
   // test 3 decimal place rounding example clusters
   @Test
-  public void test3DP() throws IOException {
+  public void test3DP() {
     // real records of Seigler & Miller
     OccurrenceFeatures o1 = new OccurrenceFeatures(new RowBuilder()
       .with("gbifId", 1675790844)
@@ -217,7 +225,7 @@ public class OccurrenceRelationshipsTest {
       .buildWithSchema());
 
     OccurrenceFeatures o2 = new OccurrenceFeatures(new RowBuilder()
-      .with("gbifId", 2268858676l)
+      .with("gbifId", 2268858676L)
       .with("speciesKey", 3794925)
       .with("decimalLatitude", 		21.86558d)
       .with("decimalLongitude", -102.90929d)

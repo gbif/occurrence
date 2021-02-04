@@ -6,7 +6,6 @@ import org.gbif.occurrence.ws.resources.TermResource;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -36,11 +38,11 @@ public class TermResourceIT {
   @Test
   public void testGetInterpretation() {
     List<TermResource.TermWrapper> terms =  termResource.getInterpretation();
-    Assertions.assertNotNull(terms);
-    Assertions.assertTrue(StreamSupport.stream(TermUtils.interpretedTerms().spliterator(), false)
+    assertNotNull(terms);
+    assertTrue(StreamSupport.stream(TermUtils.interpretedTerms().spliterator(), false)
                             .allMatch(t -> terms.stream().anyMatch(tw -> tw.getSimpleName().equals(t.simpleName()))));
 
-    Assertions.assertTrue(StreamSupport.stream(TermUtils.verbatimTerms().spliterator(), false)
+    assertTrue(StreamSupport.stream(TermUtils.verbatimTerms().spliterator(), false)
                             .allMatch(t -> terms.stream().anyMatch(tw -> tw.getSimpleName().equals(t.simpleName()))));
 
   }

@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class OccurrenceKeyHelperTest {
 
   private static final UUID DATASET_KEY = UUID.randomUUID();
@@ -24,12 +26,12 @@ public class OccurrenceKeyHelperTest {
   @Test
   public void testTripletKey() {
     String testKey = OccurrenceKeyHelper.buildKey(TRIPLET);
-    Assertions.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + IC + "|" + CC + "|" + CN + "|" + UQ));
+    assertEquals(DATASET_KEY.toString() + "|" + IC + "|" + CC + "|" + CN + "|" + UQ, testKey);
   }
 
   @Test
   public void testSingleDwcKey() {
     String testKey = OccurrenceKeyHelper.buildKey(PUB_PROVIDED);
-    Assertions.assertTrue(testKey.equals(DATASET_KEY.toString() + "|" + DWC));
+    assertEquals(DATASET_KEY.toString() + "|" + DWC, testKey);
   }
 }

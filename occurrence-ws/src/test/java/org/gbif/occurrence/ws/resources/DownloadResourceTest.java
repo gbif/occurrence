@@ -1,7 +1,8 @@
 package org.gbif.occurrence.ws.resources;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +51,7 @@ public class DownloadResourceTest {
   public void testStartDownloadNotAuthenticated() {
     prepareMocks("foo");
     ResponseEntity<String> response = resource.startDownload(dl, principal);
-    Assertions.assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
   }
 
   private void prepareMocks(String user) {

@@ -30,6 +30,10 @@ import org.springframework.util.StreamUtils;
 
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -77,7 +81,7 @@ public class OccurrenceDownloadResourceIT {
   @Test
   public void startDownloadTest() {
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
-    Assertions.assertNotNull(downloadKey, "DownloadKey is null!");
+    assertNotNull(downloadKey, "DownloadKey is null!");
   }
 
   @Test
@@ -87,7 +91,7 @@ public class OccurrenceDownloadResourceIT {
     predicateDownloadRequest.setCreator("NotMe");
 
     //Exception expected
-    Assertions.assertThrows(MethodNotAllowedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
+    assertThrows(MethodNotAllowedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
   }
 
   @Test
@@ -98,7 +102,7 @@ public class OccurrenceDownloadResourceIT {
     DownloadRequestService downloadService = clientFactory.newInstance(OccurrenceDownloadWsClient.class);
 
     //Exception expected
-    Assertions.assertThrows(AccessDeniedException.class, () -> downloadService.create(testPredicateDownloadRequest()));
+    assertThrows(AccessDeniedException.class, () -> downloadService.create(testPredicateDownloadRequest()));
   }
 
 
@@ -106,15 +110,15 @@ public class OccurrenceDownloadResourceIT {
   public void cancelDownloadTest() {
     //Create
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
-    Assertions.assertNotNull(downloadKey, "DownloadKey is null!");
+    assertNotNull(downloadKey, "DownloadKey is null!");
 
     //Cancel
     downloadWsClient.cancel(downloadKey);
 
     //Check
     Download download = occurrenceDownloadService.get(downloadKey);
-    Assertions.assertNotNull(download, "Cancelled download is null!");
-    Assertions.assertEquals(Download.Status.CANCELLED, download.getStatus(), "Occurrence download status is not Cancelled!");
+    assertNotNull(download, "Cancelled download is null!");
+    assertEquals(Download.Status.CANCELLED, download.getStatus(), "Occurrence download status is not Cancelled!");
   }
 
 
@@ -125,10 +129,10 @@ public class OccurrenceDownloadResourceIT {
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
 
     //Check is not null
-    Assertions.assertNotNull(downloadKey, "DownloadKey is null!");
+    assertNotNull(downloadKey, "DownloadKey is null!");
 
     //Is the content what it was expected
-    Assertions.assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
+    assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
                                  StreamUtils.copyToByteArray(downloadWsClient.getResult(downloadKey)),
                             "Content file of download file differs to expected content!");
   }
@@ -147,7 +151,7 @@ public class OccurrenceDownloadResourceIT {
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
 
     //Check is not null
-    Assertions.assertNotNull(downloadKey, "DownloadKey is null!");
+    assertNotNull(downloadKey, "DownloadKey is null!");
 
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -160,7 +164,7 @@ public class OccurrenceDownloadResourceIT {
     });
 
     //Is the content what it was expected
-    Assertions.assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
+    assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
                                  byteArrayOutputStream.toByteArray(),
                                  "Content file of download file differs to expected content!");
   }

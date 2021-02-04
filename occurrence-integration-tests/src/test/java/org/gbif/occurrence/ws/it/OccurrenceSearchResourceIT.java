@@ -18,7 +18,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -30,6 +29,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -59,17 +61,17 @@ public class OccurrenceSearchResourceIT {
 
   private static Stream<Arguments> testFilters() {
     return Stream.of(Arguments.of(asMapParam(OccurrenceSearchParameter.DATASET_KEY, "d596fccb-2319-42eb-b13b-986c932780ad"),
-                                  predicatify(response -> Assertions.assertEquals(8, response.getCount()))),
+                                  predicatify(response -> assertEquals(8, response.getCount()))),
                      Arguments.of(asMapParam(OccurrenceSearchParameter.BASIS_OF_RECORD, "HUMAN_OBSERVATION"),
-                                  predicatify(response -> Assertions.assertEquals(2, response.getCount()))),
+                                  predicatify(response -> assertEquals(2, response.getCount()))),
                      Arguments.of(asMapParam(OccurrenceSearchParameter.ISSUE, "GEODETIC_DATUM_ASSUMED_WGS84"),
-                                  predicatify(response -> Assertions.assertEquals(8, response.getCount()))),
+                                  predicatify(response -> assertEquals(8, response.getCount()))),
                      Arguments.of(asMapParam(OccurrenceSearchParameter.MEDIA_TYPE, "STILL_IMAGE"),
-                                  predicatify(response -> Assertions.assertEquals(2, response.getCount()))),
+                                  predicatify(response -> assertEquals(2, response.getCount()))),
                      Arguments.of(asMapParam(OccurrenceSearchParameter.COUNTRY, "PF"),
-                                  predicatify(response -> Assertions.assertEquals(1, response.getCount()))),
+                                  predicatify(response -> assertEquals(1, response.getCount()))),
                      Arguments.of(asMapParam(OccurrenceSearchParameter.PUBLISHING_COUNTRY, "GB"),
-                                  predicatify(response -> Assertions.assertEquals(8, response.getCount())))
+                                  predicatify(response -> assertEquals(8, response.getCount())))
                      );
   }
 
@@ -80,17 +82,17 @@ public class OccurrenceSearchResourceIT {
 
   private static Stream<Arguments> testFacets() {
     return Stream.of(Arguments.of(OccurrenceSearchParameter.DATASET_KEY,
-                                  predicatify(response -> Assertions.assertEquals(2, getFacet(OccurrenceSearchParameter.DATASET_KEY, response.getFacets()).getCounts().size()))),
+                                  predicatify(response -> assertEquals(2, getFacet(OccurrenceSearchParameter.DATASET_KEY, response.getFacets()).getCounts().size()))),
                      Arguments.of(OccurrenceSearchParameter.BASIS_OF_RECORD,
-                                   predicatify(response -> Assertions.assertEquals(2, getFacet(OccurrenceSearchParameter.BASIS_OF_RECORD, response.getFacets()).getCounts().size()))),
+                                   predicatify(response -> assertEquals(2, getFacet(OccurrenceSearchParameter.BASIS_OF_RECORD, response.getFacets()).getCounts().size()))),
                      Arguments.of(OccurrenceSearchParameter.ISSUE,
-                                  predicatify(response -> Assertions.assertEquals(3, getFacet(OccurrenceSearchParameter.ISSUE, response.getFacets()).getCounts().size()))),
+                                  predicatify(response -> assertEquals(3, getFacet(OccurrenceSearchParameter.ISSUE, response.getFacets()).getCounts().size()))),
                      Arguments.of(OccurrenceSearchParameter.MEDIA_TYPE,
-                                  predicatify(response -> Assertions.assertEquals(1, getFacet(OccurrenceSearchParameter.MEDIA_TYPE, response.getFacets()).getCounts().size()))),
+                                  predicatify(response -> assertEquals(1, getFacet(OccurrenceSearchParameter.MEDIA_TYPE, response.getFacets()).getCounts().size()))),
                      Arguments.of(OccurrenceSearchParameter.COUNTRY,
-                                  predicatify(response -> Assertions.assertEquals(4, getFacet(OccurrenceSearchParameter.COUNTRY, response.getFacets()).getCounts().size()))),
+                                  predicatify(response -> assertEquals(4, getFacet(OccurrenceSearchParameter.COUNTRY, response.getFacets()).getCounts().size()))),
                      Arguments.of(OccurrenceSearchParameter.PUBLISHING_COUNTRY,
-                                  predicatify(response -> Assertions.assertEquals(2, getFacet(OccurrenceSearchParameter.PUBLISHING_COUNTRY, response.getFacets()).getCounts().size())))
+                                  predicatify(response -> assertEquals(2, getFacet(OccurrenceSearchParameter.PUBLISHING_COUNTRY, response.getFacets()).getCounts().size())))
     );
   }
 
@@ -102,7 +104,7 @@ public class OccurrenceSearchResourceIT {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.setParameters(parameters);
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = occurrenceSearchService.search(searchRequest);
-    Assertions.assertNotNull(response);
+    assertNotNull(response);
     assertion.accept(response);
   }
 
@@ -113,47 +115,47 @@ public class OccurrenceSearchResourceIT {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.setFacets(Collections.singleton(facet));
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = occurrenceSearchService.search(searchRequest);
-    Assertions.assertNotNull(response);
+    assertNotNull(response);
     assertion.accept(response);
   }
 
   @Test
   public void testSuggestCollections() {
     List<String> suggestions = occurrenceSearchService.suggestCollectionCodes("go", 3);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(1, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(1, suggestions.size());
   }
 
   @Test
   public void testSuggestCatalogNumbers() {
     List<String> suggestions = occurrenceSearchService.suggestCatalogNumbers("go", 3);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(2, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(2, suggestions.size());
 
 
     suggestions = occurrenceSearchService.suggestCatalogNumbers("go", 1);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(1, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(1, suggestions.size());
   }
 
   @Test
   public void testSuggestRecordedBy() {
     List<String> suggestions = occurrenceSearchService.suggestRecordedBy("Ecklon", 3);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(1, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(1, suggestions.size());
   }
 
   @Test
   public void testSuggestLocalities() {
     List<String> suggestions = occurrenceSearchService.suggestLocalities("South", 3);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(1, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(1, suggestions.size());
   }
 
   @Test
   public void testSuggestOccurrenceIds() {
     List<String> suggestions = occurrenceSearchService.suggestOccurrenceIds("MGYA", 3);
-    Assertions.assertNotNull(suggestions);
-    Assertions.assertEquals(3, suggestions.size());
+    assertNotNull(suggestions);
+    assertEquals(3, suggestions.size());
   }
 }
