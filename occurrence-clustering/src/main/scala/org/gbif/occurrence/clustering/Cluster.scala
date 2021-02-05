@@ -234,10 +234,10 @@ object Cluster {
     val relationships = pairs.flatMap(row => {
       val records = scala.collection.mutable.ListBuffer[Row]()
 
-      val o1 = new OccurrenceFeatures(row, "t1_", "t1_media")
-      val o2 = new OccurrenceFeatures(row, "t2_", "t2_media")
+      val o1 = new RowOccurrenceFeatures(row, "t1_", "t1_media")
+      val o2 = new RowOccurrenceFeatures(row, "t2_", "t2_media")
 
-      val relationships: Option[RelationshipAssertion] = Option(OccurrenceRelationships.generate(o1,o2))
+      val relationships: Option[RelationshipAssertion[RowOccurrenceFeatures]] = Option(OccurrenceRelationships.generate(o1,o2))
       relationships match {
         case Some(r) => {
           // store both ways

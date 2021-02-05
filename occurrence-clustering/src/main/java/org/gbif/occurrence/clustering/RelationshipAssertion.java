@@ -1,19 +1,17 @@
 package org.gbif.occurrence.clustering;
 
-import java.awt.*;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * Models reas between occurrence records.
+ * Models relationships between occurrence records.
  *
  * This uses a String type for record identifiers allowing it to be reused beyond GBIF indexing (e.g. Atlas of Living
  * Australia)
  */
-public class RelationshipAssertion {
+public class RelationshipAssertion<T extends OccurrenceFeatures> {
 
   // Capture the reasoning why a relationship
   public enum FEATURE_ASSERTION {
@@ -36,11 +34,11 @@ public class RelationshipAssertion {
   }
 
 
-  private final OccurrenceFeatures o1;
-  private final OccurrenceFeatures o2;
-  private final Set<FEATURE_ASSERTION> justification = new TreeSet(); // reasons the assertion is being made
+  private final T o1;
+  private final T o2;
+  private final Set<FEATURE_ASSERTION> justification = new TreeSet<>(); // reasons the assertion is being made
 
-  public RelationshipAssertion(OccurrenceFeatures o1, OccurrenceFeatures o2) {
+  public RelationshipAssertion(T o1, T o2) {
     this.o1 = o1;
     this.o2 = o2;
   }
@@ -49,16 +47,16 @@ public class RelationshipAssertion {
     justification.add(reason);
   }
 
-  public OccurrenceFeatures getOcc1() {
+  public T getOcc1() {
     return o1;
   }
 
-  public OccurrenceFeatures getOcc2() {
+  public T getOcc2() {
     return o2;
   }
 
   public String getJustificationAsDelimited() {
-    return String.join(",", justification.stream().map(f -> f.name()).collect(Collectors.toList()));
+    return justification.stream().map(Enum::name).collect(Collectors.joining(","));
   }
 
   public boolean justificationContains(FEATURE_ASSERTION reason) {

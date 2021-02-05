@@ -14,7 +14,7 @@ public class OccurrenceRelationships {
   /**
    * Will either generate an assertion with justification or return null.
    */
-  public static RelationshipAssertion generate(OccurrenceFeatures o1, OccurrenceFeatures o2) {
+  public static <T extends OccurrenceFeatures> RelationshipAssertion<T> generate(T o1, T o2) {
 
     RelationshipAssertion assertion = new RelationshipAssertion(o1, o2);
 
@@ -62,54 +62,54 @@ public class OccurrenceRelationships {
   }
 
   /**
-   * A specimen is the same if it is the  hototype of the same species.
+   * A specimen is the same if it is the holotype of the same species.
    * Other cases may be added, but difficult to be 100% sure.
    */
   private static void assertSameSpecimen(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "taxonKey")
-      && equalsAndNotNull(o1, o2, "typeStatus")
-      && o1.getString("typeStatus").equalsIgnoreCase("HOLOTYPE")
+    if (equalsAndNotNull(o1.getTaxonKey(), o2.getTaxonKey())
+      && equalsAndNotNull(o1.getTypeStatus(), o2.getTypeStatus())
+      && o1.getTypeStatus().equalsIgnoreCase("HOLOTYPE")
     ) {
       assertion.collect(SAME_SPECIMEN);
     }
   }
 
   private static void assertTypification(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "scientificName")
-      && presentOnBoth(o1, o2, "typeStatus")) {
+    if (equalsAndNotNull(o1.getScientificName(), o2.getScientificName())
+      && presentOnBoth(o1.getTypeStatus(), o2.getTypeStatus())) {
       assertion.collect(TYPIFICATION_RELATION);
     }
   }
 
   private static void compareTaxa(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "speciesKey")) {
+    if (equalsAndNotNull(o1.getSpeciesKey(), o2.getSpeciesKey())) {
       assertion.collect(SAME_ACCEPTED_SPECIES);
     }
   }
 
   private static void compareDates(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1,o2, "year") && equalsAndNotNull(o1,o2, "month") && equalsAndNotNull(o1,o2, "day")) {
+    if (equalsAndNotNull(o1.getYear(),o2.getYear()) && equalsAndNotNull(o1.getMonth(),o2.getMonth()) && equalsAndNotNull(o1.getDay(),o2.getDay())) {
       assertion.collect(SAME_DATE);
-    } else if (equalsAndNotNull(o1,o2, "eventDate")) {
+    } else if (equalsAndNotNull(o1.getEventDate(),o2.getEventDate())) {
       assertion.collect(SAME_DATE);
-    } else if (presentOnOneOnly(o1, o2, "eventDate")) {
+    } else if (presentOnOneOnly(o1.getEventDate(), o2.getEventDate())) {
       assertion.collect(NON_CONFLICTING_DATE);
     } else if (withinDays(o1, o2, 1)) {
       // accommodate records 1 day apart for e.g. start and end day of an overnight trap, or a timezone issue
       assertion.collect(APPROXIMATE_DATE);
-    } else if (presentAndNotEquals(o1, o2, "eventDate")) {
+    } else if (presentAndNotEquals(o1.getEventDate(), o2.getEventDate())) {
       assertion.collect(DIFFERENT_DATE);
     }
   }
 
   /**
-   * @return the true if o1 and o2 are collected with threshold days (e.g. 12/3/2020 and 13/3/2020 are 1 day apart)
+   * @return true if o1 and o2 are collected with threshold days (e.g. 12/3/2020 and 13/3/2020 are 1 day apart)
    */
   private static boolean withinDays(OccurrenceFeatures o1, OccurrenceFeatures o2, int thresholdInDays) {
-    if (o1.getInt("year") != null && o1.getInt("month") != null && o1.getInt("day") != null &&
-      o2.getInt("year") != null && o2.getInt("month") != null && o2.getInt("day") != null) {
-      LocalDate d1 = LocalDate.of(o1.getInt("year"), o1.getInt("month"), o1.getInt("day"));
-      LocalDate d2 = LocalDate.of(o2.getInt("year"), o2.getInt("month"), o2.getInt("day"));
+    if (o1.getYear() != null && o1.getMonth() != null && o1.getDay() != null &&
+      o2.getYear() != null && o2.getMonth() != null && o2.getDay() != null) {
+      LocalDate d1 = LocalDate.of(o1.getYear(), o1.getMonth(), o1.getDay());
+      LocalDate d2 = LocalDate.of(o2.getYear(), o2.getMonth(), o2.getDay());
       int daysApart = Math.abs(d1.until(d2).getDays());
       return daysApart <= thresholdInDays;
     }
@@ -117,20 +117,22 @@ public class OccurrenceRelationships {
   }
 
   private static void compareCollectors(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "recordedBy")) {
+    if (equalsAndNotNull(o1.getRecordedBy(), o2.getRecordedBy())) {
       // this could be improved with parsing and similarity checks
       assertion.collect(SAME_RECORDER_NAME);
     }
   }
 
   private static void compareCoordinates(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "decimalLatitude") && equalsAndNotNull(o1, o2, "decimalLongitude")) {
+    if (equalsAndNotNull(o1.getDecimalLatitude(), o2.getDecimalLatitude()) && equalsAndNotNull(o1.getDecimalLongitude(), o2.getDecimalLongitude())) {
       assertion.collect(SAME_COORDINATES);
-    } else if (presentOnOneOnly(o1, o2, "decimalLatitude") && presentOnOneOnly(o1, o2, "decimalLongitude")) {
+    } else if (presentOnOneOnly(o1.getDecimalLatitude(), o2.getDecimalLatitude())
+        && presentOnOneOnly(o1.getDecimalLongitude(), o2.getDecimalLongitude())) {
       assertion.collect(NON_CONFLICTING_COORDINATES);
-    } else if (presentOnBoth(o1, o2, "decimalLatitude", "decimalLongitude")) {
-      double distance = Haversine.distance(o1.getDouble("decimalLatitude"), o1.getDouble("decimalLongitude"),
-        o2.getDouble("decimalLatitude"), o2.getDouble("decimalLongitude"));
+    } else if (presentOnBoth(o1.getDecimalLatitude(), o2.getDecimalLatitude())
+        && presentOnBoth(o1.getDecimalLongitude(), o2.getDecimalLongitude())) {
+      double distance = Haversine.distance(o1.getDecimalLatitude(), o1.getDecimalLongitude(),
+        o2.getDecimalLatitude(), o2.getDecimalLongitude());
 
       if (distance <= 0.200) assertion.collect(WITHIN_200m); // 157m is 3 decimal places
       if (distance <= 2.00) assertion.collect(WITHIN_2Km); // 1569m is worst 3 decimal places
@@ -138,11 +140,11 @@ public class OccurrenceRelationships {
   }
 
   private static void compareCountry(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
-    if (equalsAndNotNull(o1, o2, "countryCode")) {
+    if (equalsAndNotNull(o1.getCountryCode(), o2.getCountryCode())) {
       assertion.collect(SAME_COUNTRY);
-    } else if (presentOnOneOnly(o1, o2, "countryCode")) {
+    } else if (presentOnOneOnly(o1.getCountryCode(), o2.getCountryCode())) {
       assertion.collect(NON_CONFLICTING_COUNTRY);
-    } else if (presentAndNotEquals(o1, o2, "countryCode")) {
+    } else if (presentAndNotEquals(o1.getCountryCode(), o2.getCountryCode())) {
       assertion.collect(DIFFERENT_COUNTRY);
     }
   }
@@ -150,16 +152,16 @@ public class OccurrenceRelationships {
   private static void compareIdentifiers(OccurrenceFeatures o1, OccurrenceFeatures o2, RelationshipAssertion assertion) {
     // ignore case and [-_., ] chars
     // otherCatalogNumbers is not parsed, but a good addition could be to explore that
-    Set<String> intersection = new HashSet();
-    o1.getStrings("occurrenceID", "fieldNumber", "recordNumber", "catalogNumber", "otherCatalogNumbers")
+    Set<String> intersection = new HashSet<>();
+    o1.getIdentifiers()
       .forEach(id -> {
         if (id != null) {
           intersection.add(normalizeID(id));
         }
       });
 
-    Set<String> toMatch = new HashSet();
-    o2.getStrings("occurrenceID", "fieldNumber", "recordNumber", "catalogNumber", "otherCatalogNumbers")
+    Set<String> toMatch = new HashSet<>();
+    o2.getIdentifiers()
       .forEach(id -> {
         if (id != null) {
           toMatch.add(normalizeID(id));
@@ -176,26 +178,21 @@ public class OccurrenceRelationships {
     }
   }
 
-  static boolean equalsAndNotNull(OccurrenceFeatures o1, OccurrenceFeatures o2, String field) {
-    return o1.get(field) != null && Objects.equals(o1.get(field), o2.get(field));
+  static boolean equalsAndNotNull(Object o1, Object o2) {
+    return o1 != null && Objects.equals(o1, o2);
   }
 
-  static boolean presentAndNotEquals(OccurrenceFeatures o1, OccurrenceFeatures o2, String field) {
-    return o1.get(field) != null && !Objects.equals(o1.get(field), o2.get(field));
+  static boolean presentAndNotEquals(Object o1, Object o2) {
+    return o1 != null && o2 != null && !Objects.equals(o1, o2);
   }
 
-  static boolean presentOnOneOnly(OccurrenceFeatures o1, OccurrenceFeatures o2, String field) {
-    return (o1.get(field) == null && o1.get(field) != null) || (o1.get(field) != null && o1.get(field) == null);
+  static boolean presentOnOneOnly(Object o1, Object o2) {
+    return (o1 == null && o2 != null) || (o1 != null && o2 == null);
   }
 
-  static boolean presentOnBoth(OccurrenceFeatures o1, OccurrenceFeatures o2, String... fields) {
-    for (String f : fields) {
-      if (o1.get(f) == null) return false;
-      if (o2.get(f) == null) return false;
-    }
-    return true;
+  static boolean presentOnBoth(Object o1, Object o2) {
+    return o1 != null && o2 != null;
   }
-
 
   public static String normalizeID(String id) {
     if (id != null) {
