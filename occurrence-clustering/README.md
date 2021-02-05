@@ -12,7 +12,7 @@ The initial focus is on specimens to locate:
  2. Database duplicates across datasets (huge biases observed within datasets (e.g. gutworm datasets))
  3. Strong links between sequence records, citations and specimens
 
-This is intended to be run regularly (e.g. daily) and therefore performance is of cricital concern.
+This is intended to be run regularly (e.g. daily) and therefore performance is of critical concern.
 
 The output is bulk loaded into HBase, suitable for an API to deployed on.
 
@@ -47,7 +47,7 @@ drop table occurrence_clustering_candidates;
 drop table occurrence_relationships;
 ```
 
-Run the job (In production this configuration takes 1.7 hours with 1,6B records)
+Run the job (In production this configuration takes 1.7 hours with 1.6B records)
 ```
 nohup spark2-submit --class org.gbif.occurrence.clustering.Cluster  \
   --master yarn --num-executors 20 --executor-cores 10 \

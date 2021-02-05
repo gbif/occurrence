@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * </pre>
  */
 
-public class OccurrenceFeaturesTest {
+public class OccurrenceFeaturesSparkTest {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private JavaSparkContext jsc;
@@ -56,7 +56,7 @@ public class OccurrenceFeaturesTest {
     String multimedia = first.getString(first.fieldIndex("ext_multimedia"));
     String formattedMultimedia = OBJECT_MAPPER.writeValueAsString(OBJECT_MAPPER.readTree(multimedia));
 
-    OccurrenceFeatures features = new OccurrenceFeatures(first, null, "ext_multimedia");
+    RowOccurrenceFeatures features = new RowOccurrenceFeatures(first, null, "ext_multimedia");
 
     // ensure that the resulting JSON is not escaped
     assertTrue(features.asJson().contains(formattedMultimedia));
