@@ -20,6 +20,12 @@
   </distributionManagement>
 
   <properties>
+    <azure-storage-blob.version>12.4.0</azure-storage-blob.version>
+    <azure-storage-queue.version>12.3.0</azure-storage-queue.version>
+    <azure-storage-file-share.version>12.2.0</azure-storage-file-share.version>
+    <azure-storage-file-datalake.version>12.0.0-preview.6</azure-storage-file-datalake.version>
+    <google-cloud.version>16.1.0</google-cloud.version>
+    <google-cloud-storage.verison>1.113.4</google-cloud-storage.verison>
     <!-- have to match gbif-cli version -->
     <guava.version>23.0</guava.version>
     <wagon-ssh.version>2.4</wagon-ssh.version>
@@ -114,6 +120,18 @@
       </releases>
     </repository>
   </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>${google-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -256,6 +274,11 @@
       <artifactId>variables</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+    </dependency>
+
     <!-- false positive from maven dep:analyze -->
     <dependency>
       <groupId>org.kohsuke.metainf-services</groupId>
@@ -322,6 +345,37 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <!-- Cloud services -->
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-blob</artifactId>
+      <version>${azure-storage-blob.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-queue</artifactId>
+      <version>${azure-storage-queue.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-file-share</artifactId>
+      <version>${azure-storage-file-share.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-storage-file-datalake</artifactId>
+      <version>${azure-storage-file-datalake.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-storage</artifactId>
+      <version>${google-cloud-storage.verison}</version>
     </dependency>
   </dependencies>
 
