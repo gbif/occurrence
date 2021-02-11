@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
@@ -152,7 +153,8 @@ public enum OccurrenceEsField {
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
   IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
-  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension);
+  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension),
+  IUCN_RED_LIST_CATEGORY("iucnRedListCategory", IucnTerm.threatStatus);
 
 
   private final String fieldName;

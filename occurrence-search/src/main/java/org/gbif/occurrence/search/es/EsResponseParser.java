@@ -422,6 +422,7 @@ public class EsResponseParser {
     getIntValue(hit, ACCEPTED_TAXON_KEY).ifPresent(occ::setAcceptedTaxonKey);
     getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setAcceptedScientificName);
     getValue(hit, TAXONOMIC_STATUS, TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
+    getValue(hit, IUCN_RED_LIST_CATEGORY, ThreatStatus::valueOf).ifPresent(occ::setIucnRedListCategory);
   }
 
   private static void setGrscicollFields(SearchHit hit, Occurrence occ) {

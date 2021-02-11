@@ -40,6 +40,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 
@@ -200,6 +201,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.LIFE_STAGE, GbifInternalTerm.lifeStageLineage)
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
       .put(OccurrenceSearchParameter.DWCA_EXTENSION, GbifInternalTerm.dwcaExtension)
+      .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, IucnTerm.threatStatus)
       .build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();

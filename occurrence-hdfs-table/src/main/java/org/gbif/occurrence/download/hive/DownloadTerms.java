@@ -6,6 +6,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
@@ -186,7 +187,7 @@ public class DownloadTerms {
    * GBIF-Internal terms
    */
   public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
-    GbifInternalTerm.publishingOrgKey
+    GbifInternalTerm.publishingOrgKey, IucnTerm.threatStatus
   );
 
   public static String simpleName(Pair<Group, Term> termPair) {

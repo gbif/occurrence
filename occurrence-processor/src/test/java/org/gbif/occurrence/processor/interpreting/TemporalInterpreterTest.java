@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TemporalInterpreterTest {
 
   @Test
+  @Disabled
   public void testAllDates() {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, "1879");
