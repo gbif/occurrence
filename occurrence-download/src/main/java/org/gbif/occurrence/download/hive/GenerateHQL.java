@@ -1,5 +1,7 @@
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.pipelines.io.avro.MeasurementOrFactTable;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.cache.ClassTemplateLoader;
@@ -12,6 +14,8 @@ import org.apache.avro.SchemaBuilder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -74,6 +78,7 @@ public class GenerateHQL {
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
       generateOccurrenceAvroSchema(avroSchemasDir);
+      copyMeasurementOrFactsSchema(avroSchemasDir);
       generateOccurrenceAvroTableHQL(cfg, createTablesDir);
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
@@ -116,6 +121,12 @@ public class GenerateHQL {
   private static void generateOccurrenceAvroSchema(File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "occurrence-hdfs-record.avsc"))) {
       out.write(OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(Boolean.TRUE));
+    }
+  }
+
+  private static void copyMeasurementOrFactsSchema(File outDir) throws IOException {
+    try (FileWriter out = new FileWriter(new File(outDir, "measurement-fact-table.avsc"))) {
+      out.write(MeasurementOrFactTable.SCHEMA$.toString(true));
     }
   }
 

@@ -16,6 +16,14 @@ OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_measurement_or_facts_avro;
+CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_measurement_or_facts_avro
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot_ext_measurement_or_fact}"}'
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/measurement-fact-table.avsc');
+
 -- snappy compression
 SET hive.exec.compress.output=true;
 SET mapred.output.compression.type=BLOCK;
@@ -42,6 +50,13 @@ SELECT
   ${field.initializer}<#if field_has_next>,</#if>
 </#list>
 FROM ${r"${occurrenceTable}"}_avro;
+
+CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_measurement_or_facts
+LIKE ${r"${occurrenceTable}"}_measurement_or_facts_avro
+STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
+
+INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_measurement_or_facts
+SELECT * FROM ${r"${occurrenceTable}"}_occurrence_measurement_or_facts_avro;
 
 SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
