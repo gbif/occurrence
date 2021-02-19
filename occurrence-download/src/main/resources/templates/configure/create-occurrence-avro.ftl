@@ -56,7 +56,7 @@ LIKE ${r"${occurrenceTable}"}_measurement_or_facts_avro
 STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_measurement_or_facts
-SELECT * FROM ${r"${occurrenceTable}"}_occurrence_measurement_or_facts_avro;
+SELECT * FROM ${r"${occurrenceTable}"}_measurement_or_facts_avro;
 
 SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
