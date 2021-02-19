@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}'
+LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/occurrence/'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_measurement_or_facts_avro;
@@ -21,7 +21,7 @@ CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_measurement_or_facts_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot_ext_measurement_or_fact}"}'
+LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/measurementorfacttable'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/measurement-fact-table.avsc');
 
 -- snappy compression
