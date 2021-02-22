@@ -154,7 +154,7 @@ public enum OccurrenceEsField {
   FULL_TEXT("all", null),
   IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
   EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension),
-  IUCN_RED_LIST_CATEGORY("iucnRedListCategory", IucnTerm.threatStatus);
+  IUCN_RED_LIST_CATEGORY("iucnRedListCategory", IucnTerm.iucnRedListCategory);
 
 
   private final String fieldName;

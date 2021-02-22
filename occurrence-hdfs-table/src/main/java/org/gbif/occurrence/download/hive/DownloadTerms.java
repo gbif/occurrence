@@ -187,7 +187,7 @@ public class DownloadTerms {
    * GBIF-Internal terms
    */
   public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
-    GbifInternalTerm.publishingOrgKey, IucnTerm.threatStatus
+    GbifInternalTerm.publishingOrgKey, IucnTerm.iucnRedListCategory
   );
 
   public static String simpleName(Pair<Group, Term> termPair) {
