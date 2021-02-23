@@ -250,7 +250,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE_LINEAGE)
           .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
           .put(OccurrenceSearchParameter.DWCA_EXTENSION, OccurrenceEsField.EXTENSIONS)
-        .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, OccurrenceEsField.IUCN_RED_LIST_CATEGORY)
+          .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, OccurrenceEsField.IUCN_RED_LIST_CATEGORY)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
