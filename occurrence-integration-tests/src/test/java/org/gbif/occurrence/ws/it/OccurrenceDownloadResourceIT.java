@@ -6,12 +6,12 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
-import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.client.ClientBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import feign.RetryableException;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.StreamUtils;
@@ -90,7 +89,7 @@ public class OccurrenceDownloadResourceIT {
     predicateDownloadRequest.setCreator("NotMe");
 
     //Exception expected
-    assertThrows(MethodNotAllowedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
+    assertThrows(RetryableException.class, () -> downloadWsClient.create(predicateDownloadRequest));
   }
 
   @Test
@@ -101,7 +100,7 @@ public class OccurrenceDownloadResourceIT {
     DownloadRequestService downloadService = clientBuilder.build(OccurrenceDownloadWsClient.class);
 
     //Exception expected
-    assertThrows(AccessDeniedException.class, () -> downloadService.create(testPredicateDownloadRequest()));
+    assertThrows(RetryableException.class, () -> downloadService.create(testPredicateDownloadRequest()));
   }
 
 
