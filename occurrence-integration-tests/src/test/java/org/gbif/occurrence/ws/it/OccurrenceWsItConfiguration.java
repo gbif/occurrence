@@ -30,7 +30,10 @@ import org.gbif.registry.persistence.mapper.UserRightsMapper;
 import org.gbif.registry.security.EditorAuthorizationServiceImpl;
 import org.gbif.registry.security.LegacyAuthorizationService;
 import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
+import org.gbif.registry.security.config.WebSecurityConfigurer;
+import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationFilter;
 import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationService;
+import org.gbif.registry.security.precheck.AuthPreCheckCreationRequestFilter;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
@@ -99,7 +102,10 @@ import org.springframework.test.context.ActiveProfiles;
                                                                       UserSuretyDelegateImpl.class,
                                                                       UserChallengeCodeManager.class,
                                                                       OrganizationChallengeCodeManager.class,
-                                                                      GrSciCollEditorAuthorizationService.class})
+                                                                      GrSciCollEditorAuthorizationService.class,
+                                                                      WebSecurityConfigurer.class,
+                                                                      AuthPreCheckCreationRequestFilter.class,
+                                                                      GrSciCollEditorAuthorizationFilter.class})
  }
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
