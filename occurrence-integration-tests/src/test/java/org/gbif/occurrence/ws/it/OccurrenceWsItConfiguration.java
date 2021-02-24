@@ -23,6 +23,7 @@ import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
 import org.gbif.registry.persistence.mapper.DatasetMapper;
 import org.gbif.registry.persistence.mapper.InstallationMapper;
+import org.gbif.registry.persistence.mapper.MachineTagMapper;
 import org.gbif.registry.persistence.mapper.OrganizationMapper;
 import org.gbif.registry.persistence.mapper.UserMapper;
 import org.gbif.registry.persistence.mapper.UserRightsMapper;
@@ -240,7 +241,8 @@ public class OccurrenceWsItConfiguration {
     return new EditorAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
                                               Mockito.mock(DatasetMapper.class),
                                               Mockito.mock(InstallationMapper.class),
-                                              Mockito.mock(UserRightsMapper.class));
+                                              Mockito.mock(UserRightsMapper.class),
+                                              Mockito.mock(MachineTagMapper.class));
   }
 
   @Bean

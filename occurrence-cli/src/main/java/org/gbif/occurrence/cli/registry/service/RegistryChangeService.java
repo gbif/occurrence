@@ -7,7 +7,7 @@ import org.gbif.common.messaging.DefaultMessageRegistry;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.registry.RegistryChangeListener;
 import org.gbif.registry.ws.client.OrganizationClient;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +26,8 @@ public class RegistryChangeService extends AbstractIdleService {
   protected void startUp() throws Exception {
     // Create Registry WS Client
 
-    ClientFactory clientFactory = new ClientFactory(configuration.registryWsUrl);
-    OrganizationService orgClient = clientFactory.newInstance(OrganizationClient.class);
+    ClientBuilder clientFactory = new ClientBuilder().withUrl(configuration.registryWsUrl);
+    OrganizationService orgClient = clientFactory.build(OrganizationClient.class);
 
     listener = new MessageListener(configuration.messaging.getConnectionParameters(), new DefaultMessageRegistry(),
       createObjectMapper(), 1);

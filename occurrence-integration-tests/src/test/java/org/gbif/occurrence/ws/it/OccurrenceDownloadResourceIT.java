@@ -7,14 +7,13 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.ws.MethodNotAllowedException;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +56,12 @@ public class OccurrenceDownloadResourceIT {
   public OccurrenceDownloadResourceIT(@LocalServerPort int localServerPort,
                                       OccurrenceDownloadService occurrenceDownloadService,
                                       ResourceLoader resourceLoader) {
-    ClientFactory clientFactory = new ClientFactory(TEST_USER.getUserName(),
-                                                    TEST_USER_PASSWORD,
-                                                    "http://localhost:" + localServerPort);
+    ClientBuilder clientBuilder = new ClientBuilder()
+                                    .withUrl("http://localhost:" + localServerPort)
+                                    .withCredentials(TEST_USER.getUserName(), TEST_USER_PASSWORD);
 
     this.localServerPort = localServerPort;
-    this.downloadWsClient = clientFactory.newInstance(OccurrenceDownloadWsClient.class);
+    this.downloadWsClient = clientBuilder.build(OccurrenceDownloadWsClient.class);
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.resourceLoader = resourceLoader;
   }
@@ -96,10 +95,10 @@ public class OccurrenceDownloadResourceIT {
 
   @Test
   public void startDownloadAuthenticationError() {
-    ClientFactory clientFactory = new ClientFactory(TEST_USER.getUserName(),
-                                                    "NotThePasword",
-                                                    "http://localhost:" + localServerPort);
-    DownloadRequestService downloadService = clientFactory.newInstance(OccurrenceDownloadWsClient.class);
+    ClientBuilder clientBuilder = new ClientBuilder()
+                                    .withUrl("http://localhost:" + localServerPort)
+                                    .withCredentials(TEST_USER.getUserName(),"NotThePasword");
+    DownloadRequestService downloadService = clientBuilder.build(OccurrenceDownloadWsClient.class);
 
     //Exception expected
     assertThrows(AccessDeniedException.class, () -> downloadService.create(testPredicateDownloadRequest()));

@@ -154,7 +154,7 @@
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>0.46</gbif-postal-service.version>
-    <gbif-registry.version>3.43</gbif-registry.version>
+    <gbif-registry.version>3.51</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>

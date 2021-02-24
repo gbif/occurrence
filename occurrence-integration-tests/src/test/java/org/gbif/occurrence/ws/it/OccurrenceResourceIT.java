@@ -9,14 +9,13 @@ import org.gbif.occurrence.ws.client.OccurrenceWsClient;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
 import org.gbif.occurrence.ws.resources.OccurrenceResource;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -73,8 +72,8 @@ public class OccurrenceResourceIT {
   public OccurrenceResourceIT(@LocalServerPort int localServerPort,
                               OccurrenceResource occurrenceResource) {
     this.occurrenceResource = occurrenceResource;
-    ClientFactory clientFactory = new ClientFactory("http://localhost:" + localServerPort);
-    occurrenceWsClient = clientFactory.newInstance(OccurrenceWsClient.class);
+    ClientBuilder clientBuilder = new ClientBuilder().withUrl("http://localhost:" + localServerPort);
+    occurrenceWsClient = clientBuilder.build(OccurrenceWsClient.class);
   }
 
   @Test

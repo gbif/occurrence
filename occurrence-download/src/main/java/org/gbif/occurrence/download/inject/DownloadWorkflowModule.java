@@ -24,7 +24,7 @@ import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -65,17 +65,17 @@ public class DownloadWorkflowModule  {
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
-            .occurrenceDownloadService(clientFactory().newInstance(OccurrenceDownloadClient.class))
+            .occurrenceDownloadService(clientBuilder().build(OccurrenceDownloadClient.class))
             .build();
   }
 
   /**
    * GBIF Ws client factory.
    */
-  public ClientFactory clientFactory() {
-    return new ClientFactory(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
-                             workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY),
-                             workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY));
+  public ClientBuilder clientBuilder() {
+    return new ClientBuilder().withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
+                .withCredentials(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+                                 workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY));
   }
 
   /**
@@ -199,17 +199,17 @@ public class DownloadWorkflowModule  {
       switch (downloadFormat) {
         case DWCA:
           return new DwcaDownloadAggregator(downloadJobConfiguration,
-                                            clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                            clientBuilder().build(OccurrenceDownloadClient.class));
 
         case SIMPLE_CSV:
           return new SimpleCsvDownloadAggregator(downloadJobConfiguration,
                                                  workflowConfiguration,
-                                                 clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                                 clientBuilder().build(OccurrenceDownloadClient.class));
 
         case SPECIES_LIST:
           return new SpeciesListDownloadAggregator(downloadJobConfiguration,
-                                               workflowConfiguration,
-                                               clientFactory().newInstance(OccurrenceDownloadClient.class));
+                                                   workflowConfiguration,
+                                                   clientBuilder().build(OccurrenceDownloadClient.class));
         case SIMPLE_AVRO:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
