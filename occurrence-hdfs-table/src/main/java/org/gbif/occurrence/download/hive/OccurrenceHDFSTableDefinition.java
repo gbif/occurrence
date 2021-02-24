@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.List;
@@ -66,6 +67,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, HiveColumns.columnFor(GbifTerm.publishingCountry))
+                                      .put(IucnTerm.iucnRedListCategory, HiveColumns.columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
