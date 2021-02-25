@@ -153,6 +153,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
+    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory),
     Pair.of(Group.INTERPRETED, DcTerm.license)
   );
 
@@ -180,7 +181,8 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.genus),
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
-    Pair.of(Group.INTERPRETED, GbifTerm.speciesKey)
+    Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
+    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory)
   );
 
   /**
