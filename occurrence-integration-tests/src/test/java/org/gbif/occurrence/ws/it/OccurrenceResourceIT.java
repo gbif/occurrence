@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(
   classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Disabled
 public class OccurrenceResourceIT {
 
   private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapper();

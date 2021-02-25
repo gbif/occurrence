@@ -12,7 +12,6 @@ import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.test.mocks.ChallengeCodeManagerMock;
 import org.gbif.occurrence.test.mocks.DownloadCallbackServiceMock;
 import org.gbif.occurrence.test.mocks.DownloadRequestServiceMock;
-import org.gbif.occurrence.test.mocks.GrSciCollEditorAuthorizationServiceMock;
 import org.gbif.occurrence.test.mocks.OccurrenceDownloadServiceMock;
 import org.gbif.occurrence.test.mocks.UserMapperMock;
 import org.gbif.occurrence.test.servers.EsManageServer;
@@ -21,19 +20,7 @@ import org.gbif.occurrence.ws.config.OccurrenceMethodSecurityConfiguration;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
 import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
-import org.gbif.registry.persistence.mapper.DatasetMapper;
-import org.gbif.registry.persistence.mapper.InstallationMapper;
-import org.gbif.registry.persistence.mapper.MachineTagMapper;
-import org.gbif.registry.persistence.mapper.OrganizationMapper;
 import org.gbif.registry.persistence.mapper.UserMapper;
-import org.gbif.registry.persistence.mapper.UserRightsMapper;
-import org.gbif.registry.security.EditorAuthorizationServiceImpl;
-import org.gbif.registry.security.LegacyAuthorizationService;
-import org.gbif.registry.security.LegacyAuthorizationServiceImpl;
-import org.gbif.registry.security.config.WebSecurityConfigurer;
-import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationFilter;
-import org.gbif.registry.security.grscicoll.GrSciCollEditorAuthorizationService;
-import org.gbif.registry.security.precheck.AuthPreCheckCreationRequestFilter;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
@@ -87,26 +74,20 @@ import org.springframework.test.context.ActiveProfiles;
    "org.gbif.ws.server.advice",
    "org.gbif.ws.server.mapper",
    "org.gbif.ws.security",
-   "org.gbif.registry.security",
    "org.gbif.registry.persistence",
    "org.gbif.registry.identity",
    "org.gbif.registry.surety",
    "org.gbif.occurrence.search",
+   "org.gbif.occurrence.ws.security",
    "org.gbif.occurrence.ws.resources",
    "org.gbif.occurrence.ws.identity",
    "org.gbif.occurrence.persistence"
  },
  excludeFilters = {
    @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {DownloadRequestServiceImpl.class,
-                                                                      EditorAuthorizationServiceImpl.class,
-                                                                      LegacyAuthorizationServiceImpl.class,
                                                                       UserSuretyDelegateImpl.class,
                                                                       UserChallengeCodeManager.class,
-                                                                      OrganizationChallengeCodeManager.class,
-                                                                      GrSciCollEditorAuthorizationService.class,
-                                                                      WebSecurityConfigurer.class,
-                                                                      AuthPreCheckCreationRequestFilter.class,
-                                                                      GrSciCollEditorAuthorizationFilter.class})
+                                                                      OrganizationChallengeCodeManager.class})
  }
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
@@ -241,28 +222,6 @@ public class OccurrenceWsItConfiguration {
   @Bean
   public ChallengeCodeManager<Integer> challengeCodeManagerMock() {
     return new ChallengeCodeManagerMock();
-  }
-
-
-  @Bean
-  public EditorAuthorizationServiceImpl editorAuthorizationServiceSutb() {
-    return new EditorAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
-                                              Mockito.mock(DatasetMapper.class),
-                                              Mockito.mock(InstallationMapper.class),
-                                              Mockito.mock(UserRightsMapper.class),
-                                              Mockito.mock(MachineTagMapper.class));
-  }
-
-  @Bean
-  public LegacyAuthorizationService legacyAuthorizationService() {
-    return new LegacyAuthorizationServiceImpl(Mockito.mock(OrganizationMapper.class),
-                                       Mockito.mock(DatasetMapper.class),
-                                       Mockito.mock(InstallationMapper.class));
-  }
-
-  @Bean
-  public GrSciCollEditorAuthorizationService grSciCollEditorAuthorization() {
-    return new GrSciCollEditorAuthorizationServiceMock();
   }
 
   /**

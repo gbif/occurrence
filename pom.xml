@@ -417,11 +417,6 @@
         <version>${gbif-registry.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.gbif.registry</groupId>
-        <artifactId>registry-security</artifactId>
-        <version>${gbif-registry.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.gbif</groupId>
         <artifactId>hbase-utils</artifactId>
         <version>${hbase-utils.version}</version>

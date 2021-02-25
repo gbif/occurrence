@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest(
   classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Disabled
 public class OccurrenceDownloadResourceIT {
 
   private static final String TEST_DOWNLOAD_FILE = "classpath:0011066-200127171203522.zip";
