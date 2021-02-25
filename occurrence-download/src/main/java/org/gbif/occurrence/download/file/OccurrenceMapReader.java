@@ -25,6 +25,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -120,6 +121,7 @@ public class OccurrenceMapReader {
                               Optional.ofNullable(ClassificationUtils.getHigherRank(occurrence, rank))
                                 .ifPresent(rankClassification -> interpretedOccurrence.put(rank2Term.get(rank).simpleName(), rankClassification));
                            });
+    interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
 
     //location fields
     interpretedOccurrence.put(DwcTerm.countryCode.simpleName(), getCountryCode(occurrence.getCountry()));
