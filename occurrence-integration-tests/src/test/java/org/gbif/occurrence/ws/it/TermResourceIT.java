@@ -6,6 +6,7 @@ import org.gbif.occurrence.ws.resources.TermResource;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(
   classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled
 public class TermResourceIT {
 
   private final TermResource termResource;

@@ -43,6 +43,7 @@ import java.util.Collections;
 
 import org.apache.hadoop.hbase.client.Connection;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -110,6 +111,7 @@ import org.springframework.test.context.ActiveProfiles;
 )
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
 @ActiveProfiles("test")
+@Disabled
 public class OccurrenceWsItConfiguration {
 
   public static final GbifUser TEST_USER = new GbifUser();

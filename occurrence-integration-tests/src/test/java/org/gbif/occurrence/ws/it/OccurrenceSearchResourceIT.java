@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(
   classes = OccurrenceWsItConfiguration.class,
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled
 public class OccurrenceSearchResourceIT {
 
   @RegisterExtension static ElasticsearchInitializer elasticsearchInitializer = ElasticsearchInitializer.builder().testDataFile("classpath:occurrences-test.json").build();
