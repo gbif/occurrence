@@ -110,7 +110,7 @@ public enum OccurrenceEsField {
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
   TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
-  IUCN_RED_LIST_CATEGORY("gbifClassification.iucnRedListCategory", IucnTerm.iucnRedListCategory),
+  IUCN_RED_LIST_CATEGORY("gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory),
 
   // GrSciColl
   COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
