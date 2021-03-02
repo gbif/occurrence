@@ -8,7 +8,7 @@ import org.gbif.registry.ws.client.DatasetClient;
 import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -19,19 +19,20 @@ import java.util.Properties;
  */
 public class RegistryClientUtil {
 
-  private final ClientFactory clientFactory;
+  private final ClientBuilder clientBuilder;
 
   public RegistryClientUtil(String userName, String password, String apiUrl) {
-    clientFactory = new ClientFactory(userName, password, apiUrl);
+    clientBuilder = new ClientBuilder().withUrl(apiUrl).withCredentials(userName, password);
   }
 
   /**
    * Constructs an instance using properties class instance.
    */
   public RegistryClientUtil(Properties properties, String apiUrl) {
-    clientFactory = new ClientFactory(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-                                      properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY),
-                                      Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)));
+    clientBuilder = new ClientBuilder()
+      .withUrl(Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)))
+      .withCredentials(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
+                       properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY));
   }
 
 
@@ -63,7 +64,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetService setupDatasetService() {
-    return clientFactory.newInstance(DatasetClient.class);
+    return clientBuilder.build(DatasetClient.class);
   }
 
   /**
@@ -72,7 +73,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public DatasetOccurrenceDownloadUsageService setupDatasetUsageService() {
-    return clientFactory.newInstance(DatasetOccurrenceDownloadUsageClient.class);
+    return clientBuilder.build(DatasetOccurrenceDownloadUsageClient.class);
   }
 
   /**
@@ -81,7 +82,7 @@ public class RegistryClientUtil {
    * Sets up an http client with a one minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService() {
-    return clientFactory.newInstance(OccurrenceDownloadClient.class);
+    return clientBuilder.build(OccurrenceDownloadClient.class);
   }
 
 }

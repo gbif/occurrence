@@ -6,7 +6,7 @@ import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
@@ -74,8 +74,7 @@ public class OccurrenceWsConfiguration {
   public OccurrenceDownloadService occurrenceDownloadService(@Value("${api.url}") String apiUrl,
                                                              @Value("${occurrence.download.ws.username}") String downloadUsername,
                                                              @Value("${occurrence.download.ws.password}") String downloadUserPassword) {
-    ClientFactory clientFactory = new ClientFactory(downloadUsername, downloadUserPassword, apiUrl);
-    return clientFactory.newInstance(OccurrenceDownloadClient.class);
+    return new ClientBuilder().withUrl(apiUrl).withCredentials(downloadUsername, downloadUserPassword).build(OccurrenceDownloadClient.class);
   }
 
   @Configuration

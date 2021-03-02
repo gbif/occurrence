@@ -25,7 +25,7 @@ import org.gbif.nameparser.NameParserGbifV1;
 import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.clients.SpeciesWsClient;
 import org.gbif.rest.client.configuration.ClientConfiguration;
-import org.gbif.ws.client.ClientFactory;
+import org.gbif.ws.client.ClientBuilder;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -60,7 +60,7 @@ public class TaxonomyInterpreter implements Serializable {
     matchingWs = NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(ClientConfiguration.builder().withBaseApiUrl(apiUrl).build());
 
     speciesWs = new KeyValueStore<String, NameUsage>(){
-      private SpeciesWsClient speciesWsClient = new ClientFactory(apiUrl).newInstance(SpeciesWsClient.class);
+      private SpeciesWsClient speciesWsClient = new ClientBuilder().withUrl(apiUrl).build(SpeciesWsClient.class);
       @Override
       public NameUsage get(String nubKey) {
         return speciesWsClient.get(nubKey);

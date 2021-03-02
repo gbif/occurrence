@@ -3,15 +3,23 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.pipelines.io.avro.MeasurementOrFactTable;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
+import org.apache.avro.Schema;
 
 /**
  * This provides the definition required to construct the occurrence hdfs table, for use as a Hive table.
@@ -28,6 +36,43 @@ import com.google.common.collect.ImmutableSet;
  * maintenance.
  */
 public class OccurrenceHDFSTableDefinition {
+
+  public static class ExtensionTable {
+
+    private String extension;
+
+    public ExtensionTable(String extension) {
+      this.extension = extension;
+    }
+
+    public String getExtension() {
+      return extension;
+    }
+
+    public String getHiveTableName() {
+      return extension.toLowerCase().replace("table","");
+    }
+
+    public String getDirectoryTableName() {
+      return extension.toLowerCase() + "table";
+    }
+
+    public String getAvroSchemaFileName() {
+      return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, extension) + ".avsc";
+    }
+
+    public String getAvroSchema() {
+      try {
+        Schema schema = (Schema)Class.forName(MeasurementOrFactTable.class.getPackage().getName() + "." +extension)
+          .getDeclaredMethod("getClassSchema")
+          .invoke(null, null);
+        return schema.toString(true);
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+
+  }
 
   /**
    * Private constructor.
@@ -66,6 +111,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, HiveColumns.columnFor(GbifTerm.publishingCountry))
+                                      .put(IucnTerm.iucnRedListCategory, HiveColumns.columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
@@ -145,6 +191,18 @@ public class OccurrenceHDFSTableDefinition {
       .addAll(interpretedFields())
       .addAll(extensions())
       .build();
+  }
+
+  public static List<ExtensionTable> tableExtensions() {
+    try {
+      ClassPath classPath = ClassPath.from(Thread.currentThread().getContextClassLoader());
+      return classPath.getTopLevelClasses(MeasurementOrFactTable.class.getPackage().getName()).stream()
+        .filter(c -> c.getSimpleName().endsWith("Table"))
+        .map(c -> new ExtensionTable(c.getSimpleName()))
+        .collect(Collectors.toList());
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   /**

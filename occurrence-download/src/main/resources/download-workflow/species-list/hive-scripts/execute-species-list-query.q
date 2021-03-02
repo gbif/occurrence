@@ -19,8 +19,8 @@ DROP TABLE IF EXISTS ${speciesListTable}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${speciesListTable}_tmp STORED AS ORC
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus,
-          kingdom, kingdomkey, phylum, phylumkey, class,classkey, order_, orderkey, family, familykey,
-          genus,genuskey, species, specieskey, datasetkey, license
+          kingdom, kingdomkey, phylum, phylumkey, class, classkey, order_, orderkey, family, familykey,
+          genus, genuskey, species, specieskey, iucnredlistcategory, datasetkey, license
 FROM occurrence
 WHERE ${whereClause};
 
@@ -32,10 +32,10 @@ SET hive.merge.mapredfiles=false;
 CREATE TABLE ${speciesListTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, COUNT(taxonkey) AS numberOfOccurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey,
-          phylum, phylumkey,class,classkey, order_, orderkey, family, familykey, genus,genuskey, species, specieskey
+          phylum, phylumkey, class, classkey, order_, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory
 FROM ${speciesListTable}_tmp
-GROUP BY taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey,phylum, phylumkey, class, classkey,
-         order_, orderkey, family, familykey, genus, genuskey, species, specieskey;
+GROUP BY taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey, class, classkey,
+         order_, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;

@@ -8,6 +8,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
@@ -442,6 +443,8 @@ public class TermUtils {
       .addAll(
         // add all GADM terms (none are stripped during interpretation, but filter anyway).
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
+      //IUCN RedList Category
+      .add(IucnTerm.iucnRedListCategory)
       .build();
   }
 

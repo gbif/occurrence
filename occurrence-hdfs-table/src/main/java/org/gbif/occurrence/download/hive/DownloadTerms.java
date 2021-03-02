@@ -153,6 +153,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
+    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory),
     Pair.of(Group.INTERPRETED, DcTerm.license)
   );
 
@@ -180,14 +181,15 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.genus),
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
-    Pair.of(Group.INTERPRETED, GbifTerm.speciesKey)
+    Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
+    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory)
   );
 
   /**
    * GBIF-Internal terms
    */
   public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
-    GbifInternalTerm.publishingOrgKey, IucnTerm.threatStatus
+    GbifInternalTerm.publishingOrgKey, IucnTerm.iucnRedListCategory
   );
 
   public static String simpleName(Pair<Group, Term> termPair) {

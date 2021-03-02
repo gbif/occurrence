@@ -14,8 +14,6 @@ import org.apache.avro.SchemaBuilder;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -113,7 +111,8 @@ public class GenerateHQL {
 
     try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-avro.q"))) {
       Template template = cfg.getTemplate("configure/create-occurrence-avro.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition(),
+                                                 "extensions", OccurrenceHDFSTableDefinition.tableExtensions());
       template.process(data, out);
     }
   }
@@ -125,8 +124,10 @@ public class GenerateHQL {
   }
 
   private static void copyMeasurementOrFactsSchema(File outDir) throws IOException {
-    try (FileWriter out = new FileWriter(new File(outDir, "measurement-fact-table.avsc"))) {
-      out.write(MeasurementOrFactTable.SCHEMA$.toString(true));
+    for (OccurrenceHDFSTableDefinition.ExtensionTable et : OccurrenceHDFSTableDefinition.tableExtensions()) {
+      try (FileWriter out = new FileWriter(new File(outDir, et.getAvroSchemaFileName()))) {
+        out.write(et.getAvroSchema());
+      }
     }
   }
 

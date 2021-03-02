@@ -110,6 +110,7 @@ public enum OccurrenceEsField {
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
   TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
+  IUCN_RED_LIST_CATEGORY("gbifClassification.iucnRedListCategory", IucnTerm.iucnRedListCategory),
 
   // GrSciColl
   COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
@@ -153,8 +154,7 @@ public enum OccurrenceEsField {
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
   IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
-  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension),
-  IUCN_RED_LIST_CATEGORY("iucnRedListCategory", IucnTerm.threatStatus);
+  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension);
 
 
   private final String fieldName;

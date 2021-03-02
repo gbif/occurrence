@@ -16,13 +16,17 @@ OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/occurrence'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/occurrence-hdfs-record.avsc');
 
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_measurement_or_facts_avro;
-CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_measurement_or_facts_avro
+<#list extensions as extension>
+-- Avro Table for ${extension.extension}
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
+CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/measurementorfacttable'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/measurement-fact-table.avsc');
+LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
+
+</#list>
 
 -- snappy compression
 SET hive.exec.compress.output=true;
@@ -51,12 +55,16 @@ SELECT
 </#list>
 FROM ${r"${occurrenceTable}"}_avro;
 
-CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_measurement_or_facts
-LIKE ${r"${occurrenceTable}"}_measurement_or_facts_avro
+<#list extensions as extension>
+-- ${extension.extension} extension table
+CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}
+LIKE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
 STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
-INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_measurement_or_facts
-SELECT * FROM ${r"${occurrenceTable}"}_measurement_or_facts_avro;
+INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}
+SELECT * FROM ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
+
+</#list>
 
 SET hive.vectorized.execution.reduce.enabled=false;
 --this flag is turn OFF to avoid memory exhaustion errors http://hortonworks.com/community/forums/topic/mapjoinmemoryexhaustionexception-on-local-job/
