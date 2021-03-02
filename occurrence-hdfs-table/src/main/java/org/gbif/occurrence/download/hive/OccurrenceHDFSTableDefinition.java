@@ -37,6 +37,9 @@ import org.apache.avro.Schema;
  */
 public class OccurrenceHDFSTableDefinition {
 
+  /**
+   * Utility class used in the Freemarker template that generates  Hive tables for extensions.
+   */
   public static class ExtensionTable {
 
     private String extension;

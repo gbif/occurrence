@@ -17,7 +17,7 @@ LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/occurrence'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/occurrence-hdfs-record.avsc');
 
 <#list extensions as extension>
--- Avro Table for ${extension.extension}
+-- ${extension.extension} Avro external table
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
 CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
@@ -56,7 +56,7 @@ SELECT
 FROM ${r"${occurrenceTable}"}_avro;
 
 <#list extensions as extension>
--- ${extension.extension} extension table
+-- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}
 LIKE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
 STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
