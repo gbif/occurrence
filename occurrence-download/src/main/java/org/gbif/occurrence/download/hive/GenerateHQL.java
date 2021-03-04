@@ -1,7 +1,5 @@
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.pipelines.io.avro.MeasurementOrFactTable;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.cache.ClassTemplateLoader;
