@@ -5,7 +5,7 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.pipelines.io.avro.MeasurementOrFactTable;
+import org.gbif.pipelines.io.avro.extension.MeasurementOrFactTable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
