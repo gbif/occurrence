@@ -8,7 +8,6 @@ import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
 import org.gbif.occurrence.cli.common.EsHelper;
-import org.gbif.pipelines.common.PipelinesVariables.Pipeline.HdfsView;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -91,7 +90,7 @@ public class EsDatasetDeleterCallback
     deleteByPattern(fs, deleteIngestPath);
 
     // Delete dataset from hdfs view directory
-    String viewFileName = HdfsView.VIEW_OCCURRENCE + "_" + datasetKey + "_*";
+    String viewFileName = datasetKey + "_*";
     String deleteHdfsPath = String.join(Path.SEPARATOR, config.hdfsViewDirPath, viewFileName);
     deleteByPattern(fs, deleteHdfsPath);
   }
