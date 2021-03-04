@@ -57,7 +57,7 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public String getDirectoryTableName() {
-      return extension.toLowerCase() + "table";
+      return extension.toLowerCase();
     }
 
     public String getAvroSchemaFileName() {
