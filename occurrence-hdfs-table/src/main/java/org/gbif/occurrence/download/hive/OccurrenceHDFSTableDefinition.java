@@ -5,7 +5,6 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.pipelines.io.avro.extension.MeasurementOrFactTable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -37,40 +36,46 @@ import org.apache.avro.Schema;
  */
 public class OccurrenceHDFSTableDefinition {
 
+  private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
+
   /**
    * Utility class used in the Freemarker template that generates  Hive tables for extensions.
    */
   public static class ExtensionTable {
 
-    private String extension;
+    private ClassPath.ClassInfo extension;
 
-    public ExtensionTable(String extension) {
+    public ExtensionTable(ClassPath.ClassInfo extension) {
       this.extension = extension;
     }
 
     public String getExtension() {
-      return extension;
+      return extension.getSimpleName();
+    }
+
+    private String getLeafNamespace() {
+      return extension.getPackageName().replace(EXT_PACKAGE + '.',"").replace('.', '_');
     }
 
     public String getHiveTableName() {
-      return extension.toLowerCase().replace("table","");
+      return getLeafNamespace() + '_' + extension.getSimpleName().toLowerCase().replace("table","");
     }
 
     public String getDirectoryTableName() {
-      return extension.toLowerCase();
+      return extension.getSimpleName().toLowerCase();
     }
 
     public String getAvroSchemaFileName() {
-      return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, extension) + ".avsc";
+      return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, extension.getSimpleName()) + ".avsc";
     }
 
     public String getAvroSchema() {
       try {
-        Schema schema = (Schema)Class.forName(MeasurementOrFactTable.class.getPackage().getName() + "." +extension)
+        Schema schema = (Schema)extension.load()
           .getDeclaredMethod("getClassSchema")
           .invoke(null, null);
         return schema.toString(true);
-      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+      } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
     }
@@ -199,9 +204,9 @@ public class OccurrenceHDFSTableDefinition {
   public static List<ExtensionTable> tableExtensions() {
     try {
       ClassPath classPath = ClassPath.from(Thread.currentThread().getContextClassLoader());
-      return classPath.getTopLevelClasses(MeasurementOrFactTable.class.getPackage().getName()).stream()
+      return classPath.getTopLevelClassesRecursive(EXT_PACKAGE).stream()
         .filter(c -> c.getSimpleName().endsWith("Table"))
-        .map(c -> new ExtensionTable(c.getSimpleName()))
+        .map(ExtensionTable::new)
         .collect(Collectors.toList());
     } catch (IOException ex) {
       throw new RuntimeException(ex);
