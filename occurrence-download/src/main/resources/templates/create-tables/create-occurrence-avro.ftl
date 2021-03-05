@@ -55,7 +55,7 @@ TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSc
 
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_ext_${extension.hiveTableName}
-LIKE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
+LIKE ${r"${occurrenceTable}"}_ext_${extension.hiveTableName}_avro
 STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_ext_${extension.hiveTableName}
