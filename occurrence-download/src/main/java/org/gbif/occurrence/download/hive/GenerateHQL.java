@@ -74,7 +74,7 @@ public class GenerateHQL {
       cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
 
       generateOccurrenceAvroSchema(avroSchemasDir);
-      copyMeasurementOrFactsSchema(avroSchemasDir);
+      copyExtensionSchemas(avroSchemasDir);
       generateOccurrenceAvroTableHQL(cfg, createTablesDir);
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
@@ -107,11 +107,15 @@ public class GenerateHQL {
    */
   private static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 
-    try (FileWriter out = new FileWriter(new File(outDir, "create-occurrence-avro.q"))) {
-      Template template = cfg.getTemplate("configure/create-occurrence-avro.ftl");
+    try (FileWriter createTableScript = new FileWriter(new File(outDir, "create-occurrence-avro.q"));
+         FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"))) {
+      Template createTableTemplate = cfg.getTemplate("create-tables/create-occurrence-avro.ftl");
       Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition(),
                                                  "extensions", OccurrenceHDFSTableDefinition.tableExtensions());
-      template.process(data, out);
+      createTableTemplate.process(data, createTableScript);
+
+      Template swapTablesTemplate = cfg.getTemplate("create-tables/swap-tables.ftl");
+      swapTablesTemplate.process(data, swapTablesScript);
     }
   }
 
@@ -121,7 +125,7 @@ public class GenerateHQL {
     }
   }
 
-  private static void copyMeasurementOrFactsSchema(File outDir) throws IOException {
+  private static void copyExtensionSchemas(File outDir) throws IOException {
     for (OccurrenceHDFSTableDefinition.ExtensionTable et : OccurrenceHDFSTableDefinition.tableExtensions()) {
       try (FileWriter out = new FileWriter(new File(outDir, et.getAvroSchemaFileName()))) {
         out.write(et.getAvroSchema());

@@ -16,18 +16,6 @@ OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/occurrence'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/occurrence-hdfs-record.avsc');
 
-<#list extensions as extension>
--- ${extension.extension} Avro external table
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
-CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
-ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
-STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
-OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
-
-</#list>
-
 -- snappy compression
 SET hive.exec.compress.output=true;
 SET mapred.output.compression.type=BLOCK;
@@ -56,6 +44,15 @@ SELECT
 FROM ${r"${occurrenceTable}"}_avro;
 
 <#list extensions as extension>
+-- ${extension.extension} Avro external table
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
+CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
+
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}
 LIKE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
@@ -63,7 +60,6 @@ STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"=
 
 INSERT OVERWRITE TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}
 SELECT * FROM ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
-
 </#list>
 
 SET hive.vectorized.execution.reduce.enabled=false;
@@ -93,5 +89,16 @@ CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}'
+LOCATION '${r"${sourceDataDir}"}/occurrence'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
+
+<#list extensions as extension>
+-- ${extension.extension} Avro external table
+DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
+CREATE EXTERNAL TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+LOCATION '${r"${sourceDataDir}"}/${extension.directoryTableName}'
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
+</#list>
