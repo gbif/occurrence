@@ -45,8 +45,11 @@ public class OccurrenceHDFSTableDefinition {
 
     private ClassPath.ClassInfo extension;
 
+    private final String leafNamespace;
+
     public ExtensionTable(ClassPath.ClassInfo extension) {
       this.extension = extension;
+      leafNamespace = extension.getPackageName().replace(EXT_PACKAGE + '.',"").replace('.', '_');
     }
 
     public String getExtension() {
@@ -54,7 +57,7 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     private String getLeafNamespace() {
-      return extension.getPackageName().replace(EXT_PACKAGE + '.',"").replace('.', '_');
+      return leafNamespace;
     }
 
     public String getHiveTableName() {
@@ -66,7 +69,7 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public String getAvroSchemaFileName() {
-      return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, extension.getSimpleName()) + ".avsc";
+      return leafNamespace +  '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, extension.getSimpleName()) + ".avsc";
     }
 
     public String getAvroSchema() {
