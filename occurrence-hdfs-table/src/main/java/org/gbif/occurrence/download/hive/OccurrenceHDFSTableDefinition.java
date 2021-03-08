@@ -61,7 +61,7 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public String getHiveTableName() {
-      return getLeafNamespace() + '_' + extension.getSimpleName().toLowerCase().replace("table","");
+      return leafNamespace + '_' + extension.getSimpleName().toLowerCase().replace("table","");
     }
 
     public String getDirectoryTableName() {
