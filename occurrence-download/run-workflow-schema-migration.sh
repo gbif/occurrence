@@ -6,7 +6,7 @@ set -o pipefail
 
 P=$1
 TOKEN=$2
-SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/occurrence/}
+SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/}
 TABLE_NAME=${4:-occurrence}
 SCHEMA_CHANGED=${5:-true}
 TABLE_SWAP=${6:-true}
@@ -37,5 +37,6 @@ sudo -u hdfs hdfs dfs -rm -r -f /occurrence-download-workflows-new-schema-$ENV/
 sudo -u hdfs hdfs dfs -mkdir  /occurrence-download-workflows-new-schema-$ENV/
 sudo -u hdfs hdfs dfs -copyFromLocal target/occurrence-download-workflows-$ENV/*  /occurrence-download-workflows-new-schema-$ENV/
 echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.wf.application.path=$NAME_NODE/occurrence-download-workflows-new-schema-$ENV/create-tables\nhiveDB=$HIVE_DB\noozie.libpath=/occurrence-download-workflows-new-schema-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs\nenv=$ENV\nsource_data_dir=$SOURCE_DIR\ndownload_table_name=$TABLE_NAME\nschema_change=$SCHEMA_CHANGED\ntable_swap=$TABLE_SWAP"  > job.properties
+echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.coord.application.path=$NAME_NODE/occurrence-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noozie.libpath=/occurrence-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs\nenv=$ENV\nsource_data_dir=$SOURCE_DIR\ndownload_table_name=occurrence\nschema_change=false\ntable_swap=false"  > job.properties
 
 sudo -u hdfs oozie job --oozie $OOZIE -config job.properties -run
