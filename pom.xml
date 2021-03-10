@@ -59,6 +59,7 @@
     <mybatis-spring-boot-starter.version>2.0.1</mybatis-spring-boot-starter.version>
     <mybatis-spring-boot-starter-test.version>2.0.0</mybatis-spring-boot-starter-test.version>
     <feign.version>10.11</feign.version>
+    <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -522,6 +523,11 @@
         <groupId>io.github.openfeign</groupId>
         <artifactId>feign-jackson</artifactId>
         <version>${feign.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.codecentric</groupId>
+        <artifactId>spring-boot-admin-starter-client</artifactId>
+        <version>${spring-boot-admin.version}</version>
       </dependency>
 
       <!-- Other -->
