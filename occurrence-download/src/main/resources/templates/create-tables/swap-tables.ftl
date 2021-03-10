@@ -13,11 +13,11 @@ ALTER TABLE new_${r"${occurrenceTable}"}_multimedia RENAME TO ${r"${occurrenceTa
 
 <#list extensions as extension>
 -- ${extension.extension} renaming
-ALTER TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro RENAME TO old_${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
-ALTER TABLE ${r"${occurrenceTable}"}_${extension.hiveTableName} RENAME TO old_${r"${occurrenceTable}"}_${extension.hiveTableName};
+ALTER TABLE ${r"${occurrenceTable}"}_ext_${extension.hiveTableName}_avro RENAME TO old_${r"${occurrenceTable}"}_ext_${extension.hiveTableName}_avro;
+ALTER TABLE ${r"${occurrenceTable}"}_ext_${extension.hiveTableName} RENAME TO old_${r"${occurrenceTable}"}_ext_${extension.hiveTableName};
 
-ALTER TABLE new_${r"${occurrenceTable}"}_${extension.hiveTableName}_avro RENAME TO ${r"${occurrenceTable}"}_${extension.hiveTableName}_avro;
-ALTER TABLE new_${r"${occurrenceTable}"}_${extension.hiveTableName} RENAME TO ${r"${occurrenceTable}"}_${extension.hiveTableName};
+ALTER TABLE new_${r"${occurrenceTable}"}_ext_${extension.hiveTableName}_avro RENAME TO ${r"${occurrenceTable}"}_ext_${extension.hiveTableName}_avro;
+ALTER TABLE new_${r"${occurrenceTable}"}_ext_${extension.hiveTableName} RENAME TO ${r"${occurrenceTable}"}_ext_${extension.hiveTableName};
 </#list>
 
 
