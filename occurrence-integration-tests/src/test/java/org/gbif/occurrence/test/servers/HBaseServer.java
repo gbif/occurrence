@@ -30,6 +30,16 @@ public class HBaseServer implements DisposableBean, InitializingBean {
   }
 
   public void start() throws Exception {
+    TEST_UTIL.getConfiguration().setInt("hbase.master.port", HBaseTestingUtility.randomFreePort());
+    TEST_UTIL
+      .getConfiguration()
+      .setInt("hbase.master.info.port", HBaseTestingUtility.randomFreePort());
+    TEST_UTIL
+      .getConfiguration()
+      .setInt("hbase.regionserver.port", HBaseTestingUtility.randomFreePort());
+    TEST_UTIL
+      .getConfiguration()
+      .setInt("hbase.regionserver.info.port", HBaseTestingUtility.randomFreePort());
     TEST_UTIL.startMiniCluster(1);
   }
 
