@@ -1,0 +1,18 @@
+/**
+ * Bionomia identifiers table record format.
+ *
+ * This schema may change according to the requirements of the Bionomia project.
+ */
+
+{
+  "name": "BionomiaIdentifiers",
+  "namespace": "org.gbif.occurrence.download.bionomia.avro",
+  "type": "record",
+  "fields": [
+    {"name": "identifier",            "type": "string" },
+    {"name": "totalRecordedByID",     "type": "long" },
+    {"name": "totalIdentifiedByID",   "type": "long" },
+    {"name": "gbifIDsRecordedByID",   "type": ["null", { "type": "array", "items": "string" } ] },
+    {"name": "gbifIDsIdentifiedByID", "type": ["null", { "type": "array", "items": "string" } ] }
+  ]
+}

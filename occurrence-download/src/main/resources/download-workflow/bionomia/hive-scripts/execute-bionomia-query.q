@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS ${occurrenceTable};
 DROP TABLE IF EXISTS ${occurrenceTable}_citation;
 DROP TABLE IF EXISTS ${occurrenceTable}_agents;
 DROP TABLE IF EXISTS ${occurrenceTable}_families;
+DROP TABLE IF EXISTS ${occurrenceTable}_identifiers;
 
 -- datasetKey and license are required for calculating the citation.
 CREATE TABLE ${occurrenceTable}
@@ -34,6 +35,7 @@ AS SELECT
   toLocalISO8601(dateidentified) AS dateIdentified,
   toLocalISO8601(eventdate) AS eventDate,
   array_contains(mediaType, 'StillImage') AS hasImage,
+  kingdom,
   family,
   recordedBy,
   identifiedBy,
@@ -88,8 +90,8 @@ FROM
      COUNT(gbifID) AS total_recordedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedBy
   FROM ${occurrenceTable}
-  WHERE v_recordedby IS NOT NULL
-  GROUP BY v_recordedby) AS r
+  WHERE v_recordedBy IS NOT NULL
+  GROUP BY v_recordedBy) AS r
 FULL OUTER JOIN
   (SELECT
      v_identifiedBy AS agent,
@@ -112,3 +114,32 @@ AS SELECT
 FROM ${occurrenceTable}
   WHERE family IS NOT NULL
   GROUP BY family;
+
+CREATE TABLE ${occurrenceTable}_identifiers
+  ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-identifiers.avsc')
+AS SELECT
+  COALESCE(r.identifiers, i.identifiers) AS identifier,
+  COALESCE(r.total_recordedByID, 0) AS totalRecordedByID,
+  COALESCE(i.total_identifiedByID, 0) AS totalIdentifiedByID,
+  r.gbifIDs_recordedByID AS gbifIDsRecordedByID,
+  i.gbifIDs_identifiedByID AS gbifIDsIdentifiedByID
+FROM
+  (SELECT
+     v_recordedByID AS identifier,
+     COUNT(gbifID) AS total_recordedByID,
+     collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedByID
+  FROM ${occurrenceTable}
+  WHERE v_recordedByID IS NOT NULL
+  GROUP BY v_recordedByID) AS r
+FULL OUTER JOIN
+  (SELECT
+     v_identifiedBy AS identifier,
+     COUNT(gbifID) AS total_identifiedByID,
+     collect_set(CAST(gbifID AS STRING)) AS gbifIDs_identifiedByID
+  FROM ${occurrenceTable}
+  WHERE v_identifiedByID IS NOT NULL
+  GROUP BY v_identifiedByID) AS i
+ON r.identifier = i.identifier;
