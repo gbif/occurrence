@@ -90,8 +90,8 @@ FROM
      COUNT(gbifID) AS total_recordedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedBy
   FROM ${occurrenceTable}
-  WHERE v_recordedBy IS NOT NULL
-  GROUP BY v_recordedBy) AS r
+  WHERE v_recordedby IS NOT NULL
+  GROUP BY v_recordedby) AS r
 FULL OUTER JOIN
   (SELECT
      v_identifiedBy AS agent,
@@ -121,7 +121,7 @@ CREATE TABLE ${occurrenceTable}_identifiers
   OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
   TBLPROPERTIES ('avro.schema.url'='${wfPath}/bionomia-identifiers.avsc')
 AS SELECT
-  COALESCE(r.identifiers, i.identifiers) AS identifier,
+  COALESCE(r.identifier, i.identifier) AS identifier,
   COALESCE(r.total_recordedByID, 0) AS totalRecordedByID,
   COALESCE(i.total_identifiedByID, 0) AS totalIdentifiedByID,
   r.gbifIDs_recordedByID AS gbifIDsRecordedByID,
@@ -132,14 +132,14 @@ FROM
      COUNT(gbifID) AS total_recordedByID,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedByID
   FROM ${occurrenceTable}
-  WHERE v_recordedByID IS NOT NULL
-  GROUP BY v_recordedByID) AS r
+  WHERE v_recordedbyid IS NOT NULL
+  GROUP BY v_recordedbyid) AS r
 FULL OUTER JOIN
   (SELECT
-     v_identifiedBy AS identifier,
+     v_identifiedByID AS identifier,
      COUNT(gbifID) AS total_identifiedByID,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_identifiedByID
   FROM ${occurrenceTable}
-  WHERE v_identifiedByID IS NOT NULL
-  GROUP BY v_identifiedByID) AS i
+  WHERE v_identifiedbyid IS NOT NULL
+  GROUP BY v_identifiedbyid) AS i
 ON r.identifier = i.identifier;
