@@ -6,7 +6,6 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
-import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.client.ClientBuilder;
 
 import java.io.ByteArrayOutputStream;
@@ -90,7 +89,7 @@ public class OccurrenceDownloadResourceIT {
     predicateDownloadRequest.setCreator("NotMe");
 
     //Exception expected
-    assertThrows(MethodNotAllowedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
+    assertThrows(AccessDeniedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
   }
 
   @Test

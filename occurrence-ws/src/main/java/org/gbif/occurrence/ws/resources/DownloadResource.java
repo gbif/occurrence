@@ -12,15 +12,22 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
+import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
+import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +43,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
+import org.gbif.api.model.common.paging.PagingRequest;
+import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -55,6 +65,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -111,7 +123,8 @@ public class DownloadResource {
   @DeleteMapping("{key}")
   public void delDownload(@PathVariable("key") String jobId, @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
-    assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), principal);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), authentication, principal);
     LOG.debug("Delete download: [{}]", jobId);
     requestService.cancel(jobId);
   }
@@ -140,7 +153,6 @@ public class DownloadResource {
 
     try {
 
-      //LOG.debug("Ranged request, Range: {}", range);
       if (LOG.isDebugEnabled()) {
         // Temporarily, in case we find weird clients.
         LOG.debug("Range {} request, dumping all headers:", request.getMethod());
@@ -209,7 +221,7 @@ public class DownloadResource {
 
   /**
    * Single file download.
-   * Be aware this method is called when the header HttpHeaders.RANGE is ABSENT, other the getStreamResult is invoked.
+   * Be aware this method is called when the header HttpHeaders.RANGE is ABSENT, otherwise getStreamResult is invoked.
    */
   @GetMapping(value = "{key}", produces = {APPLICATION_OCTET_STREAM_QS_VALUE, MediaType.APPLICATION_JSON_VALUE,
     "application/x-javascript"})
@@ -277,7 +289,8 @@ public class DownloadResource {
     @NotNull @Valid @RequestBody PredicateDownloadRequest request, @Autowired Principal principal
   ) {
     try {
-      return ResponseEntity.ok(createDownload(request, principal));
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      return ResponseEntity.ok(createDownload(request, authentication, principal));
     } catch (ResponseStatusException rse) {
       return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
     }
@@ -285,15 +298,44 @@ public class DownloadResource {
 
   /**
    * Creates/Starts an occurrence download.
+   *
+   * Non-admin users may be given an existing download key, where the monthly download user
+   * has already created a suitable download.
    */
-  private String createDownload(DownloadRequest downloadRequest, @Autowired Principal principal) {
+  private String createDownload(DownloadRequest downloadRequest, Authentication authentication, @Autowired Principal principal) {
     Principal userAuthenticated = assertUserAuthenticated(principal);
     if (Objects.isNull(downloadRequest.getCreator())) {
       downloadRequest.setCreator(userAuthenticated.getName());
     }
-    LOG.debug("Download: [{}]", downloadRequest);
-    // assert authenticated user is the same as in download
-    assertLoginMatches(downloadRequest, userAuthenticated);
+    LOG.info("New download request: [{}]", downloadRequest);
+    // User matches (or admin user)
+    assertLoginMatches(downloadRequest, authentication, userAuthenticated);
+
+    if (!assertMonthlyDownloadBypass(authentication) &&
+      downloadRequest instanceof PredicateDownloadRequest) {
+      PredicateDownloadRequest predicateDownloadRequest = (PredicateDownloadRequest) downloadRequest;
+      if (!predicateDownloadRequest.getFormat().equals(DownloadFormat.SPECIES_LIST)) {
+
+        // Check for recent monthly downloads with the same predicate
+        PagingResponse<Download> monthlyDownloads = occurrenceDownloadService.listByUser("download.gbif.org",
+          new PagingRequest(0, 50), EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
+        String existingMonthlyDownload = matchExistingDownload(monthlyDownloads, predicateDownloadRequest,
+          Date.from(Instant.now().minus(35, ChronoUnit.DAYS)));
+        if (existingMonthlyDownload != null) {
+          return existingMonthlyDownload;
+        }
+      }
+
+      // Check for recent user downloads (of this same user) with the same predicate
+      PagingResponse<Download> userDownloads = occurrenceDownloadService.listByUser(userAuthenticated.getName(),
+        new PagingRequest(0, 50), EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
+      String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest,
+        Date.from(Instant.now().minus(4, ChronoUnit.HOURS)));
+      if (existingUserDownload != null) {
+        return existingUserDownload;
+      }
+    }
+
     String downloadKey = requestService.create(downloadRequest);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
@@ -312,7 +354,8 @@ public class DownloadResource {
     @Autowired Principal principal
   ) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
-    return createDownload(downloadPredicate(httpRequest, emails, format, principal), principal);
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return createDownload(downloadPredicate(httpRequest, emails, format, principal), authentication, principal);
   }
 
   @GetMapping("predicate")
@@ -329,6 +372,39 @@ public class DownloadResource {
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
     return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
+  }
+
+  /**
+   * Search existingDownloads for a download with a format and predicate matching newDownload,
+   * from cutoff at the earliest.
+   *
+   * @return The download key, if there's a match.
+   */
+  private String matchExistingDownload(
+    PagingResponse<Download> existingDownloads,
+    PredicateDownloadRequest newDownload,
+    Date cutoff) {
+    for (Download existingDownload : existingDownloads.getResults()) {
+      // Downloads are in descending order by creation date
+      if (existingDownload.getCreated().before(cutoff)) {
+        return null;
+      }
+
+      if (existingDownload.getRequest() instanceof PredicateDownloadRequest) {
+        PredicateDownloadRequest existingPredicateDownload = (PredicateDownloadRequest) existingDownload.getRequest();
+        if (newDownload.getFormat() == existingPredicateDownload.getFormat() &&
+          Objects.equals(newDownload.getPredicate(), existingPredicateDownload.getPredicate())) {
+          LOG.info("Found existing {} download {} ({}) matching new download request.",
+            existingPredicateDownload.getFormat(), existingDownload.getKey(),
+            existingPredicateDownload.getCreator());
+          return existingDownload.getKey();
+        }
+      } else {
+        LOG.warn("Unexpected download type {}", existingDownload.getClass());
+      }
+    }
+
+    return null;
   }
 
   /**

@@ -409,6 +409,11 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>
+        <artifactId>registry-security</artifactId>
+        <version>${gbif-registry.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.registry</groupId>
         <artifactId>registry-metadata</artifactId>
         <version>${gbif-registry.version}</version>
       </dependency>

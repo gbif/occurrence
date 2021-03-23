@@ -8,6 +8,7 @@ import org.gbif.occurrence.download.service.CallbackService;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -17,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 
 /**
- * Download request service that uses the directly the Callback service and mock OccurrenceDownloadService.
+ * Download request service that uses directly the Callback service and mock OccurrenceDownloadService.
  * All file download request resolve to the same test file 0011066-200127171203522.zip.
  */
 public class DownloadRequestServiceMock implements DownloadRequestService {
@@ -53,6 +54,7 @@ public class DownloadRequestServiceMock implements DownloadRequestService {
     Download download = new Download();
     download.setStatus(Download.Status.PREPARING);
     download.setRequest(downloadRequest);
+    download.setCreated(new Date());
     occurrenceDownloadService.create(download);
     downloadCallbackService.processCallback(download.getKey(), Download.Status.PREPARING.name());
     return download.getKey();

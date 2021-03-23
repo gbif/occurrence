@@ -173,10 +173,20 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-identity</artifactId>
       <exclusions>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-security</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

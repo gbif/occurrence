@@ -157,7 +157,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       String exceedSimultaneousLimit = downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
       if (exceedSimultaneousLimit != null) {
         LOG.info("Download request refused as it would exceed simultaneous limits");
-        //TODO: ENHANCE_YOUR_CALM
+        // Keep HTTP 420 ("Enhance your calm") here.
         throw new ResponseStatusException(HttpStatus.METHOD_FAILURE, "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
