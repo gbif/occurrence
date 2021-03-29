@@ -19,18 +19,13 @@
   </distributionManagement>
 
   <properties>
-    <!-- has to match cluster version -->
-    <guava.version>14.0.1</guava.version>
-
     <hadoop-compress.version>1.2</hadoop-compress.version>
     <metrics-core.version>2.2.0</metrics-core.version>
     <hive.serde>1.1.0-cdh5.16.2</hive.serde>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <super-csv.version>2.0.1</super-csv.version>
     <akka-actor.version>2.0.5</akka-actor.version>
-    <gbif-common-mybatis.version>0.18</gbif-common-mybatis.version>
-    <commons-beanutils-core>1.8.3</commons-beanutils-core>
+
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -352,7 +347,6 @@
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils-core</artifactId>
-      <version>${commons-beanutils-core}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -373,7 +367,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${guava-cdh.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -478,7 +472,6 @@
     <dependency>
       <groupId>net.sf.supercsv</groupId>
       <artifactId>super-csv</artifactId>
-      <version>${super-csv.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>

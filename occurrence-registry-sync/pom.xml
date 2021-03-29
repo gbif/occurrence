@@ -19,11 +19,6 @@
     </site>
   </distributionManagement>
 
-  <properties>
-    <!-- have to match hbase version, and shade later -->
-    <guava.version>14.0.1</guava.version>
-  </properties>
-
   <build>
     <resources>
       <resource>
@@ -35,7 +30,7 @@
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-ssh</artifactId>
-        <version>2.4</version>
+        <version>${wagon-ssh.version}</version>
       </extension>
     </extensions>
     <plugins>
@@ -86,7 +81,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${guava-cdh.version}</version>
     </dependency>
 
     <dependency>

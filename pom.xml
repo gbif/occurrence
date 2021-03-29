@@ -49,7 +49,7 @@
       <url>http://repository.gbif.org/content/repositories/thirdparty</url>
     </repository>
     <repository>
-      <id>cloudera</id>
+      <id>cloudera-repos</id>
       <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
       <snapshots>
         <enabled>false</enabled>
@@ -121,7 +121,7 @@
     <!-- VERSIONS -->
     <hikaricp.version>3.2.0</hikaricp.version>
     <amqp-client.version>3.0.2</amqp-client.version>
-    <freemarker.version>2.3.26-incubating</freemarker.version>
+    <freemarker.version>2.3.31</freemarker.version>
     <netty.version>3.9.9.Final</netty.version>
     <netty-all.version>4.1.48.Final</netty-all.version>
 
@@ -145,6 +145,12 @@
     <guava.version>18.0</guava.version>
     <hamcrest.version>1.3</hamcrest.version>
 
+    <!-- Guava version used in CDH cluster-->
+    <guava-cdh.version>14.0.1</guava-cdh.version>
+
+    <!-- Version required by HBase test utility -->
+    <guava-hbase-test.version>12.0.1</guava-hbase-test.version>
+
     <!-- Version for ES client -->
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
@@ -160,6 +166,9 @@
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
     <metainf-services.version>1.5</metainf-services.version>
+
+    <super-csv.version>2.0.1</super-csv.version>
+    <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
 
     <!-- These must be compatible with Spark version (see https://stackoverflow.com/a/50114083) -->
     <janino.version>3.0.8</janino.version>
@@ -239,6 +248,9 @@
 
     <!-- Tools-->
     <lombok.version>1.18.10</lombok.version>
+
+    <!-- Extensions -->
+    <wagon-ssh.version>2.4</wagon-ssh.version>
   </properties>
 
   <!-- Profile created to manage multiple Hadoop version in different environments -->
@@ -1205,6 +1217,17 @@
         <groupId>com.zaxxer</groupId>
         <artifactId>HikariCP</artifactId>
         <version>${hikaricp.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.sf.supercsv</groupId>
+        <artifactId>super-csv</artifactId>
+        <version>${super-csv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils-core</artifactId>
+        <version>${commons-beanutils-core.version}</version>
       </dependency>
 
       <!-- TEST PIECES -->

@@ -22,7 +22,6 @@
   <properties>
     <!-- have to match gbif-cli version -->
     <guava.version>23.0</guava.version>
-    <wagon-ssh.version>2.4</wagon-ssh.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
   </properties>
 

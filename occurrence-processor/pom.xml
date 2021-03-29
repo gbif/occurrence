@@ -24,7 +24,6 @@
   </distributionManagement>
 
   <properties>
-    <guava.version>14.0.1</guava.version>
     <fastutil.version>5.0.9</fastutil.version>
   </properties>
 
@@ -142,7 +141,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${guava-cdh.version}</version>
     </dependency>
 
     <!-- we need all of these inspite of what mvn:dep says -->

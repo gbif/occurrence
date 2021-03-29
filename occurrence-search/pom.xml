@@ -12,10 +12,6 @@
   <packaging>jar</packaging>
 
   <properties>
-    <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
-    <guava.version>14.0.1</guava.version>
-
-    <super-csv.version>2.0.1</super-csv.version>
     <restlet.version>2.1.1</restlet.version>
 
     <!-- Elasticsearch -->
@@ -69,7 +65,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${guava-cdh.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -193,7 +189,6 @@
     <dependency>
       <groupId>net.sf.supercsv</groupId>
       <artifactId>super-csv</artifactId>
-      <version>${super-csv.version}</version>
       <scope>test</scope>
     </dependency>
 
