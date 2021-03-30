@@ -247,7 +247,7 @@
     <maven-scala-plugin.version>4.3.1</maven-scala-plugin.version>
 
     <!-- Tools-->
-    <lombok.version>1.18.10</lombok.version>
+    <lombok.version>1.18.18</lombok.version>
 
     <!-- Extensions -->
     <wagon-ssh.version>2.4</wagon-ssh.version>
