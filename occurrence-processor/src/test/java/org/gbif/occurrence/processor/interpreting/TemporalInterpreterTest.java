@@ -85,7 +85,7 @@ public class TemporalInterpreterTest {
     //ensure that eventDate with more precision will not record an issue and the one with most precision
     //will be returned
     result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:00Z");
-    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneId.of("Z")), result.getPayload());
+    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneOffset.UTC), result.getPayload());
     assertEquals(0, result.getIssues().size());
 
     // if dates contradict, do not return a date and flag it
