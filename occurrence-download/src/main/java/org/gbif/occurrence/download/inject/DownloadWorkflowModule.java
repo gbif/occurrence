@@ -211,6 +211,7 @@ public class DownloadWorkflowModule  {
                                                    workflowConfiguration,
                                                    clientBuilder().build(OccurrenceDownloadClient.class));
         case SIMPLE_AVRO:
+        case SIMPLE_PARQUET:
         case SIMPLE_WITH_VERBATIM_AVRO:
         case IUCN:
         case MAP_OF_LIFE:

@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Oozie Java action that creates a DWcA from Hive tables.
- * This action is used for big DWcA downloads.
+ * Oozie Java action that creates a DwCA from Hive tables.
+ * This action is used for big DwCA downloads.
  */
 public class ArchiveDownloadAction {
 
