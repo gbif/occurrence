@@ -42,10 +42,10 @@ class EsHeatmapRequestBuilder {
     // add the geometry filter
     String[] coords = Iterables.toArray(Splitter.on(",").split(request.getGeometry()), String.class);
 
-    double top = Double.valueOf(coords[3]);
-    double left = Double.valueOf(coords[0]);
-    double bottom = Double.valueOf(coords[1]);
-    double right = Double.valueOf(coords[2]);
+    double top = Double.parseDouble(coords[3]);
+    double left = Double.parseDouble(coords[0]);
+    double bottom = Double.parseDouble(coords[1]);
+    double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
