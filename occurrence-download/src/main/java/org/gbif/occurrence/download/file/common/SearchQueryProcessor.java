@@ -35,7 +35,6 @@ public class SearchQueryProcessor {
    * Executes a query and applies the predicate to each result.
    *
    * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
-   * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
   public static void processQuery(DownloadFileWork downloadFileWork, Consumer<Occurrence> resultHandler) {
@@ -54,7 +53,11 @@ public class SearchQueryProcessor {
 
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
-        searchSourceBuilder.fetchSource(null, "all"); //All field is not needed in the response
+        searchSourceBuilder.fetchSource(null, new String[]{
+          "all",
+          "notIssues",
+          "verbatim.extensions"
+        }); //Fields are not needed in the response
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
         SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);

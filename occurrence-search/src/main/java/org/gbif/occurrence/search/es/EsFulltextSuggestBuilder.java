@@ -38,13 +38,11 @@ public class EsFulltextSuggestBuilder {
   static SearchSourceBuilder buildSuggestFullTextQuery(String query, OccurrenceSearchParameter parameter, Integer limit) {
     OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(parameter);
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+    return new SearchSourceBuilder()
       .size(0)
       .fetchSource(false)
       .query(buildSuggestQuery(SEARCH_TO_ES_MAPPING.get(parameter), query))
       .aggregation(AggregationBuilders.terms(esField.getFieldName()).field(esField.getExactMatchFieldName()).size(limit));
-
-    return searchSourceBuilder;
 
   }
 

@@ -73,6 +73,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.size(1);
+    searchSourceBuilder.fetchSource(null, new String[]{
+      "all",
+      "notIssues",
+    });
     searchRequest.indices(esIndex);
     searchSourceBuilder.query(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), key));
     searchRequest.source(searchSourceBuilder);
