@@ -163,20 +163,22 @@ public class GenerateHQL {
   /**
    * Generates the schema file used for simple AVRO downloads.
    */
-  private static void generateSimpleAvroSchema(Configuration cfg, File outDir) throws IOException {
+  public static void generateSimpleAvroSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-occurrence.avsc"))) {
-
-      Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
-
-      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
-        .record("SimpleOccurrence")
-        .namespace("org.gbif.occurrence.download.avro").fields();
-      fields.values().forEach(initializableField -> avroField(builder, initializableField));
-      Schema schema = builder.endRecord();
-
-      out.write(schema.toString(true));
+      out.write(simpleAvroSchema().toString(true));
     }
   }
+
+  public static Schema simpleAvroSchema() throws IOException {
+    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
+
+    SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+      .record("SimpleOccurrence")
+      .namespace("org.gbif.occurrence.download.avro").fields();
+    fields.values().forEach(initializableField -> avroField(builder, initializableField));
+    return builder.endRecord();
+  }
+
 
   /**
    * Generates the Hive query file used for simple AVRO downloads.
@@ -212,29 +214,46 @@ public class GenerateHQL {
     }
   }
 
+
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields() {
+    Map<String, InitializableField> simpleFields = AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+    Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_QUERIES.selectVerbatimFields());
+
+    // Omit any verbatim fields present in the simple download.
+    for (String field : simpleFields.keySet()) {
+      verbatimFields.remove(field);
+    }
+
+    return ImmutableMap.<String, InitializableField>builder().putAll(simpleFields).putAll(verbatimFields).build();
+  }
+
+
   /**
    * Generates the schema used for simple with verbatim AVRO downloads.
    */
   private static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
-
-      Map<String, InitializableField> simpleFields = AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
-      Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
-
-      // Omit any verbatim fields present in the simple download.
-      for (String field : simpleFields.keySet()) {
-        verbatimFields.remove(field);
-      }
-
-      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
-        .record("SimpleWithVerbatimOccurrence")
-        .namespace("org.gbif.occurrence.download.avro").fields();
-      simpleFields.values().forEach(initializableField -> avroField(builder, initializableField));
-      verbatimFields.values().forEach(initializableField -> avroField(builder, initializableField));
-      Schema schema = builder.endRecord();
+      Schema schema = simpleWithVerbatimAvroSchema();
 
       out.write(schema.toString(true));
     }
+  }
+
+  public static Schema simpleWithVerbatimAvroSchema() {
+    Map<String, InitializableField> simpleFields = AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+    Map<String, InitializableField> verbatimFields = new TreeMap(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
+
+    // Omit any verbatim fields present in the simple download.
+    for (String field : simpleFields.keySet()) {
+      verbatimFields.remove(field);
+    }
+
+    SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+      .record("SimpleWithVerbatimOccurrence")
+      .namespace("org.gbif.occurrence.download.avro").fields();
+    simpleFields.values().forEach(initializableField -> avroField(builder, initializableField));
+    verbatimFields.values().forEach(initializableField -> avroField(builder, initializableField));
+    return builder.endRecord();
   }
 
   /**
@@ -257,17 +276,21 @@ public class GenerateHQL {
    */
   private static void generateMapOfLifeSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "map-of-life.avsc"))) {
-
-      Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true);
-
-      SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
-        .record("MapOfLife")
-        .namespace("org.gbif.occurrence.download.avro").fields();
-      fields.values().forEach(initializableField -> avroField(builder, initializableField));
-      Schema schema = builder.endRecord();
-
-      out.write(schema.toString(true));
+      out.write(mapOfLifeSchema().toString(true));
     }
+  }
+
+  /**
+   * Generates the AVRO schema for Map Of Life's custom format downloads.
+   */
+  static Schema mapOfLifeSchema() throws IOException {
+    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true);
+
+    SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
+      .record("MapOfLife")
+      .namespace("org.gbif.occurrence.download.avro").fields();
+    fields.values().forEach(initializableField -> avroField(builder, initializableField));
+    return builder.endRecord();
   }
 
   /**

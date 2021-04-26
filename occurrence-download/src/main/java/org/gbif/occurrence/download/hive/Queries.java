@@ -1,5 +1,6 @@
 package org.gbif.occurrence.download.hive;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -8,6 +9,7 @@ import org.gbif.dwc.terms.Term;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Utilities related to the actual queries executed at runtime.
@@ -16,7 +18,7 @@ import java.util.Set;
  *
  * Subclasses define the queries needed for generating TSV, Avro etc.
  */
-abstract class Queries {
+public abstract class Queries {
 
   /**
    * @return the gbifID term as an InitializableField
@@ -32,7 +34,7 @@ abstract class Queries {
   /**
    * @return the select fields for the verbatim download fields.
    */
-  Map<String, InitializableField> selectVerbatimFields() {
+  public Map<String, InitializableField> selectVerbatimFields() {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -75,7 +77,7 @@ abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  Map<String, InitializableField> selectInterpretedFields(boolean useInitializers) {
+  public Map<String, InitializableField> selectInterpretedFields(boolean useInitializers) {
     return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers);
   }
 
@@ -134,7 +136,7 @@ abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple download fields
    */
-  Map<String, InitializableField> selectSimpleDownloadFields(boolean useInitializers) {
+  public Map<String, InitializableField> selectSimpleDownloadFields(boolean useInitializers) {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, useInitializers);
   }
 
@@ -144,6 +146,18 @@ abstract class Queries {
    */
   Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS, useInitializers);
+  }
+
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields() {
+    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(true);
+    Map<String, InitializableField> verbatimFields = new TreeMap<>(selectVerbatimFields());
+
+    // Omit any verbatim fields present in the simple download.
+    for (String field : simpleFields.keySet()) {
+      verbatimFields.remove(field);
+    }
+
+    return ImmutableMap.<String, InitializableField>builder().putAll(simpleFields).putAll(verbatimFields).build();
   }
 
   /**

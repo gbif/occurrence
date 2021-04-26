@@ -6,7 +6,7 @@ import org.gbif.occurrence.common.TermUtils;
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
  */
-class AvroQueries extends TsvQueries {
+public class AvroQueries extends TsvQueries {
 
   @Override
   String toHiveDataType(Term term) {
@@ -24,5 +24,4 @@ class AvroQueries extends TsvQueries {
     }
   }
 
-  AvroQueries() {}
 }

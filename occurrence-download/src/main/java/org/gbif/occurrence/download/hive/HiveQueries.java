@@ -7,7 +7,7 @@ import org.gbif.occurrence.common.TermUtils;
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV downloads.
  */
-class HiveQueries extends TsvQueries {
+public class HiveQueries extends TsvQueries {
 
   @Override
   String toHiveDataType(Term term) {
@@ -34,5 +34,4 @@ class HiveQueries extends TsvQueries {
     return String.format("if(%1$s IS NULL,'',joinArray(%1$s,'\\\\;')) AS %1$s", HiveColumns.columnFor(term));
   }
 
-  HiveQueries() {}
 }

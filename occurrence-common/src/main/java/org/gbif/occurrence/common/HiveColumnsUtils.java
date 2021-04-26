@@ -68,6 +68,10 @@ public class HiveColumnsUtils {
     }
   }
 
+  public static boolean isDate(Term term) {
+    return TermUtils.isInterpretedLocalDate(term) || TermUtils.isInterpretedUtcDate(term);
+  }
+
   /**
    * Checks if the term is stored as an Hive array.
    */
