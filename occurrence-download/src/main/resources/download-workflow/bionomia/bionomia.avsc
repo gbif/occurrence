@@ -12,6 +12,7 @@
     {"name": "gbifID",             "type": "long" },
     {"name": "datasetKey",         "type": "string" },
     {"name": "license",            "type": "string" },
+    {"name": "basisOfRecord",      "type": "string" },
     {"name": "countryCode",        "type": ["null", "string"], "default": null },
     {"name": "dateIdentified",     "type": ["null", "string"], "default": null },
     {"name": "eventDate",          "type": ["null", "string"], "default": null },
