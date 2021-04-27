@@ -148,8 +148,8 @@ public abstract class Queries {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS, useInitializers);
   }
 
-  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields() {
-    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(true);
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers) {
+    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(useInitializers);
     Map<String, InitializableField> verbatimFields = new TreeMap<>(selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.

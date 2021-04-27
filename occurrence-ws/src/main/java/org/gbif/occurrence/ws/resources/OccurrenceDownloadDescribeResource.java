@@ -150,11 +150,11 @@ public class OccurrenceDownloadDescribeResource {
       .build();
 
   private static final Table SIMPLE_AVRO = Table.builder()
-                                            .fields(toFieldList(AVRO_QUERIES.selectSimpleDownloadFields(true), true))
+                                            .fields(toFieldList(AVRO_QUERIES.selectSimpleDownloadFields(false), true))
                                             .build();
 
   private static final Table SIMPLE_WITH_VERBATIM_AVRO = Table.builder()
-                                                          .fields(toFieldList(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(), true))
+                                                          .fields(toFieldList(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false), true))
                                                           .build();
 
   //End of static cached definitions
