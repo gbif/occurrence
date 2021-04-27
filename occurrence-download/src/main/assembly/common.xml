@@ -31,8 +31,9 @@
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
       <fileMode>0644</fileMode>
+      <useProjectAttachments>true</useProjectAttachments>
       <includes>
-        <include>org.gbif.occurrence:occurrence-download:jar</include>
+        <include>org.gbif.occurrence:occurrence-download:jar:shaded</include>
       </includes>
       <excludes>
         <exclude>*:tests</exclude>
