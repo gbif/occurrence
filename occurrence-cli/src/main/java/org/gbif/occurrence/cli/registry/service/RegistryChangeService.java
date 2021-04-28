@@ -1,11 +1,15 @@
 package org.gbif.occurrence.cli.registry.service;
 
+import org.gbif.api.service.registry.InstallationService;
+import org.gbif.api.service.registry.NetworkService;
 import org.gbif.api.service.registry.OrganizationService;
 import org.gbif.api.ws.mixin.Mixins;
 import org.gbif.common.messaging.DefaultMessagePublisher;
 import org.gbif.common.messaging.DefaultMessageRegistry;
 import org.gbif.common.messaging.MessageListener;
 import org.gbif.occurrence.cli.registry.RegistryChangeListener;
+import org.gbif.registry.ws.client.InstallationClient;
+import org.gbif.registry.ws.client.NetworkClient;
 import org.gbif.registry.ws.client.OrganizationClient;
 import org.gbif.ws.client.ClientBuilder;
 
@@ -28,12 +32,14 @@ public class RegistryChangeService extends AbstractIdleService {
 
     ClientBuilder clientFactory = new ClientBuilder().withUrl(configuration.registryWsUrl);
     OrganizationService orgClient = clientFactory.build(OrganizationClient.class);
+    NetworkService networkService = clientFactory.build(NetworkClient.class);
+    InstallationService installationService = clientFactory.build(InstallationClient.class);
 
     listener = new MessageListener(configuration.messaging.getConnectionParameters(), new DefaultMessageRegistry(),
       createObjectMapper(), 1);
     listener.listen(configuration.registryChangeQueueName, 1,
       new RegistryChangeListener(new DefaultMessagePublisher(configuration.messaging.getConnectionParameters()),
-        orgClient));
+                                orgClient, networkService, installationService));
   }
 
   @Override
