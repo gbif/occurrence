@@ -1,13 +1,22 @@
 package org.gbif.occurrence.cli.registry.sync;
 
 import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.Installation;
+import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
+import org.gbif.api.model.registry.eml.Project;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 /**
  * The class is responsible to know the rules to determine if an Occurrence record should be updated or not after
@@ -16,19 +25,47 @@ import java.util.StringJoiner;
 public class RegistryBasedOccurrenceMutator {
 
   /**
-   * Check if changes on a dataset should trigger an update of Occurrence records.
-   *
-   * @param currentDataset
-   * @param newDataset
-   *
-   * @return
+   * Only one of two objects is null.
    */
-  public boolean requiresUpdate(Dataset currentDataset, Dataset newDataset) {
-    // A change in publishing organization requires an update
-    if (!Objects.equals(currentDataset.getPublishingOrganizationKey(), newDataset.getPublishingOrganizationKey())) {
-      return true;
-    }
+  private static boolean nullChange(Object o1, Object o2) {
+    return (o1 == null && o2 != null) || (o1 != null && o2 == null);
+  }
 
+  /**
+   * Are all objects non null.
+   */
+  private static boolean nonNull(Object... elements) {
+    return Arrays.stream(elements).allMatch(Objects::nonNull);
+  }
+
+  /**
+   * Has the project changed.
+   */
+  private boolean datasetProjectChanged(Project currentProject, Project newProject) {
+    return nullChange(currentProject, newProject) ||
+           (nonNull(currentProject, newProject) &&
+            !Objects.equals(currentProject.getIdentifier(), newProject.getIdentifier()));
+  }
+
+  /**
+   * Transforms a list to a set, null-aware.
+   */
+  private <T> Set<T> toSet(List<T> l) {
+    return Objects.isNull(l)? Collections.emptySet() : new HashSet<>(l);
+  }
+
+  /**
+   * Has the network keys changed.
+   */
+  private boolean datasetNetworkChanged(List<UUID> currentNetworks, List<UUID> newNetworks) {
+    return (nullChange(currentNetworks, newNetworks) && nonNull(currentNetworks, newNetworks))
+           || !toSet(currentNetworks).equals(toSet(newNetworks));
+  }
+
+  /**
+   * Has the dataset title changed?.
+   */
+  private boolean datasetTitleChanged(Dataset currentDataset, Dataset newDataset) {
     // A change in license requires an update.
     if (currentDataset.getLicense() != null && !Objects.equals(currentDataset.getLicense(), newDataset.getLicense())) {
 
@@ -42,33 +79,56 @@ public class RegistryBasedOccurrenceMutator {
 
       return true;
     }
-
     return false;
   }
 
   /**
+   * Check if changes on a dataset should trigger an update of Occurrence records.
+   */
+  public boolean requiresUpdate(Dataset currentDataset, Dataset newDataset) {
+    //Changes that trigger indexing: organzation, project, title, installations and networks
+    return !Objects.equals(currentDataset.getPublishingOrganizationKey(), newDataset.getPublishingOrganizationKey()) ||
+            datasetProjectChanged(currentDataset.getProject(), newDataset.getProject()) ||
+            !Objects.equals(currentDataset.getTitle(), newDataset.getTitle()) ||
+            datasetNetworkChanged(currentDataset.getNetworkKeys(), newDataset.getNetworkKeys()) ||
+            !Objects.equals(currentDataset.getInstallationKey(), newDataset.getInstallationKey()) ||
+            datasetTitleChanged(currentDataset, newDataset);
+
+  }
+
+  /**
    * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
-   *
-   * @param currentOrg
-   * @param newOrg
-   * @return
    */
   public boolean requiresUpdate(Organization currentOrg, Organization newOrg) {
     // endorsement not approved means that we don't have records so nothing to update
     if (!newOrg.isEndorsementApproved()) {
       return false;
     }
-    return !Objects.equals(currentOrg.getCountry(), newOrg.getCountry());
+
+    //Country or title changed
+    return !Objects.equals(currentOrg.getCountry(), newOrg.getCountry()) ||
+           !Objects.equals(currentOrg.getTitle(), newOrg.getTitle());
+  }
+
+  /**
+   * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
+   */
+  public boolean requiresUpdate(Installation currentInstallation, Installation newInstallation) {
+    //Country or title changed
+    return !Objects.equals(currentInstallation.getTitle(), newInstallation.getTitle()) ||
+           !Objects.equals(currentInstallation.getOrganizationKey(), currentInstallation.getOrganizationKey());
+  }
+
+  /**
+   * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
+   */
+  public boolean requiresUpdate(Network currentNetwork, Network newNetwork) {
+    //Title changed
+    return !Objects.equals(currentNetwork.getTitle(), newNetwork.getTitle());
   }
 
   /**
    * Generates a message about what changed in the mutation. Mostly use for logging.
-   *
-   * @param currentOrg
-   * @param newOrg
-   * @param currentDataset
-   * @param newDataset
-   * @return
    */
   public Optional<String> generateUpdateMessage(Organization currentOrg, Organization newOrg, Dataset currentDataset,
                                                 Dataset newDataset) {
@@ -89,10 +149,6 @@ public class RegistryBasedOccurrenceMutator {
 
   /**
    * Generates a message about what changed in the mutation. Mostly use for logging.
-   *
-   * @param currentOrg
-   * @param newOrg
-   * @return
    */
   public Optional<String> generateUpdateMessage(Organization currentOrg, Organization newOrg) {
     StringJoiner joiner = new StringJoiner(",");
@@ -106,12 +162,6 @@ public class RegistryBasedOccurrenceMutator {
 
   /**
    * Generates a message about what changed in the mutation. Mostly use for logging.
-   *
-   * @param currentDataset
-   * @param newDataset
-   * @param currentDataset
-   * @param newDataset
-   * @return
    */
   public Optional<String> generateUpdateMessage(Dataset currentDataset, Dataset newDataset) {
     StringJoiner joiner = new StringJoiner(",");

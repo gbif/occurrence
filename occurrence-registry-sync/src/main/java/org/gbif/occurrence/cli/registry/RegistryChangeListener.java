@@ -5,9 +5,15 @@ import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Endpoint;
+import org.gbif.api.model.registry.Installation;
+import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
+import org.gbif.api.service.registry.InstallationService;
+import org.gbif.api.service.registry.NetworkService;
 import org.gbif.api.service.registry.OrganizationService;
 import org.gbif.api.util.comparators.EndpointPriorityComparator;
+import org.gbif.api.util.iterables.Iterables;
+import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
@@ -17,6 +23,7 @@ import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -62,12 +69,17 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private final MessagePublisher messagePublisher;
   private final OrganizationService orgService;
+  private final NetworkService networkService;
+  private final InstallationService installationService;
   private RegistryBasedOccurrenceMutator occurrenceMutator;
 
-  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService) {
+  public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService,
+                                NetworkService networkService, InstallationService installationService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
     this.occurrenceMutator = new RegistryBasedOccurrenceMutator();
+    this.networkService = networkService;
+    this.installationService = installationService;
   }
 
   @Override
@@ -80,6 +92,14 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       handleOrganization(message.getChangeType(),
                          (Organization) message.getOldObject(),
                          (Organization) message.getNewObject());
+    } else if ("Network".equals(clazz.getSimpleName())) {
+      handleNetwork(message.getChangeType(),
+                         (Network) message.getOldObject(),
+                         (Network) message.getNewObject());
+    } else if ("Installation".equals(clazz.getSimpleName())) {
+      handleInstallation(message.getChangeType(),
+                        (Installation) message.getOldObject(),
+                        (Installation) message.getNewObject());
     }
   }
 
@@ -194,25 +214,72 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     }
   }
 
+  private void handleNetwork(RegistryChangeMessage.ChangeType changeType, Network oldNetwork, Network newNetwork) {
+    switch (changeType) {
+      case UPDATED:
+        if (occurrenceMutator.requiresUpdate(oldNetwork, newNetwork)) {
+          LOG.info("Network changed {}", newNetwork.getKey());
+          DatasetVisitor visitor = dataset -> sendUpdateMessageToPipelines(dataset,
+                                                                           Collections.singleton(METADATA_INTERPRETATION),
+                                                                           "Network change " + newNetwork.getKey());
+          visitNetworkDatasets(newNetwork.getKey(), visitor);
+        }
+        break;
+      case DELETED:
+      case CREATED:
+        break;
+    }
+  }
+
+  private void handleInstallation(RegistryChangeMessage.ChangeType changeType, Installation oldInstallation, Installation newInstallation) {
+    switch (changeType) {
+      case UPDATED:
+        if (occurrenceMutator.requiresUpdate(oldInstallation, newInstallation)) {
+          LOG.info("Installation changed {}", newInstallation.getKey());
+          DatasetVisitor visitor =
+            dataset -> {
+              sendUpdateMessageToPipelines(
+                dataset,
+                Collections.singleton(METADATA_INTERPRETATION),
+                "Installation change " + newInstallation.getKey());
+            };
+          visitInstallationsDataset(newInstallation.getKey(), visitor);
+        }
+        break;
+      case DELETED:
+      case CREATED:
+        break;
+    }
+  }
+
   private void visitOwnedDatasets(UUID orgKey, DatasetVisitor visitor) {
-    int datasetCount = 0;
-    boolean endOfRecords = false;
-    int offset = 0;
-    do {
-      Pageable page = new PagingRequest(offset, PAGING_LIMIT);
-      PagingResponse<Dataset> datasets = orgService.publishedDatasets(orgKey, page);
-
-      for (Dataset dataset : datasets.getResults()) {
+    AtomicInteger datasetCount = new AtomicInteger(0);
+    Iterables.publishedDatasets(orgKey, null, orgService)
+      .forEach(dataset -> {
         visitor.visit(dataset);
-      }
-      datasetCount += datasets.getResults().size();
-      offset += PAGING_LIMIT;
+        datasetCount.incrementAndGet();
+      });
+    LOG.info("Visited [{}] datasets owned by org [{}]", datasetCount.get(), orgKey);
+  }
 
-      if (datasets.isEndOfRecords()) {
-        endOfRecords = datasets.isEndOfRecords();
-      }
-    } while (!endOfRecords);
-    LOG.info("Visited [{}] datasets owned by org [{}]", datasetCount, orgKey);
+  private void visitNetworkDatasets(UUID networkKey, DatasetVisitor visitor) {
+    AtomicInteger datasetCount = new AtomicInteger(0);
+    Iterables.networkDatasets(networkKey, null, networkService)
+      .forEach(dataset -> {
+        visitor.visit(dataset);
+        datasetCount.incrementAndGet();
+      });
+    LOG.info("Visited [{}] datasets in network [{}]", datasetCount.get(), networkKey);
+  }
+
+  private void visitInstallationsDataset(UUID installationKey, DatasetVisitor visitor) {
+    AtomicInteger datasetCount = new AtomicInteger(0);
+    Iterables.hostedDatasets(installationKey, null, installationService)
+      .forEach(dataset -> {
+        visitor.visit(dataset);
+        datasetCount.incrementAndGet();
+      });
+    LOG.info("Visited [{}] datasets hosted by installation [{}]", datasetCount.get(), installationKey);
   }
 
   private interface DatasetVisitor {

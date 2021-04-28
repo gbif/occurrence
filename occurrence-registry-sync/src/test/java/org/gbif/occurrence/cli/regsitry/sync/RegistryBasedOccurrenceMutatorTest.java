@@ -1,13 +1,20 @@
 package org.gbif.occurrence.cli.regsitry.sync;
 
 import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.Installation;
+import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
+import org.gbif.api.model.registry.eml.Project;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.cli.registry.sync.RegistryBasedOccurrenceMutator;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -82,6 +89,145 @@ public class RegistryBasedOccurrenceMutatorTest {
     dataset.setLicense(License.CC0_1_0);
     assertTrue(StringUtils.isNotBlank(OCC_MUTATOR.generateUpdateMessage(orgBefore, orgAfter, dataset, dataset)
             .orElse("")));
+  }
+
+  @Test
+  public void testInstallationTitleUpdate() {
+
+    Installation oldInstallation = new Installation();
+    oldInstallation.setKey(UUID.randomUUID());
+    oldInstallation.setTitle("InstTest");
+
+    Installation newInstallation = new Installation();
+    newInstallation.setKey(oldInstallation.getKey());
+    newInstallation.setTitle("InstTestNew");
+
+    //Test installation must be updated because its title changed
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldInstallation, newInstallation));
+
+    //Title back to original value
+    newInstallation.setTitle(oldInstallation.getTitle());
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldInstallation, newInstallation));
+  }
+
+  @Test
+  public void testNetworkTitleUpdate() {
+
+    Network oldNetwork = new Network();
+    oldNetwork.setKey(UUID.randomUUID());
+    oldNetwork.setTitle("NetTest");
+
+    Network newNetwork = new Network();
+    newNetwork.setKey(oldNetwork.getKey());
+    newNetwork.setTitle("NetTestNew");
+
+    //Test installation must be updated because its title changed
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldNetwork, newNetwork));
+
+    //Title back to original value
+    newNetwork.setTitle(oldNetwork.getTitle());
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldNetwork, newNetwork));
+  }
+
+  @Test
+  public void testDatasetNetworkKeysUpdate() {
+
+    List<UUID> networkKeys = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
+
+    Dataset oldDataset = new Dataset();
+    oldDataset.setKey(UUID.randomUUID());
+    oldDataset.setNetworkKeys(networkKeys);
+
+
+    Dataset newDataset = new Dataset();
+    newDataset.setKey(oldDataset.getKey());
+    List<UUID> reversedKeys = new ArrayList<>(networkKeys);
+    Collections.reverse(reversedKeys);
+    newDataset.setNetworkKeys(reversedKeys);
+
+    //Test that changing the order of network keys doesn't affect
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Network key removed
+    reversedKeys.remove(0);
+    newDataset.setNetworkKeys(reversedKeys);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+
+    //Null checks
+    newDataset.setNetworkKeys(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+
+    //Null checks
+    newDataset.setNetworkKeys(networkKeys);
+    oldDataset.setNetworkKeys(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+  }
+
+  @Test
+  public void testDatasetTitleUpdate() {
+
+    Dataset oldDataset = new Dataset();
+    oldDataset.setKey(UUID.randomUUID());
+    oldDataset.setTitle("DatasetT");
+
+
+    Dataset newDataset = new Dataset();
+    newDataset.setKey(oldDataset.getKey());
+    newDataset.setTitle(oldDataset.getTitle());
+
+    //No change
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Title changed
+    newDataset.setTitle("DatasetTT");
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Null checks
+    newDataset.setTitle(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Null checks
+    newDataset.setTitle("DatasetT");
+    oldDataset.setTitle(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+  }
+
+  @Test
+  public void testDatasetProjectUpdate() {
+
+    Dataset oldDataset = new Dataset();
+    oldDataset.setKey(UUID.randomUUID());
+    oldDataset.setTitle("DatasetT");
+
+    Project oldProject = new Project();
+    oldProject.setIdentifier("1");
+    oldDataset.setProject(oldProject);
+
+
+    Dataset newDataset = new Dataset();
+    newDataset.setKey(oldDataset.getKey());
+    newDataset.setTitle(oldDataset.getTitle());
+    Project newProject = new Project();
+    newProject.setIdentifier(oldProject.getIdentifier());
+    newDataset.setProject(newProject);
+
+    //No change
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Identifier changed
+    newProject.setIdentifier("2");
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Null checks
+    newDataset.setProject(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    //Null checks
+    newDataset.setProject(newProject);
+    oldDataset.setProject(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
   }
 
   private Organization getMockOrganization() {
