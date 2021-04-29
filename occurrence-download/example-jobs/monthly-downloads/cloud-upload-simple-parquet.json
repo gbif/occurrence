@@ -1,0 +1,26 @@
+{
+  "creator": "download.gbif.org",
+  "format": "SIMPLE_PARQUET",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "in",
+        "key": "LICENSE",
+        "values": ["CC_BY_4_0", "CC0_1_0"]
+      },
+      {
+        "type": "equals",
+        "key": "HAS_COORDINATE",
+        "value": "true"
+      },
+      {
+        "type": "equals",
+        "key": "HAS_GEOSPATIAL_ISSUE",
+        "value": "false"
+      }
+    ]
+  }
+}

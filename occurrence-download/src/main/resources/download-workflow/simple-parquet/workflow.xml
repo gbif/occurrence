@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-simple-csv-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+<workflow-app name="${occurrence.environment}-simple-parquet-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -28,7 +28,7 @@
           <value>download-admin</value>
         </property>
       </configuration>
-      <script>hive-scripts/execute-simple-csv-query.q</script>
+      <script>hive-scripts/execute-simple-parquet-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>occurrenceTable=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
@@ -39,12 +39,15 @@
 
   <action name="archive_table">
     <java>
-      <main-class>org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder</main-class>
-      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
+      <main-class>org.gbif.occurrence.download.file.archive.MultiDirectoryArchiveBuilder</main-class>
       <arg>${occurrence.download.hdfsOutputPath}</arg>
       <arg>${download_key}</arg>
-      <arg>${is_small_download ? 'DEFAULT' : 'PRE_DEFLATED'}</arg>
-      <arg>${download_format}</arg>
+      <arg>DEFAULT</arg><!-- No pre-compression, as the Parquet files aren't pre_deflated -->
+
+      <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}/</arg>
+      <arg>occurrence.parquet</arg>
+      <arg/>
+
       <capture-output/>
     </java>
 

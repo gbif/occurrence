@@ -33,6 +33,7 @@ public class GenerateHQL {
   private static final String DOWNLOAD_DIR = "download-workflow/dwca/hive-scripts";
   private static final String SIMPLE_CSV_DOWNLOAD_DIR = "download-workflow/simple-csv/hive-scripts";
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
+  private static final String SIMPLE_PARQUET_DOWNLOAD_DIR = "download-workflow/simple-parquet/hive-scripts";
   private static final String SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR = "download-workflow/simple-with-verbatim-avro/hive-scripts";
   private static final String IUCN_DOWNLOAD_DIR = "download-workflow/iucn/hive-scripts";
   private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
@@ -42,6 +43,8 @@ public class GenerateHQL {
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
+  private static final ParquetQueries PARQUET_QUERIES = new ParquetQueries();
+  private static final ParquetSchemaQueries PARQUET_SCHEMA_QUERIES = new ParquetSchemaQueries();
   private static final AvroSchemaQueries AVRO_SCHEMA_QUERIES = new AvroSchemaQueries();
   private static final SimpleAvroSchemaQueries SIMPLE_AVRO_SCHEMA_QUERIES = new SimpleAvroSchemaQueries();
 
@@ -57,6 +60,7 @@ public class GenerateHQL {
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
       File simpleWithVerbatimAvroDownloadDir = new File(outDir, SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
+      File simpleParquetDownloadDir = new File(outDir, SIMPLE_PARQUET_DOWNLOAD_DIR);
       File iucnDownloadDir = new File(outDir, IUCN_DOWNLOAD_DIR);
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
@@ -65,6 +69,7 @@ public class GenerateHQL {
       downloadDir.mkdirs();
       simpleCsvDownloadDir.mkdirs();
       simpleAvroDownloadDir.mkdirs();
+      simpleParquetDownloadDir.mkdirs();
       simpleWithVerbatimAvroDownloadDir.mkdirs();
       iucnDownloadDir.mkdirs();
       mapOfLifeDownloadDir.mkdirs();
@@ -83,6 +88,7 @@ public class GenerateHQL {
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
       generateSimpleAvroSchema(cfg, simpleAvroDownloadDir.getParentFile());
+      generateSimpleParquetQueryHQL(cfg, simpleParquetDownloadDir);
       generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
       generateIucnQueryHQL(cfg, iucnDownloadDir);
@@ -187,6 +193,25 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
       Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values());
+      template.process(data, out);
+    }
+  }
+
+  /**
+   * Generates the Hive query file used for simple Parquet downloads.
+   */
+  private static void generateSimpleParquetQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-parquet-query.q"))) {
+      Template template = cfg.getTemplate("simple-parquet-download/execute-simple-parquet-query.ftl");
+
+      // We need the initializers (toLocalISO8601(eventDate) etc) but also the API-matching column name (verbatimScientificName etc).
+      Map<String, InitializableField> interpretedNames = PARQUET_QUERIES.selectSimpleDownloadFields(true);
+      Map<String, InitializableField> columnNames = PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(false);
+
+      Map<String, Object> data = ImmutableMap.of(
+        "hiveFields", interpretedNames,
+        "parquetFields", columnNames
+      );
       template.process(data, out);
     }
   }
