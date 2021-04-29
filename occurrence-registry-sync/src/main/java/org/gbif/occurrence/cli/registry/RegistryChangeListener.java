@@ -125,6 +125,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           }
           // check if we should start a m/r job to update occurrence records
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
+            LOG.info("Sending medatada update for dataset [{}]", newDataset.getKey());
             Optional<String> changedMessage = occurrenceMutator.generateUpdateMessage(oldDataset, newDataset);
 
             // send message to pipelines
