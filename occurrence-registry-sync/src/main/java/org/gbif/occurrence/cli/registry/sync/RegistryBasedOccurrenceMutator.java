@@ -2,7 +2,6 @@ package org.gbif.occurrence.cli.registry.sync;
 
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Installation;
-import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.model.registry.eml.Project;
 
@@ -115,16 +114,7 @@ public class RegistryBasedOccurrenceMutator {
    */
   public boolean requiresUpdate(Installation currentInstallation, Installation newInstallation) {
     //Country or title changed
-    return !Objects.equals(currentInstallation.getTitle(), newInstallation.getTitle()) ||
-           !Objects.equals(currentInstallation.getOrganizationKey(), currentInstallation.getOrganizationKey());
-  }
-
-  /**
-   * Check if changes on an organization should trigger an update of Occurrence records of all its datasets.
-   */
-  public boolean requiresUpdate(Network currentNetwork, Network newNetwork) {
-    //Title changed
-    return !Objects.equals(currentNetwork.getTitle(), newNetwork.getTitle());
+    return !Objects.equals(currentInstallation.getOrganizationKey(), currentInstallation.getOrganizationKey());
   }
 
   /**

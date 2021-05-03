@@ -2,7 +2,6 @@ package org.gbif.occurrence.cli.regsitry.sync;
 
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Installation;
-import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
 import org.gbif.api.model.registry.eml.Project;
 import org.gbif.api.vocabulary.Country;
@@ -92,41 +91,24 @@ public class RegistryBasedOccurrenceMutatorTest {
   }
 
   @Test
-  public void testInstallationTitleUpdate() {
+  public void testInstallationOrganizationUpdate() {
 
     Installation oldInstallation = new Installation();
     oldInstallation.setKey(UUID.randomUUID());
     oldInstallation.setTitle("InstTest");
+    oldInstallation.setOrganizationKey(UUID.randomUUID());
 
     Installation newInstallation = new Installation();
     newInstallation.setKey(oldInstallation.getKey());
     newInstallation.setTitle("InstTestNew");
+    newInstallation.setOrganizationKey(oldInstallation.getOrganizationKey());
 
     //Test installation must be updated because its title changed
-    assertTrue(OCC_MUTATOR.requiresUpdate(oldInstallation, newInstallation));
-
-    //Title back to original value
-    newInstallation.setTitle(oldInstallation.getTitle());
     assertFalse(OCC_MUTATOR.requiresUpdate(oldInstallation, newInstallation));
-  }
-
-  @Test
-  public void testNetworkTitleUpdate() {
-
-    Network oldNetwork = new Network();
-    oldNetwork.setKey(UUID.randomUUID());
-    oldNetwork.setTitle("NetTest");
-
-    Network newNetwork = new Network();
-    newNetwork.setKey(oldNetwork.getKey());
-    newNetwork.setTitle("NetTestNew");
-
-    //Test installation must be updated because its title changed
-    assertTrue(OCC_MUTATOR.requiresUpdate(oldNetwork, newNetwork));
 
     //Title back to original value
-    newNetwork.setTitle(oldNetwork.getTitle());
-    assertFalse(OCC_MUTATOR.requiresUpdate(oldNetwork, newNetwork));
+    newInstallation.setOrganizationKey(UUID.randomUUID());
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldInstallation, newInstallation));
   }
 
   @Test

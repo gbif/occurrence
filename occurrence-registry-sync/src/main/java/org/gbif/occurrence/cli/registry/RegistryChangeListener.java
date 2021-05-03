@@ -1,19 +1,16 @@
 package org.gbif.occurrence.cli.registry;
 
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.api.model.common.paging.PagingRequest;
-import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Endpoint;
 import org.gbif.api.model.registry.Installation;
 import org.gbif.api.model.registry.Network;
 import org.gbif.api.model.registry.Organization;
+import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.InstallationService;
 import org.gbif.api.service.registry.NetworkService;
 import org.gbif.api.service.registry.OrganizationService;
 import org.gbif.api.util.comparators.EndpointPriorityComparator;
 import org.gbif.api.util.iterables.Iterables;
-import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.MessagePublisher;
@@ -42,7 +39,6 @@ import org.slf4j.LoggerFactory;
 public class RegistryChangeListener extends AbstractMessageCallback<RegistryChangeMessage> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RegistryChangeListener.class);
-  private static final int PAGING_LIMIT = 20;
 
   private static final EnumSet<EndpointType> CRAWLABLE_ENDPOINT_TYPES = EnumSet.of(
     EndpointType.BIOCASE,
@@ -71,15 +67,18 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private final OrganizationService orgService;
   private final NetworkService networkService;
   private final InstallationService installationService;
+  private final DatasetService datasetService;
   private RegistryBasedOccurrenceMutator occurrenceMutator;
 
   public RegistryChangeListener(MessagePublisher messagePublisher, OrganizationService orgService,
-                                NetworkService networkService, InstallationService installationService) {
+                                NetworkService networkService, InstallationService installationService,
+                                DatasetService datasetService) {
     this.messagePublisher = messagePublisher;
     this.orgService = orgService;
-    this.occurrenceMutator = new RegistryBasedOccurrenceMutator();
     this.networkService = networkService;
     this.installationService = installationService;
+    this.datasetService = datasetService;
+    this.occurrenceMutator = new RegistryBasedOccurrenceMutator();
   }
 
   @Override
@@ -87,15 +86,18 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
     LOG.info("Handling registry [{}] msg for class [{}]", message.getChangeType(), message.getObjectClass());
     Class<?> clazz = message.getObjectClass();
     if ("Dataset".equals(clazz.getSimpleName())) {
-      handleDataset(message.getChangeType(), (Dataset) message.getOldObject(), (Dataset) message.getNewObject());
+      if (RegistryChangeMessage.ChangeType.UPDATE_COMPONENT == message.getChangeType()) {
+        Dataset dataset = datasetService.get((UUID)message.getOldObject());
+        handleDataset(message.getChangeType(), dataset, null);
+      } else {
+        handleDataset(message.getChangeType(), (Dataset) message.getOldObject(), (Dataset) message.getNewObject());
+      }
     } else if ("Organization".equals(clazz.getSimpleName())) {
       handleOrganization(message.getChangeType(),
                          (Organization) message.getOldObject(),
                          (Organization) message.getNewObject());
     } else if ("Network".equals(clazz.getSimpleName())) {
-      handleNetwork(message.getChangeType(),
-                         (Network) message.getOldObject(),
-                         (Network) message.getNewObject());
+      handleNetwork(message.getChangeType(), (Network) message.getOldObject(), (Network) message.getNewObject());
     } else if ("Installation".equals(clazz.getSimpleName())) {
       handleInstallation(message.getChangeType(),
                         (Installation) message.getOldObject(),
@@ -153,6 +155,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
                    newDataset.getKey());
         }
         break;
+      case UPDATE_COMPONENT:
+        // send message to pipelines
+        sendUpdateMessageToPipelines(oldDataset, Collections.singleton(METADATA_INTERPRETATION),
+                                     "Dataset modified as component");
     }
   }
 
@@ -218,15 +224,14 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
   private void handleNetwork(RegistryChangeMessage.ChangeType changeType, Network oldNetwork, Network newNetwork) {
     switch (changeType) {
       case UPDATED:
-        if (occurrenceMutator.requiresUpdate(oldNetwork, newNetwork)) {
-          LOG.info("Network changed {}", newNetwork.getKey());
-          DatasetVisitor visitor = dataset -> sendUpdateMessageToPipelines(dataset,
-                                                                           Collections.singleton(METADATA_INTERPRETATION),
-                                                                           "Network change " + newNetwork.getKey());
-          visitNetworkDatasets(newNetwork.getKey(), visitor);
-        }
         break;
       case DELETED:
+        LOG.info("Network deleted {}", oldNetwork.getKey());
+        DatasetVisitor visitor = dataset -> sendUpdateMessageToPipelines(dataset,
+                                                                         Collections.singleton(METADATA_INTERPRETATION),
+                                                                         "Network change " + newNetwork.getKey());
+        visitNetworkDatasets(newNetwork.getKey(), visitor);
+        break;
       case CREATED:
         break;
     }
