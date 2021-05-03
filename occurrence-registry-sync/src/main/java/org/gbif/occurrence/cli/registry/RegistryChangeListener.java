@@ -229,8 +229,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         LOG.info("Network deleted {}", oldNetwork.getKey());
         DatasetVisitor visitor = dataset -> sendUpdateMessageToPipelines(dataset,
                                                                          Collections.singleton(METADATA_INTERPRETATION),
-                                                                         "Network change " + newNetwork.getKey());
-        visitNetworkDatasets(newNetwork.getKey(), visitor);
+                                                                         "Network deleted " + oldNetwork.getKey());
+        visitNetworkDatasets(oldNetwork.getKey(), visitor);
         break;
       case CREATED:
         break;
@@ -242,13 +242,10 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       case UPDATED:
         if (occurrenceMutator.requiresUpdate(oldInstallation, newInstallation)) {
           LOG.info("Installation changed {}", newInstallation.getKey());
-          DatasetVisitor visitor =
-            dataset -> {
-              sendUpdateMessageToPipelines(
-                dataset,
-                Collections.singleton(METADATA_INTERPRETATION),
-                "Installation change " + newInstallation.getKey());
-            };
+          DatasetVisitor visitor = dataset -> sendUpdateMessageToPipelines(dataset,
+                                                                          Collections.singleton(METADATA_INTERPRETATION),
+                                                                          "Installation updated " + newInstallation.getKey());
+
           visitInstallationsDataset(newInstallation.getKey(), visitor);
         }
         break;
