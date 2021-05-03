@@ -36,7 +36,7 @@ java -classpath "target/occurrence-download-workflows-$ENV/lib/*" org.gbif.occur
 echo "Copy to /tmp/workflow-schema-migration"
 rm -rf /tmp/workflow-schema-migration
 mkdir /tmp/workflow-schema-migration
-cp -r target/occurrence-download-workflows-dev /tmp/workflow-schema-migration/
+cp -r target/occurrence-download-workflows-$ENV /tmp/workflow-schema-migration/
 
 echo "Copy from /tmp/workflow-schema-migration to hadoop"
 sudo -u hdfs hdfs dfs -rm -r -f /occurrence-download-workflows-new-schema-$ENV/
