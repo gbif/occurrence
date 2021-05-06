@@ -80,8 +80,10 @@ public class ContainsUDF extends UDF {
 
     } catch (ParseException | InvalidShapeException e) {
       LOG.error("Invalid geometry received: {}", geometryAsWKT.toString(), e);
+      throw new RuntimeException(e);
     } catch (Exception e) {
       LOG.error("Error applying UDF", e);
+      throw new RuntimeException(e);
     }
 
     return isContained;
