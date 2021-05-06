@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PredicateFactoryTest {
@@ -14,13 +15,13 @@ public class PredicateFactoryTest {
   @Test
   public void testWithinPredicateValidation() {
 
+    // Valid predicate should pass
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.GEOMETRY.name(), new String[] {"POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))"});
+
+    assertNotNull(PredicateFactory.build(params));
+
     assertThrows(IllegalArgumentException.class, () -> {
-      // Valid predicate should pass
-      Map<String, String[]> params = new HashMap<>();
-      params.put(OccurrenceSearchParameter.GEOMETRY.name(), new String[] {"POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))"});
-
-      PredicateFactory.build(params);
-
       // Invalid predicate should fail
       params.clear();
       params.put(OccurrenceSearchParameter.GEOMETRY.name(), new String[] {"POLYGON ((30 10 10))"});

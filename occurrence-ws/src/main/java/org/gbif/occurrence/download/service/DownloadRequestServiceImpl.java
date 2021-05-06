@@ -32,6 +32,7 @@ import org.apache.oozie.client.OozieClientException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -147,6 +148,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public String create(DownloadRequest request) {
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
+    if (request instanceof PredicateDownloadRequest) {
+      PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
+    }
     try {
       String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
       if (exceedComplexityLimit != null) {
