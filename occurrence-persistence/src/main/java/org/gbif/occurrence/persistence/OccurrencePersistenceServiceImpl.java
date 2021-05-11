@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -83,6 +84,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
   @Override
   public Occurrence get(@Nullable Long key) {
     throw new UnsupportedOperationException("Replaced by pipelines");
+  }
+
+  @Nullable
+  @Override
+  public Occurrence get(UUID uuid, String s) {
+    throw new UnsupportedOperationException("Implemented by OccurrenceGetByKey service");
   }
 
   @Override

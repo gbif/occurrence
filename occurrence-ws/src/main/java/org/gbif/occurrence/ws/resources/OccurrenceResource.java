@@ -11,6 +11,7 @@ import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -83,6 +84,20 @@ public class OccurrenceResource {
   public String getFragment(@PathVariable("key") Long key) {
     LOG.debug("Request occurrence fragment [{}]:", key);
     return occurrenceService.getFragment(key);
+  }
+
+  /**
+   * This retrieves a single occurrence fragment in its raw form as a string.
+   *
+   * @param key The Occurrence key
+   * @return requested occurrence fragment or null if none could be found
+   */
+  @GetMapping("/{datasetKey}/{occurrenceId}")
+  @ResponseBody
+  @NullToNotFound
+  public Occurrence get(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
+    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
+    return occurrenceGetByKey.get(datasetKey, occurrenceId);
   }
 
   /**

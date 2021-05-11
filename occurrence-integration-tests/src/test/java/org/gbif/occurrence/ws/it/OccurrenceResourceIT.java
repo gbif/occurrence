@@ -12,6 +12,8 @@ import org.gbif.occurrence.ws.resources.OccurrenceResource;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -79,6 +81,14 @@ public class OccurrenceResourceIT {
   @Test
   public void testGetByKey() {
     Occurrence occurrence = occurrenceWsClient.get(TEST_KEY);
+    assertNotNull(occurrence, "Empty occurrence received");
+  }
+
+  @Test
+  public void testGetByDatasetKeyAndOccurrenceId() {
+    //See occurrence-test.json for tests data used in this test
+    Occurrence occurrence = occurrenceWsClient.get(UUID.fromString("d596fccb-2319-42eb-b13b-986c932780ad"),
+                                                   "MGYA00167231_Bacteria");
     assertNotNull(occurrence, "Empty occurrence received");
   }
 

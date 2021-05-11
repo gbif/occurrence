@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -27,6 +28,7 @@ import javax.validation.constraints.Min;
 import com.google.common.base.Preconditions;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -42,6 +44,16 @@ import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 /** Occurrence search service. */
 @Component
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey, SearchTermService {
+
+  private static final Function<SearchHit, Occurrence> TO_OCCURRENCE =  hit -> {
+    Occurrence occurrence = EsResponseParser.toOccurrence(hit, true);
+    Map<Term, String> verbatim = occurrence.getVerbatimFields()
+      .entrySet()
+      .stream()
+      .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    occurrence.setVerbatimFields(verbatim);
+    return occurrence;
+  };
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
@@ -68,7 +80,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
-  private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
+  private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
     //This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -78,7 +90,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       "notIssues",
     });
     searchRequest.indices(esIndex);
-    searchSourceBuilder.query(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), key));
+    searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);
     try {
       SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
@@ -91,17 +103,25 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
   }
 
+  private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
+    return getByQuery(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), key), mapper);
+  }
+
+  private <T> T searchByDatsetKeyAndOccurrenceId(UUID datasetKey, String occurrenceId, Function<SearchHit, T> mapper) {
+    return getByQuery(QueryBuilders.boolQuery()
+                        .must(QueryBuilders.termQuery(OccurrenceEsField.DATASET_KEY.getFieldName(), datasetKey.toString()))
+                        .must(QueryBuilders.termQuery(OccurrenceEsField.OCCURRENCE_ID.getExactMatchFieldName(), occurrenceId)), mapper);
+  }
+
   @Override
   public Occurrence get(Long key) {
-    return searchByKey(key, hit -> {
-      Occurrence occurrence = EsResponseParser.toOccurrence(hit, true);
-      Map<Term, String> verbatim = occurrence.getVerbatimFields()
-        .entrySet()
-        .stream()
-        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-      occurrence.setVerbatimFields(verbatim);
-      return occurrence;
-    });
+    return searchByKey(key, TO_OCCURRENCE);
+  }
+
+  @Nullable
+  @Override
+  public Occurrence get(UUID datasetKey, String occurrenceId) {
+    return searchByDatsetKeyAndOccurrenceId(datasetKey, occurrenceId, TO_OCCURRENCE);
   }
 
   @Override

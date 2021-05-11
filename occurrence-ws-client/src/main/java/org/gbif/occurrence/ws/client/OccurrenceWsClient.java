@@ -4,6 +4,8 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,4 +52,12 @@ public interface OccurrenceWsClient extends OccurrenceService {
   @ResponseBody
   @Override
   Occurrence get(@PathVariable("key") Long key);
+
+  @RequestMapping(
+    value = "/{datasetKey}/{occurrenceId}"
+  )
+  @ResponseBody
+  @Override
+  Occurrence get(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId);
+
 }
