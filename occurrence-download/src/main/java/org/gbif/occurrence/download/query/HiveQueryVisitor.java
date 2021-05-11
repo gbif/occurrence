@@ -141,6 +141,7 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
       // the following need some value transformation
       .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
+      .put(OccurrenceSearchParameter.MODIFIED, DcTerm.modified)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, GbifTerm.lastInterpreted)
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD, DwcTerm.basisOfRecord)
       .put(OccurrenceSearchParameter.COUNTRY, DwcTerm.countryCode)

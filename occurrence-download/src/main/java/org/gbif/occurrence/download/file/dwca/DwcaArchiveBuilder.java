@@ -467,7 +467,7 @@ public class DwcaArchiveBuilder {
       dataset.setTitle(String.format(DATASET_TITLE_FMT, downloadUniqueID));
       dataset.setDescription(getDatasetDescription());
       dataset.setCreated(download.getCreated());
-      Citation citation = new Citation(String.format(DATASET_TITLE_FMT, downloadUniqueID), downloadUniqueID);
+      Citation citation = new Citation(String.format(DATASET_TITLE_FMT, downloadUniqueID), downloadUniqueID, false);
       dataset.setCitation(citation);
       // can we derive a link from the query to set the dataset.homepage?
       dataset.setPubDate(download.getCreated());
