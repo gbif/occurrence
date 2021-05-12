@@ -2,9 +2,10 @@
 
 ## Data format
 
-Data are stored in Parquet format files in AWS S3 in the _TODO regions_, in the following bucket:
+Data are stored in Parquet format files in AWS S3 in the us-east-1 region, in the following bucket:
 
-`todo`
+* S3 URI: `s3://gbif-public-data/`
+* Amazon Resource Name (ARN): `arn:aws:s3:::gbif-public-data`
 
 Within that bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.
 
@@ -14,11 +15,11 @@ Each snapshot contains a `citation.txt` with instructions on how best to cite th
 
 Therefore, the data files for the first snapshot are at
 
-`todo/occurrence/2021-04-13/occurrence.parquet/*`
+`s3://gbif-public-data/occurrence/2021-04-13/occurrence.parquet/*`
 
 and the citation information is at
 
-`todo/gbif/occurrence/2021-04-13/citation.txt`
+`s3://gbif-public-data/occurrence/2021-04-13/citation.txt`
 
 The Parquet file schema is described here.
 Most field names correspond to [terms from the Darwin Core standard](https://dwc.tdwg.org/terms/), and have been interpreted by GBIF's systems to align taxonomy, location, dates etc.
