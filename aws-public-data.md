@@ -166,5 +166,5 @@ GROUP BY kingdom
 ```
 
 5. Your results should show in the browser, and will be stored as CSV data in the S3 bucket you created
-6. The amount of data scanned will be shown, which is used to calculate the billing (a few US$ for this query)
+6. The amount of data scanned will be shown, which is used to calculate the billing (a few cents US for this query)
 
