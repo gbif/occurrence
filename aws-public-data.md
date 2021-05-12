@@ -1,5 +1,7 @@
 # GBIF Public Datasets on Amazon Web Services
 
+This describes the format and gives simple examples for getting started with the GBIF monthly snapshots stored on AWS.
+
 ## Data format
 
 Data are stored in Parquet format files in AWS S3 in the _TODO regions_, in the following bucket:
@@ -91,4 +93,78 @@ TODO
 
 ## Getting started with Athena
 
-TODO
+Athena provides a pay-per-query SQL service on Amazon, particularly well suited for producing summary counts from GBIF data.
+The following steps describe how to get started using Athena on the GBIF dataset.
+
+1. Create an S3 bucket to store the results of the queries you will execute in the `us-east-1` region
+2. Open Athena and change to the `us-east-1` region
+3. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you)
+
+```
+CREATE EXTERNAL TABLE `gbif-2021-04-13`(
+  `gbifid` bigint, 
+  `datasetkey` string, 
+  `occurrenceid` string, 
+  `kingdom` string, 
+  `phylum` string, 
+  `class` string, 
+  `order` string, 
+  `family` string, 
+  `genus` string, 
+  `species` string, 
+  `infraspecificepithet` string, 
+  `taxonrank` string, 
+  `scientificname` string, 
+  `verbatimscientificname` string, 
+  `verbatimscientificnameauthorship` string, 
+  `countrycode` string, 
+  `locality` string, 
+  `stateprovince` string, 
+  `occurrencestatus` string, 
+  `individualcount` int, 
+  `publishingorgkey` string, 
+  `decimallatitude` double, 
+  `decimallongitude` double, 
+  `coordinateuncertaintyinmeters` double, 
+  `coordinateprecision` double, 
+  `elevation` double, 
+  `elevationaccuracy` double, 
+  `depth` double, 
+  `depthaccuracy` double, 
+  `eventdate` string, 
+  `day` int, 
+  `month` int, 
+  `year` int, 
+  `taxonkey` int, 
+  `specieskey` int, 
+  `basisofrecord` string, 
+  `institutioncode` string, 
+  `collectioncode` string, 
+  `catalognumber` string, 
+  `recordnumber` string, 
+  `identifiedby` string, 
+  `dateidentified` string, 
+  `license` string, 
+  `rightsholder` string, 
+  `recordedby` string, 
+  `typestatus` string, 
+  `establishmentmeans` string, 
+  `lastinterpreted` string, 
+  `mediatype` array<string>, 
+  `issue` array<string>)
+STORED AS parquet
+LOCATION
+  's3://gbif-public-data/occurrence/2021-04-13/occurrence.parquet/'
+```
+
+4. Execute a query
+
+```
+SELECT kingdom, count(*) AS c
+FROM gbif-2021-04-13
+GROUP BY kingdom
+```
+
+5. Your results should show in the browser, and will be stored as CSV data in the S3 bucket you created
+6. The amount of data scanned will be shown, which is used to calculate the billing (a few US$ for this query)
+
