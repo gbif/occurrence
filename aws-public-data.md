@@ -96,9 +96,10 @@ TODO
 Athena provides a pay-per-query SQL service on Amazon, particularly well suited for producing summary counts from GBIF data.
 The following steps describe how to get started using Athena on the GBIF dataset.
 
-1. Create an S3 bucket to store the results of the queries you will execute in the `us-east-1` region
+1. Create an S3 bucket in the `us-east-1` region to store the results of the queries you will execute 
 2. Open Athena and change to the `us-east-1` region
-3. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you)
+3. Follow the prompt to choose the location where query results should be stored
+4. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you)
 
 ```
 CREATE EXTERNAL TABLE `gbif-2021-04-13`(
@@ -157,7 +158,7 @@ LOCATION
   's3://gbif-public-data/occurrence/2021-04-13/occurrence.parquet/'
 ```
 
-4. Execute a query
+5. Execute a query
 
 ```
 SELECT kingdom, count(*) AS c
@@ -165,6 +166,6 @@ FROM gbif-2021-04-13
 GROUP BY kingdom
 ```
 
-5. Your results should show in the browser, and will be stored as CSV data in the S3 bucket you created
+5. Your results should show in the browser, and will also be stored as CSV data in the S3 bucket you created
 6. The amount of data scanned will be shown, which is used to calculate the billing (a few cents US for this query)
 
