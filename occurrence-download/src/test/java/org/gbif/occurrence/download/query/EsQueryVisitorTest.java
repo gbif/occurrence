@@ -7,6 +7,7 @@ import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -15,7 +16,6 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -647,6 +647,35 @@ public class EsQueryVisitorTest {
       "    \"boost\" : 1.0\n" +
       "  }\n" +
       "}";
+    assertEquals(expectedQuery, query);
+  }
+
+  @Test
+  public void testIsNullPredicate() throws QueryBuildingException {
+    Predicate p = new IsNullPredicate(PARAM);
+    String query = visitor.getQuery(p);
+    String expectedQuery = "{\n"
+                           + "  \"bool\" : {\n"
+                           + "    \"filter\" : [\n"
+                           + "      {\n"
+                           + "        \"bool\" : {\n"
+                           + "          \"must_not\" : [\n"
+                           + "            {\n"
+                           + "              \"exists\" : {\n"
+                           + "                \"field\" : \"catalogNumber.keyword\",\n"
+                           + "                \"boost\" : 1.0\n"
+                           + "              }\n"
+                           + "            }\n"
+                           + "          ],\n"
+                           + "          \"adjust_pure_negative\" : true,\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      }\n"
+                           + "    ],\n"
+                           + "    \"adjust_pure_negative\" : true,\n"
+                           + "    \"boost\" : 1.0\n"
+                           + "  }\n"
+                           + "}";
     assertEquals(expectedQuery, query);
   }
 

@@ -1,6 +1,5 @@
 package org.gbif.occurrence.download.query;
 
-import org.apache.commons.collections.functors.EqualPredicate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
@@ -10,6 +9,7 @@ import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -183,8 +183,6 @@ public class EsQueryVisitor {
             .collect(Collectors.toList());
   }
 
-
-
   /**
    * handles EqualPredicate
    *
@@ -295,6 +293,16 @@ public class EsQueryVisitor {
    */
   public void visit(IsNotNullPredicate predicate, BoolQueryBuilder queryBuilder) {
     queryBuilder.filter().add(QueryBuilders.existsQuery(getElasticFieldName(predicate.getParameter())));
+  }
+
+  /**
+   * handles ISNULL Predicate
+   *
+   * @param predicate ISNULL predicate
+   */
+  public void visit(IsNullPredicate predicate, BoolQueryBuilder queryBuilder) {
+    queryBuilder.filter().add(QueryBuilders.boolQuery()
+                                .mustNot(QueryBuilders.existsQuery(getElasticFieldName(predicate.getParameter()))));
   }
 
   private void visit(Object object, BoolQueryBuilder queryBuilder) throws QueryBuildingException {

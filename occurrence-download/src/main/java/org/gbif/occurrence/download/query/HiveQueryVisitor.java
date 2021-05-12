@@ -21,6 +21,7 @@ import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -95,6 +96,7 @@ public class HiveQueryVisitor {
   private static final String NOT_OPERATOR = "NOT ";
   private static final String LIKE_OPERATOR = " LIKE ";
   private static final String IS_NOT_NULL_OPERATOR = " IS NOT NULL ";
+  private static final String IS_NULL_OPERATOR = " IS NULL ";
   private static final String IS_NOT_NULL_ARRAY_OPERATOR = "(%1$s IS NOT NULL AND size(%1$s) > 0)";
   private static final CharMatcher APOSTROPHE_MATCHER = CharMatcher.is('\'');
   // where query to execute a select all
@@ -434,6 +436,12 @@ public class HiveQueryVisitor {
       builder.append(toHiveField(predicate.getParameter(), true));
       builder.append(IS_NOT_NULL_OPERATOR);
     }
+  }
+
+  public void visit(IsNullPredicate predicate) throws QueryBuildingException {
+    // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
+    builder.append(toHiveField(predicate.getParameter(), true));
+    builder.append(IS_NULL_OPERATOR);
   }
 
   public void visit(WithinPredicate within) throws QueryBuildingException {
