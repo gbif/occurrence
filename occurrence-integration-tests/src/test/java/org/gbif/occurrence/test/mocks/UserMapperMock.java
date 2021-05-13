@@ -2,6 +2,7 @@ package org.gbif.occurrence.test.mocks;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.registry.persistence.mapper.UserMapper;
 
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -69,18 +71,19 @@ public class UserMapperMock implements UserMapper {
   }
 
   @Override
-  public List<GbifUser> search(@Nullable String query, @Nullable Pageable pageable) {
+  public List<GbifUser> search(@Nullable String s, @Nullable Set<UserRole> role, @Nullable Set<UUID> editorRightsOn,
+                               @Nullable Pageable pageable) {
     Stream<GbifUser> userStream = users.values().stream();
 
     if (Objects.nonNull(pageable)) {
-          userStream = userStream.skip(pageable.getOffset())
-                                 .limit(pageable.getLimit());
+      userStream = userStream.skip(pageable.getOffset())
+        .limit(pageable.getLimit());
     }
     return userStream.collect(Collectors.toList());
   }
 
   @Override
-  public int count(@Nullable String query) {
+  public int count(@Nullable String s,@Nullable Set<UserRole> role, @Nullable Set<UUID> editorRightsOn) {
     return users.size();
   }
 
