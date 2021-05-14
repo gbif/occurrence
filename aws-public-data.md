@@ -6,13 +6,13 @@ This describes the format and gives simple examples for getting started with the
 
 Data are stored in Parquet format files in AWS S3 in five regions: af-south-1, ap-southeast-2, eu-central-1, sa-east-1 and us-east-1.  The buckets are as follows:
 
-| Region         | S3 URI                                | Amazon Resource Name (ARN)                   | Browse                                                                           |
-|----------------|---------------------------------------|----------------------------------------------|----------------------------------------------------------------------------------|
-| af-south-1     | `s3://gbif-open-data-af-south-1/`     | `arn:aws:s3:::gbif-open-data-af-south-1`     | https://gbif-open-data-af-south-1.s3.af-south-1.amazonaws.com/index.html         |
-| ap-southeast-2 | `s3://gbif-open-data-ap-southeast-2/` | `arn:aws:s3:::gbif-open-data-ap-southeast-2` | https://gbif-open-data-ap-southeast-2.s3.ap-southeast-2.amazonaws.com/index.html |
-| eu-central-1   | `s3://gbif-open-data-eu-central-1/`   | `arn:aws:s3:::gbif-open-data-eu-central-1`   | https://gbif-open-data-eu-central-1.s3.eu-central-1.amazonaws.com/index.html     |
-| sa-east-1      | `s3://gbif-open-data-sa-east-1/`      | `arn:aws:s3:::gbif-open-data-sa-east-1`      | https://gbif-open-data-sa-east-1.s3.sa-east-1.amazonaws.com/index.html           |
-| us-east-1      | `s3://gbif-open-data-us-east-1/`      | `arn:aws:s3:::gbif-open-data-us-east-1`      | https://gbif-open-data-us-east-1.s3.us-east-1.amazonaws.com/index.html           |
+| Region         | S3 URI                                | Amazon Resource Name (ARN)                   | Browse                                                                                     |
+|----------------|---------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------|
+| af-south-1     | `s3://gbif-open-data-af-south-1/`     | `arn:aws:s3:::gbif-open-data-af-south-1`     | [Browse](https://gbif-open-data-af-south-1.s3.af-south-1.amazonaws.com/index.html)         |
+| ap-southeast-2 | `s3://gbif-open-data-ap-southeast-2/` | `arn:aws:s3:::gbif-open-data-ap-southeast-2` | [Browse](https://gbif-open-data-ap-southeast-2.s3.ap-southeast-2.amazonaws.com/index.html) |
+| eu-central-1   | `s3://gbif-open-data-eu-central-1/`   | `arn:aws:s3:::gbif-open-data-eu-central-1`   | [Browse](https://gbif-open-data-eu-central-1.s3.eu-central-1.amazonaws.com/index.html)     |
+| sa-east-1      | `s3://gbif-open-data-sa-east-1/`      | `arn:aws:s3:::gbif-open-data-sa-east-1`      | [Browse](https://gbif-open-data-sa-east-1.s3.sa-east-1.amazonaws.com/index.html)           |
+| us-east-1      | `s3://gbif-open-data-us-east-1/`      | `arn:aws:s3:::gbif-open-data-us-east-1`      | [Browse](https://gbif-open-data-us-east-1.s3.us-east-1.amazonaws.com/index.html)           |
 
 Within that bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.
 
