@@ -438,7 +438,7 @@ public class EsSearchRequestBuilder {
     }
 
     try {
-      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getFieldName(), shapeBuilder)
+      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getFieldName(), shapeBuilder.buildGeometry())
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
