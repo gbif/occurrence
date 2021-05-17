@@ -4,10 +4,15 @@ This describes the format and gives simple examples for getting started with the
 
 ## Data format
 
-Data are stored in Parquet format files in AWS S3 in the us-east-1 region, in the following bucket:
+Data are stored in Parquet format files in AWS S3 in five regions: af-south-1, ap-southeast-2, eu-central-1, sa-east-1 and us-east-1.  The buckets are as follows:
 
-* S3 URI: `s3://gbif-public-data/`
-* Amazon Resource Name (ARN): `arn:aws:s3:::gbif-public-data`
+| Region         | S3 URI                                | Amazon Resource Name (ARN)                   | Browse                                                                                     |
+|----------------|---------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------|
+| af-south-1     | `s3://gbif-open-data-af-south-1/`     | `arn:aws:s3:::gbif-open-data-af-south-1`     | [Browse](https://gbif-open-data-af-south-1.s3.af-south-1.amazonaws.com/index.html)         |
+| ap-southeast-2 | `s3://gbif-open-data-ap-southeast-2/` | `arn:aws:s3:::gbif-open-data-ap-southeast-2` | [Browse](https://gbif-open-data-ap-southeast-2.s3.ap-southeast-2.amazonaws.com/index.html) |
+| eu-central-1   | `s3://gbif-open-data-eu-central-1/`   | `arn:aws:s3:::gbif-open-data-eu-central-1`   | [Browse](https://gbif-open-data-eu-central-1.s3.eu-central-1.amazonaws.com/index.html)     |
+| sa-east-1      | `s3://gbif-open-data-sa-east-1/`      | `arn:aws:s3:::gbif-open-data-sa-east-1`      | [Browse](https://gbif-open-data-sa-east-1.s3.sa-east-1.amazonaws.com/index.html)           |
+| us-east-1      | `s3://gbif-open-data-us-east-1/`      | `arn:aws:s3:::gbif-open-data-us-east-1`      | [Browse](https://gbif-open-data-us-east-1.s3.us-east-1.amazonaws.com/index.html)           |
 
 Within that bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.
 
@@ -17,11 +22,11 @@ Each snapshot contains a `citation.txt` with instructions on how best to cite th
 
 Therefore, the data files for the first snapshot are at
 
-`s3://gbif-public-data/occurrence/2021-04-13/occurrence.parquet/*`
+`s3://gbif-open-data-REGION/occurrence/2021-04-13/occurrence.parquet/*`
 
 and the citation information is at
 
-`s3://gbif-public-data/occurrence/2021-04-13/citation.txt`
+`s3://gbif-open-data-REGION/occurrence/2021-04-13/citation.txt`
 
 The Parquet file schema is described here.
 Most field names correspond to [terms from the Darwin Core standard](https://dwc.tdwg.org/terms/), and have been interpreted by GBIF's systems to align taxonomy, location, dates etc.
@@ -97,8 +102,8 @@ TODO
 Athena provides a pay-per-query SQL service on Amazon, particularly well suited for producing summary counts from GBIF data.
 The following steps describe how to get started using Athena on the GBIF dataset.
 
-1. Create an S3 bucket in the `us-east-1` region to store the results of the queries you will execute 
-2. Open Athena and change to the `us-east-1` region
+1. Create an S3 bucket in one of the five regions above to store the results of the queries you will execute
+2. Open Athena and change to that region
 3. Follow the prompt to choose the location where query results should be stored
 4. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you)
 
@@ -156,7 +161,7 @@ CREATE EXTERNAL TABLE `gbif-2021-04-13`(
   `issue` array<string>)
 STORED AS parquet
 LOCATION
-  's3://gbif-public-data/occurrence/2021-04-13/occurrence.parquet/'
+  's3://gbif-open-data-REGION/occurrence/2021-04-13/occurrence.parquet/'
 ```
 
 5. Execute a query
@@ -169,4 +174,3 @@ GROUP BY kingdom
 
 5. Your results should show in the browser, and will also be stored as CSV data in the S3 bucket you created
 6. The amount of data scanned will be shown, which is used to calculate the billing (a few cents US for this query)
-
