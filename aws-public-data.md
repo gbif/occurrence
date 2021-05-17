@@ -93,9 +93,55 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 
 ⁴ The array may be empty.
 
-## Getting started with R
+## Getting started with Python
 
-TODO
+You will need to install the libraries, for example using PIP (`pip install boto3 pyarrow`).  You can then run this Python script:
+
+```python
+import io
+import boto3
+import botocore
+from botocore import UNSIGNED
+from botocore.config import Config
+import pyarrow.parquet as pq
+
+BUCKET_NAME = 'gbif-open-data-us-east-1'
+# Just read a single (~100MB) chunk of the table
+PATH = 'occurrence/2021-04-13/occurrence.parquet/000000'
+
+buffer = io.BytesIO()
+s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
+s3_object = s3.Object(BUCKET_NAME, PATH)
+s3_object.download_fileobj(buffer)
+
+table = pq.read_table(buffer)
+df = table.to_pandas()
+df.head()
+
+df.groupby(by='kingdom')['gbifid'].count().reset_index(name='count').sort_values(['count'], ascending=False)
+```
+
+Output:
+
+```
+       gbifid                            datasetkey  ... mediatype                                              issue
+0  2305838350  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
+1  2305838837  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
+2  2305839278  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
+3  2305839610  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
+4  2305840564  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
+
+          kingdom    count
+0        Animalia  1017889
+8  incertae sedis   168685
+5         Plantae    70203
+4           Fungi    23234
+2        Bacteria    16506
+3       Chromista     8389
+7         Viruses     3549
+1         Archaea     1398
+6        Protozoa      658
+```
 
 ## Getting started with Athena
 
@@ -105,72 +151,86 @@ The following steps describe how to get started using Athena on the GBIF dataset
 1. Create an S3 bucket in one of the five regions above to store the results of the queries you will execute
 2. Open Athena and change to that region
 3. Follow the prompt to choose the location where query results should be stored
-4. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you)
+4. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you, and change `us-east-1` to the region you are using)
 
-```
-CREATE EXTERNAL TABLE `gbif-2021-04-13`(
-  `gbifid` bigint, 
-  `datasetkey` string, 
-  `occurrenceid` string, 
-  `kingdom` string, 
-  `phylum` string, 
-  `class` string, 
-  `order` string, 
-  `family` string, 
-  `genus` string, 
-  `species` string, 
-  `infraspecificepithet` string, 
-  `taxonrank` string, 
-  `scientificname` string, 
-  `verbatimscientificname` string, 
-  `verbatimscientificnameauthorship` string, 
-  `countrycode` string, 
-  `locality` string, 
-  `stateprovince` string, 
-  `occurrencestatus` string, 
-  `individualcount` int, 
-  `publishingorgkey` string, 
-  `decimallatitude` double, 
-  `decimallongitude` double, 
-  `coordinateuncertaintyinmeters` double, 
-  `coordinateprecision` double, 
-  `elevation` double, 
-  `elevationaccuracy` double, 
-  `depth` double, 
-  `depthaccuracy` double, 
-  `eventdate` string, 
-  `day` int, 
-  `month` int, 
-  `year` int, 
-  `taxonkey` int, 
-  `specieskey` int, 
-  `basisofrecord` string, 
-  `institutioncode` string, 
-  `collectioncode` string, 
-  `catalognumber` string, 
-  `recordnumber` string, 
-  `identifiedby` string, 
-  `dateidentified` string, 
-  `license` string, 
-  `rightsholder` string, 
-  `recordedby` string, 
-  `typestatus` string, 
-  `establishmentmeans` string, 
-  `lastinterpreted` string, 
-  `mediatype` array<string>, 
+```sql
+CREATE EXTERNAL TABLE gbif_20210413 (
+  `gbifid` bigint,
+  `datasetkey` string,
+  `occurrenceid` string,
+  `kingdom` string,
+  `phylum` string,
+  `class` string,
+  `order` string,
+  `family` string,
+  `genus` string,
+  `species` string,
+  `infraspecificepithet` string,
+  `taxonrank` string,
+  `scientificname` string,
+  `verbatimscientificname` string,
+  `verbatimscientificnameauthorship` string,
+  `countrycode` string,
+  `locality` string,
+  `stateprovince` string,
+  `occurrencestatus` string,
+  `individualcount` int,
+  `publishingorgkey` string,
+  `decimallatitude` double,
+  `decimallongitude` double,
+  `coordinateuncertaintyinmeters` double,
+  `coordinateprecision` double,
+  `elevation` double,
+  `elevationaccuracy` double,
+  `depth` double,
+  `depthaccuracy` double,
+  `eventdate` string,
+  `day` int,
+  `month` int,
+  `year` int,
+  `taxonkey` int,
+  `specieskey` int,
+  `basisofrecord` string,
+  `institutioncode` string,
+  `collectioncode` string,
+  `catalognumber` string,
+  `recordnumber` string,
+  `identifiedby` string,
+  `dateidentified` string,
+  `license` string,
+  `rightsholder` string,
+  `recordedby` string,
+  `typestatus` string,
+  `establishmentmeans` string,
+  `lastinterpreted` string,
+  `mediatype` array<string>,
   `issue` array<string>)
 STORED AS parquet
 LOCATION
-  's3://gbif-open-data-REGION/occurrence/2021-04-13/occurrence.parquet/'
+  's3://gbif-open-data-us-east-1/occurrence/2021-04-13/occurrence.parquet/';
 ```
 
 5. Execute a query
 
 ```
 SELECT kingdom, count(*) AS c
-FROM gbif-2021-04-13
-GROUP BY kingdom
+FROM gbif_20210413
+GROUP BY kingdom;
 ```
 
+Results:
+
+|   | kingdom        | c          |
+|---|----------------|------------|
+| 1 | Plantae        | 193391585  |
+| 2 | incertae sedis | 4223619    |
+| 3 | Archaea        | 226905     |
+| 4 | Fungi          | 12210273   |
+| 5 | Viruses        | 42019      |
+| 6 | Bacteria       | 13313089   |
+| 7 | Animalia       | 1064194305 |
+| 8 | Protozoa       | 793176     |
+| 9 | Chromista      | 9440667    |
+
 5. Your results should show in the browser, and will also be stored as CSV data in the S3 bucket you created
-6. The amount of data scanned will be shown, which is used to calculate the billing (a few cents US for this query)
+6. The amount of data scanned will be shown, which is used to calculate the billing (44.89MB, which is a fraction of a cent for this query, see [Amazon Athena pricing](https://aws.amazon.com/athena/pricing/))
