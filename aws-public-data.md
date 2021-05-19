@@ -234,3 +234,34 @@ Results:
 
 5. Your results should show in the browser, and will also be stored as CSV data in the S3 bucket you created
 6. The amount of data scanned will be shown, which is used to calculate the billing (44.89MB, which is a fraction of a cent for this query, see [Amazon Athena pricing](https://aws.amazon.com/athena/pricing/))
+
+## Downloading/mirroring the data
+
+A monthly snapshot is roughly 110GB in size.
+
+The AWS buckets are public, and can be accessed anonymously using the [S3 API](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html), [AWS CLI tool](https://aws.amazon.com/cli/), or tools like [rclone](https://rclone.org).
+
+```
+# AWS CLI
+aws --no-sign-request --region eu-central-1 s3 ls s3://gbif-open-data-eu-central-1/occurrence/
+
+# rclone configuration
+[anons3]
+type = s3
+provider = AWS
+env_auth = false
+access_key_id =
+secret_access_key =
+region = eu-central-1
+endpoint =
+location_constraint =
+acl = private
+server_side_encryption =
+storage_class =
+
+# rclone commands
+rclone ls anons3:gbif-open-data-eu-central-1
+rclone sync -v anons3:gbif-open-data-eu-central-1 ./gbif/
+```
+
+The SNS endpoints can be used to follow changes.
