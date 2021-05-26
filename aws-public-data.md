@@ -16,7 +16,7 @@ Data are stored in Parquet format files in AWS S3 in five regions: af-south-1, a
 
 Within that bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.
 
-The snapshot includes all CC-BY licensed data published through GBIF that have coordinates which passed automated quality checks.
+The snapshot includes all CC0 and CC-BY licensed data published through GBIF that have coordinates which passed automated quality checks.
 
 Each snapshot contains a `citation.txt` with instructions on how best to cite the data, and the data files themselves in Parquet format: `occurrence.parquet/*`.
 
