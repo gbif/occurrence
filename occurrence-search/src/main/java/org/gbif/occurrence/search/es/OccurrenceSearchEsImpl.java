@@ -124,6 +124,12 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return searchByDatsetKeyAndOccurrenceId(datasetKey, occurrenceId, TO_OCCURRENCE);
   }
 
+  @Nullable
+  @Override
+  public VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId) {
+    return searchByDatsetKeyAndOccurrenceId(datasetKey, occurrenceId, EsResponseParser::toVerbatimOccurrence);
+  }
+
   @Override
   public VerbatimOccurrence getVerbatim(Long key) {
     return searchByKey(key, EsResponseParser::toVerbatimOccurrence);

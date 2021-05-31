@@ -89,8 +89,29 @@ public class OccurrenceResource {
   /**
    * This retrieves a single occurrence fragment in its raw form as a string.
    *
-   * @param key The Occurrence key
-   * @return requested occurrence fragment or null if none could be found
+   * @param datasetKey dataset UUID identifier
+   * @param occurrenceId record identifier in the dataset
+   * @return requested occurrence or null if none could be found
+   */
+  @GetMapping("/{datasetKey}/{occurrenceId}/" + FRAGMENT_PATH)
+  @ResponseBody
+  @NullToNotFound
+  public String getFragment(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
+    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
+    Occurrence occurrence = occurrenceGetByKey.get(datasetKey, occurrenceId);
+    if (occurrence != null) {
+      return getFragment(occurrence.getKey());
+    }
+    return null;
+  }
+
+  /**
+   * This retrieves a single occurrence in its raw form as a string.
+   *
+   * @param datasetKey dataset UUID identifier
+   * @param occurrenceId record identifier in the dataset
+   *
+   * @return requested occurrence or null if none could be found
    */
   @GetMapping("/{datasetKey}/{occurrenceId}")
   @ResponseBody
@@ -112,6 +133,22 @@ public class OccurrenceResource {
   public VerbatimOccurrence getVerbatim(@PathVariable("key") Long key) {
     LOG.debug("Request VerbatimOccurrence [{}]:", key);
     return occurrenceGetByKey.getVerbatim(key);
+  }
+
+  /**
+   * This retrieves a single occurrence fragment in its raw form as a string.
+   *
+   * @param datasetKey dataset UUID identifier
+   * @param occurrenceId record identifier in the dataset
+   *
+   * @return requested VerbatimOccurrence or null if none could be found
+   */
+  @GetMapping("/{datasetKey}/{occurrenceId}/" + VERBATIM_PATH)
+  @ResponseBody
+  @NullToNotFound
+  public VerbatimOccurrence getVerbatim(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
+    LOG.debug("Retrieve occurrence verbatim by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
+    return occurrenceGetByKey.getVerbatim(datasetKey, occurrenceId);
   }
 
   /**

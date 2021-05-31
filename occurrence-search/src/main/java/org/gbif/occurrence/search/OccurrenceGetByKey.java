@@ -46,4 +46,19 @@ public interface OccurrenceGetByKey {
    */
   @Nullable
   Occurrence get(UUID datasetKey, String occurrenceId);
+
+
+  /**
+   * Attempt to find the verbatim values for an occurrence matching the passed key.
+   *
+   * @param datasetKey datasey key that should contain the  occurrenceID
+   *
+   * @param occurrenceId that identifies an occurrence in a dataset
+   *
+   * @return the verbatim occurrence, or null if no occurrence can be found
+   *
+   * @throws ServiceUnavailableException if the underlying data connection fails
+   */
+  @Nullable
+  VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId);
 }
