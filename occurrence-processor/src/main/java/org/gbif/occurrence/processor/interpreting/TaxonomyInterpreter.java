@@ -24,6 +24,7 @@ import org.gbif.kvs.species.SpeciesMatchRequest;
 import org.gbif.nameparser.NameParserGbifV1;
 import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.clients.SpeciesWsClient;
+import org.gbif.rest.client.configuration.ChecklistbankClientsConfiguration;
 import org.gbif.rest.client.configuration.ClientConfiguration;
 import org.gbif.ws.client.ClientBuilder;
 
@@ -57,7 +58,11 @@ public class TaxonomyInterpreter implements Serializable {
 
   @Inject
   public TaxonomyInterpreter(String apiUrl) {
-    matchingWs = NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(ClientConfiguration.builder().withBaseApiUrl(apiUrl).build());
+    ClientConfiguration clbClientConfiguration = ClientConfiguration.builder().withBaseApiUrl(apiUrl).build();
+    matchingWs = NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(ChecklistbankClientsConfiguration.builder()
+                                                                      .checklistbankClientConfiguration(clbClientConfiguration)
+                                                                      .nameUSageClientConfiguration(clbClientConfiguration)
+                                                                      .build());
 
     speciesWs = new KeyValueStore<String, NameUsage>(){
       private SpeciesWsClient speciesWsClient = new ClientBuilder().withUrl(apiUrl).build(SpeciesWsClient.class);
