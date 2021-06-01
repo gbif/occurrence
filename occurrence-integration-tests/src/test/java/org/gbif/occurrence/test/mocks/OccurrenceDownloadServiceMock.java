@@ -4,6 +4,7 @@ import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadStatistics;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Country;
@@ -115,10 +116,40 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
     return null;
   }
 
+  /**
+   * Retrieves downloaded records monthly stats by country (user and publishing country) and dataset.
+   */
   @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsByDataset(
-    @Nullable Date fromDate, @Nullable Date toDate, @Nullable Country country, @Nullable UUID datasetKey
-  ) {
+  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsByDataset(@Nullable Date fromDate,
+                                                                 @Nullable Date toDate,
+                                                                 @Nullable Country publishingCountry,
+                                                                 @Nullable UUID datasetKey,
+                                                                 @Nullable UUID publishingOrgKey) {
+    return null;
+  }
+
+  /**
+   * Retrieves downloads monthly stats by country (user and publishing country) and dataset.
+   */
+  @Override
+  public Map<Integer, Map<Integer, Long>> getDownloadsByDataset(@Nullable Date fromDate,
+                                                         @Nullable Date toDate,
+                                                         @Nullable Country publishingCountry,
+                                                         @Nullable UUID datasetKey,
+                                                         @Nullable UUID publishingOrgKey) {
+    return null;
+  }
+
+  /**
+   * Retrieves downloads monthly stats by country (user and publishing country) and dataset.
+   */
+  @Override
+  public PagingResponse<DownloadStatistics> getDownloadStatistics(@Nullable Date fromDate,
+                                                           @Nullable Date toDate,
+                                                           @Nullable Country publishingCountry,
+                                                           @Nullable UUID datasetKey,
+                                                           @Nullable UUID publishingOrgKey,
+                                                           @Nullable Pageable page) {
     return null;
   }
 
