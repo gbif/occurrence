@@ -198,9 +198,9 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.42</download-query-tools.version>
-    <dwc-api.version>1.32</dwc-api.version>
+    <dwc-api.version>1.33</dwc-api.version>
     <dwca-io.version>2.8</dwca-io.version>
-    <gbif-api.version>0.148-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.152</gbif-api.version>
     <gbif-common.version>0.50</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.17</gbif-common-service.version>
@@ -209,12 +209,12 @@
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.44</gbif-parsers.version>
     <gbif-postal-service.version>1.1</gbif-postal-service.version>
-    <gbif-registry.version>3.60</gbif-registry.version>
+    <gbif-registry.version>3.62</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>0.31</gbif-common-mybatis.version>
     <name-parser.version>3.1.6</name-parser.version>
-    <pipelines.version>2.8.4-SNAPSHOT</pipelines.version>
-    <gbif.kvs.version>1.17</gbif.kvs.version>
+    <pipelines.version>2.8.8</pipelines.version>
+    <gbif.kvs.version>1.21</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
 
     <!-- Sonar -->
