@@ -1,0 +1,11 @@
+{
+  "sendNotification": true,
+  "creator": "MattBlissett",
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "DWCA",
+  "predicate": {
+    "type": "in",
+    "key": "GADM_GID",
+    "values": ["USA.45_1", "USA.5_1"]
+  }
+}

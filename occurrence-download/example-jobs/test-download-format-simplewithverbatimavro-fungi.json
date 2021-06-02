@@ -1,0 +1,16 @@
+{
+  "creator": "MattBlissett",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "SIMPLE_WITH_VERBATIM_AVRO",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "TAXON_KEY",
+        "value": "6"
+      }
+    ]
+  }
+}

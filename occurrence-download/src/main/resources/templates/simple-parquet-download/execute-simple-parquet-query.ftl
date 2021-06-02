@@ -7,7 +7,7 @@ USE ${r"${hiveDB}"};
 
 SET hive.merge.mapfiles=false;
 -- Increases memory to avoid a "Container … is running beyond physical memory limits." error.
-SET yarn.app.mapreduce.am.resource.mb=32000;
+SET mapreduce.map.memory.mb=8192;
 
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
