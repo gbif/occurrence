@@ -60,6 +60,7 @@ public class DownloadResourceTest {
   }
 
   private void prepareMocks(String user) {
+    String archiveServerUrl = "http://test/";
     CallbackService callbackService = mock(CallbackService.class);
     DownloadRequestService service = mock(DownloadRequestService.class);
     OccurrenceDownloadService downloadService = mock(OccurrenceDownloadService.class);
@@ -71,7 +72,7 @@ public class DownloadResourceTest {
     Authentication auth = mock(Authentication.class);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    resource = new DownloadResource(service, callbackService, downloadService);
+    resource = new DownloadResource(archiveServerUrl, service, callbackService, downloadService);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
       DownloadFormat.DWCA);
 

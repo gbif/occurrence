@@ -30,6 +30,8 @@ occurrence:
       username: download_username
       password: download_password
       url: http://www.gbif-dev-test.org
+    archive_server:
+      url: https://occurrence-download.gbif-dev-test.org/occurrence/download/request/
   search:
     es:
       connect_timeout: 6000
@@ -55,4 +57,3 @@ spring:
 server:
   error:
     include-stacktrace: never
-

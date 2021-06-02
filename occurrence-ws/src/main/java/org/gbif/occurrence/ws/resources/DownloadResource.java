@@ -12,37 +12,11 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
-import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
-import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
@@ -55,11 +29,10 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -73,13 +46,33 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.net.URI;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
+import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
+import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 @RestController
 @Validated
@@ -90,8 +83,6 @@ public class DownloadResource {
   private static final String USER_ROLE = "USER";
   private static final String ZIP_EXT = ".zip";
   private static final String AVRO_EXT = ".avro";
-  private static final MediaType APPLICATION_OCTET_STREAM_QS =
-    new MediaType(MediaType.APPLICATION_OCTET_STREAM.getType(), MediaType.APPLICATION_OCTET_STREAM.getSubtype(), 0.5d);
 
   // low quality of source to default to JSON
   private static final String OCT_STREAM_QS = ";qs=0.5";
@@ -109,13 +100,17 @@ public class DownloadResource {
 
   private final CallbackService callbackService;
 
+  private final String archiveServerUrl;
+
   @Autowired
   public DownloadResource(
+    @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
     DownloadRequestService service,
     CallbackService callbackService,
     OccurrenceDownloadService occurrenceDownloadService
   ) {
-    requestService = service;
+    this.archiveServerUrl = archiveServerUrl;
+    this.requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
   }
@@ -125,107 +120,21 @@ public class DownloadResource {
     // service.get returns a download or throws NotFoundException
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), authentication, principal);
-    LOG.debug("Delete download: [{}]", jobId);
+    LOG.info("Delete download: [{}]", jobId);
     requestService.cancel(jobId);
   }
 
   /**
-   * Download streaming.
-   * Be aware this method is called when the header HttpHeaders.RANGE is PRESENT, other the getResult is invoked.
-   */
-  @GetMapping(value = "{key}", headers = HttpHeaders.RANGE, produces = {APPLICATION_OCTET_STREAM_QS_VALUE,
-    MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"})
-  public ResponseEntity<StreamingResponseBody> getStreamResult(
-    @Nullable @RequestHeader(HttpHeaders.RANGE) String range,
-    @PathVariable("key") String downloadKey,
-    @Autowired HttpServletRequest request
-  ) throws IOException {
-    // if key contains avro or zip suffix remove it as we intend to work with the pure key
-    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
-    downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
-
-    String extension = Optional.ofNullable(occurrenceDownloadService.get(downloadKey))
-      .map(download -> download.getRequest().getFormat().getExtension())
-      .orElse(ZIP_EXT);
-
-    LOG.debug("Get download data: [{}]", downloadKey);
-    File download = requestService.getResultFile(downloadKey);
-
-    try {
-
-      if (LOG.isDebugEnabled()) {
-        // Temporarily, in case we find weird clients.
-        LOG.debug("Range {} request, dumping all headers:", request.getMethod());
-        Enumeration<String> h = request.getHeaderNames();
-        while (h.hasMoreElements()) {
-          String s = h.nextElement();
-          LOG.debug("Header {}: {}", s, request.getHeader(s));
-        }
-      }
-
-      // Determine requested range.
-      final long from;
-      final long to;
-      try {
-        // Multipart ranges are not supported: Range: bytes=0-50, 100-150,
-        // but will fall through to the end of the range.
-
-        String[] ranges = range.split("=")[1].split("-");
-        // Single range: Range: bytes=1000-2000
-        // Or open ranges: Range: bytes=1000-
-        if (ranges[0].isEmpty()) {
-          // End range: Range: bytes=-5000
-          to = download.length() - 1;
-          from = download.length() - Long.parseLong(ranges[1]);
-        } else {
-          // Normal or open range: bytes=1000-2000 or bytes=1000-
-          from = Long.parseLong(ranges[0]);
-          if (ranges.length == 2) {
-            to = Long.parseLong(ranges[1]);
-          } else {
-            to = download.length() - 1;
-          }
-        }
-      } catch (Exception e) {
-        // Error log, as I assume clients shouldn't often make bad requests.
-        LOG.error("Unable to parse range request for {}: {}", downloadKey, range);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-      }
-
-      // Determine if the requested range exists
-      if (to < 0 || from >= download.length()) {
-        // Error log, since it seems strange that clients would make these requests.
-        LOG.error("Unable to satisfy range request for {}: {}", downloadKey, range);
-        return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
-          .header(HttpHeaders.CONTENT_RANGE, String.format("bytes */%d", download.length()))
-          .build();
-      }
-
-      final long length = to - from + 1;
-      final String responseRange = String.format("bytes %d-%d/%d", from, to, download.length());
-      // Ensure this has the same headers (except Content-Range and Content-Length) as the full response above.
-      return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-        .header(HttpHeaders.CONTENT_RANGE, responseRange)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + downloadKey + extension)
-        .header(HttpHeaders.CONTENT_LENGTH, Long.toString(length))
-        .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
-        .contentType(APPLICATION_OCTET_STREAM_QS)
-        .body(stream(download, from, length));
-
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to read download " + downloadKey + " from " + download.getAbsolutePath(),
-                                      e);
-    }
-  }
-
-  /**
    * Single file download.
-   * Be aware this method is called when the header HttpHeaders.RANGE is ABSENT, otherwise getStreamResult is invoked.
+   * <p>
+   * This redirects to the download server, so redeploys of this webservice don't affect long-running
+   * downloads, and to take advantage of Apache's full implementation of HTTP (Range requests etc).
+   * <p>
+   * (The commit introducing this comment removed an implementation of Range requests.)
    */
   @GetMapping(value = "{key}", produces = {APPLICATION_OCTET_STREAM_QS_VALUE, MediaType.APPLICATION_JSON_VALUE,
     "application/x-javascript"})
-  public ResponseEntity<FileSystemResource> getResult(@PathVariable("key") String downloadKey) throws IOException {
+  public ResponseEntity<String> getResult(@PathVariable("key") String downloadKey) {
 
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
@@ -238,37 +147,11 @@ public class DownloadResource {
     LOG.debug("Get download data: [{}]", downloadKey);
     File download = requestService.getResultFile(downloadKey);
 
-    try {
-      return ResponseEntity.status(HttpStatus.OK)
-        // Show that we support Range requests (i.e. can resume downloads)
-        .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-        // Suggest filename for download in HTTP headers
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + downloadKey + extension)
-        // Allow client to show a progress bar
-        .header(HttpHeaders.CONTENT_LENGTH, Long.toString(download.length()))
-        .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
-        .contentType(APPLICATION_OCTET_STREAM_QS)
-        .body(new FileSystemResource(download));
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to read download " + downloadKey + " from " + download.getAbsolutePath(),
-                                      e);
-    }
-  }
-
-  private StreamingResponseBody stream(File file, long from, long to) {
-
-    return outputStream -> {
-      try (RandomAccessFile download = new RandomAccessFile(file, "r")) {
-        final byte[] b = new byte[4096];
-        download.seek(from);
-        long length = to;
-        while (length > 0) {
-          int read = download.read(b, 0, (int) Math.min(b.length, length));
-          outputStream.write(b, 0, read);
-          length -= read;
-        }
-      }
-    };
+    String location = archiveServerUrl + downloadKey + extension;
+    return ResponseEntity.status(HttpStatus.FOUND)
+      .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
+      .location(URI.create(location))
+      .body(location + "\n");
   }
 
   @GetMapping("callback")
