@@ -64,21 +64,24 @@ public final class CitationsPersister extends CitationsFileReader {
       if (datasetsCitation == null || datasetsCitation.isEmpty()) {
         LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
       }
+
+      try {
+        datasetLicenses.values().forEach(licenseSelector::collectLicense);
+        Long totalRecords = datasetsCitation.values().stream().reduce(0L, Long::sum);
+        Download download = downloadService.get(downloadKey);
+        download.setLicense(licenseSelector.getSelectedLicense());
+        download.setTotalRecords(totalRecords);
+        downloadService.update(download);
+      } catch (Exception ex) {
+        LOG.error("Error persisting download license information, downloadKey: {}, licenses: {} ",
+          downloadKey, datasetLicenses.values(), ex);
+      }
+
       try {
         downloadService.createUsages(downloadKey, datasetsCitation);
       } catch (Exception e) {
-        LOG.error("Error persisting dataset usage information {}", datasetsCitation, e);
-      }
-      try {
-        datasetLicenses.values().forEach(licenseSelector::collectLicense);
-        Download download = downloadService.get(downloadKey);
-        download.setLicense(licenseSelector.getSelectedLicense());
-        downloadService.update(download);
-      } catch (Exception ex) {
-        LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ",
-          downloadKey, datasetLicenses.values(), ex);
+        LOG.error("Error persisting dataset usage information: {}", datasetsCitation, e);
       }
     }
-
   }
 }
