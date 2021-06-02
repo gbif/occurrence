@@ -41,7 +41,7 @@ public class HiveQueryVisitorTest {
   @Test
   public void testComplexQuery() throws QueryBuildingException {
     Predicate aves = new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "212", false);
-    Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer%", false);
+    Predicate passer = new LikePredicate(OccurrenceSearchParameter.SCIENTIFIC_NAME, "Passer*", false);
     Predicate UK = new EqualsPredicate(OccurrenceSearchParameter.COUNTRY, "GB", false);
     Predicate before1989 = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.YEAR, "1989");
     Predicate georeferencedPredicate = new EqualsPredicate(OccurrenceSearchParameter.HAS_COORDINATE, "true", false);
@@ -149,16 +149,17 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testLikePredicate() throws QueryBuildingException {
-    Predicate p = new LikePredicate(PARAM, "value", false);
+    // NB: ? and * are wildcards (translated to SQL _ and %), so literal _ and % are escaped.
+    Predicate p = new LikePredicate(PARAM, "v?l*ue_%", false);
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "lower(catalognumber) LIKE lower(\'value\')");
+    assertEquals(query, "lower(catalognumber) LIKE lower(\'v_l%ue\\_\\%\')");
   }
 
   @Test
   public void testLikeVerbatimPredicate() throws QueryBuildingException {
-    Predicate p = new LikePredicate(PARAM, "value", true);
+    Predicate p = new LikePredicate(PARAM, "v?l*ue_%", true);
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "catalognumber LIKE \'value\'");
+    assertEquals(query, "catalognumber LIKE \'v_l%ue\\_\\%\'");
   }
 
   @Test

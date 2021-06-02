@@ -261,7 +261,7 @@ public class EsQueryVisitor {
    */
   public void visit(LikePredicate predicate, BoolQueryBuilder queryBuilder) {
     queryBuilder.filter().add(QueryBuilders.wildcardQuery(getExactMatchOrVerbatimField(predicate),
-                                                          predicate.getValue() + "*"));
+                                                          predicate.getValue()));
   }
 
   /**

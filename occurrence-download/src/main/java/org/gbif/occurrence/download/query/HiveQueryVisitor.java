@@ -418,9 +418,19 @@ public class HiveQueryVisitor {
     visitSimplePredicate(predicate, LESS_THAN_OPERATOR);
   }
 
-  // TODO: This probably won't work without a bit more intelligence
   public void visit(LikePredicate predicate) throws QueryBuildingException {
-    visitSimplePredicate(predicate, LIKE_OPERATOR);
+    // Replace % → \% and _ → \_
+    // Then replace * → % and ? → _
+    LikePredicate likePredicate = new LikePredicate(
+      predicate.getKey(),
+      predicate.getValue()
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+        .replace('*', '%')
+        .replace('?', '_'),
+      predicate.isMatchCase());
+
+    visitSimplePredicate(likePredicate, LIKE_OPERATOR);
   }
 
   public void visit(NotPredicate predicate) throws QueryBuildingException {
