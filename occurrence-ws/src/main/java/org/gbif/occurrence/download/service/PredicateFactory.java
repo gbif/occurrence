@@ -1,8 +1,10 @@
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
@@ -122,6 +124,13 @@ public class PredicateFactory {
       // validate it here, as this constructor only logs invalid strings.
       SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, value);
       return new WithinPredicate(value);
+    }
+
+    // geo_distance filters
+    if (OccurrenceSearchParameter.GEO_DISTANCE == param) {
+      // validate it here, as this constructor only logs invalid strings.
+      SearchTypeValidator.validate(OccurrenceSearchParameter.GEO_DISTANCE, value);
+      return new GeoDistancePredicate(DistanceUnit.GeoDistance.parseGeoDistance(value));
     }
 
     // test for ranges

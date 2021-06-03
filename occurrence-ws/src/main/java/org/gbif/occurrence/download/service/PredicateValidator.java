@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.service;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -118,6 +119,14 @@ public class PredicateValidator {
   public void visit(WithinPredicate within) {
     SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, within.getGeometry());
   }
+
+  /**
+   * handles within predicate, validates the Geometry.
+   */
+  public void visit(GeoDistancePredicate geoDistance) {
+    SearchTypeValidator.validate(OccurrenceSearchParameter.GEO_DISTANCE, geoDistance.getGeoDistance().toGeoDistanceString());
+  }
+
 
   /**
    * handles IsNotNullPredicate Predicate

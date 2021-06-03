@@ -29,4 +29,22 @@ public class PredicateFactoryTest {
       PredicateFactory.build(params);
     });
   }
+
+  @Test
+  public void testGeoDistancePredicateValidation() {
+
+    // Valid predicate should pass
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.GEO_DISTANCE.name(), new String[] {"30,10,10km"});
+
+    assertNotNull(PredicateFactory.build(params));
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      // Invalid predicate should fail
+      params.clear();
+      params.put(OccurrenceSearchParameter.GEO_DISTANCE.name(), new String[] {"3,10,10we"});
+
+      PredicateFactory.build(params);
+    });
+  }
 }

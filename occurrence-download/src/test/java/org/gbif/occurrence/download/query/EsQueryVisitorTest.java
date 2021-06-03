@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.query;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -685,6 +686,34 @@ public class EsQueryVisitorTest {
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getQuery(p);
     assertNotNull(query);
+  }
+
+  @Test
+  public void testGeoDistancePredicate() throws QueryBuildingException {
+    Predicate p = new GeoDistancePredicate("10", "20", "10km");
+    String query = visitor.getQuery(p);
+    String expectedQuery = "{\n"
+                           + "  \"bool\" : {\n"
+                           + "    \"filter\" : [\n"
+                           + "      {\n"
+                           + "        \"geo_distance\" : {\n"
+                           + "          \"scoordinates\" : [\n"
+                           + "            20.0,\n"
+                           + "            10.0\n"
+                           + "          ],\n"
+                           + "          \"distance\" : 10000.0,\n"
+                           + "          \"distance_type\" : \"arc\",\n"
+                           + "          \"validation_method\" : \"STRICT\",\n"
+                           + "          \"ignore_unmapped\" : false,\n"
+                           + "          \"boost\" : 1.0\n"
+                           + "        }\n"
+                           + "      }\n"
+                           + "    ],\n"
+                           + "    \"adjust_pure_negative\" : true,\n"
+                           + "    \"boost\" : 1.0\n"
+                           + "  }\n"
+                           + "}";
+    assertEquals(expectedQuery, query);
   }
 
   @Test

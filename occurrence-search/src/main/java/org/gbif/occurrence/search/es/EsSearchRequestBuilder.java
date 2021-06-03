@@ -1,6 +1,7 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.search.SearchConstants;
+import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
@@ -37,6 +38,7 @@ import org.locationtech.jts.io.WKTReader;
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.COORDINATE_SHAPE;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.COORDINATE_POINT;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
 public class EsSearchRequestBuilder {
@@ -137,6 +139,17 @@ public class EsSearchRequestBuilder {
                     .map(EsSearchRequestBuilder::buildGeoShapeQuery)
                     .collect(Collectors.toList()));
         bool.filter().add(shouldGeometry);
+      }
+
+      if (params.containsKey(OccurrenceSearchParameter.GEO_DISTANCE)) {
+        BoolQueryBuilder shouldGeoDistance = QueryBuilders.boolQuery();
+        shouldGeoDistance
+          .should()
+          .addAll(
+            params.get(OccurrenceSearchParameter.GEO_DISTANCE).stream()
+              .map(EsSearchRequestBuilder::buildGeoDistanceQuery)
+              .collect(Collectors.toList()));
+        bool.filter().add(shouldGeoDistance);
       }
 
       // adding term queries to bool
@@ -386,6 +399,17 @@ public class EsSearchRequestBuilder {
     }
 
     return builder;
+  }
+
+  public static GeoDistanceQueryBuilder buildGeoDistanceQuery(String rawGeoDistance) {
+    DistanceUnit.GeoDistance geoDistance = DistanceUnit.GeoDistance.parseGeoDistance(rawGeoDistance);
+    return buildGeoDistanceQuery(geoDistance);
+  }
+
+  public static GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
+    return QueryBuilders.geoDistanceQuery(COORDINATE_POINT.getFieldName())
+      .distance(geoDistance.getDistance().toString())
+      .point(geoDistance.getLatitude(), geoDistance.getLongitude());
   }
 
   public static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
