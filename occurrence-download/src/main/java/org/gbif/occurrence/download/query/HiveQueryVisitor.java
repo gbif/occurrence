@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -62,6 +63,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.distance.DistanceUtils;
 import org.locationtech.spatial4j.io.WKTReader;
 import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
@@ -485,6 +487,16 @@ public class HiveQueryVisitor {
     } catch (Exception e) {
       throw new QueryBuildingException(e);
     }
+  }
+
+  public void visit(GeoDistancePredicate geoDistance) throws QueryBuildingException {
+    builder.append("(geoDistance(");
+    builder.append(geoDistance.getGeoDistance().toGeoDistanceString());
+    builder.append(", ");
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(", ");
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+    builder.append(") = TRUE)");
   }
 
   /**

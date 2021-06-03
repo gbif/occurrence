@@ -5,6 +5,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -284,6 +285,16 @@ public class EsQueryVisitor {
    */
   public void visit(WithinPredicate within, BoolQueryBuilder queryBuilder) {
     queryBuilder.filter(EsSearchRequestBuilder.buildGeoShapeQuery(within.getGeometry()));
+  }
+
+  /**
+   * handles geoDistance predicate
+   *
+   * @param geoDistance  GeoDistance predicate
+   * @param queryBuilder root query builder
+   */
+  public void visit(GeoDistancePredicate geoDistance, BoolQueryBuilder queryBuilder) {
+    queryBuilder.filter(EsSearchRequestBuilder.buildGeoDistanceQuery(geoDistance.getGeoDistance()));
   }
 
   /**

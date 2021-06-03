@@ -3,6 +3,7 @@ package org.gbif.occurrence.download.query;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -269,6 +270,13 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testGeoDistancePredicate() throws QueryBuildingException {
+    Predicate p = new GeoDistancePredicate("30", "10", "10km");
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "(geoDistance(" + "30.0, 10.0, 10.0km" + ", decimallatitude, decimallongitude) = TRUE)");
+  }
+
+  @Test
   public void testWithinPredicate() throws QueryBuildingException {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
@@ -455,11 +463,14 @@ public class HiveQueryVisitorTest {
         value = values[0].name();
       } else if (Date.class.isAssignableFrom(param.type())) {
         value = "2014-01-23";
+      } else if (OccurrenceSearchParameter.GEO_DISTANCE == param) {
+        predicates.add(new GeoDistancePredicate("10", "20", "10km"));
       }
 
-      if (OccurrenceSearchParameter.GEOMETRY != param) {
+      if (OccurrenceSearchParameter.GEOMETRY != param && OccurrenceSearchParameter.GEO_DISTANCE != param) {
         predicates.add(new EqualsPredicate(param, value, false));
       }
+
     }
     ConjunctionPredicate and = new ConjunctionPredicate(predicates);
     try {
