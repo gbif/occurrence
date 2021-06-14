@@ -29,6 +29,7 @@ AS SELECT
   gbifID,
   datasetKey,
   license,
+  basisOfRecord,
   -- Interpreted terms
   countryCode,
   toLocalISO8601(dateidentified) AS dateIdentified,
