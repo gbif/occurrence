@@ -16,11 +16,13 @@ import java.util.Set;
 public class MapOfLifeDownloadDefinition extends DownloadTerms {
 
   public static final Set<Pair<DownloadTerms.Group, Term>> MAP_OF_LIFE_DOWNLOAD_TERMS = ImmutableSet.of(
+    // Identifiers
     Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
     Pair.of(Group.INTERPRETED, GbifInternalTerm.publishingOrgKey),
     Pair.of(Group.INTERPRETED, GbifTerm.datasetKey),
     Pair.of(Group.INTERPRETED, DwcTerm.occurrenceID),
 
+    // Taxonomy
     Pair.of(Group.INTERPRETED, DwcTerm.taxonomicStatus),
     Pair.of(Group.INTERPRETED, DwcTerm.kingdom),
     Pair.of(Group.INTERPRETED, DwcTerm.phylum),
@@ -34,20 +36,29 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.infraspecificEpithet),
     Pair.of(Group.INTERPRETED, DwcTerm.taxonRank),
     Pair.of(Group.INTERPRETED, DwcTerm.scientificName),
+    Pair.of(Group.INTERPRETED, GbifTerm.acceptedScientificName),
     Pair.of(Group.VERBATIM, DwcTerm.verbatimTaxonRank),
     Pair.of(Group.VERBATIM, DwcTerm.scientificName),
     Pair.of(Group.VERBATIM, DwcTerm.scientificNameAuthorship),
     Pair.of(Group.VERBATIM, DwcTerm.vernacularName),
 
+    // Taxonomy identifiers
     Pair.of(Group.INTERPRETED, GbifTerm.taxonKey),
+    Pair.of(Group.INTERPRETED, GbifTerm.acceptedTaxonKey),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
 
+    // Location
     Pair.of(Group.INTERPRETED, DwcTerm.countryCode),
     Pair.of(Group.INTERPRETED, DwcTerm.locality),
     Pair.of(Group.INTERPRETED, DwcTerm.stateProvince),
+    Pair.of(Group.INTERPRETED, DwcTerm.habitat),
+    Pair.of(Group.INTERPRETED, DwcTerm.locationRemarks),
+
+    // Observation
     Pair.of(Group.INTERPRETED, DwcTerm.occurrenceStatus),
     Pair.of(Group.INTERPRETED, DwcTerm.individualCount),
 
+    // Precise location
     Pair.of(Group.INTERPRETED, GbifTerm.hasCoordinate),
     Pair.of(Group.INTERPRETED, DwcTerm.decimalLatitude),
     Pair.of(Group.INTERPRETED, DwcTerm.decimalLongitude),
@@ -64,11 +75,14 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
     Pair.of(Group.VERBATIM, DwcTerm.verbatimLocality),
     Pair.of(Group.VERBATIM, DwcTerm.verbatimSRS),
 
+    // Collection event
     Pair.of(Group.INTERPRETED, DwcTerm.eventDate),
     Pair.of(Group.INTERPRETED, DwcTerm.eventTime),
     Pair.of(Group.INTERPRETED, DwcTerm.day),
     Pair.of(Group.INTERPRETED, DwcTerm.month),
     Pair.of(Group.INTERPRETED, DwcTerm.year),
+    Pair.of(Group.INTERPRETED, DwcTerm.fieldNotes),
+    Pair.of(Group.INTERPRETED, DwcTerm.eventRemarks),
     Pair.of(Group.VERBATIM, DwcTerm.verbatimEventDate),
 
     Pair.of(Group.INTERPRETED, DwcTerm.basisOfRecord),
@@ -77,10 +91,13 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.catalogNumber),
     Pair.of(Group.INTERPRETED, DwcTerm.recordNumber),
 
+    // Identification
     Pair.of(Group.INTERPRETED, DwcTerm.identifiedBy),
     Pair.of(Group.INTERPRETED, GbifTerm.identifiedByID),
     Pair.of(Group.INTERPRETED, DwcTerm.dateIdentified),
+    Pair.of(Group.INTERPRETED, DwcTerm.identificationRemarks),
 
+    // Rights
     Pair.of(Group.INTERPRETED, DcTerm.license),
     Pair.of(Group.INTERPRETED, DcTerm.rightsHolder),
     Pair.of(Group.INTERPRETED, DwcTerm.recordedBy),
@@ -88,6 +105,7 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.typeStatus),
     Pair.of(Group.INTERPRETED, DwcTerm.establishmentMeans),
 
+    // Sampling
     Pair.of(Group.INTERPRETED, DwcTerm.sampleSizeUnit),
     Pair.of(Group.INTERPRETED, DwcTerm.sampleSizeValue),
     Pair.of(Group.INTERPRETED, DwcTerm.samplingEffort),
