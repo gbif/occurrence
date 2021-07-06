@@ -91,7 +91,6 @@
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
-    <module>occurrence-clustering</module>
   </modules>
 
   <properties>
