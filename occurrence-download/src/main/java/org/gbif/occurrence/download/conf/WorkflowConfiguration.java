@@ -86,6 +86,15 @@ public class WorkflowConfiguration {
 
   /**
    *
+   * @return HDFS temp dir where downloads files are created
+   */
+  public String getHdfsTempDir() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_TMP_DIR_KEY);
+  }
+
+  /**
+   *
    * @param downloadKey download id
    * @return a link to the download file
    */

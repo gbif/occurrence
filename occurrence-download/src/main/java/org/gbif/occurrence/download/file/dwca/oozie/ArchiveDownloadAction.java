@@ -21,6 +21,13 @@ public class ArchiveDownloadAction {
    * Entry point for assembling the DWC archive.
    * The thrown exception is the only way of telling Oozie that this job has failed.
    *
+   * The expected parameters are:
+   * 0. downloadKey: occurrence download key.
+   * 1. username: download user
+   * 2. predicate: download query filter
+   * 3. isSmallDownload
+   * 4. download table/file name
+   *
    * @throws java.io.IOException if any read/write operation failed
    */
   public static void main(String[] args) throws IOException {

@@ -16,6 +16,7 @@ import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
+import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -27,7 +28,6 @@ import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.registry.metadata.EMLWriter;
-import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.BufferedOutputStream;
@@ -44,14 +44,13 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -59,12 +58,15 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
@@ -149,7 +151,7 @@ public class DwcaArchiveBuilder {
                                                           titleLookup,
                                                           configuration,
                                                           workflowConfiguration);
-    generator.buildArchive(new File(tmpDir, configuration.getDownloadKey() + ".zip"));
+    generator.buildArchive();
   }
 
   private static void writeCitation(Writer citationWriter, Dataset dataset)
@@ -194,17 +196,14 @@ public class DwcaArchiveBuilder {
   }
 
   /**
-   * Main method to assemble the dwc archive and do all the work until we have a final zip file.
-   *
-   * @param zipFile the final zip file holding the entire archive
+   * Main method to assemble the DwC archive and do all the work until we have a final zip file.
    */
-  public void buildArchive(File zipFile) throws DownloadException {
-    LOG.info("Start building the archive {} ", zipFile.getPath());
+  public void buildArchive() throws DownloadException {
+    LOG.info("Start building the archive for {} ", configuration.getDownloadKey());
+
+    String zipFileName = configuration.getDownloadKey() + ".zip";
 
     try {
-      if (zipFile.exists()) {
-        zipFile.delete();
-      }
       if (!configuration.isSmallDownload()) {
         // oozie might try several times to run this job, so make sure our filesystem is clean
         cleanupFS();
@@ -226,15 +225,26 @@ public class DwcaArchiveBuilder {
       DwcArchiveUtils.createArchiveDescriptor(archiveDir);
 
       // zip up
-      LOG.info("Zipping archive {}", archiveDir);
-      CompressionUtil.zipDir(archiveDir, zipFile, true);
+      Path hdfsTmpZipPath = new Path(workflowConfiguration.getHdfsTempDir(), zipFileName);
+      LOG.info("Zipping archive {} to HDFS temporary location {}", archiveDir, hdfsTmpZipPath);
 
-      // add the large download data files to the zip stream
-      if (!configuration.isSmallDownload()) {
-        appendPreCompressedFiles(zipFile);
+      try (
+        FSDataOutputStream zipped = targetFs.create(hdfsTmpZipPath, true);
+        ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped, 10*1024*1024))
+      ) {
+        zipLocalFiles(zos);
+
+        // add the large download data files to the zip stream
+        if (!configuration.isSmallDownload()) {
+          appendPreCompressedFiles(zos);
+        }
+
+        zos.finish();
       }
-      targetFs.moveFromLocalFile(new Path(zipFile.getPath()),
-                                 new Path(workflowConfiguration.getHdfsOutputPath(), zipFile.getName()));
+
+      LOG.info("Moving Zip from HDFS temporary location to final destination.");
+      targetFs.rename(hdfsTmpZipPath,
+        new Path(workflowConfiguration.getHdfsOutputPath(), zipFileName));
 
     } catch (IOException e) {
       throw new DownloadException(e);
@@ -244,6 +254,30 @@ public class DwcaArchiveBuilder {
       cleanupFS();
     }
 
+  }
+
+  /**
+   * Merges the file using the standard java libraries java.util.zip.
+   */
+  private void zipLocalFiles(ModalZipOutputStream zos) {
+    try {
+      Collection<File> files = org.apache.commons.io.FileUtils.listFiles(archiveDir, null, true);
+
+      for (File f : files) {
+        LOG.debug("Adding local file {} to archive", f);
+        FileInputStream fileInZipInputStream = new FileInputStream(f);
+        String zipPath = StringUtils.removeStart(f.getAbsolutePath(), archiveDir.getAbsolutePath() + File.separator);
+        ZipEntry entry = new ZipEntry(zipPath);
+        zos.putNextEntry(entry, ModalZipOutputStream.MODE.DEFAULT);
+        ByteStreams.copy(fileInZipInputStream, zos);
+        fileInZipInputStream.close();
+      }
+      zos.closeEntry();
+
+    } catch (Exception ex) {
+      //LOG.error(ERROR_ZIP_MSG, ex);
+      throw Throwables.propagate(ex);
+    }
   }
 
   public void createEmlFile(UUID constituentId, File emlDir) {
@@ -300,52 +334,24 @@ public class DwcaArchiveBuilder {
   }
 
   /**
-   * Rewrites the zip file by opening the original and appending the pre-compressed content on the fly.
+   * Append the pre-compressed content to the zip stream
    */
-  private void appendPreCompressedFiles(File zipFile) throws IOException {
+  private void appendPreCompressedFiles(ModalZipOutputStream out) throws IOException {
+    LOG.info("Appending pre-compressed occurrence content to the Zip");
 
-    LOG.info("Appending pre-compressed occurrence content to the Zip: {}", zipFile.getAbsolutePath());
-
-    File tempZip = new File(archiveDir, zipFile.getName() + ".part");
-    boolean renameOk = zipFile.renameTo(tempZip);
-    if (renameOk) {
-      try (ZipInputStream zin = new ZipInputStream(new FileInputStream(tempZip));
-           ModalZipOutputStream out = new ModalZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)))
-      ) {
-
-        // copy existing entries
-        ZipEntry entry = zin.getNextEntry();
-        while (entry != null) {
-          out.putNextEntry(new org.gbif.hadoop.compress.d2.zip.ZipEntry(entry.getName()),
-                           ModalZipOutputStream.MODE.DEFAULT);
-          ByteStreams.copy(zin, out);
-          entry = zin.getNextEntry();
-        }
-
-        // NOTE: hive lowercases all the paths
-        appendPreCompressedFile(out,
-                                new Path(configuration.getInterpretedDataFileName()),
-                                INTERPRETED_FILENAME,
-                                HeadersFileUtil.getInterpretedTableHeader());
-        appendPreCompressedFile(out,
-                                new Path(configuration.getVerbatimDataFileName()),
-                                VERBATIM_FILENAME,
-                                HeadersFileUtil.getVerbatimTableHeader());
-        appendPreCompressedFile(out,
-                                new Path(configuration.getMultimediaDataFileName()),
-                                MULTIMEDIA_FILENAME,
-                                HeadersFileUtil.getMultimediaTableHeader());
-
-      } finally {
-        // we've rewritten so remove the original
-        if (tempZip != null) {
-          tempZip.delete();
-        }
-      }
-
-    } else {
-      throw new IllegalStateException("Unable to rename existing zip, to allow appending occurrence data");
-    }
+    // NOTE: hive lowercases all the paths
+    appendPreCompressedFile(out,
+      new Path(configuration.getInterpretedDataFileName()),
+      INTERPRETED_FILENAME,
+      HeadersFileUtil.getInterpretedTableHeader());
+    appendPreCompressedFile(out,
+      new Path(configuration.getVerbatimDataFileName()),
+      VERBATIM_FILENAME,
+      HeadersFileUtil.getVerbatimTableHeader());
+    appendPreCompressedFile(out,
+      new Path(configuration.getMultimediaDataFileName()),
+      MULTIMEDIA_FILENAME,
+      HeadersFileUtil.getMultimediaTableHeader());
   }
 
   /**

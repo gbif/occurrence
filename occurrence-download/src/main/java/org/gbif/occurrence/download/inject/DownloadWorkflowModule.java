@@ -274,6 +274,7 @@ public class DownloadWorkflowModule  {
     public static final String DOWNLOAD_PASSWORD_KEY = PROPERTIES_PREFIX + "ws.password";
     public static final String DOWNLOAD_LINK_KEY = PROPERTIES_PREFIX + "link";
     public static final String HDFS_OUTPUT_PATH_KEY = PROPERTIES_PREFIX + "hdfsOutputPath";
+    public static final String HDFS_TMP_DIR_KEY = PROPERTIES_PREFIX + "hdfs.tmp.dir";
     public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
     public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.hdfs.out";
 
