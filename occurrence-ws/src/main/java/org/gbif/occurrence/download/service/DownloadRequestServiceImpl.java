@@ -239,7 +239,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      LOG.info("Download {} not found [Oozie may be issuing callback before download persisted]", downloadId);
+      LOG.info("Download {} not found. [Oozie may be issuing callback before download persisted.]", downloadId);
+      return;
+    }
+
+    if (Download.Status.SUCCEEDED.equals(download.getStatus()) ||
+      Download.Status.FAILED.equals(download.getStatus()) ||
+      Download.Status.KILLED.equals(download.getStatus())) {
+      // Download has already completed, so perhaps callbacks in rapid succession have been processed out-of-order
+      LOG.warn("Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.", downloadId);
       return;
     }
 
