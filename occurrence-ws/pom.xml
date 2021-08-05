@@ -196,16 +196,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-service</artifactId>
-      <exclusions>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
       <exclusions>
