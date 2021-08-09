@@ -230,7 +230,7 @@
     <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
-    <elasticsearch.version>7.10.0</elasticsearch.version>
+    <elasticsearch.version>7.13.3</elasticsearch.version>
     <testcontainers-elasticsearch.version>1.15.0</testcontainers-elasticsearch.version>
 
     <!-- Plugin versions -->
