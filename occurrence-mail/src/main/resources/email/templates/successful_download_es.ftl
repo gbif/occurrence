@@ -1,76 +1,74 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">Hola ${download.request.creator},</p>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hola ${download.request.creator},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Su archivo de descarga se encuentra disponible en la siguiente dirección:
+  Your download is available at the following address:
   <br>
-  <a href="${download.downloadLink}" style="color: #509E2F;text-decoration: none;">${download.downloadLink}</a>
+  <a href="${download.downloadLink}" style="color: #4ba2ce;text-decoration: none;">${download.downloadLink}</a>
 </p>
 
 
-<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Citas</h4>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Citation</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Al referenciar este archivo <strong> favor usar la siguiente cita:</strong>
+  When using this dataset <strong>please use the following citation:</strong>
 </p>
-<p style="background: #e8e8e8;margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
+<p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
-<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Información del archivo de descarga</h4>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Download Information</h5>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
-  DOI: <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  (podría tardar algunas horas en activarse)
+  DOI: <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  (may take some hours before being active)
 <br>
-  Fecha de creación: ${download.created?datetime}
+  Creation Date: ${download.created?datetime}
 <br>
-  Registros incluidos: ${download.totalRecords} registros de ${download.numberDatasets!0} conjuntos de datos publicados
+  Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
 <br>
-  Tamaño de los datos, comprimidos: ${size}
+  Compressed data size: ${size}
 <br>
-  Formato: <#if download.request.format == "SIMPLE_CSV">simple separado por el caracter TAB (TSV)<#else>${download.request.format}</#if>
+  Download format: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>
 <br>
-  Filtro utilizado:
+  Filter used:
   <pre style="white-space: pre-wrap;margin: 0;padding: 0;">${query}</pre>
 </p>
 
 
-<h4 style="margin: 20px 0;padding: 0;font-size: 20px;line-height: 1.25;">Política de rentención</h4>
+<h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">Download file retention</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  La información acerca de esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  y en <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a>
+  Information about this download will always be available at <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  and <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Los archivos <#if download.request.format == "SIMPLE_CSV">simples separados por el caracter TAB (TSV)<#else>${download.request.format}</#if> serán almacenados por un período seis meses (hasta el ${download.eraseAfter?date}).<br>
-  Puede solicitar extender dicho período desde <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a>  You can ask
-  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>  You can ask
-  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
+  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Si el archivo de descarga es citado utilizando el DOI, dicha referencia es usualmente detectada y el archivo mantenido indefinidamente.
+  If you cite this download using the DOI, we will usually detect this and keep the file indefinitely.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Para más información acerca de esto, ver <a href="${portal}es/faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #509E2F;text-decoration: none;">${portal}es/faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
 </p>
 
 
-<h4 style="margin: 0 0 20px;padding: 0;font-size: 20px;line-height: 1.25;">Información / FAQ</h4>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Information / FAQ</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Para obtener ayuda de cómo abrir archivos de descarga, ver
-  <a href="${portal}es/faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}es/faq?question=opening-gbif-csv-in-excel</a>
-  ó consultar la sección FAQ en el sitio web de GBIF
-  <a href="${portal}es/faq" style="color: #509E2F;text-decoration: none;">${portal}es/faq</a>
+  For help with opening downloaded files, see
+  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
+  or the FAQ section of the GBIF website:
+  <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <em>Secretariado de GBIF</em>
+  <em>The GBIF Secretariat</em>
 </p>
 
 <#include "footer.ftl">
