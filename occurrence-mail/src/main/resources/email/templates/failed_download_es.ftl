@@ -16,7 +16,7 @@
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
   Si el problema persiste, contáctenos utilizando la funcionalidad de retroalimentación del sitio web, ó escribiendo a <a href="mailto:helpdesk@gbif.org" style="color: #509E2F;text-decoration: none;">helpdesk@gbif.org</a>.<br>
-  Por favor incluya la identificación (${download.key}) del archivo de descarga fallido.
+  Por favor incluya la identificación (${download.key}) del archivo de descarga fallido.  Please include the download key (${download.key}) of the failed download.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
