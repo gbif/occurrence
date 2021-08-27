@@ -45,7 +45,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <#if download.request.format == "SIMPLE_CSV">TSV (simple tab-separated values)<#else>${download.request.format}</#if> файл, будет храниться в течение шести месяцев (до ${download.eraseAfter? date}). Вы можете попросить
+  TSV (simple tab-separated values)<#else>${download.request.format}</#if> файл, будет храниться в течение шести месяцев (до ${download.eraseAfter? date}).  Вы можете попросить
   нас хранить файл дольше <a href="${portal}ru/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}ru/occurrence/download/${download.key}</a>
 </p>
 
