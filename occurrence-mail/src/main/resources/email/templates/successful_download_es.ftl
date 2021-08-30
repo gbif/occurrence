@@ -4,13 +4,13 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hola ${download.request.creator},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Your download is available at the following address:
+  Tu descarga se encuentra disponible en el siguiente enlace:
   <br>
   <a href="${download.downloadLink}" style="color: #4ba2ce;text-decoration: none;">${download.downloadLink}</a>
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Citation</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Cómo citar</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   When using this dataset <strong>please use the following citation:</strong>
 </p>
