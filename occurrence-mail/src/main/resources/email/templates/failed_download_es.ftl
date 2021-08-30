@@ -10,15 +10,15 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Please see <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> for more details, <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> for the current status of GBIF.org's systems, and try again in a few minutes.
+  Para más detalles, por favor, consulte <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> y el estado de los servicios de GBIF <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> y vuelva a intentarlo pasados unos minutos.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  Si el problema persiste, contáctenos utilizando el sistema de comentarios del sitio web o escribiendo a <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Por favor, incluya el identificador (${download.key}) de la descarga fallida.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>La Secretaría de GBIF</em>
 </p>
 
 <#include "footer.ftl">
