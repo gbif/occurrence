@@ -6,7 +6,7 @@
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  Lo sentimos pero se ha producido un error al procesar su descarga.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
