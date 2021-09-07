@@ -40,16 +40,16 @@
 <h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">Plazo de conservación de la descarga</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  La información relativa a esta descarga siempre estará disponible en <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  La información sobre esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
   y <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  El fichero <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> se guardará durante 6 meses (hasta ${download.eraseAfter?date}).  Puede solicitarnos guardar el archivo por más tiempo en <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  El archivo <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> se guardará durante 6 meses (hasta ${download.eraseAfter?date}).  Puede solicitarnos guardar el archivo por más tiempo en <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Si cita esta descarga a través del DOI, lo detectaremos y guardaremos este fichero indefinidamente.
+  Si cita esta descarga a través del DOI, lo detectaremos y guardaremos este archivo indefinidamente.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -60,14 +60,14 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Información / Preguntas frecuentes</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Si necesita ayuda para abrir los ficheros descargados, vea
+  Si necesita ayuda para abrir los archivos descargados, consulte
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
   o la sección de preguntas frecuentes en la página web de GBIF:
   <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <em>La Secretaría de GBIF</em>
+  <em>Secretaría de GBIF</em>
 </p>
 
 <#include "footer.ftl">
