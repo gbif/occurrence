@@ -4,7 +4,7 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hola ${download.request.creator},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Tu descarga se encuentra disponible en el siguiente enlace:
+  Su descarga se encuentra disponible en el siguiente enlace:
   <br>
   <a href="${download.downloadLink}" style="color: #4ba2ce;text-decoration: none;">${download.downloadLink}</a>
 </p>
@@ -12,7 +12,7 @@
 
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Cómo citar</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Cuando haga uso de este dataset, <strong>por favor, use la siguiente cita:</strong>
+  Cuando haga uso de este conjunto de datos, <strong>por favor, use la siguiente cita:</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
   GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
@@ -26,7 +26,7 @@
 <br>
   Fecha de creación: ${download.created?datetime}
 <br>
-  Registros incluidos: ${download.totalRecords} registros de ${download.numberDatasets!0} datasets publicados
+  Registros incluidos: ${download.totalRecords} registros de ${download.numberDatasets!0} conjuntos de datos publicados
 <br>
   Tamaño de los datos comprimidos: ${size}
 <br>
