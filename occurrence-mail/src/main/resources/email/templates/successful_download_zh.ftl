@@ -1,51 +1,51 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hello ${download.request.creator},</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">您好 ${download.request.creator}，</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Your download is available at the following address:
+  您的下载地址如下：
   <br>
   <a href="${download.downloadLink}" style="color: #4ba2ce;text-decoration: none;">${download.downloadLink}</a>
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Citation</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">引用</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  When using this dataset <strong>please use the following citation:</strong>
+  当使用此数据集时，<strong>请使用以下引用：</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
   GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Download Information</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">下载信息</h5>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
   DOI: <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  (may take some hours before being active)
+  （激活前可能需要几个小时）
 <br>
-  Creation Date: ${download.created?datetime}
+  创建日期：${download.created?datetime}
 <br>
-  Records included: ${download.totalRecords} records from ${download.numberDatasets!0} published datasets
+  记录包括：${download.totalRecords} 来自 ${download.numberDatasets!0} 已发布数据集的记录
 <br>
-  Compressed data size: ${size}
+  压缩数据大小： ${size}
 <br>
-  Download format: <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if>
+  下载格式： <#if download.request.format == "SIMPLE_CSV"> 简单的tab分隔的值(TSV)<#else>${download.request.format}</#if>
 <br>
-  Filter used:
+  使用的筛选器：
   <pre style="white-space: pre-wrap;margin: 0;padding: 0;">${query}</pre>
 </p>
 
 
-<h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">Download file retention</h5>
+<h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">下载文件保留</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Information about this download will always be available at <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  and <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  有关此下载的信息将总是可以通过 <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  和 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> 获得。
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  您可以从 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}事件/下载/${download.key}</a> 要求我们将文件保留更长时间
+  <#if download.request.format == "SIMPLE_CSV">简单的tab分隔的值 (TSV)<#else>${download.request.format}</#if>文件将保留6个月（直到${download.eraseAfter?date}）。  您可以从 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> 要求我们将文件保留更长时间
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
