@@ -45,23 +45,22 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
-  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  您可以从 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}事件/下载/${download.key}</a> 要求我们将文件保留更长时间
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  If you cite this download using the DOI, we will usually detect this and keep the file indefinitely.
+  如果您使用 DOI 来引用下载，我们通常会检测到，并无限期地保留文件。
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+  关于该问题的更多信息，请参阅 <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
 </p>
 
 
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">信息 / 常见问题</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  需要打开下载文件的帮助，请参阅
+  打开下载文件的帮助，请参阅
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
   或 GBIF网站常见问题部分：
   <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
