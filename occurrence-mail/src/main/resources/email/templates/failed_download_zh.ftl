@@ -2,7 +2,7 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  您好 ${download.request.creator}，
+  ${download.request.creator}，您好！
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
