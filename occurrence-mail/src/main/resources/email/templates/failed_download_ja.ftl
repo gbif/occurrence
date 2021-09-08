@@ -14,11 +14,11 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  問題が解決しない場合は、ウェブサイトのフィードバック、または <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> までお問い合わせください。  Please include the download key (${download.key}) of the failed download.
+  問題が解決しない場合は、ウェブサイトのフィードバック、または <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> までお問い合わせください。  失敗したダウンロードのダウンロードキー (${download.key}) もお知らせください。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>GBIF事務局</em>
 </p>
 
 <#include "footer.ftl">
