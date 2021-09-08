@@ -2,19 +2,19 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  Hello ${download.request.creator},
+  ${download.request.creator} 様
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  申し訳ございませんが、ダウンロードの処理中にエラーが発生しました。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Please see <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> for more details, <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> for the current status of GBIF.org's systems, and try again in a few minutes.
+  詳細については <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> を、 GBIF.orgの現在のシステム正常性については<a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> をご確認いただき、時間をおいてから再度お試しください。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  問題が解決しない場合は、ウェブサイトのフィードバック、または <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> までお問い合わせください。  Please include the download key (${download.key}) of the failed download.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
