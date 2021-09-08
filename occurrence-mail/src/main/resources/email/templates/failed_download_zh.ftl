@@ -2,19 +2,19 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  Hello ${download.request.creator},
+  您好 ${download.request.creator}，
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  很抱歉，处理您的下载时发生错误。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Please see <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> for more details, <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> for the current status of GBIF.org's systems, and try again in a few minutes.
+  请通过 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}事件/下载/${download.key}</a>了解更多详情，通过 <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}健康</a> 查看GBIF系统的当前状态，几分钟后再试。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  如果问题仍然存在，请使用网站上的反馈系统或者通过 <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>联系我们。  请包含下载失败的下载密钥 (${download.key})。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
