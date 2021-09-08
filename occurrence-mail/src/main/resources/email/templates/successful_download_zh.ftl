@@ -58,12 +58,12 @@
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Information / FAQ</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">信息 / 常见问题</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For help with opening downloaded files, see
+  需要打开下载文件的帮助，请参阅
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
-  or the FAQ section of the GBIF website:
+  或 GBIF网站常见问题部分：
   <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
 </p>
 
