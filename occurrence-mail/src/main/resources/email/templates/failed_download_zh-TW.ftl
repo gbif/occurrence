@@ -18,7 +18,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>GBIF 秘書處</em>
 </p>
 
 <#include "footer.ftl">
