@@ -14,7 +14,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  若問題持續存在，請透過網站上的問題回饋系統聯絡我們，或寫信到<a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>。  Please include the download key (${download.key}) of the failed download.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
