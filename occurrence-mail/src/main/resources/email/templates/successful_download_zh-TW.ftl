@@ -10,7 +10,7 @@
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Citation</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">引用文獻</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   When using this dataset <strong>please use the following citation:</strong>
 </p>
