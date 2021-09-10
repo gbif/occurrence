@@ -6,7 +6,7 @@
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  很抱歉，您的下載在過程中發生錯誤。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
