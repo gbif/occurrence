@@ -12,14 +12,14 @@
 
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">引用文獻</h5>
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  When using this dataset <strong>please use the following citation:</strong>
+  當您使用這個資料集<strong>時，請依此引用方式：</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
   GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Download Information</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">下載資訊</h5>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
   DOI: <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
   (may take some hours before being active)
@@ -58,7 +58,7 @@
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Information / FAQ</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">資訊 / QA 問答集</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   For help with opening downloaded files, see
