@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">您好 ${download.request.creator}，</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">${download.request.creator}，您好！</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   您的下载地址如下：
@@ -19,7 +19,7 @@
 </p>
 
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">下载信息</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">下载的信息</h5>
 <p style="margin: 0;padding: 0;line-height: 1.65;">
   DOI: <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
   （激活前可能需要几个小时）
@@ -32,7 +32,7 @@
 <br>
   下载格式： <#if download.request.format == "SIMPLE_CSV"> 简单的tab分隔的值(TSV)<#else>${download.request.format}</#if>
 <br>
-  使用的筛选器：
+  使用的筛选条件：
   <pre style="white-space: pre-wrap;margin: 0;padding: 0;">${query}</pre>
 </p>
 
@@ -40,7 +40,7 @@
 <h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">下载文件保留</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  有关此下载的信息将总是可以通过 <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  有关此下载的信息可以通过 <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
   和 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> 获得。
 </p>
 
