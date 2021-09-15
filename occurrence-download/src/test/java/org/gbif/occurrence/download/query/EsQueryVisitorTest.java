@@ -698,7 +698,7 @@ public class EsQueryVisitorTest {
                            + "    \"filter\" : [\n"
                            + "      {\n"
                            + "        \"geo_distance\" : {\n"
-                           + "          \"scoordinates\" : [\n"
+                           + "          \"coordinates\" : [\n"
                            + "            20.0,\n"
                            + "            10.0\n"
                            + "          ],\n"
