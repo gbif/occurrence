@@ -128,7 +128,7 @@ public class CallbackServiceTest {
   }
 
   @Test
-  public void testNotifyAdminForFailedJobs() {
+  public void testNotifyAdminForKilledJobs() {
     Logger logger = (Logger)LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
     // create and start a ListAppender
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
@@ -140,8 +140,20 @@ public class CallbackServiceTest {
 
     service.processCallback(JOB_ID, KILLED);
     assertTrue(
-    listAppender.list.stream().anyMatch(event -> event.getMarker() != null && Constants.NOTIFY_ADMIN == event.getMarker() && event.getFormattedMessage().contains(JOB_ID) && event.getFormattedMessage().contains(KILLED)),
-    "Not admin Marker found for JobId " + JOB_ID + " and Status " + KILLED);
+      listAppender.list.stream().anyMatch(event -> event.getMarker() != null && Constants.NOTIFY_ADMIN == event.getMarker() && event.getFormattedMessage().contains(JOB_ID) && event.getFormattedMessage().contains(KILLED)),
+      "Not admin Marker found for JobId " + JOB_ID + " and Status " + KILLED);
+  }
+
+  @Test
+  public void testNotifyAdminForFailedJobs() {
+    Logger logger = (Logger)LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
+    // create and start a ListAppender
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.setName("ListAppender");
+    listAppender.setContext(logger.getLoggerContext());
+    listAppender.start();
+
+    logger.addAppender(listAppender);
 
     service.processCallback(JOB_ID, FAILED);
     assertTrue(

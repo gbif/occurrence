@@ -2,17 +2,11 @@ package org.gbif.occurrence.test.mocks;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.UserRole;
 import org.gbif.registry.persistence.mapper.UserMapper;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,8 +65,13 @@ public class UserMapperMock implements UserMapper {
   }
 
   @Override
-  public List<GbifUser> search(@Nullable String s, @Nullable Set<UserRole> role, @Nullable Set<UUID> editorRightsOn,
-                               @Nullable Pageable pageable) {
+  public List<GbifUser> search(
+      @Nullable String s,
+      @Nullable Set<UserRole> role,
+      @Nullable Set<UUID> editorRightsOn,
+      @Nullable Set<String> namespaceRightsOn,
+      @Nullable Set<Country> countryRightsOn,
+      @Nullable Pageable pageable) {
     Stream<GbifUser> userStream = users.values().stream();
 
     if (Objects.nonNull(pageable)) {
@@ -83,7 +82,12 @@ public class UserMapperMock implements UserMapper {
   }
 
   @Override
-  public int count(@Nullable String s,@Nullable Set<UserRole> role, @Nullable Set<UUID> editorRightsOn) {
+  public int count(
+      @Nullable String s,
+      @Nullable Set<UserRole> role,
+      @Nullable Set<UUID> editorRightsOn,
+      @Nullable Set<String> namespaceRightsOn,
+      @Nullable Set<Country> countryRightsOn) {
     return users.size();
   }
 
@@ -100,6 +104,36 @@ public class UserMapperMock implements UserMapper {
   @Override
   public void deleteEditorRight(String userName, UUID uuid) {
 
+  }
+
+  @Override
+  public void addNamespaceRight(String userName, String namespace) {
+
+  }
+
+  @Override
+  public void deleteNamespaceRight(String userName, String namespace) {
+
+  }
+
+  @Override
+  public List<String> listNamespaceRights(String userName) {
+    return null;
+  }
+
+  @Override
+  public void addCountryRight(String userName, Country country) {
+
+  }
+
+  @Override
+  public void deleteCountryRight(String userName, Country country) {
+
+  }
+
+  @Override
+  public List<Country> listCountryRights(String userName) {
+    return null;
   }
 
   @Override

@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.166-SNAPSHOT</version>
+    <version>0.168-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
@@ -193,16 +193,6 @@
         	<groupId>com.google.guava</groupId>
         	<artifactId>guava</artifactId>
         </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-service</artifactId>
-      <exclusions>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
       </exclusions>
     </dependency>
     <dependency>

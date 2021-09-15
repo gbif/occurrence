@@ -1,3 +1,6 @@
+[![Build status](https://builds.gbif.org/job/occurrence/badge/icon)](https://builds.gbif.org/job/occurrence/lastBuild/console)
+[![Crowdin](https://badges.crowdin.net/gbif-registry/localized.svg)](https://crowdin.com/project/gbif-registry)
+
 # GBIF Occurrence
 
 The GBIF Occurrence project is a component of the architecture responsible for search and download of GBIF-mediated occurrence records. For data processing please see the [pipelines](https://github.com/gbif/pipelines) project.

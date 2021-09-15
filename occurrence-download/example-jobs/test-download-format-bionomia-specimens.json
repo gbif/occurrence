@@ -42,19 +42,19 @@
             {
               "type": "like",
               "key": "VERBATIM_SCIENTIFIC_NAME",
-              "value": "%BOLD:%",
+              "value": "*BOLD:*",
               "matchCase": "true"
             },
             {
               "type": "like",
               "key": "VERBATIM_SCIENTIFIC_NAME",
-              "value": "%BOLD-%",
+              "value": "*BOLD-*",
               "matchCase": "true"
             },
             {
               "type": "like",
               "key": "VERBATIM_SCIENTIFIC_NAME",
-              "value": "%BIOUG%",
+              "value": "*BIOUG*",
               "matchCase": "true"
             }
           ]

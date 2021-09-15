@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Resource to describe file/table formats use in GBIF ocurrence downloads.
+ * Resource to describe file/table formats use in GBIF occurrence downloads.
  * Project specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
  */
 @RestController

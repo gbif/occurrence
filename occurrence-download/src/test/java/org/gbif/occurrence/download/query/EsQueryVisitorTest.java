@@ -520,7 +520,8 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testLikePredicate() throws QueryBuildingException {
-    LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*", false);
+    // NB: ? and * are wildcards (as in ES).  SQL-like _ and % are literal.
+    LikePredicate likePredicate = new LikePredicate(PARAM, "v?l*ue_%", false);
     String query = visitor.getQuery(likePredicate);
     String expectedQuery = "{\n" +
       "  \"bool\" : {\n" +
@@ -528,7 +529,7 @@ public class EsQueryVisitorTest {
       "      {\n" +
       "        \"wildcard\" : {\n" +
       "          \"catalogNumber.keyword\" : {\n" +
-      "            \"wildcard\" : \"value_1**\",\n" +
+      "            \"wildcard\" : \"v?l*ue_%\",\n" +
       "            \"boost\" : 1.0\n" +
       "          }\n" +
       "        }\n" +
@@ -543,7 +544,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testLikeVerbatimPredicate() throws QueryBuildingException {
-    LikePredicate likePredicate = new LikePredicate(PARAM, "value_1*", true);
+    LikePredicate likePredicate = new LikePredicate(PARAM, "v?l*ue_%", true);
     String query = visitor.getQuery(likePredicate);
     String expectedQuery = "{\n" +
                            "  \"bool\" : {\n" +
@@ -551,7 +552,7 @@ public class EsQueryVisitorTest {
                            "      {\n" +
                            "        \"wildcard\" : {\n" +
                            "          \"catalogNumber.verbatim\" : {\n" +
-                           "            \"wildcard\" : \"value_1**\",\n" +
+                           "            \"wildcard\" : \"v?l*ue_%\",\n" +
                            "            \"boost\" : 1.0\n" +
                            "          }\n" +
                            "        }\n" +
@@ -596,7 +597,7 @@ public class EsQueryVisitorTest {
       "            {\n" +
       "              \"wildcard\" : {\n" +
       "                \"catalogNumber.keyword\" : {\n" +
-      "                  \"wildcard\" : \"value_1**\",\n" +
+      "                  \"wildcard\" : \"value_1*\",\n" +
       "                  \"boost\" : 1.0\n" +
       "                }\n" +
       "              }\n" +
@@ -772,7 +773,7 @@ public class EsQueryVisitorTest {
       "                        {\n" +
       "                          \"wildcard\" : {\n" +
       "                            \"catalogNumber.keyword\" : {\n" +
-      "                              \"wildcard\" : \"value_1**\",\n" +
+      "                              \"wildcard\" : \"value_1*\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
       "                          }\n" +
@@ -898,7 +899,7 @@ public class EsQueryVisitorTest {
       "                        {\n" +
       "                          \"wildcard\" : {\n" +
       "                            \"catalogNumber.keyword\" : {\n" +
-      "                              \"wildcard\" : \"value_1**\",\n" +
+      "                              \"wildcard\" : \"value_1*\",\n" +
       "                              \"boost\" : 1.0\n" +
       "                            }\n" +
       "                          }\n" +
@@ -1052,7 +1053,7 @@ public class EsQueryVisitorTest {
       "                  {\n" +
       "                    \"wildcard\" : {\n" +
       "                      \"catalogNumber.keyword\" : {\n" +
-      "                        \"wildcard\" : \"value_1**\",\n" +
+      "                        \"wildcard\" : \"value_1*\",\n" +
       "                        \"boost\" : 1.0\n" +
       "                      }\n" +
       "                    }\n" +

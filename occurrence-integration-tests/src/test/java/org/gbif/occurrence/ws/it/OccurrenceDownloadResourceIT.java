@@ -8,27 +8,20 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.ws.client.ClientBuilder;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.StreamUtils;
 
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -119,7 +112,6 @@ public class OccurrenceDownloadResourceIT {
     assertEquals(Download.Status.CANCELLED, download.getStatus(), "Occurrence download status is not Cancelled!");
   }
 
-
   @Test
   @SneakyThrows
   public void getDownloadResultTest() {
@@ -130,42 +122,6 @@ public class OccurrenceDownloadResourceIT {
     assertNotNull(downloadKey, "DownloadKey is null!");
 
     //Is the content what it was expected
-    assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
-                                 StreamUtils.copyToByteArray(downloadWsClient.getResult(downloadKey)),
-                            "Content file of download file differs to expected content!");
+    assertEquals(302, downloadWsClient.getDownloadResult(downloadKey, null).status());
   }
-
-
-  @Test
-  @SneakyThrows
-  public void getStreamingDownloadResultTest() {
-    Resource testFile = resourceLoader.getResource(TEST_DOWNLOAD_FILE);
-
-    //Make 3 requests to get the entire content
-    long chunkSize = testFile.getFile().length() / 3;
-
-
-    //Create
-    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
-
-    //Check is not null
-    assertNotNull(downloadKey, "DownloadKey is null!");
-
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-    downloadWsClient.getStreamResult(downloadKey, chunkSize, chunk -> {
-      try {
-        byteArrayOutputStream.write(IOUtils.toByteArray(chunk));
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
-      }
-    });
-
-    //Is the content what it was expected
-    assertArrayEquals(StreamUtils.copyToByteArray(resourceLoader.getResource(TEST_DOWNLOAD_FILE).getInputStream()),
-                                 byteArrayOutputStream.toByteArray(),
-                                 "Content file of download file differs to expected content!");
-  }
-
-
 }
