@@ -232,6 +232,8 @@
     <!-- es versions -->
     <elasticsearch.version>7.10.0</elasticsearch.version>
     <testcontainers-elasticsearch.version>1.15.0</testcontainers-elasticsearch.version>
+    <!-- Used to match version used by Elasticsearch-->
+    <lucene.version>8.7.0</lucene.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -1226,6 +1228,11 @@
         <groupId>org.elasticsearch.client</groupId>
         <artifactId>elasticsearch-rest-client-sniffer</artifactId>
         <version>${elasticsearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-core</artifactId>
+        <version>${lucene.version}</version>
       </dependency>
 
       <dependency>
