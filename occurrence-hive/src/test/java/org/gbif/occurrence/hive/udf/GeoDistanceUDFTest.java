@@ -2,8 +2,8 @@ package org.gbif.occurrence.hive.udf;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GeoDistanceUDFTest {
 
@@ -11,7 +11,7 @@ public class GeoDistanceUDFTest {
   public void evaluateTest() {
 
     // At the Equator, moving 0.04° is 4448m.
-    //assertTrue(contains(0d, 0d, "5km", 0d, 0.04d));
+    assertTrue(contains(0d, 0d, "5km", 0d, 0.04d));
     // And 0.5° is 5560m.
     assertFalse(contains(0d, 0d, "5km", 0d, 0.05d));
 
