@@ -10,7 +10,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Para más detalles, por favor consulte <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>, el estado de los servicios de GBIF <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a>, e inténtelo de nuevo en unos minutos.
+  Lo lamentamos, pero ha ocurrido un error procesando su archivo de descarga.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
@@ -18,7 +18,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>Secretaría de GBIF</em>
+  <em>Secretariado de GBIF</em>
 </p>
 
 <#include "footer.ftl">
