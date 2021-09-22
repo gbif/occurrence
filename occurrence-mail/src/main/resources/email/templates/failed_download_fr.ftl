@@ -1,9 +1,9 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
+<h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
   Hello ${download.request.creator},
-</p>
+</h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
   We are sorry, but an error has occurred processing your download.

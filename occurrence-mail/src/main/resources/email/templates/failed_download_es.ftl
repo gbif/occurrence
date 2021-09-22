@@ -1,8 +1,12 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
+<h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
   Hola ${download.request.creator},
+</h5>
+
+<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
+  Lo sentimos pero se ha producido un error al procesar su descarga.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
@@ -10,13 +14,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Por más detalles, por favor consultar <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a> <br>
-  Consulte el estado de los servicios de GBIF en <a href="${portal}es/health" style="color: #509E2F;text-decoration: none;">${portal}health</a>, e intente de nuevo en unos minutos.
-</p>
-
-<p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Si el problema persiste, contáctenos utilizando la funcionalidad de retroalimentación del sitio web, ó escribiendo a <a href="mailto:helpdesk@gbif.org" style="color: #509E2F;text-decoration: none;">helpdesk@gbif.org</a>.<br>
-  Por favor incluya la identificación (${download.key}) del archivo de descarga fallido.  Please include the download key (${download.key}) of the failed download.
+  Si el problema persiste, contáctenos utilizando el sistema de comentarios del sitio web o escribiendo a <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Por favor, incluya el identificador (${download.key}) de la descarga fallida.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
