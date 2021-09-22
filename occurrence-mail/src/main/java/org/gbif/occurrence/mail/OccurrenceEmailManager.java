@@ -11,6 +11,7 @@ import org.gbif.occurrence.query.TitleLookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +40,10 @@ public class OccurrenceEmailManager {
 
   private static final ResourceBundleMessageSource MESSAGE_SOURCE;
 
-  // supported locales
-  private static final List<String> SUPPORTED_LOCALES = Arrays.asList("en", "ru", "es");
-
   private final EmailTemplateProcessor emailTemplateProcessor;
   private final IdentityAccessService identityAccessService;
   private final TitleLookupService titleLookup;
+  private final List<String> supportedLocales;
 
   static {
     MESSAGE_SOURCE = new ResourceBundleMessageSource();
@@ -57,7 +56,9 @@ public class OccurrenceEmailManager {
           EmailTemplateProcessor emailTemplateProcessor,
       @Qualifier("baseIdentityAccessService")
           IdentityAccessService identityAccessService,
-      TitleLookupService titleLookup) {
+      TitleLookupService titleLookup,
+      @Value("${occurrence.download.mail.supportedLocales}") List<String> supportedLocales) {
+    this.supportedLocales = supportedLocales;
     Objects.requireNonNull(emailTemplateProcessor, "emailTemplateProcessor shall be provided");
     this.identityAccessService = identityAccessService;
     this.titleLookup = titleLookup;
@@ -177,7 +178,7 @@ public class OccurrenceEmailManager {
 
   private String findSuitableLocaleTagAmongAvailable(Locale locale) {
     LOG.debug("Trying to find a suitable locale tag for locale [{}]", locale);
-    String localeTag = Locale.lookupTag(Locale.LanguageRange.parse(locale.toLanguageTag()), SUPPORTED_LOCALES);
+    String localeTag = Locale.lookupTag(Locale.LanguageRange.parse(locale.toLanguageTag()), supportedLocales);
     LOG.debug("Use locale tag [{}]", localeTag);
     return localeTag;
   }
