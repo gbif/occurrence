@@ -2,6 +2,8 @@ files:
   - source: /occurrence-mail/src/main/resources/email/subjects/*.properties
     ignore:
       - /occurrence-mail/src/main/resources/email/subjects/*_??.properties
+      - /occurrence-mail/src/main/resources/email/subjects/*_???.properties
+      - /occurrence-mail/src/main/resources/email/subjects/*_??-??.properties
     translation: /occurrence-mail/src/main/resources/email/subjects/%file_name%_%two_letters_code%.properties
     languages_mapping:
       two_letters_code:
@@ -13,6 +15,8 @@ files:
   - source: /occurrence-mail/src/main/resources/email/*.properties
     ignore:
       - /occurrence-mail/src/main/resources/email/*_??.properties
+      - /occurrence-mail/src/main/resources/email/*_???.properties
+      - /occurrence-mail/src/main/resources/email/*_??-??.properties
     translation: /occurrence-mail/src/main/resources/email/%file_name%_%two_letters_code%.properties
     languages_mapping:
       two_letters_code:
@@ -24,6 +28,8 @@ files:
   - source: /occurrence-mail/src/main/resources/email/templates/*.ftl
     ignore:
       - /occurrence-mail/src/main/resources/email/templates/*_??.ftl
+      - /occurrence-mail/src/main/resources/email/templates/*_???.ftl
+      - /occurrence-mail/src/main/resources/email/templates/*_??-??.ftl
     translation: /occurrence-mail/src/main/resources/email/templates/%file_name%_%two_letters_code%.ftl
     dest: /occurrence-mail/src/main/resources/email/templates/%file_name%.html
     type: html
