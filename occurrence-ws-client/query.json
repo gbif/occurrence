@@ -1,0 +1,17 @@
+curl --include --user asimpson:costarica --header "Content-Type: application/json" --data @query.json https://api.gbif.org/v1/occurrence/download/request
+{
+"creator": "asimpson",
+"notification_address": [
+"asimpson@usgs.gov"
+],
+"sendNotification": true,
+"format": "SIMPLE_CSV",
+"predicate": {
+"type": "and",
+"predicates": [
+{
+"type": "in",
+"key": "COUNTRY",
+"values": ["US"]
+}
+]}}
