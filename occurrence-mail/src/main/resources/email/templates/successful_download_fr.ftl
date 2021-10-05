@@ -53,17 +53,17 @@ Format de téléchargement: <#if download.request.format == "SIMPLE_CSV">simple 
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For help with opening downloaded files, see
-  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #509E2F;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
-  or the FAQ section of the GBIF website:
-  <a href="${portal}faq" style="color: #509E2F;text-decoration: none;">${portal}faq</a>
+  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
 </p>
 
 
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Information / FAQ</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #509E2F;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+  For help with opening downloaded files, see
+  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
+  or the FAQ section of the GBIF website:
+  <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
