@@ -45,7 +45,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  シンプルなタブ区切り形式 (TSV)<#else>${download.request.format}</#if> ファイルは 6 か月間保存されます (${download.eraseAfter?date}まで)。  ファイル保持期間の延長を依頼することができます。 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  <#if download.request.format == "SIMPLE_CSV">シンプルなタブ区切り形式 (TSV)<#else>${download.request.format}</#if> ファイルは 6 か月間保存されます (${download.eraseAfter?date}まで)。  ファイル保持期間の延長を依頼することができます。 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
