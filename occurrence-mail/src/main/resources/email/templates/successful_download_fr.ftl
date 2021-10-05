@@ -45,7 +45,7 @@ Format de téléchargement: <#if download.request.format == "SIMPLE_CSV">simple 
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  Vous pouvez nous demander de conserver le fichier plus longtemps sur <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  Le fichier <#if download.request.format == "SIMPLE_CSV"> à valeurs séparées par des tabulations (tab-separated values - TSV) <#else>${download.request.format}</#if> sera conservé pendant six mois (jusqu'au ${download.eraseAfter?date}).  Vous pouvez nous demander de conserver le fichier plus longtemps sur <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -53,7 +53,7 @@ Format de téléchargement: <#if download.request.format == "SIMPLE_CSV">simple 
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For more information on this, see <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
+  Pour plus d'informations sur ce sujet, consulter <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">${portal}faq/?question=for-how-long-will-does-gbif-store-downloads</a>
 </p>
 
 
