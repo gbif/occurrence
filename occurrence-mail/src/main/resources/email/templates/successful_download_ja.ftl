@@ -63,7 +63,7 @@
   ダウンロードしたファイルの開き方については、 
  <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a> 
  またはGBIFウェブサイトのFAQを参照してください:
- <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
+ <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a><0>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
