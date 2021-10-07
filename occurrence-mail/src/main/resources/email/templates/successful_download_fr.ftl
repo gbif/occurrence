@@ -60,9 +60,9 @@ Format de téléchargement: <#if download.request.format == "SIMPLE_CSV">simple 
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Information / FAQ</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  For help with opening downloaded files, see
+  Des instructions pour ouvrir les fichiers téléchargés sont disponibles ici
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
-  or the FAQ section of the GBIF website:
+  ou bien dans la section FAQ du site internet du GBIF:
   <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>
 </p>
 
