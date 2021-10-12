@@ -7,6 +7,7 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,9 +50,12 @@ public class OccurrenceDownloadResourceIT {
   public OccurrenceDownloadResourceIT(@LocalServerPort int localServerPort,
                                       OccurrenceDownloadService occurrenceDownloadService,
                                       ResourceLoader resourceLoader) {
-    ClientBuilder clientBuilder = new ClientBuilder()
-                                    .withUrl("http://localhost:" + localServerPort)
-                                    .withCredentials(TEST_USER.getUserName(), TEST_USER_PASSWORD);
+    ClientBuilder clientBuilder =
+        new ClientBuilder()
+            .withUrl("http://localhost:" + localServerPort)
+            .withCredentials(TEST_USER.getUserName(), TEST_USER_PASSWORD)
+            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            .withFormEncoder();
 
     this.localServerPort = localServerPort;
     this.downloadWsClient = clientBuilder.build(OccurrenceDownloadWsClient.class);
@@ -87,9 +92,12 @@ public class OccurrenceDownloadResourceIT {
 
   @Test
   public void startDownloadAuthenticationError() {
-    ClientBuilder clientBuilder = new ClientBuilder()
-                                    .withUrl("http://localhost:" + localServerPort)
-                                    .withCredentials(TEST_USER.getUserName(),"NotThePasword");
+    ClientBuilder clientBuilder =
+        new ClientBuilder()
+            .withUrl("http://localhost:" + localServerPort)
+            .withCredentials(TEST_USER.getUserName(), "NotThePasword")
+            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            .withFormEncoder();
     DownloadRequestService downloadService = clientBuilder.build(OccurrenceDownloadWsClient.class);
 
     //Exception expected

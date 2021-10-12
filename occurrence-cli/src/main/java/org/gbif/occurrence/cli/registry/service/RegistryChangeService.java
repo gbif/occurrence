@@ -14,6 +14,7 @@ import org.gbif.registry.ws.client.InstallationClient;
 import org.gbif.registry.ws.client.NetworkClient;
 import org.gbif.registry.ws.client.OrganizationClient;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +33,11 @@ public class RegistryChangeService extends AbstractIdleService {
   protected void startUp() throws Exception {
     // Create Registry WS Client
 
-    ClientBuilder clientFactory = new ClientBuilder().withUrl(configuration.registryWsUrl);
+    ClientBuilder clientFactory =
+        new ClientBuilder()
+            .withUrl(configuration.registryWsUrl)
+            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            .withFormEncoder();
     OrganizationService orgClient = clientFactory.build(OrganizationClient.class);
     NetworkService networkService = clientFactory.build(NetworkClient.class);
     InstallationService installationService = clientFactory.build(InstallationClient.class);

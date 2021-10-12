@@ -27,6 +27,7 @@ import org.gbif.occurrence.processor.interpreting.clients.SpeciesWsClient;
 import org.gbif.rest.client.configuration.ChecklistbankClientsConfiguration;
 import org.gbif.rest.client.configuration.ClientConfiguration;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -64,18 +65,26 @@ public class TaxonomyInterpreter implements Serializable {
                                                                       .nameUSageClientConfiguration(clbClientConfiguration)
                                                                       .build());
 
-    speciesWs = new KeyValueStore<String, NameUsage>(){
-      private SpeciesWsClient speciesWsClient = new ClientBuilder().withUrl(apiUrl).build(SpeciesWsClient.class);
-      @Override
-      public NameUsage get(String nubKey) {
-        return speciesWsClient.get(nubKey);
-      }
+    speciesWs =
+        new KeyValueStore<String, NameUsage>() {
+          private SpeciesWsClient speciesWsClient =
+              new ClientBuilder()
+                  .withUrl(apiUrl)
+                  .withObjectMapper(
+                      JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+                  .withFormEncoder()
+                  .build(SpeciesWsClient.class);
 
-      @Override
-      public void close() throws IOException {
-      //do nothing
-      }
-    };
+          @Override
+          public NameUsage get(String nubKey) {
+            return speciesWsClient.get(nubKey);
+          }
+
+          @Override
+          public void close() throws IOException {
+            // do nothing
+          }
+        };
   }
 
   public TaxonomyInterpreter(ApiClientConfiguration cfg) {

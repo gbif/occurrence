@@ -74,7 +74,11 @@ public class OccurrenceResourceIT {
   public OccurrenceResourceIT(@LocalServerPort int localServerPort,
                               OccurrenceResource occurrenceResource) {
     this.occurrenceResource = occurrenceResource;
-    ClientBuilder clientBuilder = new ClientBuilder().withUrl("http://localhost:" + localServerPort);
+    ClientBuilder clientBuilder =
+        new ClientBuilder()
+            .withUrl("http://localhost:" + localServerPort)
+            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            .withFormEncoder();
     occurrenceWsClient = clientBuilder.build(OccurrenceWsClient.class);
   }
 
