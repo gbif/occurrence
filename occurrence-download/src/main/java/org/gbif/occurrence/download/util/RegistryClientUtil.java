@@ -29,7 +29,6 @@ public class RegistryClientUtil {
             .withCredentials(userName, password)
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
             .withFormEncoder();
-    ;
   }
 
   /**
