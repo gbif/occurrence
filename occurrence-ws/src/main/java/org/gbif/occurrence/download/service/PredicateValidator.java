@@ -8,6 +8,7 @@ import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -127,11 +128,17 @@ public class PredicateValidator {
     SearchTypeValidator.validate(OccurrenceSearchParameter.GEO_DISTANCE, geoDistance.getGeoDistance().toGeoDistanceString());
   }
 
-
   /**
    * handles IsNotNullPredicate Predicate
    */
   public void visit(IsNotNullPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles IsNullPredicate Predicate
+   */
+  public void visit(IsNullPredicate predicate) {
     return;
   }
 
