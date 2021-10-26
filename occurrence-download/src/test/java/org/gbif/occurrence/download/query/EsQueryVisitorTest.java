@@ -79,6 +79,153 @@ public class EsQueryVisitorTest {
   }
 
   @Test
+  public void testEqualsDatePredicate() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.EVENT_DATE, "2021-09-16", false);
+    String query = visitor.getQuery(p);
+    String expectedQuery =
+      "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"term\" : {\n" +
+      "          \"eventDateSingle\" : {\n" +
+      "            \"value\" : \"2021-09-16\",\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+  }
+
+  @Test
+  public void testEqualsRangePredicate() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.ELEVATION, "-20.0,600", false);
+    String query = visitor.getQuery(p);
+    String expectedQuery =
+      "{\n" +
+        "  \"bool\" : {\n" +
+        "    \"filter\" : [\n" +
+        "      {\n" +
+        "        \"range\" : {\n" +
+        "          \"elevation\" : {\n" +
+        "            \"from\" : -20.0,\n" +
+        "            \"to\" : 600.0,\n" +
+        "            \"include_lower\" : true,\n" +
+        "            \"include_upper\" : true,\n" +
+        "            \"boost\" : 1.0\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ],\n" +
+        "    \"adjust_pure_negative\" : true,\n" +
+        "    \"boost\" : 1.0\n" +
+        "  }\n" +
+        "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate(OccurrenceSearchParameter.ELEVATION, "*,600", false);
+    query = visitor.getQuery(p);
+    expectedQuery =
+      "{\n" +
+        "  \"bool\" : {\n" +
+        "    \"filter\" : [\n" +
+        "      {\n" +
+        "        \"range\" : {\n" +
+        "          \"elevation\" : {\n" +
+        "            \"from\" : null,\n" +
+        "            \"to\" : 600.0,\n" +
+        "            \"include_lower\" : true,\n" +
+        "            \"include_upper\" : true,\n" +
+        "            \"boost\" : 1.0\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ],\n" +
+        "    \"adjust_pure_negative\" : true,\n" +
+        "    \"boost\" : 1.0\n" +
+        "  }\n" +
+        "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate(OccurrenceSearchParameter.ELEVATION, "-20.0,*", false);
+    query = visitor.getQuery(p);
+    expectedQuery =
+      "{\n" +
+        "  \"bool\" : {\n" +
+        "    \"filter\" : [\n" +
+        "      {\n" +
+        "        \"range\" : {\n" +
+        "          \"elevation\" : {\n" +
+        "            \"from\" : -20.0,\n" +
+        "            \"to\" : null,\n" +
+        "            \"include_lower\" : true,\n" +
+        "            \"include_upper\" : true,\n" +
+        "            \"boost\" : 1.0\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ],\n" +
+        "    \"adjust_pure_negative\" : true,\n" +
+        "    \"boost\" : 1.0\n" +
+        "  }\n" +
+        "}";
+    assertEquals(expectedQuery, query);
+  }
+
+  @Test
+  public void testEqualsDateRangePredicate() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
+    String query = visitor.getQuery(p);
+    String expectedQuery =
+      "{\n" +
+        "  \"bool\" : {\n" +
+        "    \"filter\" : [\n" +
+        "      {\n" +
+        "        \"range\" : {\n" +
+        "          \"eventDateSingle\" : {\n" +
+        "            \"from\" : \"1980-02-01\",\n" +
+        "            \"to\" : \"2021-09-17\",\n" +
+        "            \"include_lower\" : true,\n" +
+        "            \"include_upper\" : false,\n" +
+        "            \"boost\" : 1.0\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ],\n" +
+        "    \"adjust_pure_negative\" : true,\n" +
+        "    \"boost\" : 1.0\n" +
+        "  }\n" +
+        "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
+    query = visitor.getQuery(p);
+    expectedQuery =
+      "{\n" +
+        "  \"bool\" : {\n" +
+        "    \"filter\" : [\n" +
+        "      {\n" +
+        "        \"term\" : {\n" +
+        "          \"eventDateSingle\" : {\n" +
+        "            \"value\" : \"1980\",\n" +
+        "            \"boost\" : 1.0\n" +
+        "          }\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ],\n" +
+        "    \"adjust_pure_negative\" : true,\n" +
+        "    \"boost\" : 1.0\n" +
+        "  }\n" +
+        "}";
+    assertEquals(expectedQuery, query);
+  }
+
+  @Test
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.ELEVATION, "222");
     String query = visitor.getQuery(p);
@@ -89,6 +236,52 @@ public class EsQueryVisitorTest {
       "        \"range\" : {\n" +
       "          \"elevation\" : {\n" +
       "            \"from\" : \"222\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : \"2021-09-16\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : \"2021\",\n" +
       "            \"to\" : null,\n" +
       "            \"include_lower\" : true,\n" +
       "            \"include_upper\" : true,\n" +
@@ -128,6 +321,52 @@ public class EsQueryVisitorTest {
       "  }\n" +
       "}";
     assertEquals(expectedQuery, query);
+
+    p = new GreaterThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : \"2021-09-16\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : false,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new GreaterThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : \"2021\",\n" +
+      "            \"to\" : null,\n" +
+      "            \"include_lower\" : false,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -154,6 +393,52 @@ public class EsQueryVisitorTest {
       "  }\n" +
       "}";
     assertEquals(expectedQuery, query);
+
+    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"2021-10-25\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"2021\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : true,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
   }
 
   @Test
@@ -168,6 +453,52 @@ public class EsQueryVisitorTest {
       "          \"elevation\" : {\n" +
       "            \"from\" : null,\n" +
       "            \"to\" : \"1000\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : false,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new LessThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"2021-10-25\",\n" +
+      "            \"include_lower\" : true,\n" +
+      "            \"include_upper\" : false,\n" +
+      "            \"boost\" : 1.0\n" +
+      "          }\n" +
+      "        }\n" +
+      "      }\n" +
+      "    ],\n" +
+      "    \"adjust_pure_negative\" : true,\n" +
+      "    \"boost\" : 1.0\n" +
+      "  }\n" +
+      "}";
+    assertEquals(expectedQuery, query);
+
+    p = new LessThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
+    query = visitor.getQuery(p);
+    expectedQuery = "{\n" +
+      "  \"bool\" : {\n" +
+      "    \"filter\" : [\n" +
+      "      {\n" +
+      "        \"range\" : {\n" +
+      "          \"created\" : {\n" +
+      "            \"from\" : null,\n" +
+      "            \"to\" : \"2021\",\n" +
       "            \"include_lower\" : true,\n" +
       "            \"include_upper\" : false,\n" +
       "            \"boost\" : 1.0\n" +
