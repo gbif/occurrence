@@ -12,54 +12,20 @@
  */
 package org.gbif.occurrence.download.query;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
-import org.gbif.api.model.occurrence.predicate.LikePredicate;
-import org.gbif.api.model.occurrence.predicate.NotPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.predicate.SimplePredicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.gbif.api.model.occurrence.predicate.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GadmTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -68,6 +34,16 @@ import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.function.Function;
+
+import static org.gbif.api.util.IsoDateParsingUtils.ISO_DATE_FORMATTER;
 
 /**
  * This class builds a WHERE clause for a Hive query from a {@link org.gbif.api.model.occurrence.predicate.Predicate}
@@ -247,8 +223,9 @@ public class HiveQueryVisitor {
 
     if (Date.class.isAssignableFrom(param.type())) {
       // use longs for timestamps expressed as ISO dates
-      Date d = IsoDateParsingUtils.parseDate(value);
-      return String.valueOf(d.getTime());
+      LocalDate ld = IsoDateParsingUtils.parseDate(value);
+      Instant i = ld.atStartOfDay(ZoneOffset.UTC).toInstant();
+      return String.valueOf(i.toEpochMilli());
 
     } else if (Number.class.isAssignableFrom(param.type()) || Boolean.class.isAssignableFrom(param.type())) {
       // do not quote numbers
@@ -347,17 +324,75 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.LIFE_STAGE == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.lifeStageLineage), predicate.getValue()));
+
+    } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
+      // The user's query value is inclusive, but the parsed dateRange is exclusive of the
+      // upperBound to allow including the day itself.
+      //
+      // I.e. a predicate value 2000/2005-03 gives a dateRange [2000-01-01,2005-04-01)
+      Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+
+      if (dateRange.hasLowerBound() || dateRange.hasUpperBound()) {
+        builder.append('(');
+        if (dateRange.hasLowerBound()) {
+          visitSimplePredicate(predicate, GREATER_THAN_EQUALS_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.lowerEndpoint()));
+          if (dateRange.hasUpperBound()) {
+            builder.append(CONJUNCTION_OPERATOR);
+          }
+        }
+        if (dateRange.hasUpperBound()) {
+          visitSimplePredicate(predicate, LESS_THAN_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.upperEndpoint()));
+        }
+        builder.append(')');
+      }
     } else {
       visitSimplePredicate(predicate, EQUALS_OPERATOR);
     }
   }
 
   public void visit(GreaterThanOrEqualsPredicate predicate) throws QueryBuildingException {
-    visitSimplePredicate(predicate, GREATER_THAN_EQUALS_OPERATOR);
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      // Where the date is a range, consider the "OrEquals" to mean including the whole range.
+      // "2000" includes all of 2000.
+      Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+      visitSimplePredicate(predicate, GREATER_THAN_EQUALS_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.lowerEndpoint()));
+    } else {
+      visitSimplePredicate(predicate, GREATER_THAN_EQUALS_OPERATOR);
+    }
   }
 
   public void visit(GreaterThanPredicate predicate) throws QueryBuildingException {
-    visitSimplePredicate(predicate, GREATER_THAN_OPERATOR);
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      // Where the date is a range, consider the lack of "OrEquals" to mean excluding the whole range.
+      // "2000" excludes all of 2000, so the earliest date is 2001-01-01.
+      Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+      visitSimplePredicate(predicate, GREATER_THAN_EQUALS_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.upperEndpoint()));
+    } else {
+      visitSimplePredicate(predicate, GREATER_THAN_OPERATOR);
+    }
+  }
+
+  public void visit(LessThanOrEqualsPredicate predicate) throws QueryBuildingException {
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      // Where the date is a range, consider the "OrEquals" to mean including the whole range.
+      // "2000" includes all of 2000, so the latest date is 2001-01-01 (not inclusive).
+      Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+      visitSimplePredicate(predicate, LESS_THAN_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.upperEndpoint()));
+    } else {
+      visitSimplePredicate(predicate, LESS_THAN_EQUALS_OPERATOR);
+    }
+  }
+
+  public void visit(LessThanPredicate predicate) throws QueryBuildingException {
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      // Where the date is a range, consider the lack of "OrEquals" to mean excluding the whole range.
+      // "2000" excludes all of 2000, so the latest date is 2000-01-01 (not inclusive).
+      Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+      visitSimplePredicate(predicate, LESS_THAN_OPERATOR, ISO_DATE_FORMATTER.format(dateRange.lowerEndpoint()));
+    } else {
+      visitSimplePredicate(predicate, LESS_THAN_OPERATOR);
+    }
   }
 
   /*
@@ -408,14 +443,6 @@ public class HiveQueryVisitor {
       }
       builder.append("))");
     }
-  }
-
-  public void visit(LessThanOrEqualsPredicate predicate) throws QueryBuildingException {
-    visitSimplePredicate(predicate, LESS_THAN_EQUALS_OPERATOR);
-  }
-
-  public void visit(LessThanPredicate predicate) throws QueryBuildingException {
-    visitSimplePredicate(predicate, LESS_THAN_OPERATOR);
   }
 
   public void visit(LikePredicate predicate) throws QueryBuildingException {
@@ -497,6 +524,16 @@ public class HiveQueryVisitor {
     }
   }
 
+  public void visit(GeoDistancePredicate geoDistance) throws QueryBuildingException {
+    builder.append("(geoDistance(");
+    builder.append(geoDistance.getGeoDistance().toGeoDistanceString());
+    builder.append(", ");
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(", ");
+    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+    builder.append(") = TRUE)");
+  }
+
   /**
    * Given a bounding box, generates greater than / lesser than queries using decimalLatitude and
    * decimalLongitude to form a bounding box.
@@ -563,22 +600,21 @@ public class HiveQueryVisitor {
   }
 
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
-    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+    if (Number.class.isAssignableFrom(predicate.getKey().type())) {
       if (SearchTypeValidator.isRange(predicate.getValue())) {
-        visit(toDateRangePredicate(IsoDateParsingUtils.parseDateRange(predicate.getValue()), predicate.getKey()));
+        visit(toNumberRangePredicate(SearchTypeValidator.parseDecimalRange(predicate.getValue()), predicate.getKey()));
         return;
-      } else {
-        IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(predicate.getValue());
-        if (IsoDateFormat.FULL != isoDateFormat) {
-          visit(toDatePredicateQuery(predicate.getKey(), predicate.getValue(), isoDateFormat));
-          return;
-        }
       }
-
     }
     builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
     builder.append(op);
     builder.append(toHiveValue(predicate.getKey(), predicate.getValue(), predicate.isMatchCase()));
+  }
+
+  public void visitSimplePredicate(SimplePredicate predicate, String op, String value) {
+    builder.append(toHiveField(predicate.getKey(), predicate.isMatchCase()));
+    builder.append(op);
+    builder.append(toHiveValue(predicate.getKey(), value, predicate.isMatchCase()));
   }
 
   /**
@@ -683,25 +719,19 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Converts a Date query into conjunction predicate.
-   * If the value has the forms 'yyyy'/'yyyy-MM' it's translated to:
-   * field >= firstDateOfYear/Month(value) and field <= lastDateOfYear/Month(value).
-   * If the value is a range it is translated to: field >= range.lower AND field <= range.upper.
+   * Converts decimal range into a predicate with the form: field >= range.lower AND field <= range.upper.
    */
-  private static CompoundPredicate toDatePredicateQuery(OccurrenceSearchParameter key, String value,
-                                                 IsoDateFormat dateFormat) {
-    Date lowerDate = IsoDateParsingUtils.parseDate(value);
-    return toDateRangePredicate(Range.closed(lowerDate, IsoDateParsingUtils.toLastDayOf(lowerDate, dateFormat)), key);
-  }
+  private static Predicate toNumberRangePredicate(Range<Double> range, OccurrenceSearchParameter key) {
+    if (!range.hasLowerBound()) {
+      return new LessThanOrEqualsPredicate(key, String.valueOf(range.upperEndpoint().doubleValue()));
+    }
+    if (!range.hasUpperBound()) {
+      return new GreaterThanOrEqualsPredicate(key, String.valueOf(range.lowerEndpoint().doubleValue()));
+    }
 
-  /**
-   * Converts date range into a conjunction predicate with the form: field >= range.lower AND field <= range.upper.
-   */
-  private static CompoundPredicate toDateRangePredicate(Range<Date> range, OccurrenceSearchParameter key) {
-    ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>().add(new GreaterThanOrEqualsPredicate(
-      key,
-      IsoDateFormat.FULL.getDateFormat().format(range.lowerEndpoint().getTime())))
-      .add(new LessThanOrEqualsPredicate(key, IsoDateFormat.FULL.getDateFormat().format(range.upperEndpoint())))
+    ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>()
+      .add(new GreaterThanOrEqualsPredicate(key, String.valueOf(range.lowerEndpoint().doubleValue())))
+      .add(new LessThanOrEqualsPredicate(key, String.valueOf(range.upperEndpoint().doubleValue())))
       .build();
     return new ConjunctionPredicate(predicates);
   }

@@ -1,15 +1,5 @@
 package org.gbif.occurrence.download.inject;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import lombok.Builder;
-import lombok.Data;
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.NodeSelector;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
@@ -22,19 +12,32 @@ import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import lombok.Builder;
+import lombok.Data;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
+
+;
 
 /**
  * Utility factory class to create instances of common complex objects required by Download Actions.
@@ -73,9 +76,13 @@ public class DownloadWorkflowModule  {
    * GBIF Ws client factory.
    */
   public ClientBuilder clientBuilder() {
-    return new ClientBuilder().withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
-                .withCredentials(workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
-                                 workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY));
+    return new ClientBuilder()
+        .withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
+        .withCredentials(
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY))
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withFormEncoder();
   }
 
   /**

@@ -4,6 +4,7 @@ import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.occurrence.search.clb.NameUsageMatchingServiceClient;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -89,6 +90,10 @@ public class OccurrenceSearchConfiguration  {
 
   @Bean
   public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("${api.url}") String apiUrl) {
-    return new ClientBuilder().withUrl(apiUrl).build(NameUsageMatchingServiceClient.class);
+    return new ClientBuilder()
+        .withUrl(apiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withFormEncoder()
+        .build(NameUsageMatchingServiceClient.class);
   }
 }

@@ -3,10 +3,12 @@ package org.gbif.occurrence.download.service;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
 import org.gbif.api.model.occurrence.predicate.LikePredicate;
@@ -120,9 +122,23 @@ public class PredicateValidator {
   }
 
   /**
+   * handles within predicate, validates the Geometry.
+   */
+  public void visit(GeoDistancePredicate geoDistance) {
+    SearchTypeValidator.validate(OccurrenceSearchParameter.GEO_DISTANCE, geoDistance.getGeoDistance().toGeoDistanceString());
+  }
+
+  /**
    * handles IsNotNullPredicate Predicate
    */
   public void visit(IsNotNullPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles IsNullPredicate Predicate
+   */
+  public void visit(IsNullPredicate predicate) {
     return;
   }
 

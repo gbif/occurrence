@@ -9,6 +9,7 @@ import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -22,7 +23,12 @@ public class RegistryClientUtil {
   private final ClientBuilder clientBuilder;
 
   public RegistryClientUtil(String userName, String password, String apiUrl) {
-    clientBuilder = new ClientBuilder().withUrl(apiUrl).withCredentials(userName, password);
+    clientBuilder =
+        new ClientBuilder()
+            .withUrl(apiUrl)
+            .withCredentials(userName, password)
+            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            .withFormEncoder();
   }
 
   /**
@@ -32,7 +38,9 @@ public class RegistryClientUtil {
     clientBuilder = new ClientBuilder()
       .withUrl(Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)))
       .withCredentials(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-                       properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY));
+                       properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY))
+      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+      .withFormEncoder();
   }
 
 

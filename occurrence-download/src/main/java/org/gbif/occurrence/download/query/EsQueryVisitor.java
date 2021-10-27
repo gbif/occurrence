@@ -2,9 +2,11 @@ package org.gbif.occurrence.download.query;
 
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
 import org.gbif.api.model.occurrence.predicate.InPredicate;
@@ -20,6 +22,9 @@ import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +32,9 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Throwables;
 
+import org.gbif.api.util.IsoDateParsingUtils;
+import org.gbif.api.util.Range;
+import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.occurrence.search.es.EsQueryUtils;
@@ -190,6 +198,36 @@ public class EsQueryVisitor {
    */
   public void visit(EqualsPredicate predicate, BoolQueryBuilder queryBuilder) {
     OccurrenceSearchParameter parameter = predicate.getKey();
+
+    if (Date.class.isAssignableFrom(predicate.getKey().type())) {
+      if (SearchTypeValidator.isRange(predicate.getValue())) {
+        // The date range is closed-open, so we need lower ≤ date < upper.
+        Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(predicate.getValue());
+        RangeQueryBuilder rqb = QueryBuilders.rangeQuery(getElasticFieldName(parameter));
+        if (dateRange.hasLowerBound()) {
+          rqb.gte(dateRange.lowerEndpoint());
+        }
+        if (dateRange.hasUpperBound()) {
+          rqb.lt(dateRange.upperEndpoint());
+        }
+        queryBuilder.filter().add(rqb);
+        return;
+      }
+    } else if (Number.class.isAssignableFrom(predicate.getKey().type())) {
+      if (SearchTypeValidator.isRange(predicate.getValue())) {
+        Range<Double> decimalRange = SearchTypeValidator.parseDecimalRange(predicate.getValue());
+        RangeQueryBuilder rqb = QueryBuilders.rangeQuery(getElasticFieldName(parameter));
+        if (decimalRange.hasLowerBound()) {
+          rqb.gte(decimalRange.lowerEndpoint());
+        }
+        if (decimalRange.hasUpperBound()) {
+          rqb.lte(decimalRange.upperEndpoint());
+        }
+        queryBuilder.filter().add(rqb);
+        return;
+      }
+    }
+
     queryBuilder.filter().add(QueryBuilders.termQuery(getExactMatchOrVerbatimField(predicate), parseParamValue(predicate.getValue(), parameter)));
   }
 
@@ -284,6 +322,16 @@ public class EsQueryVisitor {
    */
   public void visit(WithinPredicate within, BoolQueryBuilder queryBuilder) {
     queryBuilder.filter(EsSearchRequestBuilder.buildGeoShapeQuery(within.getGeometry()));
+  }
+
+  /**
+   * handles geoDistance predicate
+   *
+   * @param geoDistance  GeoDistance predicate
+   * @param queryBuilder root query builder
+   */
+  public void visit(GeoDistancePredicate geoDistance, BoolQueryBuilder queryBuilder) {
+    queryBuilder.filter(EsSearchRequestBuilder.buildGeoDistanceQuery(geoDistance.getGeoDistance()));
   }
 
   /**

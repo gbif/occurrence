@@ -1,33 +1,18 @@
 package org.gbif.occurrence.download.query;
 
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
-import org.gbif.api.model.occurrence.predicate.LikePredicate;
-import org.gbif.api.model.occurrence.predicate.NotPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import com.google.common.collect.Lists;
+import org.gbif.api.model.occurrence.predicate.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.IsoDateParsingUtils.IsoDateFormat;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
+import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
-import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -270,6 +255,13 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testGeoDistancePredicate() throws QueryBuildingException {
+    Predicate p = new GeoDistancePredicate("30", "10", "10km");
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "(geoDistance(" + "30.0, 10.0, 10.0km" + ", decimallatitude, decimallongitude) = TRUE)");
+  }
+
+  @Test
   public void testWithinPredicate() throws QueryBuildingException {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
@@ -363,41 +355,107 @@ public class HiveQueryVisitorTest {
 
   @Test
   public void testPartialDates() throws QueryBuildingException {
-    testPartialDate("2014-10");
-    testPartialDate("1936");
+    testPartialDate("2021-10-25T00:00:00Z", "2021-10-26T00:00:00Z", "2021-10-25");
+    testPartialDate("2014-10-01T00:00:00Z", "2014-11-01T00:00:00Z", "2014-10");
+    testPartialDate("1936-01-01T00:00:00Z", "1937-01-01T00:00:00Z", "1936");
   }
 
   @Test
   public void testDateRanges() throws QueryBuildingException {
-    testPartialDate("2014-05,2014-10");
-    testPartialDate("1936,1940");
+    testPartialDate("2021-10-25T00:00:00Z", "2021-10-26T00:00:00Z", "2021-10-25,2021-10-25");
+    testPartialDate("2021-10-25T00:00:00Z", "2021-10-27T00:00:00Z", "2021-10-25,2021-10-26");
+    testPartialDate("2014-05-01T00:00:00Z", "2014-07-01T00:00:00Z", "2014-05,2014-06");
+    testPartialDate("1936-01-01T00:00:00Z", "1941-01-01T00:00:00Z", "1936,1940");
+    testPartialDate("1940-01-01T00:00:00Z", null, "1940,*");
+    testPartialDate(null, "1941-01-01T00:00:00Z", "*,1940");
+    testPartialDate(null, null, "*,*");
+  }
+
+  @Test
+  public void testDateComparisons() throws QueryBuildingException {
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000", false);
+    String query = visitor.getHiveQuery(p);
+    System.out.println(query);
+    assertEquals(String.format("(lastinterpreted >= %s AND lastinterpreted < %s)",
+      Instant.parse("2000-01-01T00:00:00Z").toEpochMilli(),
+      Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()),
+      query);
+
+    // Include the range
+    p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
+    query = visitor.getHiveQuery(p);
+    System.out.println(query);
+    assertEquals(String.format("lastinterpreted < %s", Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()), query);
+
+    p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
+    query = visitor.getHiveQuery(p);
+    System.out.println(query);
+    assertEquals(String.format("lastinterpreted >= %s", Instant.parse("2000-01-01T00:00:00Z").toEpochMilli()), query);
+
+    // Exclude the range
+    p = new LessThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
+    query = visitor.getHiveQuery(p);
+    System.out.println(query);
+    assertEquals(String.format("lastinterpreted < %s", Instant.parse("2000-01-01T00:00:00Z").toEpochMilli()), query);
+
+    p = new GreaterThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
+    query = visitor.getHiveQuery(p);
+    System.out.println(query);
+    assertEquals(String.format("lastinterpreted >= %s", Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()), query);
   }
 
   /**
    * Reusable method to test partial dates, i.e., dates with the format: yyyy, yyyy-MM.
    */
-  private void testPartialDate(String value) throws QueryBuildingException {
-    Range<Date> range = null;
-    if(SearchTypeValidator.isRange(value)){
-      range = IsoDateParsingUtils.parseDateRange(value);
-    } else {
-      Date lowerDate = IsoDateParsingUtils.parseDate(value);
-      Date upperDate = null;
-      IsoDateFormat isoDateFormat = IsoDateParsingUtils.getFirstDateFormatMatch(value);
-      if(IsoDateFormat.YEAR == isoDateFormat) {
-        upperDate = IsoDateParsingUtils.toLastDayOfYear(lowerDate);
-      } else if(IsoDateFormat.YEAR_MONTH == isoDateFormat){
-        upperDate = IsoDateParsingUtils.toLastDayOfMonth(lowerDate);
-      }
-      range = Range.closed(lowerDate,upperDate);
-    }
+  private void testPartialDate(String expectedFrom, String expectedTo, String value) throws QueryBuildingException {
+    Range<Instant> range = Range.closed(
+      expectedFrom == null ? null : Instant.parse(expectedFrom),
+      expectedTo == null ? null : Instant.parse(expectedTo)
+    );
 
     Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, value, false);
-
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, String.format("((lastinterpreted >= %s) AND (lastinterpreted <= %s))",
-                                            range.lowerEndpoint().getTime(),
-                                            range.upperEndpoint().getTime()));
+
+    if (!range.hasUpperBound() && !range.hasLowerBound()) {
+      assertEquals("", query);
+    } else if (!range.hasUpperBound()) {
+      assertEquals(String.format("(lastinterpreted >= %s)", range.lowerEndpoint().toEpochMilli()), query);
+    } else if (!range.hasLowerBound()) {
+      assertEquals(String.format("(lastinterpreted < %s)", range.upperEndpoint().toEpochMilli()), query);
+    } else {
+      assertEquals(String.format("(lastinterpreted >= %s AND lastinterpreted < %s)",
+        range.lowerEndpoint().toEpochMilli(),
+        range.upperEndpoint().toEpochMilli()), query);
+    }
+  }
+
+  @Test
+  public void testDoubleRanges() throws QueryBuildingException {
+    testDoubleRange("-200,600.2");
+    testDoubleRange("*,300.3");
+    testDoubleRange("-23.8,*");
+  }
+
+  /**
+   * Reusable method to test number ranges.
+   */
+  private void testDoubleRange(String value) throws QueryBuildingException {
+    Range<Double> range = SearchTypeValidator.parseDecimalRange(value);
+
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.ELEVATION, value, false);
+    String query = visitor.getHiveQuery(p);
+
+    if (!range.hasUpperBound()) {
+      assertEquals(String.format("elevation >= %s",
+        range.lowerEndpoint().doubleValue()), query);
+    } else if (!range.hasLowerBound()) {
+      assertEquals(String.format("elevation <= %s",
+        range.upperEndpoint().doubleValue()), query);
+    } else {
+      assertEquals(String.format("((elevation >= %s) AND (elevation <= %s))",
+        range.lowerEndpoint().doubleValue(),
+        range.upperEndpoint().doubleValue()), query);
+    }
   }
 
   @Test
@@ -456,11 +514,14 @@ public class HiveQueryVisitorTest {
         value = values[0].name();
       } else if (Date.class.isAssignableFrom(param.type())) {
         value = "2014-01-23";
+      } else if (OccurrenceSearchParameter.GEO_DISTANCE == param) {
+        predicates.add(new GeoDistancePredicate("10", "20", "10km"));
       }
 
-      if (OccurrenceSearchParameter.GEOMETRY != param) {
+      if (OccurrenceSearchParameter.GEOMETRY != param && OccurrenceSearchParameter.GEO_DISTANCE != param) {
         predicates.add(new EqualsPredicate(param, value, false));
       }
+
     }
     ConjunctionPredicate and = new ConjunctionPredicate(predicates);
     try {

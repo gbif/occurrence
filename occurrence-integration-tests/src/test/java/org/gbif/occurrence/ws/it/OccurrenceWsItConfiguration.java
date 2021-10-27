@@ -9,14 +9,9 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.occurrence.test.mocks.ChallengeCodeManagerMock;
-import org.gbif.occurrence.test.mocks.DownloadCallbackServiceMock;
-import org.gbif.occurrence.test.mocks.DownloadRequestServiceMock;
-import org.gbif.occurrence.test.mocks.OccurrenceDownloadServiceMock;
-import org.gbif.occurrence.test.mocks.UserMapperMock;
+import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
-import org.gbif.occurrence.ws.config.OccurrenceMethodSecurityConfiguration;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
 import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
 import org.gbif.registry.identity.util.RegistryPasswordEncoder;
@@ -24,6 +19,7 @@ import org.gbif.registry.persistence.mapper.UserMapper;
 import org.gbif.registry.surety.ChallengeCodeManager;
 import org.gbif.registry.surety.OrganizationChallengeCodeManager;
 import org.gbif.registry.surety.UserChallengeCodeManager;
+import org.gbif.ws.security.RoleMethodSecurityConfiguration;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -44,11 +40,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.zookeeper.ZookeeperAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
@@ -234,6 +226,6 @@ public class OccurrenceWsItConfiguration {
    * Empty config class to include the config made by OccurrenceMethodSecurityConfiguration.
    */
   @Configuration
-  public static class OccurrenceMethodSecurityConfigurationIT extends OccurrenceMethodSecurityConfiguration{}
+  public static class OccurrenceMethodSecurityConfigurationIT extends RoleMethodSecurityConfiguration {}
 
 }
