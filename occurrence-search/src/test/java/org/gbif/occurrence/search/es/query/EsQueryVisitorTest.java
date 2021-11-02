@@ -1,4 +1,4 @@
-package org.gbif.occurrence.download.query;
+package org.gbif.occurrence.search.es.query;
 
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
@@ -16,6 +16,7 @@ import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 

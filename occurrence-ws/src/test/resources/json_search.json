@@ -1,0 +1,9 @@
+{
+  "offset":10,
+  "limit": 5,
+  "parameters":
+  {
+    "YEAR": [2018]
+  },
+  "facets":["TAXON_KEY"]
+}

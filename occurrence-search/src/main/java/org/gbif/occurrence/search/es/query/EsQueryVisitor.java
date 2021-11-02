@@ -1,8 +1,5 @@
-package org.gbif.occurrence.download.query;
+package org.gbif.occurrence.search.es.query;
 
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
@@ -20,18 +17,6 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.SimplePredicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import com.google.common.base.Throwables;
-
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
@@ -41,6 +26,20 @@ import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Throwables;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,13 +92,25 @@ public class EsQueryVisitor {
    * @return body clause
    */
   public String getQuery(Predicate predicate) throws QueryBuildingException {
+    return getQueryBuilder(predicate).orElse(QueryBuilders.matchAllQuery()).toString();
+  }
+
+
+  /**
+   * Translates a valid {@link org.gbif.api.model.occurrence.Download} object and translates it into a
+   * json query that can be used as the <em>body</em> for _search request of ES index.
+   *
+   * @param predicate to translate
+   *
+   * @return body clause
+   */
+  public Optional<QueryBuilder> getQueryBuilder(Predicate predicate) throws QueryBuildingException {
     if (predicate != null) {
       BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
       visit(predicate, queryBuilder);
-      return queryBuilder.toString();
-    } else {
-      return QueryBuilders.matchAllQuery().toString();
+      return Optional.of(queryBuilder);
     }
+    return Optional.empty();
   }
 
   /**
@@ -166,11 +177,11 @@ public class EsQueryVisitor {
    */
   private static Map<OccurrenceSearchParameter, List<EqualsPredicate>> groupEquals(DisjunctionPredicate predicate) {
     return predicate.getPredicates().stream()
-            .filter(p -> p instanceof EqualsPredicate)
-            .map(p -> (EqualsPredicate)p)
-            .collect(Collectors.groupingBy(EqualsPredicate::getKey))
-            .entrySet().stream()
-            .filter( e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      .filter(p -> p instanceof EqualsPredicate)
+      .map(p -> (EqualsPredicate)p)
+      .collect(Collectors.groupingBy(EqualsPredicate::getKey))
+      .entrySet().stream()
+      .filter( e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**
@@ -178,17 +189,17 @@ public class EsQueryVisitor {
    */
   private List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
     return equalPredicates.entrySet()
-            .stream()
-            .map(e ->
-              e.getValue().stream()
-                .collect(Collectors.groupingBy(EqualsPredicate::isMatchCase))
-                .entrySet()
-                .stream()
-                .map(group -> new InPredicate(e.getKey(), group.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), group.getKey()))
-                 .collect(Collectors.toList())
-            )
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+      .stream()
+      .map(e ->
+             e.getValue().stream()
+               .collect(Collectors.groupingBy(EqualsPredicate::isMatchCase))
+               .entrySet()
+               .stream()
+               .map(group -> new InPredicate(e.getKey(), group.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), group.getKey()))
+               .collect(Collectors.toList())
+      )
+      .flatMap(List::stream)
+      .collect(Collectors.toList());
   }
 
   /**

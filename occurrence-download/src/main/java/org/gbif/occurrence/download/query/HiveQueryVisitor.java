@@ -26,6 +26,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.search.es.query.QueryBuildingException;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;

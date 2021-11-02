@@ -5,6 +5,7 @@ import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
@@ -26,6 +27,7 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 
 import com.google.common.base.Preconditions;
+import lombok.SneakyThrows;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -163,7 +165,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
 
     // build request
-    SearchRequest esRequest = EsSearchRequestBuilder.buildSearchRequest(request, esIndex);
+    SearchRequest esRequest =  EsSearchRequestBuilder.buildSearchRequest(request, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
@@ -173,6 +175,12 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
+  }
+
+  @SneakyThrows
+  @Override
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> search(OccurrencePredicateSearchRequest request) {
+   return search((OccurrenceSearchRequest) request);
   }
 
   @Override

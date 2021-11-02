@@ -17,9 +17,9 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.download.query.EsQueryVisitor;
+import org.gbif.occurrence.search.es.query.EsQueryVisitor;
 import org.gbif.occurrence.download.query.HiveQueryVisitor;
-import org.gbif.occurrence.download.query.QueryBuildingException;
+import org.gbif.occurrence.search.es.query.QueryBuildingException;
 
 import java.io.Closeable;
 import java.io.File;

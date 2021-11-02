@@ -2,10 +2,12 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.occurrence.search.es.query.EsQueryVisitor;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
+import lombok.SneakyThrows;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
@@ -48,6 +51,23 @@ public class EsSearchRequestBuilder {
 
   private EsSearchRequestBuilder() {}
 
+  @SneakyThrows
+  private static Optional<QueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
+    // create bool node
+    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+    String qParam = searchRequest.getQ();
+
+    // adding full text search parameter
+    if (!Strings.isNullOrEmpty(qParam)) {
+      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getFieldName(), qParam));
+    }
+
+    EsQueryVisitor esQueryVisitor = new EsQueryVisitor();
+    esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
+
+    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+  }
+
   public static SearchRequest buildSearchRequest(
       OccurrenceSearchRequest searchRequest, String index) {
 
@@ -75,8 +95,13 @@ public class EsSearchRequestBuilder {
     GroupedParams groupedParams = groupParameters(searchRequest);
 
     // add query
-    buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isMatchCase())
-        .ifPresent(searchSourceBuilder::query);
+    if (searchRequest instanceof OccurrencePredicateSearchRequest) {
+      buildQuery((OccurrencePredicateSearchRequest)searchRequest).ifPresent(
+        searchSourceBuilder::query);
+    } else {
+      buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isMatchCase()).ifPresent(
+        searchSourceBuilder::query);
+    }
 
     // add aggs
     buildAggs(searchRequest, groupedParams.postFilterParams)

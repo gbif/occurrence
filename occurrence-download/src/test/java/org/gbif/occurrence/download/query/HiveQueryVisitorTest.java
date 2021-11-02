@@ -7,6 +7,7 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.occurrence.search.es.query.QueryBuildingException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

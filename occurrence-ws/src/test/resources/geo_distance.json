@@ -1,0 +1,11 @@
+{
+  "creator":"fmendez",
+  "notification_addresses": ["gbif@mailinator.com"],
+  "send_notification":"true",
+  "format": "DWCA",
+  "predicate":
+  {
+    "type":"isNull",
+    "parameter":"CONTINENT"
+  }
+}
