@@ -139,11 +139,20 @@ public class PredicateOptimizer {
   }
 
   /**
-   * handles ISNOTNULL Predicate
+   * handles IsNotNull Predicate
    *
-   * @param predicate ISNOTNULL predicate
+   * @param predicate IsNotNull predicate
    */
   public void visit(IsNotNullPredicate predicate) {
+    return;
+  }
+
+  /**
+   * handles IsNull Predicate
+   *
+   * @param predicate IsNull predicate
+   */
+  public void visit(IsNullPredicate predicate) {
     return;
   }
 
