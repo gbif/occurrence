@@ -1,6 +1,5 @@
 package org.gbif.occurrence.ws.it;
 
-import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -13,13 +12,13 @@ import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
-import org.gbif.registry.identity.service.UserSuretyDelegateImpl;
-import org.gbif.registry.identity.util.RegistryPasswordEncoder;
-import org.gbif.registry.persistence.mapper.UserMapper;
-import org.gbif.registry.surety.ChallengeCodeManager;
-import org.gbif.registry.surety.OrganizationChallengeCodeManager;
-import org.gbif.registry.surety.UserChallengeCodeManager;
-import org.gbif.ws.security.RoleMethodSecurityConfiguration;
+import org.gbif.ws.remoteauth.IdentityServiceClient;
+import org.gbif.ws.remoteauth.LoggedUser;
+import org.gbif.ws.remoteauth.RemoteAuthClient;
+import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
+import org.gbif.ws.security.*;
+import org.gbif.ws.server.filter.AppIdentityFilter;
+import org.gbif.ws.server.filter.IdentityFilter;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -40,64 +39,60 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.zookeeper.ZookeeperAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
 
-/**
- * SpringBoot app used for IT tests only.
- */
+/** SpringBoot app used for IT tests only. */
 @TestConfiguration
 @SpringBootApplication(
-  exclude = {
-    ElasticSearchRestHealthContributorAutoConfiguration.class,
-    RabbitAutoConfiguration.class,
-    ElasticMetricsExportAutoConfiguration.class,
-    ZookeeperAutoConfiguration.class
-  })
+    exclude = {
+      ElasticSearchRestHealthContributorAutoConfiguration.class,
+      RabbitAutoConfiguration.class,
+      ElasticMetricsExportAutoConfiguration.class,
+      ZookeeperAutoConfiguration.class
+    })
 @EnableConfigurationProperties
 @EnableFeignClients
 @ComponentScan(
- basePackages = {
-   "org.gbif.ws.server.interceptor",
-   "org.gbif.ws.server.aspect",
-   "org.gbif.ws.server.filter",
-   "org.gbif.ws.server.advice",
-   "org.gbif.ws.server.mapper",
-   "org.gbif.ws.security",
-   "org.gbif.registry.persistence",
-   "org.gbif.registry.identity",
-   "org.gbif.registry.surety",
-   "org.gbif.occurrence.search",
-   "org.gbif.occurrence.ws.security",
-   "org.gbif.occurrence.ws.resources",
-   "org.gbif.occurrence.ws.identity",
-   "org.gbif.occurrence.persistence"
- },
- excludeFilters = {
-   @ComponentScan.Filter(type= FilterType.ASSIGNABLE_TYPE, classes = {DownloadRequestServiceImpl.class,
-                                                                      UserSuretyDelegateImpl.class,
-                                                                      UserChallengeCodeManager.class,
-                                                                      OrganizationChallengeCodeManager.class})
- }
-)
+    basePackages = {
+      "org.gbif.ws.server.interceptor",
+      "org.gbif.ws.server.aspect",
+      "org.gbif.ws.server.filter",
+      "org.gbif.ws.server.advice",
+      "org.gbif.ws.server.mapper",
+      "org.gbif.ws.security",
+      "org.gbif.ws.remoteauth",
+      "org.gbif.occurrence.search",
+      "org.gbif.occurrence.ws.resources",
+      "org.gbif.occurrence.persistence"
+    },
+    excludeFilters = {
+      @ComponentScan.Filter(
+          type = FilterType.ASSIGNABLE_TYPE,
+          classes = {
+            DownloadRequestServiceImpl.class,
+            AppKeySigningService.class,
+            FileSystemKeyStore.class,
+            IdentityFilter.class,
+            AppIdentityFilter.class,
+            GbifAuthenticationManagerImpl.class,
+            GbifAuthServiceImpl.class
+          })
+    })
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
 @ActiveProfiles("test")
 @Disabled
 public class OccurrenceWsItConfiguration {
 
-  public static final GbifUser TEST_USER = new GbifUser();
-  public static final String TEST_USER_PASSWORD = "hi";
-
-  public static final RegistryPasswordEncoder PASSWORD_ENCODER = new RegistryPasswordEncoder();
-
-  static {
-    TEST_USER.setUserName("admin");
-    TEST_USER.setEmail("nothing@gbif.org");
-    TEST_USER.setPasswordHash(PASSWORD_ENCODER.encode(TEST_USER_PASSWORD));
-    TEST_USER.setRoles(Collections.singleton(UserRole.USER));
-  }
+  public static final LoggedUser TEST_USER =
+      LoggedUser.builder()
+          .userName("admin")
+          .email("nothing@gbif.org")
+          .roles(Collections.singleton(UserRole.USER.name()))
+          .build();
 
   public static final String TEST_PROPERTIES = "classpath:application-test.yml";
 
@@ -110,23 +105,24 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public EsManageServer esManageServer(@Value("classpath:elasticsearch/es-settings.json") Resource settings,
-                                       @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings) throws Exception {
+  public EsManageServer esManageServer(
+      @Value("classpath:elasticsearch/es-settings.json") Resource settings,
+      @Value("classpath:elasticsearch/es-occurrence-schema.json") Resource mappings)
+      throws Exception {
     return EsManageServer.builder()
-      .indexName("occurrence")
-      .keyField("gbifId")
-      .settingsFile(settings)
-      .mappingFile(mappings).build();
+        .indexName("occurrence")
+        .keyField("gbifId")
+        .settingsFile(settings)
+        .mappingFile(mappings)
+        .build();
   }
 
-  /**
-   * EsConfig made from an EsManagerServer.
-   */
+  /** EsConfig made from an EsManagerServer. */
   @ConfigurationProperties(prefix = "occurrence.search.es")
   @Bean
   public EsConfig esConfig(EsManageServer esManageServer) {
     EsConfig esConfig = new EsConfig();
-    esConfig.setHosts(new String[]{esManageServer.getServerAddress()});
+    esConfig.setHosts(new String[] {esManageServer.getServerAddress()});
     esConfig.setIndex(esManageServer.getIndexName());
     return esConfig;
   }
@@ -139,60 +135,49 @@ public class OccurrenceWsItConfiguration {
     return esManageServer.getRestClient();
   }
 
-  /**
-   * Mock name matching service.
-   */
+  /** Mock name matching service. */
   @Bean
   public NameUsageMatchingService nameUsageMatchingService() {
     return Mockito.mock(NameUsageMatchingService.class);
   }
 
-  /**
-   * Mock service to interact with the Registry.
-   */
+  /** Mock service to interact with the Registry. */
   @Bean
   @ConditionalOnProperty(name = "api.url", matchIfMissing = true)
   public OccurrenceDownloadService occurrenceDownloadService() {
     return new OccurrenceDownloadServiceMock();
   }
 
-  /**
-   * Creates a mock Callback service to abstract Oozie handlers.
-   */
+  /** Creates a mock Callback service to abstract Oozie handlers. */
   @Bean
-  public CallbackService downloadCallbackService(OccurrenceDownloadService occurrenceDownloadService) {
+  public CallbackService downloadCallbackService(
+      OccurrenceDownloadService occurrenceDownloadService) {
     return new DownloadCallbackServiceMock(occurrenceDownloadService);
   }
 
-  /**
-   * Creates a DownloadRequestService using the available mock instances.
-   */
+  /** Creates a DownloadRequestService using the available mock instances. */
   @Bean
-  public DownloadRequestService downloadRequestService(OccurrenceDownloadService occurrenceDownloadService,
-                                                       CallbackService callbackService,
-                                                       ResourceLoader resourceLoader) {
-    return new DownloadRequestServiceMock(occurrenceDownloadService, callbackService, resourceLoader);
+  public DownloadRequestService downloadRequestService(
+      OccurrenceDownloadService occurrenceDownloadService,
+      CallbackService callbackService,
+      ResourceLoader resourceLoader) {
+    return new DownloadRequestServiceMock(
+        occurrenceDownloadService, callbackService, resourceLoader);
   }
 
-  /**
-   * Managed Spring bean that contains an embedded HBase mini-cluster.
-   */
+  /** Managed Spring bean that contains an embedded HBase mini-cluster. */
   @Bean
   public HBaseServer hBaseServer() {
     return new HBaseServer();
   }
 
-  /**
-   * Gets a connection from the embedded HBase mini-cluster.
-   */
+  /** Gets a connection from the embedded HBase mini-cluster. */
   @Bean
   public Connection hBaseConnection(HBaseServer hBaseServer) throws IOException {
     return hBaseServer.getConnection();
   }
 
-  /**
-   * HBase configuration made from HBase mini-cluster.
-   */
+  /** HBase configuration made from HBase mini-cluster. */
   @Bean
   public OccHBaseConfiguration occHBaseConfiguration(HBaseServer hBaseServer) {
     OccHBaseConfiguration occHBaseConfiguration = new OccHBaseConfiguration();
@@ -205,27 +190,29 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public UserMapper userMapperMock() {
-    UserMapper userMapper = new UserMapperMock();
-    userMapper.create(TEST_USER);
-    return userMapper;
+  public RemoteAuthClient remoteAuthClient() {
+    return RemoteAuthClientMock.builder().testUser(TEST_USER).build();
   }
 
   @Bean
-  public ChallengeCodeManager<Integer> challengeCodeManagerMock() {
-    return new ChallengeCodeManagerMock();
+  public IdentityServiceClient identityAccessServiceClient() {
+    return IdentityServiceClientMock.builder().testUser(TEST_USER).build();
   }
 
-  /**
-   * Empty config class to include the config made by WebMvcConfig.
-   */
+  /** Empty config class to include the config made by WebMvcConfig. */
   @Configuration
-  public static class WebMvcConfigIT extends WebMvcConfig{}
+  public static class WebMvcConfigIT extends WebMvcConfig {}
 
-  /**
-   * Empty config class to include the config made by OccurrenceMethodSecurityConfiguration.
-   */
+  /** Empty config class to include the config made by OccurrenceMethodSecurityConfiguration. */
   @Configuration
-  public static class OccurrenceMethodSecurityConfigurationIT extends RoleMethodSecurityConfiguration {}
+  public static class OccurrenceMethodSecurityConfigurationIT
+      extends RoleMethodSecurityConfiguration {}
 
+  @Configuration
+  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
+
+    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      super(context, remoteAuthClient);
+    }
+  }
 }

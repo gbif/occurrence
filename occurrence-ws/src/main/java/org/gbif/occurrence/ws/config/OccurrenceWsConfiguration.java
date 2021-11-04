@@ -14,35 +14,14 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import com.zaxxer.hikari.HikariDataSource;
 import org.apache.oozie.client.OozieClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class OccurrenceWsConfiguration {
-
-  @Bean
-  @Primary
-  @ConfigurationProperties("registry.datasource")
-  public DataSourceProperties registryDataSourceProperties() {
-    return new DataSourceProperties();
-  }
-
-  @Bean
-  @Primary
-  @ConfigurationProperties("registry.datasource.hikari")
-  public HikariDataSource registryDataSource() {
-    return registryDataSourceProperties()
-      .initializeDataSourceBuilder()
-      .type(HikariDataSource.class)
-      .build();
-  }
 
   @Bean
   public OozieClient providesOozieClient(@Value("${occurrence.download.oozie.url}") String url) {

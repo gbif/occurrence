@@ -97,6 +97,10 @@
           <groupId>org.gbif</groupId>
           <artifactId>gbif-doi</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>gbif-doi</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
