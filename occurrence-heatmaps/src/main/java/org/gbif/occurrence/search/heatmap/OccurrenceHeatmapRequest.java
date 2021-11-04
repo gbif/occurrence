@@ -1,5 +1,6 @@
 package org.gbif.occurrence.search.heatmap;
 
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 
 import com.google.common.base.MoreObjects;
@@ -9,7 +10,7 @@ import com.google.common.base.Objects;
  * Request class for issuing heat map search request to the occurrence search service.
  * Warning:
  */
-public class OccurrenceHeatmapRequest extends  OccurrenceSearchRequest {
+public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest {
 
   public enum Mode {
     GEO_BOUNDS, GEO_CENTROID;
@@ -25,7 +26,8 @@ public class OccurrenceHeatmapRequest extends  OccurrenceSearchRequest {
    * Default empty constructor, required for serialization.
    */
   public OccurrenceHeatmapRequest(){
-    super(0,0);
+    this.limit = 0;
+    this.offset = 0;
   }
 
   /**

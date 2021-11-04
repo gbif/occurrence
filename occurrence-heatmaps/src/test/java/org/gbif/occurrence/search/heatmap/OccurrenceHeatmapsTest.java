@@ -1,9 +1,13 @@
 package org.gbif.occurrence.search.heatmap;
 
 import com.google.common.collect.Maps;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.config.Cache2kConfig;
 import org.junit.jupiter.api.Test;
 
+import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.search.cache.DefaultInMemoryPredicateCacheService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -21,7 +25,11 @@ public class OccurrenceHeatmapsTest {
 
   @Test
   public void heatmapRequestBuildTest() {
-    OccurrenceHeatmapRequest heatmapRequest = OccurrenceHeatmapRequestProvider
+    //Cache config
+    Cache2kConfig<Integer,Predicate> cache2kConfig = new Cache2kConfig<>();
+    cache2kConfig.setEntryCapacity(1);
+    cache2kConfig.setPermitNullValues(true);
+    OccurrenceHeatmapRequest heatmapRequest = new OccurrenceHeatmapRequestProvider(DefaultInMemoryPredicateCacheService.getInstance(cache2kConfig))
       .buildOccurrenceHeatmapRequest(getMockRequest());
 
     assertEquals(heatmapRequest.getZoom(), Integer.parseInt(ZOOM_QUERY));

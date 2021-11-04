@@ -182,6 +182,7 @@
     <jts.version>1.16.1</jts.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
+    <cache2k.version>2.4.1.Final</cache2k.version>
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
@@ -688,6 +689,19 @@
         <artifactId>httpcore</artifactId>
         <version>${httpcore.version}</version>
         <type>jar</type>
+      </dependency>
+
+      <!-- Cache -->
+      <dependency>
+        <groupId>org.cache2k</groupId>
+        <artifactId>cache2k-api</artifactId>
+        <version>${cache2k.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cache2k</groupId>
+        <artifactId>cache2k-core</artifactId>
+        <version>${cache2k.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- Version used by KVS -->

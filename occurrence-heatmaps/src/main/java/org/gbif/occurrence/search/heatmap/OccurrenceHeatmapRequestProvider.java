@@ -2,6 +2,8 @@ package org.gbif.occurrence.search.heatmap;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.occurrence.search.cache.PredicateCacheService;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,14 +21,17 @@ public class OccurrenceHeatmapRequestProvider {
   public static final String GEOM_PARAM = "geom";
   public static final String ZOOM_PARAM = "z";
   public static final String MODE_PARAM = "mode";
+  public static final String PARAM_PREDICATE_KEY = "predicateKey";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
+
+  private final PredicateCacheService predicateCacheService;
 
   /**
    * Making constructor private.
    */
-  private OccurrenceHeatmapRequestProvider() {
-    //empty block
+  public OccurrenceHeatmapRequestProvider(PredicateCacheService predicateCacheService) {
+    this.predicateCacheService = predicateCacheService;
   }
 
   /**
@@ -47,7 +52,7 @@ public class OccurrenceHeatmapRequestProvider {
     return value;
   }
 
-  public static OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request) {
+  public OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request) {
     OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest = new OccurrenceHeatmapRequest();
 
     String q = request.getParameter(PARAM_QUERY_STRING);
@@ -57,6 +62,13 @@ public class OccurrenceHeatmapRequestProvider {
     }
     // find search parameter enum based filters
     setSearchParams(occurrenceHeatmapSearchRequest, request);
+
+
+    String predicateKey = request.getParameter(PARAM_PREDICATE_KEY);
+    if (!Strings.isNullOrEmpty(predicateKey)) {
+      occurrenceHeatmapSearchRequest.setPredicate(predicateCacheService.get(Integer.parseInt(predicateKey)));
+    }
+
     return occurrenceHeatmapSearchRequest;
   }
 
