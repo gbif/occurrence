@@ -21,7 +21,7 @@ public class OccurrenceHeatmapRequestProvider {
   public static final String GEOM_PARAM = "geom";
   public static final String ZOOM_PARAM = "z";
   public static final String MODE_PARAM = "mode";
-  public static final String PARAM_PREDICATE_KEY = "predicateKey";
+  public static final String PARAM_PREDICATE_HASH = "predicateHash";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
 
@@ -64,9 +64,9 @@ public class OccurrenceHeatmapRequestProvider {
     setSearchParams(occurrenceHeatmapSearchRequest, request);
 
 
-    String predicateKey = request.getParameter(PARAM_PREDICATE_KEY);
-    if (!Strings.isNullOrEmpty(predicateKey)) {
-      occurrenceHeatmapSearchRequest.setPredicate(predicateCacheService.get(Integer.parseInt(predicateKey)));
+    String predicateHash = request.getParameter(PARAM_PREDICATE_HASH);
+    if (!Strings.isNullOrEmpty(predicateHash)) {
+      occurrenceHeatmapSearchRequest.setPredicate(predicateCacheService.get(Integer.parseInt(predicateHash)));
     }
 
     return occurrenceHeatmapSearchRequest;
