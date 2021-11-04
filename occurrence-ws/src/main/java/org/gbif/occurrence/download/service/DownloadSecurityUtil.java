@@ -39,7 +39,7 @@ public class DownloadSecurityUtil {
    * @throws AccessControlException if no or wrong user is authenticated
    */
   public static void assertLoginMatches(DownloadRequest request, Authentication authentication, Principal principal) {
-    if (!principal.getName().equals(request.getCreator()) &&
+    if (principal == null || !principal.getName().equals(request.getCreator()) &&
       !checkUserInRole(authentication, ADMIN_ROLE)) {
       LOG.warn("Different user authenticated [{}] than download specifies [{}]", principal.getName(),
         request.getCreator());
