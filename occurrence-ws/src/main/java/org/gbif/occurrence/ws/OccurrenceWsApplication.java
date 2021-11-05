@@ -24,8 +24,6 @@ import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
 
-import java.time.Duration;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
@@ -38,8 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication(
     exclude = {
@@ -88,18 +84,9 @@ public class OccurrenceWsApplication {
   }
 
   @Bean
-  public RestTemplate restTemplate(
+  public RemoteAuthClient remoteAuthClient(
       RestTemplateBuilder builder, @Value("${registry.ws.url}") String gbifApiUrl) {
-    return builder
-        .setConnectTimeout(Duration.ofSeconds(30))
-        .setReadTimeout(Duration.ofSeconds(60))
-        .rootUri(gbifApiUrl)
-        .build();
-  }
-
-  @Bean
-  public RemoteAuthClient remoteAuthClient(RestTemplate restTemplate) {
-    return new RestTemplateRemoteAuthClient(restTemplate);
+    return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
   }
 
   @Configuration
