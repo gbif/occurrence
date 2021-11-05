@@ -1,6 +1,4 @@
 /*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +13,10 @@
  */
 package org.gbif.occurrence.mail;
 
-import com.google.common.base.MoreObjects;
-
 import java.util.Collections;
 import java.util.Set;
+
+import com.google.common.base.MoreObjects;
 
 /** Very basic email model that holds the main components of an email to send. */
 public class BaseEmailModel {

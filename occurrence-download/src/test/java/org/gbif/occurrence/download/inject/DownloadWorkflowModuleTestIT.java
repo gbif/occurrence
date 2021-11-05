@@ -1,3 +1,16 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.download.inject;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -8,14 +21,15 @@ import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import java.io.IOException;
 import java.util.Properties;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

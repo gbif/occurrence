@@ -1,6 +1,22 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.search.heatmap.es;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -10,9 +26,8 @@ import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBu
 import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+
+import com.google.common.annotations.VisibleForTesting;
 
 class EsHeatmapRequestBuilder {
 

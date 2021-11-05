@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 Global Biodiversity Information Facility (GBIF)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -12,11 +13,6 @@
  */
 package org.gbif.occurrence.download.query;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gbif.api.model.occurrence.predicate.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateParsingUtils;
@@ -27,6 +23,15 @@ import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.search.es.query.QueryBuildingException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.function.Function;
+
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -36,13 +41,11 @@ import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Function;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import static org.gbif.api.util.IsoDateParsingUtils.ISO_DATE_FORMATTER;
 
