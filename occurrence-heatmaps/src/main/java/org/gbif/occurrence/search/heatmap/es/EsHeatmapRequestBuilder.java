@@ -40,7 +40,7 @@ class EsHeatmapRequestBuilder {
     searchSourceBuilder.size(0);
 
     // add the geometry filter
-    String[] coords = Iterables.toArray(Splitter.on(",").split(request.getGeometry()), String.class);
+    String[] coords = request.getGeometry().split(",");
 
     double top = Double.parseDouble(coords[3]);
     double left = Double.parseDouble(coords[0]);
