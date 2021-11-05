@@ -1,7 +1,6 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -11,7 +10,6 @@ import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBu
 import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.gbif.common.shaded.com.google.common.collect.Iterables;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
