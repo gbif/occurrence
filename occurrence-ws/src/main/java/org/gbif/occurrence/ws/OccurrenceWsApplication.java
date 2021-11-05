@@ -81,11 +81,6 @@ public class OccurrenceWsApplication {
         .setConnectTimeout(Duration.ofSeconds(30))
         .setReadTimeout(Duration.ofSeconds(60))
         .rootUri(gbifApiUrl)
-        .additionalInterceptors(
-            (request, body, execution) -> {
-              request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-              return execution.execute(request, body);
-            })
         .build();
   }
 
