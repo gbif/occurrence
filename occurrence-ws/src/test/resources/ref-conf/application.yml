@@ -56,16 +56,7 @@ occurrence:
     max:
       limit: 300
       offset: 200000
-# Database
 registry:
-  datasource:
-    url: @registry.db.url@
-    password: @registry.db.password@
-    username: @registry.db.username@
-    hikari:
-      idleTimeout: @registry.db.hikari.idleTimeout@
-      maximumPoolSize: @registry.db.hikari.maximumPoolSize@
-      minimumIdle: @registry.db.hikari.minimumIdle@
   ws:
     url: @registry.ws.url@
 spring:

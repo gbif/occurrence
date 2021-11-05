@@ -1,6 +1,5 @@
 package org.gbif.occurrence.mail;
 
-import freemarker.template.TemplateException;
 import org.gbif.api.model.common.AbstractGbifUser;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
@@ -8,23 +7,19 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
 
@@ -54,7 +49,7 @@ public class OccurrenceEmailManager {
   public OccurrenceEmailManager(
       @Qualifier("occurrenceEmailTemplateProcessor")
           EmailTemplateProcessor emailTemplateProcessor,
-      @Qualifier("baseIdentityAccessService")
+      @Qualifier("identityServiceClient")
           IdentityAccessService identityAccessService,
       TitleLookupService titleLookup,
       @Value("${occurrence.download.mail.supportedLocales}") List<String> supportedLocales) {

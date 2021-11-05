@@ -43,7 +43,6 @@ occurrence:
     max:
       limit: 300
       offset: 200000
-# Database
 spring:
   main:
     allow-bean-definition-overriding: true

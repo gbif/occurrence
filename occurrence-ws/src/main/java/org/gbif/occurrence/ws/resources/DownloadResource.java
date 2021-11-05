@@ -250,7 +250,7 @@ public class DownloadResource {
   ) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
-    String creator = principal.getName();
+    String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);

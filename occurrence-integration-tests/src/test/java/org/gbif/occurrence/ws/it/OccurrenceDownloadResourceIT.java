@@ -3,12 +3,12 @@ package org.gbif.occurrence.ws.it;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
-import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER_PASSWORD;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest(
-  classes = OccurrenceWsItConfiguration.class,
-  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+    classes = OccurrenceWsItConfiguration.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OccurrenceDownloadResourceIT {
 
   private static final String TEST_DOWNLOAD_FILE = "classpath:0011066-200127171203522.zip";
@@ -47,13 +46,17 @@ public class OccurrenceDownloadResourceIT {
   private final int localServerPort;
 
   @Autowired
-  public OccurrenceDownloadResourceIT(@LocalServerPort int localServerPort,
-                                      OccurrenceDownloadService occurrenceDownloadService,
-                                      ResourceLoader resourceLoader) {
+  public OccurrenceDownloadResourceIT(
+      @LocalServerPort int localServerPort,
+      OccurrenceDownloadService occurrenceDownloadService,
+      ResourceLoader resourceLoader) {
     ClientBuilder clientBuilder =
         new ClientBuilder()
             .withUrl("http://localhost:" + localServerPort)
-            .withCredentials(TEST_USER.getUserName(), TEST_USER_PASSWORD)
+            .withCredentials(
+                TEST_USER.getUserName(),
+                TEST_USER
+                    .getUserName()) // actually no needed since the remote auth client is mocked
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
             .withFormEncoder();
 
@@ -63,9 +66,7 @@ public class OccurrenceDownloadResourceIT {
     this.resourceLoader = resourceLoader;
   }
 
-  /**
-   * Creates a test entity with a download all request.
-   */
+  /** Creates a test entity with a download all request. */
   private PredicateDownloadRequest testPredicateDownloadRequest() {
     PredicateDownloadRequest predicateDownloadRequest = new PredicateDownloadRequest();
     predicateDownloadRequest.setFormat(DownloadFormat.SIMPLE_CSV);
@@ -81,55 +82,44 @@ public class OccurrenceDownloadResourceIT {
   }
 
   @Test
-  public void startDownloadWithDifferentUserAndCreatorTest() {
+  public void startDownloadWithDifferentUserAndCreatorTest() throws JsonProcessingException {
     PredicateDownloadRequest predicateDownloadRequest = testPredicateDownloadRequest();
-    //Change creator user
+    // Change creator user
     predicateDownloadRequest.setCreator("NotMe");
 
-    //Exception expected
-    assertThrows(AccessDeniedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
+    // Exception expected
+    assertThrows(
+        AccessDeniedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
   }
-
-  @Test
-  public void startDownloadAuthenticationError() {
-    ClientBuilder clientBuilder =
-        new ClientBuilder()
-            .withUrl("http://localhost:" + localServerPort)
-            .withCredentials(TEST_USER.getUserName(), "NotThePasword")
-            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-            .withFormEncoder();
-    DownloadRequestService downloadService = clientBuilder.build(OccurrenceDownloadWsClient.class);
-
-    //Exception expected
-    assertThrows(AccessDeniedException.class, () -> downloadService.create(testPredicateDownloadRequest()));
-  }
-
 
   @Test
   public void cancelDownloadTest() {
-    //Create
+    // Create
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
     assertNotNull(downloadKey, "DownloadKey is null!");
 
-    //Cancel
+    // Cancel
     downloadWsClient.cancel(downloadKey);
 
-    //Check
+    // Check
     Download download = occurrenceDownloadService.get(downloadKey);
     assertNotNull(download, "Cancelled download is null!");
-    assertEquals(Download.Status.CANCELLED, download.getStatus(), "Occurrence download status is not Cancelled!");
+    assertEquals(
+        Download.Status.CANCELLED,
+        download.getStatus(),
+        "Occurrence download status is not Cancelled!");
   }
 
   @Test
   @SneakyThrows
   public void getDownloadResultTest() {
-    //Create
+    // Create
     String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
 
-    //Check is not null
+    // Check is not null
     assertNotNull(downloadKey, "DownloadKey is null!");
 
-    //Is the content what it was expected
+    // Is the content what it was expected
     assertEquals(302, downloadWsClient.getDownloadResult(downloadKey, null).status());
   }
 }
