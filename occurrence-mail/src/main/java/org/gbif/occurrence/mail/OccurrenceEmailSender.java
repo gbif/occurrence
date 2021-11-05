@@ -1,6 +1,4 @@
 /*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +13,14 @@
  */
 package org.gbif.occurrence.mail;
 
-import com.google.common.collect.Sets;
 import org.gbif.occurrence.mail.util.OccurrenceMailUtils;
+
+import java.util.Date;
+import java.util.Set;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +29,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.util.Date;
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.EMAIL_SPLITTER;
 

@@ -1,6 +1,26 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.download.file.simpleavro;
 
-import com.google.common.base.Throwables;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.file.DataFileWriter;
@@ -11,15 +31,10 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.utils.file.properties.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import com.google.common.base.Throwables;
 
 /**
  * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).

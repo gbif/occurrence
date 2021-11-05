@@ -1,6 +1,4 @@
 /*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +13,17 @@
  */
 package org.gbif.occurrence.ws.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanPostProcessor;

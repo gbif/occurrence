@@ -1,9 +1,10 @@
 /*
- * Copyright 2012 Global Biodiversity Information Facility (GBIF)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -12,11 +13,6 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
@@ -29,6 +25,24 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
+
+import java.io.File;
+import java.net.URI;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,20 +66,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.net.URI;
-import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;

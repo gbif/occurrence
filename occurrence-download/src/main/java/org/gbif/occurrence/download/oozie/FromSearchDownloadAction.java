@@ -1,3 +1,16 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -5,15 +18,16 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
+import org.gbif.wrangler.lock.Mutex;
 
 import java.util.Properties;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import org.apache.curator.framework.CuratorFramework;
-import org.gbif.wrangler.lock.Mutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
 
 /**
  * Class that encapsulates the process of creating the occurrence files from Elasticsearch/Hive.
@@ -92,4 +106,3 @@ public class FromSearchDownloadAction {
   }
 
 }
-
