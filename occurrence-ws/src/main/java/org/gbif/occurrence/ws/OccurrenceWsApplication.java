@@ -80,7 +80,7 @@ public class OccurrenceWsApplication {
       @Value("${registry.ws.url}") String gbifApiUrl,
       @Value("${gbif.ws.security.appKey}") String appKey,
       @Value("${gbif.ws.security.appSecret}") String appSecret) {
-    return IdentityServiceClient.getInstance(gbifApiUrl, appKey, appSecret);
+    return IdentityServiceClient.getInstance(gbifApiUrl, appKey, appKey, appSecret);
   }
 
   @Bean
