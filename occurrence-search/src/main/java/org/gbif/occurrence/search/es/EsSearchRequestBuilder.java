@@ -64,6 +64,8 @@ public class EsSearchRequestBuilder {
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
 
+  private static String[] SOURCE_EXCLUDE = new String[]{"all", "notIssues", "*.verbatim", "*.suggest"};
+
   private EsSearchRequestBuilder() {}
 
   @SneakyThrows
@@ -96,6 +98,7 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.size(searchRequest.getLimit());
     searchSourceBuilder.from((int) searchRequest.getOffset());
     searchSourceBuilder.trackTotalHits(true);
+    searchSourceBuilder.fetchSource(null , SOURCE_EXCLUDE);
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {

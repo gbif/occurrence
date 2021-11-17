@@ -122,7 +122,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   }
 
   private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
-    return getByQuery(QueryBuilders.termQuery(OccurrenceEsField.GBIF_ID.getFieldName(), key), mapper);
+    return getByQuery(QueryBuilders.idsQuery().addIds(key.toString()), mapper);
   }
 
   private <T> T searchByDatsetKeyAndOccurrenceId(UUID datasetKey, String occurrenceId, Function<SearchHit, T> mapper) {
