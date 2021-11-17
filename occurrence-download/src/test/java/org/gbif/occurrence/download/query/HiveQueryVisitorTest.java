@@ -363,6 +363,20 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testIsNotNullTaxonKey() throws QueryBuildingException {
+    Predicate p = new IsNotNullPredicate(OccurrenceSearchParameter.TAXON_KEY);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "(taxonkey IS NOT NULL  AND acceptedtaxonkey IS NOT NULL  AND kingdomkey IS NOT NULL  AND phylumkey IS NOT NULL  AND classkey IS NOT NULL  AND orderkey IS NOT NULL  AND familykey IS NOT NULL  AND genuskey IS NOT NULL  AND subgenuskey IS NOT NULL  AND specieskey IS NOT NULL )");
+  }
+
+  @Test
+  public void testIsNullTaxonKey() throws QueryBuildingException {
+    Predicate p = new IsNullPredicate(OccurrenceSearchParameter.TAXON_KEY);
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "(taxonkey IS NULL  AND acceptedtaxonkey IS NULL  AND kingdomkey IS NULL  AND phylumkey IS NULL  AND classkey IS NULL  AND orderkey IS NULL  AND familykey IS NULL  AND genuskey IS NULL  AND subgenuskey IS NULL  AND specieskey IS NULL )");
+  }
+
+  @Test
   public void testIsNotNullArrayPredicate() throws QueryBuildingException {
     Predicate p = new IsNotNullPredicate(OccurrenceSearchParameter.MEDIA_TYPE);
     String query = visitor.getHiveQuery(p);

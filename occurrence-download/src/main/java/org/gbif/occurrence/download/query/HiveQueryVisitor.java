@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
@@ -472,6 +473,8 @@ public class HiveQueryVisitor {
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
     if (isHiveArray(predicate.getParameter())) {
       builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), true)));
+    } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getParameter()) {
+      appendTaxonKeyUnary(IS_NOT_NULL_OPERATOR);
     } else {
       // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
       builder.append(toHiveField(predicate.getParameter(), true));
@@ -480,9 +483,26 @@ public class HiveQueryVisitor {
   }
 
   public void visit(IsNullPredicate predicate) throws QueryBuildingException {
-    // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
-    builder.append(toHiveField(predicate.getParameter(), true));
-    builder.append(IS_NULL_OPERATOR);
+    if (OccurrenceSearchParameter.TAXON_KEY == predicate.getParameter()) {
+      appendTaxonKeyUnary(IS_NULL_OPERATOR);
+    } else {
+      // matchCase: Avoid adding an unnecessary "lower()" when just testing for null.
+      builder.append(toHiveField(predicate.getParameter(), true));
+      builder.append(IS_NULL_OPERATOR);
+    }
+  }
+
+  /**
+   * Searches any of the NUB keys in Hive of any rank.
+   *
+   * @param unaryOperator to append as filter
+   */
+  private void appendTaxonKeyUnary(String unaryOperator) {
+    builder.append('(');
+    builder.append(NUB_KEYS.stream()
+                     .map(term -> HiveColumnsUtils.getHiveColumn(term) + unaryOperator)
+                     .collect(Collectors.joining(CONJUNCTION_OPERATOR)));
+    builder.append(')');
   }
 
   public void visit(WithinPredicate within) throws QueryBuildingException {
@@ -635,16 +655,9 @@ public class HiveQueryVisitor {
    */
   private void appendTaxonKeyFilter(String taxonKey) {
     builder.append('(');
-    boolean first = true;
-    for (Term term : NUB_KEYS) {
-      if (!first) {
-        builder.append(DISJUNCTION_OPERATOR);
-      }
-      builder.append(HiveColumnsUtils.getHiveColumn(term));
-      builder.append(EQUALS_OPERATOR);
-      builder.append(taxonKey);
-      first = false;
-    }
+    builder.append(NUB_KEYS.stream()
+                     .map(term -> HiveColumnsUtils.getHiveColumn(term) + EQUALS_OPERATOR +  taxonKey)
+                     .collect(Collectors.joining(DISJUNCTION_OPERATOR)));
     builder.append(')');
   }
 
