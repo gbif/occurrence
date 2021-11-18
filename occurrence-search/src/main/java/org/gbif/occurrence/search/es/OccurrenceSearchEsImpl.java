@@ -103,10 +103,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.size(1);
-    searchSourceBuilder.fetchSource(null, new String[]{
-      "all",
-      "notIssues",
-    });
+    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
     searchRequest.indices(esIndex);
     searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);
@@ -122,13 +119,16 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   }
 
   private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
-    return getByQuery(QueryBuilders.idsQuery().addIds(key.toString()), mapper);
+    return getByQuery(QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key.toString())), mapper);
   }
 
-  private <T> T searchByDatsetKeyAndOccurrenceId(UUID datasetKey, String occurrenceId, Function<SearchHit, T> mapper) {
+  private <T> T searchByDatasetKeyAndOccurrenceId(UUID datasetKey, String occurrenceId, Function<SearchHit, T> mapper) {
     return getByQuery(QueryBuilders.boolQuery()
-                        .must(QueryBuilders.termQuery(OccurrenceEsField.DATASET_KEY.getFieldName(), datasetKey.toString()))
-                        .must(QueryBuilders.termQuery(OccurrenceEsField.OCCURRENCE_ID.getExactMatchFieldName(), occurrenceId)), mapper);
+                        .filter(
+                          QueryBuilders.boolQuery()
+                          .must(QueryBuilders.termQuery(OccurrenceEsField.DATASET_KEY.getFieldName(), datasetKey.toString()))
+                          .must(QueryBuilders.termQuery(OccurrenceEsField.OCCURRENCE_ID.getExactMatchFieldName(), occurrenceId))),
+                      mapper);
   }
 
   @Override
@@ -139,13 +139,13 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Nullable
   @Override
   public Occurrence get(UUID datasetKey, String occurrenceId) {
-    return searchByDatsetKeyAndOccurrenceId(datasetKey, occurrenceId, TO_OCCURRENCE);
+    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, TO_OCCURRENCE);
   }
 
   @Nullable
   @Override
   public VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId) {
-    return searchByDatsetKeyAndOccurrenceId(datasetKey, occurrenceId, EsResponseParser::toVerbatimOccurrence);
+    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, EsResponseParser::toVerbatimOccurrence);
   }
 
   @Override
