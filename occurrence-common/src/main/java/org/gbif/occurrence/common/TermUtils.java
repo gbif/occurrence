@@ -206,8 +206,8 @@ public class TermUtils {
   private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
                                                                           GbifTerm.issue,
                                                                           GbifInternalTerm.networkKey,
-                                                                          GbifTerm.identifiedByID,
-                                                                          GbifTerm.recordedByID,
+                                                                          DwcTerm.identifiedByID,
+                                                                          DwcTerm.recordedByID,
                                                                           GbifInternalTerm.dwcaExtension,
                                                                           GbifInternalTerm.lifeStageLineage);
 
@@ -253,7 +253,7 @@ public class TermUtils {
       DwcTerm.taxonRank,
       DwcTerm.taxonomicStatus,
       GbifTerm.acceptedScientificName,
-      GbifTerm.genericName,
+      DwcTerm.genericName,
       DwcTerm.specificEpithet,
       DwcTerm.infraspecificEpithet,
       DwcTerm.basisOfRecord,
@@ -293,8 +293,8 @@ public class TermUtils {
       GadmTerm.level3Name,
       GbifInternalTerm.unitQualifier,
       GbifTerm.issue,
-      GbifTerm.recordedByID,
-      GbifTerm.identifiedByID,
+      DwcTerm.recordedByID,
+      DwcTerm.identifiedByID,
       DcTerm.references,
       GbifTerm.datasetKey,
       GbifTerm.publishingCountry,
@@ -345,7 +345,7 @@ public class TermUtils {
         DwcTerm.family,
         DwcTerm.genus,
         DwcTerm.subgenus,
-        GbifTerm.genericName,
+        DwcTerm.genericName,
         DwcTerm.specificEpithet,
         DwcTerm.infraspecificEpithet,
         DcTerm.modified,
@@ -427,7 +427,7 @@ public class TermUtils {
       .addAll(DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
       // Correction to order https://github.com/gbif/occurrence/issues/170
-      .add(GbifTerm.recordedByID, GbifTerm.identifiedByID)
+      .add(DwcTerm.recordedByID, DwcTerm.identifiedByID)
       .build();
   }
 

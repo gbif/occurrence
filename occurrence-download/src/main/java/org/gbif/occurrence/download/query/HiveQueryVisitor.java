@@ -179,8 +179,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
       .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
-      .put(OccurrenceSearchParameter.RECORDED_BY_ID, GbifTerm.recordedByID)
-      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, GbifTerm.identifiedByID)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID, DwcTerm.recordedByID)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, DwcTerm.identifiedByID)
       .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, DwcTerm.occurrenceStatus)
       .put(OccurrenceSearchParameter.LIFE_STAGE, GbifInternalTerm.lifeStageLineage)
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
@@ -324,9 +324,9 @@ public class HiveQueryVisitor {
     } else if (OccurrenceSearchParameter.DWCA_EXTENSION == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.dwcaExtension), predicate.getValue()));
     } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(DwcTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(DwcTerm.recordedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.LIFE_STAGE == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.lifeStageLineage), predicate.getValue()));
 

@@ -92,8 +92,8 @@ public class HiveColumnsUtils {
     return GbifTerm.mediaType == term
       || GbifTerm.issue == term
       || GbifInternalTerm.networkKey == term
-      || GbifTerm.identifiedByID == term
-      || GbifTerm.recordedByID ==  term
+      || DwcTerm.identifiedByID == term
+      || DwcTerm.recordedByID ==  term
       || GbifInternalTerm.dwcaExtension == term
       || GbifInternalTerm.lifeStageLineage == term;
   }

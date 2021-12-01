@@ -121,13 +121,13 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
     interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
     interpretedOccurrence.put(GbifTerm.verbatimScientificName.simpleName(), occurrence.getVerbatimScientificName());
-    interpretedOccurrence.put(GbifTerm.genericName.simpleName(), occurrence.getGenericName());
+    interpretedOccurrence.put(DwcTerm.genericName.simpleName(), occurrence.getGenericName());
     interpretedOccurrence.put(GbifTerm.subgenusKey.simpleName(), getSimpleValue(occurrence.getSubgenusKey()));
     interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
     interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
     interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
     interpretedOccurrence.put(DwcTerm.taxonomicStatus.simpleName(), getSimpleValue(occurrence.getTaxonomicStatus()));
-    interpretedOccurrence.put(GbifTerm.genericName.simpleName(), getSimpleValue(occurrence.getGenericName()));
+    interpretedOccurrence.put(DwcTerm.genericName.simpleName(), getSimpleValue(occurrence.getGenericName()));
     Rank.DWC_RANKS.forEach(rank -> {
                               Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
                                 .ifPresent(rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()));
@@ -164,9 +164,9 @@ public class OccurrenceMapReader {
     extractMediaTypes(occurrence)
       .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
     extractAgentIds(occurrence.getRecordedByIds())
-      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.recordedByID.simpleName(), uids));
+      .ifPresent(uids -> interpretedOccurrence.put(DwcTerm.recordedByID.simpleName(), uids));
     extractAgentIds(occurrence.getIdentifiedByIds())
-      .ifPresent(uids -> interpretedOccurrence.put(GbifTerm.identifiedByID.simpleName(), uids));
+      .ifPresent(uids -> interpretedOccurrence.put(DwcTerm.identifiedByID.simpleName(), uids));
 
     // Sampling
     interpretedOccurrence.put(DwcTerm.sampleSizeUnit.simpleName(), occurrence.getSampleSizeUnit());

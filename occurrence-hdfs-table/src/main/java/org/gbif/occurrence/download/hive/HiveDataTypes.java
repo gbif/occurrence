@@ -51,8 +51,8 @@ public final class HiveDataTypes {
       GbifTerm.mediaType,
       GbifTerm.issue,
       GbifInternalTerm.networkKey,
-      GbifTerm.recordedByID,
-      GbifTerm.identifiedByID,
+      DwcTerm.recordedByID,
+      DwcTerm.identifiedByID,
       GbifInternalTerm.dwcaExtension,
       GbifInternalTerm.lifeStageLineage
     );

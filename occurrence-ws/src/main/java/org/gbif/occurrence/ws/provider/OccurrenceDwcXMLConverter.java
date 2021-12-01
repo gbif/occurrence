@@ -95,7 +95,7 @@ public class OccurrenceDwcXMLConverter {
       dwcXMLDocument.append(DwcTerm.subgenus, occurrence.getSubgenus());
       dwcXMLDocument.append(GbifTerm.species, occurrence.getSpecies());
 
-      dwcXMLDocument.append(GbifTerm.genericName, occurrence.getGenericName());
+      dwcXMLDocument.append(DwcTerm.genericName, occurrence.getGenericName());
       dwcXMLDocument.append(DwcTerm.specificEpithet, occurrence.getSpecificEpithet());
       dwcXMLDocument.append(DwcTerm.infraspecificEpithet, occurrence.getInfraspecificEpithet());
       appendIfNotNull(dwcXMLDocument, DwcTerm.taxonRank, occurrence.getTaxonRank());

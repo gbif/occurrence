@@ -108,7 +108,7 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
 
     // Identification
     Pair.of(Group.INTERPRETED, DwcTerm.identifiedBy),
-    Pair.of(Group.INTERPRETED, GbifTerm.identifiedByID),
+    Pair.of(Group.INTERPRETED, DwcTerm.identifiedByID),
     Pair.of(Group.INTERPRETED, DwcTerm.dateIdentified),
     Pair.of(Group.INTERPRETED, DwcTerm.identificationRemarks),
 
