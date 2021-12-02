@@ -65,14 +65,14 @@ class EsHeatmapRequestBuilder {
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
       .setCorners(top, left, bottom, right));
+    bool.filter().add(QueryBuilders.termQuery(
+      EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getFieldName(), true));
 
     // add query
     if (request.getPredicate() != null) { //is a predicate search
-      EsSearchRequestBuilder.buildQuery(request).ifPresent(queryBuilder -> queryBuilder.must().add(QueryBuilders.termQuery(
-        EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getFieldName(), true)));
+      EsSearchRequestBuilder.buildQuery(request).ifPresent(bool.filter()::add);
     } else {
       // add hasCoordinate to the filter and create query
-      request.addHasCoordinateFilter(true);
       EsSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
     }
 
