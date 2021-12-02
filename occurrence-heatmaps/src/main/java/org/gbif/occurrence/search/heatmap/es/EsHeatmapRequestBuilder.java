@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
@@ -64,9 +66,16 @@ class EsHeatmapRequestBuilder {
     bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
       .setCorners(top, left, bottom, right));
 
-    // add hasCoordinate to the filter and create query
-    request.addHasCoordinateFilter(true);
-    EsSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
+    // add query
+    if (request.getPredicate() != null) { //is a predicate search
+      EsSearchRequestBuilder.buildQuery(request).ifPresent(queryBuilder -> queryBuilder.must().add(QueryBuilders.termQuery(
+        EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getFieldName(), true)));
+    } else {
+      // add hasCoordinate to the filter and create query
+      request.addHasCoordinateFilter(true);
+      EsSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
+    }
+
 
     searchSourceBuilder.query(bool);
 

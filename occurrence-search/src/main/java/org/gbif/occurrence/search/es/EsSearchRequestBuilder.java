@@ -69,7 +69,7 @@ public class EsSearchRequestBuilder {
   private EsSearchRequestBuilder() {}
 
   @SneakyThrows
-  private static Optional<QueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
+  public static Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     String qParam = searchRequest.getQ();
