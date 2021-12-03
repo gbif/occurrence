@@ -426,8 +426,6 @@ public class TermUtils {
       .add(GbifTerm.gbifID)
       .addAll(DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
-      // Correction to order https://github.com/gbif/occurrence/issues/170
-      .add(DwcTerm.recordedByID, DwcTerm.identifiedByID)
       .build();
   }
 

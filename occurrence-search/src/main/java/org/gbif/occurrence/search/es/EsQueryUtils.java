@@ -229,6 +229,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.ISSUE, OccurrenceEsField.ISSUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_ID, OccurrenceEsField.OCCURRENCE_ID)
           .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceEsField.ESTABLISHMENT_MEANS)
+          .put(OccurrenceSearchParameter.DEGREE_OF_ESTABLISHMENT, OccurrenceEsField.DEGREE_OF_ESTABLISHMENT_MEANS)
+          .put(OccurrenceSearchParameter.PATHWAY, OccurrenceEsField.PATHWAY)
           .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceEsField.REPATRIATED)
           .put(OccurrenceSearchParameter.LOCALITY, OccurrenceEsField.LOCALITY)
           .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, OccurrenceEsField.COORDINATE_UNCERTAINTY_IN_METERS)

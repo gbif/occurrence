@@ -122,6 +122,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, DwcTerm.scientificName)
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, DwcTerm.occurrenceID)
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
+      .put(OccurrenceSearchParameter.DEGREE_OF_ESTABLISHMENT, DwcTerm.degreeOfEstablishment)
+      .put(OccurrenceSearchParameter.PATHWAY, DwcTerm.pathway)
       // the following need some value transformation
       .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
       .put(OccurrenceSearchParameter.MODIFIED, DcTerm.modified)

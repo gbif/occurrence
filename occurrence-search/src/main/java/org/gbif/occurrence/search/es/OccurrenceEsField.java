@@ -163,6 +163,8 @@ public enum OccurrenceEsField {
   ISSUE("issues", GbifTerm.issue),
 
   ESTABLISHMENT_MEANS("establishmentMeans", DwcTerm.establishmentMeans),
+  DEGREE_OF_ESTABLISHMENT_MEANS("degreeOfEstablishment", DwcTerm.degreeOfEstablishment),
+  PATHWAY("pathway", DwcTerm.pathway),
   FACTS("measurementOrFactItems", null),
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
