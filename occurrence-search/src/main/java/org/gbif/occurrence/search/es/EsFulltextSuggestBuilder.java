@@ -41,7 +41,7 @@ public class EsFulltextSuggestBuilder {
       .add(QueryBuilders.prefixQuery(esField.getExactMatchFieldName(), query));
 
     suggestQuery.should()
-      .add(isPhraseQuery(query)? QueryBuilders.matchPhraseQuery(esField.getFieldName(), query) : QueryBuilders.matchQuery(esField.getFieldName(), query));
+      .add(isPhraseQuery(query)? QueryBuilders.matchPhraseQuery(esField.getSearchFieldName(), query) : QueryBuilders.matchQuery(esField.getSearchFieldName(), query));
 
     suggestQuery.minimumShouldMatch(1);
 
@@ -55,13 +55,13 @@ public class EsFulltextSuggestBuilder {
       .size(0)
       .fetchSource(false)
       .query(buildSuggestQuery(SEARCH_TO_ES_MAPPING.get(parameter), query))
-      .aggregation(AggregationBuilders.terms(esField.getFieldName()).field(esField.getExactMatchFieldName()).size(limit));
+      .aggregation(AggregationBuilders.terms(esField.getSearchFieldName()).field(esField.getExactMatchFieldName()).size(limit));
 
   }
 
   static List<String> buildSuggestFullTextResponse(OccurrenceSearchParameter occurrenceSearchParameter, SearchResponse response) {
     return
-    ((Terms)response.getAggregations().get(SEARCH_TO_ES_MAPPING.get(occurrenceSearchParameter).getFieldName()))
+    ((Terms)response.getAggregations().get(SEARCH_TO_ES_MAPPING.get(occurrenceSearchParameter).getSearchFieldName()))
       .getBuckets().stream()
       .map(Terms.Bucket::getKeyAsString)
       .collect(Collectors.toList());

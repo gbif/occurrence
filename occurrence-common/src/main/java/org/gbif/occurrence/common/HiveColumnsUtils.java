@@ -94,8 +94,7 @@ public class HiveColumnsUtils {
       || GbifInternalTerm.networkKey == term
       || DwcTerm.identifiedByID == term
       || DwcTerm.recordedByID ==  term
-      || GbifInternalTerm.dwcaExtension == term
-      || GbifInternalTerm.lifeStageLineage == term;
+      || GbifInternalTerm.dwcaExtension == term;
   }
 
   /**

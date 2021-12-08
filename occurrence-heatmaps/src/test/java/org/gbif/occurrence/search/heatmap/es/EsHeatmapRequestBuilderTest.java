@@ -63,7 +63,7 @@ public class EsHeatmapRequestBuilderTest {
             .path(FILTER)
             .path(0)
             .path(GEO_BOUNDING_BOX)
-            .path(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+            .path(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
     assertEquals(-44d, bbox.path("top_left").get(0).asDouble(), 0);
     assertEquals(54d, bbox.path("top_left").get(1).asDouble(), 0);
     assertEquals(-32d, bbox.path("bottom_right").get(0).asDouble(), 0);
@@ -79,7 +79,7 @@ public class EsHeatmapRequestBuilderTest {
             .path(HEATMAP_AGGS)
             .path(GEOHASH_GRID);
     assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(), jsonGeohashGrid.get(FIELD).asText());
+      OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeohashGrid.get(FIELD).asText());
     assertEquals(3, jsonGeohashGrid.get(PRECISION).asInt());
 
     // geo_bounds
@@ -96,7 +96,7 @@ public class EsHeatmapRequestBuilderTest {
             .path(CELL_AGGS)
             .path(GEO_BOUNDS);
     assertEquals(
-        OccurrenceEsField.COORDINATE_POINT.getFieldName(), jsonGeobounds.get(FIELD).asText());
+      OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeobounds.get(FIELD).asText());
   }
 
   /**
@@ -105,8 +105,8 @@ public class EsHeatmapRequestBuilderTest {
   private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
     ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER);
     return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
-              .filter(termNode -> termNode.path(TERM).has(field.getFieldName()))
-              .map(termNode -> termNode.path(TERM).get(field.getFieldName()).get(VALUE).asText())
+              .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))
+              .map(termNode -> termNode.path(TERM).get(field.getSearchFieldName()).get(VALUE).asText())
               .findFirst();
   }
 

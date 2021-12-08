@@ -126,7 +126,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return getByQuery(QueryBuilders.boolQuery()
                         .filter(
                           QueryBuilders.boolQuery()
-                          .must(QueryBuilders.termQuery(OccurrenceEsField.DATASET_KEY.getFieldName(), datasetKey.toString()))
+                          .must(QueryBuilders.termQuery(OccurrenceEsField.DATASET_KEY.getSearchFieldName(), datasetKey.toString()))
                           .must(QueryBuilders.termQuery(OccurrenceEsField.OCCURRENCE_ID.getExactMatchFieldName(), occurrenceId))),
                       mapper);
   }

@@ -17,6 +17,7 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +25,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
@@ -264,7 +266,7 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
           .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
-          .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE_LINEAGE)
+          .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE)
           .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
           .put(OccurrenceSearchParameter.DWCA_EXTENSION, OccurrenceEsField.EXTENSIONS)
           .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, OccurrenceEsField.IUCN_RED_LIST_CATEGORY)
@@ -301,9 +303,13 @@ public class EsQueryUtils {
   static {
     for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
         SEARCH_TO_ES_MAPPING.entrySet()) {
-      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getFieldName(), paramField.getKey());
+      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getSearchFieldName(), paramField.getKey());
     }
   }
+
+  static final Set<OccurrenceEsField> VOCABULARY_FIELDS = Arrays.stream(OccurrenceEsField.values())
+                                                            .filter(f -> TermUtils.isVocabulary(f.getTerm()))
+                                                            .collect(Collectors.toSet());
 
   static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
@@ -315,5 +321,9 @@ public class EsQueryUtils {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
+  }
+
+  static boolean isVocabulary(OccurrenceEsField esField) {
+    return VOCABULARY_FIELDS.contains(esField);
   }
 }

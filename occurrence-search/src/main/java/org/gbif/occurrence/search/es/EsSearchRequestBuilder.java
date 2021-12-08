@@ -76,7 +76,7 @@ public class EsSearchRequestBuilder {
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getFieldName(), qParam));
+      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getSearchFieldName(), qParam));
     }
 
     EsQueryVisitor esQueryVisitor = new EsQueryVisitor();
@@ -149,14 +149,14 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.suggest(
         new SuggestBuilder()
             .addSuggestion(
-                esField.getFieldName(),
+                esField.getSearchFieldName(),
                 SuggestBuilders.completionSuggestion(esField.getSuggestFieldName())
                     .prefix(prefix)
                     .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
                     .skipDuplicates(true)));
 
     // add source field
-    searchSourceBuilder.fetchSource(esField.getFieldName(), null);
+    searchSourceBuilder.fetchSource(esField.getSearchFieldName(), null);
 
     return request;
   }
@@ -168,7 +168,7 @@ public class EsSearchRequestBuilder {
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getFieldName(), qParam));
+      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getSearchFieldName(), qParam));
     }
 
     if (params != null && !params.isEmpty()) {
@@ -306,12 +306,12 @@ public class EsSearchRequestBuilder {
               // add filter to the aggs
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
               FilterAggregationBuilder filterAggs =
-                  AggregationBuilders.filter(esField.getFieldName(), bool);
+                  AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
               // build terms aggs and add it to the filter aggs
               TermsAggregationBuilder termsAggs =
                   buildTermsAggs(
-                      "filtered_" + esField.getFieldName(),
+                      "filtered_" + esField.getSearchFieldName(),
                       esField,
                       searchRequest,
                       facetParam);
@@ -328,7 +328,7 @@ public class EsSearchRequestBuilder {
         .map(
             facetParam -> {
               OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
-              return buildTermsAggs(esField.getFieldName(), esField, searchRequest, facetParam);
+              return buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam);
             })
         .collect(Collectors.toList());
   }
@@ -450,7 +450,7 @@ public class EsSearchRequestBuilder {
   }
 
   public static GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
-    return QueryBuilders.geoDistanceQuery(COORDINATE_POINT.getFieldName())
+    return QueryBuilders.geoDistanceQuery(COORDINATE_POINT.getSearchFieldName())
       .distance(geoDistance.getDistance().toString())
       .point(geoDistance.getLatitude(), geoDistance.getLongitude());
   }
@@ -505,7 +505,7 @@ public class EsSearchRequestBuilder {
     }
 
     try {
-      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getFieldName(), shapeBuilder.buildGeometry())
+      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getSearchFieldName(), shapeBuilder.buildGeometry())
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);

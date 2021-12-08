@@ -18,7 +18,6 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;
@@ -28,6 +27,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+
+import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 
 /**
  * Utilities to provide the Hive data type for a given term.
@@ -44,6 +45,7 @@ public final class HiveDataTypes {
   public static final String TYPE_DOUBLE = "DOUBLE";
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
+  public static final String TYPE_VOCABULARY_STRUCT = "STRUCT";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS =
@@ -53,8 +55,7 @@ public final class HiveDataTypes {
       GbifInternalTerm.networkKey,
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
-      GbifInternalTerm.dwcaExtension,
-      GbifInternalTerm.lifeStageLineage
+      GbifInternalTerm.dwcaExtension
     );
 
   // dates are all stored as BigInt
@@ -134,6 +135,8 @@ public final class HiveDataTypes {
     } else if (verbatimContext) {
       return TYPE_STRING; // verbatim are always string
 
+    } else if (isVocabulary(term)) {
+      return TYPE_VOCABULARY_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
 

@@ -23,7 +23,9 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.Vocabulary;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -208,8 +210,7 @@ public class TermUtils {
                                                                           GbifInternalTerm.networkKey,
                                                                           DwcTerm.identifiedByID,
                                                                           DwcTerm.recordedByID,
-                                                                          GbifInternalTerm.dwcaExtension,
-                                                                          GbifInternalTerm.lifeStageLineage);
+                                                                          GbifInternalTerm.dwcaExtension);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,
@@ -510,7 +511,7 @@ public class TermUtils {
   }
 
   /**
-   * @return true if the term is an complex type in Hive: array, struct, json, etc.
+   * @return true if the term is a complex type in Hive: array, struct, json, etc.
    */
   public static boolean isComplexType(Term term) {
     return COMPLEX_TYPE.contains(term);
@@ -518,6 +519,21 @@ public class TermUtils {
 
   public static boolean isExtensionTerm(Term term) {
     return EXTENSION_TERMS.contains(term);
+  }
+
+  /**
+   * @return true if the term is a handled/annotated as Vocabulary.
+   */
+  public static boolean isVocabulary(Term term) {
+    return term instanceof Enum && hasTermAnnotation(term, Vocabulary.class);
+  }
+
+  private static boolean hasTermAnnotation(Term term, Class<? extends Annotation> annotation) {
+    try {
+      return term.getClass().getField(((Enum<?>) term).name()).isAnnotationPresent(annotation);
+    } catch (NoSuchFieldException ex) {
+      throw new IllegalArgumentException(ex);
+    }
   }
 
 }

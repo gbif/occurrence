@@ -61,7 +61,7 @@ class EsHeatmapRequestBuilder {
     double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getFieldName())
+    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
       .setCorners(top, left, bottom, right));
 
     // add hasCoordinate to the filter and create query
@@ -79,16 +79,16 @@ class EsHeatmapRequestBuilder {
   private static AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
-            .field(OccurrenceEsField.COORDINATE_POINT.getFieldName())
+            .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
             .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)]);
 
     if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
       GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
-                                                        .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+                                                        .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
       geoGridAggs.subAggregation(geoCentroidAggs);
     } else {
       GeoBoundsAggregationBuilder geoBoundsAggs = AggregationBuilders.geoBounds(CELL_AGGS)
-                                                    .field(OccurrenceEsField.COORDINATE_POINT.getFieldName());
+                                                    .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
 

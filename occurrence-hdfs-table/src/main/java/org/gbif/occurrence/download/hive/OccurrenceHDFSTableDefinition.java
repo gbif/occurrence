@@ -169,7 +169,6 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.hostingOrganizationKey, HiveColumns.columnFor(GbifInternalTerm.hostingOrganizationKey))
                                                       .put(GbifInternalTerm.isInCluster, HiveColumns.columnFor(GbifInternalTerm.isInCluster))
                                                       .put(GbifInternalTerm.dwcaExtension, HiveColumns.columnFor(GbifInternalTerm.dwcaExtension))
-                                                      .put(GbifInternalTerm.lifeStageLineage, HiveColumns.columnFor(GbifInternalTerm.lifeStageLineage))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
@@ -254,7 +253,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * Constructs a Field for the given term, when used in the interpreted context context constructed with no custom
+   * Constructs a Field for the given term, when used in the interpreted context constructed with no custom
    * initializer.
    */
   private static InitializableField interpretedField(Term term) {
