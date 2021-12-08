@@ -38,9 +38,7 @@ public class HiveColumnsUtils {
     // empty constructor
   }
 
-  /**
-   * Gets the Hive column name of the term parameter.
-   */
+
   public static String getHiveColumn(Term term) {
     if (GbifTerm.verbatimScientificName == term) {
       return "v_" + DwcTerm.scientificName.simpleName().toLowerCase();
@@ -53,9 +51,25 @@ public class HiveColumnsUtils {
   }
 
   /**
+   * Gets the Hive column name of the term parameter.
+   */
+  public static String getHiveQueryColumn(Term term) {
+    String columnName = getHiveColumn(term);
+    return TermUtils.isVocabulary(term)? columnName + ".lineage" : columnName;
+  }
+
+  /**
+   * Gets the Hive column name of the term parameter.
+   */
+  public static String getHiveValueColumn(Term term) {
+    String columnName = getHiveColumn(term);
+    return TermUtils.isVocabulary(term)? columnName + ".concept" : columnName;
+  }
+
+  /**
    * Gets the Hive column name of the extension parameter.
    */
-  public static String getHiveColumn(Extension extension) {
+  public static String getHiveQueryColumn(Extension extension) {
     return EXTENSION_PRE + extension.name().toLowerCase();
   }
 
@@ -76,6 +90,8 @@ public class HiveColumnsUtils {
       return "BOOLEAN";
     } else if (isHiveArray(term)) {
       return "ARRAY<STRING>";
+    } else if(TermUtils.isVocabulary(term)) {
+      return "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
     } else {
       return "STRING";
     }
@@ -100,7 +116,7 @@ public class HiveColumnsUtils {
   /**
    * Gets the Hive column name of the occurrence issue parameter.
    */
-  public static String getHiveColumn(OccurrenceIssue issue) {
+  public static String getHiveQueryColumn(OccurrenceIssue issue) {
     final String columnName = issue.name().toLowerCase();
     if (HIVE_RESERVED_WORDS.contains(columnName)) {
       return columnName + '_';

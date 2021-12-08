@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -122,6 +123,12 @@ public class OccurrenceHDFSTableDefinition {
   private static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
+
+  private static String vocabularyConceptInitializer(Term term) {
+    return HiveColumnsUtils.getHiveValueColumn(term) + " AS " + HiveColumnsUtils.getHiveColumn(term);
+  }
+
+
 
   /**
    * Assemble the mapping for interpreted fields, taking note that in reality, many are mounted onto the verbatim
@@ -259,6 +266,8 @@ public class OccurrenceHDFSTableDefinition {
   private static InitializableField interpretedField(Term term) {
     if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
+    } if (HiveDataTypes.TYPE_VOCABULARY_STRUCT.equals(HiveDataTypes.typeForTerm(term, false))) {
+      return interpretedField(term, vocabularyConceptInitializer(term));
     }
     return interpretedField(term, null); // no initializer
   }

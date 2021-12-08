@@ -87,9 +87,4 @@ public class OccurrenceAvroHdfsTableDefinition {
   private static String getTypeRecordName(InitializableField initializableField) {
     return initializableField.getTerm().simpleName().substring(0,1).toUpperCase() + initializableField.getTerm().simpleName().substring(1);
   }
-
-
-  public static void main(String[] args) {
-    System.out.println(avroDefinition().toString(true));
-  }
 }

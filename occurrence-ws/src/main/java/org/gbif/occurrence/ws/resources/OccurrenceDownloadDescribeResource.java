@@ -157,7 +157,7 @@ public class OccurrenceDownloadDescribeResource {
                                   .type(fieldType(p.getRight()))
                                   .typeFormat(fieldTypeFormat(p.getRight()))
                                   .term(p.getRight())
-                                  .name(HiveColumnsUtils.getHiveColumn(p.getRight()))
+                                  .name(HiveColumnsUtils.getHiveQueryColumn(p.getRight()))
                                   .required(GbifTerm.taxonKey.equals(p.getRight()))
                                   .build())
               .filter(f -> f.getTerm() != IucnTerm.iucnRedListCategory)
