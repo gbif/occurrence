@@ -29,6 +29,10 @@ import org.gbif.api.model.occurrence.predicate.NotPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.search.es.EsQueryUtils;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -1420,5 +1424,39 @@ public class EsQueryVisitorTest {
       "  }\n" +
       "}";
     assertEquals(expectedQuery, query);
+  }
+
+
+  @Test
+  public void testVocabularyEqualsPredicate() {
+    Arrays.stream(OccurrenceSearchParameter.values())
+      .filter(p -> Optional.ofNullable(EsQueryUtils.SEARCH_TO_ES_MAPPING.get(p)).map(EsQueryUtils::isVocabulary).orElse(false))
+      .forEach(param -> {
+
+        try {
+          Predicate p = new EqualsPredicate(param, "value", false);
+          String searchFieldName = EsQueryUtils.SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName();
+          String query = visitor.getQuery(p);
+          String expectedQuery = "{\n"
+                                 + "  \"bool\" : {\n"
+                                 + "    \"filter\" : [\n"
+                                 + "      {\n"
+                                 + "        \"term\" : {\n"
+                                 + "          \"" + searchFieldName + "\" : {\n"
+                                 + "            \"value\" : \"value\",\n"
+                                 + "            \"boost\" : 1.0\n"
+                                 + "          }\n"
+                                 + "        }\n"
+                                 + "      }\n"
+                                 + "    ],\n"
+                                 + "    \"adjust_pure_negative\" : true,\n"
+                                 + "    \"boost\" : 1.0\n"
+                                 + "  }\n"
+                                 + "}";
+          assertEquals(expectedQuery, query);
+        } catch (QueryBuildingException ex) {
+          throw new RuntimeException(ex);
+        }
+       });
   }
 }

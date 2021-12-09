@@ -323,7 +323,7 @@ public class EsQueryUtils {
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
 
-  static boolean isVocabulary(OccurrenceEsField esField) {
+  public static boolean isVocabulary(OccurrenceEsField esField) {
     return VOCABULARY_FIELDS.contains(esField);
   }
 }

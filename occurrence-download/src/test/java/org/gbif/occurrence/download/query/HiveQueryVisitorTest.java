@@ -19,11 +19,15 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.query.QueryBuildingException;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -562,12 +566,21 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
-  public void testVocabularies() throws QueryBuildingException {
-    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.LIFE_STAGE, "value_1", false);
-    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, "value_2", false);
+  public void testVocabularies() {
+    Arrays.stream(OccurrenceSearchParameter.values())
+      .filter(p -> Optional.ofNullable(HiveQueryVisitor.term(p)).map(TermUtils::isVocabulary).orElse(false))
+      .forEach(param -> {
 
-    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
-    String query = visitor.getHiveQuery(p);
-    assertEquals(query, "((array_contains(lifestage.lineage,'value_1')) OR (array_contains(establishmentmeans.lineage,'value_2')))");
+        try {
+          Predicate p1 = new EqualsPredicate(param, "value_1", false);
+
+          String query = visitor.getHiveQuery(p1);
+          String hiveQueryField = HiveColumnsUtils.getHiveQueryColumn(HiveQueryVisitor.term(param));
+          assertEquals(query, "array_contains(" + hiveQueryField + ",'value_1')");
+
+        } catch (QueryBuildingException ex) {
+          throw new RuntimeException(ex);
+        }
+      });
   }
 }

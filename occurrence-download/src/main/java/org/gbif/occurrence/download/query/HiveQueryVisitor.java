@@ -203,15 +203,15 @@ public class HiveQueryVisitor {
   }
 
   private static String toHiveField(OccurrenceSearchParameter param, boolean matchCase) {
-    if (PARAM_TO_TERM.containsKey(param)) {
-      String hiveCol = HiveColumnsUtils.getHiveQueryColumn(PARAM_TO_TERM.get(param));
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
-        return toHiveLower(hiveCol);
-      }
-      return hiveCol;
-    }
-    // QueryBuildingException requires an underlying exception
-    throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive");
+    return  Optional.ofNullable(term(param)).map( term -> {
+              String hiveCol = HiveColumnsUtils.getHiveQueryColumn(term(param));
+              if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
+                return toHiveLower(hiveCol);
+              }
+              return hiveCol;
+             }).orElseThrow(() ->
+             // QueryBuildingException requires an underlying exception
+             new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive"));
   }
 
   /**
@@ -330,8 +330,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(DwcTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(DwcTerm.recordedByID), predicate.getValue()));
-    } else if (TermUtils.isVocabulary(PARAM_TO_TERM.get(predicate.getKey()))) {
-      builder.append(String.format(ARRAY_FN.apply(PARAM_TO_TERM.get(predicate.getKey())), predicate.getValue()));
+    } else if (TermUtils.isVocabulary(term(predicate.getKey()))) {
+      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue()));
 
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
@@ -645,10 +645,15 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Determines if the type of a parameter is a Hive array.
+   * Determines if the parameter type is a Hive array.
    */
   private static boolean isHiveArray(OccurrenceSearchParameter parameter) {
-    return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
+    return HiveColumnsUtils.getHiveType(term(parameter)).startsWith(HIVE_ARRAY_PRE);
+  }
+
+  /** Term associated to a search parameter */
+  public static Term term(OccurrenceSearchParameter parameter) {
+    return PARAM_TO_TERM.get(parameter);
   }
 
   /**
