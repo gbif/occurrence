@@ -148,6 +148,20 @@ public abstract class Queries {
   abstract String toInterpretedHiveInitializer(Term term);
 
   /**
+   * Used for complex types like Structs which have nested elements.
+   */
+  protected static String toNestedHiveInitializer(Term term, String fieldName) {
+    return HiveColumns.columnFor(term) + "." +  fieldName;
+  }
+
+  /**
+   * Used for complex types like Structs which have nested elements.
+   */
+  public static String toVocabularyConceptHiveInitializer(Term term) {
+    return toNestedHiveInitializer(term, "concept");
+  }
+
+  /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple download fields
    */

@@ -31,6 +31,8 @@ public class HiveQueries extends TsvQueries {
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isInterpretedLocalDate(term)) {
       return toLocalISO8601Initializer(term);
+    } else if (TermUtils.isVocabulary(term)) {
+      return toVocabularyConceptHiveInitializer(term);
     } else if (TermUtils.isInterpretedUtcDate(term)) {
       return toISO8601Initializer(term);
     } else if (HiveColumnsUtils.isHiveArray(term)) {

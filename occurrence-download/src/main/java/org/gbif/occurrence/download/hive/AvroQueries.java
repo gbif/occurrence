@@ -32,6 +32,8 @@ public class AvroQueries extends TsvQueries {
       return toLocalISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDate(term)) {
       return toISO8601Initializer(term);
+    } else if (TermUtils.isVocabulary(term)) {
+      return toVocabularyConceptHiveInitializer(term);
     } else {
       return HiveColumns.columnFor(term);
     }

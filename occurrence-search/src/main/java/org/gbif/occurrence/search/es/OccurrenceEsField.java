@@ -47,10 +47,10 @@ public enum OccurrenceEsField {
   OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID, true),
   RECORDED_BY("recordedBy", DwcTerm.recordedBy, true),
   IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy, true),
-  RECORDED_BY_ID("recordedByIds", GbifTerm.recordedByID),
-  RECORDED_BY_ID_VALUE("recordedByIds.value", GbifTerm.recordedByID),
-  IDENTIFIED_BY_ID("identifiedByIds", GbifTerm.identifiedByID),
-  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", GbifTerm.identifiedByID),
+  RECORDED_BY_ID("recordedByIds", DwcTerm.recordedByID),
+  RECORDED_BY_ID_VALUE("recordedByIds.value", DwcTerm.recordedByID),
+  IDENTIFIED_BY_ID("identifiedByIds", DwcTerm.identifiedByID),
+  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", DwcTerm.identifiedByID),
   RECORD_NUMBER("recordNumber", DwcTerm.recordNumber, true),
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
@@ -119,7 +119,7 @@ public enum OccurrenceEsField {
   SCIENTIFIC_NAME("gbifClassification.usage.name", DwcTerm.scientificName),
   SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet),
   INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet),
-  GENERIC_NAME("gbifClassification.usageParsedName.genericName", GbifTerm.genericName),
+  GENERIC_NAME("gbifClassification.usageParsedName.genericName", DwcTerm.genericName),
   TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
   TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
   VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
@@ -133,8 +133,7 @@ public enum OccurrenceEsField {
   EVENT_ID("eventId", DwcTerm.eventID, true),
   PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID, true),
   SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol, true),
-  LIFE_STAGE("lifeStage", DwcTerm.lifeStage),
-  LIFE_STAGE_LINEAGE("lifeStageLineage", GbifInternalTerm.lifeStageLineage),
+  LIFE_STAGE("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
   MODIFIED("modified", DcTerm.modified),
   REFERENCES("references", DcTerm.references),
@@ -162,7 +161,9 @@ public enum OccurrenceEsField {
   //Issues
   ISSUE("issues", GbifTerm.issue),
 
-  ESTABLISHMENT_MEANS("establishmentMeans", DwcTerm.establishmentMeans),
+  ESTABLISHMENT_MEANS("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans),
+  DEGREE_OF_ESTABLISHMENT_MEANS("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment),
+  PATHWAY("pathway.lineage", "pathway.concept", DwcTerm.pathway),
   FACTS("measurementOrFactItems", null),
   GBIF_ID("gbifId", GbifTerm.gbifID),
   FULL_TEXT("all", null),
@@ -170,48 +171,64 @@ public enum OccurrenceEsField {
   EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension);
 
 
-  private final String fieldName;
+  private final String searchFieldName;
+
+  private final String valueFieldName;
 
   private final Term term;
 
   private boolean autosuggest;
 
-  OccurrenceEsField(String fieldName, Term term) {
-    this.fieldName = fieldName;
+  OccurrenceEsField(String searchFieldName, String valueFieldName, Term term) {
+    this.searchFieldName = searchFieldName;
     this.term = term;
     this.autosuggest = false;
+    this.valueFieldName = valueFieldName;
   }
 
-  OccurrenceEsField(String fieldName, Term term, boolean autosuggest) {
-    this.fieldName = fieldName;
+  OccurrenceEsField(String searchFieldName, Term term) {
+    this.searchFieldName = searchFieldName;
+    this.term = term;
+    this.autosuggest = false;
+    this.valueFieldName = searchFieldName;
+  }
+
+  OccurrenceEsField(String searchFieldName, Term term, boolean autosuggest) {
+    this.searchFieldName = searchFieldName;
     this.term = term;
     this.autosuggest = autosuggest;
+    this.valueFieldName = searchFieldName;
   }
 
   /** @return the fieldName */
-  public String getFieldName() {
-    return fieldName;
+  public String getSearchFieldName() {
+    return searchFieldName;
+  }
+
+  /** @return the field that holds the value to use in responses.*/
+  public String getValueFieldName() {
+    return valueFieldName;
   }
 
   public String getExactMatchFieldName() {
     if (autosuggest) {
-      return fieldName + ".keyword";
+      return searchFieldName + ".keyword";
     }
-    return fieldName;
+    return searchFieldName;
   }
 
   public String getVerbatimFieldName() {
     if (autosuggest) {
-      return fieldName + ".verbatim";
+      return searchFieldName + ".verbatim";
     }
-    return fieldName;
+    return searchFieldName;
   }
 
   public String getSuggestFieldName() {
     if (autosuggest) {
-      return fieldName + ".suggest";
+      return searchFieldName + ".suggest";
     }
-    return fieldName;
+    return searchFieldName;
   }
 
   /** @return the term */

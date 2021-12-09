@@ -29,7 +29,6 @@ import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.kvs.KeyValueStore;
 import org.gbif.kvs.species.NameUsageMatchKVStoreFactory;
@@ -147,7 +146,7 @@ public class TaxonomyInterpreter implements Serializable {
         value(terms, DwcTerm.genus),
         value(terms, DwcTerm.scientificName),
         value(terms, DwcTerm.scientificNameAuthorship),
-        value(terms, GbifTerm.genericName),
+        value(terms, DwcTerm.genericName),
         value(terms, DwcTerm.specificEpithet),
         value(terms, DwcTerm.infraspecificEpithet),
         rank);

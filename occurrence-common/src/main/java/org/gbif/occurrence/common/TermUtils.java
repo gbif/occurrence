@@ -23,7 +23,9 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.Vocabulary;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -206,10 +208,9 @@ public class TermUtils {
   private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
                                                                           GbifTerm.issue,
                                                                           GbifInternalTerm.networkKey,
-                                                                          GbifTerm.identifiedByID,
-                                                                          GbifTerm.recordedByID,
-                                                                          GbifInternalTerm.dwcaExtension,
-                                                                          GbifInternalTerm.lifeStageLineage);
+                                                                          DwcTerm.identifiedByID,
+                                                                          DwcTerm.recordedByID,
+                                                                          GbifInternalTerm.dwcaExtension);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,
@@ -253,7 +254,7 @@ public class TermUtils {
       DwcTerm.taxonRank,
       DwcTerm.taxonomicStatus,
       GbifTerm.acceptedScientificName,
-      GbifTerm.genericName,
+      DwcTerm.genericName,
       DwcTerm.specificEpithet,
       DwcTerm.infraspecificEpithet,
       DwcTerm.basisOfRecord,
@@ -293,8 +294,8 @@ public class TermUtils {
       GadmTerm.level3Name,
       GbifInternalTerm.unitQualifier,
       GbifTerm.issue,
-      GbifTerm.recordedByID,
-      GbifTerm.identifiedByID,
+      DwcTerm.recordedByID,
+      DwcTerm.identifiedByID,
       DcTerm.references,
       GbifTerm.datasetKey,
       GbifTerm.publishingCountry,
@@ -345,7 +346,7 @@ public class TermUtils {
         DwcTerm.family,
         DwcTerm.genus,
         DwcTerm.subgenus,
-        GbifTerm.genericName,
+        DwcTerm.genericName,
         DwcTerm.specificEpithet,
         DwcTerm.infraspecificEpithet,
         DcTerm.modified,
@@ -426,8 +427,6 @@ public class TermUtils {
       .add(GbifTerm.gbifID)
       .addAll(DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
-      // Correction to order https://github.com/gbif/occurrence/issues/170
-      .add(GbifTerm.recordedByID, GbifTerm.identifiedByID)
       .build();
   }
 
@@ -512,7 +511,7 @@ public class TermUtils {
   }
 
   /**
-   * @return true if the term is an complex type in Hive: array, struct, json, etc.
+   * @return true if the term is a complex type in Hive: array, struct, json, etc.
    */
   public static boolean isComplexType(Term term) {
     return COMPLEX_TYPE.contains(term);
@@ -520,6 +519,21 @@ public class TermUtils {
 
   public static boolean isExtensionTerm(Term term) {
     return EXTENSION_TERMS.contains(term);
+  }
+
+  /**
+   * @return true if the term is a handled/annotated as Vocabulary.
+   */
+  public static boolean isVocabulary(Term term) {
+    return term instanceof Enum && hasTermAnnotation(term, Vocabulary.class);
+  }
+
+  private static boolean hasTermAnnotation(Term term, Class<? extends Annotation> annotation) {
+    try {
+      return term.getClass().getField(((Enum<?>) term).name()).isAnnotationPresent(annotation);
+    } catch (NoSuchFieldException ex) {
+      throw new IllegalArgumentException(ex);
+    }
   }
 
 }

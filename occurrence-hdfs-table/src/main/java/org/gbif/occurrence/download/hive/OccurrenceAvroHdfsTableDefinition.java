@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.hive;
 
+
+
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 
@@ -63,9 +65,24 @@ public class OccurrenceAvroHdfsTableDefinition {
       case HiveDataTypes.TYPE_ARRAY_STRING:
         builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().stringType().noDefault();
         break;
+      case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
+        builder.name(initializableField.getHiveField()).type().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .requiredString("concept")
+          .name("lineage").type().nullable().array().items().nullable().stringType().noDefault()
+          .endRecord()
+        .noDefault();
+        break;
       default:
         builder.name(initializableField.getHiveField()).type().nullable().stringType().noDefault();
         break;
     }
+  }
+
+  /**
+   * Extract the term name and transforms it into Upper camel-case format.
+   */
+  private static String getTypeRecordName(InitializableField initializableField) {
+    return initializableField.getTerm().simpleName().substring(0,1).toUpperCase() + initializableField.getTerm().simpleName().substring(1);
   }
 }

@@ -42,7 +42,7 @@ public class SearchQueryProcessor {
   // Default page size for queries.
   private static final int LIMIT = 300;
 
-  private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getFieldName();
+  private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getSearchFieldName();
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchQueryProcessor.class);
 

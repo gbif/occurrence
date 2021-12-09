@@ -22,6 +22,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.query.QueryBuildingException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -84,7 +85,7 @@ public class HiveQueryVisitor {
   private static final String ALL_QUERY = "true";
 
   private static final Function<Term, String> ARRAY_FN = t ->
-    "array_contains(" + HiveColumnsUtils.getHiveColumn(t) + ",'%s')";
+    "array_contains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s')";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -122,6 +123,8 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, DwcTerm.scientificName)
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, DwcTerm.occurrenceID)
       .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, DwcTerm.establishmentMeans)
+      .put(OccurrenceSearchParameter.DEGREE_OF_ESTABLISHMENT, DwcTerm.degreeOfEstablishment)
+      .put(OccurrenceSearchParameter.PATHWAY, DwcTerm.pathway)
       // the following need some value transformation
       .put(OccurrenceSearchParameter.EVENT_DATE, DwcTerm.eventDate)
       .put(OccurrenceSearchParameter.MODIFIED, DcTerm.modified)
@@ -179,10 +182,10 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, GbifTerm.relativeOrganismQuantity)
       .put(OccurrenceSearchParameter.COLLECTION_KEY, GbifInternalTerm.collectionKey)
       .put(OccurrenceSearchParameter.INSTITUTION_KEY, GbifInternalTerm.institutionKey)
-      .put(OccurrenceSearchParameter.RECORDED_BY_ID, GbifTerm.recordedByID)
-      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, GbifTerm.identifiedByID)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID, DwcTerm.recordedByID)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, DwcTerm.identifiedByID)
       .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, DwcTerm.occurrenceStatus)
-      .put(OccurrenceSearchParameter.LIFE_STAGE, GbifInternalTerm.lifeStageLineage)
+      .put(OccurrenceSearchParameter.LIFE_STAGE, DwcTerm.lifeStage)
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
       .put(OccurrenceSearchParameter.DWCA_EXTENSION, GbifInternalTerm.dwcaExtension)
       .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, IucnTerm.iucnRedListCategory)
@@ -200,15 +203,15 @@ public class HiveQueryVisitor {
   }
 
   private static String toHiveField(OccurrenceSearchParameter param, boolean matchCase) {
-    if (PARAM_TO_TERM.containsKey(param)) {
-      String hiveCol = HiveColumnsUtils.getHiveColumn(PARAM_TO_TERM.get(param));
-      if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
-        return toHiveLower(hiveCol);
-      }
-      return hiveCol;
-    }
-    // QueryBuildingException requires an underlying exception
-    throw new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive");
+    return  Optional.ofNullable(term(param)).map( term -> {
+              String hiveCol = HiveColumnsUtils.getHiveQueryColumn(term(param));
+              if (String.class.isAssignableFrom(param.type()) && OccurrenceSearchParameter.GEOMETRY != param && !matchCase) {
+                return toHiveLower(hiveCol);
+              }
+              return hiveCol;
+             }).orElseThrow(() ->
+             // QueryBuildingException requires an underlying exception
+             new IllegalArgumentException("Search parameter " + param + " is not mapped to Hive"));
   }
 
   /**
@@ -324,11 +327,11 @@ public class HiveQueryVisitor {
     } else if (OccurrenceSearchParameter.DWCA_EXTENSION == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.dwcaExtension), predicate.getValue()));
     } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.identifiedByID), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(DwcTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.recordedByID), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.LIFE_STAGE == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.lifeStageLineage), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(DwcTerm.recordedByID), predicate.getValue()));
+    } else if (TermUtils.isVocabulary(term(predicate.getKey()))) {
+      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue()));
 
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
@@ -500,7 +503,7 @@ public class HiveQueryVisitor {
   private void appendTaxonKeyUnary(String unaryOperator) {
     builder.append('(');
     builder.append(NUB_KEYS.stream()
-                     .map(term -> HiveColumnsUtils.getHiveColumn(term) + unaryOperator)
+                     .map(term -> HiveColumnsUtils.getHiveQueryColumn(term) + unaryOperator)
                      .collect(Collectors.joining(CONJUNCTION_OPERATOR)));
     builder.append(')');
   }
@@ -534,9 +537,9 @@ public class HiveQueryVisitor {
       builder.append("contains(\"");
       builder.append(withinGeometry);
       builder.append("\", ");
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLatitude));
       builder.append(", ");
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
       // Without the "= TRUE", the expression may evaluate to TRUE or FALSE for all records, depending
       // on the data format (ORC, Avro, Parquet, text) of the table (!).
       // We could not reproduce the issue on our test cluster, so it seems safest to include this.
@@ -552,9 +555,9 @@ public class HiveQueryVisitor {
     builder.append("(geoDistance(");
     builder.append(geoDistance.getGeoDistance().toGeoDistanceString());
     builder.append(", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLatitude));
     builder.append(", ");
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
     builder.append(") = TRUE)");
   }
 
@@ -566,11 +569,11 @@ public class HiveQueryVisitor {
     builder.append('(');
 
     // Latitude is easy:
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLatitude));
     builder.append(GREATER_THAN_EQUALS_OPERATOR);
     builder.append(bounds.getMinY());
     builder.append(CONJUNCTION_OPERATOR);
-    builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLatitude));
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLatitude));
     builder.append(LESS_THAN_EQUALS_OPERATOR);
     builder.append(bounds.getMaxY());
 
@@ -578,20 +581,20 @@ public class HiveQueryVisitor {
 
     // Longitude must take account of crossing the antimeridian:
     if (bounds.getMinX() < bounds.getMaxX()) {
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
       builder.append(GREATER_THAN_EQUALS_OPERATOR);
       builder.append(bounds.getMinX());
       builder.append(CONJUNCTION_OPERATOR);
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
       builder.append(LESS_THAN_EQUALS_OPERATOR);
       builder.append(bounds.getMaxX());
     } else {
       builder.append('(');
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
       builder.append(GREATER_THAN_EQUALS_OPERATOR);
       builder.append(bounds.getMinX());
       builder.append(DISJUNCTION_OPERATOR);
-      builder.append(HiveColumnsUtils.getHiveColumn(DwcTerm.decimalLongitude));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
       builder.append(LESS_THAN_EQUALS_OPERATOR);
       builder.append(bounds.getMaxX());
       builder.append(')');
@@ -642,10 +645,15 @@ public class HiveQueryVisitor {
   }
 
   /**
-   * Determines if the type of a parameter is a Hive array.
+   * Determines if the parameter type is a Hive array.
    */
   private static boolean isHiveArray(OccurrenceSearchParameter parameter) {
-    return HiveColumnsUtils.getHiveType(PARAM_TO_TERM.get(parameter)).startsWith(HIVE_ARRAY_PRE);
+    return HiveColumnsUtils.getHiveType(term(parameter)).startsWith(HIVE_ARRAY_PRE);
+  }
+
+  /** Term associated to a search parameter */
+  public static Term term(OccurrenceSearchParameter parameter) {
+    return PARAM_TO_TERM.get(parameter);
   }
 
   /**
@@ -656,7 +664,7 @@ public class HiveQueryVisitor {
   private void appendTaxonKeyFilter(String taxonKey) {
     builder.append('(');
     builder.append(NUB_KEYS.stream()
-                     .map(term -> HiveColumnsUtils.getHiveColumn(term) + EQUALS_OPERATOR +  taxonKey)
+                     .map(term -> HiveColumnsUtils.getHiveQueryColumn(term) + EQUALS_OPERATOR + taxonKey)
                      .collect(Collectors.joining(DISJUNCTION_OPERATOR)));
     builder.append(')');
   }
@@ -673,7 +681,7 @@ public class HiveQueryVisitor {
       if (!first) {
         builder.append(DISJUNCTION_OPERATOR);
       }
-      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(term));
       builder.append(EQUALS_OPERATOR);
       // Hardcoded GADM_LEVEL_0_GID since the type of all these parameters is the same.
       // Using .toUpperCase() is safe, GIDs must be ASCII anyway.
@@ -695,7 +703,7 @@ public class HiveQueryVisitor {
       if (!first) {
         builder.append(DISJUNCTION_OPERATOR);
       }
-      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(term));
       builder.append(IN_OPERATOR);
       builder.append('(');
       builder.append(commaJoiner.join(taxonKeys));
@@ -717,7 +725,7 @@ public class HiveQueryVisitor {
       if (!first) {
         builder.append(DISJUNCTION_OPERATOR);
       }
-      builder.append(HiveColumnsUtils.getHiveColumn(term));
+      builder.append(HiveColumnsUtils.getHiveQueryColumn(term));
       builder.append(IN_OPERATOR);
       builder.append('(');
       Iterator<String> iterator = gadmGids.iterator();

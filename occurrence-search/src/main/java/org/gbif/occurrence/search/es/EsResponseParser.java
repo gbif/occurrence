@@ -99,7 +99,7 @@ public class EsResponseParser {
   public static List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
                                                   OccurrenceSearchParameter parameter) {
 
-    String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getFieldName();
+    String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getValueFieldName();
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
             .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
@@ -307,8 +307,10 @@ public class EsResponseParser {
               occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
             });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
-    getValue(hit, ESTABLISHMENT_MEANS, EstablishmentMeans::valueOf).ifPresent(occ::setEstablishmentMeans);
+    getStringValue(hit, ESTABLISHMENT_MEANS).ifPresent(occ::setEstablishmentMeans);
     getStringValue(hit, LIFE_STAGE).ifPresent(occ::setLifeStage);
+    getStringValue(hit, DEGREE_OF_ESTABLISHMENT_MEANS).ifPresent(occ::setDegreeOfEstablishment);
+    getStringValue(hit, PATHWAY).ifPresent(occ::setPathway);
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
     getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
@@ -521,29 +523,29 @@ public class EsResponseParser {
   }
 
   private static Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty());
   }
 
   private static Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
         .map(v -> (Map<String,Object>) v)
         .filter(v -> !v.keySet().isEmpty());
   }
 
   private static Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getFieldName()))
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
         .map(v -> (List<Map<String, Object>>) v)
         .filter(v -> !v.isEmpty());
   }
 
   private static <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
-    String fieldName = esField.getFieldName();
+    String fieldName = esField.getValueFieldName();
     Map<String, Object> fields = hit.getSourceAsMap();
-    if (IS_NESTED.test(esField.getFieldName())) {
+    if (IS_NESTED.test(esField.getValueFieldName())) {
       // take all paths till the field name
-      String[] paths = esField.getFieldName().split("\\.");
+      String[] paths = esField.getValueFieldName().split("\\.");
       for (int i = 0; i < paths.length - 1 && fields.containsKey(paths[i]); i++) {
         // update the fields with the current path
         fields = (Map<String, Object>) fields.get(paths[i]);

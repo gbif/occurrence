@@ -19,11 +19,15 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.query.QueryBuildingException;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -559,5 +563,24 @@ public class HiveQueryVisitorTest {
     } catch (QueryBuildingException e) {
       fail();
     }
+  }
+
+  @Test
+  public void testVocabularies() {
+    Arrays.stream(OccurrenceSearchParameter.values())
+      .filter(p -> Optional.ofNullable(HiveQueryVisitor.term(p)).map(TermUtils::isVocabulary).orElse(false))
+      .forEach(param -> {
+
+        try {
+          Predicate p1 = new EqualsPredicate(param, "value_1", false);
+
+          String query = visitor.getHiveQuery(p1);
+          String hiveQueryField = HiveColumnsUtils.getHiveQueryColumn(HiveQueryVisitor.term(param));
+          assertEquals(query, "array_contains(" + hiveQueryField + ",'value_1')");
+
+        } catch (QueryBuildingException ex) {
+          throw new RuntimeException(ex);
+        }
+      });
   }
 }

@@ -58,7 +58,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         6,
-        jsonQuery.path(BOOL).path(FILTER).findValue(KINGDOM_KEY.getFieldName()).get(VALUE).asInt());
+        jsonQuery.path(BOOL).path(FILTER).findValue(KINGDOM_KEY.getSearchFieldName()).get(VALUE).asInt());
   }
 
   @Test
@@ -77,20 +77,20 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(3, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
-        1999, jsonQuery.path(BOOL).path(FILTER).findValue(YEAR.getFieldName()).get(VALUE).asInt());
+        1999, jsonQuery.path(BOOL).path(FILTER).findValue(YEAR.getSearchFieldName()).get(VALUE).asInt());
     assertEquals(
         Country.AFGHANISTAN.getIso2LetterCode(),
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValue(COUNTRY_CODE.getFieldName())
+            .findValue(COUNTRY_CODE.getSearchFieldName())
             .get(VALUE)
             .asText());
     assertEquals(
       MediaType.StillImage.name(), jsonQuery
         .path(BOOL)
         .path(FILTER)
-        .findValue(MEDIA_TYPE.getFieldName())
+        .findValue(MEDIA_TYPE.getSearchFieldName())
         .get(VALUE)
         .asText());
   }
@@ -110,7 +110,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertTrue(jsonQuery.path(BOOL).path(FILTER).get(0).has(TERMS));
     assertEquals(
-        2, jsonQuery.path(BOOL).path(FILTER).get(0).path(TERMS).path(MONTH.getFieldName()).size());
+        2, jsonQuery.path(BOOL).path(FILTER).get(0).path(TERMS).path(MONTH.getSearchFieldName()).size());
   }
 
   @Test
@@ -126,7 +126,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     JsonNode latitudeNode =
-        jsonQuery.path(BOOL).path(FILTER).findValue(RANGE).path(LATITUDE.getFieldName());
+        jsonQuery.path(BOOL).path(FILTER).findValue(RANGE).path(LATITUDE.getSearchFieldName());
     assertEquals(12, latitudeNode.path(FROM).asDouble(), 0);
     assertEquals(25, latitudeNode.path(TO).asDouble(), 0);
   }
@@ -152,7 +152,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -163,7 +163,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -191,7 +191,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         .path(SHOULD)
         .get(0)
         .path(GEO_SHAPE)
-        .path(COORDINATE_SHAPE.getFieldName())
+        .path(COORDINATE_SHAPE.getSearchFieldName())
         .has(SHAPE));
     JsonNode shape =
       jsonQuery
@@ -202,7 +202,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         .path(SHOULD)
         .get(0)
         .path(GEO_SHAPE)
-        .path(COORDINATE_SHAPE.getFieldName())
+        .path(COORDINATE_SHAPE.getSearchFieldName())
         .path(SHAPE);
     assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -231,7 +231,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -242,7 +242,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("Polygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -273,7 +273,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -284,7 +284,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("MultiPolygon", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -317,7 +317,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -328,7 +328,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("LineString", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -357,7 +357,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -368,7 +368,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("LineString", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -397,7 +397,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .has(SHAPE));
     JsonNode shape =
         jsonQuery
@@ -408,7 +408,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(SHOULD)
             .get(0)
             .path(GEO_SHAPE)
-            .path(COORDINATE_SHAPE.getFieldName())
+            .path(COORDINATE_SHAPE.getSearchFieldName())
             .path(SHAPE);
     assertEquals("Point", shape.get(TYPE).asText());
     assertTrue(shape.get(COORDINATES).isArray());
@@ -427,11 +427,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
+    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getSearchFieldName()));
     assertFalse(jsonQuery.has(POST_FILTER));
 
-    JsonNode aggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getFieldName());
-    assertEquals(BASIS_OF_RECORD.getFieldName(), aggs.path(TERMS).path(FIELD).asText());
+    JsonNode aggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getSearchFieldName());
+    assertEquals(BASIS_OF_RECORD.getSearchFieldName(), aggs.path(TERMS).path(FIELD).asText());
     assertEquals(5, aggs.path(TERMS).path(SIZE).asInt());
   }
 
@@ -449,9 +449,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).has(FILTER));
     JsonNode queryFilter = jsonQuery.path(QUERY).path(BOOL).path(FILTER);
-    assertEquals(1, queryFilter.get(0).path(TERM).path(MONTH.getFieldName()).path(VALUE).asInt());
+    assertEquals(1, queryFilter.get(0).path(TERM).path(MONTH.getSearchFieldName()).path(VALUE).asInt());
 
-    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
+    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getSearchFieldName()));
   }
 
   @Test
@@ -468,9 +468,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     // assert aggs
-    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
-    JsonNode aggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getFieldName());
-    assertEquals(BASIS_OF_RECORD.getFieldName(), aggs.path(TERMS).path(FIELD).asText());
+    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getSearchFieldName()));
+    JsonNode aggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getSearchFieldName());
+    assertEquals(BASIS_OF_RECORD.getSearchFieldName(), aggs.path(TERMS).path(FIELD).asText());
     assertEquals(5, aggs.path(TERMS).path(SIZE).asInt());
 
     // assert post filter
@@ -482,7 +482,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(FILTER)
             .get(0)
             .path(TERM)
-            .path(BASIS_OF_RECORD.getFieldName());
+            .path(BASIS_OF_RECORD.getSearchFieldName());
     assertEquals(BasisOfRecord.PRESERVED_SPECIMEN.name(), postFilter.path(VALUE).asText());
   }
 
@@ -512,13 +512,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(FILTER)
             .get(0)
             .path(TERM)
-            .path(YEAR.getFieldName())
+            .path(YEAR.getSearchFieldName())
             .get(VALUE)
             .asInt());
 
     // assert aggs basis of record
-    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getFieldName()));
-    JsonNode basisOfRecordAggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getFieldName());
+    assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getSearchFieldName()));
+    JsonNode basisOfRecordAggs = jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getSearchFieldName());
     assertEquals(
         1,
         basisOfRecordAggs
@@ -527,24 +527,24 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(FILTER)
             .get(0)
             .path(TERM)
-            .path(MONTH.getFieldName())
+            .path(MONTH.getSearchFieldName())
             .path(VALUE)
             .asInt());
 
     assertTrue(
-        basisOfRecordAggs.path(AGGREGATIONS).has("filtered_" + BASIS_OF_RECORD.getFieldName()));
+        basisOfRecordAggs.path(AGGREGATIONS).has("filtered_" + BASIS_OF_RECORD.getSearchFieldName()));
     assertEquals(
-        BASIS_OF_RECORD.getFieldName(),
+        BASIS_OF_RECORD.getSearchFieldName(),
         basisOfRecordAggs
             .path(AGGREGATIONS)
-            .path("filtered_" + BASIS_OF_RECORD.getFieldName())
+            .path("filtered_" + BASIS_OF_RECORD.getSearchFieldName())
             .path(TERMS)
             .path(FIELD)
             .asText());
 
     // assert aggs month
-    assertTrue(jsonQuery.path(AGGREGATIONS).has(MONTH.getFieldName()));
-    JsonNode monthAggs = jsonQuery.path(AGGREGATIONS).path(MONTH.getFieldName());
+    assertTrue(jsonQuery.path(AGGREGATIONS).has(MONTH.getSearchFieldName()));
+    JsonNode monthAggs = jsonQuery.path(AGGREGATIONS).path(MONTH.getSearchFieldName());
     assertEquals(
         BasisOfRecord.PRESERVED_SPECIMEN.name(),
         monthAggs
@@ -553,16 +553,16 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(FILTER)
             .get(0)
             .path(TERM)
-            .path(BASIS_OF_RECORD.getFieldName())
+            .path(BASIS_OF_RECORD.getSearchFieldName())
             .path(VALUE)
             .asText());
 
-    assertTrue(monthAggs.path(AGGREGATIONS).has("filtered_" + MONTH.getFieldName()));
+    assertTrue(monthAggs.path(AGGREGATIONS).has("filtered_" + MONTH.getSearchFieldName()));
     assertEquals(
-        MONTH.getFieldName(),
+        MONTH.getSearchFieldName(),
         monthAggs
             .path(AGGREGATIONS)
-            .path("filtered_" + MONTH.getFieldName())
+            .path("filtered_" + MONTH.getSearchFieldName())
             .path(TERMS)
             .path(FIELD)
             .asText());
@@ -572,8 +572,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode postFilter = jsonQuery.path(POST_FILTER).path(BOOL).path(FILTER);
     assertEquals(
         BasisOfRecord.PRESERVED_SPECIMEN.name(),
-        postFilter.findValue(BASIS_OF_RECORD.getFieldName()).path(VALUE).asText());
-    assertEquals(1, postFilter.findValue(MONTH.getFieldName()).path(VALUE).asInt());
+        postFilter.findValue(BASIS_OF_RECORD.getSearchFieldName()).path(VALUE).asText());
+    assertEquals(1, postFilter.findValue(MONTH.getSearchFieldName()).path(VALUE).asInt());
   }
 
   @Test
@@ -636,8 +636,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     JsonNode matchNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).path(MATCH);
-    assertTrue(matchNode.has(FULL_TEXT.getFieldName()));
-    assertEquals("puma", matchNode.path(FULL_TEXT.getFieldName()).path(QUERY).asText());
+    assertTrue(matchNode.has(FULL_TEXT.getSearchFieldName()));
+    assertEquals("puma", matchNode.path(FULL_TEXT.getSearchFieldName()).path(QUERY).asText());
   }
 
   @Test
@@ -675,7 +675,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         8,
         jsonQuery
             .path(AGGREGATIONS)
-            .path(OccurrenceEsField.BASIS_OF_RECORD.getFieldName())
+            .path(OccurrenceEsField.BASIS_OF_RECORD.getSearchFieldName())
             .path(TERMS)
             .path(SIZE)
             .asInt());
@@ -696,7 +696,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         12,
         jsonQuery
             .path(AGGREGATIONS)
-            .path(OccurrenceEsField.MONTH.getFieldName())
+            .path(OccurrenceEsField.MONTH.getSearchFieldName())
             .path(TERMS)
             .path(SIZE)
             .asInt());
@@ -713,13 +713,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(
-        SEARCH_TO_ES_MAPPING.get(param).getFieldName(),
+        SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName(),
         jsonQuery.path("_source").path("includes").get(0).asText());
     JsonNode suggestNode =
-        jsonQuery.path(SUGGEST).path(SEARCH_TO_ES_MAPPING.get(param).getFieldName());
+        jsonQuery.path(SUGGEST).path(SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName());
     assertEquals(prefix, suggestNode.path("prefix").asText());
     assertEquals(
-        SEARCH_TO_ES_MAPPING.get(param).getFieldName() + ".suggest",
+      SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName() + ".suggest",
         suggestNode.path("completion").path("field").asText());
     assertEquals(size, suggestNode.path("completion").path("size").asInt());
   }
