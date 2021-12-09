@@ -66,7 +66,7 @@ class EsHeatmapRequestBuilder {
     bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
       .setCorners(top, left, bottom, right));
     bool.filter().add(QueryBuilders.termQuery(
-      EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getFieldName(), true));
+      EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getSearchFieldName(), true));
 
     // add query
     if (request.getPredicate() != null) { //is a predicate search
