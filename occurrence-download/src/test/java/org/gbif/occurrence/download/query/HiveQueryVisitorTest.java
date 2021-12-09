@@ -560,4 +560,14 @@ public class HiveQueryVisitorTest {
       fail();
     }
   }
+
+  @Test
+  public void testVocabularies() throws QueryBuildingException {
+    Predicate p1 = new EqualsPredicate(OccurrenceSearchParameter.LIFE_STAGE, "value_1", false);
+    Predicate p2 = new EqualsPredicate(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, "value_2", false);
+
+    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
+    String query = visitor.getHiveQuery(p);
+    assertEquals(query, "((array_contains(lifestage.lineage,'value_1')) OR (array_contains(establishmentmeans.lineage,'value_2')))");
+  }
 }

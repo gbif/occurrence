@@ -22,6 +22,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.query.QueryBuildingException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -329,8 +330,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(DwcTerm.identifiedByID), predicate.getValue()));
     } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
       builder.append(String.format(ARRAY_FN.apply(DwcTerm.recordedByID), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.LIFE_STAGE == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(DwcTerm.lifeStage), predicate.getValue()));
+    } else if (TermUtils.isVocabulary(PARAM_TO_TERM.get(predicate.getKey()))) {
+      builder.append(String.format(ARRAY_FN.apply(PARAM_TO_TERM.get(predicate.getKey())), predicate.getValue()));
 
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
