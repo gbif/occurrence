@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;

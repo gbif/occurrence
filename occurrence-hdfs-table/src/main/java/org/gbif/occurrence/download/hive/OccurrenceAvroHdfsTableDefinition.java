@@ -13,9 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.Term;
 
-import java.util.Locale;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
