@@ -103,7 +103,7 @@ public class EsHeatmapRequestBuilderTest {
    * Tries to find a field in the list of term filters.
    */
   private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
-    ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER);
+    ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
     return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
               .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))
               .map(termNode -> termNode.path(TERM).get(field.getSearchFieldName()).get(VALUE).asText())
@@ -122,7 +122,7 @@ public class EsHeatmapRequestBuilderTest {
 
     assertEquals(0, json.get(SIZE).asInt());
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());
-    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(1).path(BOOL).path(FILTER).get(1).has(TERM));
+    assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(1).has(TERM));
 
     // taxon key
     Optional<String> taxaValue = findTermFilter(json, OccurrenceEsField.TAXON_KEY);
