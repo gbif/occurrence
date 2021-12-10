@@ -81,7 +81,8 @@ public class OccurrenceHeatmapRequestProvider {
 
     String predicateHash = request.getParameter(PARAM_PREDICATE_HASH);
     if (!Strings.isNullOrEmpty(predicateHash)) {
-      occurrenceHeatmapSearchRequest.setPredicate(predicateCacheService.get(Integer.parseInt(predicateHash)));
+      occurrenceHeatmapSearchRequest.setPredicate(Optional.ofNullable(predicateCacheService.get(Integer.parseInt(predicateHash)))
+                                                    .orElseThrow(() -> new IllegalArgumentException(PARAM_PREDICATE_HASH  + " " + predicateHash + " not found")));
     }
 
     return occurrenceHeatmapSearchRequest;
