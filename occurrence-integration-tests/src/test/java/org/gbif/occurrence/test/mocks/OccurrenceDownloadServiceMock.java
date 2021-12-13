@@ -182,4 +182,14 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
       return datasetOccurrenceDownloadUsage;
     }).collect(Collectors.toList()));
   }
+
+  @Override
+  public PagingResponse<Download> listByEraseAfter(
+    @Nullable Pageable page,
+    @Nullable String eraseAfter,
+    @Nullable Long size,
+    @Nullable String erasureNotification
+  ) {
+    return null;
+  }
 }
