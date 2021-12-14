@@ -1,10 +1,10 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.DownloadTemplateDataModel" -->
 <#include "header.ftl">
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hello ${download.request.creator},</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Вітаємо, ${download.request.creator}</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Your download is available at the following address:
+  Ваше завантаження доступне за посиланням:
   <br>
   <a href="${download.downloadLink}" style="color: #4ba2ce;text-decoration: none;">${download.downloadLink}</a>
 </p>
