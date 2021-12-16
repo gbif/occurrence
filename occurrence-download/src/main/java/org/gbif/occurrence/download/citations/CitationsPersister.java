@@ -24,6 +24,7 @@ import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -74,6 +75,10 @@ public final class CitationsPersister extends CitationsFileReader {
       this.downloadService = registryClientUtil.setupOccurrenceDownloadService();
     }
 
+    private static Long sumCitations(Map<UUID, Long> citations) {
+      return Optional.ofNullable(citations).map(c -> c.values().stream().reduce(0L, Long::sum)).orElse(0L);
+    }
+
     @Override
     public void accept(Map<UUID, Long> datasetsCitation, Map<UUID, License> datasetLicenses) {
       if (datasetsCitation == null || datasetsCitation.isEmpty()) {
@@ -82,7 +87,7 @@ public final class CitationsPersister extends CitationsFileReader {
 
       try {
         datasetLicenses.values().forEach(licenseSelector::collectLicense);
-        Long totalRecords = datasetsCitation.values().stream().reduce(0L, Long::sum);
+        Long totalRecords = sumCitations(datasetsCitation);
         Download download = downloadService.get(downloadKey);
         download.setLicense(licenseSelector.getSelectedLicense());
         download.setTotalRecords(totalRecords);

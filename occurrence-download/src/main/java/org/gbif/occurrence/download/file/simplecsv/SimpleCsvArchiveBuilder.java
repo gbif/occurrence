@@ -47,6 +47,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
 
+import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
+import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStream;
+
 /**
  * Utility class that creates zip file from a directory that stores the data of a Hive table.
  */
@@ -145,21 +148,11 @@ public class SimpleCsvArchiveBuilder {
 
       //Get all the files inside the directory and creates a list of InputStreams.
       try {
-        D2CombineInputStream in =
-          new D2CombineInputStream(Arrays.stream(sourceFS.listStatus(inputPath)).map(fileStatus -> {
-            try {
-              return sourceFS.open(fileStatus.getPath());
-            } catch (IOException ex) {
-              throw Throwables.propagate(ex);
-            }
-          }).collect(Collectors.toList()));
         ZipEntry ze = new ZipEntry(Paths.get(downloadKey + CSV_EXTENSION).toString());
         zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
-        ByteStreams.copy(in, zos);
-        in.close(); // required to get the sizes
-        ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
-        ze.setCompressedSize(in.getCompressedLength());
-        ze.setCrc(in.getCrc32());
+        // Get all the files inside the directory and create a list of InputStreams.
+        D2CombineInputStream in = copyToCombinedStream(inputPath, sourceFS, zos);
+        setDataFromInputStream(ze, in);
         zos.closeEntry();
       } catch (Exception ex) {
         LOG.error(ERROR_ZIP_MSG, ex);

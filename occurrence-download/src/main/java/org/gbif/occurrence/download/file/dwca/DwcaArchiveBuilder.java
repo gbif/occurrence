@@ -279,17 +279,16 @@ public class DwcaArchiveBuilder {
 
       for (File f : files) {
         LOG.debug("Adding local file {} to archive", f);
-        FileInputStream fileInZipInputStream = new FileInputStream(f);
-        String zipPath = StringUtils.removeStart(f.getAbsolutePath(), archiveDir.getAbsolutePath() + File.separator);
-        ZipEntry entry = new ZipEntry(zipPath);
-        zos.putNextEntry(entry, ModalZipOutputStream.MODE.DEFAULT);
-        ByteStreams.copy(fileInZipInputStream, zos);
-        fileInZipInputStream.close();
+        try (FileInputStream fileInZipInputStream = new FileInputStream(f)) {
+          String zipPath = StringUtils.removeStart(f.getAbsolutePath(), archiveDir.getAbsolutePath() + File.separator);
+          ZipEntry entry = new ZipEntry(zipPath);
+          zos.putNextEntry(entry, ModalZipOutputStream.MODE.DEFAULT);
+          ByteStreams.copy(fileInZipInputStream, zos);
+        }
       }
       zos.closeEntry();
 
     } catch (Exception ex) {
-      //LOG.error(ERROR_ZIP_MSG, ex);
       throw Throwables.propagate(ex);
     }
   }

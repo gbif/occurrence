@@ -48,7 +48,7 @@ import com.google.common.base.Strings;
  */
 @Description(name = "parseCoordinates", value = "_FUNC_(apiUrl, latitude, longitude, verbatim_country)")
 public class CoordinateCountryParseUDF extends GenericUDF {
-  private static final int argLength = 4;
+  private static final int ARG_LENGTH = 4;
 
   private ObjectInspectorConverters.Converter[] converters;
   private static final Logger LOG = LoggerFactory.getLogger(CoordinateCountryParseUDF.class);
@@ -81,7 +81,7 @@ public class CoordinateCountryParseUDF extends GenericUDF {
 
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
-    assert arguments.length == argLength;
+    assert arguments.length == ARG_LENGTH;
 
     String api = arguments[0].get().toString();
 
@@ -113,7 +113,6 @@ public class CoordinateCountryParseUDF extends GenericUDF {
     // it will not infer countries if we pass in UNKNOWN, as it likes NULL.
     interpretedCountry = Country.UNKNOWN == interpretedCountry ? null : interpretedCountry;
 
-    // LOG.info("Parsing lat[{}], lng[{}], country[{}]", latitude, longitude, interpretedCountry);
     OccurrenceParseResult<CoordinateResult> response = getCoordInterpreter(api)
       .interpretCoordinate(latitude, longitude, null, interpretedCountry);
 
