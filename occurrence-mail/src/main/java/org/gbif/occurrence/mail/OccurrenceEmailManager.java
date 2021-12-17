@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.mail;
 
+import com.google.common.collect.Sets;
+import freemarker.template.TemplateException;
 import org.gbif.api.model.common.AbstractGbifUser;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
@@ -20,12 +22,6 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
-
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +29,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
-import freemarker.template.TemplateException;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.*;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.NOTIFY_ADMIN;
 
@@ -79,7 +79,7 @@ public class OccurrenceEmailManager {
         "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
-    String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
+    String downloadCreatedDate = String.format(locale, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
@@ -101,7 +101,7 @@ public class OccurrenceEmailManager {
         "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
-    String downloadCreatedDate = String.format(Locale.ENGLISH, "%te %<tB %<tY", download.getCreated());
+    String downloadCreatedDate = String.format(locale, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
@@ -118,13 +118,41 @@ public class OccurrenceEmailManager {
     return null;
   }
 
+  public BaseEmailModel generateAgingDownloadsEmailModel(String email, List<Download> downloads, String portal, LocalDate deletionDate) {
+    LOG.debug("Generating data for user email notification (aging downloads). " +
+      "Download keys are [{}], portal URL is [{}], deletion date is [{}]", downloads, portal, deletionDate);
+    GbifUser creator = getCreator(downloads.get(0));
+    Locale locale = getLocale(creator);
+
+    try {
+      URL portalUrl = new URL(portal);
+
+      List<DownloadTemplateDataModel> downloadData = new ArrayList<>();
+      for (Download download : downloads) {
+        String downloadCreatedDate = String.format(locale, "%te %<tB %<tY", download.getCreated());
+        downloadData.add(new DownloadTemplateDataModel(download, portalUrl, getHumanQuery(download, locale), downloadCreatedDate));
+      }
+
+      MultipleDownloadsTemplateDataModel multipleDownloadData = new MultipleDownloadsTemplateDataModel(downloadData, portalUrl, deletionDate);
+
+      String formattedDeletionDate = String.format(locale, "%te %<tB %<tY", deletionDate);
+      return emailTemplateProcessor.buildEmail(OccurrenceEmailType.AGING_DOWNLOAD, Sets.newHashSet(email), multipleDownloadData, locale, formattedDeletionDate);
+    } catch (TemplateException | IOException e) {
+      LOG.error(
+        NOTIFY_ADMIN,
+        "Rendering of notification email to [{}] for download deletions failed", email, e);
+    }
+
+    return null;
+  }
+
   private Locale getLocale(GbifUser creator) {
     LOG.debug("Get creator's locale. Creator: {}", creator);
     Locale locale = Optional.ofNullable(creator)
         .map(AbstractGbifUser::getLocale)
         .map(this::findSuitableLocaleTagAmongAvailable)
         .map(Locale::forLanguageTag)
-        .orElse(Locale.ENGLISH);
+        .orElse(Locale.UK);
 
     LOG.debug("Creator's locale is [{}]", locale);
     return locale;

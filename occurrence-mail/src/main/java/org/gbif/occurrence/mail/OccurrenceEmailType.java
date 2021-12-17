@@ -25,7 +25,9 @@ public enum OccurrenceEmailType implements EmailType {
 
   SUCCESSFUL_DOWNLOAD("successfulDownload", "successful_download.ftl"),
 
-  FAILED_DOWNLOAD("failedDownload", "failed_download.ftl");
+  FAILED_DOWNLOAD("failedDownload", "failed_download.ftl"),
+
+  AGING_DOWNLOAD("agingDownload", "aging_downloads.ftl");
 
   private static final ResourceBundleMessageSource MESSAGE_SOURCE;
 
