@@ -4,8 +4,7 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hola ${name},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <strong>Your GBIF occurrence downloads listed below are scheduled for deletion on ${deletionDate?date}.</strong>
-  If you would like us to keep a download available, please visit the download page and click “Postpone Deletion”.
+  <strong>Sus descargas de registros biológicos de GBIF listadas abajo están programadas para ser borradas en ${deletionDate?date}. </strong>. Si desea que mantengamos una descarga disponible, visite la página de descargas y haga clic en "Posponer la eliminación".
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
