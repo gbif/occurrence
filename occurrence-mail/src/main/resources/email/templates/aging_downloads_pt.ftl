@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="" type="org.gbif.occurrence.mail.MultipleDownloadsTemplateDataModel" -->
 <#include "header.ftl">
 
-<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Hello ${name},</h5>
+<h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Olá ${name},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   <strong>Your GBIF occurrence downloads listed below are scheduled for deletion on ${deletionDate?date}.</strong>
@@ -9,14 +9,14 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  If data from a download have been used in a publication (journal article, thesis etc.) please inform us by clicking the button “Tell us about usage” on each download page.
-  <em>We are not aware of any published work using these downloads.</em>
+  Se os dados de um download foram usados em uma publicação (artigo de periódico, tese, etc.) por favor nos informe clicando no botão "Conte-nos sobre o uso" em cada página de download.
+  <em>Não temos conhecimento de qualquer trabalho publicado usando esses downloads.</em>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  GBIF keep user downloads for 6 months, after which they may be deleted.
+  O GBIF mantêm as informações baixadas pelo usuário por 6 meses, após o qual podem ser excluídas.
   When a download is deleted, the CSV or Darwin Core Archive file is erased, but the download page showing the query and datasets used in the download is retained.
-  The DOI is also kept, and is the preferred way to cite downloads.
+  O DOI também é mantido e é a forma preferida de citar a informação baixada.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -39,15 +39,15 @@
 </ul>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Please contact <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> if you have questions regarding the contents of this email, or refer to the <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">FAQ</a>.
+  Por favor, contate <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> se você tiver dúvidas sobre o conteúdo deste e-mail ou consulte <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">FAQ</a>.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  To see all of your GBIF downloads, visit <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}user/download</a>.
+  Para ver todos os seus downloads do GBIF, acesse <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}user/donwload</a>.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>Secretaria do GBIF</em>
 </p>
 
 <#include "footer.ftl">
