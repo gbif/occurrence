@@ -2,7 +2,7 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  Hello ${download.request.creator},
+  Olá ${download.request.creator},
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
