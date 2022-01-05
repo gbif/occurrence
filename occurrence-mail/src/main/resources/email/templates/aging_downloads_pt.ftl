@@ -4,8 +4,7 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Olá ${name},</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <strong>Your GBIF occurrence downloads listed below are scheduled for deletion on ${deletionDate?date}.</strong>
-  If you would like us to keep a download available, please visit the download page and click “Postpone Deletion”.
+  <strong>Seus downloads de ocorrências do GBIF listados abaixo estão agendados para exclusão em ${deletionDate?date}.</strong>  Se você quiser que um download permaneça disponível, visite a página de download e clique em " Adiar Exclusão".
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -15,12 +14,12 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   O GBIF mantêm as informações baixadas pelo usuário por 6 meses, após o qual podem ser excluídas.
-  When a download is deleted, the CSV or Darwin Core Archive file is erased, but the download page showing the query and datasets used in the download is retained.
+  Quando um download é excluído, o arquivo CSV ou Darwin Core Archive é apagado, mas a página de download que mostra a consulta e os conjuntos de dados usados no download é mantida.
   O DOI também é mantido e é a forma preferida de citar a informação baixada.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  GBIF downloads used in a publication will be kept indefinitely.
+  Downloads do GBIF usados em uma publicação serão mantidos indefinidamente.
 </p>
 
 <ul style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
