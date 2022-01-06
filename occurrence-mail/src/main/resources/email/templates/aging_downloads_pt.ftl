@@ -42,7 +42,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Para ver todos os seus downloads do GBIF, acesse <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}user/donwload</a>.
+  Para ver todos os seus downloads do GBIF, acesse <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}user/download</a>.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
