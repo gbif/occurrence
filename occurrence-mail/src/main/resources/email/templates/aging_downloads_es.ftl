@@ -19,7 +19,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  GBIF downloads used in a publication will be kept indefinitely.
+  Las descargas de GBIF utilizadas en una publicación se mantendrán indefinidamente.
 </p>
 
 <ul style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -42,7 +42,7 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  To see all of your GBIF downloads, visit <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}user/download</a>.
+  Para ver todas sus descargas de GBIF, visite <a href="${portal}user/download" style="color: #4ba2ce;text-decoration: none;">${portal}usuario/descarga</a>.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
