@@ -2,11 +2,11 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  Hello ${download.request.creator},
+  Olá ${download.request.creator},
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  Desculpe, mas ocorreu um erro ao processar o seu download.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
@@ -14,11 +14,11 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  Se o problema persistir, entre em contato conosco usando o sistema de feedback no site, ou em <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>Secretaria do GBIF</em>
 </p>
 
 <#include "footer.ftl">

@@ -2,23 +2,23 @@
 <#include "header.ftl">
 
 <h5 style="padding: 0;margin-bottom: 16px;line-height: 1.65;">
-  Hello ${download.request.creator},
+  Вітаємо, ${download.request.creator}
 </h5>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  We are sorry, but an error has occurred processing your download.
+  Вибачте, але при обробці вашого завантаження сталася помилка.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Please see <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> for more details, <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> for the current status of GBIF.org's systems, and try again in a few minutes.
+  Будь ласка, перегляньте подробиці на <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>, а також перевірте <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> поточний стан системи GBIF.org, і спробуйте знову за кілька хвилин.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  If the problem persists, contact us using the feedback system on the website, or at <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Please include the download key (${download.key}) of the failed download.
+  Якщо проблема залишається, зв'яжіться з нами за допомогою системи зворотного зв'язку на сайті або за посиланням <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a>.  Будь ласка, вкажіть ключ завантаження (${download.key}) невдалого завантаження.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  <em>The GBIF Secretariat</em>
+  <em>Секретаріат GBIF</em>
 </p>
 
 <#include "footer.ftl">
