@@ -40,8 +40,8 @@
 <h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">Plazo de conservación de la descarga</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  La información acerca de esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #509E2F;text-decoration: none;">${download.doi.getUrl()}</a>
-  y en <a href="${portal}es/occurrence/download/${download.key}" style="color: #509E2F;text-decoration: none;">${portal}es/occurrence/download/${download.key}</a>
+  La información sobre esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  y <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
