@@ -23,7 +23,9 @@ class AvroSchemaQueries extends Queries {
 
   @Override
   String toHiveDataType(Term term) {
-    if (TermUtils.isInterpretedUtcDate(term) || TermUtils.isInterpretedLocalDate(term)) {
+    if (TermUtils.isInterpretedUtcDate(term) ||
+      TermUtils.isInterpretedLocalDate(term) ||
+      TermUtils.isVocabulary(term)) {
       return HiveDataTypes.TYPE_STRING;
     } else {
       return HiveDataTypes.typeForTerm(term, false);
