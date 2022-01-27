@@ -85,6 +85,8 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.establishmentMeans.simpleName(), getSimpleValue(occurrence.getEstablishmentMeans()));
     interpretedOccurrence.put(DwcTerm.individualCount.simpleName(), getSimpleValue(occurrence.getIndividualCount()));
     interpretedOccurrence.put(DwcTerm.lifeStage.simpleName(), getSimpleValue(occurrence.getLifeStage()));
+    interpretedOccurrence.put(DwcTerm.pathway.simpleName(), getSimpleValue(occurrence.getPathway()));
+    interpretedOccurrence.put(DwcTerm.degreeOfEstablishment.simpleName(), getSimpleValue(occurrence.getDegreeOfEstablishment()));
     interpretedOccurrence.put(DcTerm.references.simpleName(), getSimpleValue(occurrence.getReferences()));
     interpretedOccurrence.put(DwcTerm.sex.simpleName(), getSimpleValue(occurrence.getSex()));
     interpretedOccurrence.put(DwcTerm.typeStatus.simpleName(), getSimpleValue(occurrence.getTypeStatus()));
