@@ -19,6 +19,7 @@ import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -29,7 +30,8 @@ import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-import com.google.common.annotations.VisibleForTesting;
+import static org.gbif.occurrence.search.es.EsSearchRequestBuilder.DEFAULT_SHARD_SIZE;
+import static org.gbif.occurrence.search.es.EsSearchRequestBuilder.MAX_SIZE_TERMS_AGGS;
 
 class EsHeatmapRequestBuilder {
 
@@ -100,6 +102,9 @@ class EsHeatmapRequestBuilder {
                                                     .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
+
+    // aggs shard size
+    geoGridAggs.shardSize(DEFAULT_SHARD_SIZE.applyAsInt(MAX_SIZE_TERMS_AGGS));
 
     return geoGridAggs;
   }
