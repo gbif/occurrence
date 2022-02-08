@@ -61,8 +61,8 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.FULL_TEXT;
 
 public class EsSearchRequestBuilder {
 
-  public static final int MAX_SIZE_TERMS_AGGS = 1200000;
-  public static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
+  private static final int MAX_SIZE_TERMS_AGGS = 1200000;
+  private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
 
   public static String[] SOURCE_EXCLUDE = new String[]{"all", "notIssues", "*.verbatim", "*.suggest"};
 
