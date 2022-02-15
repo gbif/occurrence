@@ -94,6 +94,13 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
     interpretedOccurrence.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(occurrence.getLastInterpreted()));
     interpretedOccurrence.put(DwcTerm.occurrenceStatus.simpleName(), getSimpleValue(occurrence.getOccurrenceStatus()));
+    interpretedOccurrence.put(DwcTerm.datasetID.simpleName(), getSimpleValue(occurrence.getDatasetID()));
+    interpretedOccurrence.put(DwcTerm.datasetName.simpleName(), getSimpleValue(occurrence.getDatasetName()));
+    interpretedOccurrence.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValue(occurrence.getOtherCatalogNumbers()));
+    interpretedOccurrence.put(DwcTerm.recordedBy.simpleName(), getSimpleValue(occurrence.getRecordedBy()));
+    interpretedOccurrence.put(DwcTerm.identifiedBy.simpleName(), getSimpleValue(occurrence.getIdentifiedBy()));
+    interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValue(occurrence.getPreparations()));
+    interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValue(occurrence.getSamplingProtocol()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));

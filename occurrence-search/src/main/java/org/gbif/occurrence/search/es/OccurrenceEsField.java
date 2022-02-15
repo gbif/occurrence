@@ -55,6 +55,10 @@ public enum OccurrenceEsField {
   BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
   TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
   OCCURRENCE_STATUS("occurrenceStatus", DwcTerm.occurrenceStatus),
+  DATASET_ID("datasetID", DwcTerm.datasetID),
+  DATASET_NAME("datasetName", DwcTerm.datasetName, true),
+  OTHER_CATALOG_NUMBERS("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true),
+  PREPARATIONS("preparations", DwcTerm.preparations),
 
   //Temporal
   YEAR("year", DwcTerm.year),

@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Maps;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -44,11 +45,9 @@ import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Maps;
-
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 public class EsResponseParser {
 
@@ -314,10 +313,9 @@ public class EsResponseParser {
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
     getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
-    getValue(hit, TYPE_STATUS, TypeStatus::valueOf).ifPresent(occ::setTypeStatus);
+    getListValueAsString(hit, TYPE_STATUS).ifPresent(occ::setTypeStatus);
     getStringValue(hit, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
     getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(occ::setIndividualCount);
-    // FIXME: should we have a list of identifiers in the schema?
     getStringValue(hit, IDENTIFIER)
         .ifPresent(
             v -> {
@@ -326,7 +324,6 @@ public class EsResponseParser {
               occ.setIdentifiers(Collections.singletonList(identifier));
             });
 
-    // FIXME: should we have a list in the schema and all the info of the enum?
     getStringValue(hit, RELATION)
         .ifPresent(
             v -> {
@@ -345,6 +342,12 @@ public class EsResponseParser {
 
     getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
     getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(occ::setIsInCluster);
+    getListValueAsString(hit, DATASET_ID).ifPresent(occ::setDatasetID);
+    getListValueAsString(hit, DATASET_NAME).ifPresent(occ::setDatasetName);
+    getListValueAsString(hit, RECORDED_BY).ifPresent(occ::setRecordedBy);
+    getListValueAsString(hit, IDENTIFIED_BY).ifPresent(occ::setIdentifiedBy);
+    getListValueAsString(hit, PREPARATIONS).ifPresent(occ::setPreparations);
+    getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(occ::setSamplingProtocol);
   }
 
   private static void parseAgentIds(SearchHit hit, Occurrence occ) {
@@ -526,6 +529,13 @@ public class EsResponseParser {
     return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty());
+  }
+
+  private static Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
+        .map(v -> (List<String>) v)
+        .filter(v -> !v.isEmpty())
+        .map(s -> String.join("|", s));
   }
 
   private static Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {

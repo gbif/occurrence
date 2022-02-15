@@ -270,6 +270,10 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
           .put(OccurrenceSearchParameter.DWCA_EXTENSION, OccurrenceEsField.EXTENSIONS)
           .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, OccurrenceEsField.IUCN_RED_LIST_CATEGORY)
+          .put(OccurrenceSearchParameter.DATASET_ID, OccurrenceEsField.DATASET_ID)
+          .put(OccurrenceSearchParameter.DATASET_NAME, OccurrenceEsField.DATASET_NAME)
+          .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OccurrenceEsField.OTHER_CATALOG_NUMBERS)
+          .put(OccurrenceSearchParameter.PREPARATIONS, OccurrenceEsField.PREPARATIONS)
           .build();
 
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
