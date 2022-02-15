@@ -345,6 +345,8 @@ public class HiveQueryVisitor {
       builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
     } else if (ARRAY_STRING_TERMS.containsKey(predicate.getKey())) {
       builder.append(String.format(ARRAY_FN.apply(ARRAY_STRING_TERMS.get(predicate.getKey())), predicate.getValue()));
+    } else if (TermUtils.isVocabulary(term(predicate.getKey()))) {
+      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue()));
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
       // The user's query value is inclusive, but the parsed dateRange is exclusive of the
