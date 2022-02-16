@@ -33,21 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
-import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.EVENT_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.IDENTIFIED_BY_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.PARENT_EVENT_ID_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.SAMPLING_PROTOCOL_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.*;
 
 /**
  * Ws client for {@link OccurrenceSearchService}.
@@ -141,7 +127,11 @@ public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
                   occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.GADM_LEVEL_3_GID),
                   occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.LIFE_STAGE),
                   occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.IS_IN_CLUSTER),
-                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.DWCA_EXTENSION)
+                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.DWCA_EXTENSION),
+                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.DATASET_ID),
+                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.DATASET_NAME),
+                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS),
+                  occurrenceSearchRequest.getParameters().get(OccurrenceSearchParameter.PREPARATIONS)
                   );
 
   }
@@ -229,7 +219,11 @@ public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
                                                                @RequestParam(value = "gadmLevel3Gid", required = false) Set<String> gadmLevel3Gid,
                                                                @RequestParam(value = "lifeStage", required = false) Set<String> lifeStage,
                                                                @RequestParam(value = "isInCluster", required = false) Set<String> isInCluster,
-                                                               @RequestParam(value = "dwcaExtension", required = false) Set<String> dwcaExtension);
+                                                               @RequestParam(value = "dwcaExtension", required = false) Set<String> dwcaExtension,
+                                                               @RequestParam(value = "datasetID", required = false) Set<String> datasetID,
+                                                               @RequestParam(value = "datasetName", required = false) Set<String> datasetName,
+                                                               @RequestParam(value = "otherCatalogNumbers", required = false) Set<String> otherCatalogNumbers,
+                                                               @RequestParam(value = "preparations", required = false) Set<String> preparations);
 
 
   @RequestMapping(
@@ -344,5 +338,21 @@ public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
   @ResponseBody
   @Override
   List<String> suggestParentEventId(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
+
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + DATASET_NAME_PATH
+  )
+  @ResponseBody
+  @Override
+  List<String> suggestDatasetName(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
+
+  @RequestMapping(
+    method = RequestMethod.GET,
+    value = SEARCH_PATH + OTHER_CATALOG_NUMBERS_PATH
+  )
+  @ResponseBody
+  @Override
+  List<String> suggestOtherCatalogNumbers(@RequestParam(QUERY_PARAM) String prefix, @RequestParam(PARAM_LIMIT) @Nullable Integer limit);
 
 }
