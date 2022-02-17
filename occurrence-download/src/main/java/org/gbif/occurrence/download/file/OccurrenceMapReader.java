@@ -318,7 +318,7 @@ public class OccurrenceMapReader {
       return simpleValue;
     }
 
-    return simpleValue.replaceAll("|", ";");
+    return simpleValue.replace("|", ";");
   }
 
   /**
