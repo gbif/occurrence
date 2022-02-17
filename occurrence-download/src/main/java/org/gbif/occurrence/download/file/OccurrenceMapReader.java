@@ -89,18 +89,18 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.degreeOfEstablishment.simpleName(), getSimpleValue(occurrence.getDegreeOfEstablishment()));
     interpretedOccurrence.put(DcTerm.references.simpleName(), getSimpleValue(occurrence.getReferences()));
     interpretedOccurrence.put(DwcTerm.sex.simpleName(), getSimpleValue(occurrence.getSex()));
-    interpretedOccurrence.put(DwcTerm.typeStatus.simpleName(), getSimpleValue(occurrence.getTypeStatus()));
+    interpretedOccurrence.put(DwcTerm.typeStatus.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getTypeStatus()));
     interpretedOccurrence.put(GbifTerm.typifiedName.simpleName(), occurrence.getTypifiedName());
     interpretedOccurrence.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(occurrence.getLastParsed()));
     interpretedOccurrence.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(occurrence.getLastInterpreted()));
     interpretedOccurrence.put(DwcTerm.occurrenceStatus.simpleName(), getSimpleValue(occurrence.getOccurrenceStatus()));
-    interpretedOccurrence.put(DwcTerm.datasetID.simpleName(), getSimpleValue(occurrence.getDatasetID()));
-    interpretedOccurrence.put(DwcTerm.datasetName.simpleName(), getSimpleValue(occurrence.getDatasetName()));
-    interpretedOccurrence.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValue(occurrence.getOtherCatalogNumbers()));
-    interpretedOccurrence.put(DwcTerm.recordedBy.simpleName(), getSimpleValue(occurrence.getRecordedBy()));
-    interpretedOccurrence.put(DwcTerm.identifiedBy.simpleName(), getSimpleValue(occurrence.getIdentifiedBy()));
-    interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValue(occurrence.getPreparations()));
-    interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValue(occurrence.getSamplingProtocol()));
+    interpretedOccurrence.put(DwcTerm.datasetID.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getDatasetID()));
+    interpretedOccurrence.put(DwcTerm.datasetName.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getDatasetName()));
+    interpretedOccurrence.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getOtherCatalogNumbers()));
+    interpretedOccurrence.put(DwcTerm.recordedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getRecordedBy()));
+    interpretedOccurrence.put(DwcTerm.identifiedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getIdentifiedBy()));
+    interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getPreparations()));
+    interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getSamplingProtocol()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
@@ -309,6 +309,16 @@ public class OccurrenceMapReader {
                               .map(mediaObject -> mediaObject.getType().name())
                               .distinct()
                               .collect(Collectors.joining(";")));
+  }
+
+  private static String getSimpleValueAndNormalizeDelimiters(String value) {
+    String simpleValue = getSimpleValue(value);
+
+    if (simpleValue == null || simpleValue.isEmpty()) {
+      return simpleValue;
+    }
+
+    return simpleValue.replaceAll("|", ";");
   }
 
   /**
