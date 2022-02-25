@@ -85,7 +85,7 @@ public class HiveQueryVisitor {
   private static final String ALL_QUERY = "true";
 
   private static final Function<Term, String> ARRAY_FN = t ->
-    "array_contains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s')";
+    "stringArrayContains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s','%s')";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -337,16 +337,16 @@ public class HiveQueryVisitor {
       appendGadmGidFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
-        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name())));
+        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name(), true)));
     } else if (OccurrenceSearchParameter.TYPE_STATUS == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), TypeStatus.class))
-        .ifPresent(typeStatus -> builder.append(String.format(ARRAY_FN.apply(DwcTerm.typeStatus), typeStatus.name())));
+        .ifPresent(typeStatus -> builder.append(String.format(ARRAY_FN.apply(DwcTerm.typeStatus), typeStatus.name(), true)));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase(), true));
     } else if (ARRAY_STRING_TERMS.containsKey(predicate.getKey())) {
-      builder.append(String.format(ARRAY_FN.apply(ARRAY_STRING_TERMS.get(predicate.getKey())), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(ARRAY_STRING_TERMS.get(predicate.getKey())), predicate.getValue(), predicate.isMatchCase()));
     } else if (TermUtils.isVocabulary(term(predicate.getKey()))) {
-      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue(), true));
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
       // The user's query value is inclusive, but the parsed dateRange is exclusive of the
