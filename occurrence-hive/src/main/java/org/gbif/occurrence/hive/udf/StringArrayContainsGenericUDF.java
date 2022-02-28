@@ -24,6 +24,8 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector.Category;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.BooleanObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.apache.hadoop.io.BooleanWritable;
 
 /**
@@ -80,11 +82,11 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
     if (arguments[0].getCategory() != Category.LIST) {
       throw new UDFArgumentException("stringArrayContains takes an array as first argument");
     }
-    if (!arguments[1].getTypeName().equals("string")) {
-      throw new UDFArgumentTypeException(0, "stringArrayContains takes a string as second argument");
+    if (!(arguments[1] instanceof StringObjectInspector)) {
+      throw new UDFArgumentException("stringArrayContains takes a string as second argument");
     }
-    if (!arguments[2].getTypeName().equals("boolean")) {
-      throw new UDFArgumentTypeException(0, "stringArrayContains takes a boolean as third argument");
+    if (!(arguments[2] instanceof BooleanObjectInspector)) {
+      throw new UDFArgumentException("stringArrayContains takes a boolean as third argument");
     }
 
     retValInspector = (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
