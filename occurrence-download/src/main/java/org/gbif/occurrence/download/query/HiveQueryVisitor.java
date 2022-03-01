@@ -85,7 +85,7 @@ public class HiveQueryVisitor {
   private static final String ALL_QUERY = "true";
 
   private static final Function<Term, String> ARRAY_FN = t ->
-    "stringArrayContains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s',%b)";
+    "stringArrayContains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s',%b) = TRUE";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 

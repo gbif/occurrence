@@ -28,7 +28,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspe
 import org.apache.hadoop.io.BooleanWritable;
 
 /**
- * A simple UDF that remove nulls from a list.
+ * A UDF that customizes the array contains to take into account case sensitivity.
  */
 public class StringArrayContainsGenericUDF extends GenericUDF {
 
