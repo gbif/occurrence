@@ -13,16 +13,12 @@
  */
 package org.gbif.occurrence.hive.udf;
 
-import java.util.List;
-
 import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDF;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector.Category;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorUtils;
-import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BooleanObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
@@ -31,28 +27,31 @@ import org.apache.hadoop.io.BooleanWritable;
 /** A UDF that customizes the array contains to take into account case sensitivity. */
 public class StringArrayContainsGenericUDF extends GenericUDF {
 
-  private StandardListObjectInspector retValInspector;
-  private PrimitiveObjectInspector primitiveObjectInspector;
+  private transient ListObjectInspector listObjectInspector;
   private BooleanWritable result;
 
   @Override
   public Object evaluate(DeferredObject[] arguments) throws HiveException {
-    List arrayValues = retValInspector.getList(arguments[0].get());
+    Object array = arguments[0].get();
     String value = arguments[1].get().toString();
     boolean caseSensitive = Boolean.parseBoolean(arguments[2].get().toString());
 
-    if (arrayValues == null || arrayValues.isEmpty()) {
-      result.set(false);
+    if (array == null) {
       return result;
     }
 
-    for (Object oElement : arrayValues) {
-      Object stdObject =
-          ObjectInspectorUtils.copyToStandardJavaObject(oElement, primitiveObjectInspector);
-      if (stdObject != null && !((String) stdObject).trim().isEmpty()) {
-        String arrayVal = (String) stdObject;
+    int arrayLength = listObjectInspector.getListLength(array);
+    if (arrayLength <= 0) {
+      return result;
+    }
 
-        boolean equal = caseSensitive ? arrayVal.equals(value) : arrayVal.equalsIgnoreCase(value);
+    for (int i = 0; i < arrayLength; ++i) {
+      Object listElement = listObjectInspector.getListElement(array, i);
+
+      if (listElement != null && !listElement.toString().trim().isEmpty()) {
+        String stringValue = listElement.toString();
+        boolean equal =
+            caseSensitive ? stringValue.equals(value) : stringValue.equalsIgnoreCase(value);
 
         if (equal) {
           result.set(true);
@@ -86,12 +85,7 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
       throw new UDFArgumentException("stringArrayContains takes a boolean as third argument");
     }
 
-    retValInspector =
-        (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
-    if (retValInspector.getListElementObjectInspector().getCategory() != Category.PRIMITIVE) {
-      primitiveObjectInspector =
-          (PrimitiveObjectInspector) retValInspector.getListElementObjectInspector();
-    }
+    listObjectInspector = (ListObjectInspector) arguments[0];
 
     result = new BooleanWritable(false);
 
