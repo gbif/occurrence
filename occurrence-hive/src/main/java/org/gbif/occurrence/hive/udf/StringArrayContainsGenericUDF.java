@@ -24,6 +24,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BooleanObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.apache.hadoop.io.BooleanWritable;
 
@@ -88,14 +89,9 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
       throw new UDFArgumentException("stringArrayContains takes a boolean as third argument");
     }
 
-    retValInspector = (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
-    if (retValInspector.getListElementObjectInspector().getCategory() != Category.PRIMITIVE) {
-      primitiveObjectInspector = (PrimitiveObjectInspector) retValInspector.getListElementObjectInspector();
-    }
-
     result = new BooleanWritable(false);
 
-    return retValInspector;
+    return PrimitiveObjectInspectorFactory.writableBooleanObjectInspector;
   }
 
 }
