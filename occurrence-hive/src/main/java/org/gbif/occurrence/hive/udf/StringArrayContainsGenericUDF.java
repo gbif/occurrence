@@ -28,9 +28,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.apache.hadoop.io.BooleanWritable;
 
-/**
- * A UDF that customizes the array contains to take into account case sensitivity.
- */
+/** A UDF that customizes the array contains to take into account case sensitivity. */
 public class StringArrayContainsGenericUDF extends GenericUDF {
 
   private StandardListObjectInspector retValInspector;
@@ -48,15 +46,13 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
       return result;
     }
 
-    String lowerValue = value.toLowerCase();
     for (Object oElement : arrayValues) {
       Object stdObject =
           ObjectInspectorUtils.copyToStandardJavaObject(oElement, primitiveObjectInspector);
       if (stdObject != null && !((String) stdObject).trim().isEmpty()) {
         String arrayVal = (String) stdObject;
 
-        boolean equal =
-            caseSensitive ? arrayVal.equals(value) : arrayVal.toLowerCase().equals(lowerValue);
+        boolean equal = caseSensitive ? arrayVal.equals(value) : arrayVal.equalsIgnoreCase(value);
 
         if (equal) {
           result.set(true);
@@ -77,7 +73,8 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
     if (arguments.length != 3) {
-      throw new UDFArgumentException("stringArrayContains takes an array, a value and a boolean as argument");
+      throw new UDFArgumentException(
+          "stringArrayContains takes an array, a value and a boolean as argument");
     }
     if (arguments[0].getCategory() != Category.LIST) {
       throw new UDFArgumentException("stringArrayContains takes an array as first argument");
@@ -89,14 +86,15 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
       throw new UDFArgumentException("stringArrayContains takes a boolean as third argument");
     }
 
-    retValInspector = (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
+    retValInspector =
+        (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
     if (retValInspector.getListElementObjectInspector().getCategory() != Category.PRIMITIVE) {
-      primitiveObjectInspector = (PrimitiveObjectInspector) retValInspector.getListElementObjectInspector();
+      primitiveObjectInspector =
+          (PrimitiveObjectInspector) retValInspector.getListElementObjectInspector();
     }
 
     result = new BooleanWritable(false);
 
     return PrimitiveObjectInspectorFactory.writableBooleanObjectInspector;
   }
-
 }
