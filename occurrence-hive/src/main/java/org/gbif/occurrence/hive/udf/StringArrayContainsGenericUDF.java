@@ -89,6 +89,11 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
       throw new UDFArgumentException("stringArrayContains takes a boolean as third argument");
     }
 
+    retValInspector = (StandardListObjectInspector) ObjectInspectorUtils.getStandardObjectInspector(arguments[0]);
+    if (retValInspector.getListElementObjectInspector().getCategory() != Category.PRIMITIVE) {
+      primitiveObjectInspector = (PrimitiveObjectInspector) retValInspector.getListElementObjectInspector();
+    }
+
     result = new BooleanWritable(false);
 
     return PrimitiveObjectInspectorFactory.writableBooleanObjectInspector;
