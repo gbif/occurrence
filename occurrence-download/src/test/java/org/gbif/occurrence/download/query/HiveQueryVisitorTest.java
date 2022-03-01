@@ -142,7 +142,7 @@ public class HiveQueryVisitorTest {
 
     DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2));
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "(stringArrayContains(mediatype,'StillImage',true) OR stringArrayContains(mediatype,'Sound',true))");
+    assertEquals(query, "(stringArrayContains(mediatype,'StillImage',true) = TRUE OR stringArrayContains(mediatype,'Sound',true) = TRUE)");
   }
 
   @Test
@@ -223,7 +223,7 @@ public class HiveQueryVisitorTest {
   public void testInPredicateMediaType() throws QueryBuildingException {
     Predicate p = new InPredicate(OccurrenceSearchParameter.MEDIA_TYPE, Lists.newArrayList("StillImage", "Sound"), false);
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "(stringArrayContains(mediatype,'StillImage',true) OR stringArrayContains(mediatype,'Sound',true))");
+    assertEquals(query, "(stringArrayContains(mediatype,'StillImage',true) = TRUE OR stringArrayContains(mediatype,'Sound',true) = TRUE)");
   }
 
   @Test
@@ -496,11 +496,11 @@ public class HiveQueryVisitorTest {
   public void testIssues() throws QueryBuildingException {
     // EqualsPredicate
     String query = visitor.getHiveQuery(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false));
-    assertEquals(query, "stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true)");
+    assertEquals(query, "stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true) = TRUE");
 
     // InPredicate
     query = visitor.getHiveQuery(new InPredicate(OccurrenceSearchParameter.ISSUE, Lists.newArrayList("TAXON_MATCH_HIGHERRANK", "TAXON_MATCH_NONE"), false));
-    assertEquals(query, "(stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true) OR stringArrayContains(issue,'TAXON_MATCH_NONE',true))");
+    assertEquals(query, "(stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true) = TRUE OR stringArrayContains(issue,'TAXON_MATCH_NONE',true) = TRUE)");
 
     // LikePredicate
     try {
@@ -510,7 +510,7 @@ public class HiveQueryVisitorTest {
 
     // Not
     query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false)));
-    assertEquals(query, "NOT stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true)");
+    assertEquals(query, "NOT stringArrayContains(issue,'TAXON_MATCH_HIGHERRANK',true) = TRUE");
 
     // Not disjunction
     query = visitor.getHiveQuery(new NotPredicate(new DisjunctionPredicate(Lists.newArrayList(
@@ -519,7 +519,7 @@ public class HiveQueryVisitorTest {
       new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "ZERO_COORDINATE", false),
       new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "RECORDED_DATE_INVALID", false)
     ))));
-    assertEquals(query, "NOT (stringArrayContains(issue,'COORDINATE_INVALID',true) OR stringArrayContains(issue,'COORDINATE_OUT_OF_RANGE',true) OR stringArrayContains(issue,'ZERO_COORDINATE',true) OR stringArrayContains(issue,'RECORDED_DATE_INVALID',true))");
+    assertEquals(query, "NOT (stringArrayContains(issue,'COORDINATE_INVALID',true) = TRUE OR stringArrayContains(issue,'COORDINATE_OUT_OF_RANGE',true) = TRUE OR stringArrayContains(issue,'ZERO_COORDINATE',true) = TRUE OR stringArrayContains(issue,'RECORDED_DATE_INVALID',true) = TRUE)");
 
     // IsNotNull
     query = visitor.getHiveQuery(new IsNotNullPredicate(OccurrenceSearchParameter.ISSUE));
@@ -576,7 +576,7 @@ public class HiveQueryVisitorTest {
 
           String query = visitor.getHiveQuery(p1);
           String hiveQueryField = HiveColumnsUtils.getHiveQueryColumn(HiveQueryVisitor.term(param));
-          assertEquals(query, "stringArrayContains(" + hiveQueryField + ",'value_1',true)");
+          assertEquals(query, "stringArrayContains(" + hiveQueryField + ",'value_1',true) = TRUE");
 
         } catch (QueryBuildingException ex) {
           throw new RuntimeException(ex);
