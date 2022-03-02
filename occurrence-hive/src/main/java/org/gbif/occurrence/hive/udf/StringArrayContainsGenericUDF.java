@@ -37,11 +37,13 @@ public class StringArrayContainsGenericUDF extends GenericUDF {
     boolean caseSensitive = Boolean.parseBoolean(arguments[2].get().toString());
 
     if (array == null) {
+      result.set(false);
       return result;
     }
 
     int arrayLength = listObjectInspector.getListLength(array);
     if (arrayLength <= 0) {
+      result.set(false);
       return result;
     }
 
