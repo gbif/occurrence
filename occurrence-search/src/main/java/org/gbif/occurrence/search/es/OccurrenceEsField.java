@@ -58,7 +58,7 @@ public enum OccurrenceEsField {
   DATASET_ID("datasetID", DwcTerm.datasetID),
   DATASET_NAME("datasetName", DwcTerm.datasetName, true),
   OTHER_CATALOG_NUMBERS("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true),
-  PREPARATIONS("preparations", DwcTerm.preparations),
+  PREPARATIONS("preparations", DwcTerm.preparations, true),
 
   //Temporal
   YEAR("year", DwcTerm.year),
