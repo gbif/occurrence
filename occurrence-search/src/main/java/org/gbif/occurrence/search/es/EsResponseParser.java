@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Maps;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
@@ -101,12 +102,10 @@ public class EsResponseParser {
     String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getValueFieldName();
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
-            .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
-            .map(CompletionSuggestion.Entry.Option::getHit)
-            .map(hit -> hit.getSourceAsMap().get(fieldName))
-            .filter(Objects::nonNull)
-            .map(String::valueOf)
-            .collect(Collectors.toList());
+        .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
+        .map(CompletionSuggestion.Entry.Option::getText)
+        .map(Text::string)
+        .collect(Collectors.toList());
   }
 
   /**
