@@ -19,8 +19,6 @@
     {"name": "hasImage",           "type": "boolean" },
     {"name": "kingdom",            "type": ["null", "string"], "default": null },
     {"name": "family",             "type": ["null", "string"], "default": null },
-    {"name": "recordedBy",         "type": {"type" : "array", "items" : "string"}, "default": null },
-    {"name": "identifiedBy",       "type": {"type" : "array", "items" : "string"}, "default": null },
     {"name": "scientificName",     "type": ["null", "string"], "default": null },
     {"name": "v_occurrenceID",     "type": ["null", "string"], "default": null },
     {"name": "v_dateIdentified",   "type": ["null", "string"], "default": null },
