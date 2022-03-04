@@ -81,7 +81,7 @@
     {"name": "sampleSizeUnit", "type": ["null", "string"], "default": null },
     {"name": "sampleSizeValue", "type": ["null", "string"], "default": null },
     {"name": "samplingEffort", "type": ["null", "string"], "default": null },
-    {"name": "samplingProtocol", "type": ["null", "string"], "default": null },
+    {"name": "samplingProtocol", "type": {"type" : "array", "items" : "string"}, "default": null },
 
     {"name": "lastInterpreted", "type": ["null", "string"], "default": null },
     {"name": "mediaType", "type": {"type": "array", "items": "string"}, "default": null },
