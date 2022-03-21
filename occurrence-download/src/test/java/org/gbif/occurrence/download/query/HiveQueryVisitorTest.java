@@ -294,7 +294,7 @@ public class HiveQueryVisitorTest {
     final String wkt = "POLYGON ((-21.4671921 65.441761, -21.3157028 65.9990267, -22.46732 66.4657148, -23.196803 66.3490242, -22.362113 66.2703732, -22.9758561 66.228119, -22.3831844 66.0933255, -22.424131 65.8374539, -23.4703372 66.1972321, -23.2565264 65.6767322, -24.5319933 65.5027259, -21.684764 65.4547893, -24.0482947 64.8794291, -21.3551366 64.3842337, -22.7053151 63.8001572, -19.1269971 63.3980322, -13.4948065 65.076438, -15.1872897 66.1073781, -14.5302343 66.3783121, -16.0235596 66.5371808, -21.4671921 65.441761))";
     Predicate p = new WithinPredicate(wkt);
     String query = visitor.getHiveQuery(p);
-    assertEquals(query, "((decimallatitude >= 63.3980322 AND decimallatitude <= 66.5371808 AND decimallongitude >= -24.5319933 AND decimallongitude <= -13.4948065) AND contains(\"" + wkt + "\", decimallatitude, decimallongitude) = TRUE)");
+    assertEquals(query, "((decimallatitude >= 63.3980322 AND decimallatitude <= 66.5371808 AND (decimallongitude >= -24.5319933 AND decimallongitude <= -13.4948065)) AND contains(\"" + wkt + "\", decimallatitude, decimallongitude) = TRUE)");
   }
 
   @Test
@@ -314,16 +314,34 @@ public class HiveQueryVisitorTest {
     String bbox = "(decimallatitude >= -17.12845 AND decimallatitude <= -16.60277 AND (decimallongitude >= 179.78577 OR decimallongitude <= -179.75006))";
     query = visitor.getHiveQuery(new WithinPredicate(wktM));
     assertEquals(query, "(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)");
+
     // A polygon around Taveuni, Fiji, as portal16 produces it.
     // Note the result still contains the multipolygon.
     String wkt16 = "POLYGON((-180.14832 -16.72643, -180.21423 -16.82899, -180.12085 -17.12058, -179.89838 -17.12845, -179.75006 -16.86054, -179.8764 -16.60277, -180.14832 -16.72643))";
     query = visitor.getHiveQuery(new WithinPredicate(wkt16));
     assertEquals(query, "(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)");
+
     // Same place, but as Wicket draws it:
     // Note the result still contains the same multipolygon.
     String wktWk = "POLYGON((179.85168 -16.72643, 179.78577 -16.82899, 179.87915 -17.12058, -179.89838 -17.12845, -179.75006 -16.86054, -179.8764 -16.60277, 179.85168 -16.72643))";
     query = visitor.getHiveQuery(new WithinPredicate(wktWk));
     assertEquals(query, "(" + bbox + " AND contains(\"" + wktM + "\", decimallatitude, decimallongitude) = TRUE)");
+
+    // Tiny areas scattered around the world, all in a single multipolygon.
+    // Requires bounding boxes to avoid very slow Hive performance.
+    String wktMM = "MULTIPOLYGON (((-109.42861 -27.13333, -109.42861 -27.13666, -109.43138 -27.13666, -109.43138 -27.13333, -109.42861 -27.13333)), " +
+      "((-109.42236 -27.10919, -109.42236 -27.11191, -109.42541 -27.11191, -109.42541 -27.10919, -109.42236 -27.10919)), " +
+      "((-174.35146 -19.80528, -174.35146 -19.81829, -174.36338 -19.81829, -174.36338 -19.80528, -174.35146 -19.80528)), " +
+      "((-173.94525 -18.71444, -173.96472 -18.71444, -173.96472 -18.68694, -173.94525 -18.68694, -173.94525 -18.71444)), " +
+      "((-173.91655 -18.66372, -173.94041 -18.66372, -173.94041 -18.63616, -173.91655 -18.63616, -173.91655 -18.66372)))";
+    String bboxMM = "(decimallatitude >= -27.13666 AND decimallatitude <= -18.63616 AND (decimallongitude >= -174.36338 AND decimallongitude <= -109.42236)) AND " +
+      "((decimallatitude >= -27.13666 AND decimallatitude <= -27.13333 AND (decimallongitude >= -109.43138 AND decimallongitude <= -109.42861)) OR " +
+      "(decimallatitude >= -27.11191 AND decimallatitude <= -27.10919 AND (decimallongitude >= -109.42541 AND decimallongitude <= -109.42236)) OR " +
+      "(decimallatitude >= -19.81829 AND decimallatitude <= -19.80528 AND (decimallongitude >= -174.36338 AND decimallongitude <= -174.35146)) OR " +
+      "(decimallatitude >= -18.71444 AND decimallatitude <= -18.68694 AND (decimallongitude >= -173.96472 AND decimallongitude <= -173.94525)) OR " +
+      "(decimallatitude >= -18.66372 AND decimallatitude <= -18.63616 AND (decimallongitude >= -173.94041 AND decimallongitude <= -173.91655)))";
+    query = visitor.getHiveQuery(new WithinPredicate(wktMM));
+    assertEquals(query, "(" + bboxMM + " AND contains(\"" + wktMM + "\", decimallatitude, decimallongitude) = TRUE)");
   }
 
   @Test
@@ -333,7 +351,7 @@ public class HiveQueryVisitorTest {
     // A polygon around Antarctica
     String wktP = "POLYGON ((180 -64.7, 180 -56.8, 180 -44.3, 173 -44.3, 173 -47.5, 170 -47.5, 157 -47.5, 157 -45.9, 150 -45.9, 150 -47.5, 143 -47.5, 143 -45.8, 140 -45.8, 140 -44.5, 137 -44.5, 137 -43, 135 -43, 135 -41.7, 131 -41.7, 131 -40.1, 115 -40.1, 92 -40.1, 92 -41.4, 78 -41.4, 78 -42.3, 69 -42.3, 69 -43.3, 47 -43.3, 47 -41.7, 30 -41.7, 12 -41.7, 12 -40.3, 10 -40.3, 10 -38.3, -5 -38.3, -5 -38.9, -9 -38.9, -9 -40.2, -13 -40.2, -13 -41.4, -21 -41.4, -21 -42.5, -39 -42.5, -39 -40.7, -49 -40.7, -49 -48.6, -54 -48.6, -54 -55.7, -62.79726 -55.7, -64 -55.7, -64 -57.8, -71 -57.8, -71 -58.9, -80 -58.9, -80 -40, -103.71094 -40.14844, -125 -40, -167 -40, -167 -42.6, -171 -42.6, -171 -44.3, -180 -44.3, -180 -56.8, -180 -64.7, -180 -80, -125 -80, -70 -80, 30 -80, 115 -80, 158 -80, 180 -80, 180 -64.7))";
     query = visitor.getHiveQuery(new WithinPredicate(wktP));
-    assertEquals(query, "((decimallatitude >= -80.0 AND decimallatitude <= -38.3 AND decimallongitude >= -180.0 AND decimallongitude <= 180.0) AND contains(\"" + wktP + "\", decimallatitude, decimallongitude) = TRUE)");
+    assertEquals(query, "((decimallatitude >= -80.0 AND decimallatitude <= -38.3 AND (decimallongitude >= -180.0 AND decimallongitude <= 180.0)) AND contains(\"" + wktP + "\", decimallatitude, decimallongitude) = TRUE)");
 
     // A multipolygon around the Pacific and Indian oceans, split over the antimeridian
     String wktM = "MULTIPOLYGON (((180 51.83076923076923, 180 -63, 35 -63, 60 -9, 127 1, 157 49, 180 51.83076923076923)), ((-180 -63, -180 51.83076923076923, -138 57, -127 39, -112 18, -92 13, -84 1, -77 -63, -169 -63, -180 -63)))";
@@ -409,7 +427,6 @@ public class HiveQueryVisitorTest {
   public void testDateComparisons() throws QueryBuildingException {
     Predicate p = new EqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000", false);
     String query = visitor.getHiveQuery(p);
-    System.out.println(query);
     assertEquals(String.format("(lastinterpreted >= %s AND lastinterpreted < %s)",
       Instant.parse("2000-01-01T00:00:00Z").toEpochMilli(),
       Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()),
@@ -418,23 +435,19 @@ public class HiveQueryVisitorTest {
     // Include the range
     p = new LessThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
     query = visitor.getHiveQuery(p);
-    System.out.println(query);
     assertEquals(String.format("lastinterpreted < %s", Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()), query);
 
     p = new GreaterThanOrEqualsPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
     query = visitor.getHiveQuery(p);
-    System.out.println(query);
     assertEquals(String.format("lastinterpreted >= %s", Instant.parse("2000-01-01T00:00:00Z").toEpochMilli()), query);
 
     // Exclude the range
     p = new LessThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
     query = visitor.getHiveQuery(p);
-    System.out.println(query);
     assertEquals(String.format("lastinterpreted < %s", Instant.parse("2000-01-01T00:00:00Z").toEpochMilli()), query);
 
     p = new GreaterThanPredicate(OccurrenceSearchParameter.LAST_INTERPRETED, "2000");
     query = visitor.getHiveQuery(p);
-    System.out.println(query);
     assertEquals(String.format("lastinterpreted >= %s", Instant.parse("2001-01-01T00:00:00Z").toEpochMilli()), query);
   }
 
