@@ -335,11 +335,11 @@ public class HiveQueryVisitorTest {
       "((-173.94525 -18.71444, -173.96472 -18.71444, -173.96472 -18.68694, -173.94525 -18.68694, -173.94525 -18.71444)), " +
       "((-173.91655 -18.66372, -173.94041 -18.66372, -173.94041 -18.63616, -173.91655 -18.63616, -173.91655 -18.66372)))";
     String bboxMM = "(decimallatitude >= -27.13666 AND decimallatitude <= -18.63616 AND (decimallongitude >= -174.36338 AND decimallongitude <= -109.42236)) AND " +
-      "((decimallatitude >= -27.13666 AND decimallatitude <= -27.13333 AND (decimallongitude >= -109.43138 AND decimallongitude <= -109.42861)) OR " +
+      "(((decimallatitude >= -27.13666 AND decimallatitude <= -27.13333 AND (decimallongitude >= -109.43138 AND decimallongitude <= -109.42861)) OR " +
       "(decimallatitude >= -27.11191 AND decimallatitude <= -27.10919 AND (decimallongitude >= -109.42541 AND decimallongitude <= -109.42236)) OR " +
       "(decimallatitude >= -19.81829 AND decimallatitude <= -19.80528 AND (decimallongitude >= -174.36338 AND decimallongitude <= -174.35146)) OR " +
       "(decimallatitude >= -18.71444 AND decimallatitude <= -18.68694 AND (decimallongitude >= -173.96472 AND decimallongitude <= -173.94525)) OR " +
-      "(decimallatitude >= -18.66372 AND decimallatitude <= -18.63616 AND (decimallongitude >= -173.94041 AND decimallongitude <= -173.91655)))";
+      "(decimallatitude >= -18.66372 AND decimallatitude <= -18.63616 AND (decimallongitude >= -173.94041 AND decimallongitude <= -173.91655))))";
     query = visitor.getHiveQuery(new WithinPredicate(wktMM));
     assertEquals(query, "(" + bboxMM + " AND contains(\"" + wktMM + "\", decimallatitude, decimallongitude) = TRUE)");
   }

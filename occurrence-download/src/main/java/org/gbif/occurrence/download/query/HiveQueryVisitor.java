@@ -542,16 +542,23 @@ public class HiveQueryVisitor {
         // Add bounding boxes for these too.
         // Example: https://www.gbif.org/occurrence/download/0187894-210914110416597
         if (g instanceof MultiPolygon && g.getNumGeometries() > 2) {
-          builder.append('(');
+          builder.append("((");
           for (int i = 0; i < g.getNumGeometries(); i++) {
             if (i > 0) {
-              builder.append(DISJUNCTION_OPERATOR);
+              // Too many clauses exceeds Hive's query parsing stack.
+              if (i % 500 == 0) {
+                builder.append(')');
+                builder.append(DISJUNCTION_OPERATOR);
+                builder.append('(');
+              } else {
+                builder.append(DISJUNCTION_OPERATOR);
+              }
             }
             Geometry gi = g.getGeometryN(i);
             Envelope env = gi.getEnvelopeInternal();
             boundingBox(new RectangleImpl(env.getMinX(), env.getMaxX(), env.getMinY(), env.getMaxY(), geometry.getContext()));
           }
-          builder.append(')');
+          builder.append("))");
           builder.append(CONJUNCTION_OPERATOR);
         }
       } else {
