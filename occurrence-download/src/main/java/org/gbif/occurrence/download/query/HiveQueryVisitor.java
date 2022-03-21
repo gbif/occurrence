@@ -40,12 +40,17 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
 import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
+import org.locationtech.spatial4j.shape.impl.RectangleImpl;
 import org.locationtech.spatial4j.shape.jts.JtsGeometry;
+import org.opengis.feature.type.GeometryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -539,12 +544,37 @@ public class HiveQueryVisitor {
 
       // Add an additional filter to a bounding box around any shapes that aren't quadrilaterals, to speed up the query.
       if (geometry instanceof JtsGeometry && ((JtsGeometry) geometry).getGeom().getNumPoints() != 5) {
+        Geometry g = ((JtsGeometry) geometry).getGeom();
         // Use the Spatial4J-fixed geometry; this is split into a multipolygon if it crosses the antimeridian.
-        withinGeometry = ((JtsGeometry) geometry).getGeom().toText();
+        withinGeometry = g.toText();
 
         Rectangle bounds = geometry.getBoundingBox();
         boundingBox(bounds);
         builder.append(CONJUNCTION_OPERATOR);
+
+        // A tool (R?) can generate hundreds of tiny areas spread across the globe, all in a single multipolygon.
+        // Add bounding boxes for these too.
+        // Example: https://www.gbif.org/occurrence/download/0187894-210914110416597
+        if (g instanceof MultiPolygon && g.getNumGeometries() > 2) {
+          builder.append("((");
+          for (int i = 0; i < g.getNumGeometries(); i++) {
+            if (i > 0) {
+              // Too many clauses exceeds Hive's query parsing stack.
+              if (i % 500 == 0) {
+                builder.append(')');
+                builder.append(DISJUNCTION_OPERATOR);
+                builder.append('(');
+              } else {
+                builder.append(DISJUNCTION_OPERATOR);
+              }
+            }
+            Geometry gi = g.getGeometryN(i);
+            Envelope env = gi.getEnvelopeInternal();
+            boundingBox(new RectangleImpl(env.getMinX(), env.getMaxX(), env.getMinY(), env.getMaxY(), geometry.getContext()));
+          }
+          builder.append("))");
+          builder.append(CONJUNCTION_OPERATOR);
+        }
       } else {
         withinGeometry = within.getGeometry();
       }
@@ -594,25 +624,19 @@ public class HiveQueryVisitor {
     builder.append(CONJUNCTION_OPERATOR);
 
     // Longitude must take account of crossing the antimeridian:
+    builder.append('(');
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
+    builder.append(GREATER_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMinX());
     if (bounds.getMinX() < bounds.getMaxX()) {
-      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
-      builder.append(GREATER_THAN_EQUALS_OPERATOR);
-      builder.append(bounds.getMinX());
       builder.append(CONJUNCTION_OPERATOR);
-      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
-      builder.append(LESS_THAN_EQUALS_OPERATOR);
-      builder.append(bounds.getMaxX());
     } else {
-      builder.append('(');
-      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
-      builder.append(GREATER_THAN_EQUALS_OPERATOR);
-      builder.append(bounds.getMinX());
       builder.append(DISJUNCTION_OPERATOR);
-      builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
-      builder.append(LESS_THAN_EQUALS_OPERATOR);
-      builder.append(bounds.getMaxX());
-      builder.append(')');
     }
+    builder.append(HiveColumnsUtils.getHiveQueryColumn(DwcTerm.decimalLongitude));
+    builder.append(LESS_THAN_EQUALS_OPERATOR);
+    builder.append(bounds.getMaxX());
+    builder.append(')');
 
     builder.append(')');
   }
