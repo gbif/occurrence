@@ -154,7 +154,7 @@
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
-    <jackson.version>2.11.3</jackson.version>
+    <jackson.version>2.12.6.1</jackson.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
