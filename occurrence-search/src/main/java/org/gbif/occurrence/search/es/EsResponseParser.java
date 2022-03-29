@@ -555,7 +555,7 @@ public class EsResponseParser {
     if (IS_NESTED.test(esField.getValueFieldName())) {
       // take all paths till the field name
       String[] paths = esField.getValueFieldName().split("\\.");
-      for (int i = 0; i < paths.length - 1 && fields.containsKey(paths[i]); i++) {
+      for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
         // update the fields with the current path
         fields = (Map<String, Object>) fields.get(paths[i]);
       }
