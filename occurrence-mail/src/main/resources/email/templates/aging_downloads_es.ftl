@@ -8,14 +8,14 @@
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  If data from a download have been used in a publication (journal article, thesis etc.) please inform us by clicking the button “Tell us about usage” on each download page.
-  <em>We are not aware of any published work using these downloads.</em>
+  Si los datos de una descarga se han utilizado en una publicación (artículo de revista, tesis, etc.), "Cuéntanos sobre el uso" haciendo clic en el botón en cada página de descarga.
+  <em>No tenemos conocimiento de ningún trabajo publicado que utilice estas descargas.</em>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  GBIF keep user downloads for 6 months, after which they may be deleted.
-  When a download is deleted, the CSV or Darwin Core Archive file is erased, but the download page showing the query and datasets used in the download is retained.
-  The DOI is also kept, and is the preferred way to cite downloads.
+  GBIF mantiene las descargas de los usuarios durante 6 meses, tras los cuales pueden ser eliminadas.
+  Cuando se elimina una descarga, se borra el archivo CSV o Darwin Core Archive, pero se conserva la página de descarga que muestra la consulta y los conjuntos de datos utilizados en la descarga.
+  El DOI también se mantiene, y es la forma preferida de citar las descargas.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -26,19 +26,19 @@
 <#list downloads as d>
   <li><p>DOI: <a href="${d.download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${d.download.doi.getUrl()}</a>
     <br>
-    Download page: <a href="${portal}occurrence/download/${d.download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${d.download.key}</a>
+    Página de descarga: <a href="${portal}occurrence/download/${d.download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${d.download.key}</a>
     <br>
-    Time download requested: ${d.download.created?datetime}
+    Hora de la descarga solicitada: ${d.download.created?datetime}
     <#if d.download.totalRecords &gt; 0>
     <br>
-    Number of occurrence records: ${d.download.totalRecords?string.number} from ${(d.download.numberDatasets!0)?string.number} published datasets
+    Número de registros biológicos: ${d.download.totalRecords?string.number} de ${(d.download.numberDatasets!0)?string.number} conjuntos de datos publicados
     </#if>
   </p></li>
 </#list>
 </ul>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Please contact <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> if you have questions regarding the contents of this email, or refer to the <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">FAQ</a>.
+  Por favor, póngase en contacto con <a href="mailto:helpdesk@gbif.org" style="color: #4ba2ce;text-decoration: none;">helpdesk@gbif.org</a> si tiene preguntas sobre el contenido de este correo electrónico, o consulte la sección <a href="${portal}faq/?question=for-how-long-will-does-gbif-store-downloads" style="color: #4ba2ce;text-decoration: none;">FAQ</a>.
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
