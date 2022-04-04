@@ -28,7 +28,8 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -124,8 +125,8 @@ public class PredicateFactory {
     }
   }
 
-  private static String toIsoDate(Date d) {
-    return new SimpleDateFormat("yyyy-MM-dd").format(d);
+  private static String toIsoDate(LocalDate d) {
+    return d.format(DateTimeFormatter.ISO_DATE);
   }
 
   /**
@@ -157,8 +158,8 @@ public class PredicateFactory {
         range = SearchTypeValidator.parseDateRange(value);
         // convert date instances back to strings, but keep the new precision which is now always up to the day!
         range = Range.closed(
-          range.hasLowerBound() ? toIsoDate((Date) range.lowerEndpoint()) : null,
-          range.hasUpperBound() ? toIsoDate((Date) range.upperEndpoint()) : null
+          range.hasLowerBound() ? toIsoDate((LocalDate) range.lowerEndpoint()) : null,
+          range.hasUpperBound() ? toIsoDate((LocalDate) range.upperEndpoint()) : null
           );
       } else {
         throw new IllegalArgumentException(
