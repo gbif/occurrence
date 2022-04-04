@@ -567,6 +567,9 @@ public class EsResponseParser {
   }
 
   private static <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
+    if (fields == null || fieldName == null || mapper == null) {
+      return Optional.empty();
+    }
     return Optional.ofNullable(fields.get(fieldName))
       .map(String::valueOf)
       .filter(v -> !v.isEmpty())
