@@ -1,34 +1,37 @@
-# GBIF Public Datasets on Amazon Web Services
+# GBIF Public Datasets on Google Cloud
 
-This describes the format and gives simple examples for getting started with the GBIF monthly snapshots stored on AWS.
+DRAFT/IN DEVELOPMENT.
 
-## Data format
+This describes the format and gives simple examples for getting started with the GBIF monthly snapshots stored on Google Cloud.
 
-Data are stored in Parquet format files in AWS S3 in five regions: af-south-1, ap-southeast-2, eu-central-1, sa-east-1 and us-east-1.  The buckets are as follows:
+## BigQuery
 
-| Region         | S3 URI                                | Amazon Resource Name (ARN)                   | Browse                                                                                     |
-|----------------|---------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------|
-| af-south-1     | `s3://gbif-open-data-af-south-1/`     | `arn:aws:s3:::gbif-open-data-af-south-1`     | [Browse](https://gbif-open-data-af-south-1.s3.af-south-1.amazonaws.com/index.html)         |
-| ap-southeast-2 | `s3://gbif-open-data-ap-southeast-2/` | `arn:aws:s3:::gbif-open-data-ap-southeast-2` | [Browse](https://gbif-open-data-ap-southeast-2.s3.ap-southeast-2.amazonaws.com/index.html) |
-| eu-central-1   | `s3://gbif-open-data-eu-central-1/`   | `arn:aws:s3:::gbif-open-data-eu-central-1`   | [Browse](https://gbif-open-data-eu-central-1.s3.eu-central-1.amazonaws.com/index.html)     |
-| sa-east-1      | `s3://gbif-open-data-sa-east-1/`      | `arn:aws:s3:::gbif-open-data-sa-east-1`      | [Browse](https://gbif-open-data-sa-east-1.s3.sa-east-1.amazonaws.com/index.html)           |
-| us-east-1      | `s3://gbif-open-data-us-east-1/`      | `arn:aws:s3:::gbif-open-data-us-east-1`      | [Browse](https://gbif-open-data-us-east-1.s3.us-east-1.amazonaws.com/index.html)           |
+The latest snapshot is available as a public dataset in Google BigQuery.  See the [BigQuery description][https://console.cloud.google.com/marketplace/product/gbif/gbif-occurences].
 
-Within that bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.
+The snapshot includes all CC0, CC-BY and CC-BY-NC licensed occurrence data published through GBIF.
 
-The snapshot includes all CC0, CC-BY and CC-BY-NC licensed data published through GBIF.
+## Cloud Storage
+
+Periodic snapshots since April 2021 are stored as public data in GCS in the bucket `public-datasets-gbif`.
+
+Within the bucket, the periodic occurrence snapshots are stored in `occurrence/YYYY-MM-DD`, where `YYYY-MM-DD` corresponds to the date of the snapshot.  Data are stored in Parquet format, described below.
+
+The snapshot includes all CC0, CC-BY and CC-BY-NC licensed occurrence data published through GBIF.
 
 Each snapshot contains a `citation.txt` with instructions on how best to cite the data, and the data files themselves in Parquet format: `occurrence.parquet/*`.
 
 Therefore, the data files for the first snapshot are at
 
-`s3://gbif-open-data-REGION/occurrence/2021-04-13/occurrence.parquet/*`
+`gs://public-datasets-gbif/occurrence/2021-04-13/occurrence.parquet/*`
 
 and the citation information is at
 
-`s3://gbif-open-data-REGION/occurrence/2021-04-13/citation.txt`
+`gs://public-datasets-gbif/occurrence/2021-04-13/citation.txt`
+
+## Schema
 
 The Parquet file schema is described here.
+
 Most field names correspond to [terms from the Darwin Core standard](https://dwc.tdwg.org/terms/), and have been interpreted by GBIF's systems to align taxonomy, location, dates etc.
 Additional information may be retrived using the [GBIF API](https://www.gbif.org/developer/summary).
 
@@ -91,128 +94,17 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 
 ³ The array may be empty.
 
-## Getting started with Python
+## Getting started with BigQuery
 
-You will need to install the libraries, for example using PIP (`pip install boto3 pyarrow`).  You can then run this Python script:
+BigQuery provides a pay-per-query SQL service on Google Cloud, particularly well suited for producing summary counts from GBIF data.
+The following steps describe how to get started using BigQuery on the GBIF dataset.
 
-```python
-import io
-import boto3
-import botocore
-from botocore import UNSIGNED
-from botocore.config import Config
-import pyarrow.parquet as pq
-
-BUCKET_NAME = 'gbif-open-data-us-east-1'
-# Just read a single (~100MB) chunk of the table
-PATH = 'occurrence/2021-04-13/occurrence.parquet/000000'
-
-buffer = io.BytesIO()
-s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
-s3_object = s3.Object(BUCKET_NAME, PATH)
-s3_object.download_fileobj(buffer)
-
-table = pq.read_table(buffer)
-df = table.to_pandas()
-df.head()
-
-df.groupby(by='kingdom')['gbifid'].count().reset_index(name='count').sort_values(['count'], ascending=False)
-```
-
-Output:
-
-```
-       gbifid                            datasetkey  ... mediatype                                              issue
-0  2305838350  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
-1  2305838837  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
-2  2305839278  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
-3  2305839610  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
-4  2305840564  ad43e954-dd79-4986-ae34-9ccdbd8bf568  ...        []  [COUNTRY_DERIVED_FROM_COORDINATES, GEODETIC_DA...
-
-          kingdom    count
-0        Animalia  1017889
-8  incertae sedis   168685
-5         Plantae    70203
-4           Fungi    23234
-2        Bacteria    16506
-3       Chromista     8389
-7         Viruses     3549
-1         Archaea     1398
-6        Protozoa      658
-```
-
-## Getting started with Athena
-
-Athena provides a pay-per-query SQL service on Amazon, particularly well suited for producing summary counts from GBIF data.
-The following steps describe how to get started using Athena on the GBIF dataset.
-
-1. Create an S3 bucket in one of the five regions above to store the results of the queries you will execute
-2. Open Athena and change to that region
-3. Follow the prompt to choose the location where query results should be stored
-4. Create a table, by pasting the following command in the query window (change the location to use the snapshot of interest to you, and change `us-east-1` to the region you are using)
+1. Open the [GBIF Occurrences dataset in BigQuery](https://console.cloud.google.com/bigquery?p=public-datasets-gbif&d=gbif-occurrences&page=dataset)
+2. Run a query, by pasting the following command in the editor window
 
 ```sql
-CREATE EXTERNAL TABLE gbif_20210413 (
-  `gbifid` bigint,
-  `datasetkey` string,
-  `occurrenceid` string,
-  `kingdom` string,
-  `phylum` string,
-  `class` string,
-  `order` string,
-  `family` string,
-  `genus` string,
-  `species` string,
-  `infraspecificepithet` string,
-  `taxonrank` string,
-  `scientificname` string,
-  `verbatimscientificname` string,
-  `verbatimscientificnameauthorship` string,
-  `countrycode` string,
-  `locality` string,
-  `stateprovince` string,
-  `occurrencestatus` string,
-  `individualcount` int,
-  `publishingorgkey` string,
-  `decimallatitude` double,
-  `decimallongitude` double,
-  `coordinateuncertaintyinmeters` double,
-  `coordinateprecision` double,
-  `elevation` double,
-  `elevationaccuracy` double,
-  `depth` double,
-  `depthaccuracy` double,
-  `eventdate` string,
-  `day` int,
-  `month` int,
-  `year` int,
-  `taxonkey` int,
-  `specieskey` int,
-  `basisofrecord` string,
-  `institutioncode` string,
-  `collectioncode` string,
-  `catalognumber` string,
-  `recordnumber` string,
-  `identifiedby` string,
-  `dateidentified` string,
-  `license` string,
-  `rightsholder` string,
-  `recordedby` string,
-  `typestatus` string,
-  `establishmentmeans` string,
-  `lastinterpreted` string,
-  `mediatype` array<string>,
-  `issue` array<string>)
-STORED AS parquet
-LOCATION
-  's3://gbif-open-data-us-east-1/occurrence/2021-04-13/occurrence.parquet/';
-```
-
-5. Execute a query
-
-```
 SELECT kingdom, count(*) AS c
-FROM gbif_20210413
+FROM `bigquery-public-data.gbif.occurrences`
 GROUP BY kingdom;
 ```
 
@@ -230,36 +122,26 @@ Results:
 | 8 | Protozoa       | 793176     |
 | 9 | Chromista      | 9440667    |
 
-5. Your results should show in the browser, and will also be stored as CSV data in the S3 bucket you created
-6. The amount of data scanned will be shown, which is used to calculate the billing (44.89MB, which is a fraction of a cent for this query, see [Amazon Athena pricing](https://aws.amazon.com/athena/pricing/))
+3. Your results should show in the browser, and can also be saved in Google Drive, as CSV, as a new BigQuery table etc.
+4. The amount of data scanned will be shown under "Execution Details", which is used to calculate the billing.
 
 ## Downloading/mirroring the data
 
 A monthly snapshot is roughly 180GB in size.
 
-The AWS buckets are public, and can be accessed anonymously using the [S3 API](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html), [AWS CLI tool](https://aws.amazon.com/cli/), or tools like [rclone](https://rclone.org).
+The GCS buckets are public, and can be accessed anonymously using the [GCS APIs](https://cloud.google.com/storage/docs/apis), [gsutil CLI tool](https://cloud.google.com/storage/docs/gsutil), or tools like [rclone](https://rclone.org).
 
 ```
-# AWS CLI
-aws --no-sign-request --region eu-central-1 s3 ls s3://gbif-open-data-eu-central-1/occurrence/
+# gcloud CLI
+gsutil ls gs://public-datasets-gbif/occurrence/
 
 # rclone configuration
-[anons3]
-type = s3
-provider = AWS
-env_auth = false
-access_key_id =
-secret_access_key =
-region = eu-central-1
-endpoint =
-location_constraint =
-acl = private
-server_side_encryption =
-storage_class =
+[gcs]
+type = google cloud storage
+project_number = [set by you]
+service_account_file = [set by you]
 
 # rclone commands
-rclone ls anons3:gbif-open-data-eu-central-1
-rclone sync -v anons3:gbif-open-data-eu-central-1/occurrence/2021-04-13/ ./gbif_2021-04-13/
+rclone ls gcs:public-datasets-gbif
+rclone sync -v gcs:public-datasets-gbif/occurrence/2021-04-13/ ./gbif_2021-04-13/
 ```
-
-The SNS endpoints can be used to follow changes.
