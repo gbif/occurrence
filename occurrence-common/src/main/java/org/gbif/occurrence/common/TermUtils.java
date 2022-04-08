@@ -139,7 +139,8 @@ public class TermUtils {
       GbifTerm.canonicalName,
       GbifTerm.nameType,
       GbifTerm.verbatimLabel,
-      GbifTerm.infraspecificMarker);
+      GbifTerm.infraspecificMarker,
+      GbifTerm.eventType);
 
     //We should handle deprecated terms here. Waiting for https://dev.gbif.org/issues/browse/GBIF-132/
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))

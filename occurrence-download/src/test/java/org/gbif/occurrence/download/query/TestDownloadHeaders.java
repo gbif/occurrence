@@ -34,19 +34,9 @@ public class TestDownloadHeaders {
 
   @Test
   public void testTermsConsistency(){
-    Set<Term> interpretedFromTermUtils = Sets.newHashSet(TermUtils.interpretedTerms());
-    Set<Term> interpretedFromTerms = Sets.newHashSet(TermUtils.interpretedTerms());
-
-    Set<Term> diff = Sets.symmetricDifference(interpretedFromTermUtils, interpretedFromTerms);
-    assertEquals(0, diff.size(),
-                 "TermUtils.interpretedTerms() and Terms.interpretedTerms() must use the same terms. Difference(s): " +
-                                 diff);
-
-    Set<Term> hdfsTerms = DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS;
-    diff = Sets.newHashSet(Sets.symmetricDifference(interpretedFromTermUtils, hdfsTerms));
+    Set<Term> diff = Sets.newHashSet(Sets.symmetricDifference(Sets.newHashSet(TermUtils.interpretedTerms()),
+                                                              DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS));
     diff.remove(GbifTerm.gbifID);
-    diff.remove(GbifTerm.mediaType);
-    diff.remove(GbifTerm.numberOfOccurrences);
     diff.remove(GbifTerm.verbatimScientificName);
     assertEquals(0, diff.size(),
                  "TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
