@@ -268,6 +268,16 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return suggestTermByField(prefix, OccurrenceSearchParameter.PARENT_EVENT_ID, limit);
   }
 
+  @Override
+  public List<String> suggestOtherCatalogNumbers(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, limit);
+  }
+
+  @Override
+  public List<String> suggestDatasetName(@Min(1L) String prefix, @Nullable Integer limit) {
+    return suggestTermByField(prefix, OccurrenceSearchParameter.DATASET_NAME, limit);
+  }
+
   private SearchRequest buildSearchRequest(SearchSourceBuilder searchSourceBuilder) {
     return new SearchRequest(new String[]{esIndex}, searchSourceBuilder);
   }

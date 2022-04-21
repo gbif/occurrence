@@ -9,6 +9,7 @@ CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF'
 CREATE TEMPORARY FUNCTION geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
 CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
+CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
@@ -24,7 +25,7 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 -- The schema could be programatically generated, but it seems useful to have something in the codebase to refer to.
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/map-of-life.avsc');
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/iucn.avsc');
 
 INSERT INTO ${r"${occurrenceTable}"}
 SELECT

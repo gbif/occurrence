@@ -139,7 +139,8 @@ public class TermUtils {
       GbifTerm.canonicalName,
       GbifTerm.nameType,
       GbifTerm.verbatimLabel,
-      GbifTerm.infraspecificMarker);
+      GbifTerm.infraspecificMarker,
+      GbifTerm.eventType);
 
     //We should handle deprecated terms here. Waiting for https://dev.gbif.org/issues/browse/GBIF-132/
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
@@ -210,7 +211,15 @@ public class TermUtils {
                                                                           GbifInternalTerm.networkKey,
                                                                           DwcTerm.identifiedByID,
                                                                           DwcTerm.recordedByID,
-                                                                          GbifInternalTerm.dwcaExtension);
+                                                                          GbifInternalTerm.dwcaExtension,
+                                                                          DwcTerm.datasetName,
+                                                                          DwcTerm.datasetID,
+                                                                          DwcTerm.typeStatus,
+                                                                          DwcTerm.otherCatalogNumbers,
+                                                                          DwcTerm.recordedBy,
+                                                                          DwcTerm.identifiedBy,
+                                                                          DwcTerm.preparations,
+                                                                          DwcTerm.samplingProtocol);
 
   private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
                                                                                 DwcTerm.decimalLongitude,
@@ -313,7 +322,14 @@ public class TermUtils {
       GbifInternalTerm.networkKey,
       GbifTerm.mediaType,
       DcTerm.license,
-      DwcTerm.occurrenceStatus);
+      DwcTerm.occurrenceStatus,
+      DwcTerm.datasetID,
+      DwcTerm.datasetName,
+      DwcTerm.otherCatalogNumbers,
+      DwcTerm.recordedBy,
+      DwcTerm.identifiedBy,
+      DwcTerm.preparations,
+      DwcTerm.samplingProtocol);
   }
 
   /**

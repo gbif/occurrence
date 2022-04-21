@@ -20,6 +20,7 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
@@ -34,6 +35,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
@@ -47,12 +53,6 @@ import org.locationtech.spatial4j.shape.jts.JtsGeometry;
 import org.opengis.feature.type.GeometryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import static org.gbif.api.util.IsoDateParsingUtils.ISO_DATE_FORMATTER;
 
@@ -90,7 +90,7 @@ public class HiveQueryVisitor {
   private static final String ALL_QUERY = "true";
 
   private static final Function<Term, String> ARRAY_FN = t ->
-    "array_contains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s')";
+    "stringArrayContains(" + HiveColumnsUtils.getHiveQueryColumn(t) + ",'%s',%b)";
 
   private static final String HIVE_ARRAY_PRE = "ARRAY";
 
@@ -194,7 +194,25 @@ public class HiveQueryVisitor {
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, GbifInternalTerm.isInCluster)
       .put(OccurrenceSearchParameter.DWCA_EXTENSION, GbifInternalTerm.dwcaExtension)
       .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, IucnTerm.iucnRedListCategory)
+      .put(OccurrenceSearchParameter.DATASET_ID, DwcTerm.datasetID)
+      .put(OccurrenceSearchParameter.DATASET_NAME, DwcTerm.datasetName)
+      .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, DwcTerm.otherCatalogNumbers)
+      .put(OccurrenceSearchParameter.PREPARATIONS, DwcTerm.preparations)
       .build();
+
+  private static final Map<OccurrenceSearchParameter, Term> ARRAY_STRING_TERMS =
+    ImmutableMap.<OccurrenceSearchParameter, Term>builder()
+      .put(OccurrenceSearchParameter.NETWORK_KEY,GbifInternalTerm.networkKey)
+      .put(OccurrenceSearchParameter.DWCA_EXTENSION,GbifInternalTerm.dwcaExtension)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID,DwcTerm.identifiedByID)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID,DwcTerm.recordedByID)
+      .put(OccurrenceSearchParameter.DATASET_ID,DwcTerm.datasetID)
+      .put(OccurrenceSearchParameter.DATASET_NAME,DwcTerm.datasetName)
+      .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS,DwcTerm.otherCatalogNumbers)
+      .put(OccurrenceSearchParameter.RECORDED_BY,DwcTerm.recordedBy)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY,DwcTerm.identifiedBy)
+      .put(OccurrenceSearchParameter.PREPARATIONS,DwcTerm.preparations)
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL,DwcTerm.samplingProtocol).build();
 
   private final Joiner commaJoiner = Joiner.on(", ").skipNulls();
 
@@ -324,20 +342,16 @@ public class HiveQueryVisitor {
       appendGadmGidFilter(predicate.getValue());
     } else if (OccurrenceSearchParameter.MEDIA_TYPE == predicate.getKey()) {
       Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), MediaType.class))
-        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name())));
+        .ifPresent(mediaType -> builder.append(String.format(ARRAY_FN.apply(GbifTerm.mediaType), mediaType.name(), true)));
+    } else if (OccurrenceSearchParameter.TYPE_STATUS == predicate.getKey()) {
+      Optional.ofNullable(VocabularyUtils.lookupEnum(predicate.getValue(), TypeStatus.class))
+        .ifPresent(typeStatus -> builder.append(String.format(ARRAY_FN.apply(DwcTerm.typeStatus), typeStatus.name(), true)));
     } else if (OccurrenceSearchParameter.ISSUE == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase()));
-    } else if (OccurrenceSearchParameter.NETWORK_KEY == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.networkKey), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.DWCA_EXTENSION == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(GbifInternalTerm.dwcaExtension), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.IDENTIFIED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(DwcTerm.identifiedByID), predicate.getValue()));
-    } else if (OccurrenceSearchParameter.RECORDED_BY_ID == predicate.getKey()) {
-      builder.append(String.format(ARRAY_FN.apply(DwcTerm.recordedByID), predicate.getValue()));
+      builder.append(String.format(ARRAY_FN.apply(GbifTerm.issue), predicate.getValue().toUpperCase(), true));
+    } else if (ARRAY_STRING_TERMS.containsKey(predicate.getKey())) {
+      builder.append(String.format(ARRAY_FN.apply(ARRAY_STRING_TERMS.get(predicate.getKey())), predicate.getValue(), predicate.isMatchCase()));
     } else if (TermUtils.isVocabulary(term(predicate.getKey()))) {
-      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue()));
-
+      builder.append(String.format(ARRAY_FN.apply(term(predicate.getKey())), predicate.getValue(), true));
     } else if (Date.class.isAssignableFrom(predicate.getKey().type())) {
       // Dates may contain a range even for an EqualsPredicate (e.g. "2000" or "2000-02")
       // The user's query value is inclusive, but the parsed dateRange is exclusive of the

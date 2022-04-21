@@ -37,8 +37,6 @@ AS SELECT
   array_contains(mediaType, 'StillImage') AS hasImage,
   kingdom,
   family,
-  recordedBy,
-  identifiedBy,
   scientificName,
   -- Verbatim terms
   v_occurrenceID,

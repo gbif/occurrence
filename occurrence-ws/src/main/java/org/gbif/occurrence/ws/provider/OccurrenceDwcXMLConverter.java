@@ -74,6 +74,13 @@ public class OccurrenceDwcXMLConverter {
       appendIfNotNull(dwcXMLDocument, DwcTerm.sex, occurrence.getSex());
       appendIfNotNull(dwcXMLDocument, DwcTerm.lifeStage, occurrence.getLifeStage());
       appendIfNotNull(dwcXMLDocument, DwcTerm.establishmentMeans, occurrence.getEstablishmentMeans());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.datasetID, occurrence.getDatasetID());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.datasetName, occurrence.getDatasetName());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.otherCatalogNumbers, occurrence.getOtherCatalogNumbers());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.identifiedBy, occurrence.getIdentifiedBy());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.recordedBy, occurrence.getRecordedBy());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.preparations, occurrence.getPreparations());
+      appendIfNotNull(dwcXMLDocument, DwcTerm.samplingProtocol, occurrence.getSamplingProtocol());
 
       appendIfNotNull(dwcXMLDocument, GbifTerm.taxonKey, occurrence.getTaxonKey());
       appendIfNotNull(dwcXMLDocument, GbifTerm.kingdomKey, occurrence.getKingdomKey());

@@ -56,7 +56,15 @@ public final class HiveDataTypes {
       GbifInternalTerm.networkKey,
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
-      GbifInternalTerm.dwcaExtension
+      GbifInternalTerm.dwcaExtension,
+      DwcTerm.typeStatus,
+      DwcTerm.datasetID,
+      DwcTerm.datasetName,
+      DwcTerm.recordedBy,
+      DwcTerm.identifiedBy,
+      DwcTerm.otherCatalogNumbers,
+      DwcTerm.preparations,
+      DwcTerm.samplingProtocol
     );
 
   // dates are all stored as BigInt

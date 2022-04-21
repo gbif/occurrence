@@ -101,16 +101,22 @@ public class HiveColumnsUtils {
     return TermUtils.isInterpretedLocalDate(term) || TermUtils.isInterpretedUtcDate(term);
   }
 
-  /**
-   * Checks if the term is stored as an Hive array.
-   */
+  /** Checks if the term is stored as an Hive array. */
   public static boolean isHiveArray(Term term) {
     return GbifTerm.mediaType == term
-      || GbifTerm.issue == term
-      || GbifInternalTerm.networkKey == term
-      || DwcTerm.identifiedByID == term
-      || DwcTerm.recordedByID ==  term
-      || GbifInternalTerm.dwcaExtension == term;
+        || GbifTerm.issue == term
+        || GbifInternalTerm.networkKey == term
+        || DwcTerm.identifiedByID == term
+        || DwcTerm.recordedByID == term
+        || GbifInternalTerm.dwcaExtension == term
+        || DwcTerm.datasetID == term
+        || DwcTerm.datasetName == term
+        || DwcTerm.typeStatus == term
+        || DwcTerm.otherCatalogNumbers == term
+        || DwcTerm.recordedBy == term
+        || DwcTerm.identifiedBy == term
+        || DwcTerm.preparations == term
+        || DwcTerm.samplingProtocol == term;
   }
 
   /**

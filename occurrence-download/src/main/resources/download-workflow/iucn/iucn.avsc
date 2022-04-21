@@ -68,20 +68,20 @@
     {"name": "catalogNumber", "type": ["null", "string"], "default": null },
     {"name": "recordNumber", "type": ["null", "string"], "default": null },
 
-    {"name": "identifiedBy", "type": ["null", "string"], "default": null },
+    {"name": "identifiedBy", "type": {"type" : "array", "items" : "string"}, "default": null },
     {"name": "dateIdentified", "type": ["null", "string"], "default": null },
 
     {"name": "license", "type": ["null", "string"], "default": null },
     {"name": "rightsHolder", "type": ["null", "string"], "default": null },
-    {"name": "recordedBy", "type": ["null", "string"], "default": null },
+    {"name": "recordedBy", "type": {"type" : "array", "items" : "string"}, "default": null },
 
-    {"name": "typeStatus", "type": ["null", "string"], "default": null },
+    {"name": "typeStatus", "type": {"type" : "array", "items" : "string"}, "default": null },
     {"name": "establishmentMeans", "type": ["null", "string"], "default": null },
 
     {"name": "sampleSizeUnit", "type": ["null", "string"], "default": null },
     {"name": "sampleSizeValue", "type": ["null", "string"], "default": null },
     {"name": "samplingEffort", "type": ["null", "string"], "default": null },
-    {"name": "samplingProtocol", "type": ["null", "string"], "default": null },
+    {"name": "samplingProtocol", "type": {"type" : "array", "items" : "string"}, "default": null },
 
     {"name": "lastInterpreted", "type": ["null", "string"], "default": null },
     {"name": "mediaType", "type": {"type": "array", "items": "string"}, "default": null },

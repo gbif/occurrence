@@ -141,7 +141,7 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
           }
           // check if we should start a m/r job to update occurrence records
           if (occurrenceMutator.requiresUpdate(oldDataset, newDataset)) {
-            LOG.info("Sending medatada update for dataset [{}]", newDataset.getKey());
+            LOG.info("Sending metadata update for dataset [{}]", newDataset.getKey());
             Optional<String> changedMessage = occurrenceMutator.generateUpdateMessage(oldDataset, newDataset);
 
             // send message to pipelines
@@ -327,13 +327,12 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
         changedMessage);
 
     try {
-      PipelinesVerbatimMessage message =
-          new PipelinesVerbatimMessage(
-              dataset.getKey(),
-              null,
-              interpretations,
-              Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX", "HDFS_VIEW"),
-              endpoint.get().getType());
+      PipelinesVerbatimMessage message = new PipelinesVerbatimMessage();
+      message.setDatasetUuid(dataset.getKey());
+      message.setInterpretTypes(interpretations);
+      message.setPipelineSteps(Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX", "HDFS_VIEW"));
+      message.setEndpointType(endpoint.get().getType());
+      message.setValidator(false);
 
       messagePublisher.send(
         new PipelinesBalancerMessage(message.getClass().getSimpleName(), message.toString()));
