@@ -49,18 +49,17 @@ public class OccurrenceHDFSTableDefinition {
 
   private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
 
-  private static final Set<Term> ARRAYS_WITH_DIRTY_VALUES =
-    ImmutableSet.of(
-      DwcTerm.recordedByID,
-      DwcTerm.identifiedByID,
-      DwcTerm.datasetID,
-      DwcTerm.datasetName,
-      DwcTerm.recordedBy,
-      DwcTerm.identifiedBy,
-      DwcTerm.otherCatalogNumbers,
-      DwcTerm.preparations,
-      DwcTerm.samplingProtocol
-    );
+  private static final Set<Term> ARRAYS_FROM_VERBATIM_VALUES =
+      ImmutableSet.of(
+          DwcTerm.recordedByID,
+          DwcTerm.identifiedByID,
+          DwcTerm.datasetID,
+          DwcTerm.datasetName,
+          DwcTerm.recordedBy,
+          DwcTerm.identifiedBy,
+          DwcTerm.otherCatalogNumbers,
+          DwcTerm.preparations,
+          DwcTerm.samplingProtocol);
 
   /**
    * Utility class used in the Freemarker template that generates  Hive tables for extensions.
@@ -275,7 +274,7 @@ public class OccurrenceHDFSTableDefinition {
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
     }
     if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))
-        && ARRAYS_WITH_DIRTY_VALUES.contains(term)) {
+        && ARRAYS_FROM_VERBATIM_VALUES.contains(term)) {
       return interpretedField(term, cleanDelimitersArrayInitializer(HiveColumns.columnFor(term))); // no initializer
     }
 
