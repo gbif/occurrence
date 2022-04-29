@@ -14,10 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -51,6 +48,19 @@ import com.google.common.reflect.ClassPath;
 public class OccurrenceHDFSTableDefinition {
 
   private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
+
+  private static final Set<Term> ARRAYS_WITH_DIRTY_VALUES =
+    ImmutableSet.of(
+      DwcTerm.recordedByID,
+      DwcTerm.identifiedByID,
+      DwcTerm.datasetID,
+      DwcTerm.datasetName,
+      DwcTerm.recordedBy,
+      DwcTerm.identifiedBy,
+      DwcTerm.otherCatalogNumbers,
+      DwcTerm.preparations,
+      DwcTerm.samplingProtocol
+    );
 
   /**
    * Utility class used in the Freemarker template that generates  Hive tables for extensions.
@@ -264,7 +274,8 @@ public class OccurrenceHDFSTableDefinition {
     if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
     }
-    if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
+    if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))
+        && ARRAYS_WITH_DIRTY_VALUES.contains(term)) {
       return interpretedField(term, cleanDelimitersArrayInitializer(HiveColumns.columnFor(term))); // no initializer
     }
 
