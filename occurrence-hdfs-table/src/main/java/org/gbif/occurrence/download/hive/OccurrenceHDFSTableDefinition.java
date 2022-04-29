@@ -123,6 +123,10 @@ public class OccurrenceHDFSTableDefinition {
     return "cleanDelimiters(" + column + ") AS " + column;
   }
 
+  private static String cleanDelimitersArrayInitializer(String column) {
+    return "cleanDelimitersArray(" + column + ") AS " + column;
+  }
+
   /**
    * Assemble the mapping for interpreted fields, taking note that in reality, many are mounted onto the verbatim
    * columns.
@@ -260,6 +264,10 @@ public class OccurrenceHDFSTableDefinition {
     if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
       return interpretedField(term, cleanDelimitersInitializer(HiveColumns.columnFor(term))); // no initializer
     }
+    if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
+      return interpretedField(term, cleanDelimitersArrayInitializer(HiveColumns.columnFor(term))); // no initializer
+    }
+
     return interpretedField(term, null); // no initializer
   }
 
