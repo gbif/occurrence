@@ -306,6 +306,7 @@ public class HiveQueryVisitor {
     // - on the same search parameter.
 
     boolean useIn = true;
+    Boolean matchCase = null;
     List<String> values = new ArrayList<>();
     OccurrenceSearchParameter parameter = null;
 
@@ -314,7 +315,8 @@ public class HiveQueryVisitor {
         EqualsPredicate equalsSubPredicate = (EqualsPredicate) subPredicate;
         if (parameter == null) {
           parameter = equalsSubPredicate.getKey();
-        } else if (parameter != equalsSubPredicate.getKey()) {
+          matchCase = equalsSubPredicate.isMatchCase();
+        } else if (parameter != equalsSubPredicate.getKey() || matchCase != equalsSubPredicate.isMatchCase()) {
           useIn = false;
           break;
         }
@@ -326,7 +328,7 @@ public class HiveQueryVisitor {
     }
 
     if (useIn) {
-      visit(new InPredicate(parameter, values, false));
+      visit(new InPredicate(parameter, values, matchCase));
     } else {
       visitCompoundPredicate(predicate, DISJUNCTION_OPERATOR);
     }
