@@ -40,30 +40,10 @@ class ParquetQueries extends Queries {
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isInterpretedLocalDate(term)) {
-      return toLocalISO8601Initializer(term);
-    } else if (TermUtils.isInterpretedUtcDate(term)) {
-      return toISO8601Initializer(term);
-    } else if (TermUtils.isVocabulary(term)) {
+    if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);
     } else {
       return HiveColumns.columnFor(term);
     }
-  }
-
-  /**
-   * Transforms the term into toISO8601(hiveColumn) expression.
-   */
-  protected static String toISO8601Initializer(Term term) {
-    final String column = HiveColumns.columnFor(term);
-    return "toISO8601(" + column + ")";
-  }
-
-  /**
-   * Transforms the term into toLocalISO8601(hiveColumn) expression.
-   */
-  protected static String toLocalISO8601Initializer(Term term) {
-    final String column = HiveColumns.columnFor(term);
-    return "toLocalISO8601(" + column + ")";
   }
 }
