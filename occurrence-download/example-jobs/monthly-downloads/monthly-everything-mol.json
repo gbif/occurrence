@@ -1,5 +1,5 @@
 {
-  "creator": "download.gbif.org",
+  "creator": "mol",
   "notification_address": ["mblissett@gbif.org"],
   "format": "MAP_OF_LIFE",
   "sendNotification": true

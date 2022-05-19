@@ -13,7 +13,9 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 
 /**
@@ -23,7 +25,19 @@ class ParquetSchemaQueries extends Queries {
 
   @Override
   String toHiveDataType(Term term) {
-    return HiveDataTypes.typeForTerm(term, false);
+    if (DwcTerm.establishmentMeans.equals(term)) {
+      // Just using the main establishmentMeans, not the whole lineage.
+      // (Inform Google BigQuery before changing.)
+      return HiveDataTypes.TYPE_STRING;
+    } else if (TermUtils.isInterpretedLocalDate(term)) {
+      return HiveDataTypes.TYPE_TIMESTAMP;
+    } else if (TermUtils.isInterpretedUtcDate(term)) {
+      return HiveDataTypes.TYPE_TIMESTAMP;
+    } else if (TermUtils.isVocabulary(term)) {
+      return HiveDataTypes.TYPE_ARRAY_STRING;
+    } else {
+      return HiveDataTypes.typeForTerm(term, false);
+    }
   }
 
   @Override

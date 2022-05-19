@@ -9,8 +9,6 @@ SET hive.merge.mapfiles=false;
 -- Increases memory to avoid a "Container … is running beyond physical memory limits." error.
 SET mapreduce.map.memory.mb=8192;
 
-CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
-CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
 CREATE TEMPORARY FUNCTION geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
 CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
@@ -20,10 +18,16 @@ DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
 DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
-CREATE TABLE ${r"${occurrenceTable}"}
+CREATE TABLE ${r"${occurrenceTable}"} (
+<#list parquetFields as key, field>
+  `${field.hiveField}` ${field.hiveDataType}<#if key_has_next>,</#if>
+</#list>
+)
 STORED AS PARQUET
-TBLPROPERTIES ("parquet.compression"="SNAPPY")
-AS SELECT
+TBLPROPERTIES ("parquet.compression"="SNAPPY");
+
+INSERT INTO ${r"${occurrenceTable}"}
+SELECT
 <#list hiveFields as key, field>
   ${field.hiveField} AS ${parquetFields[key].hiveField}<#if key_has_next>,</#if>
 </#list>
