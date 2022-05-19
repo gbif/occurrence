@@ -1,12 +1,10 @@
 # GBIF Public Datasets on Google Cloud
 
-DRAFT/IN DEVELOPMENT.
-
 This describes the format and gives simple examples for getting started with the GBIF monthly snapshots stored on Google Cloud.
 
 ## BigQuery
 
-The latest snapshot is available as a public dataset in Google BigQuery.  See the [BigQuery description][https://console.cloud.google.com/marketplace/product/gbif/gbif-occurences].
+The latest snapshot is available as a public dataset in Google BigQuery.  See the [BigQuery description](https://console.cloud.google.com/marketplace/product/gbif/gbif-occurrences).
 
 The snapshot includes all CC0, CC-BY and CC-BY-NC licensed occurrence data published through GBIF.
 
@@ -56,7 +54,7 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 | verbatimscientificnameauthorship | String        | Y        | The scientific name authorship provided by the data publisher. |
 | taxonkey                         | Integer       | Y        | The numeric identifier for the [taxon](https://www.gbif.org/developer/species#nameUsages) in GBIF's backbone taxonomy corresponding to `scientificname`. |
 | specieskey                       | Integer       | Y        | The numeric identifier for the taxon in GBIF's backbone taxonomy corresponding to `species`. |
-| typestatus                       | String        | Y        | See [dwc:typeStatus](https://dwc.tdwg.org/terms/#typeStatus). |
+| typestatus                       | String array  | N³       | See [dwc:typeStatus](https://dwc.tdwg.org/terms/#typeStatus). |
 | countrycode                      | String        | Y        | See [dwc:countryCode](https://dwc.tdwg.org/terms/#countryCode).  GBIF's interpretation has set this to an ISO 3166-2 code. |
 | locality                         | String        | Y        | See [dwc:locality](https://dwc.tdwg.org/terms/#locality). |
 | stateprovince                    | String        | Y        | See [dwc:stateProvince](https://dwc.tdwg.org/terms/#stateProvince). |
@@ -68,7 +66,7 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 | elevationaccuracy                | Double        | Y        | See [dwc:elevationAccuracy](https://dwc.tdwg.org/terms/#elevationAccuracy).  If provided by the data publisher, GBIF's interpretation has normalized this value to metres. |
 | depth                            | Double        | Y        | See [dwc:depth](https://dwc.tdwg.org/terms/#depth).  If provided by the data publisher, GBIF's interpretation has normalized this value to metres. |
 | depthaccuracy                    | Double        | Y        | See [dwc:depthAccuracy](https://dwc.tdwg.org/terms/#depthAccuracy).  If provided by the data publisher, GBIF's interpretation has normalized this value to metres. |
-| eventdate                        | String        | Y        | See [dwc:eventDate](https://dwc.tdwg.org/terms/#eventDate).  GBIF's interpretation has normalized this value to an ISO 8601 date with a local time. |
+| eventdate                        | Timestamp     | Y        | See [dwc:eventDate](https://dwc.tdwg.org/terms/#eventDate).  GBIF's interpretation has normalized this value to an ISO 8601 date with a local time. |
 | year                             | Integer       | Y        | See [dwc:year](https://dwc.tdwg.org/terms/#year). |
 | month                            | Integer       | Y        | See [dwc:month](https://dwc.tdwg.org/terms/#month). |
 | day                              | Integer       | Y        | See [dwc:day](https://dwc.tdwg.org/terms/#day). |
@@ -79,20 +77,28 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 | collectioncode                   | String        | Y²       | See [dwc:collectionCode](https://dwc.tdwg.org/terms/#collectionCode). |
 | catalognumber                    | String        | Y²       | See [dwc:catalogNumber](https://dwc.tdwg.org/terms/#catalogNumber). |
 | recordnumber                     | String        | Y        | See [dwc:recordNumber](https://dwc.tdwg.org/terms/#recordNumber). |
-| recordedby                       | String        | Y        | See [dwc:recordedBy](https://dwc.tdwg.org/terms/#recordedBy). |
-| identifiedby                     | String        | Y        | See [dwc:identifiedBy](https://dwc.tdwg.org/terms/#identifiedBy). |
-| dateidentified                   | String        | Y        | See [dwc:dateIdentified](https://dwc.tdwg.org/terms/#dateIdentified). An ISO 8601 date. |
+| recordedby                       | String array  | N³       | See [dwc:recordedBy](https://dwc.tdwg.org/terms/#recordedBy). |
+| identifiedby                     | String array  | N³       | See [dwc:identifiedBy](https://dwc.tdwg.org/terms/#identifiedBy). |
+| dateidentified                   | Timestamp     | Y        | See [dwc:dateIdentified](https://dwc.tdwg.org/terms/#dateIdentified). An ISO 8601 date. |
 | mediatype                        | String array  | N³       | See [dwc:mediaType](https://dwc.tdwg.org/terms/#mediaType).  May contain `StillImage`, `MovingImage` or `Sound` (from [enumeration](http://api.gbif.org/v1/enumeration/basic/MediaType), detailing whether the occurrence has this media available. |
 | issue                            | String array  | N³       | A list of [issues](https://gbif.github.io/gbif-api/apidocs/org/gbif/api/vocabulary/OccurrenceIssue.html) encountered by GBIF in processing this record. |
-| license                          | String        | N        | See [dwc:license](https://dwc.tdwg.org/terms/#license). Either [`CC0_1_0`](https://creativecommons.org/publicdomain/zero/1.0/) or [`CC_BY_4_0`](https://creativecommons.org/licenses/by/4.0/).  (`CC_BY_NC_4_0` records are not present in this snapshot.) |
+| license                          | String        | N        | See [dwc:license](https://dwc.tdwg.org/terms/#license). Either [`CC0_1_0`](https://creativecommons.org/publicdomain/zero/1.0/), [`CC_BY_4_0`](https://creativecommons.org/licenses/by/4.0) or [`CC_BY_NC_4_0`](https://creativecommons.org/licenses/by-nc/4.0). |
 | rightsholder                     | String        | Y        | See [dwc:rightsHolder](https://dwc.tdwg.org/terms/#rightsHolder). |
-| lastinterpreted                  | String        | N        | The ISO 8601 date when the record was last processed by GBIF. Data are reprocessed for several reasons, including changes to the backbone taxonomy, so this date is not necessarily the date the occurrence record last changed. |
+| lastinterpreted                  | Timestamp     | N        | The ISO 8601 date when the record was last processed by GBIF. Data are reprocessed for several reasons, including changes to the backbone taxonomy, so this date is not necessarily the date the occurrence record last changed. |
 
 ¹ Field names are lower case, but in later snapshots this may change to camelCase, for consistency with Darwin Core and the GBIF API.
 
 ² Either `occurrenceID`, or `institutionCode` + `collectionCode` + `catalogNumber`, or both, will be present on every record.
 
 ³ The array may be empty.
+
+### Change history
+
+Snapshots from 2021-04-13 included only CC0 and CC-BY data.
+
+From 2022-04-01, snapshots include all data (CC0, CC-BY, CC-BY-NC).  Filter using the `license` column if you need to exclude CC-BY-NC data.
+
+From 2022-05-01, the timestamp fields `eventDate`, `dateIdentified` and `lastIntepreted` have a timestamp type, rather than the previous string type.  The fields `identifiedby`, `recordedby` and `typestatus` are changed from a string type to a string array.
 
 ## Getting started with BigQuery
 
@@ -108,7 +114,7 @@ FROM `bigquery-public-data.gbif.occurrences`
 GROUP BY kingdom;
 ```
 
-Results:
+Results (your numbers will differ since the data is updated every month):
 
 |   | kingdom        | c          |
 |---|----------------|------------|
@@ -124,6 +130,12 @@ Results:
 
 3. Your results should show in the browser, and can also be saved in Google Drive, as CSV, as a new BigQuery table etc.
 4. The amount of data scanned will be shown under "Execution Details", which is used to calculate the billing.
+
+## Using an older snapshot with BigQuery
+
+The public table contains the latest data from GBIF.  You can create private tables from older snapshots if you need to.
+
+Create a new BigQuery data set, and create a table within that data set.  Import from `public-datasets-gbif/occurrence/2022-05-01/occurrence.parquet/*`, changing the date as required.
 
 ## Downloading/mirroring the data
 

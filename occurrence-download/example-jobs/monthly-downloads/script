@@ -27,4 +27,4 @@ do
 done
 
 echo
-echo "Monthly downloads completed.  Now run the script to backup the monthly downloads to C4, then to AWS, set the replication factors and create the Map of Life download."
+echo "Monthly downloads completed.  Now upload the MoL one to GCS."
