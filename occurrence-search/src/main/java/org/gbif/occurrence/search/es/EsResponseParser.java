@@ -347,6 +347,7 @@ public class EsResponseParser {
     getListValueAsString(hit, IDENTIFIED_BY).ifPresent(occ::setIdentifiedBy);
     getListValueAsString(hit, PREPARATIONS).ifPresent(occ::setPreparations);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(occ::setSamplingProtocol);
+    getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(occ::setOtherCatalogNumbers);
   }
 
   private static void parseAgentIds(SearchHit hit, Occurrence occ) {
