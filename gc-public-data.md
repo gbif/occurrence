@@ -4,7 +4,7 @@ This describes the format and gives simple examples for getting started with the
 
 ## BigQuery
 
-The latest snapshot is available as a public dataset in Google BigQuery.  See the [BigQuery description](https://console.cloud.google.com/marketplace/product/gbif/gbif-occurrences).
+The latest snapshot is available as a public dataset in Google BigQuery.  See the [BigQuery description](https://console.cloud.google.com/marketplace/product/bigquery-public-data/gbif-occurrences).
 
 The snapshot includes all CC0, CC-BY and CC-BY-NC licensed occurrence data published through GBIF.
 
@@ -105,7 +105,7 @@ From 2022-05-01, the timestamp fields `eventDate`, `dateIdentified` and `lastInt
 BigQuery provides a pay-per-query SQL service on Google Cloud, particularly well suited for producing summary counts from GBIF data.
 The following steps describe how to get started using BigQuery on the GBIF dataset.
 
-1. Open the [GBIF Occurrences dataset in BigQuery](https://console.cloud.google.com/bigquery?p=public-datasets-gbif&d=gbif-occurrences&page=dataset)
+1. Open the [GBIF Occurrences dataset in BigQuery](https://console.cloud.google.com/bigquery?ws=!1m5!1m4!4m3!1sbigquery-public-data!2sgbif!3soccurrences)
 2. Run a query, by pasting the following command in the editor window
 
 ```sql
