@@ -25,7 +25,7 @@ mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean instal
 while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
   echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
   oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-occurrence-download;name=${ENV}-create-tables"
-  sleep 15
+  sleep 5
 done
 
 #gets the oozie id of the current coordinator job if it exists

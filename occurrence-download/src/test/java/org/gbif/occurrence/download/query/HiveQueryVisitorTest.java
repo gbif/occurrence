@@ -597,11 +597,31 @@ public class HiveQueryVisitorTest {
       .forEach(param -> {
 
         try {
-          Predicate p1 = new EqualsPredicate(param, "value_1", false);
-
-          String query = visitor.getHiveQuery(p1);
           String hiveQueryField = HiveColumnsUtils.getHiveQueryColumn(HiveQueryVisitor.term(param));
+
+          // EqualsPredicate
+          String query = visitor.getHiveQuery(new EqualsPredicate(param, "value_1", false));
           assertEquals("stringArrayContains(" + hiveQueryField + ",'value_1',true)", query);
+
+          // InPredicate
+          query = visitor.getHiveQuery(new InPredicate(param, Lists.newArrayList("value_1", "value_2"), false));
+          assertEquals("(stringArrayContains(" + hiveQueryField + ",'value_1',true) OR stringArrayContains(" + hiveQueryField + ",'value_2',true))", query);
+
+          // LikePredicate
+          query = visitor.getHiveQuery(new LikePredicate(param, "value_*", false));
+          assertEquals("lower(" + hiveQueryField + ") LIKE lower('value\\_%')", query);
+
+          // Not
+          query = visitor.getHiveQuery(new NotPredicate(new EqualsPredicate(param, "value_1", false)));
+          assertEquals("NOT stringArrayContains(" + hiveQueryField + ",'value_1',true)", query);
+
+          // IsNotNull
+          query = visitor.getHiveQuery(new IsNotNullPredicate(param));
+          assertEquals("(" + hiveQueryField + " IS NOT NULL AND size(" + hiveQueryField + ") > 0)", query);
+
+          // IsNull
+          query = visitor.getHiveQuery(new IsNullPredicate(param));
+          assertEquals(hiveQueryField + " IS NULL ", query);
 
         } catch (QueryBuildingException ex) {
           throw new RuntimeException(ex);

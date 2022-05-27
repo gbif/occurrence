@@ -437,7 +437,7 @@ public class HiveQueryVisitor {
 
     boolean isMatchCase = Optional.ofNullable(predicate.isMatchCase()).orElse(Boolean.FALSE);
 
-    if (isHiveArray(predicate.getKey())) {
+    if (isHiveArray(predicate.getKey()) || TermUtils.isVocabulary(term(predicate.getKey()))) {
       // Array values must be converted to ORs.
       builder.append('(');
       Iterator<String> iterator = predicate.getValues().iterator();
@@ -449,7 +449,6 @@ public class HiveQueryVisitor {
         }
       }
       builder.append(')');
-
     } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getKey()) {
       // Taxon keys must be expanded into a disjunction of in predicates
       appendTaxonKeyFilter(predicate.getValues());
@@ -495,7 +494,7 @@ public class HiveQueryVisitor {
   }
 
   public void visit(IsNotNullPredicate predicate) throws QueryBuildingException {
-    if (isHiveArray(predicate.getParameter())) {
+    if (isHiveArray(predicate.getParameter()) || TermUtils.isVocabulary(term(predicate.getParameter()))) {
       builder.append(String.format(IS_NOT_NULL_ARRAY_OPERATOR, toHiveField(predicate.getParameter(), true)));
     } else if (OccurrenceSearchParameter.TAXON_KEY == predicate.getParameter()) {
       appendTaxonKeyUnary(IS_NOT_NULL_OPERATOR);
