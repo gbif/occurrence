@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
 import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.InPredicate;
 import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
 import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
@@ -31,6 +32,7 @@ import org.gbif.api.util.VocabularyUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -105,9 +107,11 @@ public class PredicateFactory {
   }
 
   private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchCase, String... values) {
+    boolean allEquals = true;
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
       Predicate p = parsePredicate(param, v, matchCase);
+      allEquals &= p instanceof EqualsPredicate;
       if (p != null) {
         predicates.add(p);
       }
@@ -119,8 +123,9 @@ public class PredicateFactory {
     } else if (predicates.size() == 1) {
       return predicates.get(0);
 
+    } else if (allEquals) {
+      return new InPredicate(param, Arrays.asList(values), matchCase);
     } else {
-      // OR the individual params
       return new DisjunctionPredicate(predicates);
     }
   }

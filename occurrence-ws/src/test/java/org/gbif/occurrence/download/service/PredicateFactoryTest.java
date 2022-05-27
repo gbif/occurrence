@@ -14,11 +14,10 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,5 +58,15 @@ public class PredicateFactoryTest {
 
       PredicateFactory.build(params);
     });
+  }
+
+  @Test
+  public void testInPredicateValidation() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.OCCURRENCE_STATUS.name(), new String[] {"present"});
+    params.put(OccurrenceSearchParameter.CATALOG_NUMBER.name(), new String[] {"A", "B", "C"});
+    params.put(OccurrenceSearchParameter.YEAR.name(), new String[] {"*,1980", "1990", "2000,2010"});
+
+    assertNotNull(PredicateFactory.build(params));
   }
 }
