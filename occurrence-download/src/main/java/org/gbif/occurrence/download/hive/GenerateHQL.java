@@ -220,7 +220,7 @@ public class GenerateHQL {
       Template template = cfg.getTemplate("simple-parquet-download/execute-simple-parquet-query.ftl");
 
       // We need the initializers (toLocalISO8601(eventDate) etc) but also the API-matching column name (verbatimScientificName etc).
-      Map<String, InitializableField> interpretedNames = PARQUET_QUERIES.selectSimpleDownloadFields(false);
+      Map<String, InitializableField> interpretedNames = PARQUET_QUERIES.selectSimpleDownloadFields(true);
       Map<String, InitializableField> columnNames = PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(false);
 
       Map<String, Object> data = ImmutableMap.of(
