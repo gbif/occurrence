@@ -50,7 +50,6 @@ import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.impl.RectangleImpl;
 import org.locationtech.spatial4j.shape.jts.JtsGeometry;
-import org.opengis.feature.type.GeometryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -668,7 +667,11 @@ public class HiveQueryVisitor {
   public void visitSimplePredicate(SimplePredicate predicate, String op) throws QueryBuildingException {
     if (Number.class.isAssignableFrom(predicate.getKey().type())) {
       if (SearchTypeValidator.isRange(predicate.getValue())) {
-        visit(toNumberRangePredicate(SearchTypeValidator.parseDecimalRange(predicate.getValue()), predicate.getKey()));
+        if (Integer.class.equals(predicate.getKey().type())) {
+          visit(toIntegerRangePredicate(SearchTypeValidator.parseIntegerRange(predicate.getValue()), predicate.getKey()));
+        } else {
+          visit(toNumberRangePredicate(SearchTypeValidator.parseDecimalRange(predicate.getValue()), predicate.getKey()));
+        }
         return;
       }
     }
@@ -796,6 +799,24 @@ public class HiveQueryVisitor {
     ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>()
       .add(new GreaterThanOrEqualsPredicate(key, String.valueOf(range.lowerEndpoint().doubleValue())))
       .add(new LessThanOrEqualsPredicate(key, String.valueOf(range.upperEndpoint().doubleValue())))
+      .build();
+    return new ConjunctionPredicate(predicates);
+  }
+
+  /**
+   * Converts integer range into a predicate with the form: field >= range.lower AND field <= range.upper.
+   */
+  private static Predicate toIntegerRangePredicate(Range<Integer> range, OccurrenceSearchParameter key) {
+    if (!range.hasLowerBound()) {
+      return new LessThanOrEqualsPredicate(key, String.valueOf(range.upperEndpoint().intValue()));
+    }
+    if (!range.hasUpperBound()) {
+      return new GreaterThanOrEqualsPredicate(key, String.valueOf(range.lowerEndpoint().intValue()));
+    }
+
+    ImmutableList<Predicate> predicates = new ImmutableList.Builder<Predicate>()
+      .add(new GreaterThanOrEqualsPredicate(key, String.valueOf(range.lowerEndpoint().intValue())))
+      .add(new LessThanOrEqualsPredicate(key, String.valueOf(range.upperEndpoint().intValue())))
       .build();
     return new ConjunctionPredicate(predicates);
   }

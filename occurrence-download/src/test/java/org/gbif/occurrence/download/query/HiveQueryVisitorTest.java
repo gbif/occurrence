@@ -518,6 +518,35 @@ public class HiveQueryVisitorTest {
   }
 
   @Test
+  public void testIntegerRanges() throws QueryBuildingException {
+    testIntegerRange("1950,1960");
+    testIntegerRange("*,2000");
+    testIntegerRange("2000,*");
+  }
+
+  /**
+   * Reusable method to test number ranges.
+   */
+  private void testIntegerRange(String value) throws QueryBuildingException {
+    Range<Integer> range = SearchTypeValidator.parseIntegerRange(value);
+
+    Predicate p = new EqualsPredicate(OccurrenceSearchParameter.YEAR, value, false);
+    String query = visitor.getHiveQuery(p);
+
+    if (!range.hasUpperBound()) {
+      assertEquals(String.format("year >= %s",
+        range.lowerEndpoint().intValue()), query);
+    } else if (!range.hasLowerBound()) {
+      assertEquals(String.format("year <= %s",
+        range.upperEndpoint().intValue()), query);
+    } else {
+      assertEquals(String.format("((year >= %s) AND (year <= %s))",
+        range.lowerEndpoint().intValue(),
+        range.upperEndpoint().intValue()), query);
+    }
+  }
+
+  @Test
   public void testIssues() throws QueryBuildingException {
     // EqualsPredicate
     String query = visitor.getHiveQuery(new EqualsPredicate(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_HIGHERRANK", false));
