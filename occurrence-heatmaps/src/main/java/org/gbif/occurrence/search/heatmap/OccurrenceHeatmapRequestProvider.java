@@ -36,8 +36,10 @@ public class OccurrenceHeatmapRequestProvider {
   public static final String GEOM_PARAM = "geom";
   public static final String ZOOM_PARAM = "z";
   public static final String MODE_PARAM = "mode";
+  public static final String BUCKET_LIMIT_PARAM = "bucketLimit";
   public static final String PARAM_PREDICATE_HASH = "predicateHash";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
+  public static final int DEFAULT_BUCKET_LIMIT = 15000;
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
 
   private final PredicateCacheService predicateCacheService;
@@ -110,6 +112,7 @@ public class OccurrenceHeatmapRequestProvider {
       occurrenceHeatmapSearchRequest.setGeometry(request.getParameterMap().get(GEOM_PARAM)[0]);
     }
     occurrenceHeatmapSearchRequest.setMode(getMode(request));
+    occurrenceHeatmapSearchRequest.setBucketLimit(getIntParam(request, BUCKET_LIMIT_PARAM, DEFAULT_BUCKET_LIMIT));
 
     LOG.debug("Querying using Geometry {}", occurrenceHeatmapSearchRequest.getGeometry());
 

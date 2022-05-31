@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 
 /**
  * Request class for issuing heat map search request to the occurrence search service.
- * Warning:
  */
 public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest {
 
@@ -34,10 +33,12 @@ public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest {
 
   private Mode mode = Mode.GEO_BOUNDS;
 
+  private int bucketLimit = 15000;
+
   /**
    * Default empty constructor, required for serialization.
    */
-  public OccurrenceHeatmapRequest(){
+  public OccurrenceHeatmapRequest() {
     this.limit = 0;
     this.offset = 0;
   }
@@ -74,10 +75,18 @@ public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest {
     this.mode = mode;
   }
 
+  public int getBucketLimit() {
+    return bucketLimit;
+  }
+
+  public void setBucketLimit(int bucketLimit) {
+    this.bucketLimit = bucketLimit;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("geometry", geometry).add("zoom",zoom)
-            .add("mode", mode).toString();
+            .add("mode", mode).add("bucketLimit", bucketLimit).toString();
   }
 
   @Override
@@ -92,12 +101,13 @@ public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest {
     OccurrenceHeatmapRequest that = (OccurrenceHeatmapRequest) obj;
     return Objects.equal(geometry, that.geometry)
            && Objects.equal(zoom, that.zoom)
-           && Objects.equal(mode, that.mode);
+           && Objects.equal(mode, that.mode)
+           && Objects.equal(bucketLimit, that.bucketLimit);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), geometry, zoom, mode);
+    return Objects.hashCode(super.hashCode(), geometry, zoom, mode, bucketLimit);
   }
 
 }

@@ -38,7 +38,7 @@ class EsHeatmapRequestBuilder {
   static final String CELL_AGGS = "cell";
 
   //Mapping of predefined zoom levels
-  private static final int[] PRECISION_LOOKUP = new int[]{3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
+  private static final int[] PRECISION_LOOKUP = new int[]{2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
   private EsHeatmapRequestBuilder() {}
 
@@ -89,7 +89,8 @@ class EsHeatmapRequestBuilder {
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
             .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
-            .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)]);
+            .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)])
+            .size(Math.max(request.getBucketLimit(), 50000));
 
     if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
       GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
