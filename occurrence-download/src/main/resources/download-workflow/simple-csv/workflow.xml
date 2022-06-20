@@ -30,7 +30,7 @@
       </configuration>
       <script>hive-scripts/execute-simple-csv-query.q</script>
       <param>hiveDB=${hive_db}</param>
-      <param>occurrenceTable=${download_table_name}</param>
+      <param>downloadTableName=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="archive_table"/>
@@ -74,7 +74,7 @@
         </property>
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
-      <param>occurrenceTable=${download_table_name}</param>
+      <param>downloadTableName=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 
@@ -92,7 +92,7 @@
         </property>
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
-      <param>occurrenceTable=${download_table_name}</param>
+      <param>downloadTableName=${download_table_name}</param>
       <param>hiveDB=${hive_db}</param>
     </hive>
 

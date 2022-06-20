@@ -1,6 +1,6 @@
 USE ${hiveDB};
-DROP TABLE IF EXISTS ${occurrenceTable}_interpreted;
-DROP TABLE IF EXISTS ${occurrenceTable}_verbatim;
-DROP TABLE IF EXISTS ${occurrenceTable}_citation;
-DROP TABLE IF EXISTS ${occurrenceTable}_multimedia;
+DROP TABLE IF EXISTS ${downloadTableName}_interpreted;
+DROP TABLE IF EXISTS ${downloadTableName}_verbatim;
+DROP TABLE IF EXISTS ${downloadTableName}_citation;
+DROP TABLE IF EXISTS ${downloadTableName}_multimedia;
 

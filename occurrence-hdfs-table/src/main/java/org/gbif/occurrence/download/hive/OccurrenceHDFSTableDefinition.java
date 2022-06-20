@@ -149,6 +149,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, HiveColumns.columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, HiveColumns.columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, HiveColumns.columnFor(GbifTerm.publishingCountry))
+                                      .put(GbifTerm.eventType, HiveColumns.columnFor(GbifTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, HiveColumns.columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
@@ -182,6 +183,7 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.hostingOrganizationKey, HiveColumns.columnFor(GbifInternalTerm.hostingOrganizationKey))
                                                       .put(GbifInternalTerm.isInCluster, HiveColumns.columnFor(GbifInternalTerm.isInCluster))
                                                       .put(GbifInternalTerm.dwcaExtension, HiveColumns.columnFor(GbifInternalTerm.dwcaExtension))
+                                                      .put(GbifInternalTerm.parentEventGbifId, HiveColumns.columnFor(GbifInternalTerm.parentEventGbifId))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {

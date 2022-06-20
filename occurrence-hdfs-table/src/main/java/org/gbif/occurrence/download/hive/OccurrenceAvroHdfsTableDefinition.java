@@ -73,6 +73,14 @@ public class OccurrenceAvroHdfsTableDefinition {
           .endRecord()
         .noDefault();
         break;
+      case  HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
+        builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .requiredString("id")
+          .optionalString("eventType")
+          .endRecord()
+          .noDefault();
+        break;
       default:
         builder.name(initializableField.getHiveField()).type().nullable().stringType().noDefault();
         break;
@@ -84,5 +92,9 @@ public class OccurrenceAvroHdfsTableDefinition {
    */
   private static String getTypeRecordName(InitializableField initializableField) {
     return initializableField.getTerm().simpleName().substring(0,1).toUpperCase() + initializableField.getTerm().simpleName().substring(1);
+  }
+
+  public static void main(String[] args) {
+    System.out.println(avroDefinition().toString(true));
   }
 }

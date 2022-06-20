@@ -47,6 +47,7 @@ public final class HiveDataTypes {
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   public static final String TYPE_VOCABULARY_STRUCT = "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+  public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: ARRAY<STRING>>>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
@@ -65,7 +66,8 @@ public final class HiveDataTypes {
       DwcTerm.identifiedBy,
       DwcTerm.otherCatalogNumbers,
       DwcTerm.preparations,
-      DwcTerm.samplingProtocol
+      DwcTerm.samplingProtocol,
+      GbifInternalTerm.parentEventGbifId
     );
 
   // dates are all stored as BigInt
@@ -141,15 +143,14 @@ public final class HiveDataTypes {
     // regardless of context, the GBIF ID is always typed
     if (GbifTerm.gbifID == term) {
       return TYPED_TERMS.get(GbifTerm.gbifID);
-
     } else if (verbatimContext) {
       return TYPE_STRING; // verbatim are always string
-
+    } else if (GbifInternalTerm.parentEventGbifId == term){
+      return TYPE_ARRAY_PARENT_STRUCT;
     } else if (isVocabulary(term)) {
       return TYPE_VOCABULARY_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
-
     }
   }
 

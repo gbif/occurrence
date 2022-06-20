@@ -14,14 +14,14 @@ CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.S
 SET hive.auto.convert.join=false;
 
 -- in case this job is relaunched
-DROP TABLE IF EXISTS ${occurrenceTable};
-DROP TABLE IF EXISTS ${occurrenceTable}_citation;
-DROP TABLE IF EXISTS ${occurrenceTable}_agents;
-DROP TABLE IF EXISTS ${occurrenceTable}_families;
-DROP TABLE IF EXISTS ${occurrenceTable}_identifiers;
+DROP TABLE IF EXISTS ${downloadTableName};
+DROP TABLE IF EXISTS ${downloadTableName}_citation;
+DROP TABLE IF EXISTS ${downloadTableName}_agents;
+DROP TABLE IF EXISTS ${downloadTableName}_families;
+DROP TABLE IF EXISTS ${downloadTableName}_identifiers;
 
 -- datasetKey and license are required for calculating the citation.
-CREATE TABLE ${occurrenceTable}
+CREATE TABLE ${downloadTableName}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
@@ -64,15 +64,15 @@ WHERE (v_identifiedBy IS NOT NULL OR v_recordedBy IS NOT NULL)
 SET mapred.output.compress=false;
 SET hive.exec.compress.intermediate=false;
 SET hive.exec.compress.output=false;
-CREATE TABLE ${occurrenceTable}_citation
+CREATE TABLE ${downloadTableName}_citation
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
-AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${occurrenceTable} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
+AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${downloadTableName} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;
 
 -- Increase memory to support the very wide collect.
 SET mapreduce.reduce.memory.mb=${bionomiaReducerMemory};
 SET mapreduce.reduce.java.opts=${bionomiaReducerOpts};
 
-CREATE TABLE ${occurrenceTable}_agents
+CREATE TABLE ${downloadTableName}_agents
   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
   STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
   OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
@@ -88,7 +88,7 @@ FROM
      v_recordedBy AS agent,
      COUNT(gbifID) AS total_recordedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedBy
-  FROM ${occurrenceTable}
+  FROM ${downloadTableName}
   WHERE v_recordedby IS NOT NULL
   GROUP BY v_recordedby) AS r
 FULL OUTER JOIN
@@ -96,12 +96,12 @@ FULL OUTER JOIN
      v_identifiedBy AS agent,
      COUNT(gbifID) AS total_identifiedBy,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_identifiedBy
-  FROM ${occurrenceTable}
+  FROM ${downloadTableName}
   WHERE v_identifiedBy IS NOT NULL
   GROUP BY v_identifiedBy) AS i
 ON r.agent = i.agent;
 
-CREATE TABLE ${occurrenceTable}_families
+CREATE TABLE ${downloadTableName}_families
   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
   STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
   OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
@@ -110,11 +110,11 @@ AS SELECT
   family,
   COUNT(gbifID) total,
   collect_set(CAST(gbifID AS STRING)) AS gbifIDs_family
-FROM ${occurrenceTable}
+FROM ${downloadTableName}
   WHERE family IS NOT NULL
   GROUP BY family;
 
-CREATE TABLE ${occurrenceTable}_identifiers
+CREATE TABLE ${downloadTableName}_identifiers
   ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
   STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
   OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
@@ -130,7 +130,7 @@ FROM
      v_recordedByID AS identifier,
      COUNT(gbifID) AS total_recordedByID,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_recordedByID
-  FROM ${occurrenceTable}
+  FROM ${downloadTableName}
   WHERE v_recordedbyid IS NOT NULL
   GROUP BY v_recordedbyid) AS r
 FULL OUTER JOIN
@@ -138,7 +138,7 @@ FULL OUTER JOIN
      v_identifiedByID AS identifier,
      COUNT(gbifID) AS total_identifiedByID,
      collect_set(CAST(gbifID AS STRING)) AS gbifIDs_identifiedByID
-  FROM ${occurrenceTable}
+  FROM ${downloadTableName}
   WHERE v_identifiedbyid IS NOT NULL
   GROUP BY v_identifiedbyid) AS i
 ON r.identifier = i.identifier;

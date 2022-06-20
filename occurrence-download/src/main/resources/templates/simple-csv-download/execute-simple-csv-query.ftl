@@ -22,17 +22,17 @@ CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
 
 -- in case this job is relaunched
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"};
-DROP TABLE IF EXISTS ${r"${occurrenceTable}"}_citation;
+DROP TABLE IF EXISTS ${r"${downloadTableName}"};
+DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
 
 -- pre-create verbatim table so it can be used in the multi-insert
-CREATE TABLE ${r"${occurrenceTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${r"${downloadTableName}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-FROM occurrence
+FROM ${r"${coreTermName}"}
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
@@ -43,8 +43,8 @@ SET mapred.reduce.tasks=1;
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
-CREATE TABLE ${r"${occurrenceTable}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${r"${downloadTableName}"}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license
-FROM ${r"${occurrenceTable}"}
+FROM ${r"${downloadTableName}"}
 WHERE datasetkey IS NOT NULL
 GROUP BY datasetkey, license;

@@ -68,7 +68,7 @@
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
-      <param>occurrenceTable=${download_table_name}</param>
+      <param>downloadTableName=${download_table_name}</param>
     </hive>
 
     <ok to="end"/>
@@ -87,7 +87,7 @@
       </configuration>
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
-      <param>occurrenceTable=${download_table_name}</param>
+      <param>downloadTableName=${download_table_name}</param>
     </hive>
 
     <ok to="kill"/>
