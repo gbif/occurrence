@@ -6,11 +6,11 @@
 
   See https://github.com/gbif/infrastructure/wiki/Scheduled-tasks for the schedule.  Time is set in the POM.
 -->
-<coordinator-app name="OccurrenceHDFSBuild-${occurrence.environment}" frequency="${occurrence.hdfs.build.frequency}"
+<coordinator-app name="${coreTermName}HDFSBuild-${occurrence.environment}" frequency="${occurrence.hdfs.build.frequency}"
                  start="${timestamp}" end="2050-05-28T09:28Z" timezone="UTC" xmlns="uri:oozie:coordinator:0.2">
   <action>
     <workflow>
-      <app-path>${hdfs.namenode}/occurrence-download-workflows-${occurrence.environment}/create-tables/</app-path>
+      <app-path>${hdfs.namenode}/${coreTermName}-download-workflows-${occurrence.environment}/create-tables/</app-path>
     </workflow>
   </action>
 </coordinator-app>

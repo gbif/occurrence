@@ -92,7 +92,7 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/swap-tables.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>downloadTableName=${download_table_name}</param>
+      <param>coreTermName=${download_table_name}</param>
     </hive>
     <ok to="end"/>
     <error to="notify-error"/>
