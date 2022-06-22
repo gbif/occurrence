@@ -48,7 +48,7 @@
       <param>env=${occurrence.environment}</param>
       <param>snapshot=${wf:id()}</param>
       <param>sourceDataDir=${source_data_dir}</param>
-      <param>downloadTableName=${schema_change ? 'new_' : ''}${download_table_name}</param>
+      <param>coreTermName=${schema_change ? 'new_' : ''}${download_table_name}</param>
       <param>wfPath=${wf:appPath()}</param>
     </hive>
     <ok to="delete-snapshot"/>
