@@ -48,7 +48,7 @@
       <param>env=${occurrence.environment}</param>
       <param>snapshot=${wf:id()}</param>
       <param>sourceDataDir=${source_data_dir}</param>
-      <param>coreTermName=${schema_change ? 'new_' : ''}${download_table_name}</param>
+      <param>coreTermName=${schema_change ? 'new_' : ''}${core_term_name}</param>
       <param>wfPath=${wf:appPath()}</param>
     </hive>
     <ok to="delete-snapshot"/>
@@ -92,7 +92,7 @@
       <job-xml>conf/hive-default.xml</job-xml>
       <script>hive-scripts/swap-tables.q</script>
       <param>hiveDB=${hiveDB}</param>
-      <param>coreTermName=${download_table_name}</param>
+      <param>coreTermName=${core_term_name}</param>
     </hive>
     <ok to="end"/>
     <error to="notify-error"/>
@@ -101,7 +101,7 @@
   <action name="notify-error">
     <email xmlns="uri:oozie:email-action:0.2">
       <to>informatics@gbif.org</to>
-      <subject>${occurrence.environment} ${coreTermName} HDFS Build failed ${wf:id()}</subject>
+      <subject>${occurrence.environment} ${core_term_name} HDFS Build failed ${wf:id()}</subject>
       <body>The workflow ${wf:id()} failed with error: [${wf:errorMessage(wf:lastErrorNode())}]</body>
     </email>
     <ok to="kill"/>
@@ -109,7 +109,7 @@
   </action>
 
   <kill name="kill">
-    <message>Failed to create tables for occurrence downloads:[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    <message>Failed to create tables for ${core_term_name} downloads:[${wf:errorMessage(wf:lastErrorNode())}]</message>
   </kill>
 
   <end name="end"/>
