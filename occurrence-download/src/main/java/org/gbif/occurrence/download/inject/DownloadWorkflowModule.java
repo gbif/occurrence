@@ -60,7 +60,7 @@ import lombok.Data;
 @Builder
 public class DownloadWorkflowModule  {
 
-  public static final String CONF_FILE = "occurrence-download.properties";
+  public static final String CONF_FILE = "download.properties";
 
   //Prefix for static settings
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
