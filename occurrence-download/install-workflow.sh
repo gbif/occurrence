@@ -35,7 +35,7 @@ if [ -n "$WID" ]; then
   sudo -u hdfs oozie job -oozie $OOZIE -kill $WID
 fi
 
-java -classpath "target/${TABLE_NAME}-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/${TABLE_NAME}-download-workflows-$ENV/lib/${TABLE_NAME}-download.properties profiles.xml
+java -classpath "target/${TABLE_NAME}-download-workflows-$ENV/lib/*" org.gbif.occurrence.download.conf.DownloadConfBuilder $P  target/${TABLE_NAME}-download-workflows-$ENV/lib/download.properties profiles.xml
 echo "Copy to hadoop"
 sudo -u hdfs hdfs dfs -rm -r /${TABLE_NAME}-download-workflows-$ENV/ || echo "No old workflow to remove"
 sudo -u hdfs hdfs dfs -copyFromLocal target/${TABLE_NAME}-download-workflows-$ENV/ /
