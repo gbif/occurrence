@@ -14,7 +14,7 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}.snapshot/${r"${snapshot}"}/${r"${coreTermName}"}/${r"${coreTermName}"}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${r"${coreTermName}"}-hdfs-record.avsc');
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 -- snappy compression
 SET hive.exec.compress.output=true;
