@@ -72,7 +72,6 @@ public final class HiveDataTypes {
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
-    GbifTerm.gbifID,
     DwcTerm.eventDate,
     DwcTerm.dateIdentified,
     GbifTerm.lastInterpreted,
@@ -142,7 +141,7 @@ public final class HiveDataTypes {
   public static String typeForTerm(Term term, boolean verbatimContext) {
     // regardless of context, the GBIF ID is always typed
     if (GbifTerm.gbifID == term) {
-      return TYPED_TERMS.get(GbifTerm.gbifID);
+      return TYPE_STRING;
     } else if (verbatimContext) {
       return TYPE_STRING; // verbatim are always string
     } else if (GbifInternalTerm.parentEventGbifId == term){

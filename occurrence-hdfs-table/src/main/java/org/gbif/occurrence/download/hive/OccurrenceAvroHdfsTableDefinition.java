@@ -50,11 +50,7 @@ public class OccurrenceAvroHdfsTableDefinition {
         builder.name(initializableField.getHiveField()).type().nullable().intType().noDefault();
         break;
       case HiveDataTypes.TYPE_BIGINT:
-        if (initializableField.getHiveField().equalsIgnoreCase("gbifid")) {
-          builder.name(initializableField.getHiveField()).type().longType().noDefault();
-        } else {
-          builder.name(initializableField.getHiveField()).type().nullable().longType().noDefault();
-        }
+        builder.name(initializableField.getHiveField()).type().nullable().longType().noDefault();
         break;
       case HiveDataTypes.TYPE_BOOLEAN:
         builder.name(initializableField.getHiveField()).type().nullable().booleanType().noDefault();
@@ -82,7 +78,11 @@ public class OccurrenceAvroHdfsTableDefinition {
           .noDefault();
         break;
       default:
-        builder.name(initializableField.getHiveField()).type().nullable().stringType().noDefault();
+        if (initializableField.getHiveField().equalsIgnoreCase("gbifid")) {
+          builder.name(initializableField.getHiveField()).type().stringType().noDefault();
+        } else {
+          builder.name(initializableField.getHiveField()).type().nullable().stringType().noDefault();
+        }
         break;
     }
   }
