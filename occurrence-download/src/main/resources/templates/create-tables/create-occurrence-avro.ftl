@@ -92,7 +92,7 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}/${r"${coreTermName}"}/${r"${coreTermName}"}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${r"${coreTermName}"}-hdfs-record.avsc');
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 <#list extensions as extension>
 -- ${extension.extension} Avro external table
