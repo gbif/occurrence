@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Maps;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
@@ -46,9 +45,11 @@ import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Maps;
+
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
 
 public class EsResponseParser {
 
@@ -58,11 +59,13 @@ public class EsResponseParser {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsResponseParser.class);
 
+  private final EsFieldMapper esFieldMapper;
+
   /**
    * Private constructor.
    */
-  private EsResponseParser() {
-    //DO NOTHING
+  public EsResponseParser(EsFieldMapper esFieldMapper) {
+    this.esFieldMapper = esFieldMapper;
   }
 
   /**
@@ -70,7 +73,7 @@ public class EsResponseParser {
    *
    * @return a new instance of a SearchResponse.
    */
-  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
@@ -87,7 +90,7 @@ public class EsResponseParser {
    *
    * @return a new instance of a SearchResponse.
    */
-  public static SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
+  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
       org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
 
     SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
@@ -96,10 +99,10 @@ public class EsResponseParser {
     return response;
   }
 
-  public static List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
+  public List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
                                                   OccurrenceSearchParameter parameter) {
 
-    String fieldName = SEARCH_TO_ES_MAPPING.get(parameter).getValueFieldName();
+    String fieldName = esFieldMapper.getValueFieldName(parameter);
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
         .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
@@ -111,7 +114,7 @@ public class EsResponseParser {
   /**
    * Extract the buckets of an {@link Aggregation}.
    */
-  private static List<? extends Terms.Bucket> getBuckets(Aggregation aggregation) {
+  private List<? extends Terms.Bucket> getBuckets(Aggregation aggregation) {
     if (aggregation instanceof Terms) {
       return ((Terms) aggregation).getBuckets();
     } else if (aggregation instanceof Filter) {
@@ -126,7 +129,7 @@ public class EsResponseParser {
     }
   }
 
-  private static Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
+  private Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
       org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
 
     Function<Aggregation, Facet<OccurrenceSearchParameter>> mapFn = aggs -> {
@@ -154,20 +157,20 @@ public class EsResponseParser {
       .map(aggregations -> aggregations.asList().stream().map(mapFn).collect(Collectors.toList()));
   }
 
-  private static Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse, boolean excludeInterpreted) {
+  private Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse, boolean excludeInterpreted) {
     if (esResponse.getHits() == null || esResponse.getHits().getHits() == null || esResponse.getHits().getHits().length == 0) {
       return Optional.empty();
     }
 
     return Optional.of(Stream.of(esResponse.getHits().getHits())
-                         .map(hit -> EsResponseParser.toOccurrence(hit, excludeInterpreted))
+                         .map(hit -> toOccurrence(hit, excludeInterpreted))
                          .collect(Collectors.toList()));
   }
 
   /**
    * Transforms a SearchHit into a suitable Verbatim map of terms.
    */
-  public static VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
+  public VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
       .ifPresent(vOcc::setPublishingCountry);
@@ -202,7 +205,7 @@ public class EsResponseParser {
     return vOcc;
   }
 
-  private static Map<String, List<Map<Term, String>>> parseExtensionsMap(Map<String, Object> extensions) {
+  private Map<String, List<Map<Term, String>>> parseExtensionsMap(Map<String, Object> extensions) {
     // parse extensions
     Map<String, List<Map<Term, String>>> extTerms = Maps.newHashMap();
     for (String rowType : extensions.keySet()) {
@@ -221,7 +224,7 @@ public class EsResponseParser {
    * e.g. extensions data.
    * This produces a Map of verbatim data.
    */
-  private static Map<Term, String> parseVerbatimTermMap(Map<String, Object> data) {
+  private Map<Term, String> parseVerbatimTermMap(Map<String, Object> data) {
 
     Map<Term, String> terms = Maps.newHashMap();
     data.forEach( (simpleTermName,value) -> {
@@ -234,7 +237,7 @@ public class EsResponseParser {
     return terms;
   }
 
-  public static Occurrence toOccurrence(SearchHit hit, boolean excludeInterpreted) {
+  public Occurrence toOccurrence(SearchHit hit, boolean excludeInterpreted) {
     // create occurrence
     Occurrence occ = new Occurrence();
 
@@ -266,7 +269,7 @@ public class EsResponseParser {
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
 
     Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if (verbatimData.containsKey("extensions" )) {
+    if (verbatimData != null && verbatimData.containsKey("extensions" )) {
       occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
     }
 
@@ -280,7 +283,7 @@ public class EsResponseParser {
    * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
    * our public API v1, so we continue to do this.
    */
-  private static void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
+  private void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
 
     String institutionCode = occ.getVerbatimField(DwcTerm.institutionCode);
     String collectionCode = occ.getVerbatimField(DwcTerm.collectionCode);
@@ -297,7 +300,7 @@ public class EsResponseParser {
       .ifPresent(result -> occ.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
-  private static void setOccurrenceFields(SearchHit hit, Occurrence occ) {
+  private void setOccurrenceFields(SearchHit hit, Occurrence occ) {
     getValue(hit, GBIF_ID, Long::valueOf)
         .ifPresent(
             id -> {
@@ -350,7 +353,7 @@ public class EsResponseParser {
     getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(occ::setOtherCatalogNumbers);
   }
 
-  private static void parseAgentIds(SearchHit hit, Occurrence occ) {
+  private void parseAgentIds(SearchHit hit, Occurrence occ) {
     Function<Map<String, Object>, AgentIdentifier> mapFn = m -> {
       AgentIdentifier ai = new AgentIdentifier();
       extractValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
@@ -367,7 +370,7 @@ public class EsResponseParser {
       .ifPresent(occ::setIdentifiedByIds);
   }
 
-  private static void setTemporalFields(SearchHit hit, Occurrence occ) {
+  private void setTemporalFields(SearchHit hit, Occurrence occ) {
     getDateValue(hit, DATE_IDENTIFIED).ifPresent(occ::setDateIdentified);
     getValue(hit, DAY, Integer::valueOf).ifPresent(occ::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(occ::setMonth);
@@ -375,7 +378,7 @@ public class EsResponseParser {
     getDateValue(hit, EVENT_DATE).ifPresent(occ::setEventDate);
   }
 
-  private static void setLocationFields(SearchHit hit, Occurrence occ) {
+  private void setLocationFields(SearchHit hit, Occurrence occ) {
     getValue(hit, CONTINENT, Continent::valueOf).ifPresent(occ::setContinent);
     getStringValue(hit, STATE_PROVINCE).ifPresent(occ::setStateProvince);
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
@@ -415,7 +418,7 @@ public class EsResponseParser {
     occ.setGadm(g);
   }
 
-  private static void setTaxonFields(SearchHit hit, Occurrence occ) {
+  private void setTaxonFields(SearchHit hit, Occurrence occ) {
     getIntValue(hit, KINGDOM_KEY).ifPresent(occ::setKingdomKey);
     getStringValue(hit, KINGDOM).ifPresent(occ::setKingdom);
     getIntValue(hit, PHYLUM_KEY).ifPresent(occ::setPhylumKey);
@@ -444,12 +447,12 @@ public class EsResponseParser {
     getStringValue(hit, IUCN_RED_LIST_CATEGORY).ifPresent(occ::setIucnRedListCategory);
   }
 
-  private static void setGrscicollFields(SearchHit hit, Occurrence occ) {
+  private void setGrscicollFields(SearchHit hit, Occurrence occ) {
     getStringValue(hit, INSTITUTION_KEY).ifPresent(occ::setInstitutionKey);
     getStringValue(hit, COLLECTION_KEY).ifPresent(occ::setCollectionKey);
   }
 
-  private static void setDatasetFields(SearchHit hit, Occurrence occ) {
+  private void setDatasetFields(SearchHit hit, Occurrence occ) {
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
         .ifPresent(occ::setPublishingCountry);
     getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(occ::setDatasetKey);
@@ -465,14 +468,14 @@ public class EsResponseParser {
             v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
 
-  private static void setCrawlingFields(SearchHit hit, Occurrence occ) {
+  private void setCrawlingFields(SearchHit hit, Occurrence occ) {
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(occ::setCrawlId);
     getDateValue(hit, LAST_INTERPRETED).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, LAST_PARSED).ifPresent(occ::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastCrawled);
   }
 
-  private static void parseMultimediaItems(SearchHit hit, Occurrence occ) {
+  private void parseMultimediaItems(SearchHit hit, Occurrence occ) {
 
     Function<Map<String, Object>, MediaObject> mapFn = m -> {
       MediaObject mediaObject = new MediaObject();
@@ -505,57 +508,57 @@ public class EsResponseParser {
       .ifPresent(occ::setMedia);
   }
 
-  private static Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
+  private Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, Function.identity());
   }
 
-  private static Optional<Integer> getIntValue(SearchHit hit, OccurrenceEsField esField) {
+  private Optional<Integer> getIntValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, Integer::valueOf);
   }
 
-  private static Optional<Double> getDoubleValue(SearchHit hit, OccurrenceEsField esField) {
+  private Optional<Double> getDoubleValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, Double::valueOf);
   }
 
-  private static Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
+  private Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, STRING_TO_DATE);
   }
 
-  private static Optional<Boolean> getBooleanValue(SearchHit hit, OccurrenceEsField esField) {
+  private Optional<Boolean> getBooleanValue(SearchHit hit, OccurrenceEsField esField) {
     return getValue(hit, esField, Boolean::valueOf);
   }
 
-  private static Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
+  private Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty());
   }
 
-  private static Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
+  private Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
         .map(v -> (List<String>) v)
         .filter(v -> !v.isEmpty())
         .map(s -> String.join("|", s));
   }
 
-  private static Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
+  private Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
         .map(v -> (Map<String,Object>) v)
         .filter(v -> !v.keySet().isEmpty());
   }
 
-  private static Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esField.getValueFieldName()))
+  private Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
+    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
         .map(v -> (List<Map<String, Object>>) v)
         .filter(v -> !v.isEmpty());
   }
 
-  private static <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
-    String fieldName = esField.getValueFieldName();
+  private <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
+    String fieldName =  esFieldMapper.getValueFieldName(esField);
     Map<String, Object> fields = hit.getSourceAsMap();
-    if (IS_NESTED.test(esField.getValueFieldName())) {
+    if (IS_NESTED.test(esFieldMapper.getValueFieldName(esField))) {
       // take all paths till the field name
-      String[] paths = esField.getValueFieldName().split("\\.");
+      String[] paths = esFieldMapper.getValueFieldName(esField).split("\\.");
       for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
         // update the fields with the current path
         fields = (Map<String, Object>) fields.get(paths[i]);
@@ -584,12 +587,15 @@ public class EsResponseParser {
       });
   }
 
-  private static Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
+  private Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
     return extractValue(fields, fieldName, Function.identity());
   }
 
-  private static Map<Term, String> extractVerbatimFields(SearchHit hit, boolean excludeInterpreted) {
+  private Map<Term, String> extractVerbatimFields(SearchHit hit, boolean excludeInterpreted) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    if(verbatimFields == null) {
+      return Collections.emptyMap();
+    }
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
     Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
     verbatimCoreFields.entrySet().stream()

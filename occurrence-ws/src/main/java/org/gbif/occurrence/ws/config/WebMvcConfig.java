@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.occurrence.search.es.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
@@ -110,7 +112,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Primary
   @Bean
   public ObjectMapper registryObjectMapper() {
-    return JacksonJsonObjectMapperProvider.getObjectMapper();
+    return JacksonJsonObjectMapperProvider.getObjectMapper().addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
   }
 
   @Bean

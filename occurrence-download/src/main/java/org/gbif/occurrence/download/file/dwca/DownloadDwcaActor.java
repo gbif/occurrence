@@ -24,6 +24,7 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -62,6 +63,12 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
 public class DownloadDwcaActor extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadDwcaActor.class);
+
+  private final SearchQueryProcessor searchQueryProcessor;
+
+  public DownloadDwcaActor(EsFieldMapper esFieldMapper) {
+    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  }
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -126,7 +133,7 @@ public class DownloadDwcaActor extends UntypedActor {
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
                                                                                         Charsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
-      SearchQueryProcessor.processQuery(work, occurrence -> {
+      searchQueryProcessor.processQuery(work, occurrence -> {
           try {
             // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
 

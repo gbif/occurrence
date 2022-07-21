@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 package org.gbif.occurrence.search.heatmap.es;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
@@ -41,6 +42,7 @@ public class EsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
+  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(EsFieldMapper.builder().nestedIndex(false).build());
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -48,7 +50,7 @@ public class EsHeatmapRequestBuilderTest {
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
-    SearchRequest query = EsHeatmapRequestBuilder.buildRequest(request, INDEX);
+    SearchRequest query = esHeatmapRequestBuilder.buildRequest(request, INDEX);
     JsonNode json = MAPPER.readTree(query.source().toString());
 
     assertEquals(0, json.get(SIZE).asInt());
@@ -117,7 +119,7 @@ public class EsHeatmapRequestBuilderTest {
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
-    SearchRequest query = EsHeatmapRequestBuilder.buildRequest(request, INDEX);
+    SearchRequest query = esHeatmapRequestBuilder.buildRequest(request, INDEX);
     JsonNode json = MAPPER.readTree(query.source().toString());
 
     assertEquals(0, json.get(SIZE).asInt());

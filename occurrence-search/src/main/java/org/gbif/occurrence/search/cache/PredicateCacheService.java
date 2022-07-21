@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.search.cache;
 
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
 
 /** Service to store predicates and retrieve them based on a calculated hash.*/
 public interface PredicateCacheService {

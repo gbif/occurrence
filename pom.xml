@@ -91,6 +91,7 @@
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
+    <module>occurrence-es-mapping</module>
   </modules>
 
   <properties>
@@ -216,6 +217,7 @@
     <pipelines.version>2.9.8</pipelines.version>
     <gbif.kvs.version>1.22</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
+    <gbif-predicates.version>0.1-SNAPSHOT</gbif-predicates.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -444,6 +446,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-es-mapping</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gbif.registry</groupId>
         <artifactId>registry-ws-client</artifactId>
         <version>${gbif-registry.version}</version>
@@ -509,6 +516,21 @@
         <groupId>org.gbif.common</groupId>
         <artifactId>gbif-cli</artifactId>
         <version>${gbif-cli.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.predicates</groupId>
+        <artifactId>predicates-api</artifactId>
+        <version>${gbif-predicates.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.predicates</groupId>
+        <artifactId>es-predicates</artifactId>
+        <version>${gbif-predicates.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.predicates</groupId>
+        <artifactId>sql-predicates</artifactId>
+        <version>${gbif-predicates.version}</version>
       </dependency>
 
       <!-- Spring dependencies -->

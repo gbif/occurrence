@@ -14,6 +14,7 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.occurrence.search.SearchException;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 
@@ -48,11 +49,13 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
 
   private final RestHighLevelClient esClient;
   private final String esIndex;
+  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder;
 
   @Autowired
-  public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex) {
+  public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex, EsFieldMapper esFieldMapper) {
     this.esIndex = esIndex;
     this.esClient = esClient;
+    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(esFieldMapper);
   }
 
   @Override
@@ -61,7 +64,7 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
 
     // build request, ensure mode is set.
     request.setMode(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
-    SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
+    SearchRequest searchRequest = esHeatmapRequestBuilder.buildRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
     try {
@@ -79,7 +82,7 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
 
     // build request, ensure mode is set.
     request.setMode(OccurrenceHeatmapRequest.Mode.GEO_CENTROID);
-    SearchRequest searchRequest = EsHeatmapRequestBuilder.buildRequest(request, esIndex);
+    SearchRequest searchRequest = esHeatmapRequestBuilder.buildRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
     try {

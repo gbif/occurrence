@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.conf;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
@@ -109,6 +110,24 @@ public class WorkflowConfiguration {
 
   /**
    *
+   * @return is the index nested
+   */
+  public Boolean isEsNestedIndex() {
+    Preconditions.checkNotNull(settings);
+    return getBoolSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED);
+  }
+
+  /**
+   *
+   * @return Index object type to use as main object
+   */
+  public EsFieldMapper.SearchType getEsIndexType() {
+    Preconditions.checkNotNull(settings);
+    return EsFieldMapper.SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED).toUpperCase());
+  }
+
+  /**
+   *
    * @param downloadKey download id
    * @return a link to the download file
    */
@@ -166,6 +185,10 @@ public class WorkflowConfiguration {
 
   public Integer getIntSetting(String key) {
     return Integer.parseInt(settings.getProperty(key));
+  }
+
+  public Boolean getBoolSetting(String key) {
+    return Boolean.parseBoolean(settings.getProperty(key));
   }
 
   /**

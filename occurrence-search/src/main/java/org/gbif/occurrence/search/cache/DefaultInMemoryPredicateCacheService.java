@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.search.cache;
 
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import org.cache2k.Cache;

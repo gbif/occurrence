@@ -13,19 +13,19 @@
  */
 package org.gbif.occurrence.download.oozie;
 
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.query.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.download.query.HiveQueryVisitor;
-import org.gbif.occurrence.search.es.query.EsQueryVisitor;
-import org.gbif.occurrence.search.es.query.QueryBuildingException;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -76,6 +76,10 @@ public class DownloadPrepareAction implements Closeable {
   private static final ObjectMapper OBJECT_MAPPER =
     new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+  static {
+    OBJECT_MAPPER.addMixIn(SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
+  }
+
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
 
   private static final String IS_SMALL_DOWNLOAD = "is_small_download";
@@ -96,6 +100,8 @@ public class DownloadPrepareAction implements Closeable {
   private final RestHighLevelClient esClient;
 
   private final String esIndex;
+
+  private final EsFieldMapper esFieldMapper;
 
   // Holds the value of the maximum number of records that a small download can have.
   private final int smallDownloadLimit;
@@ -148,13 +154,13 @@ public class DownloadPrepareAction implements Closeable {
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
 
       Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-      String searchQuery = new EsQueryVisitor().getQuery(predicate);
+      String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType()).buildQuery(predicate);
       long recordCount = getRecordCount(searchQuery);
       props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
       if (isSmallDownloadCount(recordCount)) {
         props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
       }
-      props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(new HiveQueryVisitor().getHiveQuery(predicate)));
+      props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
       if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
         updateTotalRecordsCount(downloadKey, recordCount);
       }
@@ -167,7 +173,7 @@ public class DownloadPrepareAction implements Closeable {
   }
 
   private void persist(String propPath, Properties properties) throws IOException {
-    try (OutputStream os = new FileOutputStream(new File(propPath))) {
+    try (OutputStream os = new FileOutputStream(propPath)) {
       properties.store(os, "");
     } catch (FileNotFoundException e) {
       LOG.error("Error reading properties file", e);

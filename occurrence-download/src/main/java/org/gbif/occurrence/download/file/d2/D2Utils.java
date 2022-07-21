@@ -22,12 +22,13 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import lombok.experimental.UtilityClass;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
+
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class D2Utils {

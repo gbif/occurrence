@@ -13,7 +13,8 @@
  */
 package org.gbif.occurrence.search.heatmap;
 
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
+
+import org.gbif.predicate.query.occurrence.OccurrencePredicateSearchRequest;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

@@ -20,6 +20,7 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +49,12 @@ import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerb
 public class SimpleCsvDownloadActor extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadActor.class);
+
+  private final SearchQueryProcessor searchQueryProcessor;
+
+  public SimpleCsvDownloadActor(EsFieldMapper esFieldMapper) {
+    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  }
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -78,7 +85,7 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                                                                                   StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      SearchQueryProcessor.processQuery(work, occurrence -> {
+      searchQueryProcessor.processQuery(work, occurrence -> {
           try {
             Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
             populateVerbatimCsvFields(occurrenceRecordMap, occurrence);

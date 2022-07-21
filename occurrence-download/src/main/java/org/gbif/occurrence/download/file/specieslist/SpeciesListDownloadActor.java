@@ -19,6 +19,7 @@ import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.util.Date;
@@ -37,6 +38,12 @@ import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpr
 
 public class SpeciesListDownloadActor extends UntypedActor {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadActor.class);
+
+  private final SearchQueryProcessor searchQueryProcessor;
+
+  public SpeciesListDownloadActor(EsFieldMapper esFieldMapper) {
+    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  }
 
   static {
     // https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -62,7 +69,7 @@ public class SpeciesListDownloadActor extends UntypedActor {
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();
     try {
-      SearchQueryProcessor.processQuery(work, occurrence -> {
+      searchQueryProcessor.processQuery(work, occurrence -> {
         try {
           Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SPECIES_LIST_TERMS);
           if (occurrenceRecordMap != null) {

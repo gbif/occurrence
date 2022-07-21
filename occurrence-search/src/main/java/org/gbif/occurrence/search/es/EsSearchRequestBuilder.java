@@ -15,12 +15,12 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.occurrence.search.es.query.EsQueryVisitor;
+import org.gbif.predicate.query.EsQueryVisitor;
+import org.gbif.predicate.query.occurrence.OccurrencePredicateSearchRequest;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -66,26 +66,30 @@ public class EsSearchRequestBuilder {
 
   public static String[] SOURCE_EXCLUDE = new String[]{"all", "notIssues", "*.verbatim", "*.suggest"};
 
-  private EsSearchRequestBuilder() {}
+  private final EsFieldMapper esFieldMapper;
+
+  public EsSearchRequestBuilder(EsFieldMapper esFieldMapper) {
+    this.esFieldMapper = esFieldMapper;
+  }
 
   @SneakyThrows
-  public static Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
+  public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     String qParam = searchRequest.getQ();
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getSearchFieldName(), qParam));
+      bool.must(QueryBuilders.matchQuery(esFieldMapper.getSearchFieldName(FULL_TEXT), qParam));
     }
 
-    EsQueryVisitor esQueryVisitor = new EsQueryVisitor();
+    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor = QueryVisitorFactory.createEsQueryVisitor(esFieldMapper.getSearchType());
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
-  public static SearchRequest buildSearchRequest(
+  public SearchRequest buildSearchRequest(
       OccurrenceSearchRequest searchRequest, String index) {
 
     SearchRequest esRequest = new SearchRequest();
@@ -102,9 +106,9 @@ public class EsSearchRequestBuilder {
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
-      searchSourceBuilder.sort(SortBuilders.fieldSort("year").order(SortOrder.DESC));
-      searchSourceBuilder.sort(SortBuilders.fieldSort("month").order(SortOrder.ASC));
-      searchSourceBuilder.sort(SortBuilders.fieldSort("gbifId").order(SortOrder.ASC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType().getObjectName() + ".year").order(SortOrder.DESC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType().getObjectName() + ".month").order(SortOrder.ASC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType() == EsFieldMapper.SearchType.OCCURRENCE? "gbifId" : "uniqueKey").order(SortOrder.ASC));
     } else {
       searchSourceBuilder.sort(SortBuilders.scoreSort());
     }
@@ -131,11 +135,11 @@ public class EsSearchRequestBuilder {
     return esRequest;
   }
 
-  public static Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
+  public Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
     return buildQuery(searchRequest.getParameters(), searchRequest.getQ(), searchRequest.isMatchCase());
   }
 
-  static SearchRequest buildSuggestQuery(
+  SearchRequest buildSuggestQuery(
       String prefix, OccurrenceSearchParameter parameter, Integer limit, String index) {
     SearchRequest request = new SearchRequest();
     request.indices(index);
@@ -143,32 +147,32 @@ public class EsSearchRequestBuilder {
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     request.source(searchSourceBuilder);
 
-    OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(parameter);
+    OccurrenceEsField esField = esFieldMapper.getOccurrenceEsField(parameter);
 
     // create suggest query
     searchSourceBuilder.suggest(
         new SuggestBuilder()
             .addSuggestion(
-                esField.getSearchFieldName(),
-                SuggestBuilders.completionSuggestion(esField.getSuggestFieldName())
+                esFieldMapper.getSearchFieldName(esField),
+                SuggestBuilders.completionSuggestion(esFieldMapper.getSuggestFieldName(esField))
                     .prefix(prefix)
                     .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
                     .skipDuplicates(true)));
 
     // add source field
-    searchSourceBuilder.fetchSource(esField.getSearchFieldName(), null);
+    searchSourceBuilder.fetchSource(esFieldMapper.getSearchFieldName(esField), null);
 
     return request;
   }
 
-  private static Optional<QueryBuilder> buildQuery(
+  private Optional<QueryBuilder> buildQuery(
       Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase) {
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(FULL_TEXT.getSearchFieldName(), qParam));
+      bool.must(QueryBuilders.matchQuery(esFieldMapper.getSearchFieldName(FULL_TEXT), qParam));
     }
 
     if (params != null && !params.isEmpty()) {
@@ -179,7 +183,7 @@ public class EsSearchRequestBuilder {
             .should()
             .addAll(
                 params.get(OccurrenceSearchParameter.GEOMETRY).stream()
-                    .map(EsSearchRequestBuilder::buildGeoShapeQuery)
+                    .map(this::buildGeoShapeQuery)
                     .collect(Collectors.toList()));
         bool.filter().add(shouldGeometry);
       }
@@ -190,7 +194,7 @@ public class EsSearchRequestBuilder {
           .should()
           .addAll(
             params.get(OccurrenceSearchParameter.GEO_DISTANCE).stream()
-              .map(EsSearchRequestBuilder::buildGeoDistanceQuery)
+              .map(this::buildGeoDistanceQuery)
               .collect(Collectors.toList()));
         bool.filter().add(shouldGeoDistance);
       }
@@ -199,14 +203,14 @@ public class EsSearchRequestBuilder {
       bool.filter()
           .addAll(
               params.entrySet().stream()
-                  .filter(e -> Objects.nonNull(SEARCH_TO_ES_MAPPING.get(e.getKey())))
+                  .filter(e -> Objects.nonNull(esFieldMapper.getOccurrenceEsField(e.getKey())))
                   .flatMap(
                       e ->
-                          buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchCase)
+                          buildTermQuery(e.getValue(), e.getKey(), esFieldMapper.getOccurrenceEsField(e.getKey()), matchCase)
                               .stream())
                   .collect(Collectors.toList()));
     }
-
+    bool.filter().add(QueryBuilders.termQuery("type", esFieldMapper.getSearchType().getObjectName()));
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
@@ -238,7 +242,7 @@ public class EsSearchRequestBuilder {
     return groupedParams;
   }
 
-  private static Optional<QueryBuilder> buildPostFilter(
+  private Optional<QueryBuilder> buildPostFilter(
       Map<OccurrenceSearchParameter, Set<String>> postFilterParams, boolean matchCase) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
@@ -250,14 +254,14 @@ public class EsSearchRequestBuilder {
             postFilterParams.entrySet().stream()
                 .flatMap(
                     e ->
-                        buildTermQuery(e.getValue(), e.getKey(), SEARCH_TO_ES_MAPPING.get(e.getKey()), matchCase)
+                        buildTermQuery(e.getValue(), e.getKey(), esFieldMapper.getOccurrenceEsField(e.getKey()), matchCase)
                           .stream())
                           .collect(Collectors.toList()));
 
     return Optional.of(bool);
   }
 
-  private static Optional<List<AggregationBuilder>> buildAggs(
+  private Optional<List<AggregationBuilder>> buildAggs(
       OccurrenceSearchRequest searchRequest,
       Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
     if (searchRequest.getFacets() == null || searchRequest.getFacets().isEmpty()) {
@@ -273,7 +277,7 @@ public class EsSearchRequestBuilder {
     return Optional.of(buildFacets(searchRequest));
   }
 
-  private static List<AggregationBuilder> buildFacetsMultiselect(
+  private List<AggregationBuilder> buildFacetsMultiselect(
       OccurrenceSearchRequest searchRequest,
       Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
 
@@ -283,7 +287,7 @@ public class EsSearchRequestBuilder {
     }
 
     return searchRequest.getFacets().stream()
-        .filter(p -> SEARCH_TO_ES_MAPPING.get(p) != null)
+        .filter(p -> esFieldMapper.getOccurrenceEsField(p) != null)
         .map(
             facetParam -> {
 
@@ -298,20 +302,20 @@ public class EsSearchRequestBuilder {
                                   buildTermQuery(
                                       e.getValue(),
                                       e.getKey(),
-                                      SEARCH_TO_ES_MAPPING.get(e.getKey()),
+                                      esFieldMapper.getOccurrenceEsField(e.getKey()),
                                       searchRequest.isMatchCase())
                                       .stream())
                           .collect(Collectors.toList()));
 
               // add filter to the aggs
-              OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
+              OccurrenceEsField esField = esFieldMapper.getOccurrenceEsField(facetParam);
               FilterAggregationBuilder filterAggs =
-                  AggregationBuilders.filter(esField.getSearchFieldName(), bool);
+                  AggregationBuilders.filter(esFieldMapper.getSearchFieldName(esField), bool);
 
               // build terms aggs and add it to the filter aggs
               TermsAggregationBuilder termsAggs =
                   buildTermsAggs(
-                      "filtered_" + esField.getSearchFieldName(),
+                      "filtered_" + esFieldMapper.getSearchFieldName(esField),
                       esField,
                       searchRequest,
                       facetParam);
@@ -322,18 +326,18 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
-  private static List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
+  private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
     return searchRequest.getFacets().stream()
-        .filter(p -> SEARCH_TO_ES_MAPPING.get(p) != null)
+        .filter(p -> EsFieldMapper.SEARCH_TO_ES_MAPPING.get(p) != null)
         .map(
             facetParam -> {
-              OccurrenceEsField esField = SEARCH_TO_ES_MAPPING.get(facetParam);
-              return buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam);
+              OccurrenceEsField esField = esFieldMapper.getOccurrenceEsField(facetParam);
+              return buildTermsAggs(esFieldMapper.getSearchFieldName(esField), esField, searchRequest, facetParam);
             })
         .collect(Collectors.toList());
   }
 
-  private static TermsAggregationBuilder buildTermsAggs(
+  private TermsAggregationBuilder buildTermsAggs(
       String aggName,
       OccurrenceEsField esField,
       OccurrenceSearchRequest searchRequest,
@@ -341,7 +345,7 @@ public class EsSearchRequestBuilder {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggName)
-          .field(searchRequest.isMatchCase()? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
+          .field(searchRequest.isMatchCase()? esFieldMapper.getVerbatimFieldName(esField) : esFieldMapper.getExactMatchFieldName(esField));
 
     // min count
     Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
@@ -375,7 +379,7 @@ public class EsSearchRequestBuilder {
    * Mapping parameter values into know values for Enums. Non-enum parameter values are passed using
    * its raw value.
    */
-  private static String parseParamValue(String value, OccurrenceSearchParameter parameter) {
+  private String parseParamValue(String value, OccurrenceSearchParameter parameter) {
     if (Enum.class.isAssignableFrom(parameter.type())
         && !Country.class.isAssignableFrom(parameter.type())) {
       return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
@@ -388,7 +392,7 @@ public class EsSearchRequestBuilder {
     return value;
   }
 
-  private static List<QueryBuilder> buildTermQuery(
+  private List<QueryBuilder> buildTermQuery(
       Collection<String> values, OccurrenceSearchParameter param, OccurrenceEsField esField,
       boolean matchCase) {
     List<QueryBuilder> queries = new ArrayList<>();
@@ -404,7 +408,7 @@ public class EsSearchRequestBuilder {
       parsedValues.add(parseParamValue(value, param));
     }
 
-    String fieldName = matchCase? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    String fieldName = matchCase? esFieldMapper.getVerbatimFieldName(esField) : esFieldMapper.getExactMatchFieldName(esField);
     if (parsedValues.size() == 1) {
       // single term
       queries.add(QueryBuilders.termQuery(fieldName, parsedValues.get(0)));
@@ -416,8 +420,8 @@ public class EsSearchRequestBuilder {
     return queries;
   }
 
-  private static RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
-    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
+  private RangeQueryBuilder buildRangeQuery(OccurrenceEsField esField, String value) {
+    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esFieldMapper.getExactMatchFieldName(esField));
 
     if (DATE_FIELDS.contains(esField)) {
       String[] values = value.split(RANGE_SEPARATOR);
@@ -444,18 +448,18 @@ public class EsSearchRequestBuilder {
     return builder;
   }
 
-  public static GeoDistanceQueryBuilder buildGeoDistanceQuery(String rawGeoDistance) {
+  public GeoDistanceQueryBuilder buildGeoDistanceQuery(String rawGeoDistance) {
     DistanceUnit.GeoDistance geoDistance = DistanceUnit.GeoDistance.parseGeoDistance(rawGeoDistance);
     return buildGeoDistanceQuery(geoDistance);
   }
 
-  public static GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
-    return QueryBuilders.geoDistanceQuery(COORDINATE_POINT.getSearchFieldName())
+  public GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
+    return QueryBuilders.geoDistanceQuery(esFieldMapper.getSearchFieldName(COORDINATE_POINT))
       .distance(geoDistance.getDistance().toString())
       .point(geoDistance.getLatitude(), geoDistance.getLongitude());
   }
 
-  public static GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
+  public GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
       geometry = new WKTReader().read(wkt);
@@ -505,7 +509,7 @@ public class EsSearchRequestBuilder {
     }
 
     try {
-      return QueryBuilders.geoShapeQuery(COORDINATE_SHAPE.getSearchFieldName(), shapeBuilder.buildGeometry())
+      return QueryBuilders.geoShapeQuery(esFieldMapper.getSearchFieldName(COORDINATE_SHAPE), shapeBuilder.buildGeometry())
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);

@@ -17,7 +17,6 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
-import org.gbif.occurrence.common.TermUtils;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +24,6 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
@@ -190,92 +188,6 @@ public class EsQueryUtils {
         return builder.build();
       };
 
-  public static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> SEARCH_TO_ES_MAPPING =
-      ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
-          .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, OccurrenceEsField.LATITUDE)
-          .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, OccurrenceEsField.LONGITUDE)
-          .put(OccurrenceSearchParameter.YEAR, OccurrenceEsField.YEAR)
-          .put(OccurrenceSearchParameter.MONTH, OccurrenceEsField.MONTH)
-          .put(OccurrenceSearchParameter.CATALOG_NUMBER, OccurrenceEsField.CATALOG_NUMBER)
-          .put(OccurrenceSearchParameter.RECORDED_BY, OccurrenceEsField.RECORDED_BY)
-          .put(OccurrenceSearchParameter.IDENTIFIED_BY, OccurrenceEsField.IDENTIFIED_BY)
-          .put(OccurrenceSearchParameter.RECORD_NUMBER, OccurrenceEsField.RECORD_NUMBER)
-          .put(OccurrenceSearchParameter.COLLECTION_CODE, OccurrenceEsField.COLLECTION_CODE)
-          .put(OccurrenceSearchParameter.INSTITUTION_CODE, OccurrenceEsField.INSTITUTION_CODE)
-          .put(OccurrenceSearchParameter.DEPTH, OccurrenceEsField.DEPTH)
-          .put(OccurrenceSearchParameter.ELEVATION, OccurrenceEsField.ELEVATION)
-          .put(OccurrenceSearchParameter.BASIS_OF_RECORD, OccurrenceEsField.BASIS_OF_RECORD)
-          .put(OccurrenceSearchParameter.DATASET_KEY, OccurrenceEsField.DATASET_KEY)
-          .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, OccurrenceEsField.HAS_GEOSPATIAL_ISSUES)
-          .put(OccurrenceSearchParameter.HAS_COORDINATE, OccurrenceEsField.HAS_COORDINATE)
-          .put(OccurrenceSearchParameter.EVENT_DATE, OccurrenceEsField.EVENT_DATE)
-          .put(OccurrenceSearchParameter.MODIFIED, OccurrenceEsField.MODIFIED)
-          .put(OccurrenceSearchParameter.LAST_INTERPRETED, OccurrenceEsField.LAST_INTERPRETED)
-          .put(OccurrenceSearchParameter.COUNTRY, OccurrenceEsField.COUNTRY_CODE)
-          .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, OccurrenceEsField.PUBLISHING_COUNTRY)
-          .put(OccurrenceSearchParameter.CONTINENT, OccurrenceEsField.CONTINENT)
-          .put(OccurrenceSearchParameter.TAXON_KEY, OccurrenceEsField.TAXON_KEY)
-          .put(OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceEsField.KINGDOM_KEY)
-          .put(OccurrenceSearchParameter.PHYLUM_KEY, OccurrenceEsField.PHYLUM_KEY)
-          .put(OccurrenceSearchParameter.CLASS_KEY, OccurrenceEsField.CLASS_KEY)
-          .put(OccurrenceSearchParameter.ORDER_KEY, OccurrenceEsField.ORDER_KEY)
-          .put(OccurrenceSearchParameter.FAMILY_KEY, OccurrenceEsField.FAMILY_KEY)
-          .put(OccurrenceSearchParameter.GENUS_KEY, OccurrenceEsField.GENUS_KEY)
-          .put(OccurrenceSearchParameter.SUBGENUS_KEY, OccurrenceEsField.SUBGENUS_KEY)
-          .put(OccurrenceSearchParameter.SPECIES_KEY, OccurrenceEsField.SPECIES_KEY)
-          .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, OccurrenceEsField.SCIENTIFIC_NAME)
-          .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, OccurrenceEsField.VERBATIM_SCIENTIFIC_NAME)
-          .put(OccurrenceSearchParameter.TAXON_ID, OccurrenceEsField.TAXON_ID)
-          .put(OccurrenceSearchParameter.TYPE_STATUS, OccurrenceEsField.TYPE_STATUS)
-          .put(OccurrenceSearchParameter.MEDIA_TYPE, OccurrenceEsField.MEDIA_TYPE)
-          .put(OccurrenceSearchParameter.ISSUE, OccurrenceEsField.ISSUE)
-          .put(OccurrenceSearchParameter.OCCURRENCE_ID, OccurrenceEsField.OCCURRENCE_ID)
-          .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, OccurrenceEsField.ESTABLISHMENT_MEANS)
-          .put(OccurrenceSearchParameter.DEGREE_OF_ESTABLISHMENT, OccurrenceEsField.DEGREE_OF_ESTABLISHMENT_MEANS)
-          .put(OccurrenceSearchParameter.PATHWAY, OccurrenceEsField.PATHWAY)
-          .put(OccurrenceSearchParameter.REPATRIATED, OccurrenceEsField.REPATRIATED)
-          .put(OccurrenceSearchParameter.LOCALITY, OccurrenceEsField.LOCALITY)
-          .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, OccurrenceEsField.COORDINATE_UNCERTAINTY_IN_METERS)
-          .put(OccurrenceSearchParameter.GADM_GID, OccurrenceEsField.GADM_GID)
-          .put(OccurrenceSearchParameter.GADM_LEVEL_0_GID, OccurrenceEsField.GADM_LEVEL_0_GID)
-          .put(OccurrenceSearchParameter.GADM_LEVEL_1_GID, OccurrenceEsField.GADM_LEVEL_1_GID)
-          .put(OccurrenceSearchParameter.GADM_LEVEL_2_GID, OccurrenceEsField.GADM_LEVEL_2_GID)
-          .put(OccurrenceSearchParameter.GADM_LEVEL_3_GID, OccurrenceEsField.GADM_LEVEL_3_GID)
-          .put(OccurrenceSearchParameter.STATE_PROVINCE, OccurrenceEsField.STATE_PROVINCE)
-          .put(OccurrenceSearchParameter.WATER_BODY, OccurrenceEsField.WATER_BODY)
-          .put(OccurrenceSearchParameter.LICENSE, OccurrenceEsField.LICENSE)
-          .put(OccurrenceSearchParameter.PROTOCOL, OccurrenceEsField.PROTOCOL)
-          .put(OccurrenceSearchParameter.ORGANISM_ID, OccurrenceEsField.ORGANISM_ID)
-          .put(OccurrenceSearchParameter.PUBLISHING_ORG, OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY)
-          .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, OccurrenceEsField.HOSTING_ORGANIZATION_KEY)
-          .put(OccurrenceSearchParameter.CRAWL_ID, OccurrenceEsField.CRAWL_ID)
-          .put(OccurrenceSearchParameter.INSTALLATION_KEY, OccurrenceEsField.INSTALLATION_KEY)
-          .put(OccurrenceSearchParameter.NETWORK_KEY, OccurrenceEsField.NETWORK_KEY)
-          .put(OccurrenceSearchParameter.EVENT_ID, OccurrenceEsField.EVENT_ID)
-          .put(OccurrenceSearchParameter.PARENT_EVENT_ID, OccurrenceEsField.PARENT_EVENT_ID)
-          .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, OccurrenceEsField.SAMPLING_PROTOCOL)
-          .put(OccurrenceSearchParameter.PROJECT_ID, OccurrenceEsField.PROJECT_ID)
-          .put(OccurrenceSearchParameter.PROGRAMME, OccurrenceEsField.PROGRAMME)
-          .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, OccurrenceEsField.ORGANISM_QUANTITY)
-          .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, OccurrenceEsField.ORGANISM_QUANTITY_TYPE)
-          .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, OccurrenceEsField.SAMPLE_SIZE_VALUE)
-          .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, OccurrenceEsField.SAMPLE_SIZE_UNIT)
-          .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, OccurrenceEsField.RELATIVE_ORGANISM_QUANTITY)
-          .put(OccurrenceSearchParameter.COLLECTION_KEY, OccurrenceEsField.COLLECTION_KEY)
-          .put(OccurrenceSearchParameter.INSTITUTION_KEY, OccurrenceEsField.INSTITUTION_KEY)
-          .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, OccurrenceEsField.IDENTIFIED_BY_ID_VALUE)
-          .put(OccurrenceSearchParameter.RECORDED_BY_ID, OccurrenceEsField.RECORDED_BY_ID_VALUE)
-          .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OccurrenceEsField.OCCURRENCE_STATUS)
-          .put(OccurrenceSearchParameter.LIFE_STAGE, OccurrenceEsField.LIFE_STAGE)
-          .put(OccurrenceSearchParameter.IS_IN_CLUSTER, OccurrenceEsField.IS_IN_CLUSTER)
-          .put(OccurrenceSearchParameter.DWCA_EXTENSION, OccurrenceEsField.EXTENSIONS)
-          .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, OccurrenceEsField.IUCN_RED_LIST_CATEGORY)
-          .put(OccurrenceSearchParameter.DATASET_ID, OccurrenceEsField.DATASET_ID)
-          .put(OccurrenceSearchParameter.DATASET_NAME, OccurrenceEsField.DATASET_NAME)
-          .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OccurrenceEsField.OTHER_CATALOG_NUMBERS)
-          .put(OccurrenceSearchParameter.PREPARATIONS, OccurrenceEsField.PREPARATIONS)
-          .build();
-
   static final Map<OccurrenceEsField, Integer> CARDINALITIES =
       ImmutableMap.<OccurrenceEsField, Integer>builder()
           .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
@@ -302,18 +214,15 @@ public class EsQueryUtils {
       OccurrenceEsField.LAST_PARSED);
 
   static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
-      new HashMap<>(SEARCH_TO_ES_MAPPING.size());
+      new HashMap<>(EsFieldMapper.SEARCH_TO_ES_MAPPING.size());
 
   static {
     for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
-        SEARCH_TO_ES_MAPPING.entrySet()) {
+        EsFieldMapper.SEARCH_TO_ES_MAPPING.entrySet()) {
       ES_TO_SEARCH_MAPPING.put(paramField.getValue().getSearchFieldName(), paramField.getKey());
     }
   }
 
-  static final Set<OccurrenceEsField> VOCABULARY_FIELDS = Arrays.stream(OccurrenceEsField.values())
-                                                            .filter(f -> TermUtils.isVocabulary(f.getTerm()))
-                                                            .collect(Collectors.toSet());
 
   static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
@@ -327,7 +236,4 @@ public class EsQueryUtils {
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
 
-  public static boolean isVocabulary(OccurrenceEsField esField) {
-    return VOCABULARY_FIELDS.contains(esField);
-  }
 }

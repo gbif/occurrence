@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.search.heatmap;
 
-import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.search.cache.DefaultInMemoryPredicateCacheService;
 
 import java.util.Map;
@@ -40,7 +40,7 @@ public class OccurrenceHeatmapsTest {
   @Test
   public void heatmapRequestBuildTest() {
     //Cache config
-    Cache2kConfig<Integer,Predicate> cache2kConfig = new Cache2kConfig<>();
+    Cache2kConfig<Integer, Predicate> cache2kConfig = new Cache2kConfig<>();
     cache2kConfig.setEntryCapacity(1);
     cache2kConfig.setPermitNullValues(true);
     OccurrenceHeatmapRequest heatmapRequest = new OccurrenceHeatmapRequestProvider(DefaultInMemoryPredicateCacheService.getInstance(cache2kConfig))

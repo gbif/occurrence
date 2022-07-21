@@ -19,6 +19,7 @@ import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
@@ -75,6 +76,8 @@ public class DownloadMaster extends UntypedActor {
   private int calcNrOfWorkers;
   private int nrOfResults;
 
+  private final EsFieldMapper esFieldMapper;
+
   /**
    * Default constructor.
    */
@@ -89,14 +92,15 @@ public class DownloadMaster extends UntypedActor {
     int maxGlobalJobs) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
-    this.curatorFramework = DownloadWorkflowModule.curatorFramework(workflowConfiguration);
+    DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder().workflowConfiguration(workflowConfiguration).downloadJobConfiguration(jobConfiguration).build();
+    this.curatorFramework = downloadWorkflowModule.curatorFramework();
     this.lockFactory = new ZooKeeperLockFactory(curatorFramework,
                                                 maxGlobalJobs,
                                                 RUNNING_JOBS_LOCKING_PATH);
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-
+    esFieldMapper = downloadWorkflowModule.esFieldMapper();
   }
 
   /**
@@ -197,7 +201,7 @@ public class DownloadMaster extends UntypedActor {
         conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
       ActorRef workerRouter =
-        getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat())).withRouter(new RoundRobinRouter(
+        getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat(), esFieldMapper)).withRouter(new RoundRobinRouter(
           calcNrOfWorkers)), "downloadWorkerRouter");
 
       // Number of records that will be assigned to each job
@@ -264,22 +268,24 @@ public class DownloadMaster extends UntypedActor {
      */
     private static final long serialVersionUID = 1L;
     private final DownloadFormat downloadFormat;
+    private final EsFieldMapper esFieldMapper;
 
-    DownloadActorsFactory(DownloadFormat downloadFormat) {
+    DownloadActorsFactory(DownloadFormat downloadFormat, EsFieldMapper esFieldMapper) {
       this.downloadFormat = downloadFormat;
+      this.esFieldMapper = esFieldMapper;
     }
 
     @Override
     public Actor create() throws Exception {
       switch (downloadFormat) {
         case SIMPLE_CSV:
-          return new SimpleCsvDownloadActor();
+          return new SimpleCsvDownloadActor(esFieldMapper);
 
         case DWCA:
-          return new DownloadDwcaActor();
+          return new DownloadDwcaActor(esFieldMapper);
 
         case SPECIES_LIST:
-          return new SpeciesListDownloadActor();
+          return new SpeciesListDownloadActor(esFieldMapper);
 
         default:
           throw new IllegalStateException("Download format '"+downloadFormat+"' unknown or not supported for small downloads.");

@@ -88,6 +88,19 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-es-mapping</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.predicates</groupId>
+      <artifactId>predicates-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.predicates</groupId>
+      <artifactId>es-predicates</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
     </dependency>

@@ -23,6 +23,7 @@ import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
@@ -83,6 +84,8 @@ public class DownloadWorkflowModule  {
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
             .occurrenceDownloadService(clientBuilder().build(OccurrenceDownloadClient.class))
+            .esFieldMapper(EsFieldMapper.builder().nestedIndex(workflowConfiguration.isEsNestedIndex()).searchType(
+              EsFieldMapper.SearchType.valueOf(DefaultSettings.ES_INDEX_TYPE)).build())
             .build();
   }
 
@@ -183,6 +186,13 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
+  public EsFieldMapper esFieldMapper() {
+    return EsFieldMapper.builder()
+      .nestedIndex(workflowConfiguration.isEsNestedIndex())
+      .searchType(workflowConfiguration.getEsIndexType())
+      .build();
+  }
+
   /**
    *  Configuration for the DownloadMater actor.
    */
@@ -194,6 +204,7 @@ public class DownloadWorkflowModule  {
             .lockName(workflowConfiguration.getSetting(DefaultSettings.ZK_LOCK_NAME_KEY))
             .build();
   }
+
 
   /**
    * Creates an ActorRef that holds an instance of {@link DownloadMaster}.
@@ -274,6 +285,8 @@ public class DownloadWorkflowModule  {
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";
     public static final String ES_HOSTS_KEY = "es.hosts";
+    public static final String ES_INDEX_TYPE = "es.index.type";
+    public static final String ES_INDEX_NESTED = "es.index.nested";
     public static final String ES_CONNECT_TIMEOUT_KEY = "es.connect_timeout";
     public static final String ES_SOCKET_TIMEOUT_KEY = "es.socket_timeout";
     public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";

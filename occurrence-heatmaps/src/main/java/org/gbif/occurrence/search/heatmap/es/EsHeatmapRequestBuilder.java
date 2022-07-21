@@ -14,7 +14,7 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.EsQueryUtils;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
@@ -33,17 +33,22 @@ import com.google.common.annotations.VisibleForTesting;
 
 class EsHeatmapRequestBuilder {
 
-  static final String BOX_AGGS = "box";
   static final String HEATMAP_AGGS = "heatmap";
   static final String CELL_AGGS = "cell";
 
   //Mapping of predefined zoom levels
   private static final int[] PRECISION_LOOKUP = new int[]{2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
-  private EsHeatmapRequestBuilder() {}
+  private final EsFieldMapper esFieldMapper;
+  private final EsSearchRequestBuilder esSearchRequestBuilder;
+
+  EsHeatmapRequestBuilder(EsFieldMapper esFieldMapper) {
+    this.esFieldMapper = esFieldMapper;
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
+  }
 
   @VisibleForTesting
-  static SearchRequest buildRequest(OccurrenceHeatmapRequest request, String index) {
+  SearchRequest buildRequest(OccurrenceHeatmapRequest request, String index) {
     // build request body
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -63,17 +68,17 @@ class EsHeatmapRequestBuilder {
     double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
+    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT))
       .setCorners(top, left, bottom, right));
     bool.filter().add(QueryBuilders.termQuery(
-      EsQueryUtils.SEARCH_TO_ES_MAPPING.get(OccurrenceSearchParameter.HAS_COORDINATE).getSearchFieldName(), true));
+      esFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
 
     // add query
     if (request.getPredicate() != null) { //is a predicate search
-      EsSearchRequestBuilder.buildQuery(request).ifPresent(bool.filter()::add);
+      esSearchRequestBuilder.buildQuery(request).ifPresent(bool.filter()::add);
     } else {
       // add hasCoordinate to the filter and create query
-      EsSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
+      esSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
     }
 
 
@@ -85,20 +90,20 @@ class EsHeatmapRequestBuilder {
     return esRequest;
   }
 
-  private static AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
+  private AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
-            .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName())
+            .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT))
             .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)])
             .size(Math.max(request.getBucketLimit(), 50000));
 
     if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
       GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
-                                                        .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
+                                                        .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT));
       geoGridAggs.subAggregation(geoCentroidAggs);
     } else {
       GeoBoundsAggregationBuilder geoBoundsAggs = AggregationBuilders.geoBounds(CELL_AGGS)
-                                                    .field(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
+                                                    .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT));
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
 
