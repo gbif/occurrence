@@ -17,20 +17,29 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 
 @Data
 @Builder
+@Slf4j
 public class EsFieldMapper {
+
+  private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
+  private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
 
   public static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> SEARCH_TO_ES_MAPPING =
       ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
@@ -118,6 +127,16 @@ public class EsFieldMapper {
           .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
           .build();
 
+  static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
+    new HashMap<>(EsFieldMapper.SEARCH_TO_ES_MAPPING.size());
+
+  static {
+    for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
+      EsFieldMapper.SEARCH_TO_ES_MAPPING.entrySet()) {
+      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getSearchFieldName(), paramField.getKey());
+    }
+  }
+
   static final Set<OccurrenceEsField> VOCABULARY_FIELDS = Arrays.stream(OccurrenceEsField.values())
     .filter(f -> TermUtils.isVocabulary(f.getTerm()))
     .collect(Collectors.toSet());
@@ -157,13 +176,16 @@ public class EsFieldMapper {
 
   private final boolean nestedIndex;
 
-  private String getFieldName(OccurrenceEsField occurrenceEsField, String fieldName) {
+  public String getFieldName(OccurrenceEsField occurrenceEsField, String fieldName) {
     if (!nestedIndex || ROOT_LEVEL_FIELDS.contains(occurrenceEsField)) {
       return fieldName;
     }
     return searchType.getObjectName() + '.' + fieldName;
   }
 
+  public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
+    return ES_TO_SEARCH_MAPPING.get(searchFieldName);
+  }
   public String getSearchFieldName(OccurrenceEsField occurrenceEsField) {
     return getFieldName(occurrenceEsField, occurrenceEsField.getSearchFieldName());
   }
@@ -191,9 +213,6 @@ public class EsFieldMapper {
     return getFieldName(occurrenceEsField, occurrenceEsField.getVerbatimFieldName());
   }
 
-  public String getValueFieldName(OccurrenceEsField occurrenceEsField) {
-    return getFieldName(occurrenceEsField, occurrenceEsField.getValueFieldName());
-  }
 
   public String getValueFieldName(OccurrenceSearchParameter searchParameter) {
     OccurrenceEsField occurrenceEsField = getOccurrenceEsField(searchParameter);
@@ -211,5 +230,6 @@ public class EsFieldMapper {
   public static boolean isVocabulary(OccurrenceEsField esField) {
     return VOCABULARY_FIELDS.contains(esField);
   }
+
 
 }

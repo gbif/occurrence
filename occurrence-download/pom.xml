@@ -304,6 +304,10 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-es-mapping</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
     </dependency>

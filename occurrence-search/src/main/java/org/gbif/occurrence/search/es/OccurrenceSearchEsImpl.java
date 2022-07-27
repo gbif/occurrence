@@ -23,7 +23,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
@@ -31,12 +30,9 @@ import org.gbif.occurrence.search.SearchTermService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
@@ -74,7 +70,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final EsFulltextSuggestBuilder esFulltextSuggestBuilder;
   private final EsFieldMapper esFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
-  private final EsResponseParser esResponseParser;
+  private final EsResponseParser<Occurrence> esResponseParser;
+  private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -98,7 +95,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     esFieldMapper = builder.build();
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().esFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
-    this.esResponseParser = new EsResponseParser(esFieldMapper);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
+    this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
@@ -134,38 +132,26 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
                       mapper);
   }
 
-
-  private  Function<SearchHit, Occurrence> toOccurrence() { return  hit -> {
-    Occurrence occurrence = esResponseParser.toOccurrence(hit, true);
-    Map<Term, String> verbatim = occurrence.getVerbatimFields()
-      .entrySet()
-      .stream()
-      .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-    occurrence.setVerbatimFields(verbatim);
-    return occurrence;
-  };
-  };
-
   @Override
   public Occurrence get(Long key) {
-    return searchByKey(key, toOccurrence());
+    return searchByKey(key, searchHitOccurrenceConverter);
   }
 
   @Nullable
   @Override
   public Occurrence get(UUID datasetKey, String occurrenceId) {
-    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, toOccurrence());
+    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter);
   }
 
   @Nullable
   @Override
   public VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId) {
-    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, esResponseParser::toVerbatimOccurrence);
+    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter::toVerbatimOccurrence);
   }
 
   @Override
   public VerbatimOccurrence getVerbatim(Long key) {
-    return searchByKey(key, esResponseParser::toVerbatimOccurrence);
+    return searchByKey(key, searchHitOccurrenceConverter::toVerbatimOccurrence);
   }
 
   @Override
@@ -201,7 +187,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
     // perform the search
     try {
-      return esResponseParser.buildDownloadResponse(esClient.search(esRequest, HEADERS.get()), request);
+      return esResponseParser.buildSearchResponse(esClient.search(esRequest, HEADERS.get()), request);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);

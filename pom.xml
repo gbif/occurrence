@@ -92,6 +92,7 @@
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
+    <module>event-ws</module>
   </modules>
 
   <properties>

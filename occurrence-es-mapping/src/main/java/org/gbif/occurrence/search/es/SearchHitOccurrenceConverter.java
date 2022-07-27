@@ -15,156 +15,121 @@ package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.api.model.common.search.Facet;
-import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.*;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.occurrence.AgentIdentifier;
+import org.gbif.api.model.occurrence.Gadm;
+import org.gbif.api.model.occurrence.GadmFeature;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.OccurrenceRelation;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.*;
-import org.gbif.dwc.terms.*;
+import org.gbif.api.vocabulary.AgentIdentifierType;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.MediaType;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.OccurrenceStatus;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.api.vocabulary.Sex;
+import org.gbif.api.vocabulary.TaxonomicStatus;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
-import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.bucket.filter.Filter;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RELATION;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.CRAWL_ID;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_CRAWLED;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_INTERPRETED;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_PARSED;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.MEDIA_ITEMS;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.NETWORK_KEY;
 
-public class EsResponseParser {
+public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
-  private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
-  private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
-  private static final TermFactory TERM_FACTORY = TermFactory.instance();
-
-  private static final Logger LOG = LoggerFactory.getLogger(EsResponseParser.class);
-
-  private final EsFieldMapper esFieldMapper;
-
-  /**
-   * Private constructor.
-   */
-  public EsResponseParser(EsFieldMapper esFieldMapper) {
-    this.esFieldMapper = esFieldMapper;
+  public SearchHitOccurrenceConverter(EsFieldMapper esFieldMapper, boolean excludeInterpretedFromVerbatim) {
+    super(esFieldMapper);
+    this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
 
-  /**
-   * Builds a SearchResponse instance using the current builder state.
-   *
-   * @return a new instance of a SearchResponse.
-   */
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
-      org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
+  private final boolean excludeInterpretedFromVerbatim;
 
-    SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
-    response.setCount(esResponse.getHits().getTotalHits().value);
-    parseHits(esResponse, true).ifPresent(response::setResults);
-    parseFacets(esResponse, request).ifPresent(response::setFacets);
+  @Override
+  public Occurrence apply(SearchHit hit) {
+    // create occurrence
+    Occurrence occ = new Occurrence();
 
-    return response;
-  }
+    // set fields
+    setOccurrenceFields(hit, occ);
+    setLocationFields(hit, occ);
+    setTemporalFields(hit, occ);
+    setCrawlingFields(hit, occ);
+    setDatasetFields(hit, occ);
+    setTaxonFields(hit, occ);
+    setGrscicollFields(hit, occ);
 
-  /**
-   * Builds a SearchResponse instance using the current builder state.
-   * This response is intended to be used for occurrence downloads only since it does not exclude verbatim fields.
-   *
-   * @return a new instance of a SearchResponse.
-   */
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> buildDownloadResponse(
-      org.elasticsearch.action.search.SearchResponse esResponse, Pageable request) {
+    // issues
+    getListValue(hit, ISSUE)
+      .ifPresent(
+        v ->
+          occ.setIssues(
+            v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .collect(Collectors.toSet())));
 
-    SearchResponse<Occurrence, OccurrenceSearchParameter> response = new SearchResponse<>(request);
-    response.setCount(esResponse.getHits().getTotalHits().value);
-    parseHits(esResponse, false).ifPresent(response::setResults);
-    return response;
-  }
+    // multimedia extension
+    parseMultimediaItems(hit, occ);
 
-  public List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
-                                                  OccurrenceSearchParameter parameter) {
+    parseAgentIds(hit, occ);
 
-    String fieldName = esFieldMapper.getValueFieldName(parameter);
+    // add verbatim fields
+    occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
 
-    return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
-        .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
-        .map(CompletionSuggestion.Entry.Option::getText)
-        .map(Text::string)
-        .collect(Collectors.toList());
-  }
-
-  /**
-   * Extract the buckets of an {@link Aggregation}.
-   */
-  private List<? extends Terms.Bucket> getBuckets(Aggregation aggregation) {
-    if (aggregation instanceof Terms) {
-      return ((Terms) aggregation).getBuckets();
-    } else if (aggregation instanceof Filter) {
-      return
-        ((Filter) aggregation)
-          .getAggregations().asList()
-            .stream()
-            .flatMap(agg -> ((Terms) agg).getBuckets().stream())
-            .collect(Collectors.toList());
-    } else {
-      throw new IllegalArgumentException(aggregation.getClass() + " aggregation not supported");
-    }
-  }
-
-  private Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(
-      org.elasticsearch.action.search.SearchResponse esResponse, OccurrenceSearchRequest request) {
-
-    Function<Aggregation, Facet<OccurrenceSearchParameter>> mapFn = aggs -> {
-      // get buckets
-      List<? extends Terms.Bucket> buckets = getBuckets(aggs);
-
-      // get facet of the agg
-      OccurrenceSearchParameter facet = ES_TO_SEARCH_MAPPING.get(aggs.getName());
-
-      // check for paging in facets
-      long facetOffset = extractFacetOffset(request, facet);
-      long facetLimit = extractFacetLimit(request, facet);
-
-      List<Facet.Count> counts =
-        buckets.stream()
-          .skip(facetOffset)
-          .limit(facetOffset + facetLimit)
-          .map(b -> new Facet.Count(b.getKeyAsString(), b.getDocCount()))
-          .collect(Collectors.toList());
-
-      return new Facet<>(facet, counts);
-    };
-
-    return Optional.ofNullable(esResponse.getAggregations())
-      .map(aggregations -> aggregations.asList().stream().map(mapFn).collect(Collectors.toList()));
-  }
-
-  private Optional<List<Occurrence>> parseHits(org.elasticsearch.action.search.SearchResponse esResponse, boolean excludeInterpreted) {
-    if (esResponse.getHits() == null || esResponse.getHits().getHits() == null || esResponse.getHits().getHits().length == 0) {
-      return Optional.empty();
+    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    if (verbatimData != null && verbatimData.containsKey("extensions" )) {
+      occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
     }
 
-    return Optional.of(Stream.of(esResponse.getHits().getHits())
-                         .map(hit -> toOccurrence(hit, excludeInterpreted))
-                         .collect(Collectors.toList()));
+    setIdentifier(hit, occ);
+
+    return occ;
+  }
+
+  private Map<Term, String> extractVerbatimFields(SearchHit hit) {
+    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+    if(verbatimFields == null) {
+      return Collections.emptyMap();
+    }
+    Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
+    Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
+      verbatimCoreFields.entrySet().stream()
+        .map(e -> new AbstractMap.SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
+    if (excludeInterpretedFromVerbatim) {
+      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()));
+    }
+    return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /**
@@ -237,47 +202,6 @@ public class EsResponseParser {
     return terms;
   }
 
-  public Occurrence toOccurrence(SearchHit hit, boolean excludeInterpreted) {
-    // create occurrence
-    Occurrence occ = new Occurrence();
-
-    // set fields
-    setOccurrenceFields(hit, occ);
-    setLocationFields(hit, occ);
-    setTemporalFields(hit, occ);
-    setCrawlingFields(hit, occ);
-    setDatasetFields(hit, occ);
-    setTaxonFields(hit, occ);
-    setGrscicollFields(hit, occ);
-
-    // issues
-    getListValue(hit, ISSUE)
-        .ifPresent(
-            v ->
-                occ.setIssues(
-                    v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
-                      .filter(Optional::isPresent)
-                      .map(Optional::get)
-                      .collect(Collectors.toSet())));
-
-    // multimedia extension
-    parseMultimediaItems(hit, occ);
-
-    parseAgentIds(hit, occ);
-
-    // add verbatim fields
-    occ.getVerbatimFields().putAll(extractVerbatimFields(hit, excludeInterpreted));
-
-    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if (verbatimData != null && verbatimData.containsKey("extensions" )) {
-      occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
-    }
-
-    setIdentifier(hit, occ);
-
-    return occ;
-  }
-
   /**
    * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could only have been
    * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
@@ -302,11 +226,11 @@ public class EsResponseParser {
 
   private void setOccurrenceFields(SearchHit hit, Occurrence occ) {
     getValue(hit, GBIF_ID, Long::valueOf)
-        .ifPresent(
-            id -> {
-              occ.setKey(id);
-              occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
-            });
+      .ifPresent(
+        id -> {
+          occ.setKey(id);
+          occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
+        });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
     getStringValue(hit, ESTABLISHMENT_MEANS).ifPresent(occ::setEstablishmentMeans);
     getStringValue(hit, LIFE_STAGE).ifPresent(occ::setLifeStage);
@@ -319,20 +243,20 @@ public class EsResponseParser {
     getStringValue(hit, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
     getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(occ::setIndividualCount);
     getStringValue(hit, IDENTIFIER)
-        .ifPresent(
-            v -> {
-              Identifier identifier = new Identifier();
-              identifier.setIdentifier(v);
-              occ.setIdentifiers(Collections.singletonList(identifier));
-            });
+      .ifPresent(
+        v -> {
+          Identifier identifier = new Identifier();
+          identifier.setIdentifier(v);
+          occ.setIdentifiers(Collections.singletonList(identifier));
+        });
 
     getStringValue(hit, RELATION)
-        .ifPresent(
-            v -> {
-              OccurrenceRelation occRelation = new OccurrenceRelation();
-              occRelation.setId(v);
-              occ.setRelations(Collections.singletonList(occRelation));
-            });
+      .ifPresent(
+        v -> {
+          OccurrenceRelation occRelation = new OccurrenceRelation();
+          occRelation.setId(v);
+          occ.setRelations(Collections.singletonList(occRelation));
+        });
     getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
     getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
 
@@ -454,18 +378,18 @@ public class EsResponseParser {
 
   private void setDatasetFields(SearchHit hit, Occurrence occ) {
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
-        .ifPresent(occ::setPublishingCountry);
+      .ifPresent(occ::setPublishingCountry);
     getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(occ::setDatasetKey);
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
-        .ifPresent(occ::setPublishingOrgKey);
+      .ifPresent(occ::setPublishingOrgKey);
     getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
     getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
 
     getListValue(hit, NETWORK_KEY)
-        .ifPresent(
-            v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+      .ifPresent(
+        v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
 
   private void setCrawlingFields(SearchHit hit, Occurrence occ) {
@@ -495,9 +419,9 @@ public class EsResponseParser {
       extractStringValue(m, "title").ifPresent(mediaObject::setTitle);
       extractStringValue(m, "license")
         .map(license ->
-          License.fromString(license)
-            .map(l -> Optional.ofNullable(l.getLicenseUrl()).orElse(license))
-            .orElse(license))
+               License.fromString(license)
+                 .map(l -> Optional.ofNullable(l.getLicenseUrl()).orElse(license))
+                 .orElse(license))
         .ifPresent(mediaObject::setLicense);
 
       return mediaObject;
@@ -506,116 +430,6 @@ public class EsResponseParser {
     getObjectsListValue(hit, MEDIA_ITEMS)
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setMedia);
-  }
-
-  private Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, Function.identity());
-  }
-
-  private Optional<Integer> getIntValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, Integer::valueOf);
-  }
-
-  private Optional<Double> getDoubleValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, Double::valueOf);
-  }
-
-  private Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, STRING_TO_DATE);
-  }
-
-  private Optional<Boolean> getBooleanValue(SearchHit hit, OccurrenceEsField esField) {
-    return getValue(hit, esField, Boolean::valueOf);
-  }
-
-  private Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
-        .map(v -> (List<String>) v)
-        .filter(v -> !v.isEmpty());
-  }
-
-  private Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
-        .map(v -> (List<String>) v)
-        .filter(v -> !v.isEmpty())
-        .map(s -> String.join("|", s));
-  }
-
-  private Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
-        .map(v -> (Map<String,Object>) v)
-        .filter(v -> !v.keySet().isEmpty());
-  }
-
-  private Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(esFieldMapper.getValueFieldName(esField)))
-        .map(v -> (List<Map<String, Object>>) v)
-        .filter(v -> !v.isEmpty());
-  }
-
-  private <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
-    String fieldName =  esFieldMapper.getValueFieldName(esField);
-    Map<String, Object> fields = hit.getSourceAsMap();
-    if (IS_NESTED.test(esFieldMapper.getValueFieldName(esField))) {
-      // take all paths till the field name
-      String[] paths = esFieldMapper.getValueFieldName(esField).split("\\.");
-      for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
-        // update the fields with the current path
-        fields = (Map<String, Object>) fields.get(paths[i]);
-      }
-      // the last path is the field name
-      fieldName = paths[paths.length - 1];
-    }
-
-    return extractValue(fields, fieldName, mapper);
-  }
-
-  private static <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
-    if (fields == null || fieldName == null || mapper == null) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(fields.get(fieldName))
-      .map(String::valueOf)
-      .filter(v -> !v.isEmpty())
-      .map(v -> {
-        try {
-          return mapper.apply(v);
-        } catch (Exception ex) {
-          LOG.error("Error extracting field {} with value {}", fieldName, v);
-          return null;
-        }
-      });
-  }
-
-  private Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
-    return extractValue(fields, fieldName, Function.identity());
-  }
-
-  private Map<Term, String> extractVerbatimFields(SearchHit hit, boolean excludeInterpreted) {
-    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if(verbatimFields == null) {
-      return Collections.emptyMap();
-    }
-    Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
-    Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
-    verbatimCoreFields.entrySet().stream()
-      .map(e -> new SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
-    if (excludeInterpreted) {
-      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()));
-    }
-    return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  /**
-   * Re-maps terms to handle Unknown terms.
-   * This has to be done because Pipelines preserve Unknown terms and do not add the URI for unknown terms.
-   */
-  private static Term mapTerm(String verbatimTerm) {
-    Term term  = TERM_FACTORY.findTerm(verbatimTerm);
-    if (term instanceof UnknownTerm) {
-      return UnknownTerm.build(term.simpleName(), false);
-    }
-    return term;
   }
 
 }

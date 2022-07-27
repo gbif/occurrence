@@ -13,12 +13,13 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -43,10 +44,10 @@ public class SearchQueryProcessor {
 
   private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getSearchFieldName();
 
-  private final EsResponseParser esResponseParser;
+  private final EsResponseParser<Occurrence> esResponseParser;
 
   public SearchQueryProcessor(EsFieldMapper esFieldMapper) {
-    this.esResponseParser = new EsResponseParser(esFieldMapper);
+    this.esResponseParser = new EsResponseParser<Occurrence>(esFieldMapper, new SearchHitOccurrenceConverter(esFieldMapper, false));
   }
 
   /**
@@ -91,7 +92,7 @@ public class SearchQueryProcessor {
   }
 
   private void consume(SearchResponse searchResponse, Consumer<Occurrence> consumer) {
-    esResponseParser.buildDownloadResponse(searchResponse, new PagingRequest(0, searchResponse.getHits().getHits().length))
+    esResponseParser.buildSearchResponse(searchResponse, new OccurrenceSearchRequest(0, searchResponse.getHits().getHits().length))
       .getResults().forEach(consumer);
   }
   /**
