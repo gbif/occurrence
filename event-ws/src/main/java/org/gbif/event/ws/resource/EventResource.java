@@ -48,13 +48,19 @@ public class EventResource {
   @NullToNotFound
   @GetMapping("{id}")
   public Event get(@PathVariable("id") String id) {
-    return null;
+    return eventSearchEs.get(id);
+  }
+
+  @NullToNotFound
+  @GetMapping("{datasetKey}/{eventId}")
+  public Event get(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+    return eventSearchEs.get(datasetKey, eventId);
   }
 
   @NullToNotFound
   @GetMapping("{id}/parent")
   public Event getParentEvent(@PathVariable("id") String id) {
-    return null;
+    return eventSearchEs.getParentEvent(id).orElse(null);
   }
 
   @NullToNotFound

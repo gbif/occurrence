@@ -107,10 +107,12 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     // add verbatim fields
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
 
-    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if (verbatimData != null && verbatimData.containsKey("extensions" )) {
-      occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
-    }
+    // add verbatim fields
+    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
+      if (verbatimData.containsKey("extensions" )) {
+        occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
+      }
+    });
 
     setIdentifier(hit, occ);
 
@@ -157,15 +159,16 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
           vOcc.setKey(id);
           vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
-    // add verbatim fields
-    Map<String, Object> verbatimData = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
 
-    vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
     setIdentifier(hit, vOcc);
 
-    if (verbatimData.containsKey("extensions" )) {
-      vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
-    }
+    // add verbatim fields
+    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
+      vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
+      if (verbatimData.containsKey("extensions" )) {
+        vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
+      }
+    });
 
     return vOcc;
   }
@@ -280,7 +283,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   private void parseAgentIds(SearchHit hit, Occurrence occ) {
     Function<Map<String, Object>, AgentIdentifier> mapFn = m -> {
       AgentIdentifier ai = new AgentIdentifier();
-      extractValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
+      extractStringValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
       extractStringValue(m, "value").ifPresent(ai::setValue);
       return ai;
     };
@@ -404,10 +407,10 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     Function<Map<String, Object>, MediaObject> mapFn = m -> {
       MediaObject mediaObject = new MediaObject();
 
-      extractValue(m, "type", MediaType::valueOf).ifPresent(mediaObject::setType);
-      extractValue(m, "identifier", URI::create).ifPresent(mediaObject::setIdentifier);
-      extractValue(m, "references", URI::create).ifPresent(mediaObject::setReferences);
-      extractValue(m, "created", STRING_TO_DATE).ifPresent(mediaObject::setCreated);
+      extractStringValue(m, "type", MediaType::valueOf).ifPresent(mediaObject::setType);
+      extractStringValue(m, "identifier", URI::create).ifPresent(mediaObject::setIdentifier);
+      extractStringValue(m, "references", URI::create).ifPresent(mediaObject::setReferences);
+      extractStringValue(m, "created", STRING_TO_DATE).ifPresent(mediaObject::setCreated);
       extractStringValue(m, "format").ifPresent(mediaObject::setFormat);
       extractStringValue(m, "audience").ifPresent(mediaObject::setAudience);
       extractStringValue(m, "contributor").ifPresent(mediaObject::setContributor);

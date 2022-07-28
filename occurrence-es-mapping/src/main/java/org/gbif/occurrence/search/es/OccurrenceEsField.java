@@ -135,8 +135,8 @@ public enum OccurrenceEsField {
   INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
 
   //Sampling
-  EVENT_ID("eventId", DwcTerm.eventID, true),
-  PARENT_EVENT_ID("parentEventId", DwcTerm.parentEventID, true),
+  EVENT_ID("eventID", DwcTerm.eventID, true),
+  PARENT_EVENT_ID("parentEventID", DwcTerm.parentEventID, true),
   SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol, true),
   LIFE_STAGE("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage),
   DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
@@ -175,13 +175,15 @@ public enum OccurrenceEsField {
   IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
   EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension),
 
-
   //Event
   START_DAY_OF_YEAR("startDayOfYear", DwcTerm.startDayOfYear),
   END_DAY_OF_YEAR("endDayOfYear", DwcTerm.startDayOfYear),
   EVENT_TYPE("eventType", GbifTerm.eventType),
   LOCATION_ID("locationID", DwcTerm.locationID),
-  PARENTS_LINEAGE("parentsLineage", UnknownTerm.build("parentsLineage"));
+  PARENTS_LINEAGE("parentsLineage", UnknownTerm.build("parentsLineage")),
+
+  //Verbatim
+  VERBATIM("verbatim", UnknownTerm.build("verbatim"));
 
 
   private final String searchFieldName;

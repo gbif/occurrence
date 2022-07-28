@@ -42,6 +42,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   }
 
   private void setEventData(SearchHit hit, Event event) {
+    event.setId(hit.getId());
     getStringValue(hit, OccurrenceEsField.EVENT_ID).ifPresent(event::setEventID);
     getStringValue(hit, OccurrenceEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
     getStringValue(hit, OccurrenceEsField.SAMPLE_SIZE_UNIT).ifPresent(event::setSampleSizeUnit);

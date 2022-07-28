@@ -156,13 +156,11 @@ public class EsFieldMapper {
   }
 
   private final static Set<OccurrenceEsField> METADATA_FIELDS = new HashSet<>(Arrays.asList(DATASET_KEY,
-                                                                                            PUBLISHING_COUNTRY,
                                                                                             PUBLISHING_ORGANIZATION_KEY,
                                                                                             HOSTING_ORGANIZATION_KEY,
                                                                                             INSTALLATION_KEY,
                                                                                             NETWORK_KEY,
                                                                                             PROTOCOL,
-                                                                                            LICENSE,
                                                                                             PROJECT_ID,
                                                                                             PROGRAMME));
 
@@ -180,12 +178,20 @@ public class EsFieldMapper {
     if (!nestedIndex || ROOT_LEVEL_FIELDS.contains(occurrenceEsField)) {
       return fieldName;
     }
+    if (METADATA_FIELDS.contains(occurrenceEsField)) {
+      return SearchType.METADATA.getObjectName() + '.' + fieldName;
+    }
     return searchType.getObjectName() + '.' + fieldName;
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
     return ES_TO_SEARCH_MAPPING.get(searchFieldName);
   }
+
+  public String getSearchFieldName(String fieldName) {
+    return nestedIndex? searchType.getObjectName() + '.' + fieldName : fieldName;
+  }
+
   public String getSearchFieldName(OccurrenceEsField occurrenceEsField) {
     return getFieldName(occurrenceEsField, occurrenceEsField.getSearchFieldName());
   }
@@ -212,7 +218,6 @@ public class EsFieldMapper {
     OccurrenceEsField occurrenceEsField = getOccurrenceEsField(searchParameter);
     return getFieldName(occurrenceEsField, occurrenceEsField.getVerbatimFieldName());
   }
-
 
   public String getValueFieldName(OccurrenceSearchParameter searchParameter) {
     OccurrenceEsField occurrenceEsField = getOccurrenceEsField(searchParameter);

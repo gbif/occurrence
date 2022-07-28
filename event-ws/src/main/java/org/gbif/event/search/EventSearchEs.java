@@ -30,9 +30,15 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +61,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final EsResponseParser<Event> esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
   private final EsFieldMapper esFieldMapper;
-  private final SearchHitConverter<Event> searchHitOccurrenceConverter;
+  private final SearchHitConverter<Event> searchHitEventConverter;
 
   private static final SearchResponse<Event, OccurrenceSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
@@ -80,8 +86,51 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     searchType.ifPresent(builder::searchType);
     esFieldMapper = builder.build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
-    searchHitOccurrenceConverter = new SearchHitEventConverter(esFieldMapper);
-    this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
+    searchHitEventConverter = new SearchHitEventConverter(esFieldMapper);
+    this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitEventConverter);
+  }
+
+  private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
+    //This should be changed to use GetRequest once ElasticSearch stores id correctly
+    SearchRequest searchRequest = new SearchRequest();
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.size(1);
+    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
+    searchRequest.indices(esIndex);
+    searchSourceBuilder.query(query);
+    searchRequest.source(searchSourceBuilder);
+    try {
+      SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
+      if (hits != null && hits.getTotalHits().value > 0) {
+        return mapper.apply(hits.getAt(0));
+      }
+      return null;
+    } catch (IOException ex) {
+      throw new SearchException(ex);
+    }
+  }
+
+  private <T> T searchByKey(String key, Function<SearchHit, T> mapper) {
+    return getByQuery(QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key)), mapper);
+  }
+
+  public Event get(String key) {
+    return searchByKey(key, searchHitEventConverter);
+  }
+
+  public Event get(String datasetKey, String eventId) {
+    return getByQuery(QueryBuilders.boolQuery()
+                        .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
+                        .filter(QueryBuilders.termQuery("event.eventID.keyword", eventId)), searchHitEventConverter);
+  }
+
+  public Optional<Event> getParentEvent(String key) {
+
+    return Optional.ofNullable(get(key))
+              .filter(e -> e.getParentEventID() != null)
+              .map(event -> getByQuery(QueryBuilders.boolQuery()
+                                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString()))
+                                         .filter(QueryBuilders.termQuery("event.eventID.keyword", event.getParentEventID())), searchHitEventConverter));
   }
 
   @Override

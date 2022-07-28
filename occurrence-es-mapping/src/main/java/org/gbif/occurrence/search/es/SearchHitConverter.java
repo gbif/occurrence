@@ -126,54 +126,83 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   }
 
   protected Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(getValueFieldName(esField)))
-      .map(v -> (List<String>) v)
-      .filter(v -> !v.isEmpty());
+    return getComplexValue(hit, esField,v -> {
+      List<String> value = (List<String>) v;
+      return value.isEmpty()? null : value;
+    });
   }
 
   protected Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(getValueFieldName(esField)))
-      .map(v -> (List<String>) v)
-      .filter(v -> !v.isEmpty())
-      .map(s -> String.join("|", s));
+    return getComplexValue(hit, esField,v -> {
+      List<String> value = (List<String>) v;
+      return value.isEmpty()? null : String.join("|", value);
+    });
   }
 
   protected Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(getValueFieldName(esField)))
-      .map(v -> (Map<String,Object>) v)
-      .filter(v -> !v.keySet().isEmpty());
+    return getComplexValue(hit, esField,v -> {
+                            Map<String,Object> value = (Map<String,Object>) v;
+                            return value.keySet().isEmpty()? null : value;
+                           });
   }
 
   protected Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
-    return Optional.ofNullable(hit.getSourceAsMap().get(getValueFieldName(esField)))
-      .map(v -> (List<Map<String, Object>>) v)
-      .filter(v -> !v.isEmpty());
+    return getComplexValue(hit, esField,
+                           v -> {
+                             List<Map<String, Object>> value = (List<Map<String, Object>>) v;
+                             return value.isEmpty()? null : value;
+    });
+  }
+
+  protected Map<String,Object> getNestedFieldValue(Map<String, Object> fields, String fieldName) {
+    // take all paths till the field name
+    String[] paths = fieldName.split("\\.");
+    for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
+      // update the fields with the current path
+      fields = (Map<String, Object>) fields.get(paths[i]);
+    }
+    return fields;
+  }
+
+  private boolean isNested(String fieldName) {
+    return IS_NESTED.test(fieldName);
+  }
+
+  protected String getNestedFieldName(String fieldName) {
+    String[] paths = fieldName.split("\\.");
+    return paths[paths.length - 1];
+  }
+
+
+  protected <T> Optional<T> getComplexValue(SearchHit hit, OccurrenceEsField esField, Function<Object, T> mapper) {
+    String fieldName =  getValueFieldName(esField);
+    Map<String, Object> fields = hit.getSourceAsMap();
+    if (isNested(fieldName)) {
+      fields = getNestedFieldValue(fields, fieldName);
+      fieldName = getNestedFieldName(fieldName);
+    }
+    return extractComplexValue(fields, fieldName, mapper);
   }
 
   protected <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
     String fieldName =  getValueFieldName(esField);
     Map<String, Object> fields = hit.getSourceAsMap();
-    if (IS_NESTED.test(getValueFieldName(esField))) {
-      // take all paths till the field name
-      String[] paths = getValueFieldName(esField).split("\\.");
-      for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
-        // update the fields with the current path
-        fields = (Map<String, Object>) fields.get(paths[i]);
-      }
-      // the last path is the field name
-      fieldName = paths[paths.length - 1];
+    if (isNested(fieldName)) {
+      fields = getNestedFieldValue(fields, fieldName);
+      fieldName = getNestedFieldName(fieldName);
     }
-
-    return extractValue(fields, fieldName, mapper);
+    return extractStringValue(fields, fieldName, mapper);
   }
 
-  protected <T> Optional<T> extractValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
+  protected <T> Optional<T> extractStringValue(Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
+    return extractComplexValue(fields, fieldName, v -> mapper.apply(String.valueOf(v)));
+  }
+
+  protected <T> Optional<T> extractComplexValue(Map<String, Object> fields, String fieldName, Function<Object, T> mapper) {
     if (fields == null || fieldName == null || mapper == null) {
       return Optional.empty();
     }
     return Optional.ofNullable(fields.get(fieldName))
-      .map(String::valueOf)
-      .filter(v -> !v.isEmpty())
       .map(v -> {
         try {
           return mapper.apply(v);
@@ -185,7 +214,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   }
 
   protected Optional<String> extractStringValue(Map<String, Object> fields, String fieldName) {
-    return extractValue(fields, fieldName, Function.identity());
+    return extractStringValue(fields, fieldName, Function.identity());
   }
 
   /**

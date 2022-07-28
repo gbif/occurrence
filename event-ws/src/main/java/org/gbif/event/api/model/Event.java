@@ -26,6 +26,21 @@ public class Event extends Occurrence {
 
   public static Event fromOccurrence(Occurrence occurrence) {
     Event event =new Event();
+    event.setKey(occurrence.getKey());
+    event.setDatasetKey(occurrence.getDatasetKey());
+    event.setPublishingOrgKey(occurrence.getPublishingOrgKey());
+    event.setNetworkKeys(occurrence.getNetworkKeys());
+    event.setInstallationKey(occurrence.getInstallationKey());
+    event.setPublishingCountry(occurrence.getPublishingCountry());
+    event.setProtocol(occurrence.getProtocol());
+    event.setLastCrawled(occurrence.getLastCrawled());
+    event.setLastParsed(occurrence.getLastParsed());
+    event.setCrawlId(occurrence.getCrawlId());
+    event.setProjectId(occurrence.getProjectId());
+    event.setProgrammeAcronym(occurrence.getProgrammeAcronym());
+    event.setHostingOrganizationKey(occurrence.getHostingOrganizationKey());
+    event.setVerbatimFields(occurrence.getVerbatimFields());
+    event.setExtensions(occurrence.getExtensions());
     event.setBasisOfRecord(occurrence.getBasisOfRecord());
     event.setIndividualCount(occurrence.getIndividualCount());
     event.setOccurrenceStatus(occurrence.getOccurrenceStatus());
@@ -124,6 +139,7 @@ public class Event extends Occurrence {
     private Set<String> lineage;
   }
 
+  private String id;
   private Set<String> samplingProtocols;
   private String eventID;
   private String parentEventID;
