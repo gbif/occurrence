@@ -14,23 +14,34 @@
 package org.gbif.event.search;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
+import org.gbif.api.model.common.paging.PageableBase;
+import org.gbif.api.model.common.paging.PagingRequest;
+import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.event.api.model.Event;
+import org.gbif.event.api.model.LineageResponse;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.SearchHitConverter;
+import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -63,6 +74,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final EsFieldMapper esFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
 
+  private final SearchHitConverter<Occurrence> searchHitOccurrenceConverter;
+
   private static final SearchResponse<Event, OccurrenceSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
   public EventSearchEs(
@@ -87,6 +100,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     esFieldMapper = builder.build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
     searchHitEventConverter = new SearchHitEventConverter(esFieldMapper);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitEventConverter);
   }
 
@@ -110,6 +124,31 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     }
   }
 
+  private <T> PagingResponse<T> pageByQuery(QueryBuilder query, PagingRequest request, Function<SearchHit,T> mapper) {
+    //This should be changed to use GetRequest once ElasticSearch stores id correctly
+    SearchRequest searchRequest = new SearchRequest();
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.from((int)request.getOffset());
+    searchSourceBuilder.size(request.getLimit());
+    searchSourceBuilder.trackTotalHits(true);
+    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
+    searchRequest.indices(esIndex);
+    searchSourceBuilder.query(query);
+    searchRequest.source(searchSourceBuilder);
+    try {
+      org.elasticsearch.action.search.SearchResponse esResponse = esClient.search(searchRequest, HEADERS.get());
+      SearchHits hits = esResponse.getHits();
+      if (hits != null && hits.getTotalHits().value > 0) {
+        PagingResponse<T> response = new PagingResponse<>(request.getOffset(), hits.getHits().length, hits.getTotalHits().value);
+        response.setResults(Arrays.stream(hits.getHits()).map(mapper).collect(Collectors.toList()));
+        return response;
+      }
+      return new PagingResponse<>();
+    } catch (IOException ex) {
+      throw new SearchException(ex);
+    }
+  }
+
   private <T> T searchByKey(String key, Function<SearchHit, T> mapper) {
     return getByQuery(QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key)), mapper);
   }
@@ -120,17 +159,101 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
 
   public Event get(String datasetKey, String eventId) {
     return getByQuery(QueryBuilders.boolQuery()
+                        .filter(QueryBuilders.termQuery("type", "event"))
                         .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
                         .filter(QueryBuilders.termQuery("event.eventID.keyword", eventId)), searchHitEventConverter);
   }
 
-  public Optional<Event> getParentEvent(String key) {
 
-    return Optional.ofNullable(get(key))
-              .filter(e -> e.getParentEventID() != null)
-              .map(event -> getByQuery(QueryBuilders.boolQuery()
-                                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString()))
-                                         .filter(QueryBuilders.termQuery("event.eventID.keyword", event.getParentEventID())), searchHitEventConverter));
+  private Optional<Event> getParent(Event event) {
+    return Optional.ofNullable(event)
+            .filter(e -> e.getParentEventID() != null)
+            .map(e -> get(e.getDatasetKey().toString(), e.getParentEventID()));
+  }
+
+  public Optional<Event> getParentEvent(String key) {
+    return getParent(get(key));
+  }
+
+  public Optional<Event> getParentEvent(String datasetKey, String eventId) {
+    return getParent(get(datasetKey, eventId));
+  }
+
+  public PagingResponse<Event> subEvents(String id, PagingRequest pagingRequest) {
+    validatePagingRequest(pagingRequest);
+    return subEvents(get(id), pagingRequest);
+  }
+
+  public PagingResponse<Event> subEvents(String datasetKey, String eventId, PagingRequest pagingRequest) {
+    validatePagingRequest(pagingRequest);
+    return subEvents(get(datasetKey, eventId), pagingRequest);
+  }
+
+  private PagingResponse<Event> subEvents(Event event, PagingRequest pagingRequest) {
+    if (Objects.isNull(event)) {
+      return null;
+    }
+    return pageByQuery(QueryBuilders.boolQuery()
+                         .filter(QueryBuilders.termQuery("type", "event"))
+                         .filter(QueryBuilders.termQuery("event.parentEventID.keyword", event.getEventID()))
+                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
+                       pagingRequest,
+                       searchHitEventConverter);
+  }
+
+  public List<LineageResponse> lineage(String id) {
+    return lineage(get(id));
+  }
+
+  public List<LineageResponse> lineage(String datasetKey, String eventId) {
+    return lineage(get(datasetKey, eventId));
+  }
+
+  public PagingResponse<Occurrence> occurrences(String id, PagingRequest pagingRequest) {
+    return occurrences(get(id), pagingRequest);
+  }
+
+  public PagingResponse<Occurrence> occurrences(String datasetKey, String eventId, PagingRequest pagingRequest) {
+    return occurrences(get(datasetKey, eventId), pagingRequest);
+  }
+
+  private PagingResponse<Occurrence> occurrences(Event event, PagingRequest pagingRequest) {
+    if (Objects.isNull(event)) {
+      return null;
+    }
+    return pageByQuery(QueryBuilders.boolQuery()
+                         .filter(QueryBuilders.termQuery("type", "occurrence"))
+                         .filter(QueryBuilders.termQuery("occurrence.eventID.keyword", event.getEventID()))
+                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
+                       pagingRequest,
+                       searchHitOccurrenceConverter);
+  }
+
+  private List<LineageResponse> lineage(Event event) {
+    List<LineageResponse> lineage = new ArrayList<>();
+    Optional<Event> parent = event.getParentEventID() == null? Optional.empty() : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
+    do {
+      parent.ifPresent(p -> lineage.add(new LineageResponse(p.getId(), p.getEventID(), p.getParentEventID())));
+      parent = parent.filter(p -> p.getParentEventID() != null)
+                     .flatMap(p -> getParentEvent(p.getDatasetKey().toString(), p.getParentEventID()));
+    } while (parent.isPresent());
+    return lineage;
+  }
+
+  private void validatePagingRequest(PageableBase pagingRequest) {
+
+    if (pagingRequest.getLimit() > maxLimit) {
+      pagingRequest.setLimit(maxLimit);
+    }
+
+    Preconditions.checkArgument(
+      pagingRequest.getOffset() + pagingRequest.getLimit() <= maxOffset,
+      "Max offset of "
+      + maxOffset
+      + " exceeded: "
+      + pagingRequest.getOffset()
+      + " + "
+      + pagingRequest.getLimit());
   }
 
   @Override
@@ -139,18 +262,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
       return EMPTY_RESPONSE;
     }
 
-    if (searchRequest.getLimit() > maxLimit) {
-      searchRequest.setLimit(maxLimit);
-    }
-
-    Preconditions.checkArgument(
-      searchRequest.getOffset() + searchRequest.getLimit() <= maxOffset,
-      "Max offset of "
-      + maxOffset
-      + " exceeded: "
-      + searchRequest.getOffset()
-      + " + "
-      + searchRequest.getLimit());
+    validatePagingRequest(searchRequest);
 
     if (!hasReplaceableScientificNames(searchRequest)) {
       return EMPTY_RESPONSE;

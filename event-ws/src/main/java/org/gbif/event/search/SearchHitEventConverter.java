@@ -19,8 +19,9 @@ import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.search.SearchHit;
@@ -56,6 +57,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   private Optional<Event.VocabularyConcept> getVocabularyConcept(SearchHit hit, OccurrenceEsField occurrenceEsField) {
     return getMapValue(hit, occurrenceEsField)
-      .map(cm -> new Event.VocabularyConcept((String)cm.get("concept"),(Set<String>)cm.get("lineage")));
+      .map(cm -> new Event.VocabularyConcept((String)cm.get("concept"), new HashSet<>((List<String>)cm.get("lineage"))));
   }
 }

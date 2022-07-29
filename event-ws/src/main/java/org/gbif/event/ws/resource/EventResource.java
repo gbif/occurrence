@@ -14,15 +14,20 @@
 package org.gbif.event.ws.resource;
 
 import org.gbif.api.annotation.NullToNotFound;
+import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.event.api.model.Event;
+import org.gbif.event.api.model.LineageResponse;
 import org.gbif.event.search.EventSearchEs;
 
 import java.util.List;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -64,20 +69,50 @@ public class EventResource {
   }
 
   @NullToNotFound
+  @GetMapping("{datasetKey}/{eventId}/parent")
+  public Event getParentEvent(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+    return eventSearchEs.getParentEvent(datasetKey, eventId).orElse(null);
+  }
+
+  @NullToNotFound
   @GetMapping("{id}/lineage")
-  public List<Event.ParentLineage> getLineage(@PathVariable("id") String id) {
-    return null;
+  public List<LineageResponse> getLineage(@PathVariable("id") String id) {
+    return eventSearchEs.lineage(id);
+  }
+
+  @NullToNotFound
+  @GetMapping("{datasetKey}/{eventId}/lineage")
+  public List<LineageResponse> getLineage(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+    return eventSearchEs.lineage(datasetKey, eventId);
   }
 
   @NullToNotFound
   @GetMapping("{id}/occurrences")
-  public PagingResponse<Occurrence> getOccurrences(@PathVariable("id") String id) {
-    return null;
+  public PagingResponse<Occurrence> getOccurrences(@PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
+    return eventSearchEs.occurrences(id, pagingRequest);
+  }
+
+  @NullToNotFound
+  @GetMapping("{datasetKey}/{eventId}/occurrences")
+  public PagingResponse<Occurrence> getOccurrences(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId, @NotNull @Valid PagingRequest pagingRequest) {
+    return eventSearchEs.occurrences(datasetKey, eventId, pagingRequest);
+  }
+
+  @NullToNotFound
+  @GetMapping("{id}/subEvents")
+  public PagingResponse<Event> subEvents(@PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
+    return eventSearchEs.subEvents(id, pagingRequest);
+  }
+
+  @NullToNotFound
+  @GetMapping("{datasetKey}/{eventId}/subEvents")
+  public PagingResponse<Event> subEvents(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId, @NotNull @Valid PagingRequest pagingRequest) {
+    return eventSearchEs.subEvents(datasetKey, eventId, pagingRequest);
   }
 
   @NullToNotFound
   @GetMapping("search")
-  public SearchResponse<Event, OccurrenceSearchParameter> search(OccurrenceSearchRequest searchRequest) {
+  public SearchResponse<Event, OccurrenceSearchParameter> search(@NotNull @Valid OccurrenceSearchRequest searchRequest) {
     return eventSearchEs.search(searchRequest);
   }
 }
