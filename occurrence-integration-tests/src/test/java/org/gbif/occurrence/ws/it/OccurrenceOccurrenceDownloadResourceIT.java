@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest(
     classes = OccurrenceWsItConfiguration.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OccurrenceDownloadResourceIT {
+public class OccurrenceOccurrenceDownloadResourceIT {
 
   private static final String TEST_DOWNLOAD_FILE = "classpath:0011066-200127171203522.zip";
 
@@ -60,7 +60,7 @@ public class OccurrenceDownloadResourceIT {
   private final int localServerPort;
 
   @Autowired
-  public OccurrenceDownloadResourceIT(
+  public OccurrenceOccurrenceDownloadResourceIT(
       @LocalServerPort int localServerPort,
       OccurrenceDownloadService occurrenceDownloadService,
       ResourceLoader resourceLoader) {

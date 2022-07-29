@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.ws.resources;
+package org.gbif.occurrence.download.resource;
 
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -60,10 +60,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.google.common.base.Preconditions;
@@ -78,10 +76,8 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLo
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
-@RestController
+
 @Validated
-@RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,
-  "application/x-javascript"}, value = "occurrence/download/request")
 public class DownloadResource {
 
   private static final String USER_ROLE = "USER";

@@ -13,7 +13,23 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.predicate.*;
+import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
+import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
+import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
+import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
+import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
+import org.gbif.api.model.occurrence.predicate.InPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
+import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
+import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
+import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
+import org.gbif.api.model.occurrence.predicate.LikePredicate;
+import org.gbif.api.model.occurrence.predicate.NotPredicate;
+import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.predicate.SimplePredicate;
+import org.gbif.api.model.occurrence.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.lang.reflect.InvocationTargetException;

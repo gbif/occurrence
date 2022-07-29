@@ -25,12 +25,12 @@ public class DownloadWorkflowParameters {
   /**
    * String pattern to the shared lib of oozie workflow of specific environment.
    */
-  public static final String  WORKFLOWS_PATH_FMT = "/occurrence-download-workflows-%s/";
+  public static final String  WORKFLOWS_PATH_FMT = "/%s-download-workflows-%s/";
 
   public static final String  DOWNLOAD_WORKFLOW_PATH_FMT = WORKFLOWS_PATH_FMT + "download-workflow";
 
   public static final String  WORKFLOWS_LIB_PATH_FMT = WORKFLOWS_PATH_FMT + "lib/";
-  
+
   /**
    * Constant parameters shared by all the Oozie workflows.
    */
@@ -42,10 +42,10 @@ public class DownloadWorkflowParameters {
 
   //Filter/Predicate/SQL.
   public static final String GBIF_FILTER = "gbif_filter";
-  
+
 
   public static final String SQL_HEADER = "sql_header";
-  
+
   public static final String SQL_WHERE = "sql_where";
 
   /**

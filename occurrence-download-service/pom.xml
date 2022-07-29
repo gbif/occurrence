@@ -1,16 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
+    <groupId>org.gbif.occurrence</groupId>
     <version>0.186-SNAPSHOT</version>
   </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>occurrence-ws</artifactId>
+  <artifactId>occurrence-download-service</artifactId>
+
   <packaging>jar</packaging>
 
-  <name>Occurrence Web service</name>
+  <name>Occurrence Download Service</name>
 
   <distributionManagement>
     <site>
@@ -22,101 +25,8 @@
   <properties>
     <javassist.version>3.19.0-GA</javassist.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
-    <start-class>org.gbif.occurrence.ws.OccurrenceWsApplication</start-class>
     <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
   </properties>
-
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <configuration>
-          <usedDependencies>
-            <usedDependency>org.springframework.boot:spring-boot-starter</usedDependency>
-            <usedDependency>org.springframework.boot:spring-boot-starter-amqp</usedDependency>
-            <usedDependency>org.springframework.boot:spring-boot-starter-security</usedDependency>
-            <usedDependency>org.springframework.boot:spring-boot-starter-web</usedDependency>
-            <usedDependency>org.springframework.boot:spring-boot-starter-test</usedDependency>
-          </usedDependencies>
-        </configuration>
-        <executions>
-          <execution>
-            <id>analyze</id>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
-            <configuration>
-              <ignoreNonCompile>true</ignoreNonCompile>
-              <failOnWarning>false</failOnWarning>
-              <outputXML>true</outputXML>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>repackage</id>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-            <configuration>
-              <attach>true</attach>
-              <classifier>exec</classifier>
-            </configuration>
-          </execution>
-          <execution>
-            <id>build-info</id>
-            <goals>
-              <goal>build-info</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>${start-class}</mainClass>
-          <addResources>false</addResources>
-          <layout>ZIP</layout>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <!-- This is where the exclusion occurs -->
-            <exclude>**/application.yml</exclude>
-            <exclude>**/bootstrap.yml</exclude>
-            <exclude>META-INF/*.SF</exclude>
-            <exclude>META-INF/*.DSA</exclude>
-            <exclude>META-INF/*.RSA</exclude>
-            <exclude>hbase-site.xml</exclude>
-            <exclude>logback.xml</exclude>
-            <exclude>hbase-site.xml</exclude>
-          </excludes>
-          <archive>
-            <manifest>
-              <mainClass>${start-class}</mainClass>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 
   <dependencies>
     <dependency>
@@ -141,24 +51,24 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
       <exclusions>
-      	<exclusion>
-      		<groupId>asm</groupId>
-      		<artifactId>asm</artifactId>
-      	</exclusion>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
+        <exclusion>
+          <groupId>asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
       <exclusions>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -170,8 +80,8 @@
           <groupId>commons-logging</groupId>
         </exclusion>
         <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -196,8 +106,8 @@
           <groupId>commons-logging</groupId>
         </exclusion>
         <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -214,8 +124,8 @@
           <groupId>commons-logging</groupId>
         </exclusion>
         <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -223,19 +133,15 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-common</artifactId>
       <exclusions>
-      	<exclusion>
-      		<groupId>com.google.guava</groupId>
-      		<artifactId>guava</artifactId>
-      	</exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hdfs-table</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-download-service</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -361,8 +267,8 @@
           <groupId>org.slf4j</groupId>
         </exclusion>
         <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -383,16 +289,16 @@
           <groupId>org.slf4j</groupId>
         </exclusion>
         <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
         </exclusion>
         <exclusion>
-        	<groupId>org.mortbay.jetty</groupId>
-        	<artifactId>jetty</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty</artifactId>
         </exclusion>
         <exclusion>
-        	<groupId>org.mortbay.jetty</groupId>
-        	<artifactId>jetty-util</artifactId>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

@@ -232,6 +232,10 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-download-service</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download</artifactId>
       <exclusions>
         <exclusion>

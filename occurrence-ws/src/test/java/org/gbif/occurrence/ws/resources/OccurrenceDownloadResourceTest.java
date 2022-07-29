@@ -41,13 +41,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DownloadResourceTest {
+public class OccurrenceDownloadResourceTest {
 
   private static final String JOB_ID = "FOO";
   private static final String USER = "testuser";
   private static final String STATUS = "SUCCEEDED";
 
-  private DownloadResource resource;
+  private OccurrenceDownloadResource resource;
   private PredicateDownloadRequest dl;
   private Principal principal;
 
@@ -85,7 +85,7 @@ public class DownloadResourceTest {
     Authentication auth = mock(Authentication.class);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    resource = new DownloadResource(archiveServerUrl, service, callbackService, downloadService);
+    resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
       DownloadFormat.DWCA);
 

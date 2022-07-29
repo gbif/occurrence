@@ -93,6 +93,7 @@
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
     <module>event-ws</module>
+    <module>occurrence-download-service</module>
   </modules>
 
   <properties>
@@ -449,6 +450,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-es-mapping</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-download-service</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
