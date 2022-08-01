@@ -78,6 +78,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
 
   private static final SearchResponse<Event, OccurrenceSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
+  private static final String SUB_OCCURRENCES_QUERY =  "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
+
   public EventSearchEs(
     RestHighLevelClient esClient,
     NameUsageMatchingService nameUsageMatchingService,
@@ -221,10 +223,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     if (Objects.isNull(event)) {
       return null;
     }
-    return pageByQuery(QueryBuilders.boolQuery()
-                         .filter(QueryBuilders.termQuery("type", "occurrence"))
-                         .filter(QueryBuilders.termQuery("occurrence.eventID.keyword", event.getEventID()))
-                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
+    return pageByQuery(QueryBuilders.wrapperQuery(String.format(SUB_OCCURRENCES_QUERY, event.getId())),
                        pagingRequest,
                        searchHitOccurrenceConverter);
   }

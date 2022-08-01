@@ -28,6 +28,7 @@
       <arg>${gbif_filter}</arg>
       <arg>${wf:id()}</arg>
       <arg>${download_format}</arg>
+      <arg>${core_term_name}</arg>
       <capture-output/>
     </java>
 

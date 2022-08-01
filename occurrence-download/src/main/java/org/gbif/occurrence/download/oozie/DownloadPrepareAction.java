@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.query.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
@@ -66,7 +67,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 @Data
 @Builder
-public class DownloadPrepareAction implements Closeable {
+public class  DownloadPrepareAction implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);
 
@@ -110,6 +111,8 @@ public class DownloadPrepareAction implements Closeable {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final DwcTerm coreTerm;
+
   /**
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
@@ -118,7 +121,7 @@ public class DownloadPrepareAction implements Closeable {
     try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
-                                                    .downloadPrepareAction()) {
+                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]))) {
       occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
     }
   }
@@ -130,7 +133,7 @@ public class DownloadPrepareAction implements Closeable {
    * Method that determines if the search query produces a "small" download file.
    */
   public Boolean isSmallDownloadCount(long recordCount) {
-    return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
+    return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit && DwcTerm.Occurrence == coreTerm;
   }
 
   /**

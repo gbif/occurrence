@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.inject;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
@@ -121,7 +122,7 @@ public class DownloadWorkflowModuleTestIT {
 
     assertNotNull(module);
 
-    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction();
+    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction(DwcTerm.Occurrence);
     assertNotNull(downloadPrepareAction);
 
 

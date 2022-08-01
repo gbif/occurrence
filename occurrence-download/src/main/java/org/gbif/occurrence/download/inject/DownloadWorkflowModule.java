@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.inject;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
@@ -78,7 +79,7 @@ public class DownloadWorkflowModule  {
    * DownloadPrepare action factory method.
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
-  public DownloadPrepareAction downloadPrepareAction() {
+  public DownloadPrepareAction downloadPrepareAction(DwcTerm dwcTerm) {
     return DownloadPrepareAction.builder().esClient(esClient())
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
@@ -86,6 +87,7 @@ public class DownloadWorkflowModule  {
             .occurrenceDownloadService(clientBuilder().build(OccurrenceDownloadClient.class))
             .esFieldMapper(EsFieldMapper.builder().nestedIndex(workflowConfiguration.isEsNestedIndex()).searchType(
               EsFieldMapper.SearchType.valueOf(DefaultSettings.ES_INDEX_TYPE)).build())
+            .coreTerm(dwcTerm)
             .build();
   }
 
