@@ -500,10 +500,14 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
-    <!-- GBIF microservice dependencies -->
+    <!-- GBIF dependencies -->
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.predicates</groupId>
+      <artifactId>es-predicates</artifactId>
     </dependency>
   </dependencies>
 
