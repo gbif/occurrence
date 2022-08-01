@@ -21,6 +21,7 @@ import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrencePredicateSearchRequest;
+import org.gbif.predicate.query.occurrence.QueryVisitorFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
