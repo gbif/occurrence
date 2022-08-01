@@ -106,8 +106,8 @@ public class EsSearchRequestBuilder {
 
     // sort
     if (Strings.isNullOrEmpty(searchRequest.getQ())) {
-      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType().getObjectName() + ".year").order(SortOrder.DESC));
-      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType().getObjectName() + ".month").order(SortOrder.ASC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchFieldName(OccurrenceEsField.YEAR)).order(SortOrder.DESC));
+      searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchFieldName(OccurrenceEsField.MONTH)).order(SortOrder.ASC));
       searchSourceBuilder.sort(SortBuilders.fieldSort(esFieldMapper.getSearchType() == EsFieldMapper.SearchType.OCCURRENCE? "gbifId" : "uniqueKey").order(SortOrder.ASC));
     } else {
       searchSourceBuilder.sort(SortBuilders.scoreSort());

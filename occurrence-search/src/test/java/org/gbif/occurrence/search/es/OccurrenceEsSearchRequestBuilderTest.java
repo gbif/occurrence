@@ -45,6 +45,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
   private final EsSearchRequestBuilder esSearchRequestBuilder = new EsSearchRequestBuilder(EsFieldMapper.builder()
                                                                                              .nestedIndex(false)
+                                                                                             .searchType(EsFieldMapper.SearchType.OCCURRENCE)
                                                                                              .build());
 
   @Test
@@ -59,7 +60,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    assertEquals(2, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         6,
         jsonQuery.path(BOOL).path(FILTER).findValue(KINGDOM_KEY.getSearchFieldName()).get(VALUE).asInt());
@@ -79,7 +80,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(3, jsonQuery.path(BOOL).path(FILTER).size());
+    assertEquals(4, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
         1999, jsonQuery.path(BOOL).path(FILTER).findValue(YEAR.getSearchFieldName()).get(VALUE).asInt());
     assertEquals(

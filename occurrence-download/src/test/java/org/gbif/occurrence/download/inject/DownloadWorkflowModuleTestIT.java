@@ -74,6 +74,8 @@ public class DownloadWorkflowModuleTestIT {
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY, "occurrence");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_HOSTS_KEY, "http://localhost:" + embeddedElastic.getMappedPort(9200));
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_SNIFF_INTERVAL_KEY, "-1");
+    properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE, "occurrence");
+    properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED, "false");
 
     properties.put(DownloadWorkflowModule.DefaultSettings.MAX_THREADS_KEY, "2");
     properties.put(DownloadWorkflowModule.DefaultSettings.MAX_GLOBAL_THREADS_KEY, "5");

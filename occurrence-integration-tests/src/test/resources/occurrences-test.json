@@ -1,6 +1,6 @@
  [
     {
-
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -205,6 +205,7 @@
         "created": "2020-06-24T11:02:44.944"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -409,6 +410,7 @@
         "created": "2020-06-24T11:02:41.668"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -610,6 +612,7 @@
         "created": "2020-06-24T11:02:42.556"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -811,6 +814,7 @@
         "created": "2020-06-24T11:02:42.564"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -1015,6 +1019,7 @@
         "created": "2020-06-24T11:02:42.588"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -1216,6 +1221,7 @@
         "created": "2020-06-24T11:02:45.031"
       },
     {
+        "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -1417,6 +1423,7 @@
         "created": "2020-06-24T11:02:42.626"
       },
     {
+         "type": "occurrence",
         "lastCrawled": "2020-06-24T10:49:17.677",
         "datasetKey": "d596fccb-2319-42eb-b13b-986c932780ad",
         "crawlId": 83,
@@ -1590,6 +1597,7 @@
         "created": "2020-06-24T11:02:42.636"
       },
     {
+       "type": "occurrence",
        "lastCrawled": "2020-06-30T12:45:52.465",
        "datasetKey": "b89a7f02-021d-4e7a-b19f-575d10578a6d",
        "crawlId": 158,
@@ -1839,6 +1847,7 @@
        "created": "2020-06-30T12:49:18.451"
      },
     {
+       "type": "occurrence",
        "lastCrawled": "2020-06-30T12:45:52.465",
        "datasetKey": "b89a7f02-021d-4e7a-b19f-575d10578a6d",
        "crawlId": 158,

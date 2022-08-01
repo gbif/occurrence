@@ -20,6 +20,7 @@ import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfig
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
+import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -49,8 +50,10 @@ public class OccurrenceWsConfiguration {
                                                @Value("${occurrence.download.hdfs.namenode}") String nameNode,
                                                @Value("${occurrence.download.username}") String userName) {
     return new ImmutableMap.Builder<String, String>()
-      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, environment))
+      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,
+                                              EsFieldMapper.SearchType.OCCURRENCE.getObjectName(), environment))
       .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
+                                                          EsFieldMapper.SearchType.OCCURRENCE.getObjectName(),
                                                           environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
            DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))

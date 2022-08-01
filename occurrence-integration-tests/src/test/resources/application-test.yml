@@ -40,6 +40,8 @@ occurrence:
       sniff_interval: 0
       socket_timeout: 90000
       enabled: false
+      type: occurrence
+      nestedIndex: false
     max:
       limit: 300
       offset: 200000

@@ -123,7 +123,7 @@ public class WorkflowConfiguration {
    */
   public EsFieldMapper.SearchType getEsIndexType() {
     Preconditions.checkNotNull(settings);
-    return EsFieldMapper.SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED).toUpperCase());
+    return EsFieldMapper.SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
   }
 
   /**

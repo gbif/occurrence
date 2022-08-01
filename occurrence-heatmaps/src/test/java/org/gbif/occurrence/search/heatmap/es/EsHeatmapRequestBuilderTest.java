@@ -42,7 +42,8 @@ public class EsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(EsFieldMapper.builder().nestedIndex(false).build());
+  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(EsFieldMapper.builder().nestedIndex(false).searchType(
+    EsFieldMapper.SearchType.OCCURRENCE).build());
 
   @Test
   public void heatmapRequestTest() throws IOException {
