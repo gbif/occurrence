@@ -24,7 +24,7 @@
   <properties>
     <javassist.version>3.19.0-GA</javassist.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
-    <start-class>org.gbif.occurrence.ws.EventWsApplication</start-class>
+    <start-class>org.gbif.event.ws.EventWsApplication</start-class>
     <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
   </properties>
 
