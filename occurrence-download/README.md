@@ -17,7 +17,7 @@ To install the Oozie coordinator use the script [install-workflow.sh](install-wo
 
 1. Environment (required): and existing profile in the Maven [file](https://github.com/gbif/gbif-configuration/blob/master/occurrence-download/profiles.xml) in the gbif-configuration repository.
 2. GitHub authentication token (required): authentication token to access the [gbif-configuration](https://github.com/gbif/gbif-configuration/) repository.
-3. Source directory (default to hdfs://ha-nn/data/hdfsview/occurrence/): directory to stores the input Avro files.
+3. Source directory (default to hdfs://ha-nn/data/hdfsview/occurrence/occurrence/): directory to stores the input Avro files.
 4. Occurrence base table name (default to occurence): common table name to be used for the Avro, Hdfs and Multimedia tables.
 
 The Oozie coordinator job will be installed in the HDFS directory __occurrence-download-workflows__*environmentName*.
@@ -46,12 +46,12 @@ After running this script and workflow successfully, the download workflows must
 ### Applying schema changes manually
 Alternatively to the process described above, the tables can be created and swap manually by following these steps:
 
-1. Build the occurrence-download project, that will create a directory `occurrence-download-workflows-dev` in the Maven target directory. 
+1. Build the occurrence-download project, that will create a directory `occurrence-download-workflows-dev` in the Maven target directory.
 
 2. Copy the file `target/occurrence-download-workflows-dev/create-tables/avro-schemas\occurrence-hdfs-record.avsc` to a known location in HDFS.
 
 3. From a host with access to the Hive CLI:
-  - Download the occurrence-hive and occurrence-download from Nexus, for example: 
+  - Download the occurrence-hive and occurrence-download from Nexus, for example:
     `curl https://repository.gbif.org/repository/releases/org/gbif/occurrence/occurrence-download/0.150/occurrence-download-0.150.jar -o occurrence-download.jar`
     `curl https://repository.gbif.org/repository/releases/org/gbif/occurrence/occurrence-download/0.150/occurrence-hive-0.150.jar -o occurrence-hive.jar`
 
@@ -60,10 +60,10 @@ Alternatively to the process described above, the tables can be created and swap
 5. Add the downloaded JAR files:
    `ADD JAR occurrence-hive.jar;`
    `ADD JAR occurrence-download.jar;`
-   
+
 6. In the file `target/occurrence-download-workflows-dev/create-tables/hive-scriptscreate-occurrence-avro.q`
 
-   - Create an Avro table using the schema file copied in the step above and change the path `hdfsPath` to that location, change  `hdsDataLocation` to the path were the data is located, usually `/data/hdfsview/occurrence` :
+   - Create an Avro table using the schema file copied in the step above and change the path `hdfsPath` to that location, change  `hdsDataLocation` to the path were the data is located, usually `/data/hdfsview/occurrence/occurrence` :
    ```
    CREATE EXTERNAL TABLE occurrence_avro_new
    ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
@@ -73,7 +73,7 @@ Alternatively to the process described above, the tables can be created and swap
    TBLPROPERTIES ('avro.schema.url'='hdfsPath/occurrence-hdfs-record.avsc');
    ```
    - Replace `${occurrenceTable}` with `occurrence_new`, `${occurrenceTable}_avro` with `occurrence_avro_new`, `${occurrenceTable}_multimedia` with `occurrence_multimedia_new`
-   - Run every statement of the script `hive-scriptscreate-occurrence-avro.q`.   
+   - Run every statement of the script `hive-scriptscreate-occurrence-avro.q`.
 7. Test the new tables and, if needed, rename the Hive tables:
 ```
 ALTER TABLE occurrence RENAME TO occurrence_old;
