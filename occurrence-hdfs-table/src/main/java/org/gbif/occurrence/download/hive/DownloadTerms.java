@@ -48,7 +48,8 @@ public class DownloadTerms {
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
     GbifTerm.numberOfOccurrences, //this is for aggregation only
-    GbifTerm.eventType //This is an experimental field
+    GbifTerm.eventType, //This is an experimental field
+    GbifInternalTerm.parentEventGbifId //This is an internal field for Event data
   );
 
   // This set is used fot the HDFS table definition
