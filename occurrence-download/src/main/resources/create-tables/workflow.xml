@@ -59,7 +59,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>END</arg>
-      <arg>${source_data_dir}</arg>
+      <arg>${source_data_dir}${core_term_name}</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="schema-changed"/>
@@ -70,7 +70,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.HdfsSnapshotAction</main-class>
       <arg>END</arg>
-      <arg>${source_data_dir}</arg>
+      <arg>${source_data_dir}${core_term_name}</arg>
       <arg>${wf:id()}</arg>
     </java>
     <ok to="notify-error"/>
