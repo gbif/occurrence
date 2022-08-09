@@ -56,6 +56,7 @@ public class EventWsConfiguration {
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
            DownloadUtils.concatUrlPaths(wsUrl, downloadType.toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
+      .put(DownloadWorkflowParameters.CORE_TERM_NAME, downloadType)
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 
