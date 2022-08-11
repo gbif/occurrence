@@ -13,6 +13,18 @@
  */
 package org.gbif.occurrence.download.service;
 
+import org.gbif.dwc.terms.DwcTerm;
+
 public enum DownloadType {
-  OCCURRENCE, EVENT;
+  OCCURRENCE(DwcTerm.Occurrence), EVENT(DwcTerm.Event);
+
+  private DwcTerm coreTerm;
+
+  DownloadType(DwcTerm coreTerm){
+    this.coreTerm = coreTerm;
+  }
+
+  public DwcTerm getCoreTerm() {
+    return coreTerm;
+  }
 }
