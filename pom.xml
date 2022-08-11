@@ -236,7 +236,7 @@
 
     <!-- es versions -->
     <elasticsearch.version>7.10.0</elasticsearch.version>
-    <testcontainers-elasticsearch.version>1.15.0</testcontainers-elasticsearch.version>
+    <testcontainers-elasticsearch.version>1.17.3</testcontainers-elasticsearch.version>
     <!-- Used to match version used by Elasticsearch-->
     <lucene.version>8.7.0</lucene.version>
 

@@ -99,6 +99,10 @@
     <!-- GBIF dependencies -->
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-download-service</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-ws</artifactId>
     </dependency>
     <dependency>
