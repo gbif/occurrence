@@ -119,7 +119,7 @@ public class DownloadWorkflowModule  {
       .namespace(workflowConfiguration.getSetting(DefaultSettings.ZK_DOWNLOADS_NS_KEY))
       .retryPolicy(new ExponentialBackoffRetry(workflowConfiguration.getIntSetting(DefaultSettings.ZK_SLEEP_TIME_KEY),
                                                workflowConfiguration.getIntSetting(DefaultSettings.ZK_MAX_RETRIES_KEY)))
-      .connectString( workflowConfiguration.getSetting(DefaultSettings.ZK_QUORUM_KEY))
+      .connectString(workflowConfiguration.getSetting(DefaultSettings.ZK_QUORUM_KEY))
       .build();
 
     curator.start();
