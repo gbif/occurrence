@@ -122,7 +122,7 @@ public class  DownloadPrepareAction implements Closeable {
     try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
-                                                    .downloadPrepareAction(DownloadType.valueOf(args[3]).getCoreTerm())) {
+                                                    .downloadPrepareAction(DownloadType.valueOf(args[3].toUpperCase()).getCoreTerm())) {
       occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
     }
   }
