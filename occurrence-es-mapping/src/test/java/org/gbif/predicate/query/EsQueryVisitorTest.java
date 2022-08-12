@@ -37,8 +37,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -557,7 +555,7 @@ public class EsQueryVisitorTest {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
     Predicate p2 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p3 = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.MONTH, "12");
-    Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
+    Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -628,7 +626,7 @@ public class EsQueryVisitorTest {
     Predicate p2 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p3 = new EqualsPredicate<>(PARAM, "value_3", false);
 
-    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3));
+    DisjunctionPredicate p = new DisjunctionPredicate(Arrays.asList(p1, p2, p3));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -675,7 +673,7 @@ public class EsQueryVisitorTest {
     Predicate p3 = new EqualsPredicate<>(PARAM, "value_3", true);
     Predicate p4 = new EqualsPredicate<>(PARAM, "value_4", true);
 
-    DisjunctionPredicate p = new DisjunctionPredicate(Lists.newArrayList(p1, p2, p3, p4));
+    DisjunctionPredicate p = new DisjunctionPredicate(Arrays.asList(p1, p2, p3, p4));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -710,7 +708,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testInPredicate() throws QueryBuildingException {
     Predicate p =
-        new InPredicate<>(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
+        new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -738,9 +736,9 @@ public class EsQueryVisitorTest {
   public void testComplexInPredicate() throws QueryBuildingException {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
     Predicate p2 =
-        new InPredicate<>(PARAM, Lists.newArrayList("value_1", "value_2", "value_3"), false);
+        new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
-    Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
+    Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -841,7 +839,7 @@ public class EsQueryVisitorTest {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
     Predicate p2 = new EqualsPredicate<>(PARAM2, "value_2", false);
 
-    ConjunctionPredicate cp = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
+    ConjunctionPredicate cp = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
     Predicate p = new NotPredicate(cp);
     String query = visitor.buildQuery(p);
@@ -953,7 +951,7 @@ public class EsQueryVisitorTest {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
     Predicate p2 = new LikePredicate<>(PARAM, "value_1*", false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
-    Predicate p = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
+    Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -1109,8 +1107,8 @@ public class EsQueryVisitorTest {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
     Predicate p2 = new LikePredicate<>(PARAM, "value_1*", false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
-    Predicate pcon = new ConjunctionPredicate(Lists.newArrayList(p1, p2, p3));
-    Predicate pdis = new DisjunctionPredicate(Lists.newArrayList(p1, pcon));
+    Predicate pcon = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
+    Predicate pdis = new DisjunctionPredicate(Arrays.asList(p1, pcon));
     Predicate p = new NotPredicate(pdis);
     String query = visitor.buildQuery(p);
     String expectedQuery =
@@ -1211,10 +1209,10 @@ public class EsQueryVisitorTest {
     Predicate p2 = new LikePredicate<>(PARAM, "value_1*", false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
 
-    Predicate p4 = new DisjunctionPredicate(Lists.newArrayList(p1, p3));
-    Predicate p5 = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
+    Predicate p4 = new DisjunctionPredicate(Arrays.asList(p1, p3));
+    Predicate p5 = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
-    Predicate p = new ConjunctionPredicate(Lists.newArrayList(p4, new NotPredicate(p5)));
+    Predicate p = new ConjunctionPredicate(Arrays.asList(p4, new NotPredicate(p5)));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -1325,10 +1323,10 @@ public class EsQueryVisitorTest {
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p4 = new WithinPredicate(wkt);
 
-    Predicate p5 = new DisjunctionPredicate(Lists.newArrayList(p1, p3, p4));
-    Predicate p6 = new ConjunctionPredicate(Lists.newArrayList(p1, p2));
+    Predicate p5 = new DisjunctionPredicate(Arrays.asList(p1, p3, p4));
+    Predicate p6 = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
-    Predicate p = new ConjunctionPredicate(Lists.newArrayList(p5, p6));
+    Predicate p = new ConjunctionPredicate(Arrays.asList(p5, p6));
     String query = visitor.buildQuery(p);
     String expectedQuery =
         "{\n"
