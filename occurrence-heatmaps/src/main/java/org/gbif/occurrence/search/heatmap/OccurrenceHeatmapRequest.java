@@ -14,7 +14,7 @@
 package org.gbif.occurrence.search.heatmap;
 
 
-import org.gbif.predicate.query.occurrence.OccurrencePredicateSearchRequest;
+import org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

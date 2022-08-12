@@ -19,9 +19,9 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest;
+import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
-import org.gbif.predicate.query.occurrence.OccurrencePredicateSearchRequest;
-import org.gbif.predicate.query.occurrence.QueryVisitorFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

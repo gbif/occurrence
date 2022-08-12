@@ -218,6 +218,20 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-es-mapping</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-logging</artifactId>
+          <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-common</artifactId>
       <exclusions>
         <exclusion>

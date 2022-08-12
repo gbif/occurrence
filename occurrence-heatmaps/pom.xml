@@ -44,6 +44,10 @@
       <artifactId>occurrence-search</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-es-mapping</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
