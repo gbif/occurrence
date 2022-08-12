@@ -24,6 +24,7 @@ import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.service.DownloadType;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.Closeable;
@@ -121,7 +122,7 @@ public class  DownloadPrepareAction implements Closeable {
     try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
-                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]))) {
+                                                    .downloadPrepareAction(DownloadType.valueOf(args[3]).getCoreTerm())) {
       occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
     }
   }
