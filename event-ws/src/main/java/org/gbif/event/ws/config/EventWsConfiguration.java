@@ -15,7 +15,6 @@ package org.gbif.event.ws.config;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.DownloadType;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
@@ -57,7 +56,6 @@ public class EventWsConfiguration {
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
            DownloadUtils.concatUrlPaths(wsUrl, downloadType.toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
-      .put(DownloadWorkflowParameters.CORE_TERM_NAME, DownloadType.valueOf(downloadType.toUpperCase()).getCoreTerm().name())
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 
@@ -69,8 +67,7 @@ public class EventWsConfiguration {
   @Bean
   public OccurrenceDownloadService occurrenceDownloadService(@Value("${api.url}") String apiUrl,
                                                              @Value("${occurrence.download.ws.username}") String downloadUsername,
-                                                             @Value("${occurrence.download.ws.password}") String downloadUserPassword,
-                                                             @Value("${occurrence.download.type}") String downloadType) {
+                                                             @Value("${occurrence.download.ws.password}") String downloadUserPassword) {
     return new ClientBuilder()
       .withUrl(apiUrl)
       .withCredentials(downloadUsername, downloadUserPassword)
