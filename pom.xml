@@ -231,7 +231,7 @@
     <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
-    <elasticsearch.version>7.10.0</elasticsearch.version>
+    <elasticsearch.version>7.13.4</elasticsearch.version>
     <testcontainers-elasticsearch.version>1.17.2</testcontainers-elasticsearch.version>
     <!-- Used to match version used by Elasticsearch-->
     <lucene.version>8.7.0</lucene.version>
