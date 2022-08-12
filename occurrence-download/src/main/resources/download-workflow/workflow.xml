@@ -93,7 +93,7 @@
 
   <action name="simple_csv_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/simple-csv</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/simple-csv</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -124,7 +124,7 @@
 
   <action name="iucn_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/iucn</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/iucn</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -155,7 +155,7 @@
 
   <action name="simple_avro_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/simple-avro</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/simple-avro</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -186,7 +186,7 @@
 
   <action name="simple_with_verbatim_avro_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/simple-with-verbatim-avro</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/simple-with-verbatim-avro</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -217,7 +217,7 @@
 
   <action name="map_of_life_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/map-of-life</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/map-of-life</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -248,7 +248,7 @@
 
   <action name="bionomia_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/bionomia</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/bionomia</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -279,7 +279,7 @@
 
   <action name="simple_parquet_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/simple-parquet</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/simple-parquet</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -310,7 +310,7 @@
 
   <action name="dwca_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/dwca</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
@@ -341,7 +341,7 @@
 
   <action name="species_list_download">
     <sub-workflow>
-      <app-path>${hdfs.namenode}/${core_term_name.toLowerCase()}-download-workflows-${occurrence.environment}/download-workflow/species-list</app-path>
+      <app-path>${hdfs.namenode}/${occurrence.wf.prefix}-download-workflows-${occurrence.environment}/download-workflow/species-list</app-path>
       <propagate-configuration/>
       <configuration>
         <property>
