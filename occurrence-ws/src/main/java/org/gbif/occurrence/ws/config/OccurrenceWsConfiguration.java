@@ -50,7 +50,7 @@ public class OccurrenceWsConfiguration {
                                                       @Value("${occurrence.download.ws.url}") String wsUrl,
                                                       @Value("${occurrence.download.hdfs.namenode}") String nameNode,
                                                       @Value("${occurrence.download.username}") String userName,
-                                                      @Value("${occurrence.download.type}")DownloadType type) {
+                                                      @Value("${occurrence.download.type}") DownloadType type) {
     return new ImmutableMap.Builder<String, String>()
       .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT,
                                               EsFieldMapper.SearchType.OCCURRENCE.getObjectName(), environment))
