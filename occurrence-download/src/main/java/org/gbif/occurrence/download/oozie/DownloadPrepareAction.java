@@ -101,6 +101,8 @@ public class  DownloadPrepareAction implements Closeable {
 
   private static final String CORE_TERM_NAME = "core_term_name";
 
+  private static final String SOURCE_TABLE = "table_name";
+
   private final RestHighLevelClient esClient;
 
   private final String esIndex;
@@ -159,6 +161,7 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
       props.setProperty(CORE_TERM_NAME, coreTerm.name());
+      props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
 
       Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
       String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType()).buildQuery(predicate);
