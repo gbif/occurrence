@@ -22,6 +22,7 @@ occurrence:
     downloads_max_predicates: 101000
     downloads_soft_limit: 3,100
     environment: @occurrence.environment@
+    type: OCCURRENCE
     hdfs:
       namenode: @hdfs.namenode@
     hive:

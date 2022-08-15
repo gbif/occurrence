@@ -40,6 +40,8 @@ public class DownloadWorkflowParameters {
   //Download format.
   public static final String DOWNLOAD_FORMAT = "download_format";
 
+  public static final String CORE_TERM_NAME = "core_term_name";
+
   //Filter/Predicate/SQL.
   public static final String GBIF_FILTER = "gbif_filter";
 
