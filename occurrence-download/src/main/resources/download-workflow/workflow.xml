@@ -113,6 +113,10 @@
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
@@ -146,6 +150,10 @@
         <property>
           <name>core_term_name</name>
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
+        </property>
+        <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
           <name>hive_query</name>
@@ -183,6 +191,10 @@
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
@@ -216,6 +228,10 @@
         <property>
           <name>core_term_name</name>
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
+        </property>
+        <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
           <name>hive_query</name>
@@ -253,6 +269,10 @@
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
@@ -286,6 +306,10 @@
         <property>
           <name>core_term_name</name>
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
+        </property>
+        <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
           <name>hive_query</name>
@@ -323,6 +347,10 @@
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
@@ -358,6 +386,10 @@
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
@@ -391,6 +423,10 @@
         <property>
           <name>core_term_name</name>
           <value>${wf:actionData('download_prepare')['core_term_name']}</value>
+        </property>
+        <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
           <name>hive_query</name>
