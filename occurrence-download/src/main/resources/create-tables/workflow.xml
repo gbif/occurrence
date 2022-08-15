@@ -100,7 +100,7 @@
 
   <action name="notify-error">
     <email xmlns="uri:oozie:email-action:0.2">
-      <to>informatics@gbif.org</to>
+      <to>fmendez@gbif.org</to>
       <subject>${occurrence.environment} ${core_term_name} HDFS Build failed ${wf:id()}</subject>
       <body>The workflow ${wf:id()} failed with error: [${wf:errorMessage(wf:lastErrorNode())}]</body>
     </email>

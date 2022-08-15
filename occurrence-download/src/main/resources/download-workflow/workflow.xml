@@ -444,7 +444,7 @@
 
   <action name="notify-error">
     <email xmlns="uri:oozie:email-action:0.2">
-      <to>mblissett@gbif.org</to>
+      <to>fmendez@gbif.org</to>
       <subject>${occurrence.environment} download ${wf:id()} failed</subject>
       <body>${core_term_name} download workflow ${wf:id()} failed:[${wf:errorMessage(wf:lastErrorNode())}]</body>
     </email>
