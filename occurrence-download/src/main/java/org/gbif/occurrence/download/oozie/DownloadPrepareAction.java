@@ -99,6 +99,8 @@ public class  DownloadPrepareAction implements Closeable {
   // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
   private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
 
+  private static final String CORE_TERM_NAME = "core_term_name";
+
   private final RestHighLevelClient esClient;
 
   private final String esIndex;
@@ -156,6 +158,7 @@ public class  DownloadPrepareAction implements Closeable {
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
+      props.setProperty(CORE_TERM_NAME, coreTerm.name());
 
       Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
       String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType()).buildQuery(predicate);
