@@ -61,6 +61,7 @@ public class OccurrenceWsConfiguration {
            DownloadUtils.concatUrlPaths(wsUrl, type.name().toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
       .put(DownloadWorkflowParameters.CORE_TERM_NAME, type.getCoreTerm().name())
+      .put(DownloadWorkflowParameters.TABLE_NAME, type.getCoreTerm().name().toLowerCase())
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
 
