@@ -58,7 +58,7 @@ public class OccurrenceWsConfiguration {
                                                           EsFieldMapper.SearchType.OCCURRENCE.getObjectName(),
                                                           environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
-           DownloadUtils.concatUrlPaths(wsUrl, "occurrence/download/request/callback?job_id=$jobId&status=$status"))
+           DownloadUtils.concatUrlPaths(wsUrl, type.name().toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
       .put(DownloadWorkflowParameters.CORE_TERM_NAME, type.getCoreTerm().name())
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
