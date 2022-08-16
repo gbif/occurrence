@@ -32,6 +32,7 @@
       <param>hiveDB=${hive_db}</param>
       <param>downloadTableName=${download_table_name}</param>
       <param>whereClause=${hive_query}</param>
+      <param>tableName=${table_name}</param>
     </hive>
     <ok to="archive_table"/>
     <error to="drop_tables_failure"/>
