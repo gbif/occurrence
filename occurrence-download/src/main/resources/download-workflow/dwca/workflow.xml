@@ -32,6 +32,7 @@
       </configuration>
       <script>hive-scripts/execute-query.q</script>
       <param>hiveDB=${hive_db}</param>
+      <param>tableName=${table_name}</param>
       <param>verbatimTable=${download_table_name}_verbatim</param>
       <param>interpretedTable=${download_table_name}_interpreted</param>
       <param>citationTable=${download_table_name}_citation</param>

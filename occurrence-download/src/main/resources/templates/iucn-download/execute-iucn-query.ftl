@@ -108,7 +108,7 @@ SELECT
   ${interpretedFields.lastInterpreted.initializer},
   ${interpretedFields.mediaType.initializer},
   ${interpretedFields.issue.initializer}
-FROM ${r"${coreTermName}"}
+FROM ${r"${tableName}"}
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.

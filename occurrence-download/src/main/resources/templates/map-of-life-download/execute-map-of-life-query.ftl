@@ -32,7 +32,7 @@ SELECT
 <#list fields as key, field>
   ${field.hiveField}<#if key_has_next>,</#if>
 </#list>
-FROM ${r"${coreTermName}"}
+FROM ${r"${tableName}"}
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.

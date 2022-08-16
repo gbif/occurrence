@@ -30,6 +30,7 @@
       <script>hive-scripts/execute-species-list-query.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>speciesListTable=${download_table_name}</param>
+      <param>tableName=${table_name}</param>
       <param>whereClause=${hive_query}</param>
     </hive>
     <ok to="archive_table"/>

@@ -59,6 +59,10 @@
           <value>${wf:actionData('download_prepare')['download_table_name']}</value>
         </property>
         <property>
+          <name>table_name</name>
+          <value>${wf:actionData('download_prepare')['table_name']}</value>
+        </property>
+        <property>
           <name>hive_query</name>
           <value>${wf:actionData('download_prepare')['hive_query']}</value>
         </property>
