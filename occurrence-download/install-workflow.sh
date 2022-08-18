@@ -8,6 +8,7 @@ P=$1
 TOKEN=$2
 SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/}
 TABLE_NAME=${4:-occurrence}
+CORE_TERM_NAME="${foo^}"
 
 echo "Get latest tables-coord config profiles from github"
 curl -s -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L https://api.github.com/repos/gbif/gbif-configuration/contents/${TABLE_NAME}-download/profiles.xml
@@ -22,14 +23,14 @@ echo "Assembling jar for $ENV"
 mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 #Is any download running?
-while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${TABLE_NAME}-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
+while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${CORE_TERM_NAME}-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
   echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
-  oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${TABLE_NAME}-download;name=${ENV}-create-tables"
+  oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${CORE_TERM_NAME}-download;name=${ENV}-create-tables"
   sleep 5
 done
 
 #gets the oozie id of the current coordinator job if it exists
-WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=${TABLE_NAME}-HDFSBuild-$ENV | awk 'NR==3 {print $1}')
+WID=$(oozie jobs -oozie $OOZIE -jobtype coordinator -filter name=${CORE_TERM_NAME}-HDFSBuild-$ENV | awk 'NR==3 {print $1}')
 if [ -n "$WID" ]; then
   echo "Killing current coordinator job" $WID
   sudo -u hdfs oozie job -oozie $OOZIE -kill $WID
