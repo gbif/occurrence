@@ -73,7 +73,7 @@ public class OccurrenceAvroHdfsTableDefinition {
         builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().record(getTypeRecordName(initializableField))
           .fields()
           .requiredString("id")
-          .name("eventtype").type().nullable().array().items().nullable().stringType().noDefault()
+          .optionalString("eventtype")
           .endRecord()
           .noDefault();
         break;
