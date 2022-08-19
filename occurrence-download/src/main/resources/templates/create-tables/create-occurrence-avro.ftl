@@ -71,7 +71,7 @@ SET hive.auto.convert.join=false;
 SET hive.exec.parallel=false;
 
 CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_multimedia
-(gbifid BIGINT, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,
+(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,
 source STRING, audience STRING, created STRING, creator STRING, contributor STRING,
 publisher STRING,license STRING, rightsHolder STRING)
 STORED AS PARQUET;
