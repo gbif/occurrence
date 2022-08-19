@@ -8,7 +8,7 @@ P=$1
 TOKEN=$2
 SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/}
 TABLE_NAME=${4:-occurrence}
-CORE_TERM_NAME="${foo^}"
+CORE_TERM_NAME="${TABLE_NAME^}"
 
 echo "Get latest tables-coord config profiles from github"
 curl -s -H "Authorization: token $TOKEN" -H 'Accept: application/vnd.github.v3.raw' -O -L https://api.github.com/repos/gbif/gbif-configuration/contents/${TABLE_NAME}-download/profiles.xml
