@@ -49,13 +49,14 @@ public class EventWsConfiguration {
                                                       @Value("${occurrence.download.hdfs.namenode}") String nameNode,
                                                       @Value("${occurrence.download.username}") String userName,
                                                       @Value("${occurrence.download.type}") DownloadType downloadType) {
+    String downloadTypePath = downloadType.name().toLowerCase();
     return new ImmutableMap.Builder<String, String>()
-      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, downloadType.name().toLowerCase(), environment))
+      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, downloadTypePath, environment))
       .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
-                                                          downloadType,
+                                                          downloadTypePath,
                                                           environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
-           DownloadUtils.concatUrlPaths(wsUrl, downloadType.name().toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
+           DownloadUtils.concatUrlPaths(wsUrl, downloadTypePath + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
