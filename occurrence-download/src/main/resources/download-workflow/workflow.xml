@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-occurrence-download" xmlns="uri:oozie:workflow:0.4.5">
+<workflow-app name="${occurrence.environment}--${table_name}-download" xmlns="uri:oozie:workflow:0.4.5">
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>

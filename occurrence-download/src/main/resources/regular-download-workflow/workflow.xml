@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app xmlns="uri:oozie:workflow:0.4.5" name="dev-regular-simple-avro-download">
+<workflow-app xmlns="uri:oozie:workflow:0.4.5" name="dev-regular-simple-avro-${table_name}-download">
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>

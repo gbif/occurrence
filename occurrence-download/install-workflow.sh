@@ -23,7 +23,7 @@ echo "Assembling jar for $ENV"
 mvn --settings profiles.xml -U -P$P -DskipTests -Duser.timezone=UTC clean install package assembly:single
 
 #Is any download running?
-while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${CORE_TERM_NAME}-download;name=${ENV}-create-tables" | jq '.workflows | length') > 0 ]]; do
+while [[ $(curl -Ss --fail "$OOZIE/v1/jobs?filter=status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${CORE_TERM_NAME}-download;name=${ENV}-${core_term_name}-create-tables" | jq '.workflows | length') > 0 ]]; do
   echo -e "$(tput setaf 1)Download workflow can not be installed while download or create HDFS table workflows are running!!$(tput sgr0) \n"
   oozie jobs -oozie $OOZIE -jobtype wf -filter "status=RUNNING;status=PREP;status=SUSPENDED;name=${ENV}-${CORE_TERM_NAME}-download;name=${ENV}-create-tables"
   sleep 5
