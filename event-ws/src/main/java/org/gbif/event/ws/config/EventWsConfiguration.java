@@ -15,6 +15,7 @@ package org.gbif.event.ws.config;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.service.DownloadType;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
@@ -47,14 +48,14 @@ public class EventWsConfiguration {
                                                       @Value("${occurrence.download.ws.url}") String wsUrl,
                                                       @Value("${occurrence.download.hdfs.namenode}") String nameNode,
                                                       @Value("${occurrence.download.username}") String userName,
-                                                      @Value("${occurrence.download.type}") String downloadType) {
+                                                      @Value("${occurrence.download.type}") DownloadType downloadType) {
     return new ImmutableMap.Builder<String, String>()
-      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, downloadType, environment))
+      .put(OozieClient.LIBPATH, String.format(DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, downloadType.name().toLowerCase(), environment))
       .put(OozieClient.APP_PATH, nameNode + String.format(DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
                                                           downloadType,
                                                           environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
-           DownloadUtils.concatUrlPaths(wsUrl, downloadType.toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
+           DownloadUtils.concatUrlPaths(wsUrl, downloadType.name().toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
