@@ -49,7 +49,10 @@ public class EsFulltextSuggestBuilder {
       .add(isPhraseQuery(query)? QueryBuilders.matchPhraseQuery(esFieldMapper.getSearchFieldName(esField), query) : QueryBuilders.matchQuery(esFieldMapper.getSearchFieldName(esField), query));
 
     suggestQuery.minimumShouldMatch(1);
-    suggestQuery.filter().add(QueryBuilders.termQuery("type", esFieldMapper.getSearchType().getObjectName()));
+
+    if (esFieldMapper.isNestedIndex()) {
+      suggestQuery.filter().add(QueryBuilders.termQuery("type", esFieldMapper.getSearchType().getObjectName()));
+    }
 
     return suggestQuery;
   }

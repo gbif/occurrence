@@ -211,7 +211,9 @@ public class EsSearchRequestBuilder {
                               .stream())
                   .collect(Collectors.toList()));
     }
-    bool.filter().add(QueryBuilders.termQuery("type", esFieldMapper.getSearchType().getObjectName()));
+    if (esFieldMapper.isNestedIndex()) {
+      bool.filter().add(QueryBuilders.termQuery("type", esFieldMapper.getSearchType().getObjectName()));
+    }
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
