@@ -26,13 +26,13 @@ public class QueryVisitorFactory {
   public static class OccurrenceSearchParameterMixin {}
 
   public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      org.gbif.occurrence.search.es.EsFieldMapper.SearchType searchType) {
+      org.gbif.occurrence.search.es.EsFieldMapper.SearchType searchType, boolean isNestedIndex) {
     return new EsQueryVisitor<>(
         new EsFieldMapper<OccurrenceSearchParameter>() {
           private final org.gbif.occurrence.search.es.EsFieldMapper fieldMapper =
               org.gbif.occurrence.search.es.EsFieldMapper.builder()
                   .searchType(searchType)
-                  .nestedIndex(true)
+                  .nestedIndex(isNestedIndex)
                   .build();
 
           @Override

@@ -84,7 +84,7 @@ public class EsSearchRequestBuilder {
       bool.must(QueryBuilders.matchQuery(esFieldMapper.getSearchFieldName(FULL_TEXT), qParam));
     }
 
-    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor = QueryVisitorFactory.createEsQueryVisitor(esFieldMapper.getSearchType());
+    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor = QueryVisitorFactory.createEsQueryVisitor(esFieldMapper.getSearchType(), esFieldMapper.isNestedIndex());
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
