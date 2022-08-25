@@ -20,10 +20,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.apache.http.HttpHost;
+import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -33,6 +36,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -74,7 +78,7 @@ public class EsManageServer implements DisposableBean, InitializingBean {
   private final Resource settingsFile;
 
   @Override
-  public void destroy() throws Exception {
+  public void destroy() {
     embeddedElastic.stop();
   }
 
@@ -92,6 +96,13 @@ public class EsManageServer implements DisposableBean, InitializingBean {
     restClient = buildRestClient();
 
     createIndex();
+    updateclusterSettings();
+  }
+
+  private void updateclusterSettings() throws IOException {
+    ClusterUpdateSettingsRequest settingsRequest = new ClusterUpdateSettingsRequest();
+    settingsRequest.persistentSettings(Collections.singletonMap("cluster.routing.allocation.disk.threshold_enabled", false));
+    restClient.cluster().putSettings(settingsRequest, RequestOptions.DEFAULT);
   }
 
   private void createIndex() throws IOException {

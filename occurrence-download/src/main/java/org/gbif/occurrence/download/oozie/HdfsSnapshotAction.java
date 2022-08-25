@@ -70,7 +70,7 @@ public class HdfsSnapshotAction {
   }
 
   /**
-   * Creates an non-started instance of {@link CuratorFramework}.
+   * Creates a non-started instance of {@link CuratorFramework}.
    */
   private static CuratorFramework curator(Properties config) {
     return CuratorFrameworkFactory.builder().namespace(config.getProperty(LOCK_NAMESPACE))

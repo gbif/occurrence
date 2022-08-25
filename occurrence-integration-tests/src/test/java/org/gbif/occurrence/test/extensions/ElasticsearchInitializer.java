@@ -36,7 +36,7 @@ public class ElasticsearchInitializer implements BeforeAllCallback {
   private EsManageServer esServer;
 
   @Override
-  public void beforeAll(ExtensionContext extensionContext) throws Exception {
+  public void beforeAll(ExtensionContext extensionContext){
     //Get the ES managed instance
     ApplicationContext applicationContext = SpringExtension.getApplicationContext(extensionContext);
     esServer = applicationContext.getBean(EsManageServer.class);

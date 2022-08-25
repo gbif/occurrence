@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.cli.registry;
 
+import org.gbif.api.model.pipelines.StepType;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Endpoint;
 import org.gbif.api.model.registry.Installation;
@@ -330,9 +331,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
       PipelinesVerbatimMessage message = new PipelinesVerbatimMessage();
       message.setDatasetUuid(dataset.getKey());
       message.setInterpretTypes(interpretations);
-      message.setPipelineSteps(Sets.newHashSet("VERBATIM_TO_INTERPRETED", "INTERPRETED_TO_INDEX", "HDFS_VIEW"));
+      message.setPipelineSteps(Sets.newHashSet(StepType.VERBATIM_TO_INTERPRETED.name(), StepType.INTERPRETED_TO_INDEX.name(), StepType.HDFS_VIEW.name()));
       message.setEndpointType(endpoint.get().getType());
-      message.setValidator(false);
 
       messagePublisher.send(
         new PipelinesBalancerMessage(message.getClass().getSimpleName(), message.toString()));
