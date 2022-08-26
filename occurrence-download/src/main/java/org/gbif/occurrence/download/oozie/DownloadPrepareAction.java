@@ -164,7 +164,9 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
 
       Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-      String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType()).buildQuery(predicate);
+      String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType(),
+                                                                     workflowConfiguration.isEsNestedIndex())
+                                                .buildQuery(predicate);
       long recordCount = getRecordCount(searchQuery);
       props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
       if (isSmallDownloadCount(recordCount)) {

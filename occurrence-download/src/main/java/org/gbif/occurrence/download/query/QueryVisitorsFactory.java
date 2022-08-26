@@ -31,9 +31,12 @@ public class QueryVisitorsFactory {
     return new SQLQueryVisitor<>(new OccurrenceTermsMapper());
   }
 
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(org.gbif.occurrence.search.es.EsFieldMapper.SearchType searchType) {
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(org.gbif.occurrence.search.es.EsFieldMapper.SearchType searchType, boolean nestedIndex) {
     return new EsQueryVisitor<>(new EsFieldMapper<OccurrenceSearchParameter>() {
-      private final org.gbif.occurrence.search.es.EsFieldMapper fieldMapper = org.gbif.occurrence.search.es.EsFieldMapper.builder().searchType(searchType).nestedIndex(true).build();
+      private final org.gbif.occurrence.search.es.EsFieldMapper fieldMapper = org.gbif.occurrence.search.es.EsFieldMapper.builder()
+                                                                                .searchType(searchType)
+                                                                                .nestedIndex(nestedIndex)
+                                                                                .build();
       @Override
       public String getVerbatimFieldName(OccurrenceSearchParameter searchParameter) {
         return fieldMapper.getVerbatimFieldName(searchParameter);
