@@ -18,6 +18,7 @@ import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -102,24 +103,37 @@ public class DownloadResource {
 
   private final String archiveServerUrl;
 
+  private final DownloadType downloadType;
+
   @Autowired
   public DownloadResource(
     @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
     DownloadRequestService service,
     CallbackService callbackService,
-    OccurrenceDownloadService occurrenceDownloadService
+    OccurrenceDownloadService occurrenceDownloadService,
+    DownloadType downloadType
   ) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.downloadType = downloadType;
+  }
+
+  private void assertDownloadType(Download download) {
+    if (downloadType != download.getRequest().getType()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Wrong download type for this endpoint");
+    }
   }
 
   @DeleteMapping("{key}")
   public void delDownload(@PathVariable("key") String jobId, @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    assertLoginMatches(occurrenceDownloadService.get(jobId).getRequest(), authentication, principal);
+    Download download = occurrenceDownloadService.get(jobId);
+    assertDownloadType(download);
+    assertLoginMatches(download.getRequest(), authentication, principal);
     LOG.info("Delete download: [{}]", jobId);
     requestService.cancel(jobId);
   }
@@ -140,16 +154,21 @@ public class DownloadResource {
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
 
-    String extension = Optional.ofNullable(occurrenceDownloadService.get(downloadKey))
-      .map(download -> download.getRequest().getFormat().getExtension())
+    Download download = occurrenceDownloadService.get(downloadKey);
+    String extension = Optional.ofNullable(download)
+      .map(d -> d.getRequest().getFormat().getExtension())
       .orElse(ZIP_EXT);
 
+    if (download != null) {
+      assertDownloadType(download);
+    }
+
     LOG.debug("Get download data: [{}]", downloadKey);
-    File download = requestService.getResultFile(downloadKey);
+    File downloadFile = requestService.getResultFile(downloadKey);
 
     String location = archiveServerUrl + downloadKey + extension;
     return ResponseEntity.status(HttpStatus.FOUND)
-      .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(download.lastModified())))
+      .header(HttpHeaders.LAST_MODIFIED, new SimpleDateFormat().format(new Date(downloadFile.lastModified())))
       .location(URI.create(location))
       .body(location + "\n");
   }
@@ -172,6 +191,7 @@ public class DownloadResource {
     @NotNull @Valid @RequestBody PredicateDownloadRequest request, @Autowired Principal principal
   ) {
     try {
+      request.setType(downloadType);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       return ResponseEntity.ok(createDownload(request, authentication, principal));
     } catch (ResponseStatusException rse) {
@@ -276,7 +296,8 @@ public class DownloadResource {
       if (existingDownload.getRequest() instanceof PredicateDownloadRequest) {
         PredicateDownloadRequest existingPredicateDownload = (PredicateDownloadRequest) existingDownload.getRequest();
         if (newDownload.getFormat() == existingPredicateDownload.getFormat() &&
-          Objects.equals(newDownload.getPredicate(), existingPredicateDownload.getPredicate())) {
+            newDownload.getType() == existingPredicateDownload.getType() &&
+            Objects.equals(newDownload.getPredicate(), existingPredicateDownload.getPredicate())) {
           LOG.info("Found existing {} download {} ({}) matching new download request.",
             existingPredicateDownload.getFormat(), existingDownload.getKey(),
             existingPredicateDownload.getCreator());

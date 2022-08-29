@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.oozie;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.query.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -24,7 +25,6 @@ import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.download.service.DownloadType;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.Closeable;

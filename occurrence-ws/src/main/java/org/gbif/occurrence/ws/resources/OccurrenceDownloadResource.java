@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.resource.DownloadResource;
@@ -38,6 +39,6 @@ public class OccurrenceDownloadResource extends DownloadResource {
     CallbackService callbackService,
     OccurrenceDownloadService occurrenceDownloadService
   ) {
-    super(archiveServerUrl, service, callbackService, occurrenceDownloadService);
+    super(archiveServerUrl, service, callbackService, occurrenceDownloadService, DownloadType.OCCURRENCE);
   }
 }

@@ -13,9 +13,9 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.DownloadType;
 import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
 import org.gbif.occurrence.query.TitleLookupService;
