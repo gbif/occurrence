@@ -25,6 +25,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
@@ -46,6 +47,7 @@ public class EsHelper {
 
   private static final String AGG_BY_INDEX = "index_aggs";
   private static final String DATASET_KEY_FIELD = "datasetKey";
+  private static final String METADATA_DATASET_KEY_FIELD = "metadata.datasetKey";
 
   private EsHelper() {}
 
@@ -71,7 +73,9 @@ public class EsHelper {
     esRequest.source(searchSourceBuilder);
 
     // add match query to filter by datasetKey
-    searchSourceBuilder.query(QueryBuilders.matchQuery(DATASET_KEY_FIELD, datasetKey));
+    searchSourceBuilder.query(QueryBuilders.boolQuery()
+        .should(QueryBuilders.termsQuery(DATASET_KEY_FIELD, datasetKey))
+        .should(QueryBuilders.termsQuery(METADATA_DATASET_KEY_FIELD, datasetKey)));
     // add aggs by index
     searchSourceBuilder.aggregation(AggregationBuilders.terms(AGG_BY_INDEX).field("_index"));
 
@@ -94,7 +98,7 @@ public class EsHelper {
    *
    * @param esClient client to connect to ES
    * @param datasetKey key of the dataset whose documents will be deleted
-   * @param index index where the the documents will be deleted from
+   * @param index index where the documents will be deleted from
    */
   public static void deleteByDatasetKey(
       final RestHighLevelClient esClient, String datasetKey, String index) {
@@ -104,12 +108,15 @@ public class EsHelper {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index), "index is required");
 
     DeleteByQueryRequest request =
-        new DeleteByQueryRequest(index)
+      new DeleteByQueryRequest(index)
             .setBatchSize(5000)
-            .setQuery(QueryBuilders.matchQuery(DATASET_KEY_FIELD, datasetKey));
+            .setQuery(QueryBuilders.boolQuery()
+              .should(QueryBuilders.termsQuery(DATASET_KEY_FIELD, datasetKey))
+              .should(QueryBuilders.termsQuery(METADATA_DATASET_KEY_FIELD, datasetKey)));
 
     try {
-      esClient.deleteByQuery(request, HEADERS.get());
+      BulkByScrollResponse response = esClient.deleteByQuery(request, HEADERS.get());
+      LOG.info("Deleted {} documents from the index {}", response.getDeleted(), index);
     } catch (IOException e) {
       LOG.error("Could not delete records of dataset {} from index {}", datasetKey, index);
     }
