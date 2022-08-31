@@ -13,12 +13,12 @@
  */
 package org.gbif.occurrence.download.util;
 
-import org.gbif.api.service.registry.DatasetOccurrenceDownloadUsageService;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.registry.ws.client.DatasetClient;
-import org.gbif.registry.ws.client.DatasetOccurrenceDownloadUsageClient;
+import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.ClientBuilder;
@@ -89,21 +89,12 @@ public class RegistryClientUtil {
   }
 
   /**
-   * Sets up a DatasetOccurrenceDownloadUsageService client avoiding the use of guice as our gbif jackson libraries
-   * clash with the hadoop versions.
-   * Sets up an http client with a one minute timeout and http support only.
-   */
-  public DatasetOccurrenceDownloadUsageService setupDatasetUsageService() {
-    return clientBuilder.build(DatasetOccurrenceDownloadUsageClient.class);
-  }
-
-  /**
    * Sets up a OccurrenceDownloadService client avoiding the use of guice as our gbif jackson libraries
    * clash with the hadoop versions.
    * Sets up an http client with a one minute timeout and http support only.
    */
-  public OccurrenceDownloadService setupOccurrenceDownloadService() {
-    return clientBuilder.build(OccurrenceDownloadClient.class);
+  public OccurrenceDownloadService setupOccurrenceDownloadService(DwcTerm dwcTerm) {
+    return DwcTerm.Event == dwcTerm? clientBuilder.build(EventDownloadClient.class) : clientBuilder.build(OccurrenceDownloadClient.class);
   }
 
 }

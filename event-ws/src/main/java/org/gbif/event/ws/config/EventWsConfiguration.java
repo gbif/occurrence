@@ -20,7 +20,7 @@ import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
@@ -56,7 +56,7 @@ public class EventWsConfiguration {
                                                           downloadTypePath,
                                                           environment))
       .put(OozieClient.WORKFLOW_NOTIFICATION_URL,
-           DownloadUtils.concatUrlPaths(wsUrl, downloadTypePath + "/download/request/callback?job_id=$jobId&status=$status"))
+           DownloadUtils.concatUrlPaths(wsUrl, downloadTypePath + "/event/request/callback?job_id=$jobId&status=$status"))
       .put(OozieClient.USER_NAME, userName)
       .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
   }
@@ -75,7 +75,7 @@ public class EventWsConfiguration {
       .withCredentials(downloadUsername, downloadUserPassword)
       .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
       .withFormEncoder()
-      .build(OccurrenceDownloadClient.class);
+      .build(EventDownloadClient.class);
   }
 
   @Configuration

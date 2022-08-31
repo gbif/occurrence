@@ -16,7 +16,6 @@ package org.gbif.occurrence.download.oozie;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.query.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -126,7 +125,7 @@ public class  DownloadPrepareAction implements Closeable {
     try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
-                                                    .downloadPrepareAction(DownloadType.valueOf(args[3].toUpperCase()).getCoreTerm())) {
+                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]))) {
       occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
     }
   }

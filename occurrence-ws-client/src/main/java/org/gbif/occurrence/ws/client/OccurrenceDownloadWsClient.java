@@ -13,25 +13,12 @@
  */
 package org.gbif.occurrence.ws.client;
 
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import feign.Response;
 
 /**
  * Client-side implementation to the occurrence download service.

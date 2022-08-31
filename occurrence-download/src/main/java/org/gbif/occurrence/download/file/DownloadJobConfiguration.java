@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants;
 import org.gbif.occurrence.download.file.dwca.TableSuffixes;
 
@@ -40,13 +41,16 @@ public class DownloadJobConfiguration {
 
   private final DownloadFormat downloadFormat;
 
+  private final DwcTerm coreTerm;
+
   /**
    * Private constructor.
    * Instances must be created using the Builder class.
    */
   private DownloadJobConfiguration(String downloadKey, String downloadTableName, String filter, String user,
                                    boolean isSmallDownload, String sourceDir, String searchQuery,
-                                   DownloadFormat downloadFormat) {
+                                   DownloadFormat downloadFormat,
+                                   DwcTerm coreTerm) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -55,6 +59,7 @@ public class DownloadJobConfiguration {
     this.searchQuery = searchQuery;
     this.downloadTableName = downloadTableName;
     this.downloadFormat = downloadFormat;
+    this.coreTerm = coreTerm;
   }
 
   /**
@@ -111,6 +116,13 @@ public class DownloadJobConfiguration {
    */
   public DownloadFormat getDownloadFormat() {
     return downloadFormat;
+  }
+
+  /**
+   * Requested download format.
+   */
+  public DwcTerm getCoreTerm() {
+    return coreTerm;
   }
 
   /**
@@ -204,6 +216,8 @@ public class DownloadJobConfiguration {
 
     private DownloadFormat downloadFormat;
 
+    private DwcTerm coreTerm;
+
     public Builder withDownloadKey(String downloadKey) {
       this.downloadKey = downloadKey;
       return this;
@@ -244,6 +258,11 @@ public class DownloadJobConfiguration {
       return this;
     }
 
+    public Builder withCoreTerm(DwcTerm coreTerm) {
+      this.coreTerm = coreTerm;
+      return this;
+    }
+
     /**
      * Builds a new DownloadJobConfiguration instance.
      */
@@ -255,7 +274,8 @@ public class DownloadJobConfiguration {
                                           isSmallDownload,
                                           sourceDir,
                                           searchQuery,
-                                          downloadFormat);
+                                          downloadFormat,
+                                          coreTerm);
     }
 
   }

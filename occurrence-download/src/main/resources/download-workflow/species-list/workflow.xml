@@ -58,6 +58,7 @@
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <arg>${core_term_name}</arg>
       <capture-output/>
      </java>
 

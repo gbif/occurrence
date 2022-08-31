@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.citations;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
@@ -49,7 +50,8 @@ public final class CitationsPersister extends CitationsFileReader {
       Preconditions.checkNotNull(args[0]),
       new PersistUsage(
         Preconditions.checkNotNull(args[1]),
-        properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)
+        properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY),
+        DwcTerm.valueOf(args[2])
       ));
   }
 
@@ -69,10 +71,10 @@ public final class CitationsPersister extends CitationsFileReader {
     private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
     private final OccurrenceDownloadService downloadService;
 
-    public PersistUsage(String downloadKey, String registryWsUrl) {
+    public PersistUsage(String downloadKey, String registryWsUrl, DwcTerm dwcTerm) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsUrl);
       this.downloadKey = downloadKey;
-      this.downloadService = registryClientUtil.setupOccurrenceDownloadService();
+      this.downloadService = registryClientUtil.setupOccurrenceDownloadService(dwcTerm);
     }
 
     private static Long sumCitations(Map<UUID, Long> citations) {

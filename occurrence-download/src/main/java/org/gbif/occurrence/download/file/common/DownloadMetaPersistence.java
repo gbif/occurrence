@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.common;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.citations.CitationsPersister;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
@@ -27,7 +28,7 @@ import com.google.common.base.Preconditions;
 
 /**
  *
- * Oozie action persists meta information of download to registry. It currently support species list and sql download.
+ * Oozie action persists meta information of download to registry. It currently supports species list and sql download.
  *
  */
 public class DownloadMetaPersistence {
@@ -36,15 +37,16 @@ public class DownloadMetaPersistence {
     String countPath = Preconditions.checkNotNull(args[0]);
     String downloadKey = Preconditions.checkNotNull(args[1]);
     String citationPath = Preconditions.checkNotNull(args[2]);
+    DwcTerm coreTerm = DwcTerm.valueOf(Preconditions.checkNotNull(args[2]));
 
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
     // persists citation information.
-    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL));
+    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL, coreTerm));
 
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService();
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(coreTerm);
     // persists species count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
   }

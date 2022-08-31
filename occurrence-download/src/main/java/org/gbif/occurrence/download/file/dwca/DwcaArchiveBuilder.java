@@ -148,7 +148,7 @@ public class DwcaArchiveBuilder {
 
     // create registry client and services
     DatasetService datasetService = registryClientUtil.setupDatasetService();
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService();
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(configuration.getCoreTerm());
     TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
 
     FileSystem sourceFs = configuration.isSmallDownload()

@@ -61,6 +61,7 @@
       <main-class>org.gbif.occurrence.download.citations.CitationsPersister</main-class>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
       <arg>${download_key}</arg>
+      <arg>${core_term_name}</arg>
       <capture-output/>
     </java>
 
