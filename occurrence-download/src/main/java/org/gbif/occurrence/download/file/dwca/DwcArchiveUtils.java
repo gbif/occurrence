@@ -34,9 +34,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Charsets;
 
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
@@ -103,19 +104,30 @@ public class DwcArchiveUtils {
   }
 
   /**
-   * Creates an meta.xml descriptor file in the directory parameter.
+   * Creates a meta.xml occurrence descriptor file in the directory parameter.
    */
-  public static void createArchiveDescriptor(File directory) {
+  public static void createOccurrenceArchiveDescriptor(File directory) {
+    createArchiveDescriptor(directory, OCCURRENCE_INTERPRETED_FILENAME, DwcTerm.Occurrence);
+  }
+
+  /**
+   * Creates a meta.xml event descriptor file in the directory parameter.
+   */
+  public static void createEventArchiveDescriptor(File directory) {
+    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event);
+  }
+
+  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm) {
     LOG.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
     downloadArchive.setMetadataLocation(METADATA_FILENAME);
 
-    ArchiveFile occurrence = createArchiveFile(INTERPRETED_FILENAME, DwcTerm.Occurrence, TermUtils.interpretedTerms(),
-      TermUtils.identicalInterpretedTerms());
-    downloadArchive.setCore(occurrence);
+    ArchiveFile event = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(),
+                                          TermUtils.identicalInterpretedTerms());
+    downloadArchive.setCore(event);
 
-    ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, DwcTerm.Occurrence, TermUtils.verbatimTerms());
+    ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());
     downloadArchive.addExtension(verbatim);
 
     ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());

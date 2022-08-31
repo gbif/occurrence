@@ -19,7 +19,8 @@ package org.gbif.occurrence.download.file.dwca;
 public class DwcDownloadsConstants {
 
   public static final String METADATA_FILENAME = "metadata.xml";
-  public static final String INTERPRETED_FILENAME = "occurrence.txt";
+  public static final String OCCURRENCE_INTERPRETED_FILENAME = "occurrence.txt";
+  public static final String EVENT_INTERPRETED_FILENAME = "event.txt";
   public static final String VERBATIM_FILENAME = "verbatim.txt";
   public static final String MULTIMEDIA_FILENAME = "multimedia.txt";
   public static final String CITATIONS_FILENAME = "citations.txt";

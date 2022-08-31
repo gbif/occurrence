@@ -25,6 +25,6 @@ public class DwcArchiveUtilsTest {
    */
   @Test
   public void testCreateArchiveDescriptor(@TempDir Path testFolder) {
-    DwcArchiveUtils.createArchiveDescriptor(testFolder.toFile());
+    DwcArchiveUtils.createOccurrenceArchiveDescriptor(testFolder.toFile());
   }
 }

@@ -26,6 +26,7 @@ import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.api.vocabulary.License;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -88,9 +89,9 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.CITATIONS_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.RIGHTS_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
@@ -236,7 +237,11 @@ public class DwcaArchiveBuilder {
       generateMetadata();
 
       // meta.xml
-      DwcArchiveUtils.createArchiveDescriptor(archiveDir);
+      if (DwcTerm.Event == configuration.getCoreTerm()) {
+        DwcArchiveUtils.createEventArchiveDescriptor(archiveDir);
+      } else {
+        DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir);
+      }
 
       // zip up
       Path hdfsTmpZipPath = new Path(workflowConfiguration.getHdfsTempDir(), zipFileName);
@@ -354,8 +359,7 @@ public class DwcaArchiveBuilder {
 
     // NOTE: hive lowercases all the paths
     appendPreCompressedFile(out,
-      new Path(configuration.getInterpretedDataFileName()),
-      INTERPRETED_FILENAME,
+      new Path(configuration.getInterpretedDataFileName()), OCCURRENCE_INTERPRETED_FILENAME,
       HeadersFileUtil.getInterpretedTableHeader());
     appendPreCompressedFile(out,
       new Path(configuration.getVerbatimDataFileName()),

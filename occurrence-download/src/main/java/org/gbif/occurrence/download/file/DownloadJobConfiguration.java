@@ -133,7 +133,7 @@ public class DownloadJobConfiguration {
    */
   public String getInterpretedDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.INTERPRETED_FILENAME
+      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
       : getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
   }
 
