@@ -274,7 +274,7 @@ public class DownloadResource {
     Set<String> notificationAddress = asSet(emails);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
-    return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat);
+    return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat, downloadType);
   }
 
   /**
