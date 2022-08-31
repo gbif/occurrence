@@ -13,10 +13,16 @@
  */
 package org.gbif.occurrence.ws.client;
 
-public class Constants {
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-  public static final String OCCURRENCE_DOWNLOAD_PATH = "/occurrence/download/request";
-
-  public static final String EVENT_DOWNLOAD_PATH = "/event/download/request";
+/**
+ * Client-side implementation to the event download service.
+ */
+@RequestMapping(
+  value = Constants.EVENT_DOWNLOAD_PATH,
+  produces = MediaType.APPLICATION_JSON_VALUE
+)
+public interface EventDownloadWsClient extends BaseDownloadWsClient {
 
 }
