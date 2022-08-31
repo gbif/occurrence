@@ -51,6 +51,7 @@
       <arg>${gbif_filter}</arg>
       <arg>${is_small_download}</arg>
       <arg>${download_table_name}</arg>
+      <arg>${core_term_name}</arg>
     </java>
 
     <ok to="drop_table"/>

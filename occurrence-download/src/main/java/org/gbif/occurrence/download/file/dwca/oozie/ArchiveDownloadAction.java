@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.oozie;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
@@ -49,6 +50,7 @@ public class ArchiveDownloadAction {
     String query = args[2];         // download query filter
     boolean isSmallDownload = Boolean.parseBoolean(args[3]);    // isSmallDownload
     String downloadTableName = args[4];    // download table/file name
+    DwcTerm dwcTerm = DwcTerm.valueOf(args[5]);
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
@@ -60,6 +62,7 @@ public class ArchiveDownloadAction {
       .withUser(username)
       .withSourceDir(workflowConfiguration.getHiveDBPath())
       .withDownloadFormat(workflowConfiguration.getDownloadFormat())
+      .withCoreTerm(dwcTerm)
       .build();
 
     LOG.info("DwcaArchiveBuilder instance created with parameters:{}", (Object)args);
