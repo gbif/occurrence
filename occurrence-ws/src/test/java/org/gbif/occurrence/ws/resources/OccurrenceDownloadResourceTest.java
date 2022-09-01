@@ -18,6 +18,7 @@ import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -87,7 +88,7 @@ public class OccurrenceDownloadResourceTest {
 
     resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
-      DownloadFormat.DWCA);
+                                      DownloadFormat.DWCA, DownloadType.OCCURRENCE);
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.EMPTY_LIST);

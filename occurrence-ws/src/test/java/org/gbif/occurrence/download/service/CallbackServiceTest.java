@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
@@ -75,7 +76,7 @@ public class CallbackServiceTest {
    */
   private static Download mockDownload() {
     DownloadRequest downloadRequest = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true,
-      DownloadFormat.DWCA);
+                                                                   DownloadFormat.DWCA, DownloadType.OCCURRENCE);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(DOWNLOAD_ID);
