@@ -116,7 +116,7 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
         Scan scan = new Scan();
         scan.addFamily(Bytes.toBytes("o"));
         int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
-        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key));
+        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key + ":"));
         ResultScanner s = table.getScanner(scan);
 
         Result row = s.next();
