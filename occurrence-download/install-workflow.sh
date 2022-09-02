@@ -6,7 +6,7 @@ set -o pipefail
 
 P=$1
 TOKEN=$2
-SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/}
+SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/occurrence/}
 TABLE_NAME=${4:-occurrence}
 
 echo "Get latest tables-coord config profiles from github"
