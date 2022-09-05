@@ -44,16 +44,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.reflect.Reflection;
 import org.apache.avro.Schema;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.Reflection;
 
 /**
  * This provides the definition required to construct the occurrence hdfs table, for use as a Hive table.
