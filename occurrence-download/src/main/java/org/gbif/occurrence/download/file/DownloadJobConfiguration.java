@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants;
 import org.gbif.occurrence.download.file.dwca.TableSuffixes;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import org.apache.hadoop.fs.Path;
 
@@ -184,6 +185,12 @@ public class DownloadJobConfiguration {
             + (isSmallDownload ? downloadKey : downloadTableName)
             + suffix
             + Path.SEPARATOR).toLowerCase();
+  }
+
+  public String getExtensionDataFileName(OccurrenceHDFSTableDefinition.ExtensionTable extensionTable) {
+    return isSmallDownload
+      ? getDownloadTempDir() + extensionTable.getHiveTableName() + ".txt"
+      : getDownloadTempDir("_" + extensionTable.getHiveTableName());
   }
 
   /**

@@ -15,14 +15,38 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.*;
+import org.gbif.pipelines.io.avro.extension.dwc.ChronometricAgeTable;
+import org.gbif.pipelines.io.avro.extension.dwc.IdentificationTable;
+import org.gbif.pipelines.io.avro.extension.dwc.MeasurementOrFactTable;
+import org.gbif.pipelines.io.avro.extension.dwc.ResourceRelationshipTable;
+import org.gbif.pipelines.io.avro.extension.gbif.IdentifierTable;
+import org.gbif.pipelines.io.avro.extension.gbif.ReferenceTable;
+import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmAccessionTable;
+import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmMeasurementScoreTable;
+import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmMeasurementTraitTable;
+import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmMeasurementTrialTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.AmplificationTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.CloningTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.GelImageTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.LoanTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.MaterialSampleTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.PermitTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.PreparationTable;
+import org.gbif.pipelines.io.avro.extension.ggbn.PreservationTable;
+import org.gbif.pipelines.io.avro.extension.obis.ExtendedMeasurementOrFactTable;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.reflect.Reflection;
 import org.apache.avro.Schema;
 
 import com.google.common.base.CaseFormat;
@@ -66,17 +90,53 @@ public class OccurrenceHDFSTableDefinition {
    */
   public static class ExtensionTable {
 
-    private ClassPath.ClassInfo extension;
+    private static final BiMap<String, Extension> EXTENSION_TABLES =
+      ImmutableBiMap.<String, Extension>builder()
+        .put(AmplificationTable.class.getName(), Extension.AMPLIFICATION)
+        .put(CloningTable.class.getName(), Extension.CLONING)
+        .put(GelImageTable.class.getName(), Extension.GEL_IMAGE)
+        .put(LoanTable.class.getName(), Extension.LOAN)
+        .put(MaterialSampleTable.class.getName(), Extension.MATERIAL_SAMPLE)
+        .put(PermitTable.class.getName(), Extension.PERMIT)
+        .put(PreparationTable.class.getName(), Extension.PREPARATION)
+        .put(PreservationTable.class.getName(), Extension.PRESERVATION)
+        .put(ExtendedMeasurementOrFactTable.class.getName(), Extension.EXTENDED_MEASUREMENT_OR_FACT)
+        .put(ChronometricAgeTable.class.getName(), Extension.CHRONOMETRIC_AGE)
+        .put(GermplasmAccessionTable.class.getName(), Extension.GERMPLASM_ACCESSION)
+        .put(GermplasmMeasurementScoreTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_SCORE)
+        .put(GermplasmMeasurementTraitTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRAIT)
+        .put(GermplasmMeasurementTrialTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRIAL)
+        .put(IdentificationTable.class.getName(), Extension.IDENTIFICATION)
+        .put(IdentifierTable.class.getName(), Extension.IDENTIFIER)
+        .put(MeasurementOrFactTable.class.getName(), Extension.MEASUREMENT_OR_FACT)
+        .put(ReferenceTable.class.getName(), Extension.REFERENCE)
+        .put(ResourceRelationshipTable.class.getName(), Extension.RESOURCE_RELATIONSHIP)
+        .build();
 
+    //Simple class name
+    private String simpleClassName;
+
+    //fully qualified class name
+    private String className;
+
+    //Section used to distinguish class names in the same packages
     private final String leafNamespace;
 
     public ExtensionTable(ClassPath.ClassInfo extension) {
-      this.extension = extension;
-      leafNamespace = extension.getPackageName().replace(EXT_PACKAGE + '.',"").replace('.', '_');
+      className = extension.getName();
+      simpleClassName = extension.getSimpleName();
+      leafNamespace = extension.getPackageName().replace(EXT_PACKAGE + '.', "").replace('.', '_');
     }
 
-    public String getExtension() {
-      return extension.getSimpleName();
+    public ExtensionTable(Extension extension) {
+      className = EXTENSION_TABLES.inverse().get(extension);
+      String packageName = Reflection.getPackageName(className);
+      simpleClassName = className.substring(packageName.length() + 1);
+      leafNamespace = packageName.replace(EXT_PACKAGE + '.', "").replace('.', '_');
+    }
+
+    public Extension getExtension() {
+      return EXTENSION_TABLES.get(className);
     }
 
     private String getLeafNamespace() {
@@ -84,26 +144,40 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public String getHiveTableName() {
-      return leafNamespace + '_' + extension.getSimpleName().toLowerCase().replace("table","");
+      return leafNamespace + '_' + simpleClassName.toLowerCase().replace("table", "");
     }
 
     public String getDirectoryTableName() {
-      return extension.getSimpleName().toLowerCase();
+      return simpleClassName.toLowerCase();
     }
 
     public String getAvroSchemaFileName() {
-      return leafNamespace +  '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, extension.getSimpleName()) + ".avsc";
+      return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, simpleClassName) + ".avsc";
     }
 
     public String getAvroSchema() {
       try {
-        Schema schema = (Schema)extension.load()
+        Schema schema = (Schema)getClass().getClassLoader().loadClass(className)
           .getDeclaredMethod("getClassSchema")
           .invoke(null, null);
         return schema.toString(true);
-      } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
+    }
+
+    public Set<String> getInterpretedFields() {
+      return Arrays.stream(this.getClass().getDeclaredFields())
+        .map(Field::getName)
+        .filter(field -> !field.startsWith("v_"))
+        .collect(Collectors.toSet());
+    }
+
+    public Set<String> getVerbatimFields() {
+      return Arrays.stream(this.getClass().getDeclaredFields())
+        .map(Field::getName)
+        .filter(field -> field.startsWith("v_"))
+        .collect(Collectors.toSet());
     }
 
   }

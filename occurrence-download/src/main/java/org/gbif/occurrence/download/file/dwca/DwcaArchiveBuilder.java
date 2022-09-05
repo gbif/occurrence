@@ -23,6 +23,7 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.api.vocabulary.License;
@@ -34,6 +35,7 @@ import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
@@ -130,6 +132,7 @@ public class DwcaArchiveBuilder {
   private final FileSystem targetFs;
   private final DownloadJobConfiguration configuration;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
+  private final Download download;
 
   //constituents and citation are basically the same info, are keep in 2 separate collections to avoid rebuilding them
   private Set<Constituent> constituents = Sets.newTreeSet();
@@ -208,6 +211,7 @@ public class DwcaArchiveBuilder {
     this.titleLookup = titleLookup;
     this.configuration = configuration;
     this.workflowConfiguration = workflowConfiguration;
+    this.download = occurrenceDownloadService.get(configuration.getDownloadKey());
   }
 
   /**
@@ -361,14 +365,27 @@ public class DwcaArchiveBuilder {
     appendPreCompressedFile(out,
       new Path(configuration.getInterpretedDataFileName()), OCCURRENCE_INTERPRETED_FILENAME,
       HeadersFileUtil.getInterpretedTableHeader());
+
     appendPreCompressedFile(out,
       new Path(configuration.getVerbatimDataFileName()),
       VERBATIM_FILENAME,
       HeadersFileUtil.getVerbatimTableHeader());
+
     appendPreCompressedFile(out,
       new Path(configuration.getMultimediaDataFileName()),
       MULTIMEDIA_FILENAME,
       HeadersFileUtil.getMultimediaTableHeader());
+
+    if (download.getRequest().getExtensions() != null) {
+      for (Extension extension : download.getRequest().getExtensions()) {
+        OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
+        appendPreCompressedFile(out,
+                                new Path(configuration.getExtensionDataFileName(extensionTable)),
+                                extension.name().toLowerCase() + ".txt",
+                                HeadersFileUtil.getExtensionInterpretedHeader(extensionTable));
+      }
+    }
+
   }
 
   /**
@@ -434,7 +451,7 @@ public class DwcaArchiveBuilder {
       emlDir.mkdir();
     }
 
-    try(Writer rightsWriter = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
+    try (Writer rightsWriter = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
         Writer citationWriter = FileUtils.startNewUtf8File(new File(archiveDir, CITATIONS_FILENAME))) {
         // write fixed citations header
         citationWriter.write(CITATION_HEADER);
@@ -475,7 +492,6 @@ public class DwcaArchiveBuilder {
     Dataset dataset = new Dataset();
     try {
       // Random UUID use because the downloadKey is not a string in UUID format
-      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       String downloadUniqueID = configuration.getDownloadKey();
       if (download.getDoi() != null) {
         downloadUniqueID = download.getDoi().getDoiName();
@@ -543,7 +559,6 @@ public class DwcaArchiveBuilder {
    */
   private void persistDownloadLicense(License license) {
     try {
-      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {

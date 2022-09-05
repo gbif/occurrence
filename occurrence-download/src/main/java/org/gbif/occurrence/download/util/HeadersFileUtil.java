@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -22,7 +23,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -128,6 +133,10 @@ public class HeadersFileUtil {
    */
   public static String getMultimediaTableHeader() {
     return getTableHeader(TermUtils.multimediaTerms());
+  }
+
+  public static String getExtensionInterpretedHeader(OccurrenceHDFSTableDefinition.ExtensionTable extensionTable) {
+    return TAB_JOINER.join(extensionTable.getInterpretedFields());
   }
 
   public static void main(String[] args) throws IOException {

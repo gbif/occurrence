@@ -163,7 +163,8 @@ public class GenerateHQL {
       Map<String, Object> data = ImmutableMap.of(
         "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
         "interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values(),
-        "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values()
+        "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
+        "extensions", OccurrenceHDFSTableDefinition.tableExtensions()
       );
       template.process(data, out);
     }

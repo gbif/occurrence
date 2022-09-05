@@ -32,7 +32,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.elasticsearch.action.search.SearchRequest;
@@ -102,6 +104,8 @@ public class  DownloadPrepareAction implements Closeable {
 
   private static final String SOURCE_TABLE = "table_name";
 
+  private static final String REQUEST_EXTENSIONS = "request_extensions";
+
   private final RestHighLevelClient esClient;
 
   private final String esIndex;
@@ -155,6 +159,10 @@ public class  DownloadPrepareAction implements Closeable {
     String oozieProp = System.getProperty(OOZIE_ACTION_OUTPUT_PROPERTIES);
 
     if (oozieProp != null) {
+
+      Download download = getDownload(downloadKey);
+
+      setRequestExtensionsParam(download, props);
       props.setProperty(DOWNLOAD_KEY, downloadKey);
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
@@ -173,7 +181,7 @@ public class  DownloadPrepareAction implements Closeable {
       }
       props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
       if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
-        updateTotalRecordsCount(downloadKey, recordCount);
+        updateTotalRecordsCount(download, recordCount);
       }
 
       persist(oozieProp, props);
@@ -181,6 +189,29 @@ public class  DownloadPrepareAction implements Closeable {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
 
+  }
+
+  /**
+   * Gets a download by its key.
+   */
+  private Download getDownload(String downloadKey) {
+    Download download = occurrenceDownloadService.get(downloadKey);
+    if (download != null) {
+      LOG.error("Download {} not found!", downloadKey);
+    }
+    return download;
+  }
+
+  /**
+   * Sets the extensions parameter.
+   */
+  private void setRequestExtensionsParam(Download download, Properties props) {
+    if (download == null) {
+      props.setProperty(REQUEST_EXTENSIONS,
+                        Optional.ofNullable(download.getRequest().getExtensions())
+                          .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
+                          .orElse(""));
+    }
   }
 
   private void persist(String propPath, Properties properties) throws IOException {
@@ -228,18 +259,15 @@ public class  DownloadPrepareAction implements Closeable {
   /**
    * Updates the record count of the download entity.
    */
-  private void updateTotalRecordsCount(String downloadKey, long recordCount) {
+  private void updateTotalRecordsCount(Download download, long recordCount) {
     try {
-      LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
-      Download download = occurrenceDownloadService.get(downloadKey);
-      if (download == null) {
-        LOG.error("Download {} was not found!", downloadKey);
-      } else {
+      if (download != null) {
+        LOG.info("Updating record count({}) of download {}", recordCount, download);
         download.setTotalRecords(recordCount);
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
+      LOG.error("Error updating record count for download workflow , reported count is {}", recordCount, ex);
     }
   }
 
