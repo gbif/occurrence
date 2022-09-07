@@ -23,9 +23,11 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -76,7 +78,8 @@ public class CallbackServiceTest {
    */
   private static Download mockDownload() {
     DownloadRequest downloadRequest = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, TEST_USER, EMAILS, true,
-                                                                   DownloadFormat.DWCA, DownloadType.OCCURRENCE);
+                                                                   DownloadFormat.DWCA, DownloadType.OCCURRENCE,
+                                                                   Collections.singleton(Extension.AUDUBON));
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(DOWNLOAD_ID);

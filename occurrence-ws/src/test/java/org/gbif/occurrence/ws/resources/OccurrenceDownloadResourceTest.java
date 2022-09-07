@@ -24,6 +24,7 @@ import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.service.CallbackService;
 
 import java.security.Principal;
@@ -88,7 +89,7 @@ public class OccurrenceDownloadResourceTest {
 
     resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
-                                      DownloadFormat.DWCA, DownloadType.OCCURRENCE);
+                                      DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.EMPTY_LIST);

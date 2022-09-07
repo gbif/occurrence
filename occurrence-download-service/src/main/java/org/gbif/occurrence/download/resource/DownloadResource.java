@@ -24,6 +24,7 @@ import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 
@@ -33,11 +34,13 @@ import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -254,11 +257,12 @@ public class DownloadResource {
     @Autowired HttpServletRequest httpRequest,
     @RequestParam(name = "notification_address", required = false) String emails,
     @RequestParam("format") String format,
+    @RequestParam("extensions") String extensions,
     @Autowired Principal principal
   ) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return createDownload(downloadPredicate(httpRequest, emails, format, principal), authentication, principal);
+    return createDownload(downloadPredicate(httpRequest, emails, extensions, format, principal), authentication, principal);
   }
 
   @GetMapping("predicate")
@@ -266,15 +270,19 @@ public class DownloadResource {
     @Autowired HttpServletRequest httpRequest,
     @RequestParam(name = "notification_address", required = false) String emails,
     @RequestParam("format") String format,
+    @RequestParam("extensions") String extensions,
     @Autowired Principal principal
   ) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
+    Set<Extension> requestExtensions = Optional.ofNullable(asSet(extensions))
+                                        .map(exts -> exts.stream().map(Extension::fromRowType).collect(Collectors.toSet()))
+                                        .orElse(Collections.emptySet());
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
-    return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat, downloadType);
+    return new PredicateDownloadRequest(predicate, creator, notificationAddress, true, downloadFormat, downloadType, requestExtensions);
   }
 
   /**
