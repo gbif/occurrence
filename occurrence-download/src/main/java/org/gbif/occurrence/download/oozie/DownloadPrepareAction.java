@@ -207,10 +207,11 @@ public class  DownloadPrepareAction implements Closeable {
    */
   private void setRequestExtensionsParam(Download download, Properties props) {
     if (download != null) {
-      props.setProperty(REQUEST_EXTENSIONS,
-                        Optional.ofNullable(download.getRequest().getExtensions())
-                          .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
-                          .orElse(""));
+      String requestExtensions = Optional.ofNullable(download.getRequest().getExtensions())
+        .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
+        .orElse("");
+      LOG.info("Setting " +  REQUEST_EXTENSIONS + " parameter to " + requestExtensions);
+      props.setProperty(REQUEST_EXTENSIONS,requestExtensions);
     }
   }
 
