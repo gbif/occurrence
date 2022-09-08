@@ -196,7 +196,7 @@ public class  DownloadPrepareAction implements Closeable {
    */
   private Download getDownload(String downloadKey) {
     Download download = occurrenceDownloadService.get(downloadKey);
-    if (download != null) {
+    if (download == null) {
       LOG.error("Download {} not found!", downloadKey);
     }
     return download;
@@ -210,7 +210,6 @@ public class  DownloadPrepareAction implements Closeable {
       String requestExtensions = Optional.ofNullable(download.getRequest().getExtensions())
         .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
         .orElse("");
-      LOG.info("Setting " +  REQUEST_EXTENSIONS + " parameter to " + requestExtensions);
       props.setProperty(REQUEST_EXTENSIONS,requestExtensions);
     }
   }
