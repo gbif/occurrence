@@ -40,6 +40,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -180,11 +181,14 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public Set<String> getInterpretedFields() {
-      return Arrays.stream(tableClass.getDeclaredFields())
-        .filter(field -> !Modifier.isStatic(field.getModifiers()))
-        .map(Field::getName)
-        .filter(field -> !field.startsWith("v_"))
-        .collect(Collectors.toSet());
+      Set<String> interpretedFields = new LinkedHashSet<>();
+      interpretedFields.add("gbifid");
+      interpretedFields.addAll(Arrays.stream(tableClass.getDeclaredFields())
+                                .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                                .map(Field::getName)
+                                .filter(field -> !field.startsWith("v_") && !field.equalsIgnoreCase("gbifid"))
+                                .collect(Collectors.toSet()));
+      return interpretedFields;
     }
 
     public Set<String> getVerbatimFields() {
