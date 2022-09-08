@@ -98,7 +98,8 @@ AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"}
 
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${downloadTableName}"}_ext_${extension.hiveTableName}
-AS SELECT ext.${extension.interpretedFields?join(", ext.")} FROM ${r"${tableName}"}_ext_${extension.hiveTableName} AS ext
+AS SELECT ext.${extension.interpretedFields?join(", ext.")}
+FROM ${r"${tableName}"}_ext_${extension.hiveTableName} ext
 JOIN ${r"${interpretedTable}"} ON ${r"${interpretedTable}"}.gbifid = ext.gbifid
-WHERE array_contains(split('${r"${requestExtensions}"}', ','), '${extension.extension}');
+WHERE array_contains(split('${r"${requestExtensions}"},','),'${extension.extension}');
 </#list>
