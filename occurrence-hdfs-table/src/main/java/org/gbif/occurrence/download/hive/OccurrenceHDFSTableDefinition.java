@@ -38,6 +38,7 @@ import org.gbif.pipelines.io.avro.extension.obis.ExtendedMeasurementOrFactTable;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -122,10 +123,21 @@ public class OccurrenceHDFSTableDefinition {
     //Section used to distinguish class names in the same packages
     private final String leafNamespace;
 
+    private final Class<?> tableClass;
+
     public ExtensionTable(ClassPath.ClassInfo extension) {
       className = extension.getName();
       simpleClassName = extension.getSimpleName();
       leafNamespace = extension.getPackageName().replace(EXT_PACKAGE + '.', "").replace('.', '_');
+      tableClass = loadClass(extension.getName());
+    }
+
+    private Class<?> loadClass(String className) {
+      try {
+        return getClass().getClassLoader().loadClass(className);
+      } catch (ClassNotFoundException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
     public ExtensionTable(Extension extension) {
@@ -133,6 +145,7 @@ public class OccurrenceHDFSTableDefinition {
       String packageName = Reflection.getPackageName(className);
       simpleClassName = className.substring(packageName.length() + 1);
       leafNamespace = packageName.replace(EXT_PACKAGE + '.', "").replace('.', '_');
+      tableClass = loadClass(className);
     }
 
     public Extension getExtension() {
@@ -167,14 +180,16 @@ public class OccurrenceHDFSTableDefinition {
     }
 
     public Set<String> getInterpretedFields() {
-      return Arrays.stream(this.getClass().getDeclaredFields())
+      return Arrays.stream(tableClass.getDeclaredFields())
+        .filter(field -> !Modifier.isStatic(field.getModifiers()))
         .map(Field::getName)
         .filter(field -> !field.startsWith("v_"))
         .collect(Collectors.toSet());
     }
 
     public Set<String> getVerbatimFields() {
-      return Arrays.stream(this.getClass().getDeclaredFields())
+      return Arrays.stream(tableClass.getDeclaredFields())
+        .filter(field -> !Modifier.isStatic(field.getModifiers()))
         .map(Field::getName)
         .filter(field -> field.startsWith("v_"))
         .collect(Collectors.toSet());
