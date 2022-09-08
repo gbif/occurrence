@@ -93,10 +93,11 @@ CREATE TABLE ${r"${citationTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
 
-
+-- Extension Tables
 <#list extensions as extension>
+
 -- ${extension.extension} extension
-CREATE TABLE IF NOT EXISTS ${r"${interpretedTable}"}_ext_${extension.hiveTableName}
+CREATE TABLE IF NOT EXISTS ${r"${downloadTableName}"}_ext_${extension.hiveTableName}
 AS SELECT ext.${extension.interpretedFields?join(", ext.")} FROM ${r"${tableName}"}_ext_${extension.hiveTableName} AS ext
 JOIN ${r"${interpretedTable}"} ON ${r"${interpretedTable}"}.gbifid = ext.gbifid
 WHERE array_contains(split('${r"${requestExtensions}"}', ','), '${extension.extension}');

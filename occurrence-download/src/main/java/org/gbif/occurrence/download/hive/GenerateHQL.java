@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.hive;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -166,6 +167,15 @@ public class GenerateHQL {
         "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
         "extensions", OccurrenceHDFSTableDefinition.tableExtensions()
       );
+      template.process(data, out);
+    }
+    generateDropTableQueryHQL(cfg, outDir);
+  }
+
+  private static void generateDropTableQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "drop_tables.q"))) {
+      Template template = cfg.getTemplate("download/drop_tables.ftl");
+      Map<String, Object> data = Collections.singletonMap("extensions", OccurrenceHDFSTableDefinition.tableExtensions());
       template.process(data, out);
     }
   }
