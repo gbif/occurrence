@@ -22,21 +22,30 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -86,6 +95,8 @@ public class  DownloadPrepareAction implements Closeable {
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
 
   private static final String IS_SMALL_DOWNLOAD = "is_small_download";
+
+  private static final String HAS_EXTENSIONS = "has_extensions";
 
   private static final String SEARCH_QUERY = "search_query";
 
@@ -202,16 +213,33 @@ public class  DownloadPrepareAction implements Closeable {
     return download;
   }
 
+  @SneakyThrows
+  private FileSystem getHadoopFileSystem() {
+    Configuration configuration = new Configuration();
+    return FileSystem.get(configuration);
+  }
+
+  @SneakyThrows
+  private void generateExtensionQueryFile(Download download) {
+    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(getHadoopFileSystem().create(new Path(workflowConfiguration.getTempDir(),
+                                                                                                                   download.getKey() + "-execute-extensions-query.q"))))) {
+      ExtensionsQuery.builder().writer(writer).build().generateExtensionsQueryHQL(download);
+    }
+  }
+
   /**
    * Sets the extensions parameter.
    */
   private void setRequestExtensionsParam(Download download, Properties props) {
-    if (download != null) {
+    if (download != null && download.getRequest().getExtensions() != null && !download.getRequest().getExtensions().isEmpty()) {
       String requestExtensions = Optional.ofNullable(download.getRequest().getExtensions())
         .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
         .orElse("");
-      props.setProperty(REQUEST_EXTENSIONS,requestExtensions);
+      props.setProperty(REQUEST_EXTENSIONS, requestExtensions);
+      props.setProperty(HAS_EXTENSIONS, Boolean.TRUE.toString());
+      generateExtensionQueryFile(download);
     }
+    props.setProperty(HAS_EXTENSIONS, Boolean.FALSE.toString());
   }
 
   private void persist(String propPath, Properties properties) throws IOException {

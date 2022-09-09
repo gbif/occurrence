@@ -13,7 +13,10 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
+import org.gbif.api.vocabulary.Extension;
+
 import java.nio.file.Path;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -25,6 +28,6 @@ public class DwcArchiveUtilsTest {
    */
   @Test
   public void testCreateArchiveDescriptor(@TempDir Path testFolder) {
-    DwcArchiveUtils.createOccurrenceArchiveDescriptor(testFolder.toFile());
+    DwcArchiveUtils.createOccurrenceArchiveDescriptor(testFolder.toFile(), Collections.singleton(Extension.MEASUREMENT_OR_FACT));
   }
 }

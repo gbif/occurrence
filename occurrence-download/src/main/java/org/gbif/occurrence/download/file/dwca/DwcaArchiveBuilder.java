@@ -242,9 +242,9 @@ public class DwcaArchiveBuilder {
 
       // meta.xml
       if (DwcTerm.Event == configuration.getCoreTerm()) {
-        DwcArchiveUtils.createEventArchiveDescriptor(archiveDir);
+        DwcArchiveUtils.createEventArchiveDescriptor(archiveDir, download.getRequest().getExtensions());
       } else {
-        DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir);
+        DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir, download.getRequest().getExtensions());
       }
 
       // zip up

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.Archive;
 import org.gbif.dwc.ArchiveField;
 import org.gbif.dwc.ArchiveFile;
@@ -20,13 +21,17 @@ import org.gbif.dwc.MetaDescriptorWriter;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,32 +111,46 @@ public class DwcArchiveUtils {
   /**
    * Creates a meta.xml occurrence descriptor file in the directory parameter.
    */
-  public static void createOccurrenceArchiveDescriptor(File directory) {
-    createArchiveDescriptor(directory, OCCURRENCE_INTERPRETED_FILENAME, DwcTerm.Occurrence);
+  public static void createOccurrenceArchiveDescriptor(File directory, Set<Extension> extensions) {
+    createArchiveDescriptor(directory, OCCURRENCE_INTERPRETED_FILENAME, DwcTerm.Occurrence, extensions);
   }
 
   /**
    * Creates a meta.xml event descriptor file in the directory parameter.
    */
-  public static void createEventArchiveDescriptor(File directory) {
-    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event);
+  public static void createEventArchiveDescriptor(File directory, Set<Extension> extensions) {
+    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event, extensions);
   }
 
-  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm) {
+  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> extensions) {
     LOG.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
     downloadArchive.setMetadataLocation(METADATA_FILENAME);
 
-    ArchiveFile event = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(),
+    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(),
                                           TermUtils.identicalInterpretedTerms());
-    downloadArchive.setCore(event);
+    downloadArchive.setCore(core);
 
     ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());
     downloadArchive.addExtension(verbatim);
 
     ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
+
+    if (extensions != null && !extensions.isEmpty()) {
+      TermFactory termFactory = TermFactory.instance();
+      extensions.forEach(extension -> {
+        OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
+        ArchiveFile extensionFile = createArchiveFile(MULTIMEDIA_FILENAME,
+                                                      termFactory.findTerm(extension.getRowType()),
+                                                      extensionTable.getInterpretedFields()
+                                                        .stream()
+                                                        .map(termFactory::findPropertyTerm)
+                                                        .collect(Collectors.toList()));
+        downloadArchive.addExtension(extensionFile);
+      });
+    }
 
     try {
       File metaFile = new File(directory, DESCRIPTOR_FILENAME);

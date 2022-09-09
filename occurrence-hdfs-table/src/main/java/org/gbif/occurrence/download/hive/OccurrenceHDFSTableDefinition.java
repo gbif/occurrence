@@ -367,7 +367,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * Constructs a Field for the given term, when used in the interpreted context context, and setting it up with the
+   * Constructs a Field for the given term, when used in the interpreted context, and setting it up with the
    * given initializer.
    */
   private static InitializableField interpretedField(Term term, String initializer) {
