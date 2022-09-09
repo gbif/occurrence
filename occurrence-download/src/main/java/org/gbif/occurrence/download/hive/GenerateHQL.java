@@ -150,7 +150,7 @@ public class GenerateHQL {
   private static void copyExtensionSchemas(File outDir) throws IOException {
     for (OccurrenceHDFSTableDefinition.ExtensionTable et : OccurrenceHDFSTableDefinition.tableExtensions()) {
       try (FileWriter out = new FileWriter(new File(outDir, et.getAvroSchemaFileName()))) {
-        out.write(et.getAvroSchema());
+        out.write(et.getSchema().toString(true));
       }
     }
   }

@@ -18,7 +18,6 @@ import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +63,7 @@ public class HeadersFileUtil {
    */
   private static void generateFileHeader(String fileName, String defaultName, String header) throws IOException {
     String outFileName = Strings.isNullOrEmpty(fileName) ? HEADERS_FILE_PATH + defaultName : fileName;
-    try (FileWriter fileWriter = new FileWriter(new File(outFileName))) {
+    try (FileWriter fileWriter = new FileWriter(outFileName)) {
       fileWriter.write(header);
     }
   }

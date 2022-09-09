@@ -36,10 +36,7 @@ import org.gbif.pipelines.io.avro.extension.ggbn.PreservationTable;
 import org.gbif.pipelines.io.avro.extension.obis.ExtendedMeasurementOrFactTable;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -124,29 +121,22 @@ public class OccurrenceHDFSTableDefinition {
     //Section used to distinguish class names in the same packages
     private final String leafNamespace;
 
-    private final Class<?> tableClass;
+    private final Schema schema;
 
     public ExtensionTable(ClassPath.ClassInfo extension) {
       className = extension.getName();
       simpleClassName = extension.getSimpleName();
       leafNamespace = extension.getPackageName().replace(EXT_PACKAGE + '.', "").replace('.', '_');
-      tableClass = loadClass(extension.getName());
+      schema = loadAvroSchema();
     }
 
-    private Class<?> loadClass(String className) {
-      try {
-        return getClass().getClassLoader().loadClass(className);
-      } catch (ClassNotFoundException ex) {
-        throw new RuntimeException(ex);
-      }
-    }
 
     public ExtensionTable(Extension extension) {
       className = EXTENSION_TABLES.inverse().get(extension);
       String packageName = Reflection.getPackageName(className);
       simpleClassName = className.substring(packageName.length() + 1);
       leafNamespace = packageName.replace(EXT_PACKAGE + '.', "").replace('.', '_');
-      tableClass = loadClass(className);
+      schema = loadAvroSchema();
     }
 
     public Extension getExtension() {
@@ -169,12 +159,15 @@ public class OccurrenceHDFSTableDefinition {
       return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, simpleClassName) + ".avsc";
     }
 
-    public String getAvroSchema() {
+    public Schema getSchema() {
+      return schema;
+    }
+
+    public Schema loadAvroSchema() {
       try {
-        Schema schema = (Schema)getClass().getClassLoader().loadClass(className)
+        return (Schema)getClass().getClassLoader().loadClass(className)
           .getDeclaredMethod("getClassSchema")
           .invoke(null, null);
-        return schema.toString(true);
       } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
@@ -183,18 +176,16 @@ public class OccurrenceHDFSTableDefinition {
     public Set<String> getInterpretedFields() {
       Set<String> interpretedFields = new LinkedHashSet<>();
       interpretedFields.add("gbifid");
-      interpretedFields.addAll(Arrays.stream(tableClass.getDeclaredFields())
-                                .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                                .map(Field::getName)
+      interpretedFields.addAll(schema.getFields().stream()
+                                .map(Schema.Field::name)
                                 .filter(field -> !field.startsWith("v_") && !field.equalsIgnoreCase("gbifid"))
                                 .collect(Collectors.toSet()));
       return interpretedFields;
     }
 
     public Set<String> getVerbatimFields() {
-      return Arrays.stream(tableClass.getDeclaredFields())
-        .filter(field -> !Modifier.isStatic(field.getModifiers()))
-        .map(Field::getName)
+      return schema.getFields().stream()
+        .map(Schema.Field::name)
         .filter(field -> field.startsWith("v_"))
         .collect(Collectors.toSet());
     }
