@@ -190,7 +190,7 @@ public class DownloadJobConfiguration {
   public String getExtensionDataFileName(OccurrenceHDFSTableDefinition.ExtensionTable extensionTable) {
     return isSmallDownload
       ? getDownloadTempDir() + extensionTable.getHiveTableName() + ".txt"
-      : getDownloadTempDir("_" + extensionTable.getHiveTableName());
+      : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
   }
 
   /**
