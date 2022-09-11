@@ -124,6 +124,10 @@
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+        </property>
       </configuration>
     </sub-workflow>
     <ok to="end"/>
@@ -162,6 +166,10 @@
         <property>
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -202,6 +210,10 @@
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+        </property>
       </configuration>
     </sub-workflow>
     <ok to="end"/>
@@ -240,6 +252,10 @@
         <property>
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -280,6 +296,10 @@
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+        </property>
       </configuration>
     </sub-workflow>
     <ok to="end"/>
@@ -318,6 +338,10 @@
         <property>
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
+        </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -358,6 +382,10 @@
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+        </property>
       </configuration>
     </sub-workflow>
     <ok to="end"/>
@@ -392,6 +420,10 @@
         <property>
           <name>request_extensions</name>
           <value>${wf:actionData('download_prepare')['request_extensions']}</value>
+        </property>
+        <property>
+          <name>has_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
         </property>
         <property>
           <name>hive_query</name>
