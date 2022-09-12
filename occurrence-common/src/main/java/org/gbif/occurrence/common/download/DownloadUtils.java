@@ -78,4 +78,8 @@ public class DownloadUtils {
     throw new IllegalArgumentException("WorkflowId given in unknown format: " + workflowId);
   }
 
+  public static String downloadTableName(String downloadKey) {
+    return downloadKey.replaceAll("-", "_");
+  }
+
 }

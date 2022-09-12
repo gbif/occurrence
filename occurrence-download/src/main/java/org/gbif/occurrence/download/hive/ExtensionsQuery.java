@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.occurrence.common.download.DownloadUtils;
 
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -69,12 +70,13 @@ public class ExtensionsQuery {
    * Sets the template variable from a Download object.
    */
   private Map<String,Object> templateVariables(Download download) {
+    String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String,Object> variables = new HashMap<>();
 
     variables.put("extensions", download.getRequest().getExtensions().stream().map(OccurrenceHDFSTableDefinition.ExtensionTable::new)
                                   .collect(Collectors.toList()));
-    variables.put("downloadTableName", download.getKey());
-    variables.put("interpretedTable", download.getKey() + "_interpreted");
+    variables.put("downloadTableName", downloadTableName);
+    variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());
     return variables;
   }

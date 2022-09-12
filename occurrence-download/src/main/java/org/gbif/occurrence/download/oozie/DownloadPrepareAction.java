@@ -176,7 +176,7 @@ public class  DownloadPrepareAction implements Closeable {
       setRequestExtensionsParam(download, props);
       props.setProperty(DOWNLOAD_KEY, downloadKey);
       // '-' is replaced by '_' because it's not allowed in hive table names
-      props.setProperty(DOWNLOAD_TABLE_NAME, downloadKey.replaceAll("-", "_"));
+      props.setProperty(DOWNLOAD_TABLE_NAME, DownloadUtils.downloadTableName(downloadKey));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
       props.setProperty(CORE_TERM_NAME, coreTerm.name());
       props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
