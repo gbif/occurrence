@@ -62,7 +62,7 @@
           <value>download-admin</value>
         </property>
       </configuration>
-      <script>${base_wf_path}/tmp/${download_key}-execute-extensions-query.q</script>
+      <script>${base_wf_path}/tmp/${download_table_name}-execute-extensions-query.q</script>
       <param>hiveDB=${hive_db}</param>
     </hive>
     <ok to="copy_and_zip"/>

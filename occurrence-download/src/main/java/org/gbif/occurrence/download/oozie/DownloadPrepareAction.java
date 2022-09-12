@@ -222,7 +222,7 @@ public class  DownloadPrepareAction implements Closeable {
   @SneakyThrows
   private void generateExtensionQueryFile(Download download) {
     try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(getHadoopFileSystem().create(new Path(wfPath + "/tmp/",
-                                                                                                                   download.getKey() + "-execute-extensions-query.q"))))) {
+                                                                                                                   DownloadUtils.downloadTableName(download.getKey()) + "-execute-extensions-query.q"))))) {
       ExtensionsQuery.builder().writer(writer).build().generateExtensionsQueryHQL(download);
     }
   }
