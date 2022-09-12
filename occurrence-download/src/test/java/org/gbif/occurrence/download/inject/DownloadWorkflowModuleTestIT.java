@@ -124,7 +124,7 @@ public class DownloadWorkflowModuleTestIT {
 
     assertNotNull(module);
 
-    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction(DwcTerm.Occurrence);
+    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction(DwcTerm.Occurrence, "/tmp/");
     assertNotNull(downloadPrepareAction);
 
 
