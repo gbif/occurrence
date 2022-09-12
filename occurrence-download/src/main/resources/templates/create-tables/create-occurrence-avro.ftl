@@ -63,7 +63,7 @@ STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"=
 INSERT OVERWRITE TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}
 SELECT
 <#list extension.fields as field>
-  ${field.initializer}<#if field_has_next>,</#if>
+  ${field}<#if field_has_next>,</#if>
 </#list>
 FROM ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
 </#list>

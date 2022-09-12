@@ -160,23 +160,18 @@ public class OccurrenceHDFSTableDefinition {
     }
 
 
-    private InitializableField initializableField(Schema.Field field) {
-      TermFactory termFactory = TermFactory.instance();
+    private String initializableField(Schema.Field field) {
       String fieldName = field.name();
-      Term fieldTerm = termFactory.findTerm(field.name());
-      String hiveColumn = HiveColumns.columnFor(fieldTerm);
+      String hiveColumn = HiveColumns.escapeColumnName(fieldName);
       if (fieldName.equalsIgnoreCase("gbifid") || fieldName.equalsIgnoreCase("datasetkey")) {
-        return new InitializableField(fieldTerm,
-                                      hiveColumn,
-                                      HiveDataTypes.TYPE_STRING);
+        return hiveColumn;
       } else {
-        return new InitializableField(fieldTerm,
-                                      hiveColumn,
-                                      HiveDataTypes.TYPE_STRING,
-                                      cleanDelimitersInitializer(hiveColumn));
+        return cleanDelimitersInitializer(hiveColumn);
       }
     }
-    public List<Field> getFields() {
+
+
+    public List<String> getFields() {
     return schema.getFields()
             .stream()
             .map(this::initializableField)
