@@ -61,7 +61,11 @@ LIKE ${r"${tableName}"}_ext_${extension.hiveTableName}_avro
 STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
 
 INSERT OVERWRITE TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}
-SELECT * FROM ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
+SELECT
+<#list extension.fields as field>
+  ${field.initializer}<#if field_has_next>,</#if>
+</#list>
+FROM ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
 </#list>
 
 SET hive.vectorized.execution.reduce.enabled=false;
@@ -93,14 +97,3 @@ STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputForma
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}${r"${tableName}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
-
-<#list extensions as extension>
--- ${extension.extension} Avro external table
-DROP TABLE IF EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
-CREATE EXTERNAL TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}_avro
-ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
-STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
-OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}${r"${tableName}"}/.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${extension.avroSchemaFileName}');
-</#list>

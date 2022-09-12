@@ -159,6 +159,30 @@ public class OccurrenceHDFSTableDefinition {
       return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, simpleClassName) + ".avsc";
     }
 
+
+    private InitializableField initializableField(Schema.Field field) {
+      TermFactory termFactory = TermFactory.instance();
+      String fieldName = field.name();
+      Term fieldTerm = termFactory.findTerm(field.name());
+      String hiveColumn = HiveColumns.columnFor(fieldTerm);
+      if (fieldName.equalsIgnoreCase("gbifid") || fieldName.equalsIgnoreCase("datasetkey")) {
+        return new InitializableField(fieldTerm,
+                                      hiveColumn,
+                                      HiveDataTypes.TYPE_STRING);
+      } else {
+        return new InitializableField(fieldTerm,
+                                      hiveColumn,
+                                      HiveDataTypes.TYPE_STRING,
+                                      cleanDelimitersInitializer(hiveColumn));
+      }
+    }
+    public List<Field> getFields() {
+    return schema.getFields()
+            .stream()
+            .map(this::initializableField)
+            .collect(Collectors.toList());
+    }
+
     public Schema getSchema() {
       return schema;
     }
@@ -176,6 +200,7 @@ public class OccurrenceHDFSTableDefinition {
     public Set<String> getInterpretedFields() {
       Set<String> interpretedFields = new LinkedHashSet<>();
       interpretedFields.add("gbifid");
+      interpretedFields.add("datasetkey");
       interpretedFields.addAll(schema.getFields().stream()
                                 .map(Schema.Field::name)
                                 .filter(field -> !field.startsWith("v_") && !field.equalsIgnoreCase("gbifid"))
