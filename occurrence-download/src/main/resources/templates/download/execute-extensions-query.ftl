@@ -23,7 +23,7 @@ SET hive.merge.mapredfiles=false;
 
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${extension.hiveTableName}
-ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT ext.${extension.interpretedFields?join(", ext.")}
 FROM ${tableName}_ext_${extension.hiveTableName} ext
 JOIN ${interpretedTable} ON ${interpretedTable}.gbifid = ext.gbifid;
