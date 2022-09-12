@@ -52,6 +52,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.UtilityClass;
 
 ;
 
@@ -79,7 +80,7 @@ public class DownloadWorkflowModule  {
    * DownloadPrepare action factory method.
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
-  public DownloadPrepareAction downloadPrepareAction(DwcTerm dwcTerm) {
+  public DownloadPrepareAction downloadPrepareAction(DwcTerm dwcTerm, String wfPath) {
     return DownloadPrepareAction.builder().esClient(esClient())
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
@@ -88,6 +89,7 @@ public class DownloadWorkflowModule  {
             .esFieldMapper(EsFieldMapper.builder().nestedIndex(workflowConfiguration.isEsNestedIndex())
                              .searchType(workflowConfiguration.getEsIndexType()).build())
             .coreTerm(dwcTerm)
+            .wfPath(wfPath)
             .build();
   }
 
@@ -279,6 +281,7 @@ public class DownloadWorkflowModule  {
   /**
    * Utility class that contains configuration keys of common settings.
    */
+  @UtilityClass
   public static final class DefaultSettings {
 
     public static final String NAME_NODE_KEY = "hdfs.namenode";
@@ -294,12 +297,6 @@ public class DownloadWorkflowModule  {
     public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
     public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
 
-    /**
-     * Hidden constructor.
-     */
-    private DefaultSettings() {
-      //empty
-    }
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";
@@ -313,7 +310,6 @@ public class DownloadWorkflowModule  {
     public static final String HDFS_TMP_DIR_KEY = PROPERTIES_PREFIX + "hdfs.tmp.dir";
     public static final String TMP_DIR_KEY = PROPERTIES_PREFIX + "tmp.dir";
     public static final String HIVE_DB_PATH_KEY = PROPERTIES_PREFIX + "hive.hdfs.out";
-
 
     public static final String ZK_INDICES_NS_KEY = PROPERTIES_PREFIX + "zookeeper.indices.namespace";
     public static final String ZK_DOWNLOADS_NS_KEY = PROPERTIES_PREFIX + "zookeeper.downloads.namespace";

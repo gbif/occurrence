@@ -27,3 +27,5 @@ AS SELECT ext.${extension.interpretedFields?join(", ext.")}
 FROM ${tableName}_ext_${extension.hiveTableName} ext
 JOIN ${interpretedTable} ON ${interpretedTable}.gbifid = ext.gbifid;
 </#list>
+
+dfs -rmr ;

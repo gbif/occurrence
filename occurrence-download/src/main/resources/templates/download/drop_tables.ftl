@@ -8,3 +8,5 @@ DROP TABLE IF EXISTS ${r"${downloadTableName}"}_multimedia;
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_ext_${extension.hiveTableName};
 </#list>
 
+dfs -rmr ${r"${wfPath}"}/${r"${downloadTableName}"}-execute-extensions-query.q;
+

@@ -29,6 +29,7 @@
       <arg>${wf:id()}</arg>
       <arg>${download_format}</arg>
       <arg>${core_term_name}</arg>
+      <arg>${wf:appPath()}</arg>
       <capture-output/>
     </java>
 

@@ -27,10 +27,8 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,7 +39,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -62,6 +59,7 @@ import com.google.common.base.Throwables;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.SneakyThrows;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -132,15 +130,17 @@ public class  DownloadPrepareAction implements Closeable {
 
   private final DwcTerm coreTerm;
 
+  private final String wfPath;
+
   /**
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
    */
   public static void main(String[] args) throws Exception {
-    checkArgument(args.length > 0 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
+    checkArgument(args.length > 3 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
     try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
-                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]))) {
+                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]), args[4])) {
       occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
     }
   }
@@ -221,7 +221,7 @@ public class  DownloadPrepareAction implements Closeable {
 
   @SneakyThrows
   private void generateExtensionQueryFile(Download download) {
-    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(getHadoopFileSystem().create(new Path(workflowConfiguration.getTempDir(),
+    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(getHadoopFileSystem().create(new Path(wfPath,
                                                                                                                    download.getKey() + "-execute-extensions-query.q"))))) {
       ExtensionsQuery.builder().writer(writer).build().generateExtensionsQueryHQL(download);
     }
