@@ -62,7 +62,7 @@
           <value>download-admin</value>
         </property>
       </configuration>
-      <script>${wf:appPath()}/${download_key}-execute-extensions-query.q</script>
+      <script>${base_wf_path}/tmp/${download_key}-execute-extensions-query.q</script>
       <param>hiveDB=${hive_db}</param>
     </hive>
     <ok to="copy_and_zip"/>
@@ -116,7 +116,7 @@
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>downloadTableName=${download_table_name}</param>
-      <param>wfPath=${wf:appPath()}</param>
+      <param>wfPath=${base_wf_path}</param>
     </hive>
 
     <ok to="kill"/>

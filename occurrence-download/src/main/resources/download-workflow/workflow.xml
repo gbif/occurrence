@@ -434,6 +434,10 @@
           <name>hive_db</name>
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
+        <property>
+          <name>base_wf_path</name>
+          <value>${wf:appPath()}</value>
+        </property>
       </configuration>
     </sub-workflow>
     <ok to="end"/>
