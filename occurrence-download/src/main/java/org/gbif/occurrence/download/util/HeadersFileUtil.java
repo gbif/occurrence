@@ -131,7 +131,7 @@ public class HeadersFileUtil {
   }
 
   public static String getExtensionInterpretedHeader(OccurrenceHDFSTableDefinition.ExtensionTable extensionTable) {
-    return TAB_JOINER.join(extensionTable.getInterpretedFields());
+    return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
   }
 
   public static void main(String[] args) throws IOException {
