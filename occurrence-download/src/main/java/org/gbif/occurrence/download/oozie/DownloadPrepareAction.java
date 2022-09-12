@@ -238,8 +238,9 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(REQUEST_EXTENSIONS, requestExtensions);
       props.setProperty(HAS_EXTENSIONS, Boolean.TRUE.toString());
       generateExtensionQueryFile(download);
+    } else {
+      props.setProperty(HAS_EXTENSIONS, Boolean.FALSE.toString());
     }
-    props.setProperty(HAS_EXTENSIONS, Boolean.FALSE.toString());
   }
 
   private void persist(String propPath, Properties properties) throws IOException {
