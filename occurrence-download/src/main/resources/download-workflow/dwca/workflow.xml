@@ -97,6 +97,7 @@
       <script>hive-scripts/drop_tables.q</script>
       <param>hiveDB=${hive_db}</param>
       <param>downloadTableName=${download_table_name}</param>
+      <param>wfPath=${base_wf_path}</param>
     </hive>
 
     <ok to="end"/>
