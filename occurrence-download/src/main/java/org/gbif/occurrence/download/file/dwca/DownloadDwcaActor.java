@@ -35,6 +35,7 @@ import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -144,13 +145,19 @@ public class DownloadDwcaActor extends UntypedActor {
         CsvExtension csvExtension = CsvExtension.CsvExtensionFactory.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
           getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
-            .write(row.entrySet().stream()
-                     .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)),
-                   csvExtension.getColumns(),
-                   csvExtension.getProcessors());
+            .write(toExtensionRecord(row, occurrence), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
     }
+  }
+
+  private Map<String,String> toExtensionRecord(Map<Term, String> row, Occurrence occurrence) {
+    Map<String,String> extensionData = new LinkedHashMap<>();
+    extensionData.put("gbifid", occurrence.getKey().toString());
+    extensionData.put("datasetkey", occurrence.getDatasetKey().toString());
+    extensionData.putAll(row.entrySet().stream()
+                           .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)));
+    return extensionData;
   }
 
   @SneakyThrows
