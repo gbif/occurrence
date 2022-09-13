@@ -82,7 +82,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     @SneakyThrows
     public void appendAndDelete(Result result) {
       for (Map.Entry<Extension,FileOutputStream> entry : filesMap.entrySet()) {
-        DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + tableMap.get(entry.getKey()).getHiveTableName(),
+        DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + '_' + tableMap.get(entry.getKey()).getHiveTableName(),
                                           entry.getValue());
       }
     }
