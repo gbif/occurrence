@@ -63,7 +63,7 @@ public class FromSearchDownloadAction {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
-    Set<Extension> extensions = Arrays.stream(args[6].split(",")).map(Extension::fromRowType).collect(Collectors.toSet());
+    Set<Extension> extensions = Arrays.stream(args[6].split(",")).map(Extension::valueOf).collect(Collectors.toSet());
     run(workflowConfiguration, DownloadJobConfiguration.builder()
           .searchQuery(args[1])
           .downloadKey(args[2])
