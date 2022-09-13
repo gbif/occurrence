@@ -112,9 +112,9 @@ public class DownloadDwcaActor extends UntypedActor {
   private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
     return  extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
-      return new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + '_' +
-                                                         new OccurrenceHDFSTableDefinition.ExtensionTable(ext).getHiveTableName(),
-                                                         Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+        String outPath = work.getJobDataFileName() + '_' + new OccurrenceHDFSTableDefinition.ExtensionTable(ext).getHiveTableName();
+        LOG.info("Writing to extension file {}", outPath);
+      return new CsvMapWriter(new FileWriterWithEncoding(outPath, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }

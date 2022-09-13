@@ -56,7 +56,9 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       filesMap = configuration.getExtensions().stream()
                   .collect(Collectors.toMap(Function.identity(), ext -> {
                     try {
-                      return new FileOutputStream(configuration.getExtensionDataFileName(new OccurrenceHDFSTableDefinition.ExtensionTable(ext)), true);
+                      String outFile = configuration.getExtensionDataFileName(new OccurrenceHDFSTableDefinition.ExtensionTable(ext));
+                      LOG.info("Aggregating extension file {}", outFile);
+                      return new FileOutputStream(outFile, true);
                     } catch (IOException ex) {
                       throw new RuntimeException(ex);
                     }
