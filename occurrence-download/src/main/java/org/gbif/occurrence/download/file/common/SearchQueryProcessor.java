@@ -74,8 +74,7 @@ public class SearchQueryProcessor {
         searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
         searchSourceBuilder.fetchSource(null, new String[]{
           "all",
-          "notIssues",
-          "verbatim.extensions"
+          "notIssues"
         }); //Fields are not needed in the response
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
