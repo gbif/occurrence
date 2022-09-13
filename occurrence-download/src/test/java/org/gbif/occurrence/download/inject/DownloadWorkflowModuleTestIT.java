@@ -14,12 +14,14 @@
 package org.gbif.occurrence.download.inject;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.apache.curator.test.TestingCluster;
@@ -102,15 +104,17 @@ public class DownloadWorkflowModuleTestIT {
   }
 
   private DownloadJobConfiguration downloadJobConfiguration(DownloadFormat downloadFormat) {
-     return new DownloadJobConfiguration.Builder()
-                 .withDownloadFormat(downloadFormat)
-                 .withDownloadKey("1")
-                 .withDownloadTableName("occurrence")
-                 .withIsSmallDownload(true)
-                 .withFilter("*")
-                 .withSourceDir("/tmp/")
-                 .withUser("testUser")
-                 .withSearchQuery("*").build();
+     return DownloadJobConfiguration.builder()
+             .downloadFormat(downloadFormat)
+             .downloadKey("1")
+             .downloadTableName("occurrence")
+             .isSmallDownload(true)
+             .filter("*")
+             .sourceDir("/tmp/")
+             .user("testUser")
+             .searchQuery("*")
+             .extensions(Collections.singleton(Extension.CHRONOMETRIC_AGE))
+             .build();
   }
 
   @ParameterizedTest

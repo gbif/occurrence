@@ -238,7 +238,8 @@ public class DownloadMaster extends UntypedActor {
                                                      jobConfiguration.getSearchQuery(),
                                                      lock,
                                                      esClient,
-                                                     esIndex);
+                                                     esIndex,
+                                                     jobConfiguration.getExtensions());
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
         lock.lock();

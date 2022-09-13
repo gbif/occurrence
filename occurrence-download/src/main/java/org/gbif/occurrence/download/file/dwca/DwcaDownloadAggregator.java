@@ -14,29 +14,79 @@
 package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
+import lombok.SneakyThrows;
+
 /**
  * Aggregates partials results of files and combine then into the output zip file.
  */
 public class DwcaDownloadAggregator implements DownloadAggregator {
+
+  public static class ExtensionFilesWriter implements Closeable {
+
+    private final Map<Extension,FileOutputStream> filesMap;
+
+    private final Map<Extension, OccurrenceHDFSTableDefinition.ExtensionTable> tableMap;
+
+    public ExtensionFilesWriter(DownloadJobConfiguration configuration) {
+      filesMap = configuration.getExtensions().stream()
+                  .collect(Collectors.toMap(Function.identity(), ext -> {
+                    try {
+                      return new FileOutputStream(configuration.getExtensionDataFileName(new OccurrenceHDFSTableDefinition.ExtensionTable(ext)), true);
+                    } catch (IOException ex) {
+                      throw new RuntimeException(ex);
+                    }
+                  }));
+      tableMap = configuration.getExtensions().stream()
+                  .collect(Collectors.toMap(Function.identity(), OccurrenceHDFSTableDefinition.ExtensionTable::new));
+    }
+
+    @Override
+    public void close() throws IOException {
+      for (FileOutputStream fileOutputStream : filesMap.values()) {
+        fileOutputStream.close();
+      }
+    }
+
+    @SneakyThrows
+    public void writerHeaders() {
+      for (Map.Entry<Extension,FileOutputStream> entry : filesMap.entrySet()) {
+        HeadersFileUtil.appendHeaders(entry.getValue(), HeadersFileUtil.getExtensionInterpretedHeader(tableMap.get(entry.getKey())));
+      }
+    }
+
+    @SneakyThrows
+    public void appendAndDelete(Result result) {
+      for (Map.Entry<Extension,FileOutputStream> entry : filesMap.entrySet()) {
+        DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + tableMap.get(entry.getKey()).getHiveTableName(),
+                                          entry.getValue());
+      }
+    }
+  }
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaDownloadAggregator.class);
 
@@ -67,13 +117,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
    * Appends the result files to the output file.
    */
   private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
-                                   OutputStream multimediaFileWriter) throws IOException {
+                                   OutputStream multimediaFileWriter, ExtensionFilesWriter extensionFilesWriter) throws IOException {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
                                       verbatimFileWriter);
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
+    extensionFilesWriter.appendAndDelete(result);
+
   }
 
   public DwcaDownloadAggregator(DownloadJobConfiguration configuration,
@@ -98,18 +150,20 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     try (
       FileOutputStream interpretedFileWriter = new FileOutputStream(configuration.getInterpretedDataFileName(), true);
       FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
-      FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true)) {
+      FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true);
+      ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration)) {
 
       HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
       HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
       HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
+      extensionFilesWriter.writerHeaders();
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
         Collections.sort(results);
         DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
         for (Result result : results) {
           datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-          appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter);
+          appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter, extensionFilesWriter);
         }
         CitationsFileWriter.createCitationFile(datasetUsagesCollector.getDatasetUsages(),
                                                configuration.getCitationDataFileName(),

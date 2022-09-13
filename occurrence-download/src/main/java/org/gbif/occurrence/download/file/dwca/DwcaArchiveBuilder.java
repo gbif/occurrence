@@ -381,7 +381,7 @@ public class DwcaArchiveBuilder {
         OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
         appendPreCompressedFile(out,
                                 new Path(configuration.getExtensionDataFileName(extensionTable)),
-                                extension.name().toLowerCase() + ".txt",
+                                extensionTable.getHiveTableName() + ".txt",
                                 HeadersFileUtil.getExtensionInterpretedHeader(extensionTable));
       }
     }

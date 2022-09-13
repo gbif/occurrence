@@ -13,7 +13,10 @@
  */
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.wrangler.lock.Lock;
+
+import java.util.Set;
 
 import org.elasticsearch.client.RestHighLevelClient;
 
@@ -46,12 +49,14 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final String esIndex;
 
+  private final Set<Extension> extensions;
+
 
   /**
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
-                          RestHighLevelClient esClient, String esIndex) {
+                          RestHighLevelClient esClient, String esIndex, Set<Extension> extensions) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -61,6 +66,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.lock = lock;
     this.esClient = esClient;
     this.esIndex = esIndex;
+    this.extensions = extensions;
   }
 
   /**

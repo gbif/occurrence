@@ -14,44 +14,81 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants;
 import org.gbif.occurrence.download.file.dwca.TableSuffixes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
+import java.util.Set;
+
 import org.apache.hadoop.fs.Path;
+
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * Configuration of a small download execution.
  */
+@Data
 public class DownloadJobConfiguration {
 
+  /**
+   * Occurrence download key/identifier.
+   */
   private final String downloadKey;
 
+  /**
+   * Download table/file name.
+   */
   private final String downloadTableName;
 
+  /**
+   * Predicate filter.
+   */
   private final String filter;
 
+  /**
+   * User that requested the download.
+   */
   private final String user;
 
+  /**
+   * Flag that sets if it's a small or big download.
+   */
   private final boolean isSmallDownload;
 
+  /**
+   * Directory where the data files are stored, it can be either a local or a hdfs path.
+   */
   private final String sourceDir;
 
+  /**
+   * Search query, translation of the query filter.
+   */
   private final String searchQuery;
 
+  /**
+   * Requested download format.
+   */
   private final DownloadFormat downloadFormat;
 
+  /**
+   * Requested download core.
+   */
   private final DwcTerm coreTerm;
 
   /**
-   * Private constructor.
-   * Instances must be created using the Builder class.
+   * Requested extensions.
    */
+  private final Set<Extension> extensions;
+
+  @Builder
   private DownloadJobConfiguration(String downloadKey, String downloadTableName, String filter, String user,
                                    boolean isSmallDownload, String sourceDir, String searchQuery,
                                    DownloadFormat downloadFormat,
-                                   DwcTerm coreTerm) {
+                                   DwcTerm coreTerm,
+                                   Set<Extension> extensions) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -61,69 +98,7 @@ public class DownloadJobConfiguration {
     this.downloadTableName = downloadTableName;
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
-  }
-
-  /**
-   * Occurrence download key/identifier.
-   */
-  public String getDownloadKey() {
-    return downloadKey;
-  }
-
-  /**
-   * Download table/file name.
-   */
-  public String getDownloadTableName() {
-    return downloadTableName;
-  }
-
-  /**
-   * Predicate filter.
-   */
-  public String getFilter() {
-    return filter;
-  }
-
-  /**
-   * Use that requested the download.
-   */
-  public String getUser() {
-    return user;
-  }
-
-  /**
-   * Search query, translation of the query filter.
-   */
-  public String getSearchQuery() {
-    return searchQuery;
-  }
-
-  /**
-   * Flag that sets if it's a small or big download.
-   */
-  public boolean isSmallDownload() {
-    return isSmallDownload;
-  }
-
-  /**
-   * Directory where the data files are stored, it can be either a local or a hdfs path.
-   */
-  public String getSourceDir() {
-    return sourceDir;
-  }
-
-  /**
-   * Requested download format.
-   */
-  public DownloadFormat getDownloadFormat() {
-    return downloadFormat;
-  }
-
-  /**
-   * Requested download format.
-   */
-  public DwcTerm getCoreTerm() {
-    return coreTerm;
+    this.extensions = extensions;
   }
 
   /**
@@ -202,88 +177,4 @@ public class DownloadJobConfiguration {
     return getDownloadTempDir("");
   }
 
-  /**
-   * Builds DownloadJobConfiguration instances.
-   */
-  public static class Builder {
-
-    private String downloadKey;
-
-    private String downloadTableName;
-
-    private String filter;
-
-    private String user;
-
-    private boolean isSmallDownload;
-
-    private String sourceDir;
-
-    private String searchQuery;
-
-    private DownloadFormat downloadFormat;
-
-    private DwcTerm coreTerm;
-
-    public Builder withDownloadKey(String downloadKey) {
-      this.downloadKey = downloadKey;
-      return this;
-    }
-
-    public Builder withDownloadTableName(String downloadTableName) {
-      this.downloadTableName = downloadTableName;
-      return this;
-    }
-
-    public Builder withFilter(String filter) {
-      this.filter = filter;
-      return this;
-    }
-
-    public Builder withUser(String user) {
-      this.user = user;
-      return this;
-    }
-
-    public Builder withIsSmallDownload(boolean isSmallDownload) {
-      this.isSmallDownload = isSmallDownload;
-      return this;
-    }
-
-    public Builder withSourceDir(String sourceDir) {
-      this.sourceDir = sourceDir;
-      return this;
-    }
-
-    public Builder withSearchQuery(String searchQuery) {
-      this.searchQuery = searchQuery;
-      return this;
-    }
-
-    public Builder withDownloadFormat(DownloadFormat downloadFormat) {
-      this.downloadFormat = downloadFormat;
-      return this;
-    }
-
-    public Builder withCoreTerm(DwcTerm coreTerm) {
-      this.coreTerm = coreTerm;
-      return this;
-    }
-
-    /**
-     * Builds a new DownloadJobConfiguration instance.
-     */
-    public DownloadJobConfiguration build() {
-      return new DownloadJobConfiguration(downloadKey,
-                                          downloadTableName,
-                                          filter,
-                                          user,
-                                          isSmallDownload,
-                                          sourceDir,
-                                          searchQuery,
-                                          downloadFormat,
-                                          coreTerm);
-    }
-
-  }
 }

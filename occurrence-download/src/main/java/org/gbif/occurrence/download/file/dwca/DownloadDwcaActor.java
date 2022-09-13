@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
@@ -24,6 +25,8 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
@@ -31,7 +34,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -54,6 +60,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 import akka.actor.UntypedActor;
+import lombok.SneakyThrows;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
@@ -99,6 +106,21 @@ public class DownloadDwcaActor extends UntypedActor {
     new CleanStringProcessor() // rightsHolder
   };
 
+  private Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
+
+  @SneakyThrows
+  private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
+    return  extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
+      try {
+      return new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName() + '_' +
+                                                         new OccurrenceHDFSTableDefinition.ExtensionTable(ext).getHiveTableName(),
+                                                         Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+    }
+    });
+  }
+
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
@@ -110,6 +132,32 @@ public class DownloadDwcaActor extends UntypedActor {
                                   MULTIMEDIA_COLUMNS,
                                   MEDIA_CELL_PROCESSORS);
       }
+    }
+  }
+
+  /**
+   * Writes the extensions objects into the file referenced by extensionCsvWriter.
+   */
+  private void writeExtensions(DownloadFileWork work, Occurrence occurrence) throws IOException {
+    if (occurrence.getExtensions() != null) {
+      for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : occurrence.getExtensions().entrySet()) {
+        CsvExtension csvExtension = CsvExtension.CsvExtensionFactory.getCsvExtension(dwcExtension.getKey());
+        for (Map<Term, String> row : dwcExtension.getValue()) {
+          getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
+            .write(row.entrySet().stream()
+                     .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)),
+                   csvExtension.getColumns(),
+                   csvExtension.getProcessors());
+        }
+      }
+    }
+  }
+
+  @SneakyThrows
+  private void closeExtensionWriters() {
+    for (ICsvMapWriter writer : extensionICsvMapWriterMap.values()) {
+      writer.flush();
+      writer.close();
     }
   }
 
@@ -142,6 +190,7 @@ public class DownloadDwcaActor extends UntypedActor {
               intCsvWriter.write(OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence), INT_COLUMNS);
               verbCsvWriter.write(OccurrenceMapReader.buildVerbatimOccurrenceMap(occurrence), VERB_COLUMNS);
               writeMediaObjects(multimediaCsvWriter, occurrence);
+              writeExtensions(work, occurrence);
             }
           } catch (Exception e) {
             getSender().tell(e, getSelf()); // inform our master
@@ -151,6 +200,7 @@ public class DownloadDwcaActor extends UntypedActor {
 
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
+      closeExtensionWriters();
       // Unlock the assigned lock.
       work.getLock().unlock();
       LOG.info("Lock released, job detail: {} ", work);
@@ -229,7 +279,7 @@ public class DownloadDwcaActor extends UntypedActor {
    * Produces a String instance clean of delimiter.
    * If the value is null an empty string is returned.
    */
-  private static class CleanStringProcessor implements CellProcessor {
+  protected static class CleanStringProcessor implements CellProcessor {
 
     @Override
     public String execute(Object value, CsvContext context) {

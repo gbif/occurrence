@@ -103,7 +103,7 @@ public class HeadersFileUtil {
   /**
    * Appends the headers line to the output file.
    */
-  private static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
+  public static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
     try (InputStream headerInputStream = new ByteArrayInputStream(headers.getBytes())) {
       ByteStreams.copy(headerInputStream, fileWriter);
     }

@@ -123,6 +123,10 @@ public class OccurrenceHDFSTableDefinition {
 
     private final Schema schema;
 
+    public static Set<Extension> getSupportedExtensions() {
+      return EXTENSION_TABLES.values();
+    }
+
     public ExtensionTable(ClassPath.ClassInfo extension) {
       className = extension.getName();
       simpleClassName = extension.getSimpleName();

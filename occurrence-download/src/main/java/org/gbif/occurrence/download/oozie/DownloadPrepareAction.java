@@ -277,7 +277,7 @@ public class  DownloadPrepareAction implements Closeable {
    */
   private void shutDownEsClientSilently() {
     try {
-      if(Objects.nonNull(esClient)) {
+      if (Objects.nonNull(esClient)) {
         esClient.close();
       }
     } catch (IOException ex) {

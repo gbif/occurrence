@@ -142,7 +142,7 @@ public class DwcArchiveUtils {
       TermFactory termFactory = TermFactory.instance();
       extensions.forEach(extension -> {
         OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
-        ArchiveFile extensionFile = createArchiveFile(MULTIMEDIA_FILENAME,
+        ArchiveFile extensionFile = createArchiveFile(extension.name().toLowerCase() + ".txt",
                                                       termFactory.findTerm(extension.getRowType()),
                                                       extensionTable.getInterpretedFields()
                                                         .stream()

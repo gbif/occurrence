@@ -19,6 +19,7 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,16 +55,17 @@ public class ArchiveDownloadAction {
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
 
-    DownloadJobConfiguration configuration = new DownloadJobConfiguration.Builder()
-      .withDownloadKey(downloadKey)
-      .withDownloadTableName(downloadTableName)
-      .withFilter(query)
-      .withIsSmallDownload(isSmallDownload)
-      .withUser(username)
-      .withSourceDir(workflowConfiguration.getHiveDBPath())
-      .withDownloadFormat(workflowConfiguration.getDownloadFormat())
-      .withCoreTerm(dwcTerm)
-      .build();
+    DownloadJobConfiguration configuration = DownloadJobConfiguration.builder()
+                                                .downloadKey(downloadKey)
+                                                .downloadTableName(downloadTableName)
+                                                .filter(query)
+                                                .isSmallDownload(isSmallDownload)
+                                                .user(username)
+                                                .sourceDir(workflowConfiguration.getHiveDBPath())
+                                                .downloadFormat(workflowConfiguration.getDownloadFormat())
+                                                .coreTerm(dwcTerm)
+                                                .extensions(Collections.emptySet())
+                                                .build();
 
     LOG.info("DwcaArchiveBuilder instance created with parameters:{}", (Object)args);
     DwcaArchiveBuilder.buildArchive(configuration, workflowConfiguration);

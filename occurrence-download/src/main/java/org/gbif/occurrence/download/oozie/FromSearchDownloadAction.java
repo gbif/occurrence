@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.oozie;
 
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
@@ -20,7 +21,10 @@ import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.wrangler.lock.Mutex;
 
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
@@ -59,14 +63,17 @@ public class FromSearchDownloadAction {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
-    run(workflowConfiguration, new DownloadJobConfiguration.Builder().withSearchQuery(args[1])
-          .withDownloadKey(args[2])
-          .withFilter(args[3])
-          .withDownloadTableName(args[4])
-          .withSourceDir(workflowConfiguration.getTempDir())
-          .withIsSmallDownload(true)
-          .withDownloadFormat(workflowConfiguration.getDownloadFormat())
-          .withUser(args[5])
+    Set<Extension> extensions = Arrays.stream(args[6].split(",")).map(Extension::fromRowType).collect(Collectors.toSet());
+    run(workflowConfiguration, DownloadJobConfiguration.builder()
+          .searchQuery(args[1])
+          .downloadKey(args[2])
+          .filter(args[3])
+          .downloadTableName(args[4])
+          .sourceDir(workflowConfiguration.getTempDir())
+          .isSmallDownload(true)
+          .downloadFormat(workflowConfiguration.getDownloadFormat())
+          .user(args[5])
+          .extensions(extensions)
           .build());
 
   }
