@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -193,6 +194,26 @@ public class OccurrenceMapReader {
     return interpretedOccurrence;
   }
 
+  public static Map<String, String> buildInterpretedEventMap(Event event) {
+    Map<String,String> occurrenceMap = buildInterpretedOccurrenceMap(event);
+    /**
+     * private Set<String> samplingProtocols;
+     *   private String eventID;
+     *   private String parentEventID;
+     *   private Integer startDayOfYear;
+     *   private Integer endDayOfYear;
+     *   private String locationID;
+     *   private Event.VocabularyConcept eventType;
+     *   private List<Event.ParentLineage> parentsLineage;
+     */
+    occurrenceMap.put(DwcTerm.locationID.simpleName(), event.getLocationID());
+    occurrenceMap.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
+    occurrenceMap.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
+    occurrenceMap.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
+    occurrenceMap.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+    return occurrenceMap;
+  }
+
   /**
    * Populate two verbatim fields for CSV downloads
    */
@@ -208,16 +229,21 @@ public class OccurrenceMapReader {
       .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificNameAuthorship), x));
   }
 
-
   /**
    * Builds Map that contains a lists of terms.
    */
   public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  buildInterpretedOccurrenceMap(occurrence).entrySet().stream()
-              .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
-              .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+    return  selectTerms(buildInterpretedOccurrenceMap(occurrence), terms);
   }
 
+  /**
+   * Builds Map that contains a lists of terms.
+   */
+  public static Map<String, String> selectTerms(Map<String,String> record, Collection<Pair<DownloadTerms.Group, Term>> terms) {
+    return  record.entrySet().stream()
+      .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
+      .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+  }
 
   /**
    * Joins a collection of UUIDs into String.
@@ -239,7 +265,6 @@ public class OccurrenceMapReader {
     return null;
   }
 
-
   /**
    * Transform a simple data type into a String.
    */
@@ -254,6 +279,16 @@ public class OccurrenceMapReader {
       } else if (value instanceof Enum<?>) {
         return ((Enum<?>)value).name();
       }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the Event.VocabularyConcept.concept if it is not null, null otherwise.
+   */
+  private static String getConcept(Event.VocabularyConcept vocabularyConcept) {
+    if (vocabularyConcept != null) {
+      return vocabularyConcept.getConcept();
     }
     return null;
   }
@@ -330,7 +365,6 @@ public class OccurrenceMapReader {
                                  .collect(Collectors.joining(";")));
   }
 
-
   /**
    * Extract all the verbatim data into a Map.
    */
@@ -339,7 +373,6 @@ public class OccurrenceMapReader {
     TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(occurrence.getVerbatimField(term))));
     return verbatimMap;
   }
-
 
   /**
    * Removes all delimiters in a string.

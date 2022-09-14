@@ -11,20 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.event.search;
+package org.gbif.event.search.es;
 
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.model.common.paging.PageableBase;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.event.Event;
+import org.gbif.api.model.event.Lineage;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.common.SearchService;
-import org.gbif.event.api.model.Event;
-import org.gbif.event.api.model.LineageResponse;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
@@ -203,11 +203,11 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
                        searchHitEventConverter);
   }
 
-  public List<LineageResponse> lineage(String id) {
+  public List<Lineage> lineage(String id) {
     return lineage(get(id));
   }
 
-  public List<LineageResponse> lineage(String datasetKey, String eventId) {
+  public List<Lineage> lineage(String datasetKey, String eventId) {
     return lineage(get(datasetKey, eventId));
   }
 
@@ -228,11 +228,11 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
                        searchHitOccurrenceConverter);
   }
 
-  private List<LineageResponse> lineage(Event event) {
-    List<LineageResponse> lineage = new ArrayList<>();
+  private List<Lineage> lineage(Event event) {
+    List<Lineage> lineage = new ArrayList<>();
     Optional<Event> parent = event.getParentEventID() == null? Optional.empty() : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
     do {
-      parent.ifPresent(p -> lineage.add(new LineageResponse(p.getId(), p.getEventID(), p.getParentEventID())));
+      parent.ifPresent(p -> lineage.add(new Lineage(p.getId(), p.getEventID(), p.getParentEventID())));
       parent = parent.filter(p -> p.getParentEventID() != null)
                      .flatMap(p -> getParentEvent(p.getDatasetKey().toString(), p.getParentEventID()));
     } while (parent.isPresent());

@@ -13,18 +13,24 @@
  */
 package org.gbif.occurrence.download.inject;
 
+import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.event.search.es.SearchHitEventConverter;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
+import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.SearchHitConverter;
+import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
@@ -35,6 +41,8 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -209,19 +217,41 @@ public class DownloadWorkflowModule  {
             .build();
   }
 
+  private <T extends Occurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
+    if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
+      return (S) new SearchHitEventConverter(esFieldMapper());
+    }
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(), false);
+  }
+
+  private <T extends Occurrence> Function<T, Map<String,String>> verbatimMapper(){
+    return  OccurrenceMapReader::buildVerbatimOccurrenceMap;
+  }
+
+  private <T extends Occurrence> Function<T, Map<String,String>> interpreterMapper() {
+    if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
+      return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event)record);
+    }
+    return OccurrenceMapReader::buildInterpretedOccurrenceMap;
+  }
 
   /**
    * Creates an ActorRef that holds an instance of {@link DownloadMaster}.
    */
   public ActorRef downloadMaster(ActorSystem system) {
-    return system.actorOf(new Props(() -> new DownloadMaster(workflowConfiguration,
-                                                       masterConfiguration(),
-                                                       esClient(),
-                                                       workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY),
-                                                       downloadJobConfiguration,
-                                                       getAggregator(),
-                                                       workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))),
-                                    "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
+    return system.actorOf(new Props(() -> DownloadMaster.builder()
+                                            .workflowConfiguration(workflowConfiguration)
+                                            .masterConfiguration(masterConfiguration())
+                                            .esClient(esClient())
+                                            .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+                                            .jobConfiguration(downloadJobConfiguration)
+                                            .aggregator(getAggregator())
+                                            .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
+                                            .interpretedMapper(interpreterMapper())
+                                            .verbatimMapper(verbatimMapper())
+                                            .searchHitConverter(searchHitConverter())
+                                            .build()),
+                          "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
   }
 
   /**
@@ -256,7 +286,7 @@ public class DownloadWorkflowModule  {
           return new NotSupportedDownloadAggregator();
       }
     }
-    throw new IllegalStateException("Unknown download format '" + downloadFormat + "'.");
+    throw new IllegalStateException("Download format not specified");
   }
 
   /**

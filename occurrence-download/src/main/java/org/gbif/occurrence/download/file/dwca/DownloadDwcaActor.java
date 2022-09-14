@@ -21,13 +21,11 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
-import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.HiveColumns;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -38,6 +36,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -68,14 +67,22 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
 /**
  * Actor that creates part files of for the DwcA download format.
  */
-public class DownloadDwcaActor extends UntypedActor {
+public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadDwcaActor.class);
 
-  private final SearchQueryProcessor searchQueryProcessor;
+  private final SearchQueryProcessor<T> searchQueryProcessor;
 
-  public DownloadDwcaActor(EsFieldMapper esFieldMapper) {
-    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  private final Function<T,Map<String,String>> verbatimMapper;
+
+  private final Function<T,Map<String,String>> interpretedMapper;
+
+  public DownloadDwcaActor(SearchQueryProcessor<T> searchQueryProcessor,
+                           Function<T,Map<String,String>> verbatimMapper,
+                           Function<T,Map<String,String>> interpretedMapper) {
+    this.searchQueryProcessor = searchQueryProcessor;
+    this.verbatimMapper = verbatimMapper;
+    this.interpretedMapper = interpretedMapper;
   }
 
   static {
@@ -107,11 +114,11 @@ public class DownloadDwcaActor extends UntypedActor {
     new CleanStringProcessor() // rightsHolder
   };
 
-  private Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
+  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
 
   @SneakyThrows
   private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
-    return  extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
+    return extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
         String outPath = work.getJobDataFileName() + '_' + new OccurrenceHDFSTableDefinition.ExtensionTable(ext).getHiveTableName();
         LOG.info("Writing to extension file {}", outPath);
@@ -125,11 +132,11 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
-  private static void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, Occurrence occurrence) throws IOException {
-    List<MediaObject> multimedia = occurrence.getMedia();
+  private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, T record) throws IOException {
+    List<MediaObject> multimedia = record.getMedia();
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, occurrence.getKey()),
+        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, record.getKey()),
                                   MULTIMEDIA_COLUMNS,
                                   MEDIA_CELL_PROCESSORS);
       }
@@ -139,22 +146,22 @@ public class DownloadDwcaActor extends UntypedActor {
   /**
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
-  private void writeExtensions(DownloadFileWork work, Occurrence occurrence) throws IOException {
-    if (occurrence.getExtensions() != null) {
-      for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : occurrence.getExtensions().entrySet()) {
+  private void writeExtensions(DownloadFileWork work, T record) throws IOException {
+    if (record.getExtensions() != null) {
+      for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : record.getExtensions().entrySet()) {
         CsvExtension csvExtension = CsvExtension.CsvExtensionFactory.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
           getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
-            .write(toExtensionRecord(row, occurrence), csvExtension.getColumns(), csvExtension.getProcessors());
+            .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
     }
   }
 
-  private Map<String,String> toExtensionRecord(Map<Term, String> row, Occurrence occurrence) {
+  private Map<String,String> toExtensionRecord(Map<Term, String> row, T record) {
     Map<String,String> extensionData = new LinkedHashMap<>();
-    extensionData.put("gbifid", occurrence.getKey().toString());
-    extensionData.put("datasetkey", occurrence.getDatasetKey().toString());
+    extensionData.put("gbifid", record.getKey().toString());
+    extensionData.put("datasetkey", record.getDatasetKey().toString());
     extensionData.putAll(row.entrySet().stream()
                            .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)));
     return extensionData;
@@ -188,16 +195,16 @@ public class DownloadDwcaActor extends UntypedActor {
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
                                                                                         Charsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
-      searchQueryProcessor.processQuery(work, occurrence -> {
+      searchQueryProcessor.processQuery(work, record -> {
           try {
             // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
 
-            if (occurrence != null) {
-              datasetUsagesCollector.incrementDatasetUsage(occurrence.getDatasetKey().toString());
-              intCsvWriter.write(OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence), INT_COLUMNS);
-              verbCsvWriter.write(OccurrenceMapReader.buildVerbatimOccurrenceMap(occurrence), VERB_COLUMNS);
-              writeMediaObjects(multimediaCsvWriter, occurrence);
-              writeExtensions(work, occurrence);
+            if (record != null) {
+              datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
+              intCsvWriter.write(interpretedMapper.apply(record), INT_COLUMNS);
+              verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
+              writeMediaObjects(multimediaCsvWriter, record);
+              writeExtensions(work, record);
             }
           } catch (Exception e) {
             getSender().tell(e, getSelf()); // inform our master

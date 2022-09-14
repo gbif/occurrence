@@ -13,17 +13,18 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -34,15 +35,18 @@ import com.google.common.base.Throwables;
 
 import akka.actor.UntypedActor;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
-public class SpeciesListDownloadActor extends UntypedActor {
+public class SpeciesListDownloadActor<T extends Occurrence> extends UntypedActor {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadActor.class);
 
-  private final SearchQueryProcessor searchQueryProcessor;
+  private final SearchQueryProcessor<T> searchQueryProcessor;
 
-  public SpeciesListDownloadActor(EsFieldMapper esFieldMapper) {
-    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  private final Function<T, Map<String,String>> interpretedMapper;
+
+  public SpeciesListDownloadActor(SearchQueryProcessor<T> searchQueryProcessor, Function<T, Map<String,String>> interpretedMapper) {
+    this.searchQueryProcessor = searchQueryProcessor;
+    this.interpretedMapper = interpretedMapper;
   }
 
   static {
@@ -71,7 +75,7 @@ public class SpeciesListDownloadActor extends UntypedActor {
     try {
       searchQueryProcessor.processQuery(work, occurrence -> {
         try {
-          Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SPECIES_LIST_TERMS);
+          Map<String, String> occurrenceRecordMap = selectTerms(interpretedMapper.apply(occurrence), DownloadTerms.SPECIES_LIST_TERMS);
           if (occurrenceRecordMap != null) {
             // collect usages
             datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),

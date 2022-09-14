@@ -152,7 +152,7 @@ public class  DownloadPrepareAction implements Closeable {
    * Method that determines if the search query produces a "small" download file.
    */
   public Boolean isSmallDownloadCount(long recordCount) {
-    return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit && DwcTerm.Occurrence == coreTerm;
+    return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
   }
 
   /**

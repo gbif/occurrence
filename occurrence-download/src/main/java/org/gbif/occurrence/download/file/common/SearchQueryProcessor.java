@@ -16,10 +16,8 @@ package org.gbif.occurrence.download.file.common;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -37,17 +35,17 @@ import com.google.common.base.Throwables;
 /**
  * Executes a Search query and applies a predicate to each result.
  */
-public class SearchQueryProcessor {
+public class SearchQueryProcessor<T extends Occurrence> {
 
   // Default page size for queries.
   private static final int LIMIT = 300;
 
   private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getSearchFieldName();
 
-  private final EsResponseParser<Occurrence> esResponseParser;
+  private final EsResponseParser<T> esResponseParser;
 
-  public SearchQueryProcessor(EsFieldMapper esFieldMapper) {
-    this.esResponseParser = new EsResponseParser<Occurrence>(esFieldMapper, new SearchHitOccurrenceConverter(esFieldMapper, false));
+  public SearchQueryProcessor(EsResponseParser<T> esResponseParser) {
+    this.esResponseParser = esResponseParser;
   }
 
   /**
@@ -56,7 +54,7 @@ public class SearchQueryProcessor {
    * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
    */
-  public void processQuery(DownloadFileWork downloadFileWork, Consumer<Occurrence> resultHandler) {
+  public void processQuery(DownloadFileWork downloadFileWork, Consumer<T> resultHandler) {
 
     // Calculates the amount of output records
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
@@ -90,7 +88,7 @@ public class SearchQueryProcessor {
     }
   }
 
-  private void consume(SearchResponse searchResponse, Consumer<Occurrence> consumer) {
+  private void consume(SearchResponse searchResponse, Consumer<T> consumer) {
     esResponseParser.buildSearchResponse(searchResponse, new OccurrenceSearchRequest(0, searchResponse.getHits().getHits().length))
       .getResults().forEach(consumer);
   }

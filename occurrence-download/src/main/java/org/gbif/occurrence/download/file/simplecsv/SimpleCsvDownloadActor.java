@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
@@ -20,12 +21,12 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -40,20 +41,24 @@ import com.google.common.base.Throwables;
 
 import akka.actor.UntypedActor;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.buildInterpretedOccurrenceMap;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
 /**
  * Actor that creates a part of the simple csv download file.
  */
-public class SimpleCsvDownloadActor extends UntypedActor {
+public class SimpleCsvDownloadActor<T extends Occurrence> extends UntypedActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadActor.class);
 
-  private final SearchQueryProcessor searchQueryProcessor;
+  private final SearchQueryProcessor<T> searchQueryProcessor;
 
-  public SimpleCsvDownloadActor(EsFieldMapper esFieldMapper) {
-    this.searchQueryProcessor = new SearchQueryProcessor(esFieldMapper);
+  private final Function<T, Map<String,String>> interpretedRecordMapper;
+
+  public SimpleCsvDownloadActor(SearchQueryProcessor<T> searchQueryProcessor,
+                                Function<T, Map<String,String>> interpretedRecordMapper) {
+    this.searchQueryProcessor = searchQueryProcessor;
+    this.interpretedRecordMapper = interpretedRecordMapper;
   }
 
   static {
@@ -85,16 +90,16 @@ public class SimpleCsvDownloadActor extends UntypedActor {
                                                                                   StandardCharsets.UTF_8),
                                                        CsvPreference.TAB_PREFERENCE)) {
 
-      searchQueryProcessor.processQuery(work, occurrence -> {
+      searchQueryProcessor.processQuery(work, record -> {
           try {
-            Map<String, String> occurrenceRecordMap = buildInterpretedOccurrenceMap(occurrence, DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
-            populateVerbatimCsvFields(occurrenceRecordMap, occurrence);
+            Map<String, String> recordMap = selectTerms(interpretedRecordMapper.apply(record), DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+            populateVerbatimCsvFields(recordMap, record);
 
             //collect usages
-            datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-                    occurrenceRecordMap.get(DcTerm.license.simpleName()));
+            datasetUsagesCollector.collectDatasetUsage(recordMap.get(GbifTerm.datasetKey.simpleName()),
+                                                       recordMap.get(DcTerm.license.simpleName()));
             //write results
-            csvMapWriter.write(occurrenceRecordMap, COLUMNS);
+            csvMapWriter.write(recordMap, COLUMNS);
 
           } catch (Exception e) {
             getSender().tell(e, getSelf()); // inform our master

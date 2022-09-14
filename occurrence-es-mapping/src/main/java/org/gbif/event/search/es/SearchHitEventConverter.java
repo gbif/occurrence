@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.event.search;
+package org.gbif.event.search.es;
 
-import org.gbif.event.api.model.Event;
+import org.gbif.api.model.event.Event;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.es.SearchHitConverter;

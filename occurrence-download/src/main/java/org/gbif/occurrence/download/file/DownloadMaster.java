@@ -14,12 +14,16 @@
 package org.gbif.occurrence.download.file;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.file.dwca.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.EsResponseParser;
+import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
@@ -28,8 +32,10 @@ import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.curator.framework.CuratorFramework;
@@ -59,7 +65,7 @@ import lombok.Data;
  * Actor that controls the multi-threaded creation of occurrence downloads.
  */
 @Data
-public class DownloadMaster extends UntypedActor {
+public class DownloadMaster<T extends Occurrence> extends UntypedActor {
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
@@ -77,6 +83,9 @@ public class DownloadMaster extends UntypedActor {
   private int nrOfResults;
 
   private final EsFieldMapper esFieldMapper;
+  private final Function<T,Map<String,String>> verbatimMapper;
+  private final Function<T,Map<String,String>> interpretedMapper;
+  private final SearchHitConverter<T> searchHitConverter;
 
   /**
    * Default constructor.
@@ -89,7 +98,10 @@ public class DownloadMaster extends UntypedActor {
     String esIndex,
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator,
-    int maxGlobalJobs) {
+    int maxGlobalJobs,
+    Function<T,Map<String,String>> verbatimMapper,
+    Function<T,Map<String,String>> interpretedMapper,
+    SearchHitConverter<T> searchHitConverter) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
     DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder().workflowConfiguration(workflowConfiguration).downloadJobConfiguration(jobConfiguration).build();
@@ -101,6 +113,9 @@ public class DownloadMaster extends UntypedActor {
     this.esIndex = esIndex;
     this.aggregator = aggregator;
     esFieldMapper = downloadWorkflowModule.esFieldMapper();
+    this.interpretedMapper =interpretedMapper;
+    this.verbatimMapper = verbatimMapper;
+    this.searchHitConverter = searchHitConverter;
   }
 
   /**
@@ -144,7 +159,7 @@ public class DownloadMaster extends UntypedActor {
         aggregateAndShutdown();
       }
     } else if (message instanceof Exception) {
-      LOG.error("Received an exception from a worker. Aborting.", message);
+      LOG.error("Received an exception from a worker. Aborting. {}", message);
       shutdown();
     }
   }
@@ -201,8 +216,13 @@ public class DownloadMaster extends UntypedActor {
         conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
       ActorRef workerRouter =
-        getContext().actorOf(new Props(new DownloadActorsFactory(jobConfiguration.getDownloadFormat(), esFieldMapper)).withRouter(new RoundRobinRouter(
-          calcNrOfWorkers)), "downloadWorkerRouter");
+        getContext().actorOf(new Props(DownloadActorsFactory.<T>builder()
+                                         .downloadFormat(jobConfiguration.getDownloadFormat())
+                                         .searchQueryProcessor(new SearchQueryProcessor<>(new EsResponseParser<>(esFieldMapper, searchHitConverter)))
+                                         .verbatimMapper(verbatimMapper)
+                                         .interpretedMapper(interpretedMapper)
+                                         .build()
+                                      ).withRouter(new RoundRobinRouter(calcNrOfWorkers)), "downloadWorkerRouter");
 
       // Number of records that will be assigned to each job
       int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
@@ -262,34 +282,29 @@ public class DownloadMaster extends UntypedActor {
   /**
    * Creates an instance of the download actor/job to be used.
    */
-  private static class DownloadActorsFactory implements UntypedActorFactory {
+  @Builder
+  private static class DownloadActorsFactory<T extends Occurrence> implements UntypedActorFactory {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
     private final DownloadFormat downloadFormat;
-    private final EsFieldMapper esFieldMapper;
-
-    DownloadActorsFactory(DownloadFormat downloadFormat, EsFieldMapper esFieldMapper) {
-      this.downloadFormat = downloadFormat;
-      this.esFieldMapper = esFieldMapper;
-    }
+    private final SearchQueryProcessor<T> searchQueryProcessor;
+    private final Function<T,Map<String,String>> verbatimMapper;
+    private final Function<T,Map<String,String>> interpretedMapper;
 
     @Override
     public Actor create() throws Exception {
       switch (downloadFormat) {
         case SIMPLE_CSV:
-          return new SimpleCsvDownloadActor(esFieldMapper);
+          return new SimpleCsvDownloadActor<T>(searchQueryProcessor, interpretedMapper);
 
         case DWCA:
-          return new DownloadDwcaActor(esFieldMapper);
+          return new DownloadDwcaActor<T>(searchQueryProcessor, verbatimMapper, interpretedMapper);
 
         case SPECIES_LIST:
-          return new SpeciesListDownloadActor(esFieldMapper);
+          return new SpeciesListDownloadActor<T>(searchQueryProcessor, interpretedMapper);
 
         default:
-          throw new IllegalStateException("Download format '"+downloadFormat+"' unknown or not supported for small downloads.");
+          throw new IllegalStateException("Download format '" + downloadFormat + "' unknown or not supported for small downloads.");
       }
     }
   }

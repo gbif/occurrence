@@ -17,12 +17,12 @@ import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.event.Event;
+import org.gbif.api.model.event.Lineage;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.event.api.model.Event;
-import org.gbif.event.api.model.LineageResponse;
-import org.gbif.event.search.EventSearchEs;
+import org.gbif.event.search.es.EventSearchEs;
 
 import java.util.List;
 
@@ -76,13 +76,13 @@ public class EventResource {
 
   @NullToNotFound
   @GetMapping("{id}/lineage")
-  public List<LineageResponse> getLineage(@PathVariable("id") String id) {
+  public List<Lineage> getLineage(@PathVariable("id") String id) {
     return eventSearchEs.lineage(id);
   }
 
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}/lineage")
-  public List<LineageResponse> getLineage(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+  public List<Lineage> getLineage(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
     return eventSearchEs.lineage(datasetKey, eventId);
   }
 
