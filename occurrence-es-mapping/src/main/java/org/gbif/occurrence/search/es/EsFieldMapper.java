@@ -169,7 +169,8 @@ public class EsFieldMapper {
                                                                                                LAST_CRAWLED,
                                                                                                CRAWL_ID,
                                                                                                LAST_INTERPRETED,
-                                                                                               LAST_PARSED));
+                                                                                               LAST_PARSED,
+                                                                                               VERBATIM));
   private SearchType searchType;
 
   private final boolean nestedIndex;

@@ -32,7 +32,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   public SearchHitEventConverter(EsFieldMapper esFieldMapper) {
     super(esFieldMapper);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, false);
   }
 
   @Override
