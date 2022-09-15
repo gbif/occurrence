@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.inject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.event.search.es.SearchHitEventConverter;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -31,6 +32,7 @@ import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
+import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
@@ -93,12 +95,19 @@ public class DownloadWorkflowModule  {
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
-            .occurrenceDownloadService(clientBuilder().build(OccurrenceDownloadClient.class))
+            .occurrenceDownloadService(downloadServiceClient(dwcTerm))
             .esFieldMapper(EsFieldMapper.builder().nestedIndex(workflowConfiguration.isEsNestedIndex())
                              .searchType(workflowConfiguration.getEsIndexType()).build())
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
             .build();
+  }
+
+  /**
+   * Creates a DownloadService for Event or Occurrence downloads.
+   */
+  private OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm) {
+    return  DwcTerm.Event == coreTerm? clientBuilder().build(EventDownloadClient.class) : clientBuilder().build(OccurrenceDownloadClient.class);
   }
 
   /**
