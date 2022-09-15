@@ -109,7 +109,7 @@ public class DownloadJobConfiguration {
    */
   public String getInterpretedDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
+      ? getDownloadTempDir() + (DwcTerm.Event == coreTerm? DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME : DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME)
       : getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
   }
 
