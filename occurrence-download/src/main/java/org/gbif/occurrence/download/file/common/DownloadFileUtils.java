@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import lombok.experimental.UtilityClass;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileStatus;
@@ -37,6 +38,7 @@ import com.google.common.io.ByteStreams;
 /**
  * Utility class for file operation in occurrence downloads.
  */
+@UtilityClass
 public final class DownloadFileUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadFileUtils.class);
@@ -56,16 +58,18 @@ public final class DownloadFileUtils {
    */
   public static void appendAndDelete(String inputFileName, OutputStream outputFileStreamWriter) throws IOException {
     File inputFile = new File(inputFileName);
-    try (FileInputStream fileReader = new FileInputStream(inputFile)) {
-      ByteStreams.copy(fileReader, outputFileStreamWriter);
-    } catch (FileNotFoundException e) {
-      LOG.info("Error creating occurrence files", e);
-      throw Throwables.propagate(e);
-    } finally {
-      inputFile.delete();
+    if (inputFile.exists()) {
+      try (FileInputStream fileReader = new FileInputStream(inputFile)) {
+        ByteStreams.copy(fileReader, outputFileStreamWriter);
+      } catch (FileNotFoundException e) {
+        LOG.info("Error creating occurrence files", e);
+        throw Throwables.propagate(e);
+      } finally {
+        inputFile.delete();
+      }
     }
   }
-  
+
   /**
    * Reads count from table path. Helps in utilities for Species list download and SQL Download.
    * @param nameNode namenode of hdfs.
@@ -80,16 +84,9 @@ public final class DownloadFileUtils {
           try (BufferedReader countReader = new BufferedReader(new InputStreamReader(fs.open(file.getPath()), StandardCharsets.UTF_8))) {
             return Long.parseLong(countReader.readLine());
           } catch (IOException e) {
-            LOG.error("Couldnot read count from table", e);
+            LOG.error("Could not read count from table", e);
             throw Throwables.propagate(e);
           }
         }).orElse(0L);
-  }
-
-  /**
-   * Hidden constructor.
-   */
-  private DownloadFileUtils() {
-    //empty constructor
   }
 }
