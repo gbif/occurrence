@@ -196,21 +196,14 @@ public class OccurrenceMapReader {
 
   public static Map<String, String> buildInterpretedEventMap(Event event) {
     Map<String,String> occurrenceMap = buildInterpretedOccurrenceMap(event);
-    /**
-     * private Set<String> samplingProtocols;
-     *   private String eventID;
-     *   private String parentEventID;
-     *   private Integer startDayOfYear;
-     *   private Integer endDayOfYear;
-     *   private String locationID;
-     *   private Event.VocabularyConcept eventType;
-     *   private List<Event.ParentLineage> parentsLineage;
-     */
+
+    occurrenceMap.put(GbifTerm.gbifID.simpleName(), event.getId());
     occurrenceMap.put(DwcTerm.locationID.simpleName(), event.getLocationID());
     occurrenceMap.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
     occurrenceMap.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
     occurrenceMap.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
     occurrenceMap.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+
     return occurrenceMap;
   }
 

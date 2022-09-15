@@ -97,6 +97,7 @@ import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.CITAT
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.RIGHTS_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
 
@@ -366,7 +367,7 @@ public class DwcaArchiveBuilder {
 
     // NOTE: hive lowercases all the paths
     appendPreCompressedFile(out,
-      new Path(configuration.getInterpretedDataFileName()), OCCURRENCE_INTERPRETED_FILENAME,
+      new Path(configuration.getInterpretedDataFileName()), DwcTerm.Event == configuration.getCoreTerm()? EVENT_INTERPRETED_FILENAME : OCCURRENCE_INTERPRETED_FILENAME,
       HeadersFileUtil.getInterpretedTableHeader());
 
     appendPreCompressedFile(out,
