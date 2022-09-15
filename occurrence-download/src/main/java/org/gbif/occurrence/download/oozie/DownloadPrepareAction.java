@@ -47,7 +47,10 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,9 +185,7 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
 
       Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-      String searchQuery = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType(),
-                                                                     workflowConfiguration.isEsNestedIndex())
-                                                .buildQuery(predicate);
+      String searchQuery = searchQuery(predicate);
       long recordCount = getRecordCount(searchQuery);
       props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
       if (isSmallDownloadCount(recordCount)) {
@@ -200,6 +201,24 @@ public class  DownloadPrepareAction implements Closeable {
       throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
 
+  }
+
+  @SneakyThrows
+  private String searchQuery(Predicate predicate) {
+    Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType(),
+                                                                                    workflowConfiguration.isEsNestedIndex())
+                                            .getQueryBuilder(predicate);
+    if (workflowConfiguration.isEsNestedIndex()) {
+      TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("type", workflowConfiguration.getEsIndexType().getObjectName());
+      if (queryBuilder.isPresent()) {
+        BoolQueryBuilder query = (BoolQueryBuilder)queryBuilder.get();
+        query.filter().add(termQueryBuilder);
+        return query.toString();
+      } else {
+        return termQueryBuilder.toString();
+      }
+    }
+    return queryBuilder.orElse(QueryBuilders.matchAllQuery()).toString();
   }
 
   /**
