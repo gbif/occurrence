@@ -82,7 +82,7 @@ public class RegistryClientUtil {
   /**
    * Sets up a registry DatasetService client avoiding the use of guice as our gbif jackson libraries clash with the
    * hadoop versions.
-   * Sets up an http client with a one minute timeout and http support only.
+   * Sets up a http client with a one-minute timeout and http support only.
    */
   public DatasetService setupDatasetService() {
     return clientBuilder.build(DatasetClient.class);
@@ -91,7 +91,7 @@ public class RegistryClientUtil {
   /**
    * Sets up a OccurrenceDownloadService client avoiding the use of guice as our gbif jackson libraries
    * clash with the hadoop versions.
-   * Sets up an http client with a one minute timeout and http support only.
+   * Sets up a http client with a one-minute timeout and http support only.
    */
   public OccurrenceDownloadService setupOccurrenceDownloadService(DwcTerm dwcTerm) {
     return DwcTerm.Event == dwcTerm? clientBuilder.build(EventDownloadClient.class) : clientBuilder.build(OccurrenceDownloadClient.class);

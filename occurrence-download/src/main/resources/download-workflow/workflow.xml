@@ -86,6 +86,7 @@
       <arg>${gbif_filter}</arg>
       <arg>${wf:actionData('download_prepare')['download_table_name']}</arg>
       <arg>${gbif_user}</arg>
+      <arg>${core_term_name}</arg>
       <arg>${wf:actionData('download_prepare')['request_extensions']}</arg>
     </java>
 

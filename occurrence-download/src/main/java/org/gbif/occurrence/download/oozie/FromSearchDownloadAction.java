@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
@@ -63,7 +64,8 @@ public class FromSearchDownloadAction {
     Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
-    Set<Extension> extensions = Arrays.stream(args[6].split(",")).map(Extension::valueOf).collect(Collectors.toSet());
+    DwcTerm coreTerm =  DwcTerm.valueOf(args[6]);
+    Set<Extension> extensions = Arrays.stream(args[7].split(",")).map(Extension::valueOf).collect(Collectors.toSet());
     run(workflowConfiguration, DownloadJobConfiguration.builder()
           .searchQuery(args[1])
           .downloadKey(args[2])
@@ -73,6 +75,7 @@ public class FromSearchDownloadAction {
           .isSmallDownload(true)
           .downloadFormat(workflowConfiguration.getDownloadFormat())
           .user(args[5])
+          .coreTerm(coreTerm)
           .extensions(extensions)
           .build());
 

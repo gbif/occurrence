@@ -107,7 +107,7 @@ public class DownloadWorkflowModule  {
    * Creates a DownloadService for Event or Occurrence downloads.
    */
   private OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm) {
-    return  DwcTerm.Event == coreTerm? clientBuilder().build(EventDownloadClient.class) : clientBuilder().build(OccurrenceDownloadClient.class);
+    return DwcTerm.Event == coreTerm? clientBuilder().build(EventDownloadClient.class) : clientBuilder().build(OccurrenceDownloadClient.class);
   }
 
   /**

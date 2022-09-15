@@ -44,7 +44,10 @@ import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.registry.metadata.EMLWriter;
+import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.utils.file.FileUtils;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -662,4 +665,13 @@ public class DwcaArchiveBuilder {
     }
   }
 
+
+  public static void main(String[] args){
+    Download download = new ClientBuilder()
+                          .withUrl("https://api.gbif-dev.org/v1/")
+                          .withCredentials("occdownload.gbif.org","occdownload1")
+                          .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+                          .withFormEncoder().build(EventDownloadClient.class).get("0000534-220830180910158");
+    System.out.println(download);
+  }
 }
