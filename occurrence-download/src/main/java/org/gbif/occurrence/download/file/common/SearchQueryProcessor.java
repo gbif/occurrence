@@ -17,7 +17,6 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.search.es.EsResponseParser;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -40,7 +39,7 @@ public class SearchQueryProcessor<T extends Occurrence> {
   // Default page size for queries.
   private static final int LIMIT = 300;
 
-  private static final String KEY_FIELD = OccurrenceEsField.GBIF_ID.getSearchFieldName();
+  private static final String KEY_FIELD = "_id";
 
   private final EsResponseParser<T> esResponseParser;
 
