@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
@@ -130,13 +131,24 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
   }
 
   /**
+   * Gets the record key/id depending on the instances type.
+   */
+  private String getRecordKey(T record) {
+    if (record instanceof Event) {
+      return  ((Event)record).getId();
+    } else {
+      return record.getKey().toString();
+    }
+  }
+
+  /**
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
   private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, T record) throws IOException {
     List<MediaObject> multimedia = record.getMedia();
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, record.getKey()),
+        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, getRecordKey(record)),
                                   MULTIMEDIA_COLUMNS,
                                   MEDIA_CELL_PROCESSORS);
       }
@@ -160,7 +172,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
 
   private Map<String,String> toExtensionRecord(Map<Term, String> row, T record) {
     Map<String,String> extensionData = new LinkedHashMap<>();
-    extensionData.put("gbifid", record.getKey().toString());
+    extensionData.put("gbifid", getRecordKey(record));
     extensionData.put("datasetkey", record.getDatasetKey().toString());
     extensionData.putAll(row.entrySet().stream()
                            .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)));
@@ -176,7 +188,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
   }
 
   /**
-   * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
+   * Executes the job.query and creates a data file that will contain the records from job.from to job.to positions.
    */
   public void doWork(DownloadFileWork work) throws IOException {
 
@@ -236,7 +248,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
    */
   public static class InnerMediaObject extends MediaObject {
 
-    private Long gbifID;
+    private String gbifID;
 
     /**
      * Default constructor.
@@ -250,7 +262,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
      * Default constructor.
      * Copies the fields of the media object parameter and assigns the coreid.
      */
-    public InnerMediaObject(MediaObject mediaObject, Long gbifID) {
+    public InnerMediaObject(MediaObject mediaObject, String gbifID) {
       try {
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
@@ -267,11 +279,11 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
     /**
      * Id column for the multimedia.txt file.
      */
-    public Long getGbifID() {
+    public String getGbifID() {
       return gbifID;
     }
 
-    public void setGbifID(Long gbifID) {
+    public void setGbifID(String gbifID) {
       this.gbifID = gbifID;
     }
 

@@ -48,15 +48,15 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, OccurrenceEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
     getStringValue(hit, OccurrenceEsField.SAMPLE_SIZE_UNIT).ifPresent(event::setSampleSizeUnit);
     getDoubleValue(hit, OccurrenceEsField.SAMPLE_SIZE_VALUE).ifPresent(event::setSampleSizeValue);
-    getVocabularyConcept(hit, OccurrenceEsField.EVENT_TYPE).ifPresent(event::setEventType);
+    getEventType(hit).ifPresent(event::setEventType);
     getObjectsListValue(hit, OccurrenceEsField.PARENTS_LINEAGE)
       .map(v -> v.stream().map(l -> new Event.ParentLineage((String)l.get("id"), (String)l.get("eventType")))
         .collect(Collectors.toList()))
       .ifPresent(event::setParentsLineage);
   }
 
-  private Optional<Event.VocabularyConcept> getVocabularyConcept(SearchHit hit, OccurrenceEsField occurrenceEsField) {
-    return getMapValue(hit, occurrenceEsField)
+  private Optional<Event.VocabularyConcept> getEventType(SearchHit hit) {
+    return getMapValue(hit, OccurrenceEsField.EVENT_TYPE)
       .map(cm -> new Event.VocabularyConcept((String)cm.get("concept"), new HashSet<>((List<String>)cm.get("lineage"))));
   }
 }
