@@ -75,7 +75,7 @@ import com.google.common.reflect.Reflection;
  */
 public class OccurrenceHDFSTableDefinition {
 
-  private static final Pattern START_WITH_DIGIT = Pattern.compile("\\d.*");
+  private static final Pattern START_WITH_DIGIT_OR_UNDERSCORE = Pattern.compile("(\\d.*)|(_.*)");
 
   private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
 
@@ -258,7 +258,7 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   private static String escapeColumnName(String field) {
-    return START_WITH_DIGIT.matcher(field).matches()? '`' + field + '`' : field;
+    return START_WITH_DIGIT_OR_UNDERSCORE.matcher(field).matches()? '`' + field + '`' : field;
   }
 
   private static String hiveColumnName(String columnName) {
@@ -272,11 +272,11 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   private static String cleanDelimitersInitializer(String column) {
-    return "cleanDelimiters(" + column + ") AS " + hiveColumnName(column);
+    return "cleanDelimiters(" + escapeColumnName(column) + ") AS " + hiveColumnName(column);
   }
 
   private static String cleanDelimitersArrayInitializer(String column) {
-    return "cleanDelimitersArray(" + column + ") AS " + hiveColumnName(column);
+    return "cleanDelimitersArray(" + escapeColumnName(column) + ") AS " + hiveColumnName(column);
   }
 
   /**
