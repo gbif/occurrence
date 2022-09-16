@@ -15,11 +15,15 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.*;
+import org.gbif.pipelines.io.avro.extension.ac.AudubonTable;
 import org.gbif.pipelines.io.avro.extension.dwc.ChronometricAgeTable;
 import org.gbif.pipelines.io.avro.extension.dwc.IdentificationTable;
 import org.gbif.pipelines.io.avro.extension.dwc.MeasurementOrFactTable;
 import org.gbif.pipelines.io.avro.extension.dwc.ResourceRelationshipTable;
+import org.gbif.pipelines.io.avro.extension.gbif.DnaDerivedDataTable;
 import org.gbif.pipelines.io.avro.extension.gbif.IdentifierTable;
+import org.gbif.pipelines.io.avro.extension.gbif.ImageTable;
+import org.gbif.pipelines.io.avro.extension.gbif.MultimediaTable;
 import org.gbif.pipelines.io.avro.extension.gbif.ReferenceTable;
 import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmAccessionTable;
 import org.gbif.pipelines.io.avro.extension.germplasm.GermplasmMeasurementScoreTable;
@@ -91,6 +95,25 @@ public class OccurrenceHDFSTableDefinition {
 
     private static final BiMap<String, Extension> EXTENSION_TABLES =
       ImmutableBiMap.<String, Extension>builder()
+        //ac
+        .put(AudubonTable.class.getName(), Extension.AUDUBON)
+        //dwc
+        .put(ChronometricAgeTable.class.getName(), Extension.CHRONOMETRIC_AGE)
+        .put(IdentificationTable.class.getName(), Extension.IDENTIFICATION)
+        .put(MeasurementOrFactTable.class.getName(), Extension.MEASUREMENT_OR_FACT)
+        .put(ResourceRelationshipTable.class.getName(), Extension.RESOURCE_RELATIONSHIP)
+        //gbif
+        .put(DnaDerivedDataTable.class.getName(), Extension.DNA_DERIVED_DATA)
+        .put(IdentifierTable.class.getName(), Extension.IDENTIFIER)
+        .put(ImageTable.class.getName(), Extension.IMAGE)
+        .put(MultimediaTable.class.getName(), Extension.MULTIMEDIA)
+        .put(ReferenceTable.class.getName(), Extension.REFERENCE)
+        //germplas
+        .put(GermplasmAccessionTable.class.getName(), Extension.GERMPLASM_ACCESSION)
+        .put(GermplasmMeasurementScoreTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_SCORE)
+        .put(GermplasmMeasurementTraitTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRAIT)
+        .put(GermplasmMeasurementTrialTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRIAL)
+        //ggbn
         .put(AmplificationTable.class.getName(), Extension.AMPLIFICATION)
         .put(CloningTable.class.getName(), Extension.CLONING)
         .put(GelImageTable.class.getName(), Extension.GEL_IMAGE)
@@ -99,17 +122,8 @@ public class OccurrenceHDFSTableDefinition {
         .put(PermitTable.class.getName(), Extension.PERMIT)
         .put(PreparationTable.class.getName(), Extension.PREPARATION)
         .put(PreservationTable.class.getName(), Extension.PRESERVATION)
+        //obis
         .put(ExtendedMeasurementOrFactTable.class.getName(), Extension.EXTENDED_MEASUREMENT_OR_FACT)
-        .put(ChronometricAgeTable.class.getName(), Extension.CHRONOMETRIC_AGE)
-        .put(GermplasmAccessionTable.class.getName(), Extension.GERMPLASM_ACCESSION)
-        .put(GermplasmMeasurementScoreTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_SCORE)
-        .put(GermplasmMeasurementTraitTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRAIT)
-        .put(GermplasmMeasurementTrialTable.class.getName(), Extension.GERMPLASM_MEASUREMENT_TRIAL)
-        .put(IdentificationTable.class.getName(), Extension.IDENTIFICATION)
-        .put(IdentifierTable.class.getName(), Extension.IDENTIFIER)
-        .put(MeasurementOrFactTable.class.getName(), Extension.MEASUREMENT_OR_FACT)
-        .put(ReferenceTable.class.getName(), Extension.REFERENCE)
-        .put(ResourceRelationshipTable.class.getName(), Extension.RESOURCE_RELATIONSHIP)
         .build();
 
     //Simple class name
@@ -202,7 +216,9 @@ public class OccurrenceHDFSTableDefinition {
       interpretedFields.add("datasetkey");
       interpretedFields.addAll(schema.getFields().stream()
                                 .map(Schema.Field::name)
-                                .filter(field -> !field.startsWith("v_") && !field.equalsIgnoreCase("gbifid"))
+                                .filter(field -> !field.startsWith("v_")
+                                                 && !field.equalsIgnoreCase("gbifid")
+                                                 && !field.equalsIgnoreCase("datasetkey"))
                                 .collect(Collectors.toSet()));
       return interpretedFields;
     }
