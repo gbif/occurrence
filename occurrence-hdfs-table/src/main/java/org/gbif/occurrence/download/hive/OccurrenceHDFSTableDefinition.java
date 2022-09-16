@@ -45,6 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -73,6 +74,8 @@ import com.google.common.reflect.Reflection;
  * maintenance.
  */
 public class OccurrenceHDFSTableDefinition {
+
+  private static final Pattern START_WITH_DIGIT = Pattern.compile("\\d.*");
 
   private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
 
@@ -177,10 +180,13 @@ public class OccurrenceHDFSTableDefinition {
       return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, simpleClassName) + ".avsc";
     }
 
+    private String columnName(Schema.Field field) {
+      return HiveColumns.escapeColumnName(field.name());
+    }
 
-    private String initializableField(Schema.Field field) {
+    private String initializer(Schema.Field field) {
       String fieldName = field.name();
-      String hiveColumn = HiveColumns.escapeColumnName(fieldName);
+      String hiveColumn = columnName(field);
       if (fieldName.equalsIgnoreCase("gbifid") || fieldName.equalsIgnoreCase("datasetkey")) {
         return hiveColumn;
       } else {
@@ -188,12 +194,11 @@ public class OccurrenceHDFSTableDefinition {
       }
     }
 
-
     public List<String> getFields() {
-    return schema.getFields()
-            .stream()
-            .map(this::initializableField)
-            .collect(Collectors.toList());
+      return schema.getFields()
+              .stream()
+              .map(this::initializer)
+              .collect(Collectors.toList());
     }
 
     public Schema getSchema() {
@@ -203,8 +208,8 @@ public class OccurrenceHDFSTableDefinition {
     public Schema loadAvroSchema() {
       try {
         return (Schema)getClass().getClassLoader().loadClass(className)
-          .getDeclaredMethod("getClassSchema")
-          .invoke(null, null);
+                .getDeclaredMethod("getClassSchema")
+                .invoke(null, null);
       } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
@@ -215,7 +220,7 @@ public class OccurrenceHDFSTableDefinition {
       interpretedFields.add("gbifid");
       interpretedFields.add("datasetkey");
       interpretedFields.addAll(schema.getFields().stream()
-                                .map(Schema.Field::name)
+                                .map(field -> field.name())
                                 .filter(field -> !field.startsWith("v_")
                                                  && !field.equalsIgnoreCase("gbifid")
                                                  && !field.equalsIgnoreCase("datasetkey"))
@@ -252,12 +257,26 @@ public class OccurrenceHDFSTableDefinition {
     return builder.build();
   }
 
+  private static String escapeColumnName(String field) {
+    return START_WITH_DIGIT.matcher(field).matches()? '`' + field + '`' : field;
+  }
+
+  private static String hiveColumnName(String columnName) {
+    String hiveColumnName = columnName;
+    if(columnName.startsWith("_")) {
+      hiveColumnName = columnName.substring(1);
+    } else if (columnName.startsWith("v__")) {
+      hiveColumnName = columnName.substring(0,2) + columnName.substring(3);
+    }
+    return escapeColumnName(hiveColumnName);
+  }
+
   private static String cleanDelimitersInitializer(String column) {
-    return "cleanDelimiters(" + column + ") AS " + column;
+    return "cleanDelimiters(" + column + ") AS " + hiveColumnName(column);
   }
 
   private static String cleanDelimitersArrayInitializer(String column) {
-    return "cleanDelimitersArray(" + column + ") AS " + column;
+    return "cleanDelimitersArray(" + column + ") AS " + hiveColumnName(column);
   }
 
   /**
@@ -334,7 +353,7 @@ public class OccurrenceHDFSTableDefinition {
       builder.add(new InitializableField(GbifTerm.Multimedia,
                                          HiveColumns.columnFor(e),
                                          HiveDataTypes.TYPE_STRING
-                                         // always, as it has a custom serialization
+                                         //always, as it has a custom serialization
                   ));
     }
     return builder.build();

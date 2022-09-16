@@ -57,10 +57,8 @@ TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSc
 
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}
-LIKE ${r"${tableName}"}_ext_${extension.hiveTableName}_avro
-STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
-
-INSERT OVERWRITE TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}
+STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB")
+AS
 SELECT
 <#list extension.fields as field>
   ${field}<#if field_has_next>,</#if>
