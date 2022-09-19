@@ -24,7 +24,7 @@ abstract class TsvQueries extends Queries {
 
   @Override
   String toVerbatimHiveInitializer(Term term) {
-    return HiveColumns.VERBATIM_COL_PREFIX + term.simpleName().toLowerCase(Locale.UK);
+    return HiveColumns.getVerbatimColPrefix() + term.simpleName().toLowerCase(Locale.UK);
   }
 
   @Override

@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +34,7 @@ public class CsvExtension {
   }
 
   public CsvExtension(Extension extension) {
-    OccurrenceHDFSTableDefinition.ExtensionTable table = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
+    ExtensionTable table = new ExtensionTable(extension);
     Set<String> interpretedFields = table.getInterpretedFields();
     columns = interpretedFields.toArray(new String[0]);
     processors = interpretedFields.stream().map( i-> new DownloadDwcaActor.CleanStringProcessor()).toArray(CellProcessor[]::new);
@@ -50,7 +50,7 @@ public class CsvExtension {
 
   public static class CsvExtensionFactory {
 
-    private static final Map<Extension,CsvExtension> CSV_EXTENSION_MAP = OccurrenceHDFSTableDefinition.ExtensionTable.getSupportedExtensions()
+    private static final Map<Extension,CsvExtension> CSV_EXTENSION_MAP = ExtensionTable.getSupportedExtensions()
                                                                           .stream()
                                                                           .collect(Collectors.toMap(Function.identity(), CsvExtension::new));
 

@@ -34,7 +34,7 @@ class AvroSchemaQueries extends Queries {
 
   @Override
   String toVerbatimHiveInitializer(Term term) {
-    return HiveColumns.VERBATIM_COL_PREFIX + term.simpleName();
+    return HiveColumns.getVerbatimColPrefix() + term.simpleName();
   }
 
   @Override

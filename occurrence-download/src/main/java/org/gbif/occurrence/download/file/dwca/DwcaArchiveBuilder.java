@@ -35,7 +35,7 @@ import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.common.download.DownloadException;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
@@ -379,7 +379,7 @@ public class DwcaArchiveBuilder {
 
     if (download.getRequest().getExtensions() != null) {
       for (Extension extension : download.getRequest().getExtensions()) {
-        OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
+        ExtensionTable extensionTable = new ExtensionTable(extension);
         appendPreCompressedFile(out,
                                 new Path(configuration.getExtensionDataFileName(extensionTable)),
                                 extensionTable.getHiveTableName() + ".txt",

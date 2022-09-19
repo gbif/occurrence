@@ -20,7 +20,7 @@ import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 
 import java.io.Closeable;
@@ -50,13 +50,13 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
     private final Map<Extension,FileOutputStream> filesMap;
 
-    private final Map<Extension, OccurrenceHDFSTableDefinition.ExtensionTable> tableMap;
+    private final Map<Extension, ExtensionTable> tableMap;
 
     public ExtensionFilesWriter(DownloadJobConfiguration configuration) {
       filesMap = configuration.getExtensions().stream()
                   .collect(Collectors.toMap(Function.identity(), ext -> {
                     try {
-                      String outFile = configuration.getExtensionDataFileName(new OccurrenceHDFSTableDefinition.ExtensionTable(ext));
+                      String outFile = configuration.getExtensionDataFileName(new ExtensionTable(ext));
                       LOG.info("Aggregating extension file {}", outFile);
                       return new FileOutputStream(outFile, true);
                     } catch (IOException ex) {
@@ -64,7 +64,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                     }
                   }));
       tableMap = configuration.getExtensions().stream()
-                  .collect(Collectors.toMap(Function.identity(), OccurrenceHDFSTableDefinition.ExtensionTable::new));
+                  .collect(Collectors.toMap(Function.identity(), ExtensionTable::new));
     }
 
     @Override

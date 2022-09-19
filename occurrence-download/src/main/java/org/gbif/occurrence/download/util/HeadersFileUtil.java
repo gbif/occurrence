@@ -15,7 +15,7 @@ package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileWriter;
@@ -130,7 +130,7 @@ public class HeadersFileUtil {
     return getTableHeader(TermUtils.multimediaTerms());
   }
 
-  public static String getExtensionInterpretedHeader(OccurrenceHDFSTableDefinition.ExtensionTable extensionTable) {
+  public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
     return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
   }
 

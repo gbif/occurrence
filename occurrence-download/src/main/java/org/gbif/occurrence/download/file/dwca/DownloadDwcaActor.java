@@ -25,8 +25,8 @@ import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveColumns;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -121,7 +121,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
   private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
     return extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
-        String outPath = work.getJobDataFileName() + '_' + new OccurrenceHDFSTableDefinition.ExtensionTable(ext).getHiveTableName();
+        String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
         LOG.info("Writing to extension file {}", outPath);
       return new CsvMapWriter(new FileWriterWithEncoding(outPath, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
       } catch (IOException ex) {

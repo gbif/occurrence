@@ -73,7 +73,7 @@ public class ExtensionsQuery {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String,Object> variables = new HashMap<>();
 
-    variables.put("extensions", download.getRequest().getExtensions().stream().map(OccurrenceHDFSTableDefinition.ExtensionTable::new)
+    variables.put("extensions", download.getRequest().getExtensions().stream().map(ExtensionTable::new)
                                   .collect(Collectors.toList()));
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");

@@ -24,7 +24,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.File;
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class DwcArchiveUtils {
     if (extensions != null && !extensions.isEmpty()) {
       TermFactory termFactory = TermFactory.instance();
       extensions.forEach(extension -> {
-        OccurrenceHDFSTableDefinition.ExtensionTable extensionTable = new OccurrenceHDFSTableDefinition.ExtensionTable(extension);
+        ExtensionTable extensionTable = new ExtensionTable(extension);
         ArchiveFile extensionFile = createArchiveFile(extension.name().toLowerCase() + ".txt",
                                                       termFactory.findTerm(extension.getRowType()),
                                                       extensionTable.getInterpretedFields()

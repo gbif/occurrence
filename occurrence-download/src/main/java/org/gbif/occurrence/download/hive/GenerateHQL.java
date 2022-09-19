@@ -133,7 +133,7 @@ public class GenerateHQL {
          FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"))) {
       Template createTableTemplate = cfg.getTemplate("create-tables/create-occurrence-avro.ftl");
       Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition(),
-                                                 "extensions", OccurrenceHDFSTableDefinition.tableExtensions());
+                                                 "extensions", ExtensionTable.tableExtensions());
       createTableTemplate.process(data, createTableScript);
 
       Template swapTablesTemplate = cfg.getTemplate("create-tables/swap-tables.ftl");
@@ -148,7 +148,7 @@ public class GenerateHQL {
   }
 
   private static void copyExtensionSchemas(File outDir) throws IOException {
-    for (OccurrenceHDFSTableDefinition.ExtensionTable et : OccurrenceHDFSTableDefinition.tableExtensions()) {
+    for (ExtensionTable et : ExtensionTable.tableExtensions()) {
       try (FileWriter out = new FileWriter(new File(outDir, et.getAvroSchemaFileName()))) {
         out.write(et.getSchema().toString(true));
       }
@@ -165,7 +165,7 @@ public class GenerateHQL {
         "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
         "interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values(),
         "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
-        "extensions", OccurrenceHDFSTableDefinition.tableExtensions()
+        "extensions", ExtensionTable.tableExtensions()
       );
       template.process(data, out);
     }
@@ -175,7 +175,7 @@ public class GenerateHQL {
   private static void generateDropTableQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "drop_tables.q"))) {
       Template template = cfg.getTemplate("download/drop_tables.ftl");
-      Map<String, Object> data = Collections.singletonMap("extensions", OccurrenceHDFSTableDefinition.tableExtensions());
+      Map<String, Object> data = Collections.singletonMap("extensions", ExtensionTable.tableExtensions());
       template.process(data, out);
     }
   }
