@@ -66,7 +66,9 @@ public final class DownloadFileUtils {
         LOG.info("Error appending file {}", inputFileName, e);
         throw Throwables.propagate(e);
       } finally {
-        inputFile.delete();
+        if (!inputFile.delete()) {
+          LOG.info("Input file can't be removed {}", inputFileName);
+        }
       }
     } else {
       LOG.warn("File not found {}", inputFileName);
