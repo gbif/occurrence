@@ -147,6 +147,10 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     return esIndex;
   }
 
+  public Set<Extension> getExtensions() {
+    return extensions;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hashCode(baseDataFileName, jobId, query, from, to);

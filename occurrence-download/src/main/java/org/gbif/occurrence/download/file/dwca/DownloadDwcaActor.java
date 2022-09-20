@@ -159,8 +159,12 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
   private void writeExtensions(DownloadFileWork work, T record) throws IOException {
-    if (record.getExtensions() != null) {
-      for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : record.getExtensions().entrySet()) {
+    if (record.getExtensions() != null && !work.getExtensions().isEmpty()) {
+      Map<String,List<Map<Term, String>>> exportExtensions = record.getExtensions()
+        .entrySet().stream()
+        .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
         CsvExtension csvExtension = CsvExtension.CsvExtensionFactory.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
           getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
