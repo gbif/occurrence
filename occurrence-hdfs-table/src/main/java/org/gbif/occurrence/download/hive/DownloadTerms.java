@@ -23,7 +23,6 @@ import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Set;
 
-import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableSet;
@@ -32,7 +31,6 @@ import com.google.common.collect.Sets;
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
  */
-@UtilityClass
 public class DownloadTerms {
 
   /**
