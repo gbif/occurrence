@@ -63,11 +63,13 @@ public final class DownloadFileUtils {
       try (FileInputStream fileReader = new FileInputStream(inputFile)) {
         ByteStreams.copy(fileReader, outputFileStreamWriter);
       } catch (FileNotFoundException e) {
-        LOG.info("Error creating occurrence files", e);
+        LOG.info("Error appending file {}", inputFileName, e);
         throw Throwables.propagate(e);
       } finally {
         inputFile.delete();
       }
+    } else {
+      LOG.warn("File not found {}", inputFileName);
     }
   }
 
