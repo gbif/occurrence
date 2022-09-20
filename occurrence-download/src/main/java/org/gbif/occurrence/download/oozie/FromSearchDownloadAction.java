@@ -23,6 +23,8 @@ import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.wrangler.lock.Mutex;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,6 +54,15 @@ public class FromSearchDownloadAction {
   }
 
   /**
+   * Parses the extension argument.
+   */
+  private static Set<Extension> parseExtensionsArgument(String extensionsArgs) {
+    return Optional.ofNullable(extensionsArgs)
+            .map(extensions -> Arrays.stream(extensions.split(",")).map(Extension::valueOf).collect(Collectors.toSet()))
+            .orElse(Collections.emptySet());
+  }
+
+  /**
    * Executes the download creation process.
    * All the arguments are required and expected in the following order:
    * 0. downloadFormat: output format
@@ -65,7 +76,7 @@ public class FromSearchDownloadAction {
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
     DwcTerm coreTerm =  DwcTerm.valueOf(args[6]);
-    Set<Extension> extensions = Arrays.stream(args[7].split(",")).map(Extension::valueOf).collect(Collectors.toSet());
+    Set<Extension> extensions = parseExtensionsArgument(args[7]);
     run(workflowConfiguration, DownloadJobConfiguration.builder()
           .searchQuery(args[1])
           .downloadKey(args[2])
