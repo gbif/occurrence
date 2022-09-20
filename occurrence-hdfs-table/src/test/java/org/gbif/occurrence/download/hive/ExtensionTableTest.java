@@ -34,9 +34,8 @@ public class ExtensionTableTest {
    */
   @Test
   public void tableExtensionsTest() {
-    ExtensionTable.tableExtensions().forEach(extensionTable -> {
-      assertNotNull(extensionTable.getExtension());
-    });
+    ExtensionTable.tableExtensions()
+      .forEach(extensionTable -> assertNotNull(extensionTable.getExtension()));
   }
 
   /**
