@@ -61,14 +61,14 @@ public final class DownloadFileUtils {
     File inputFile = new File(inputFileName);
     if (inputFile.exists()) {
       try (FileInputStream fileReader = new FileInputStream(inputFile)) {
+        LOG.info("Appending file {}", inputFileName);
         ByteStreams.copy(fileReader, outputFileStreamWriter);
       } catch (FileNotFoundException e) {
         LOG.info("Error appending file {}", inputFileName, e);
         throw Throwables.propagate(e);
-      } finally {
-        if (!inputFile.delete()) {
-          LOG.info("Input file can't be removed {}", inputFileName);
-        }
+      }
+      if (!inputFile.delete()) {
+        LOG.info("Input file can't be removed {}", inputFileName);
       }
     } else {
       LOG.warn("File not found {}", inputFileName);
