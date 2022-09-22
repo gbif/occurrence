@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE ${r"${tableName}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}${r"${tableName}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
+LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
 
 -- snappy compression
@@ -52,7 +52,7 @@ CREATE EXTERNAL TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}${r"${tableName}"}/.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
+LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
 
 -- ${extension.extension} extension
@@ -93,5 +93,5 @@ CREATE EXTERNAL TABLE ${r"${tableName}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}${r"${tableName}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
+LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
