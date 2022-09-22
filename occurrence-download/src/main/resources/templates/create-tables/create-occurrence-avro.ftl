@@ -53,7 +53,7 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}avro-schemas/${extension.avroSchemaFileName}');
+TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${extension.avroSchemaFileName}');
 
 -- ${extension.extension} extension
 CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}
