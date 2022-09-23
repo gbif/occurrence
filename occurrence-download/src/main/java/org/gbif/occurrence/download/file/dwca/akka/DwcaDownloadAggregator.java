@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Throwables;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -103,12 +102,11 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                configuration.getCitationDataFileName(),
                                                occurrenceDownloadService,
                                                configuration.getDownloadKey());
-        log.info("Usages {}", datasetUsagesCollector.getDatasetUsages());
       }
       //Creates the DwcA zip file
       DwcaArchiveBuilder.of(configuration).buildArchive();
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

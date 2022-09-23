@@ -17,6 +17,7 @@ import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -29,9 +30,6 @@ import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
-
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @UtilityClass
 @Slf4j
-public final class CitationsFileWriter {
+public class CitationsFileWriter {
 
   // Java fields for facet counts that are used to create the citations file.
   private static final String[] HEADER = {"name", "count"};
@@ -60,10 +58,12 @@ public final class CitationsFileWriter {
   public static void createCitationFile(Map<UUID, Long> datasetUsages, String citationFileName,
                                         OccurrenceDownloadService occDownloadService, String downloadKey) {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
-      try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, Charsets.UTF_8),
+      try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, StandardCharsets.UTF_8),
                                                          CsvPreference.TAB_PREFERENCE)) {
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {
+            Facet.Count count = new Facet.Count(entry.getKey().toString(), entry.getValue());
+            log.info("Citation written {}", count);
             beanWriter.write(new Facet.Count(entry.getKey().toString(), entry.getValue()), HEADER, PROCESSORS);
           }
         }
@@ -71,7 +71,7 @@ public final class CitationsFileWriter {
         persistUsages(occDownloadService, downloadKey, datasetUsages);
       } catch (IOException e) {
         log.error("Error creating citations file", e);
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
   }
