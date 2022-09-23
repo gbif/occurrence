@@ -26,6 +26,7 @@ import org.gbif.occurrence.download.file.dwca.archive.DownloadUsagesPersist;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 
+import java.io.Closeable;
 import java.io.File;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -160,7 +161,13 @@ public class DwcaArchiveBuilder {
 
         // metadata about the entire archive data
         metadataBuilder.writeMetadata();
+        closeSilently(constituentsDatasetsProcessor);
       }).build();
+  }
+
+  @SneakyThrows
+  private static void closeSilently(Closeable closeable) {
+    closeable.close();
   }
 
   private DownloadArchiveBuilder getArchiveBuilder() {
