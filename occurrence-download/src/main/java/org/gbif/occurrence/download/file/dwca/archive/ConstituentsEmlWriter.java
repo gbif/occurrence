@@ -67,7 +67,8 @@ public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
 
   @Override
   public void close() throws IOException {
-    if(isEmpty(emlDir.toPath())) {
+    if (isEmpty(emlDir.toPath())) {
+      log.info("Deleting datasets EML path {}", emlDir);
       emlDir.delete();
     }
   }

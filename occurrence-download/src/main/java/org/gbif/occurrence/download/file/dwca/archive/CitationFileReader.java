@@ -68,6 +68,7 @@ public class CitationFileReader {
     Path citationSrc = new Path(configuration.getCitationDataFileName());
     // the hive query result is a directory with one or more files - read them all into an uuid set
     FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
+    log.info("Citations files in path{}  : {}", citationSrc, citFiles);
     int invalidUuids = 0;
     for (FileStatus fs : citFiles) {
       if (!fs.isDirectory()) {
