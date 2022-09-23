@@ -75,12 +75,12 @@ public class CitationFileReader {
                new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), Charsets.UTF_8))) {
 
           String line = citationReader.readLine();
+          log.info("Reading constituent {}", line);
           while (line != null) {
             if (!line.isEmpty()) {
               // we also catch errors for every dataset to don't break the loop
               try {
                 ConstituentDataset constituent = parseConstituent(line);
-                log.info("Processing constituent dataset {}", constituent);
                 datasetUsages.put(constituent.getKey(), constituent.getRecords());
                 onRead.accept(constituent);
               } catch (Exception e) {
