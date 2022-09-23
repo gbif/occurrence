@@ -80,6 +80,7 @@ public class CitationFileReader {
               // we also catch errors for every dataset to don't break the loop
               try {
                 ConstituentDataset constituent = parseConstituent(line);
+                log.info("Processing constituent dataset {}", constituent);
                 datasetUsages.put(constituent.getKey(), constituent.getRecords());
                 onRead.accept(constituent);
               } catch (Exception e) {
