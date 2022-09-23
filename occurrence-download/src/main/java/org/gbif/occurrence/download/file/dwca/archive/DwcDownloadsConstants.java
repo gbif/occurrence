@@ -11,11 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.archive;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * Common constants used to construct the DwcA download file.
  */
+@UtilityClass
 public class DwcDownloadsConstants {
 
   public static final String METADATA_FILENAME = "metadata.xml";
@@ -26,10 +29,5 @@ public class DwcDownloadsConstants {
   public static final String CITATIONS_FILENAME = "citations.txt";
   public static final String RIGHTS_FILENAME = "rights.txt";
   public static final String DESCRIPTOR_FILENAME = "meta.xml";
-  /**
-   * Hidden constructor.
-   */
-  private DwcDownloadsConstants() {
-    // default private constructor
-  }
+
 }

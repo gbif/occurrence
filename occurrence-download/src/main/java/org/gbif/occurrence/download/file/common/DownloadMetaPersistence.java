@@ -46,7 +46,7 @@ public class DownloadMetaPersistence {
     CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL, coreTerm));
 
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(coreTerm);
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists species count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
   }

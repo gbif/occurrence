@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.Archive;
@@ -21,36 +21,35 @@ import org.gbif.dwc.MetaDescriptorWriter;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.METADATA_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.DwcDownloadsConstants.VERBATIM_FILENAME;
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.METADATA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /**
  * Utility class for Darwin Core Archive handling during the download file creation.
  */
+@Slf4j
+@UtilityClass
 public class DwcArchiveUtils {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DwcArchiveUtils.class);
   private static final String DEFAULT_DELIMITER = ";";
 
   /**
@@ -58,16 +57,13 @@ public class DwcArchiveUtils {
    * Used to generate the meta.xml with the help of the dwca-writer
    */
   public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
-    return createArchiveFile(filename, rowType, columns, Collections.EMPTY_MAP);
+    return createArchiveFile(filename, rowType, columns, Collections.emptyMap());
   }
 
   /**
-   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
-   * Used to generate the meta.xml with the help of the dwca-writer
+   * Adds archive fields derived from the columns.
    */
-  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns,
-                                              Map<? extends Term,String> defaultColumns) {
-    ArchiveFile af = buildBaseArchive(filename, rowType);
+  private static void addArchiveFields(ArchiveFile af, Iterable<? extends Term> columns) {
     int index = 0;
     for (Term term : columns) {
       ArchiveField field = new ArchiveField();
@@ -79,12 +75,32 @@ public class DwcArchiveUtils {
       af.addField(field);
       index++;
     }
+  }
+
+  /**
+   * Adds fields with default values.
+   */
+  private static void addDefaultValuedFields(ArchiveFile af,  Map<? extends Term,String> defaultColumns) {
     for (Map.Entry<? extends Term,String> defaultTerm : defaultColumns.entrySet()) {
       ArchiveField defaultField = new ArchiveField();
       defaultField.setTerm(defaultTerm.getKey());
       defaultField.setDefaultValue(defaultTerm.getValue());
       af.addField(defaultField);
     }
+  }
+
+  /**
+   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
+   * Used to generate the meta.xml with the help of the dwca-writer
+   */
+  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns,
+                                              Map<? extends Term,String> defaultColumns) {
+    ArchiveFile af = buildBaseArchive(filename, rowType);
+
+    //Add archive fields
+    addArchiveFields(af, columns);
+    addDefaultValuedFields(af, defaultColumns);
+
     ArchiveField coreId = af.getField(GbifTerm.gbifID);
     if (coreId == null) {
       throw new IllegalArgumentException("Archive columns MUST include the gbif:gbifID term");
@@ -123,13 +139,11 @@ public class DwcArchiveUtils {
   }
 
   public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> extensions) {
-    LOG.info("Creating archive meta.xml descriptor");
+    log.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
-    downloadArchive.setMetadataLocation(METADATA_FILENAME);
 
-    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(),
-                                          TermUtils.identicalInterpretedTerms());
+    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(), TermUtils.identicalInterpretedTerms());
     downloadArchive.setCore(core);
 
     ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());
@@ -138,33 +152,35 @@ public class DwcArchiveUtils {
     ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
 
-    if (extensions != null && !extensions.isEmpty()) {
-      TermFactory termFactory = TermFactory.instance();
-      extensions.forEach(extension -> {
-        ExtensionTable extensionTable = new ExtensionTable(extension);
-        ArchiveFile extensionFile = createArchiveFile(extensionTable.getHiveTableName() + ".txt",
-                                                      termFactory.findTerm(extension.getRowType()),
-                                                      extensionTable.getInterpretedFields()
-                                                        .stream()
-                                                        .map(termFactory::findPropertyTerm)
-                                                        .collect(Collectors.toList()));
-        downloadArchive.addExtension(extensionFile);
-      });
-    }
+    addExtensionFiles(extensions, downloadArchive);
 
-    try {
-      File metaFile = new File(directory, DESCRIPTOR_FILENAME);
-      MetaDescriptorWriter.writeMetaFile(metaFile, downloadArchive);
-    } catch (IOException e) {
-      LOG.error("Error creating meta.xml file", e);
-      throw new RuntimeException(e);
-    }
+    addMetaFile(directory, downloadArchive);
   }
 
   /**
-   * Hidden constructor.
+   * Creates an extension archive.
    */
-  private DwcArchiveUtils() {
-    // private empty constructor
+  private ArchiveFile createExtensionArchiveFile(Extension extension) {
+    ExtensionTable extensionTable = new ExtensionTable(extension);
+    return createArchiveFile(extensionTable.getHiveTableName() + ".txt",
+                             extensionTable.getTerm(),
+                             extensionTable.getInterpretedFieldsAsTerms());
   }
+
+  /**
+   * Adds all the requested extensions.
+   */
+  private void addExtensionFiles(Set<Extension> extensions, Archive downloadArchive) {
+    if (extensions != null) {
+      extensions.forEach(extension -> downloadArchive.addExtension(createExtensionArchiveFile(extension)));
+    }
+  }
+
+  @SneakyThrows
+  private void addMetaFile(File directory, Archive downloadArchive) {
+    downloadArchive.setMetadataLocation(METADATA_FILENAME);
+    File metaFile = new File(directory, DESCRIPTOR_FILENAME);
+    MetaDescriptorWriter.writeMetaFile(metaFile, downloadArchive);
+  }
+
 }

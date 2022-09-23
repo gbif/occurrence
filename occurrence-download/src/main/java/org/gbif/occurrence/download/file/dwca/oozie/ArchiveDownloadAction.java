@@ -21,16 +21,16 @@ import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Oozie Java action that creates a DwCA from Hive tables.
  * This action is used for big DwCA downloads.
  */
+@UtilityClass
+@Slf4j
 public class ArchiveDownloadAction {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ArchiveDownloadAction.class);
 
   /**
    * Entry point for assembling the DWC archive.
@@ -67,14 +67,7 @@ public class ArchiveDownloadAction {
                                                 .extensions(Collections.emptySet())
                                                 .build();
 
-    LOG.info("DwcaArchiveBuilder instance created with parameters:{}", (Object)args);
-    DwcaArchiveBuilder.buildArchive(configuration, workflowConfiguration);
-  }
-
-  /**
-   * Hidden constructor.
-   */
-  private ArchiveDownloadAction() {
-    //empty constructor
+    log.info("DwcaArchiveBuilder instance created with parameters:{}", (Object)args);
+    DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
 }

@@ -14,6 +14,8 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.gbif.pipelines.io.avro.extension.ac.AudubonTable;
 import org.gbif.pipelines.io.avro.extension.dwc.ChronometricAgeTable;
 import org.gbif.pipelines.io.avro.extension.dwc.IdentificationTable;
@@ -59,8 +61,11 @@ import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersIniti
  */
 public class ExtensionTable {
 
+  private static final TermFactory TERM_FACTORY = TermFactory.instance();
+
   private static final String EXT_PACKAGE = "org.gbif.pipelines.io.avro.extension";
 
+  //Default fields
   public static final String DATASET_KEY_FIELD = "datasetkey";
   public static final String GBIFID_FIELD = "gbifid";
 
@@ -97,15 +102,17 @@ public class ExtensionTable {
     .build();
 
   //Simple class name
-  private String simpleClassName;
+  private final String simpleClassName;
 
   //fully qualified class name
-  private String className;
+  private final String className;
 
   //Section used to distinguish class names in the same packages
   private final String leafNamespace;
 
   private final Schema schema;
+
+  private final Term term;
 
   public static Set<Extension> getSupportedExtensions() {
     return EXTENSION_TABLES.values();
@@ -127,6 +134,7 @@ public class ExtensionTable {
     simpleClassName = className.substring(packageName.length() + 1);
     leafNamespace = packageName.replace(EXT_PACKAGE + '.', "").replace('.', '_');
     schema = loadAvroSchema();
+    term = TERM_FACTORY.findTerm(extension.getRowType());
   }
 
   public Extension getExtension() {
@@ -171,6 +179,10 @@ public class ExtensionTable {
     return schema;
   }
 
+  public Term getTerm() {
+    return term;
+  }
+
   public Schema loadAvroSchema() {
     try {
       return (Schema) getClass().getClassLoader()
@@ -188,12 +200,16 @@ public class ExtensionTable {
     interpretedFields.add(DATASET_KEY_FIELD);
     interpretedFields.addAll(schema.getFields()
                                .stream()
-                               .map(field -> field.name())
-                               .filter(field -> !field.startsWith("v_")
-                                                && !field.equalsIgnoreCase(GBIFID_FIELD)
-                                                && !field.equalsIgnoreCase(DATASET_KEY_FIELD))
+                               .map(Schema.Field::name)
+                               .filter(fieldName -> !fieldName.startsWith("v_")
+                                                    && !fieldName.equalsIgnoreCase(GBIFID_FIELD)
+                                                    && !fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
                                .collect(Collectors.toSet()));
     return interpretedFields;
+  }
+
+  public List<Term> getInterpretedFieldsAsTerms() {
+    return getInterpretedFields().stream().map(TERM_FACTORY::findPropertyTerm).collect(Collectors.toList());
   }
 
   public Set<String> getVerbatimFields() {

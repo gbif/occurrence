@@ -44,7 +44,7 @@ public class DownloadCountAndLicensePersistence {
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
 
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
-    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.setupOccurrenceDownloadService(coreTerm);
+    OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists download count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
     // persist license information.

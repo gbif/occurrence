@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -23,6 +23,7 @@ import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
+import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.ExtensionTable;
@@ -44,8 +45,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvBeanWriter;
@@ -56,21 +55,23 @@ import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 import akka.actor.UntypedActor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
  * Actor that creates part files of for the DwcA download format.
  */
+@Slf4j
+@AllArgsConstructor
 public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
-
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadDwcaActor.class);
 
   private final SearchQueryProcessor<T> searchQueryProcessor;
 
@@ -78,13 +79,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
 
   private final Function<T,Map<String,String>> interpretedMapper;
 
-  public DownloadDwcaActor(SearchQueryProcessor<T> searchQueryProcessor,
-                           Function<T,Map<String,String>> verbatimMapper,
-                           Function<T,Map<String,String>> interpretedMapper) {
-    this.searchQueryProcessor = searchQueryProcessor;
-    this.verbatimMapper = verbatimMapper;
-    this.interpretedMapper = interpretedMapper;
-  }
+  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -115,14 +110,13 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
     new CleanStringProcessor() // rightsHolder
   };
 
-  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
 
   @SneakyThrows
   private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
     return extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
-        LOG.info("Writing to extension file {}", outPath);
+        log.info("Writing to extension file {}", outPath);
       return new CsvMapWriter(new FileWriterWithEncoding(outPath, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -165,7 +159,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
         .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
-        CsvExtension csvExtension = CsvExtension.CsvExtensionFactory.getCsvExtension(dwcExtension.getKey());
+        CsvExtension csvExtension = CsvExtension.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
           getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
             .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
@@ -233,7 +227,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
       closeExtensionWriters();
       // Unlock the assigned lock.
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work);
+      log.info("Lock released, job detail: {} ", work);
     }
   }
 
@@ -250,17 +244,10 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
    * Inner class used to export data into multimedia.txt files.
    * The structure must match the headers defined in MULTIMEDIA_COLUMNS.
    */
+  @Data
   public static class InnerMediaObject extends MediaObject {
 
     private String gbifID;
-
-    /**
-     * Default constructor.
-     * Required by CVS serialization.
-     */
-    public InnerMediaObject() {
-      // default constructor
-    }
 
     /**
      * Default constructor.
@@ -274,23 +261,6 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
         throw Throwables.propagate(e);
       }
     }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this).addValue(super.toString()).add("gbifID", gbifID).toString();
-    }
-
-    /**
-     * Id column for the multimedia.txt file.
-     */
-    public String getGbifID() {
-      return gbifID;
-    }
-
-    public void setGbifID(String gbifID) {
-      this.gbifID = gbifID;
-    }
-
   }
 
   /**

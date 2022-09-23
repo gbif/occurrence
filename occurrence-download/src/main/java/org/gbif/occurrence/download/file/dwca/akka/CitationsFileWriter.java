@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -22,8 +22,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.supercsv.cellprocessor.ParseLong;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -34,13 +32,16 @@ import org.supercsv.prefs.CsvPreference;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Utility class that creates a dataset citations file from Map that contains the dataset usages (record count).
  * The output file contains a list of dataset keys/uuids and its counts of occurrence records.
  */
+@UtilityClass
+@Slf4j
 public final class CitationsFileWriter {
-
-  private static final Logger LOG = LoggerFactory.getLogger(CitationsFileWriter.class);
 
   // Java fields for facet counts that are used to create the citations file.
   private static final String[] HEADER = {"name", "count"};
@@ -53,7 +54,7 @@ public final class CitationsFileWriter {
    *
    * @param datasetUsages          record count per dataset
    * @param citationFileName       output file name
-   * @param occDownloadService     occurrence downlaod service
+   * @param occDownloadService     occurrence download service
    * @param downloadKey            download key
    */
   public static void createCitationFile(Map<UUID, Long> datasetUsages, String citationFileName,
@@ -69,7 +70,7 @@ public final class CitationsFileWriter {
         beanWriter.flush();
         persistUsages(occDownloadService, downloadKey, datasetUsages);
       } catch (IOException e) {
-        LOG.error("Error creating citations file", e);
+        log.error("Error creating citations file", e);
         throw Throwables.propagate(e);
       }
     }
@@ -82,15 +83,7 @@ public final class CitationsFileWriter {
     try {
       occDownloadService.createUsages(downloadKey, datasetUsages);
     } catch (Exception ex) {
-      LOG.error("Error persisting usages for download {}", downloadKey, ex);
+      log.error("Error persisting usages for download {}", downloadKey, ex);
     }
   }
-
-  /**
-   * Private/default constructor.
-   */
-  private CitationsFileWriter() {
-    // private constructor
-  }
-
 }

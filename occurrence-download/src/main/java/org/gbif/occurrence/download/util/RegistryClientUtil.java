@@ -84,7 +84,7 @@ public class RegistryClientUtil {
    * hadoop versions.
    * Sets up a http client with a one-minute timeout and http support only.
    */
-  public DatasetService setupDatasetService() {
+  public DatasetService datasetService() {
     return clientBuilder.build(DatasetClient.class);
   }
 
@@ -93,7 +93,7 @@ public class RegistryClientUtil {
    * clash with the hadoop versions.
    * Sets up a http client with a one-minute timeout and http support only.
    */
-  public OccurrenceDownloadService setupOccurrenceDownloadService(DwcTerm dwcTerm) {
+  public OccurrenceDownloadService occurrenceDownloadService(DwcTerm dwcTerm) {
     return DwcTerm.Event == dwcTerm? clientBuilder.build(EventDownloadClient.class) : clientBuilder.build(OccurrenceDownloadClient.class);
   }
 

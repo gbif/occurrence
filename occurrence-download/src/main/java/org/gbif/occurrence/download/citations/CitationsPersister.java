@@ -74,7 +74,7 @@ public final class CitationsPersister extends CitationsFileReader {
     public PersistUsage(String downloadKey, String registryWsUrl, DwcTerm dwcTerm) {
       RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsUrl);
       this.downloadKey = downloadKey;
-      this.downloadService = registryClientUtil.setupOccurrenceDownloadService(dwcTerm);
+      this.downloadService = registryClientUtil.occurrenceDownloadService(dwcTerm);
     }
 
     private static Long sumCitations(Map<UUID, Long> citations) {

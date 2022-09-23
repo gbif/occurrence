@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.hive.ExtensionTable;
@@ -23,40 +23,26 @@ import java.util.stream.Collectors;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
+import lombok.Data;
+
+@Data
 public class CsvExtension {
 
+  private static final Map<Extension,CsvExtension> CSV_EXTENSION_MAP = ExtensionTable.getSupportedExtensions()
+                                                                        .stream()
+                                                                        .collect(Collectors.toMap(Function.identity(), CsvExtension::new));
   private final String[] columns;
 
   private final CellProcessor[] processors;
 
-  public CsvExtension(String rowType) {
-    this(Extension.fromRowType(rowType));
+  public static CsvExtension getCsvExtension(String rowType) {
+    return  CSV_EXTENSION_MAP.get(Extension.fromRowType(rowType));
   }
 
-  public CsvExtension(Extension extension) {
+  private CsvExtension(Extension extension) {
     ExtensionTable table = new ExtensionTable(extension);
     Set<String> interpretedFields = table.getInterpretedFields();
     columns = interpretedFields.toArray(new String[0]);
     processors = interpretedFields.stream().map( i-> new DownloadDwcaActor.CleanStringProcessor()).toArray(CellProcessor[]::new);
   }
-
-  public String[] getColumns() {
-    return columns;
-  }
-
-  public CellProcessor[] getProcessors() {
-    return processors;
-  }
-
-  public static class CsvExtensionFactory {
-
-    private static final Map<Extension,CsvExtension> CSV_EXTENSION_MAP = ExtensionTable.getSupportedExtensions()
-                                                                          .stream()
-                                                                          .collect(Collectors.toMap(Function.identity(), CsvExtension::new));
-
-    public static CsvExtension getCsvExtension(String rowType) {
-      return  CSV_EXTENSION_MAP.get(Extension.fromRowType(rowType));
-    }
-  }
-
 }

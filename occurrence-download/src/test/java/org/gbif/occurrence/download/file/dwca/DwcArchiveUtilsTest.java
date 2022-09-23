@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.download.file.dwca.archive.DwcArchiveUtils;
 
 import java.nio.file.Path;
 import java.util.Collections;

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
@@ -29,9 +29,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * Utility class used to manage contacts for DwcA download files.
  */
+@UtilityClass
 public class DwcaContactsUtil {
 
   private static final Logger LOG = LoggerFactory.getLogger(DwcaContactsUtil.class);
@@ -44,15 +47,15 @@ public class DwcaContactsUtil {
   /**
    * Utility method that creates a Contact with a limited number of fields.
    */
-  protected static Contact createContact(String name, String email, ContactType type, boolean preferred) {
+  static Contact createContact(String name, String email, ContactType type, boolean preferred) {
     return createContact(null, name, email, type, preferred);
   }
 
   /**
    * Creates a contact using the parameters.
    */
-  protected static Contact createContact(String firstName, String lastName, String email, ContactType type,
-                                         boolean preferred) {
+  static Contact createContact(String firstName, String lastName, String email, ContactType type,
+                               boolean preferred) {
     Contact contact = new Contact();
     contact.setEmail(Lists.newArrayList(email));
     contact.setFirstName(firstName);
@@ -93,10 +96,4 @@ public class DwcaContactsUtil {
      return dataset.getContacts().stream().filter(IS_AUTHOR_PREDICATE).findFirst();
   }
 
-  /**
-   * Hidden constructor.
-   */
-  private DwcaContactsUtil() {
-    //empty constructor
-  }
 }

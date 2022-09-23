@@ -11,108 +11,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca;
+package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
+import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
 /**
  * Aggregates partials results of files and combine then into the output zip file.
  */
+@AllArgsConstructor
 public class DwcaDownloadAggregator implements DownloadAggregator {
 
-  public static class ExtensionFilesWriter implements Closeable {
-
-    private final Map<Extension,FileOutputStream> filesMap;
-
-    private final Map<Extension, ExtensionTable> tableMap;
-
-    public ExtensionFilesWriter(DownloadJobConfiguration configuration) {
-      filesMap = configuration.getExtensions().stream()
-                  .collect(Collectors.toMap(Function.identity(), ext -> {
-                    try {
-                      String outFile = configuration.getExtensionDataFileName(new ExtensionTable(ext));
-                      LOG.info("Aggregating extension file {}", outFile);
-                      return new FileOutputStream(outFile, true);
-                    } catch (IOException ex) {
-                      throw new RuntimeException(ex);
-                    }
-                  }));
-      tableMap = configuration.getExtensions().stream()
-                  .collect(Collectors.toMap(Function.identity(), ExtensionTable::new));
-    }
-
-    @Override
-    public void close() throws IOException {
-      for (FileOutputStream fileOutputStream : filesMap.values()) {
-        fileOutputStream.close();
-      }
-    }
-
-    @SneakyThrows
-    public void writerHeaders() {
-      for (Map.Entry<Extension,FileOutputStream> entry : filesMap.entrySet()) {
-        HeadersFileUtil.appendHeaders(entry.getValue(), HeadersFileUtil.getExtensionInterpretedHeader(tableMap.get(entry.getKey())));
-      }
-    }
-
-    @SneakyThrows
-    public void appendAndDelete(Result result) {
-      for (Map.Entry<Extension,FileOutputStream> entry : filesMap.entrySet()) {
-        DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + '_' + tableMap.get(entry.getKey()).getHiveTableName(),
-                                          entry.getValue());
-      }
-    }
-  }
-
-  private static final Logger LOG = LoggerFactory.getLogger(DwcaDownloadAggregator.class);
+  private final DownloadJobConfiguration configuration;
 
   // Service that persist dataset usage information
   private final OccurrenceDownloadService occurrenceDownloadService;
 
-  private final DownloadJobConfiguration configuration;
-
-
   /**
    * Utility method that creates a file, if the files exists it is deleted.
    */
-  private static void createFile(String outFile) {
-    try {
-      File file = new File(outFile);
-      if (file.exists()) {
-        file.delete();
-      }
-      file.createNewFile();
-    } catch (IOException e) {
-      LOG.error("Error creating file", e);
-      throw Throwables.propagate(e);
-    }
-
+  @SneakyThrows
+  private static FileOutputStream createFileOutStream(String fileName) {
+    File file = new File(fileName);
+    Files.deleteIfExists(file.toPath());
+    file.createNewFile();
+    return new FileOutputStream(fileName, true);
   }
 
   /**
@@ -130,29 +73,16 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
 
   }
 
-  public DwcaDownloadAggregator(DownloadJobConfiguration configuration,
-                                OccurrenceDownloadService occurrenceDownloadService) {
-    this.occurrenceDownloadService = occurrenceDownloadService;
-    this.configuration = configuration;
-  }
-
-  public void init() {
-    createFile(configuration.getInterpretedDataFileName());
-    createFile(configuration.getVerbatimDataFileName());
-    createFile(configuration.getMultimediaDataFileName());
-  }
-
   /**
    * Collects the results of each job.
    * Iterates over the list of futures to collect individual results.
    */
   @Override
   public void aggregate(List<Result> results) {
-    init();
     try (
-      FileOutputStream interpretedFileWriter = new FileOutputStream(configuration.getInterpretedDataFileName(), true);
-      FileOutputStream verbatimFileWriter = new FileOutputStream(configuration.getVerbatimDataFileName(), true);
-      FileOutputStream multimediaFileWriter = new FileOutputStream(configuration.getMultimediaDataFileName(), true);
+      FileOutputStream interpretedFileWriter = createFileOutStream(configuration.getInterpretedDataFileName());
+      FileOutputStream verbatimFileWriter = createFileOutStream(configuration.getVerbatimDataFileName());
+      FileOutputStream multimediaFileWriter = createFileOutStream(configuration.getMultimediaDataFileName());
       ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration)) {
 
       HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
@@ -173,7 +103,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                configuration.getDownloadKey());
       }
       //Creates the DwcA zip file
-      DwcaArchiveBuilder.buildArchive(configuration);
+      DwcaArchiveBuilder.of(configuration).buildArchive();
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

@@ -11,20 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.common.download;
+package org.gbif.occurrence.download.file;
+
+import lombok.experimental.UtilityClass;
 
 /**
- * An exception wrapping any reason why a download can fail.
+ * Tables suffixes used to name tables and files.
  */
-public class DownloadException extends RuntimeException {
+@UtilityClass
+public final class TableSuffixes {
 
-  private static final long serialVersionUID = 4618371123849519375L;
+  //Suffixes for table names
+  public static final String INTERPRETED_SUFFIX = "_interpreted";
+  public static final String VERBATIM_SUFFIX = "_verbatim";
+  public static final String MULTIMEDIA_SUFFIX = "_multimedia";
+  public static final String CITATION_SUFFIX = "_citation";
 
-  public DownloadException(Exception source) {
-    super(source);
-  }
-
-  public DownloadException(String message) {
-    super(message);
-  }
 }
