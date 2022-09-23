@@ -50,7 +50,7 @@ public final class CitationsFileWriter {
   private static final CellProcessor[] PROCESSORS = {new NotNull(), new ParseLong()};
 
   /**
-   * Creates the dataset citation file using the the search query response.
+   * Creates the dataset citation file using the search query response.
    *
    * @param datasetUsages          record count per dataset
    * @param citationFileName       output file name

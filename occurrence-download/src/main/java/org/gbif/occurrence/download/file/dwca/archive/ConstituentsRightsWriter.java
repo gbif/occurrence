@@ -36,6 +36,7 @@ public class ConstituentsRightsWriter  implements Closeable, Consumer<Dataset> {
   public ConstituentsRightsWriter(File archiveDir) {
     writer = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
   }
+
   /**
    * Write rights text.
    */

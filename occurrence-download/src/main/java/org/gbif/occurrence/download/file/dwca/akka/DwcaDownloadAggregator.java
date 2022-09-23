@@ -35,11 +35,13 @@ import com.google.common.base.Throwables;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Aggregates partials results of files and combine then into the output zip file.
  */
 @AllArgsConstructor
+@Slf4j
 public class DwcaDownloadAggregator implements DownloadAggregator {
 
   private final DownloadJobConfiguration configuration;
@@ -101,6 +103,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                                configuration.getCitationDataFileName(),
                                                occurrenceDownloadService,
                                                configuration.getDownloadKey());
+        log.info("Usages {}", datasetUsagesCollector.getDatasetUsages());
       }
       //Creates the DwcA zip file
       DwcaArchiveBuilder.of(configuration).buildArchive();
