@@ -28,28 +28,24 @@ import lombok.extern.slf4j.Slf4j;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.RIGHTS_FILENAME;
 
 @Slf4j
-public class ConstituentsRightsWriter  implements Closeable, Consumer<Dataset> {
+public class ConstituentsRightsWriter implements Closeable, Consumer<Dataset> {
 
   private final Writer writer;
+
+  private int count;
+
+  public static final String RIGHTS_LINE_TEMPLATE = "Dataset: %s " +
+                                                     "\nRights as supplied: %s";
 
   @SneakyThrows
   public ConstituentsRightsWriter(File archiveDir) {
     writer = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
   }
 
-  /**
-   * Write rights text.
-   */
-  @SneakyThrows
-  private void writeRights(Dataset dataset) {
-    // write rights
-    writer.write("\nDataset: " + dataset.getTitle());
-    writer.write("\nRights as supplied: ");
-    if (dataset.getLicense() != null && dataset.getLicense().isConcrete()) {
-      writer.write(dataset.getLicense().getLicenseUrl());
-    } else {
-      writer.write("Not supplied");
-    }
+  public static String datasetRights(Dataset dataset) {
+    return String.format(RIGHTS_LINE_TEMPLATE, dataset.getTitle(),
+                         dataset.getLicense() != null && dataset.getLicense().isConcrete()?
+                           dataset.getLicense().getLicenseUrl() : "Not supplied");
   }
 
   @Override
@@ -58,7 +54,12 @@ public class ConstituentsRightsWriter  implements Closeable, Consumer<Dataset> {
   }
 
   @Override
+  @SneakyThrows
   public void accept(Dataset dataset) {
-    writeRights(dataset);
+    if (count > 0) {
+      writer.append('\n');
+    }
+    writer.write(datasetRights(dataset));
+    count++;
   }
 }

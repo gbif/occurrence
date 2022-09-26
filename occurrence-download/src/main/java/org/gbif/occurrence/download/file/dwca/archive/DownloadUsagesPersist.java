@@ -16,7 +16,6 @@ package org.gbif.occurrence.download.file.dwca.archive;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,18 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 public class DownloadUsagesPersist {
 
-  private final DownloadJobConfiguration configuration;
+  private final String downloadKey;
   private final OccurrenceDownloadService occurrenceDownloadService;
 
-
   public void persistUsages(Map<UUID,Long> datasetUsages) {
-    // small downloads persist dataset usages while builds the citations file
-    if (!configuration.isSmallDownload()) {
-      try {
-        occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsages);
-      } catch(Exception e) {
-        log.error("Error persisting dataset usage information, downloadKey: {} for large download", configuration.getDownloadKey(), e);
-      }
+    try {
+      occurrenceDownloadService.createUsages(downloadKey, datasetUsages);
+    } catch(Exception e) {
+      log.error("Error persisting dataset usage information, downloadKey: {} for large download", downloadKey, e);
     }
   }
 
@@ -51,7 +46,7 @@ public class DownloadUsagesPersist {
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      log.error("Error updating download license, downloadKey: {}, license: {}", configuration.getDownloadKey(), license, ex);
+      log.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
     }
   }
 }

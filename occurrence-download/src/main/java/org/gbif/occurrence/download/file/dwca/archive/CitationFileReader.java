@@ -14,12 +14,12 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.service.registry.DatasetService;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -28,9 +28,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
+import com.google.common.base.Strings;
 
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -39,23 +37,21 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 public class CitationFileReader {
 
-  private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
-
   private final FileSystem sourceFs;
-  private final DownloadJobConfiguration configuration;
+  private final String citationFileName;
   private final DatasetService datasetService;
   private final Consumer<ConstituentDataset> onRead;
   private final Consumer<Map<UUID,Long>> onFinish;
-  private final Map<UUID,Long> datasetUsages = Maps.newHashMap();
+  private final Map<UUID,Long> datasetUsages = new HashMap<>();
 
 
-  private ConstituentDataset parseConstituent(String line) {
-    Iterator<String> iter = TAB_SPLITTER.split(line).iterator();
+  private ConstituentDataset  parseConstituent(String line) {
+    String[] constituentLine = line.split("\t");
     // play safe and make sure we got an uuid - even though our api doesn't require it
-    UUID key = UUID.fromString(iter.next());
+    UUID key = UUID.fromString(constituentLine[0]);
     return ConstituentDataset.builder()
             .key(key)
-            .records(Long.parseLong(iter.next()))
+            .records(Long.parseLong(constituentLine[1]))
             .dataset(datasetService.get(key))
             .build();
   }
@@ -65,18 +61,18 @@ public class CitationFileReader {
    * Creates Map with dataset UUIDs and its record counts.
    */
   public void read() throws IOException {
-    Path citationSrc = new Path(configuration.getCitationDataFileName());
+    Path citationSrc = new Path(citationFileName);
     // the hive query result is a directory with one or more files - read them all into an uuid set
     FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
     int invalidUuids = 0;
     for (FileStatus fs : citFiles) {
       if (!fs.isDirectory()) {
+        log.info("Reading citation file {}", fs);
         try (BufferedReader citationReader =
-               new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), Charsets.UTF_8))) {
-
+               new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), StandardCharsets.UTF_8))) {
           String line = citationReader.readLine();
           while (line != null) {
-            if (!line.isEmpty()) {
+            if (!Strings.isNullOrEmpty(line)) {
               // we also catch errors for every dataset to don't break the loop
               try {
                 ConstituentDataset constituent = parseConstituent(line);
@@ -84,7 +80,7 @@ public class CitationFileReader {
                 onRead.accept(constituent);
               } catch (Exception e) {
                 // ignore invalid UUIDs
-                log.info("Found invalid UUID as datasetId {}", line);
+                log.info("Found invalid UUID as datasetId {}", line, e);
                 invalidUuids++;
               }
             }

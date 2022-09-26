@@ -28,6 +28,8 @@ import org.gbif.occurrence.query.TitleLookupServiceFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.apache.hadoop.fs.FileSystem;
 
@@ -140,14 +142,15 @@ public class DwcaArchiveBuilder {
   private DownloadUsagesPersist getDownloadUsagesPersist() {
     return DownloadUsagesPersist.builder()
       .occurrenceDownloadService(occurrenceDownloadService)
-      .configuration(jobConfiguration)
+      .downloadKey(jobConfiguration.getDownloadKey())
       .build();
   }
 
   private CitationFileReader citationFileReader() {
     return CitationFileReader.builder()
       .sourceFs(sourceFs)
-      .configuration(jobConfiguration)
+      .citationFileName(jobConfiguration.getCitationDataFileName())
+      .datasetService(datasetService)
       .onRead(constituentDataset -> {
         constituentsDatasetsProcessor.accept(constituentDataset);
         metadataBuilder.accept(constituentDataset);
@@ -162,7 +165,13 @@ public class DwcaArchiveBuilder {
         // metadata about the entire archive data
         metadataBuilder.writeMetadata();
         closeSilently(constituentsDatasetsProcessor);
+        deleteSilently(jobConfiguration.getCitationDataFileName());
       }).build();
+  }
+
+  @SneakyThrows
+  private static void deleteSilently(String file) {
+    Files.deleteIfExists(Paths.get(file));
   }
 
   @SneakyThrows

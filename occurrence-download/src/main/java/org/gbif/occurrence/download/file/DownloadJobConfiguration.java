@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.file;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
@@ -132,7 +133,7 @@ public class DownloadJobConfiguration {
    */
   public String getCitationDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.CITATIONS_FILENAME
+      ? getDownloadTempDir() + DownloadUtils.downloadTableName(downloadKey) + '_' + DwcDownloadsConstants.CITATIONS_FILENAME
       : getDownloadTempDir(TableSuffixes.CITATION_SUFFIX);
   }
 

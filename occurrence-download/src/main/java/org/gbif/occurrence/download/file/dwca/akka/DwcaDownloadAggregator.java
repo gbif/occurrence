@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
@@ -31,7 +30,6 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 
-
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DwcaDownloadAggregator implements DownloadAggregator {
 
   private final DownloadJobConfiguration configuration;
-
-  // Service that persist dataset usage information
-  private final OccurrenceDownloadService occurrenceDownloadService;
 
   /**
    * Utility method that creates a file, if the files exists it is deleted.
@@ -79,6 +74,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
    * Iterates over the list of futures to collect individual results.
    */
   @Override
+  @SneakyThrows
   public void aggregate(List<Result> results) {
     try (
       FileOutputStream interpretedFileWriter = createFileOutStream(configuration.getInterpretedDataFileName());
@@ -98,15 +94,12 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
           datasetUsagesCollector.sumUsages(result.getDatasetUsages());
           appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter, extensionFilesWriter);
         }
-        CitationsFileWriter.createCitationFile(datasetUsagesCollector.getDatasetUsages(),
-                                               configuration.getCitationDataFileName(),
-                                               occurrenceDownloadService,
-                                               configuration.getDownloadKey());
+        CitationsFileWriter.createCitationsFile(datasetUsagesCollector.getDatasetUsages(),
+                                                configuration.getCitationDataFileName());
+        log.info("Citations written to file {}", configuration.getCitationDataFileName());
       }
       //Creates the DwcA zip file
       DwcaArchiveBuilder.of(configuration).buildArchive();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 

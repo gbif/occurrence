@@ -32,6 +32,7 @@ import org.gbif.occurrence.download.hive.HiveColumns;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,7 +55,6 @@ import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -117,7 +117,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
         log.info("Writing to extension file {}", outPath);
-      return new CsvMapWriter(new FileWriterWithEncoding(outPath, Charsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }
@@ -195,15 +195,15 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
     try (
       ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
                                                                                + TableSuffixes.INTERPRETED_SUFFIX,
-                                                                               Charsets.UTF_8),
+                                                                               StandardCharsets.UTF_8),
                                                     CsvPreference.TAB_PREFERENCE);
       ICsvMapWriter verbCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
                                                                                 + TableSuffixes.VERBATIM_SUFFIX,
-                                                                                Charsets.UTF_8),
+                                                                                StandardCharsets.UTF_8),
                                                      CsvPreference.TAB_PREFERENCE);
       ICsvBeanWriter multimediaCsvWriter = new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName()
                                                                                         + TableSuffixes.MULTIMEDIA_SUFFIX,
-                                                                                        Charsets.UTF_8),
+                                                                                        StandardCharsets.UTF_8),
                                                              CsvPreference.TAB_PREFERENCE)) {
       searchQueryProcessor.processQuery(work, record -> {
           try {
@@ -221,7 +221,6 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
             throw Throwables.propagate(e);
           }
         });
-
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
       closeExtensionWriters();

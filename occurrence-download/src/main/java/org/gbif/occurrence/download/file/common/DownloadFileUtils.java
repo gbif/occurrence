@@ -45,7 +45,7 @@ public final class DownloadFileUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadFileUtils.class);
 
   /**
-   * Utility method that creates a instance of the HDFS FileSystem class.
+   * Utility method that creates an instance of the HDFS FileSystem class.
    */
   public static FileSystem getHdfs(String nameNode) throws IOException {
     // filesystem configs

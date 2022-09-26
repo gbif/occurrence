@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.google.common.base.Strings;
@@ -33,10 +34,13 @@ import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstan
 @Data
 @Slf4j
 public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> {
+
   private static final String CITATION_HEADER =
     "When using this dataset please use the following citation and pay attention to the rights documented in rights.txt:\n";
 
   private final Writer writer;
+
+  private int count;
 
   @SneakyThrows
   public ConstituentsCitationWriter(File archiveDir) {
@@ -45,20 +49,27 @@ public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> 
     writer.write(CITATION_HEADER);
   }
 
-  @SneakyThrows
-  private void writeCitation(Dataset dataset) {
-    // citation
+
+  public static String citation(Dataset dataset) {
     if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
-      writer.write(dataset.getCitation().getText());
-      writer.write('\n');
+      return dataset.getCitation().getText();
     } else {
       log.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
     }
+    return null;
   }
 
   @Override
+  @SneakyThrows
   public void accept(Dataset dataset) {
-    writeCitation(dataset);
+    if (count > 0) {
+      writer.append('\n');
+    }
+    Optional<String> citation = Optional.ofNullable(citation(dataset));
+    if(citation.isPresent()) {
+      writer.append(citation.get());
+    }
+    count++;
   }
 
   @Override

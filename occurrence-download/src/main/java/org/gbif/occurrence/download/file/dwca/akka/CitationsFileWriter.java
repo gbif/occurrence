@@ -14,9 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.model.common.search.Facet;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +28,7 @@ import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,38 +51,19 @@ public class CitationsFileWriter {
    *
    * @param datasetUsages          record count per dataset
    * @param citationFileName       output file name
-   * @param occDownloadService     occurrence download service
-   * @param downloadKey            download key
    */
-  public static void createCitationFile(Map<UUID, Long> datasetUsages, String citationFileName,
-                                        OccurrenceDownloadService occDownloadService, String downloadKey) {
+  @SneakyThrows
+  public static void createCitationsFile(Map<UUID, Long> datasetUsages, String citationFileName) {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
       try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, StandardCharsets.UTF_8),
                                                          CsvPreference.TAB_PREFERENCE)) {
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {
-            Facet.Count count = new Facet.Count(entry.getKey().toString(), entry.getValue());
-            log.info("Citation written {}", count);
             beanWriter.write(new Facet.Count(entry.getKey().toString(), entry.getValue()), HEADER, PROCESSORS);
           }
         }
         beanWriter.flush();
-        persistUsages(occDownloadService, downloadKey, datasetUsages);
-      } catch (IOException e) {
-        log.error("Error creating citations file", e);
-        throw new RuntimeException(e);
       }
-    }
-  }
-
-  /**
-   * Persist dataset usages and swallow any exception.
-   */
-  private static void persistUsages(OccurrenceDownloadService occDownloadService, String downloadKey, Map<UUID, Long> datasetUsages) {
-    try {
-      occDownloadService.createUsages(downloadKey, datasetUsages);
-    } catch (Exception ex) {
-      log.error("Error persisting usages for download {}", downloadKey, ex);
     }
   }
 }

@@ -18,29 +18,28 @@ import org.gbif.api.service.registry.DatasetService;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
 
+  public static final String OUTPUT_DIRECTORY = "dataset";
+
   private final DatasetService datasetService;
   private final File emlDir;
 
   public ConstituentsEmlWriter(DatasetService datasetService, File archiveDir) {
     this.datasetService = datasetService;
-    emlDir = new File(archiveDir, "dataset");
+    emlDir = new File(archiveDir, OUTPUT_DIRECTORY);
     emlDir.mkdir();
   }
 
@@ -48,10 +47,7 @@ public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
     try (InputStream in = datasetService.getMetadataDocument(constituentId)) {
       // store dataset EML as constituent metadata
       if (in != null) {
-        // copy into archive, reading stream from registry services
-        try(OutputStream out = new FileOutputStream(new File(emlDir, constituentId + ".xml"))) {
-          ByteStreams.copy(in, out);
-        }
+        Files.copy(in, Paths.get(emlDir.getPath(), constituentId + ".xml"));
       } else {
         log.error("EML Not Found for datasetId {}", constituentId);
       }

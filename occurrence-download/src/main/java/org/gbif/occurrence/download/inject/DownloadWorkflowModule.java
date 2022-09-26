@@ -273,8 +273,7 @@ public class DownloadWorkflowModule  {
     if (downloadFormat != null) {
       switch (downloadFormat) {
         case DWCA:
-          return new DwcaDownloadAggregator(downloadJobConfiguration,
-                                            clientBuilder().build(OccurrenceDownloadClient.class));
+          return new DwcaDownloadAggregator(downloadJobConfiguration);
 
         case SIMPLE_CSV:
           return new SimpleCsvDownloadAggregator(downloadJobConfiguration,
