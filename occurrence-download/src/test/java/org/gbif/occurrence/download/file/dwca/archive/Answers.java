@@ -18,6 +18,10 @@ import org.gbif.api.model.registry.Dataset;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -51,6 +55,24 @@ public class Answers {
       dataset.setKey(invocation.getArgument(0));
       dataset.setTitle("Dataset " + dataset.getKey());
       return dataset;
+    }
+  }
+
+
+  /**
+   * Mocks TitleLookupService.getDatasetTitle(UUID)
+   */
+  static class GetDatasetTileAnswer implements Answer<String> {
+
+    private final Map<UUID,Dataset> datasetMap;
+
+    GetDatasetTileAnswer(List<ConstituentDataset> constituentDatasets) {
+      datasetMap = constituentDatasets.stream().collect(Collectors.toMap(ConstituentDataset::getKey, ConstituentDataset::getDataset));
+    }
+
+    @Override
+    public String answer(InvocationOnMock invocation) {
+      return datasetMap.get(invocation.getArgument(0)).getTitle();
     }
   }
 }

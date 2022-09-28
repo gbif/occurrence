@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
@@ -23,18 +24,18 @@ import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.FileUtils;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -70,11 +71,12 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
 
   private static final EMLWriter EML_WRITER = EMLWriter.newInstance(true);
 
+  private static final ObjectMapper OBJECT_MAPPER = JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport();
+
   private final Download download;
   private final TitleLookupService titleLookup;
   private final File archiveDir;
-  private final DownloadJobConfiguration jobConfiguration;
-  private final WorkflowConfiguration workflowConfiguration;
+  private final Function<Download,URI> downloadLinkProvider;
   private final StringBuilder description = new StringBuilder();
 
   @Builder
@@ -82,25 +84,32 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     Download download,
     TitleLookupService titleLookup,
     File archiveDir,
-    DownloadJobConfiguration jobConfiguration,
-    WorkflowConfiguration workflowConfiguration
+    Function<Download,URI> downloadLinkProvider
   ) {
     this.download = download;
     this.titleLookup = titleLookup;
     this.archiveDir = archiveDir;
-    this.jobConfiguration = jobConfiguration;
-    this.workflowConfiguration = workflowConfiguration;
+    this.downloadLinkProvider = downloadLinkProvider;
     initDescription();
   }
 
+  @SneakyThrows
+  private String jsonPredicate() {
+    if (download.getRequest() instanceof PredicateDownloadRequest) {
+      return OBJECT_MAPPER.writeValueAsString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+    }
+    return "";
+  }
+
   private String readPredicateQuery() {
-    String humanQuery = jobConfiguration.getFilter();
+    String humanQuery = jsonPredicate();
     try {
-      ObjectMapper mapper = new ObjectMapper();
-      Predicate p = mapper.readValue(jobConfiguration.getFilter(), Predicate.class);
-      humanQuery = new HumanPredicateBuilder(titleLookup).humanFilterString(p);
+      if (download.getRequest() instanceof PredicateDownloadRequest) {
+        Predicate p = ((PredicateDownloadRequest) download.getRequest()).getPredicate();
+        return new HumanPredicateBuilder(titleLookup).humanFilterString(p);
+      }
     } catch (Exception e) {
-      log.error("Failed to transform JSON query into human query: {}", jobConfiguration.getFilter(), e);
+      log.error("Failed to transform JSON query into human query: {}", humanQuery, e);
     }
     return humanQuery;
   }
@@ -123,26 +132,26 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   }
 
   @SneakyThrows
-  protected DataDescription createDataDescription() {
+  private DataDescription createDataDescription() {
     // link back to archive
     DataDescription dataDescription = new DataDescription();
     dataDescription.setName(DATA_DESC_FORMAT);
     dataDescription.setFormat(DATA_DESC_FORMAT);
     dataDescription.setCharset(Charsets.UTF_8.displayName());
-    dataDescription.setUrl(new URI(workflowConfiguration.getDownloadLink(jobConfiguration.getDownloadKey())));
+    dataDescription.setUrl(downloadLinkProvider.apply(download));
     return dataDescription;
   }
 
   private Dataset derivedDatasetFromDownload(){
     Dataset dataset = new Dataset();
     // Random UUID use because the downloadKey is not a string in UUID format
-    String downloadUniqueID = jobConfiguration.getDownloadKey();
+    String downloadUniqueID = download.getKey();
     if (download.getDoi() != null) {
       downloadUniqueID = download.getDoi().getDoiName();
       dataset.setDoi(download.getDoi());
       Identifier identifier = new Identifier();
       identifier.setCreated(download.getCreated());
-      identifier.setIdentifier(jobConfiguration.getDownloadKey());
+      identifier.setIdentifier(download.getKey());
       identifier.setType(IdentifierType.GBIF_PORTAL);
       dataset.setIdentifiers(Lists.newArrayList(identifier));
     }

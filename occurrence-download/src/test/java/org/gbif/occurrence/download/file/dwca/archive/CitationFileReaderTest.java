@@ -34,7 +34,9 @@ import org.junit.jupiter.api.io.TempDir;
 import lombok.SneakyThrows;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for citation file reads.
@@ -45,10 +47,12 @@ public class CitationFileReaderTest {
   static Path tempDir;
 
   /**
-   * new Mock DatasetService instance.
+   * Mock DatasetService.get(UUID) method.
    */
   private DatasetService mockDatasetService() {
-    return mock(DatasetService.class, new Answers.GetDatasetAnswer());
+    DatasetService datasetService = mock(DatasetService.class);
+    when(datasetService.get(any())).thenAnswer(new Answers.GetDatasetAnswer());
+    return  datasetService;
   }
 
   /**

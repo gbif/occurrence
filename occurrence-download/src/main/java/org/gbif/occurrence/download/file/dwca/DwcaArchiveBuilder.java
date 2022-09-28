@@ -28,6 +28,7 @@ import org.gbif.occurrence.query.TitleLookupServiceFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -122,10 +123,14 @@ public class DwcaArchiveBuilder {
     return registryClientUtil.occurrenceDownloadService(jobConfiguration.getCoreTerm());
   }
 
+  @SneakyThrows
+  private URI getDownloadLink(Download download) {
+    return new URI(workflowConfiguration.getDownloadLink(download.getKey()));
+  }
+
   private DownloadMetadataBuilder getDownloadMetadataBuilder() {
     return DownloadMetadataBuilder.builder()
-            .jobConfiguration(jobConfiguration)
-            .workflowConfiguration(workflowConfiguration)
+            .downloadLinkProvider(this::getDownloadLink)
             .archiveDir(archiveDir)
             .titleLookup(TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl()))
             .download(download)

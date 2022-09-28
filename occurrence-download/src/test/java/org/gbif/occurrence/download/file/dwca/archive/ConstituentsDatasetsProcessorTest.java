@@ -28,18 +28,29 @@ import org.junit.jupiter.api.io.TempDir;
 import lombok.SneakyThrows;
 
 import static org.gbif.occurrence.download.file.dwca.archive.ConstituentsRightsWriter.RIGHTS_LINE_TEMPLATE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ConstituentsDatasetsProcessorTest {
 
   @TempDir
   static Path tempDir;
 
+  /**
+   * Mock for datasetService.getMetadataDocument method.
+   */
+  private DatasetService mockDatasetService() {
+    DatasetService datasetService = mock(DatasetService.class);
+    when(datasetService.getMetadataDocument(any())).thenAnswer(new Answers.MetadataDocumentAnswer());
+    return datasetService;
+  }
+
   private ConstituentsDatasetsProcessor testConstituentsDatasetsProcessor() {
     return ConstituentsDatasetsProcessor
             .builder()
             .archiveDir(tempDir.toFile())
-            .datasetService(mock(DatasetService.class, new Answers.MetadataDocumentAnswer()))
+            .datasetService(mockDatasetService())
             .build();
   }
 
