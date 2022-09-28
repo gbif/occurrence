@@ -17,6 +17,7 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.test.servers.HBaseServer;
 import org.gbif.pipelines.fragmenter.common.HbaseStore;
+import org.gbif.pipelines.fragmenter.common.RawRecord;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.InputStream;
@@ -68,18 +69,18 @@ public class FragmentInitializer implements BeforeAllCallback {
 
     //Load fragment table using the JSON test data.
     try (Table fragmentTable = hBaseServer.getConnection().getTable(fragmentTableName);
-         InputStream testDataFileStream = applicationContext.getResource(testDataFile).getInputStream()) {
+      InputStream testDataFileStream = applicationContext.getResource(testDataFile).getInputStream()) {
 
       MAPPER.readTree(testDataFileStream).forEach(jsonNode -> {
         try {
-          Map<String, String> record = Collections.singletonMap(getSaltedKey(jsonNode.get("gbifId").asLong(),
-                                                                             occHBaseConfiguration.getFragmenterSalt()),
-                                                                MAPPER.writeValueAsString(jsonNode));
+          String gbifId = getSaltedKey(jsonNode.get("gbifId").asLong(), occHBaseConfiguration.getFragmenterSalt());
+          RawRecord rawRecord = RawRecord.create(MAPPER.writeValueAsString(jsonNode));
+          Map<String, RawRecord> record = Collections.singletonMap(gbifId, rawRecord);
           HbaseStore.putRecords(fragmentTable,
-                                jsonNode.get("datasetKey").asText(),
-                                jsonNode.get("crawlId").asInt(),
-                                EndpointType.fromString(jsonNode.get("protocol").asText()),
-                                record);
+            jsonNode.get("datasetKey").asText(),
+            jsonNode.get("crawlId").asInt(),
+            EndpointType.fromString(jsonNode.get("protocol").asText()),
+            record);
         } catch (JsonProcessingException ex) {
           throw new RuntimeException(ex);
         }
