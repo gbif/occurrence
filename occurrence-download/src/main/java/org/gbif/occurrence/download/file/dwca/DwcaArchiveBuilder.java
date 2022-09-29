@@ -145,10 +145,7 @@ public class DwcaArchiveBuilder {
   }
 
   private DownloadUsagesPersist getDownloadUsagesPersist() {
-    return DownloadUsagesPersist.builder()
-      .occurrenceDownloadService(occurrenceDownloadService)
-      .downloadKey(jobConfiguration.getDownloadKey())
-      .build();
+    return DownloadUsagesPersist.create(occurrenceDownloadService);
   }
 
   private CitationFileReader citationFileReader() {
@@ -162,7 +159,7 @@ public class DwcaArchiveBuilder {
       })
       .onFinish(datasetUsages -> {
         //Persist Dataset Usages
-        downloadUsagesPersist.persistUsages(datasetUsages);
+        downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
 
         // persist the License assigned to the download
         downloadUsagesPersist.persistDownloadLicense(download, constituentsDatasetsProcessor.getSelectedLicense());

@@ -20,17 +20,16 @@ import org.gbif.api.vocabulary.License;
 import java.util.Map;
 import java.util.UUID;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Builder
+@AllArgsConstructor(staticName = "create")
 public class DownloadUsagesPersist {
 
-  private final String downloadKey;
   private final OccurrenceDownloadService occurrenceDownloadService;
 
-  public void persistUsages(Map<UUID,Long> datasetUsages) {
+  public void persistUsages(String downloadKey, Map<UUID,Long> datasetUsages) {
     try {
       occurrenceDownloadService.createUsages(downloadKey, datasetUsages);
     } catch(Exception e) {
@@ -46,7 +45,7 @@ public class DownloadUsagesPersist {
       download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      log.error("Error updating download license, downloadKey: {}, license: {}", downloadKey, license, ex);
+      log.error("Error updating download license, downloadKey: {}, license: {}", download.getKey(), license, ex);
     }
   }
 }

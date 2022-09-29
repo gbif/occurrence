@@ -17,11 +17,14 @@ import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.vocabulary.License;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import lombok.experimental.UtilityClass;
 
@@ -71,10 +74,25 @@ public class Datasets {
       .build();
   }
 
+  /**
+   * Creates a test list of constituents datasets.
+   */
   public static List<ConstituentDataset> testConstituentsDatasets(int size) {
     return IntStream.range(0, size)
              .boxed()
              .map(Datasets::newConstituentDataset)
              .collect(Collectors.toList());
+  }
+
+  /**
+   * Creates a maps of dataset keys and usages/counts.
+   * The count is the index number.
+   */
+  public static Map<UUID,Long> testUsages(int numberOfRecords) {
+    HashMap<UUID,Long> usages = new HashMap<>();
+    LongStream.rangeClosed(1, numberOfRecords + 1)
+      .boxed()
+      .forEach(count -> usages.put(UUID.randomUUID(), count));
+    return usages;
   }
 }

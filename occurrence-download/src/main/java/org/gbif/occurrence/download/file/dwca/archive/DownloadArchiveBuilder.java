@@ -86,7 +86,7 @@ public class DownloadArchiveBuilder {
    * Zips archive content.
    */
   private void zipArchive() throws IOException {
-    String zipFileName = configuration.getDownloadKey() + ".zip";
+    String zipFileName = download.getKey() + ".zip";
     // zip up
     Path hdfsTmpZipPath = new Path(workflowConfiguration.getHdfsTempDir(), zipFileName);
     log.info("Zipping archive {} to HDFS temporary location {}", archiveDir, hdfsTmpZipPath);
@@ -122,7 +122,7 @@ public class DownloadArchiveBuilder {
    * Main method to assemble the DwC archive and do all the work until we have a final zip file.
    */
   public void buildArchive() {
-    log.info("Start building the archive for {} ", configuration.getDownloadKey());
+    log.info("Start building the archive for {} ", download.getKey());
     try {
 
       initializeArchiveDir();
