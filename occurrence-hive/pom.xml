@@ -77,6 +77,10 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.geocode</groupId>
+      <artifactId>geocode-ws</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-processor</artifactId>
       <exclusions>

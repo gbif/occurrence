@@ -16,7 +16,6 @@ package org.gbif.occurrence.processor.interpreting.clients;
 import org.gbif.geocode.api.model.Location;
 import org.gbif.geocode.api.service.GeocodeService;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -39,7 +38,7 @@ public interface GeocodeWsClient extends GeocodeService {
   )
   @ResponseBody
   @Override
-  Collection<Location> get(@RequestParam("lat") Double lat, @RequestParam("lng") Double lng,
+  List<Location> get(@RequestParam("lat") Double lat, @RequestParam("lng") Double lng,
                            @Nullable @RequestParam(value = "uncertaintyDegrees", required = false) Double uncertaintyDegrees,
                            @Nullable @RequestParam(value = "uncertaintyMeters", required = false) Double uncertaintyMeters);
 
@@ -48,7 +47,7 @@ public interface GeocodeWsClient extends GeocodeService {
   )
   @ResponseBody
   @Override
-  Collection<Location> get(@RequestParam("lat") Double lat, @RequestParam("lng") Double lng,
+  List<Location> get(@RequestParam("lat") Double lat, @RequestParam("lng") Double lng,
                                   @Nullable @RequestParam(value = "uncertaintyDegrees", required = false) Double uncertaintyDegrees,
                                   @Nullable @RequestParam(value = "uncertaintyMeters", required = false) Double uncertaintyMeters,
                                   @Nullable @RequestParam(value = "layer", required = false) List<String> layers);

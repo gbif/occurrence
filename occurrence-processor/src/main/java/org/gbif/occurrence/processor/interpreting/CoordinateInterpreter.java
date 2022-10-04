@@ -13,36 +13,27 @@
  */
 package org.gbif.occurrence.processor.interpreting;
 
+import com.google.common.collect.Lists;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.geospatial.CoordinateParseUtils;
 import org.gbif.common.parsers.geospatial.LatLng;
-import org.gbif.kvs.KeyValueStore;
-import org.gbif.kvs.geocode.GeocodeKVStoreFactory;
+import org.gbif.geocode.api.model.Location;
+import org.gbif.geocode.api.service.GeocodeService;
+import org.gbif.occurrence.processor.interpreting.clients.GeocodeWsClient;
 import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
-import org.gbif.rest.client.configuration.ClientConfiguration;
-import org.gbif.rest.client.geocode.GeocodeResponse;
-import org.gbif.rest.client.geocode.Location;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiFunction;
-
-import javax.annotation.Nullable;
-
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.function.BiFunction;
 
 /**
  * Attempts to parse given string latitude and longitude into doubles, and compares the given country (if any) to a reverse
@@ -59,7 +50,7 @@ public class CoordinateInterpreter {
   // Antarctica: "Territories south of 60° south latitude"
   private static final double ANTARCTICA_LATITUDE = -60;
 
-  private KeyValueStore<org.gbif.kvs.geocode.LatLng, GeocodeResponse> kvStore;
+  private GeocodeService geocodeClient;
 
   static {
     TRANSFORMS.put(Collections.emptyList(), LatLng::new);
@@ -76,7 +67,19 @@ public class CoordinateInterpreter {
    */
   @Autowired
   public CoordinateInterpreter(String apisWsUrl) {
-    kvStore = GeocodeKVStoreFactory.simpleGeocodeKVStore(ClientConfiguration.builder().withBaseApiUrl(apisWsUrl).build());
+    this.geocodeClient =
+      new ClientBuilder()
+        .withUrl(apisWsUrl)
+        .withFormEncoder()
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .build(GeocodeWsClient.class);
+  }
+
+  /**
+   * Create with a custom GeocodeService, e.g. shapefiles.
+   */
+  public CoordinateInterpreter(GeocodeService geocodeService) {
+    this.geocodeClient = geocodeService;
   }
 
   /**
@@ -244,22 +247,19 @@ public class CoordinateInterpreter {
       return Collections.emptyList();
     }
 
-
-    org.gbif.kvs.geocode.LatLng latLng = new org.gbif.kvs.geocode.LatLng(coord.getLat(), coord.getLng());
-
-    LOG.debug("Attempt to lookup coord {}", latLng);
     try {
-      GeocodeResponse response = kvStore.get(latLng);
-      if (response != null && response.getLocations() != null && response.getLocations().size() > 0) {
-        LOG.debug("Successfully retrieved [{}] locations for coord {}", response.getLocations().size(), coord);
-        for (Location loc : response.getLocations()) {
+      Collection<Location> response = geocodeClient.get(coord.getLat(), coord.getLng(), null, null, Collections.singletonList("Political"));
+
+      if (response != null) {
+        LOG.debug("Successfully retrieved [{}] locations for coord {}", response.size(), coord);
+        for (Location loc : response) {
           if (loc.getIsoCountryCode2Digit() != null) {
             countries.add(Country.fromIsoCode(loc.getIsoCountryCode2Digit()));
           }
         }
         LOG.debug("Countries are {}", countries);
       }
-      else if (response != null && response.getLocations() != null && response.getLocations().size() == 0 && isAntarctica(coord.getLat(), null)) {
+      else if (isAntarctica(coord.getLat(), null)) {
         // If no country is returned from the geocode, add Antarctica if we're sufficiently far south
         countries.add(Country.ANTARCTICA);
       }
