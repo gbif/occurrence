@@ -56,6 +56,11 @@ public class QueryVisitorsFactory {
       public String getGeoShapeField() {
         return fieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_SHAPE);
       }
+
+      @Override
+      public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
+        return org.gbif.occurrence.search.es.EsFieldMapper.isVocabulary(searchParameter);
+      }
     });
   }
 }

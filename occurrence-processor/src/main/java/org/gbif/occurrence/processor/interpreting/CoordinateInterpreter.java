@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.processor.interpreting;
 
-import com.google.common.collect.Lists;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
@@ -27,13 +26,17 @@ import org.gbif.occurrence.processor.interpreting.util.CountryMaps;
 import org.gbif.occurrence.processor.interpreting.util.Wgs84Projection;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import java.util.*;
+import java.util.function.BiFunction;
+
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.function.BiFunction;
+import com.google.common.collect.Lists;
 
 /**
  * Attempts to parse given string latitude and longitude into doubles, and compares the given country (if any) to a reverse

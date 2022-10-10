@@ -20,6 +20,7 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.geocode.ws.service.impl.ShapefileGeocoder;
 import org.gbif.occurrence.processor.interpreting.CoordinateInterpreter;
 import org.gbif.occurrence.processor.interpreting.LocationInterpreter;
+import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +35,6 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorConverters;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.gbif.occurrence.processor.interpreting.result.CoordinateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

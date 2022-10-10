@@ -40,4 +40,11 @@ public class OccurrenceEsFieldMapper implements EsFieldMapper<OccurrenceSearchPa
   public String getGeoShapeField() {
     return OccurrenceEsField.COORDINATE_SHAPE.getSearchFieldName();
   }
+
+
+  @Override
+  public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
+    return org.gbif.occurrence.search.es.EsFieldMapper.isVocabulary(searchParameter) ;
+  }
+
 }

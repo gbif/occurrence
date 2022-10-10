@@ -237,5 +237,9 @@ public class EsFieldMapper {
     return VOCABULARY_FIELDS.contains(esField);
   }
 
+  public static boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
+    return isVocabulary(SEARCH_TO_ES_MAPPING.get(searchParameter));
+  }
+
 
 }
