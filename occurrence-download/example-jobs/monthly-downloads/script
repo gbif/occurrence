@@ -12,10 +12,10 @@ function waitDl() {
 }
 
 for i in \
-  cloud-upload-simple-parquet.json \
+  monthly-everything-mol.json \
+    cloud-upload-simple-parquet.json \
     monthly-georeferenced-csv.json monthly-present-csv.json monthly-everything-csv.json monthly-ebird-csv.json \
     monthly-georeferenced-dwc.json monthly-present-dwc.json monthly-everything-dwc.json \
-    monthly-everything-mol.json \
     monthly-everything-avro.json
 do
   echo "Starting download '$i'"
