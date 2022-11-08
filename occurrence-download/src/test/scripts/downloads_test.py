@@ -40,7 +40,7 @@ class BaseDownloadTestCase(unittest.TestCase):
   def num_lines_in_file(self, fpath):
     """ Counts the number of lines in a file.
     """
-    return int(subprocess.check_output('wc -l %s' % fpath, shell=True).strip().split()[0])
+    return int(subprocess.check_output('grep -c ^ %s' % fpath, shell=True).strip().split()[0])
 
   def count_last_line_columns(self, fpath):
     """ Read the last line of file.
@@ -173,7 +173,8 @@ class DwcaDownloadTest(BaseDownloadTestCase):
   def test_rights_count(self):
     """ Has the rights file the correct number of records?
     """
-    num_rights_records = self.num_lines_in_file(self.rights_file) / 2
+    num_lines = self.num_lines_in_file(self.rights_file)
+    num_rights_records = num_lines / 2
     num_datasets = int(self.download['numberDatasets'])
     self.assertEquals(num_rights_records, num_datasets, 'Number of reported datasets {} and rights entries {} differ'.format(num_datasets, num_rights_records))
 
