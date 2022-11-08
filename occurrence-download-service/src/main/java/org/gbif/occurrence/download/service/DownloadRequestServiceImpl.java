@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -38,6 +39,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import lombok.SneakyThrows;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
@@ -293,10 +295,18 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   /**
    * Returns the download size in bytes.
    */
+  @SneakyThrows
   private Long getDownloadSize(Download download) {
     File downloadFile = new File(downloadMount, getDownloadFilename(download));
     if (downloadFile.exists()) {
-      return downloadFile.length();
+      long size = downloadFile.length();
+      //two-fold approach when size is zero
+      if (size == 0) {
+        LOG.warn("Reading the file to calculate its size, zero length reported by file.lenght(). file {}", downloadFile);
+        try (FileChannel fileChannel = FileChannel.open(downloadFile.toPath())) {
+          return fileChannel.size();
+        }
+      }
     }
     LOG.warn("Download file not found {}", downloadFile.getName());
     return 0L;
