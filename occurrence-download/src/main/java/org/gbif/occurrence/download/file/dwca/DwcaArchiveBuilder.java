@@ -39,6 +39,8 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import static org.gbif.occurrence.download.util.ArchiveFileUtils.initializeArchiveDir;
+
 /**
  * Creates a DWC archive for occurrence downloads based on the hive query result files generated
  * during the Oozie workflow. It creates a local archive folder with an occurrence data file and a dataset sub-folder
@@ -81,6 +83,8 @@ public class DwcaArchiveBuilder {
     sourceFs = getSourceFs();
     targetFs = getTargetFs();
     archiveDir = getArchiveDir();
+
+    initializeArchiveDir(archiveDir, jobConfiguration);
 
     //Archive helpers
     metadataBuilder = getDownloadMetadataBuilder();

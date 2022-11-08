@@ -24,7 +24,6 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
-import org.gbif.utils.file.FileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -53,6 +52,7 @@ import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstan
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.VERBATIM_FILENAME;
+import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
 
 /**
  * Creates a DWC archive for occurrence downloads based on the hive query result files generated
@@ -108,15 +108,6 @@ public class DownloadArchiveBuilder {
                     new Path(workflowConfiguration.getHdfsOutputPath(), zipFileName));
   }
 
-  private void initializeArchiveDir() {
-    if (!configuration.isSmallDownload()) {
-      // oozie might try several times to run this job, so make sure our filesystem is clean
-      cleanupFS();
-
-      // create the temp archive dir
-      archiveDir.mkdirs();
-    }
-  }
 
   /**
    * Main method to assemble the DwC archive and do all the work until we have a final zip file.
@@ -124,8 +115,6 @@ public class DownloadArchiveBuilder {
   public void buildArchive() {
     log.info("Start building the archive for {} ", download.getKey());
     try {
-
-      initializeArchiveDir();
 
       citationFileReader.read();
 
@@ -139,7 +128,7 @@ public class DownloadArchiveBuilder {
       throw new RuntimeException(e);
     } finally {
       //cleanUp temp dir
-      cleanupFS();
+      cleanupFS(archiveDir);
     }
   }
 
@@ -240,16 +229,6 @@ public class DownloadArchiveBuilder {
       ze.setCrc(in.getCrc32());
     } finally {
       out.closeEntry();
-    }
-  }
-
-  /**
-   * Removes all temporary file system artifacts but the final zip archive.
-   */
-  private void cleanupFS() {
-    log.info("Cleaning up archive directory {}", archiveDir.getPath());
-    if (archiveDir.exists()) {
-      FileUtils.deleteDirectoryRecursively(archiveDir);
     }
   }
 
