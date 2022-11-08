@@ -204,7 +204,7 @@ public class DownloadResource {
 
   /**
    * Creates/Starts an occurrence download.
-   *
+   * <p>
    * Non-admin users may be given an existing download key, where the monthly download user
    * has already created a suitable download.
    */
@@ -257,12 +257,12 @@ public class DownloadResource {
     @Autowired HttpServletRequest httpRequest,
     @RequestParam(name = "notification_address", required = false) String emails,
     @RequestParam("format") String format,
-    @RequestParam("extensions") String extensions,
+    @RequestParam(name = "extensions", required = false) String extensions,
     @Autowired Principal principal
   ) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return createDownload(downloadPredicate(httpRequest, emails, extensions, format, principal), authentication, principal);
+    return createDownload(downloadPredicate(httpRequest, emails, format, extensions, principal), authentication, principal);
   }
 
   @GetMapping("predicate")
@@ -270,7 +270,7 @@ public class DownloadResource {
     @Autowired HttpServletRequest httpRequest,
     @RequestParam(name = "notification_address", required = false) String emails,
     @RequestParam("format") String format,
-    @RequestParam("extensions") String extensions,
+    @RequestParam(name = "extensions", required = false) String extensions,
     @Autowired Principal principal
   ) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
