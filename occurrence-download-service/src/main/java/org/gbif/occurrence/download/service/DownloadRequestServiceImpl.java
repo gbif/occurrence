@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -39,7 +40,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import lombok.SneakyThrows;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
@@ -61,6 +61,11 @@ import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import lombok.SneakyThrows;
+
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
@@ -74,6 +79,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final Set<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
+
+  private static final Retry DOWNLOAD_SIZE_RETRY =
+    Retry.of(
+      "downloadSizeCall",
+      RetryConfig.<Boolean>custom()
+        .maxAttempts(3)
+        .retryOnResult(result -> !result)
+        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(3)))
+        .build());
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -298,7 +312,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   @SneakyThrows
   private Long getDownloadSize(Download download) {
     File downloadFile = new File(downloadMount, getDownloadFilename(download));
-    if (downloadFile.exists()) {
+    if (Retry.decorateSupplier(DOWNLOAD_SIZE_RETRY, downloadFile::exists).get()) {
       long size = downloadFile.length();
       //two-fold approach when size is zero
       if (size == 0) {
