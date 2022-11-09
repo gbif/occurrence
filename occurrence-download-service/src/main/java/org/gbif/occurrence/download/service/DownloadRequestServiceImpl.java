@@ -312,7 +312,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   @SneakyThrows
   private Long getDownloadSize(Download download) {
     File downloadFile = new File(downloadMount, getDownloadFilename(download));
-    if (Retry.decorateSupplier(DOWNLOAD_SIZE_RETRY, downloadFile::exists).get()) {
+    if (Retry.decorateSupplier(DOWNLOAD_SIZE_RETRY, downloadFile::canRead).get()) {
       long size = downloadFile.length();
       //two-fold approach when size is zero
       if (size == 0) {
