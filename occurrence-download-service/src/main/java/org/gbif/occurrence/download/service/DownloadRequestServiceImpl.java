@@ -84,8 +84,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Retry.of(
       "downloadSizeCall",
       RetryConfig.<Boolean>custom()
-        .maxAttempts(3)
+        .maxAttempts(5)
         .retryOnResult(result -> !result)
+        .waitDuration(Duration.ofSeconds(1))
         .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(3)))
         .build());
 
@@ -322,7 +323,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         }
       }
     }
-    LOG.warn("Download file not found {}", downloadFile.getName());
+    LOG.warn("Download file not found {}", downloadFile.getAbsolutePath());
     return 0L;
   }
 
