@@ -86,7 +86,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       RetryConfig.<Boolean>custom()
         .maxAttempts(5)
         .retryOnResult(result -> !result)
-        .waitDuration(Duration.ofSeconds(1))
         .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(3)))
         .build());
 
