@@ -237,13 +237,6 @@
       <artifactId>spring-boot-admin-starter-client</artifactId>
     </dependency>
 
-    <!-- Retries -->
-    <dependency>
-      <groupId>io.github.resilience4j</groupId>
-      <artifactId>resilience4j-retry</artifactId>
-      <version>${resilience4j.version}</version>
-    </dependency>
-
     <!-- Serialization -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

@@ -29,8 +29,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -61,11 +59,6 @@ import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import lombok.SneakyThrows;
-
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
@@ -79,15 +72,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final Set<Download.Status> RUNNING_STATUSES = EnumSet.of(Download.Status.PREPARING,
                                                                              Download.Status.RUNNING,
                                                                              Download.Status.SUSPENDED);
-
-  private static final Retry DOWNLOAD_SIZE_RETRY =
-    Retry.of(
-      "downloadSizeCall",
-      RetryConfig.<Boolean>custom()
-        .maxAttempts(5)
-        .retryOnResult(result -> !result)
-        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(3)))
-        .build());
 
   /**
    * Map to provide conversions from oozie.Job.Status to Download.Status.
@@ -292,7 +276,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       case SUCCEEDED:
         SUCCESSFUL_DOWNLOADS.inc();
-        updateDownloadStatus(download, newStatus);
+        updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download
         if (download.getRequest().getSendNotification()) {
           emailModel = emailManager.generateSuccessfulDownloadEmailModel(download, portalUrl);
@@ -306,23 +290,17 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  /**
-   * Returns the download size in bytes.
-   */
-  @SneakyThrows
   private Long getDownloadSize(Download download) {
-    File downloadFile = new File(downloadMount, getDownloadFilename(download));
-    if (Retry.decorateSupplier(DOWNLOAD_SIZE_RETRY, downloadFile::canRead).get()) {
-      long size = downloadFile.length();
-      //two-fold approach when size is zero
+    File file = new File(downloadMount, getDownloadFilename(download));
+    if (file.canRead()) {
+      long size = file.length();
       if (size == 0) {
-        LOG.warn("Reading the file to calculate its size, zero length reported by file.lenght(). file {}", downloadFile);
-        try (FileChannel fileChannel = FileChannel.open(downloadFile.toPath())) {
-          return fileChannel.size();
-        }
+        LOG.warn("Download file {} size not read accurately, 0 length returned", file.getAbsolutePath());
       }
+      return size;
+    } else {
+      LOG.warn("Can't read download file {}", file.getAbsolutePath());
     }
-    LOG.warn("Download file not found {}", downloadFile.getAbsolutePath());
     return 0L;
   }
 
@@ -339,13 +317,17 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     occurrenceDownloadService.create(download);
   }
 
-
   /**
    * Updates the download status and file size.
    */
   private void updateDownloadStatus(Download download, Download.Status newStatus) {
     download.setStatus(newStatus);
-    download.setSize(getDownloadSize(download));
+    occurrenceDownloadService.update(download);
+  }
+
+  private void updateDownloadStatus(Download download, Download.Status newStatus, long size) {
+    download.setStatus(newStatus);
+    download.setSize(size);
     occurrenceDownloadService.update(download);
   }
 

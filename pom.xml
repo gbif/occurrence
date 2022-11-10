@@ -186,7 +186,6 @@
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
     <cache2k.version>2.4.1.Final</cache2k.version>
-    <resilience4j.version>1.7.1</resilience4j.version>
     <!-- all of these get overridden in profiles below, but problems releasing if these aren't here -->
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
@@ -655,13 +654,6 @@
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
         <version>${freemarker.version}</version>
-      </dependency>
-
-      <!-- Retries -->
-      <dependency>
-        <groupId>io.github.resilience4j</groupId>
-        <artifactId>resilience4j-retry</artifactId>
-        <version>${resilience4j.version}</version>
       </dependency>
 
       <!-- these runtimes to avoid version mismatch dependency hell -->
