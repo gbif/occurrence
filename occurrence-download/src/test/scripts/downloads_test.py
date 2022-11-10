@@ -174,7 +174,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     """ Has the rights file the correct number of records?
     """
     num_lines = self.num_lines_in_file(self.rights_file)
-    num_rights_records = num_lines / 2
+    num_rights_records = num_lines if num_lines == 1 else num_lines / 2
     num_datasets = int(self.download['numberDatasets'])
     self.assertEquals(num_rights_records, num_datasets, 'Number of reported datasets {} and rights entries {} differ'.format(num_datasets, num_rights_records))
 

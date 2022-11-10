@@ -290,6 +290,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
+  /**
+   * Tries to get the size of a download file.
+   * Logs as warning if the size is 0 or if the file can't be read.
+   */
   private Long getDownloadSize(Download download) {
     File file = new File(downloadMount, getDownloadFilename(download));
     if (file.canRead()) {
