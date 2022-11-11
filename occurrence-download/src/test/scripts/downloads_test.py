@@ -8,7 +8,7 @@ To run this script use python downloads_test.py download_url working_dir, for ex
 """
 
 import wget, zipfile, os, subprocess, shutil, unittest, requests, sys, inspect, argparse, pandas, untangle
-from lxml import objectify
+from lxml import etree
 
 #expose the following classes
 __all__ = ['BaseDownloadTestCase','CsvDownloadTest','DwcaDownloadTest']
@@ -178,6 +178,21 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     num_datasets = int(self.download['numberDatasets'])
     self.assertEquals(num_rights_records, num_datasets, 'Number of reported datasets {} and rights entries {} differ'.format(num_datasets, num_rights_records))
 
+  def test_extensions_exist(self):
+    """ All extensions in meta.xml have existing files?
+    """
+    meta_xml = etree.parse(self.meta_xml_file)
+    for extension_file in meta_xml.xpath('/xmlns:archive/xmlns:extension/xmlns:files/xmlns:location/text()', namespaces={'xmlns': 'http://rs.tdwg.org/dwc/text/'}):
+      self.assertTrue(os.path.exists(os.path.join(self.download_extract_path, extension_file)), 'Extension file does not exist')
+
+  def test_requested_extensions_exist(self):
+    """ All requested extensions exists in the meta.xml file?
+    """
+    meta_xml = etree.parse(self.meta_xml_file)
+    for extension in self.download.get('extensions', []):
+      self.assertEquals(1, len(meta_xml.xpath('/xmlns:archive/xmlns:extension[@rowType="' + extension + '"]/xmlns:files/xmlns:location/text()', namespaces={'xmlns': 'http://rs.tdwg.org/dwc/text/'})),
+                        'Requested extension no present in meta.xml')
+
 class SpeciesListDownloadTest(BaseDownloadTestCase):
 
   """ TestCase class to perform sanity checks against a SpeciesList download.
@@ -294,10 +309,10 @@ if __name__ == '__main__':
 
   #Validates the test results
   if result.testsRun == 0:
-    print ('WARNING -None tests were executed using {0}'.format(', '.join(sys.argv[1:])))
+    print('WARNING -None tests were executed using {0}'.format(', '.join(sys.argv[1:])))
   if result.wasSuccessful():
-    print ('OK - All tests passed using {0}'.format(', '.join(sys.argv[1:])))
+    print('OK - All tests passed using {0}'.format(', '.join(sys.argv[1:])))
     sys.exit(0)
   else:
-    print ('CRITICAL - Tests failed using {0}'.format(', '.join(sys.argv[1:])))
+    print('CRITICAL - Tests failed using {0}'.format(', '.join(sys.argv[1:])))
     sys.exit(2)
