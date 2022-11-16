@@ -119,6 +119,7 @@ public class OccurrenceResource {
     return null;
   }
 
+
   /**
    * This retrieves a single occurrence in its raw form as a string.
    *

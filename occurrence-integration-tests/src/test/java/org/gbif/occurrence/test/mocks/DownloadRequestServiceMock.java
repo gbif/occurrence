@@ -65,11 +65,12 @@ public class DownloadRequestServiceMock implements DownloadRequestService {
   }
 
   @Override
-  public String create(@NotNull DownloadRequest downloadRequest) {
+  public String create(@NotNull DownloadRequest downloadRequest, String source) {
     Download download = new Download();
     download.setStatus(Download.Status.PREPARING);
     download.setRequest(downloadRequest);
     download.setCreated(new Date());
+    download.setSource(source);
     occurrenceDownloadService.create(download);
     downloadCallbackService.processCallback(download.getKey(), Download.Status.PREPARING.name());
     return download.getKey();

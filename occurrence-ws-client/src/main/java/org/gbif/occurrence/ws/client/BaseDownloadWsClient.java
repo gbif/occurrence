@@ -19,19 +19,12 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import java.io.File;
 import java.io.InputStream;
 import java.util.function.Consumer;
-
 import javax.annotation.Nullable;
 
+import feign.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import feign.Response;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Client-side implementation to the ChecklistService.
@@ -48,14 +41,14 @@ public interface BaseDownloadWsClient extends DownloadRequestService {
   @Override
   void cancel(@PathVariable("downloadKey") String downloadKey);
 
-
   @RequestMapping(
-    method = RequestMethod.POST,
-    produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
-    consumes =  MediaType.APPLICATION_JSON_VALUE
-  )
+      method = RequestMethod.POST,
+      produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
+      consumes = MediaType.APPLICATION_JSON_VALUE)
   @Override
-  String create(@RequestBody DownloadRequest download);
+  String create(
+      @RequestBody DownloadRequest download,
+      @RequestParam(name = "source", required = false) String source);
 
   @Override
   default InputStream getResult(String downloadKey) {

@@ -91,7 +91,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
 
   @Test
   public void startDownloadTest() {
-    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
+    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest(), null);
     assertNotNull(downloadKey, "DownloadKey is null!");
   }
 
@@ -103,13 +103,13 @@ public class OccurrenceOccurrenceDownloadResourceIT {
 
     // Exception expected
     assertThrows(
-        AccessDeniedException.class, () -> downloadWsClient.create(predicateDownloadRequest));
+        AccessDeniedException.class, () -> downloadWsClient.create(predicateDownloadRequest, null));
   }
 
   @Test
   public void cancelDownloadTest() {
     // Create
-    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
+    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest(), "fakeSource");
     assertNotNull(downloadKey, "DownloadKey is null!");
 
     // Cancel
@@ -122,13 +122,14 @@ public class OccurrenceOccurrenceDownloadResourceIT {
         Download.Status.CANCELLED,
         download.getStatus(),
         "Occurrence download status is not Cancelled!");
+    assertEquals("fakeSource", download.getSource());
   }
 
   @Test
   @SneakyThrows
   public void getDownloadResultTest() {
     // Create
-    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest());
+    String downloadKey = downloadWsClient.create(testPredicateDownloadRequest(), null);
 
     // Check is not null
     assertNotNull(downloadKey, "DownloadKey is null!");
