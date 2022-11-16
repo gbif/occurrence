@@ -181,8 +181,8 @@ public class DownloadResource {
   @ResponseBody
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
-      @RequestParam(name = "source", required = false) String source,
       @NotNull @Valid @RequestBody PredicateDownloadRequest request,
+      @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     try {

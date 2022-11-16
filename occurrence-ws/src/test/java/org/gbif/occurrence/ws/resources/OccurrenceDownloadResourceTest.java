@@ -63,14 +63,14 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    ResponseEntity<String> response = resource.startDownload(dl, principal);
+    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test
   public void testStartDownloadNotAuthenticated() {
     prepareMocks("foo");
-    ResponseEntity<String> response = resource.startDownload(dl, principal);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
@@ -94,6 +94,6 @@ public class OccurrenceDownloadResourceTest {
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.EMPTY_LIST);
     when(downloadService.listByUser(any(), any(), any())).thenReturn(empty);
-    when(service.create(dl)).thenReturn(JOB_ID);
+    when(service.create(dl, null)).thenReturn(JOB_ID);
   }
 }

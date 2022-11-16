@@ -56,6 +56,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -98,7 +99,7 @@ public class DownloadServiceImplTest {
     when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
     DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true, DownloadFormat.DWCA, DownloadType.OCCURRENCE,
                                                       Collections.singleton(Extension.AUDUBON));
-    String id = requestService.create(dl);
+    String id = requestService.create(dl, null);
 
     assertThat(id, equalTo(DOWNLOAD_ID));
   }
@@ -109,7 +110,7 @@ public class DownloadServiceImplTest {
     DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true, DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
 
     try {
-      requestService.create(dl);
+      requestService.create(dl, null);
       fail();
     } catch (ServiceUnavailableException e) {
     }
@@ -136,12 +137,12 @@ public class DownloadServiceImplTest {
       new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), peterDownloads));
     when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
       new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), karlDownloads));
-    when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
+    when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet(), any())).thenReturn(
       new PagingResponse<>(0L, allDownloads.size(), (long)allDownloads.size(), allDownloads));
 
     // test
     PagingRequest req = new PagingRequest(0, 2);
-    PagingResponse<Download> x = downloadService.list(req, Collections.emptySet());
+    PagingResponse<Download> x = downloadService.list(req, Collections.emptySet(), null);
     assertEquals(2, x.getResults().size());
 
     x = downloadService.listByUser("harald", req, Collections.emptySet());
@@ -160,7 +161,7 @@ public class DownloadServiceImplTest {
     DownloadRequest dl =
       new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", Lists.newArrayList(TEST_EMAIL), true, DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
 
-    String downloadKey = requestService.create(dl);
+    String downloadKey = requestService.create(dl, null);
     assertThat(downloadKey, equalTo(DOWNLOAD_ID));
 
     ArgumentCaptor<Properties> argument = ArgumentCaptor.forClass(Properties.class);
