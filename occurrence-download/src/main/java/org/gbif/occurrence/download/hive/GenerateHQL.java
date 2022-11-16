@@ -130,7 +130,8 @@ public class GenerateHQL {
   private static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 
     try (FileWriter createTableScript = new FileWriter(new File(outDir, "create-occurrence-avro.q"));
-         FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"))) {
+         FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"));
+         FileWriter dropExtensionsTablesScript = new FileWriter(new File(outDir, "drop-extension-tables.q"))) {
       Template createTableTemplate = cfg.getTemplate("create-tables/create-occurrence-avro.ftl");
       Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition(),
                                                  "extensions", ExtensionTable.tableExtensions());
@@ -138,6 +139,9 @@ public class GenerateHQL {
 
       Template swapTablesTemplate = cfg.getTemplate("create-tables/swap-tables.ftl");
       swapTablesTemplate.process(data, swapTablesScript);
+
+      Template dropExtensionTablesTemplate = cfg.getTemplate("create-tables/drop-extension-tables.ftl");
+      dropExtensionTablesTemplate.process(data, dropExtensionsTablesScript);
     }
   }
 
