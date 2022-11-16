@@ -22,17 +22,10 @@ import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Country;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -88,10 +81,14 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
     return response;
   }
 
-
   @Override
-  public PagingResponse<Download> list(@Nullable Pageable pageable, @Nullable Set<Download.Status> statuses) {
-    return filterDownloads(pageable, d -> statuses.contains(d.getStatus()));
+  public PagingResponse<Download> list(
+      @Nullable Pageable pageable,
+      @Nullable Set<Download.Status> statuses,
+      @Nullable String source) {
+    return filterDownloads(
+        pageable,
+        d -> statuses.contains(d.getStatus()) && (source == null || d.getSource().equals(source)));
   }
 
   @Override
