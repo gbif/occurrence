@@ -53,7 +53,7 @@ public class DownloadLimitsService {
     }
 
     PagingResponse<Download> executingDownloads = occurrenceDownloadService.list(new PagingRequest(0, 0),
-                                                                                 Download.Status.EXECUTING_STATUSES);
+                                                                                 Download.Status.EXECUTING_STATUSES, null);
 
     if (downloadLimits.violatesLimits(userDownloads.getCount().intValue(), executingDownloads.getCount().intValue())) {
       return "Too many downloads are running.  Please wait for some to complete: see the GBIF health status page.";
