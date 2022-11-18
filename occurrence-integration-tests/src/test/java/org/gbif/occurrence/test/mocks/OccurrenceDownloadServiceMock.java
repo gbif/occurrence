@@ -127,6 +127,11 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
     return null;
   }
 
+  @Override
+  public Map<Integer, Map<Integer, Long>> getDownloadsBySource(@Nullable Date fromDate, @Nullable Date toDate, @Nullable String source) {
+    return null;
+  }
+
   /**
    * Retrieves downloaded records monthly stats by country (user and publishing country) and dataset.
    */
