@@ -151,7 +151,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
       = new FilterRegistrationBean<>();
 
     registrationBean.setFilter(new DownloadRequestValidationFilter());
-    registrationBean.addUrlPatterns("event/download/request");
+    registrationBean.addUrlPatterns("/event/download/request");
     registrationBean.setOrder(2);
 
     return registrationBean;
