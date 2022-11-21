@@ -14,6 +14,7 @@
 package org.gbif.occurrence.ws.config;
 
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.occurrence.download.resource.DownloadRequestValidationFilter;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -113,6 +115,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Bean
   public ObjectMapper registryObjectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper().addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
+  }
+
+  @Bean
+  public FilterRegistrationBean<DownloadRequestValidationFilter> downloadRequestValidationFilter(){
+    FilterRegistrationBean<DownloadRequestValidationFilter> registrationBean
+      = new FilterRegistrationBean<>();
+
+    registrationBean.setFilter(new DownloadRequestValidationFilter());
+    registrationBean.addUrlPatterns("/occurrence/download/request");
+    registrationBean.setOrder(2);
+
+    return registrationBean;
   }
 
   @Bean

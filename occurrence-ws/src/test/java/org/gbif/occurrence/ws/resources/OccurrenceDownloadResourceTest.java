@@ -56,7 +56,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testCallback() {
     prepareMocks(USER);
-    ResponseEntity response = resource.oozieCallback(JOB_ID, STATUS);
+    ResponseEntity<?> response = resource.oozieCallback(JOB_ID, STATUS);
     assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
   }
 
@@ -92,7 +92,7 @@ public class OccurrenceDownloadResourceTest {
                                       DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
 
     PagingResponse<Download> empty = new PagingResponse<>();
-    empty.setResults(Collections.EMPTY_LIST);
+    empty.setResults(Collections.emptyList());
     when(downloadService.listByUser(any(), any(), any())).thenReturn(empty);
     when(service.create(dl, null)).thenReturn(JOB_ID);
   }

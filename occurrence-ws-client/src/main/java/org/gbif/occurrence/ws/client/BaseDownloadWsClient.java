@@ -19,12 +19,14 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import java.io.File;
 import java.io.InputStream;
 import java.util.function.Consumer;
+
 import javax.annotation.Nullable;
 
-import feign.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+
+import feign.Response;
 
 /**
  * Client-side implementation to the ChecklistService.

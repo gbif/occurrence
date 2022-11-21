@@ -1,0 +1,22 @@
+{
+  "creator": "SET THIS HERE",
+  "notificationAddresses": [
+    "SET THIS HERE"
+  ],
+  "sendNotification": true,
+  "format": "SIMPLE_CSV",
+  "predicates": [
+    {
+      "type": "equals",
+      "key": "COUNTRY",
+      "value": "US",
+      "matchCase": false
+    },
+    {
+      "type": "equals",
+      "key": "OCCURRENCE_STATUS",
+      "value": "present",
+      "matchCase": false
+    }
+  ]
+}

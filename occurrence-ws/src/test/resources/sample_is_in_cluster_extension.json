@@ -1,7 +1,7 @@
 {
   "creator":"admin",
-  "notification_addresses": ["gbif@mailinator.com"],
-  "send_notification":"true",
+  "notificationAddresses": ["gbif@mailinator.com"],
+  "sendNotification":"true",
   "format": "DWCA",
   "predicate":{
     "type":"and",

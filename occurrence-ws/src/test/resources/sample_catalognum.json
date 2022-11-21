@@ -1,7 +1,7 @@
 {
   "creator":"markus",
   "notificationAddresses": ["gbif@mailinator.com"],
-  "send_notification":"true",
+  "sendNotification":"true",
   "created":"2013",
   "format": "SIMPLE_CSV",
   "predicate":{
