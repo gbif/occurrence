@@ -40,12 +40,12 @@ class BaseDownloadTestCase(unittest.TestCase):
   def num_lines_in_file(self, fpath):
     """ Counts the number of lines in a file.
     """
-    return int(subprocess.check_output('grep -c ^ %s' % fpath, shell=True).strip().split()[0])
+    return int(subprocess.check_output('grep -c ^ "%s"' % fpath, shell=True).strip().split()[0])
 
   def count_last_line_columns(self, fpath):
     """ Read the last line of file.
     """
-    return int(subprocess.check_output('tail -1 %s | grep -o \'\t\' | wc -l' % fpath, shell=True).strip())
+    return int(subprocess.check_output('tail -1 "%s" | grep -o \'\t\' | wc -l' % fpath, shell=True).strip())
 
   def check_columns_alignment(self, path_to_file):
     """ Utility method that checks that the header, second and last lines have the same amount of columns.
@@ -253,7 +253,7 @@ class TestSuiteBuilder:
   def unzip_download(self, zip_file):
     """ Unzips a compressed file.
     """
-    extract_path = os.path.join(self.working_dir, os.path.splitext(zip_file)[0])
+    extract_path = os.path.join(self.working_dir, os.path.splitext(os.path.basename(zip_file))[0])
     self.clean_and_create(extract_path)
     zip_ref = zipfile.ZipFile(zip_file, 'r')
     zip_ref.extractall(extract_path)

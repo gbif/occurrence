@@ -68,7 +68,7 @@ if __name__ == '__main__':
   parser.add_argument("work_dir", help="Directory where files are downloaded ", nargs="?", default="/tmp/")
   args = parser.parse_args()
 
-  dir_path = r"{}".format(args.source_dir + '*.json')
+  dir_path = r"{}".format(os.path.join(args.source_dir, '*.json'))
   files = glob.glob(dir_path)
   for file in files:
     download_request_obj = download_request(file, args.username, args.email)
