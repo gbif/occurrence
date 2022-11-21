@@ -87,6 +87,6 @@ if __name__ == '__main__':
         if download_response['status'] == 'SUCCEEDED':
           run_download_tests(download_id, args.env, args.work_dir, download_type)
         else:
-          sys.exit('Download ' + download_id + ' failed')
+          print('Download ' + download_id + ' failed')
       else:
         print("Download {} not ready after {} seconds, waiting {} seconds more".format(download_id, elapsed_time, wait_status_time))

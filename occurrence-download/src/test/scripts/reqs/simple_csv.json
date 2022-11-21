@@ -1,0 +1,11 @@
+{
+  "creator":"",
+  "notification_addresses": [""],
+  "send_notification":"true",
+  "format": "SIMPLE_CSV",
+  "predicate":{
+      "type":"equals",
+      "key":"DATASET_KEY",
+      "value":"6bff1c15-43a6-4074-8b9c-3994cc8fe028"
+  }
+}
