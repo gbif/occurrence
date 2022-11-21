@@ -1,0 +1,22 @@
+{
+  "creator":"",
+  "notification_addresses": [""],
+  "send_notification":"true",
+  "format": "DWCA",
+  "extensions": ["http://rs.gbif.org/terms/1.0/Multimedia"],
+  "predicate":{
+    "type":"and",
+    "predicates":[
+      {
+        "type":"equals",
+        "key":"DATASET_KEY",
+        "value":"6bff1c15-43a6-4074-8b9c-3994cc8fe028"
+      },
+      {
+        "type":"equals",
+        "key":"DWCA_EXTENSION",
+        "value":"http://rs.gbif.org/terms/1.0/Multimedia"
+      }
+    ]
+  }
+}
