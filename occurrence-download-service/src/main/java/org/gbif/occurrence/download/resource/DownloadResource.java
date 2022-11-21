@@ -93,9 +93,6 @@ public class DownloadResource {
   private final DownloadType downloadType;
 
   @Autowired
-  private HttpServletRequest request;
-
-  @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
       DownloadRequestService service,
