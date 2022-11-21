@@ -37,7 +37,7 @@ public class DownloadMetaPersistence {
     String countPath = Preconditions.checkNotNull(args[0]);
     String downloadKey = Preconditions.checkNotNull(args[1]);
     String citationPath = Preconditions.checkNotNull(args[2]);
-    DwcTerm coreTerm = DwcTerm.valueOf(Preconditions.checkNotNull(args[2]));
+    DwcTerm coreTerm = DwcTerm.valueOf(Preconditions.checkNotNull(args[3]));
 
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
