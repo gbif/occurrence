@@ -16,7 +16,7 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 
@@ -33,7 +33,7 @@ import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
-public class EsResponseParser<T extends Occurrence> {
+public class EsResponseParser<T extends VerbatimOccurrence> {
 
   // defaults
   private static final int DEFAULT_FACET_OFFSET = 0;

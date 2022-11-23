@@ -13,10 +13,12 @@
  */
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -169,9 +172,9 @@ public class OccurrenceMapReader {
     putGadmFeature(interpretedOccurrence, GadmTerm.level2Name, GadmTerm.level2Gid, occurrence.getGadm().getLevel2());
     putGadmFeature(interpretedOccurrence, GadmTerm.level3Name, GadmTerm.level3Gid, occurrence.getGadm().getLevel3());
 
-    extractOccurrenceIssues(occurrence)
+    extractOccurrenceIssues(occurrence.getIssues())
       .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
-    extractMediaTypes(occurrence)
+    extractMediaTypes(occurrence.getMedia())
       .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
     extractAgentIds(occurrence.getRecordedByIds())
       .ifPresent(uids -> interpretedOccurrence.put(DwcTerm.recordedByID.simpleName(), uids));
@@ -195,16 +198,105 @@ public class OccurrenceMapReader {
   }
 
   public static Map<String, String> buildInterpretedEventMap(Event event) {
-    Map<String,String> occurrenceMap = buildInterpretedOccurrenceMap(event);
 
-    occurrenceMap.put(GbifTerm.gbifID.simpleName(), event.getId());
-    occurrenceMap.put(DwcTerm.locationID.simpleName(), event.getLocationID());
-    occurrenceMap.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
-    occurrenceMap.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
-    occurrenceMap.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
-    occurrenceMap.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+    Map<String,String> interpretedEvent = new HashMap<>();
 
-    return occurrenceMap;
+    //Basic record terms
+    interpretedEvent.put(GbifTerm.gbifID.simpleName(), getSimpleValue(event.getKey()));
+    interpretedEvent.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(event.getBasisOfRecord()));
+    interpretedEvent.put(DwcTerm.establishmentMeans.simpleName(), getSimpleValue(event.getEstablishmentMeans()));
+    interpretedEvent.put(DwcTerm.individualCount.simpleName(), getSimpleValue(event.getIndividualCount()));
+    interpretedEvent.put(DwcTerm.lifeStage.simpleName(), getSimpleValue(event.getLifeStage()));
+    interpretedEvent.put(DwcTerm.pathway.simpleName(), getSimpleValue(event.getPathway()));
+    interpretedEvent.put(DwcTerm.degreeOfEstablishment.simpleName(), getSimpleValue(event.getDegreeOfEstablishment()));
+    interpretedEvent.put(DcTerm.references.simpleName(), getSimpleValue(event.getReferences()));
+    interpretedEvent.put(DwcTerm.sex.simpleName(), getSimpleValue(event.getSex()));
+    interpretedEvent.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(event.getLastParsed()));
+    interpretedEvent.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(event.getLastInterpreted()));
+    interpretedEvent.put(DwcTerm.occurrenceStatus.simpleName(), getSimpleValue(event.getOccurrenceStatus()));
+    interpretedEvent.put(DwcTerm.datasetID.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetID()));
+    interpretedEvent.put(DwcTerm.datasetName.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetName()));
+    interpretedEvent.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getOtherCatalogNumbers()));
+    interpretedEvent.put(DwcTerm.recordedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getRecordedBy()));
+    interpretedEvent.put(DwcTerm.identifiedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getIdentifiedBy()));
+    interpretedEvent.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getPreparations()));
+    interpretedEvent.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getSamplingProtocol()));
+
+    Optional.ofNullable(event.getVerbatimField(DcTerm.identifier))
+      .ifPresent(x -> interpretedEvent.put(DcTerm.identifier.simpleName(), x));
+
+    //Dataset Metadata
+    interpretedEvent.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(event.getCrawlId()));
+    interpretedEvent.put(GbifTerm.datasetKey.simpleName(), getSimpleValue(event.getDatasetKey()));
+    interpretedEvent.put(GbifTerm.publishingCountry.simpleName(), getCountryCode(event.getPublishingCountry()));
+    interpretedEvent.put(GbifInternalTerm.installationKey.simpleName(), getSimpleValue(event.getInstallationKey()));
+    interpretedEvent.put(DcTerm.license.simpleName(), getSimpleValue(event.getLicense()));
+    interpretedEvent.put(GbifTerm.protocol.simpleName(), getSimpleValue(event.getProtocol()));
+    interpretedEvent.put(GbifInternalTerm.networkKey.simpleName(), joinUUIDs(event.getNetworkKeys()));
+    interpretedEvent.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(event.getPublishingOrgKey()));
+    interpretedEvent.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(event.getLastCrawled()));
+
+    //Temporal fields
+    interpretedEvent.put(DwcTerm.dateIdentified.simpleName(), getLocalDateValue(event.getDateIdentified()));
+    interpretedEvent.put(DcTerm.modified.simpleName(),getSimpleValue(event.getModified()));
+    interpretedEvent.put(DwcTerm.day.simpleName(), getSimpleValue(event.getDay()));
+    interpretedEvent.put(DwcTerm.month.simpleName(), getSimpleValue(event.getMonth()));
+    interpretedEvent.put(DwcTerm.year.simpleName(), getSimpleValue(event.getYear()));
+    interpretedEvent.put(DwcTerm.eventDate.simpleName(), getLocalDateValue(event.getEventDate()));
+
+    //location fields
+    interpretedEvent.put(DwcTerm.countryCode.simpleName(), getCountryCode(event.getCountry()));
+    interpretedEvent.put(DwcTerm.continent.simpleName(), getSimpleValue(event.getContinent()));
+    interpretedEvent.put(DwcTerm.decimalLatitude.simpleName(), getSimpleValue(event.getDecimalLatitude()));
+    interpretedEvent.put(DwcTerm.decimalLongitude.simpleName(), getSimpleValue(event.getDecimalLongitude()));
+    interpretedEvent.put(DwcTerm.coordinatePrecision.simpleName(), getSimpleValue(event.getCoordinatePrecision()));
+    interpretedEvent.put(DwcTerm.coordinateUncertaintyInMeters.simpleName(), getSimpleValue(event.getCoordinateUncertaintyInMeters()));
+    interpretedEvent.put(GbifTerm.depth.simpleName(), getSimpleValue(event.getDepth()));
+    interpretedEvent.put(GbifTerm.depthAccuracy.simpleName(), getSimpleValue(event.getDepthAccuracy()));
+    interpretedEvent.put(GbifTerm.elevation.simpleName(), getSimpleValue(event.getElevation()));
+    interpretedEvent.put(GbifTerm.elevationAccuracy.simpleName(), getSimpleValue(event.getElevationAccuracy()));
+    interpretedEvent.put(DwcTerm.stateProvince.simpleName(), event.getStateProvince());
+    interpretedEvent.put(DwcTerm.waterBody.simpleName(), event.getWaterBody());
+    interpretedEvent.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(event.hasSpatialIssue()));
+    interpretedEvent.put(GbifTerm.hasCoordinate.simpleName(), Boolean.toString(event.getDecimalLatitude() != null && event.getDecimalLongitude() != null));
+    interpretedEvent.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(event.getCoordinateAccuracy()));
+    getRepatriated(event).ifPresent(repatriated -> interpretedEvent.put(GbifTerm.repatriated.simpleName(), repatriated));
+    interpretedEvent.put(DwcTerm.geodeticDatum.simpleName(), event.getGeodeticDatum());
+    putGadmFeature(interpretedEvent, GadmTerm.level0Name, GadmTerm.level0Gid, event.getGadm().getLevel0());
+    putGadmFeature(interpretedEvent, GadmTerm.level1Name, GadmTerm.level1Gid, event.getGadm().getLevel1());
+    putGadmFeature(interpretedEvent, GadmTerm.level2Name, GadmTerm.level2Gid, event.getGadm().getLevel2());
+    putGadmFeature(interpretedEvent, GadmTerm.level3Name, GadmTerm.level3Gid, event.getGadm().getLevel3());
+
+    extractOccurrenceIssues(event.getIssues())
+      .ifPresent(issues -> interpretedEvent.put(GbifTerm.issue.simpleName(), issues));
+    extractMediaTypes(event.getMedia())
+      .ifPresent(mediaTypes -> interpretedEvent.put(GbifTerm.mediaType.simpleName(), mediaTypes));
+    extractAgentIds(event.getRecordedByIds())
+      .ifPresent(uids -> interpretedEvent.put(DwcTerm.recordedByID.simpleName(), uids));
+    extractAgentIds(event.getIdentifiedByIds())
+      .ifPresent(uids -> interpretedEvent.put(DwcTerm.identifiedByID.simpleName(), uids));
+
+    // Sampling
+    interpretedEvent.put(DwcTerm.sampleSizeUnit.simpleName(), event.getSampleSizeUnit());
+    interpretedEvent.put(DwcTerm.sampleSizeValue.simpleName(), getSimpleValue(event.getSampleSizeValue()));
+    interpretedEvent.put(DwcTerm.organismQuantity.simpleName(), getSimpleValue(event.getOrganismQuantity()));
+    interpretedEvent.put(DwcTerm.organismQuantityType.simpleName(), event.getOrganismQuantityType());
+    interpretedEvent.put(GbifTerm.relativeOrganismQuantity.simpleName(), getSimpleValue(event.getRelativeOrganismQuantity()));
+
+    interpretedEvent.put(GbifTerm.gbifID.simpleName(), event.getId());
+    interpretedEvent.put(DwcTerm.locationID.simpleName(), event.getLocationID());
+    interpretedEvent.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
+    interpretedEvent.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
+    interpretedEvent.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
+    interpretedEvent.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+
+    event.getVerbatimFields().forEach( (term, value) -> {
+      if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
+        interpretedEvent.put(term.simpleName(), value);
+      }
+    });
+
+    return interpretedEvent;
   }
 
   /**
@@ -300,11 +392,22 @@ public class OccurrenceMapReader {
    * Validates if the occurrence record it's a repatriated record.
    */
   private static Optional<String> getRepatriated(Occurrence occurrence) {
-    Country publishingCountry = occurrence.getPublishingCountry();
-    Country countryCode = occurrence.getCountry();
+    return getRepatriated(occurrence.getPublishingCountry(), occurrence.getCountry());
+  }
 
-    if (publishingCountry != null && countryCode != null) {
-      return Optional.of(Boolean.toString(countryCode != publishingCountry));
+  /**
+   * Validates if the event record it's a repatriated record.
+   */
+  private static Optional<String> getRepatriated(Event event) {
+    return getRepatriated(event.getPublishingCountry(), event.getCountry());
+  }
+
+  /**
+   * Validates if the occurrence record it's a repatriated record.
+   */
+  private static Optional<String> getRepatriated(Country publishingCountry, Country country) {
+    if (publishingCountry != null && country != null) {
+      return Optional.of(Boolean.toString(country != publishingCountry));
     }
     return Optional.empty();
   }
@@ -331,8 +434,8 @@ public class OccurrenceMapReader {
   /**
    * Extracts the media types from the record.
    */
-  private static Optional<String> extractMediaTypes(Occurrence occurrence) {
-    return  Optional.ofNullable(occurrence.getMedia())
+  private static Optional<String> extractMediaTypes(List<MediaObject> mediaObjects) {
+    return  Optional.ofNullable(mediaObjects)
               .map(media -> media.stream().filter(mediaObject -> Objects.nonNull(mediaObject.getType()))
                               .map(mediaObject -> mediaObject.getType().name())
                               .distinct()
@@ -352,18 +455,18 @@ public class OccurrenceMapReader {
   /**
    * Extracts the spatial issues from the record.
    */
-  private static Optional<String> extractOccurrenceIssues(Occurrence occurrence) {
-    return  Optional.ofNullable(occurrence.getIssues())
-                .map(issues -> issues.stream().map(OccurrenceIssue::name)
+  private static Optional<String> extractOccurrenceIssues(Set<OccurrenceIssue> issues) {
+    return  Optional.ofNullable(issues)
+                .map(issuesSet -> issuesSet.stream().map(OccurrenceIssue::name)
                                  .collect(Collectors.joining(";")));
   }
 
   /**
    * Extract all the verbatim data into a Map.
    */
-  public static Map<String, String> buildVerbatimOccurrenceMap(Occurrence occurrence) {
+  public static Map<String, String> buildVerbatimOccurrenceMap(VerbatimOccurrence verbatimOccurrence) {
     HashMap<String, String> verbatimMap = new HashMap<>();
-    TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(occurrence.getVerbatimField(term))));
+    TermUtils.verbatimTerms().forEach( term -> verbatimMap.put(term.simpleName(), cleanString(verbatimOccurrence.getVerbatimField(term))));
     return verbatimMap;
   }
 

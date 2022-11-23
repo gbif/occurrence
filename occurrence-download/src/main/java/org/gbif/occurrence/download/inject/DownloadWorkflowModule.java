@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.inject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.event.search.es.SearchHitEventConverter;
@@ -226,22 +227,22 @@ public class DownloadWorkflowModule  {
             .build();
   }
 
-  private <T extends Occurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
+  private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
     if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
       return (S) new SearchHitEventConverter(esFieldMapper());
     }
     return (S) new SearchHitOccurrenceConverter(esFieldMapper(), false);
   }
 
-  private <T extends Occurrence> Function<T, Map<String,String>> verbatimMapper(){
+  private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
     return  OccurrenceMapReader::buildVerbatimOccurrenceMap;
   }
 
-  private <T extends Occurrence> Function<T, Map<String,String>> interpreterMapper() {
+  private <T extends VerbatimOccurrence> Function<T, Map<String,String>> interpreterMapper() {
     if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
       return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event)record);
     }
-    return OccurrenceMapReader::buildInterpretedOccurrenceMap;
+    return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record);
   }
 
   /**
