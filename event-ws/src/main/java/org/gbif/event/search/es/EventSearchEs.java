@@ -97,7 +97,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    EsFieldMapper.EsFieldMapperBuilder builder = EsFieldMapper.builder().nestedIndex(nestedIndex);
+    EsFieldMapper.EsFieldMapperBuilder builder = EsFieldMapper.builder().childrenFieldsMapping(ChildrenFieldsMapping.childrenFieldsMappings()).nestedIndex(nestedIndex);
     searchType.ifPresent(builder::searchType);
     esFieldMapper = builder.build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
@@ -274,7 +274,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     // perform the search
     try {
       return esResponseParser.buildSearchResponse(esClient.search(esRequest, HEADERS.get()), searchRequest);
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }

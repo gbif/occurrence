@@ -17,12 +17,11 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
@@ -37,9 +36,6 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 @Builder
 @Slf4j
 public class EsFieldMapper {
-
-  private static final Pattern NESTED_PATTERN = Pattern.compile("^\\w+(\\.\\w+)+$");
-  private static final Predicate<String> IS_NESTED = s -> NESTED_PATTERN.matcher(s).find();
 
   public static final ImmutableMap<OccurrenceSearchParameter, OccurrenceEsField> SEARCH_TO_ES_MAPPING =
       ImmutableMap.<OccurrenceSearchParameter, OccurrenceEsField>builder()
@@ -175,6 +171,9 @@ public class EsFieldMapper {
 
   private final boolean nestedIndex;
 
+  @Builder.Default
+  private final Map<OccurrenceEsField,String> childrenFieldsMapping = Collections.emptyMap();
+
   public String getFieldName(OccurrenceEsField occurrenceEsField, String fieldName) {
     if (!nestedIndex || ROOT_LEVEL_FIELDS.contains(occurrenceEsField)) {
       return fieldName;
@@ -182,10 +181,27 @@ public class EsFieldMapper {
     if (METADATA_FIELDS.contains(occurrenceEsField)) {
       return SearchType.METADATA.getObjectName() + '.' + fieldName;
     }
-    return searchType.getObjectName() + '.' + fieldName;
+
+    return childrenFieldsMapping.getOrDefault(occurrenceEsField, searchType.getObjectName()) + '.' + fieldName;
+  }
+
+  public boolean isChildField(OccurrenceEsField occurrenceEsField) {
+    return childrenFieldsMapping.containsKey(occurrenceEsField);
+  }
+
+  public String getChildRelation(OccurrenceEsField occurrenceEsField) {
+    return childrenFieldsMapping.get(occurrenceEsField);
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
+    if (searchFieldName.startsWith(SearchType.METADATA.getObjectName())) {
+      String[] fieldName = searchFieldName.split("\\.");
+      return ES_TO_SEARCH_MAPPING.get(fieldName[fieldName.length - 1]);
+    } else if(searchFieldName.startsWith(SearchType.OCCURRENCE.getObjectName())) {
+      return ES_TO_SEARCH_MAPPING.get(searchFieldName.substring(SearchType.OCCURRENCE.getObjectName().length() + 1));
+    } else if(searchFieldName.startsWith(SearchType.EVENT.getObjectName())) {
+      return ES_TO_SEARCH_MAPPING.get(searchFieldName.substring(SearchType.EVENT.getObjectName().length() + 1));
+    }
     return ES_TO_SEARCH_MAPPING.get(searchFieldName);
   }
 
