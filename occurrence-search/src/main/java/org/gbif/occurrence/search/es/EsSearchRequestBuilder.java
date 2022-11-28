@@ -26,6 +26,7 @@ import org.gbif.predicate.query.EsQueryVisitor;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
@@ -224,7 +225,8 @@ public class EsSearchRequestBuilder {
   static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
     GroupedParams groupedParams = new GroupedParams();
 
-    if (searchRequest.getFacets() == null
+    if (!searchRequest.isMultiSelectFacets()
+        || searchRequest.getFacets() == null
         || searchRequest.getFacets().isEmpty()) {
       groupedParams.queryParams = searchRequest.getParameters();
       return groupedParams;
@@ -243,6 +245,33 @@ public class EsSearchRequestBuilder {
                 groupedParams.queryParams.put(k, v);
               }
             });
+
+    return groupParameters(searchRequest, searchRequest.isMultiSelectFacets());
+  }
+
+  static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest, boolean groupFilters) {
+    GroupedParams groupedParams = new GroupedParams();
+
+    if (!groupFilters
+        || searchRequest.getFacets() == null
+        || searchRequest.getFacets().isEmpty()) {
+      groupedParams.queryParams = searchRequest.getParameters();
+      return groupedParams;
+    }
+
+    groupedParams.queryParams = new HashMap<>();
+    groupedParams.postFilterParams = new HashMap<>();
+
+    searchRequest
+      .getParameters()
+      .forEach(
+        (k, v) -> {
+          if (searchRequest.getFacets().contains(k)) {
+            groupedParams.postFilterParams.put(k, v);
+          } else {
+            groupedParams.queryParams.put(k, v);
+          }
+        });
 
     return groupedParams;
   }
@@ -279,7 +308,7 @@ public class EsSearchRequestBuilder {
       return Optional.of(buildFacetsMultiselect(searchRequest, postFilterParams));
     }
 
-    return Optional.of(buildFacets(searchRequest, postFilterParams));
+    return Optional.of(buildFacets(searchRequest));
   }
 
   /** Creates a filter with all the filter in which the facet param is not present.*/
@@ -319,7 +348,7 @@ public class EsSearchRequestBuilder {
 
     if (searchRequest.getFacets().size() == 1) {
       // same case as normal facets
-      return buildFacets(searchRequest, postFilterParams);
+      return buildFacets(searchRequest);
     }
 
     return searchRequest.getFacets().stream()
@@ -353,14 +382,18 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
-  private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest, Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
+  private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
+    final AtomicReference<GroupedParams> groupedParams =  new AtomicReference<>();
     return searchRequest.getFacets().stream()
         .filter(p -> EsFieldMapper.SEARCH_TO_ES_MAPPING.get(p) != null)
         .map(
             facetParam -> {
               OccurrenceEsField esField = esFieldMapper.getOccurrenceEsField(facetParam);
               if (esFieldMapper.isChildField(esField)) {
-                return getChildrenAggregationBuilder(searchRequest, postFilterParams, facetParam, esField);
+                if (groupedParams.get() == null) {
+                  groupedParams.set(groupParameters(searchRequest, true));
+                }
+                return getChildrenAggregationBuilder(searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
               }
               return buildTermsAggs(esFieldMapper.getSearchFieldName(esField), esField, searchRequest, facetParam);
             })
