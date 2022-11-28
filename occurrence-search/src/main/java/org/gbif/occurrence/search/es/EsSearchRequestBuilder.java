@@ -334,7 +334,7 @@ public class EsSearchRequestBuilder {
   private BoolQueryBuilder getAggregationFilter(Map<OccurrenceSearchParameter, Set<String>> postFilterParams, OccurrenceSearchParameter facetParam, boolean matchCase, boolean wrappedChildrenQueries) {
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
     bool.filter()
-        .addAll(buildTermQuery(postFilterParams.get(facetParam),
+        .addAll(buildTermQuery(Optional.ofNullable(postFilterParams.get(facetParam)).orElse(Collections.emptySet()),
                                facetParam,
                                esFieldMapper.getOccurrenceEsField(facetParam),
                                matchCase,
