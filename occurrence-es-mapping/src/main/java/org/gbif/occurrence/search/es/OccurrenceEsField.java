@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.es;
 
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
@@ -22,236 +23,308 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
 
-/** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
-public enum OccurrenceEsField {
+import java.util.Optional;
+import java.util.Set;
 
-  ID("id", DcTerm.identifier),
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+/** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
+public enum OccurrenceEsField implements EsField {
+
+  ID(new BaseEsField("id", DcTerm.identifier)),
 
   //Dataset derived
-  DATASET_KEY("datasetKey", GbifTerm.datasetKey),
-  PUBLISHING_COUNTRY("publishingCountry", GbifTerm.publishingCountry),
-  PUBLISHING_ORGANIZATION_KEY("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey),
-  HOSTING_ORGANIZATION_KEY("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey),
-  INSTALLATION_KEY("installationKey", GbifInternalTerm.installationKey),
-  NETWORK_KEY("networkKeys", GbifInternalTerm.networkKey),
-  PROTOCOL("protocol", GbifTerm.protocol),
-  LICENSE("license", DcTerm.license),
-  PROJECT_ID("projectId", GbifInternalTerm.projectId),
-  PROGRAMME("programmeAcronym", GbifInternalTerm.programmeAcronym),
+  DATASET_KEY(new BaseEsField("datasetKey", GbifTerm.datasetKey)),
+  PUBLISHING_COUNTRY(new BaseEsField("publishingCountry", GbifTerm.publishingCountry)),
+  PUBLISHING_ORGANIZATION_KEY(new BaseEsField("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey)),
+  HOSTING_ORGANIZATION_KEY(new BaseEsField("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey)),
+  INSTALLATION_KEY(new BaseEsField("installationKey", GbifInternalTerm.installationKey)),
+  NETWORK_KEY(new BaseEsField("networkKeys", GbifInternalTerm.networkKey)),
+  PROTOCOL(new BaseEsField("protocol", GbifTerm.protocol)),
+  LICENSE(new BaseEsField("license", DcTerm.license)),
+  PROJECT_ID(new BaseEsField("projectId", GbifInternalTerm.projectId)),
+  PROGRAMME(new BaseEsField("programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
-  INSTITUTION_CODE("institutionCode", DwcTerm.institutionCode, true),
-  COLLECTION_CODE("collectionCode", DwcTerm.collectionCode, true),
-  CATALOG_NUMBER("catalogNumber", DwcTerm.catalogNumber, true),
+  INSTITUTION_CODE(new BaseEsField("institutionCode", DwcTerm.institutionCode, true)),
+  COLLECTION_CODE(new BaseEsField("collectionCode", DwcTerm.collectionCode, true)),
+  CATALOG_NUMBER(new BaseEsField("catalogNumber", DwcTerm.catalogNumber, true)),
 
-  ORGANISM_ID("organismId", DwcTerm.organismID, true),
-  OCCURRENCE_ID("occurrenceId", DwcTerm.occurrenceID, true),
-  RECORDED_BY("recordedBy", DwcTerm.recordedBy, true),
-  IDENTIFIED_BY("identifiedBy", DwcTerm.identifiedBy, true),
-  RECORDED_BY_ID("recordedByIds", DwcTerm.recordedByID),
-  RECORDED_BY_ID_VALUE("recordedByIds.value", DwcTerm.recordedByID),
-  IDENTIFIED_BY_ID("identifiedByIds", DwcTerm.identifiedByID),
-  IDENTIFIED_BY_ID_VALUE("identifiedByIds.value", DwcTerm.identifiedByID),
-  RECORD_NUMBER("recordNumber", DwcTerm.recordNumber, true),
-  BASIS_OF_RECORD("basisOfRecord", DwcTerm.basisOfRecord),
-  TYPE_STATUS("typeStatus", DwcTerm.typeStatus),
-  OCCURRENCE_STATUS("occurrenceStatus", DwcTerm.occurrenceStatus),
-  DATASET_ID("datasetID", DwcTerm.datasetID),
-  DATASET_NAME("datasetName", DwcTerm.datasetName, true),
-  OTHER_CATALOG_NUMBERS("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true),
-  PREPARATIONS("preparations", DwcTerm.preparations, true),
+  ORGANISM_ID(new BaseEsField("organismId", DwcTerm.organismID, true)),
+  OCCURRENCE_ID(new BaseEsField("occurrenceId", DwcTerm.occurrenceID, true)),
+  RECORDED_BY(new BaseEsField("recordedBy", DwcTerm.recordedBy, true)),
+  IDENTIFIED_BY(new BaseEsField("identifiedBy", DwcTerm.identifiedBy, true)),
+  RECORDED_BY_ID(new BaseEsField("recordedByIds.value", DwcTerm.recordedByID)),
+  IDENTIFIED_BY_ID(new BaseEsField("identifiedByIds.value", DwcTerm.identifiedByID)),
+  RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, true)),
+  BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
+  TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
+  OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
+  DATASET_ID(new BaseEsField("datasetID", DwcTerm.datasetID)),
+  DATASET_NAME(new BaseEsField("datasetName", DwcTerm.datasetName, true)),
+  OTHER_CATALOG_NUMBERS(new BaseEsField("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
+  PREPARATIONS(new BaseEsField("preparations", DwcTerm.preparations, true)),
 
   //Temporal
-  YEAR("year", DwcTerm.year),
-  MONTH("month", DwcTerm.month),
-  DAY("day", DwcTerm.day),
-  EVENT_DATE("eventDateSingle", DwcTerm.eventDate),
+  YEAR(new BaseEsField("year", DwcTerm.year)),
+  MONTH(new BaseEsField("month", DwcTerm.month)),
+  DAY(new BaseEsField("day", DwcTerm.day)),
+  EVENT_DATE(new BaseEsField("eventDateSingle", DwcTerm.eventDate)),
 
   //Location
-  COORDINATE_SHAPE("scoordinates", null),
-  COORDINATE_POINT("coordinates", null),
-  LATITUDE("decimalLatitude", DwcTerm.decimalLatitude),
-  LONGITUDE("decimalLongitude", DwcTerm.decimalLongitude),
-  COUNTRY_CODE("countryCode", DwcTerm.countryCode),
-  CONTINENT("continent", DwcTerm.continent),
-  COORDINATE_ACCURACY("coordinateAccuracy", GbifTerm.coordinateAccuracy),
-  ELEVATION_ACCURACY("elevationAccuracy", GbifTerm.elevationAccuracy),
-  DEPTH_ACCURACY("depthAccuracy", GbifTerm.depthAccuracy),
-  ELEVATION("elevation", GbifTerm.elevation),
-  DEPTH("depth", GbifTerm.depth),
-  STATE_PROVINCE("stateProvince", DwcTerm.stateProvince, true), //NOT INTERPRETED
-  WATER_BODY("waterBody", DwcTerm.waterBody, true),
-  LOCALITY("locality", DwcTerm.locality, true),
-  COORDINATE_PRECISION("coordinatePrecision", DwcTerm.coordinatePrecision),
-  COORDINATE_UNCERTAINTY_IN_METERS("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters),
-  GADM_GID("gadm.gids", null),
-  GADM_LEVEL_0_GID("gadm.level0Gid", GadmTerm.level0Gid),
-  GADM_LEVEL_0_NAME("gadm.level0Name", GadmTerm.level0Name),
-  GADM_LEVEL_1_GID("gadm.level1Gid", GadmTerm.level1Gid),
-  GADM_LEVEL_1_NAME("gadm.level1Name", GadmTerm.level1Name),
-  GADM_LEVEL_2_GID("gadm.level2Gid", GadmTerm.level2Gid),
-  GADM_LEVEL_2_NAME("gadm.level2Name", GadmTerm.level2Name),
-  GADM_LEVEL_3_GID("gadm.level3Gid", GadmTerm.level3Gid),
-  GADM_LEVEL_3_NAME("gadm.level3Name", GadmTerm.level3Name),
+  COORDINATE_SHAPE(new BaseEsField("scoordinates", null)),
+  COORDINATE_POINT(new BaseEsField("coordinates", null)),
+  LATITUDE(new BaseEsField("decimalLatitude", DwcTerm.decimalLatitude)),
+  LONGITUDE(new BaseEsField("decimalLongitude", DwcTerm.decimalLongitude)),
+  COUNTRY_CODE(new BaseEsField("countryCode", DwcTerm.countryCode)),
+  CONTINENT(new BaseEsField("continent", DwcTerm.continent)),
+  COORDINATE_ACCURACY(new BaseEsField("coordinateAccuracy", GbifTerm.coordinateAccuracy)),
+  ELEVATION_ACCURACY(new BaseEsField("elevationAccuracy", GbifTerm.elevationAccuracy)),
+  DEPTH_ACCURACY(new BaseEsField("depthAccuracy", GbifTerm.depthAccuracy)),
+  ELEVATION(new BaseEsField("elevation", GbifTerm.elevation)),
+  DEPTH(new BaseEsField("depth", GbifTerm.depth)),
+  STATE_PROVINCE(new BaseEsField("stateProvince", DwcTerm.stateProvince, true)), //NOT INTERPRETED
+  WATER_BODY(new BaseEsField("waterBody", DwcTerm.waterBody, true)),
+  LOCALITY(new BaseEsField("locality", DwcTerm.locality, true)),
+  COORDINATE_PRECISION(new BaseEsField("coordinatePrecision", DwcTerm.coordinatePrecision)),
+  COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
+  GADM_GID(new BaseEsField("gadm.gids", null)),
+  GADM_LEVEL_0_GID(new BaseEsField("gadm.level0Gid", GadmTerm.level0Gid)),
+  GADM_LEVEL_0_NAME(new BaseEsField("gadm.level0Name", GadmTerm.level0Name)),
+  GADM_LEVEL_1_GID(new BaseEsField("gadm.level1Gid", GadmTerm.level1Gid)),
+  GADM_LEVEL_1_NAME(new BaseEsField("gadm.level1Name", GadmTerm.level1Name)),
+  GADM_LEVEL_2_GID(new BaseEsField("gadm.level2Gid", GadmTerm.level2Gid)),
+  GADM_LEVEL_2_NAME(new BaseEsField("gadm.level2Name", GadmTerm.level2Name)),
+  GADM_LEVEL_3_GID(new BaseEsField("gadm.level3Gid", GadmTerm.level3Gid)),
+  GADM_LEVEL_3_NAME(new BaseEsField("gadm.level3Name", GadmTerm.level3Name)),
 
   //Location GBIF specific
-  HAS_GEOSPATIAL_ISSUES("hasGeospatialIssue", GbifTerm.hasGeospatialIssues),
-  HAS_COORDINATE("hasCoordinate", GbifTerm.hasCoordinate),
-  REPATRIATED("repatriated", GbifTerm.repatriated),
+  HAS_GEOSPATIAL_ISSUES(new BaseEsField("hasGeospatialIssue", GbifTerm.hasGeospatialIssues)),
+  HAS_COORDINATE(new BaseEsField("hasCoordinate", GbifTerm.hasCoordinate)),
+  REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
   //Taxonomic classification
-  TAXON_KEY("gbifClassification.taxonKey", GbifTerm.taxonKey),
-  USAGE_TAXON_KEY("gbifClassification.usage.key", GbifTerm.taxonKey),
-  TAXON_RANK("gbifClassification.usage.rank", DwcTerm.taxonRank),
-  ACCEPTED_TAXON_KEY("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey),
-  ACCEPTED_SCIENTIFIC_NAME("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName),
-  KINGDOM_KEY("gbifClassification.kingdomKey", GbifTerm.kingdomKey),
-  KINGDOM("gbifClassification.kingdom", DwcTerm.kingdom),
-  PHYLUM_KEY("gbifClassification.phylumKey", GbifTerm.phylumKey),
-  PHYLUM("gbifClassification.phylum", DwcTerm.phylum),
-  CLASS_KEY("gbifClassification.classKey", GbifTerm.classKey),
-  CLASS("gbifClassification.class", DwcTerm.class_),
-  ORDER_KEY("gbifClassification.orderKey", GbifTerm.orderKey),
-  ORDER("gbifClassification.order", DwcTerm.order),
-  FAMILY_KEY("gbifClassification.familyKey", GbifTerm.familyKey),
-  FAMILY("gbifClassification.family", DwcTerm.family),
-  GENUS_KEY("gbifClassification.genusKey", GbifTerm.genusKey),
-  GENUS("gbifClassification.genus", DwcTerm.genus),
-  SUBGENUS_KEY("gbifClassification.subgenusKey", GbifTerm.subgenusKey),
-  SUBGENUS("gbifClassification.subgenus", DwcTerm.subgenus),
-  SPECIES_KEY("gbifClassification.speciesKey", GbifTerm.speciesKey),
-  SPECIES("gbifClassification.species", GbifTerm.species),
-  SCIENTIFIC_NAME("gbifClassification.usage.name", DwcTerm.scientificName),
-  SPECIFIC_EPITHET("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet),
-  INFRA_SPECIFIC_EPITHET("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet),
-  GENERIC_NAME("gbifClassification.usageParsedName.genericName", DwcTerm.genericName),
-  TAXONOMIC_STATUS("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus),
-  TAXON_ID("gbifClassification.taxonID", DwcTerm.taxonID),
-  VERBATIM_SCIENTIFIC_NAME("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName),
-  IUCN_RED_LIST_CATEGORY("gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory),
+  TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
+  USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
+  TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),
+  ACCEPTED_TAXON_KEY(new BaseEsField("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
+  ACCEPTED_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName)),
+  KINGDOM_KEY(new BaseEsField("gbifClassification.kingdomKey", GbifTerm.kingdomKey)),
+  KINGDOM(new BaseEsField("gbifClassification.kingdom", DwcTerm.kingdom)),
+  PHYLUM_KEY(new BaseEsField("gbifClassification.phylumKey", GbifTerm.phylumKey)),
+  PHYLUM(new BaseEsField("gbifClassification.phylum", DwcTerm.phylum)),
+  CLASS_KEY(new BaseEsField("gbifClassification.classKey", GbifTerm.classKey)),
+  CLASS(new BaseEsField("gbifClassification.class", DwcTerm.class_)),
+  ORDER_KEY(new BaseEsField("gbifClassification.orderKey", GbifTerm.orderKey)),
+  ORDER(new BaseEsField("gbifClassification.order", DwcTerm.order)),
+  FAMILY_KEY(new BaseEsField("gbifClassification.familyKey", GbifTerm.familyKey)),
+  FAMILY(new BaseEsField("gbifClassification.family", DwcTerm.family)),
+  GENUS_KEY(new BaseEsField("gbifClassification.genusKey", GbifTerm.genusKey)),
+  GENUS(new BaseEsField("gbifClassification.genus", DwcTerm.genus)),
+  SUBGENUS_KEY(new BaseEsField("gbifClassification.subgenusKey", GbifTerm.subgenusKey)),
+  SUBGENUS(new BaseEsField("gbifClassification.subgenus", DwcTerm.subgenus)),
+  SPECIES_KEY(new BaseEsField("gbifClassification.speciesKey", GbifTerm.speciesKey)),
+  SPECIES(new BaseEsField("gbifClassification.species", GbifTerm.species)),
+  SCIENTIFIC_NAME(new BaseEsField("gbifClassification.usage.name", DwcTerm.scientificName)),
+  SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
+  INFRA_SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
+  GENERIC_NAME(new BaseEsField("gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
+  TAXONOMIC_STATUS(new BaseEsField("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus)),
+  TAXON_ID(new BaseEsField("gbifClassification.taxonID", DwcTerm.taxonID)),
+  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName)),
+  IUCN_RED_LIST_CATEGORY(new BaseEsField("gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
   // GrSciColl
-  COLLECTION_KEY("collectionKey", GbifInternalTerm.collectionKey),
-  INSTITUTION_KEY("institutionKey", GbifInternalTerm.institutionKey),
+  COLLECTION_KEY(new BaseEsField("collectionKey", GbifInternalTerm.collectionKey)),
+  INSTITUTION_KEY(new BaseEsField("institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID("eventID", DwcTerm.eventID, true),
-  PARENT_EVENT_ID("parentEventID", DwcTerm.parentEventID, true),
-  SAMPLING_PROTOCOL("samplingProtocol", DwcTerm.samplingProtocol, true),
-  LIFE_STAGE("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage),
-  DATE_IDENTIFIED("dateIdentified", DwcTerm.dateIdentified),
-  MODIFIED("modified", DcTerm.modified),
-  REFERENCES("references", DcTerm.references),
-  SEX("sex", DwcTerm.sex),
-  IDENTIFIER("identifier", DcTerm.identifier),
-  INDIVIDUAL_COUNT("individualCount", DwcTerm.individualCount),
-  RELATION("relation", DcTerm.relation),
-  TYPIFIED_NAME("typifiedName", GbifTerm.typifiedName),
-  ORGANISM_QUANTITY("organismQuantity", DwcTerm.organismQuantity),
-  ORGANISM_QUANTITY_TYPE("organismQuantityType", DwcTerm.organismQuantityType),
-  SAMPLE_SIZE_UNIT("sampleSizeUnit", DwcTerm.sampleSizeUnit),
-  SAMPLE_SIZE_VALUE("sampleSizeValue", DwcTerm.sampleSizeValue),
-  RELATIVE_ORGANISM_QUANTITY("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity),
+  EVENT_ID(new BaseEsField("eventID", DwcTerm.eventID, true)),
+  PARENT_EVENT_ID(new BaseEsField("parentEventID", DwcTerm.parentEventID, true)),
+  SAMPLING_PROTOCOL(new BaseEsField("samplingProtocol", DwcTerm.samplingProtocol, true)),
+  LIFE_STAGE(new BaseEsField("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
+  DATE_IDENTIFIED(new BaseEsField("dateIdentified", DwcTerm.dateIdentified)),
+  MODIFIED(new BaseEsField("modified", DcTerm.modified)),
+  REFERENCES(new BaseEsField("references", DcTerm.references)),
+  SEX(new BaseEsField("sex", DwcTerm.sex)),
+  IDENTIFIER(new BaseEsField("identifier", DcTerm.identifier)),
+  INDIVIDUAL_COUNT(new BaseEsField("individualCount", DwcTerm.individualCount)),
+  RELATION(new BaseEsField("relation", DcTerm.relation)),
+  TYPIFIED_NAME(new BaseEsField("typifiedName", GbifTerm.typifiedName)),
+  ORGANISM_QUANTITY(new BaseEsField("organismQuantity", DwcTerm.organismQuantity)),
+  ORGANISM_QUANTITY_TYPE(new BaseEsField("organismQuantityType", DwcTerm.organismQuantityType)),
+  SAMPLE_SIZE_UNIT(new BaseEsField("sampleSizeUnit", DwcTerm.sampleSizeUnit)),
+  SAMPLE_SIZE_VALUE(new BaseEsField("sampleSizeValue", DwcTerm.sampleSizeValue)),
+  RELATIVE_ORGANISM_QUANTITY(new BaseEsField("relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity)),
 
   //Crawling
-  CRAWL_ID("crawlId", GbifInternalTerm.crawlId),
-  LAST_INTERPRETED("created", GbifTerm.lastInterpreted),
-  LAST_CRAWLED("lastCrawled", GbifTerm.lastCrawled),
-  LAST_PARSED("created", GbifTerm.lastParsed),
+  CRAWL_ID(new BaseEsField("crawlId", GbifInternalTerm.crawlId)),
+  LAST_INTERPRETED(new BaseEsField("created", GbifTerm.lastInterpreted)),
+  LAST_CRAWLED(new BaseEsField("lastCrawled", GbifTerm.lastCrawled)),
+  LAST_PARSED(new BaseEsField("created", GbifTerm.lastParsed)),
 
   //Media
-  MEDIA_TYPE("mediaTypes", GbifTerm.mediaType),
-  MEDIA_ITEMS("multimediaItems", null),
+  MEDIA_TYPE(new BaseEsField("mediaTypes", GbifTerm.mediaType)),
+  MEDIA_ITEMS(new BaseEsField("multimediaItems", null)),
 
   //Issues
-  ISSUE("issues", GbifTerm.issue),
+  ISSUE(new BaseEsField("issues", GbifTerm.issue)),
 
-  ESTABLISHMENT_MEANS("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans),
-  DEGREE_OF_ESTABLISHMENT_MEANS("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment),
-  PATHWAY("pathway.lineage", "pathway.concept", DwcTerm.pathway),
-  FACTS("measurementOrFactItems", null),
-  GBIF_ID("gbifId", GbifTerm.gbifID),
-  FULL_TEXT("all", null),
-  IS_IN_CLUSTER("isClustered", GbifInternalTerm.isInCluster),
-  EXTENSIONS("extensions", GbifInternalTerm.dwcaExtension),
+  ESTABLISHMENT_MEANS(new BaseEsField("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans)),
+  DEGREE_OF_ESTABLISHMENT_MEANS(new BaseEsField("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment)),
+  PATHWAY(new BaseEsField("pathway.lineage", "pathway.concept", DwcTerm.pathway)),
+  FACTS(new BaseEsField("measurementOrFactItems", null)),
+  GBIF_ID(new BaseEsField("gbifId", GbifTerm.gbifID)),
+  FULL_TEXT(new BaseEsField("all", null)),
+  IS_IN_CLUSTER(new BaseEsField("isClustered", GbifInternalTerm.isInCluster)),
+  EXTENSIONS(new BaseEsField("extensions", GbifInternalTerm.dwcaExtension)),
 
   //Event
-  START_DAY_OF_YEAR("startDayOfYear", DwcTerm.startDayOfYear),
-  END_DAY_OF_YEAR("endDayOfYear", DwcTerm.startDayOfYear),
-  EVENT_TYPE("eventType", GbifTerm.eventType),
-  LOCATION_ID("locationID", DwcTerm.locationID),
-  PARENTS_LINEAGE("parentsLineage", UnknownTerm.build("parentsLineage")),
+  START_DAY_OF_YEAR(new BaseEsField("startDayOfYear", DwcTerm.startDayOfYear)),
+  END_DAY_OF_YEAR(new BaseEsField("endDayOfYear", DwcTerm.startDayOfYear)),
+  EVENT_TYPE(new BaseEsField("eventType", GbifTerm.eventType)),
+  LOCATION_ID(new BaseEsField("locationID", DwcTerm.locationID)),
+  PARENTS_LINEAGE(new BaseEsField("parentsLineage", UnknownTerm.build("parentsLineage"))),
 
   //Verbatim
-  VERBATIM("verbatim", UnknownTerm.build("verbatim"));
+  VERBATIM(new BaseEsField("verbatim", UnknownTerm.build("verbatim")));
 
+  private final BaseEsField esField;
 
-  private final String searchFieldName;
-
-  private final String valueFieldName;
-
-  private final Term term;
-
-  private boolean autosuggest;
-
-  OccurrenceEsField(String searchFieldName, String valueFieldName, Term term) {
-    this.searchFieldName = searchFieldName;
-    this.term = term;
-    this.autosuggest = false;
-    this.valueFieldName = valueFieldName;
+  public BaseEsField getEsField() {
+    return esField;
   }
 
-  OccurrenceEsField(String searchFieldName, Term term) {
-    this.searchFieldName = searchFieldName;
-    this.term = term;
-    this.autosuggest = false;
-    this.valueFieldName = searchFieldName;
+  OccurrenceEsField(BaseEsField esField) {
+    this.esField = esField;
   }
 
-  OccurrenceEsField(String searchFieldName, Term term, boolean autosuggest) {
-    this.searchFieldName = searchFieldName;
-    this.term = term;
-    this.autosuggest = autosuggest;
-    this.valueFieldName = searchFieldName;
+  public static final ImmutableMap<OccurrenceSearchParameter, EsField> SEARCH_TO_ES_MAPPING =
+    ImmutableMap.<OccurrenceSearchParameter, EsField>builder()
+      .put(OccurrenceSearchParameter.DECIMAL_LATITUDE, LATITUDE)
+      .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, LONGITUDE)
+      .put(OccurrenceSearchParameter.YEAR, YEAR)
+      .put(OccurrenceSearchParameter.MONTH, MONTH)
+      .put(OccurrenceSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
+      .put(OccurrenceSearchParameter.RECORDED_BY, RECORDED_BY)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY, IDENTIFIED_BY)
+      .put(OccurrenceSearchParameter.RECORD_NUMBER, RECORD_NUMBER)
+      .put(OccurrenceSearchParameter.COLLECTION_CODE, COLLECTION_CODE)
+      .put(OccurrenceSearchParameter.INSTITUTION_CODE, INSTITUTION_CODE)
+      .put(OccurrenceSearchParameter.DEPTH, DEPTH)
+      .put(OccurrenceSearchParameter.ELEVATION, ELEVATION)
+      .put(OccurrenceSearchParameter.BASIS_OF_RECORD, BASIS_OF_RECORD)
+      .put(OccurrenceSearchParameter.DATASET_KEY, DATASET_KEY)
+      .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, HAS_GEOSPATIAL_ISSUES)
+      .put(OccurrenceSearchParameter.HAS_COORDINATE, HAS_COORDINATE)
+      .put(OccurrenceSearchParameter.EVENT_DATE, EVENT_DATE)
+      .put(OccurrenceSearchParameter.MODIFIED, MODIFIED)
+      .put(OccurrenceSearchParameter.LAST_INTERPRETED, LAST_INTERPRETED)
+      .put(OccurrenceSearchParameter.COUNTRY, COUNTRY_CODE)
+      .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
+      .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
+      .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
+      .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
+      .put(OccurrenceSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
+      .put(OccurrenceSearchParameter.CLASS_KEY, CLASS_KEY)
+      .put(OccurrenceSearchParameter.ORDER_KEY, ORDER_KEY)
+      .put(OccurrenceSearchParameter.FAMILY_KEY, FAMILY_KEY)
+      .put(OccurrenceSearchParameter.GENUS_KEY, GENUS_KEY)
+      .put(OccurrenceSearchParameter.SUBGENUS_KEY, SUBGENUS_KEY)
+      .put(OccurrenceSearchParameter.SPECIES_KEY, SPECIES_KEY)
+      .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, SCIENTIFIC_NAME)
+      .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, VERBATIM_SCIENTIFIC_NAME)
+      .put(OccurrenceSearchParameter.TAXON_ID, TAXON_ID)
+      .put(OccurrenceSearchParameter.TYPE_STATUS, TYPE_STATUS)
+      .put(OccurrenceSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
+      .put(OccurrenceSearchParameter.ISSUE, ISSUE)
+      .put(OccurrenceSearchParameter.OCCURRENCE_ID, OCCURRENCE_ID)
+      .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, ESTABLISHMENT_MEANS)
+      .put(OccurrenceSearchParameter.DEGREE_OF_ESTABLISHMENT, DEGREE_OF_ESTABLISHMENT_MEANS)
+      .put(OccurrenceSearchParameter.PATHWAY, PATHWAY)
+      .put(OccurrenceSearchParameter.REPATRIATED, REPATRIATED)
+      .put(OccurrenceSearchParameter.LOCALITY, LOCALITY)
+      .put(OccurrenceSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, COORDINATE_UNCERTAINTY_IN_METERS)
+      .put(OccurrenceSearchParameter.GADM_GID, GADM_GID)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_0_GID, GADM_LEVEL_0_GID)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_1_GID, GADM_LEVEL_1_GID)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_2_GID, GADM_LEVEL_2_GID)
+      .put(OccurrenceSearchParameter.GADM_LEVEL_3_GID, GADM_LEVEL_3_GID)
+      .put(OccurrenceSearchParameter.STATE_PROVINCE, STATE_PROVINCE)
+      .put(OccurrenceSearchParameter.WATER_BODY, WATER_BODY)
+      .put(OccurrenceSearchParameter.LICENSE, LICENSE)
+      .put(OccurrenceSearchParameter.PROTOCOL, PROTOCOL)
+      .put(OccurrenceSearchParameter.ORGANISM_ID, ORGANISM_ID)
+      .put(OccurrenceSearchParameter.PUBLISHING_ORG, PUBLISHING_ORGANIZATION_KEY)
+      .put(OccurrenceSearchParameter.HOSTING_ORGANIZATION_KEY, HOSTING_ORGANIZATION_KEY)
+      .put(OccurrenceSearchParameter.CRAWL_ID, CRAWL_ID)
+      .put(OccurrenceSearchParameter.INSTALLATION_KEY, INSTALLATION_KEY)
+      .put(OccurrenceSearchParameter.NETWORK_KEY, NETWORK_KEY)
+      .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
+      .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
+      .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
+      .put(OccurrenceSearchParameter.PROJECT_ID, PROJECT_ID)
+      .put(OccurrenceSearchParameter.PROGRAMME, PROGRAMME)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, ORGANISM_QUANTITY)
+      .put(OccurrenceSearchParameter.ORGANISM_QUANTITY_TYPE, ORGANISM_QUANTITY_TYPE)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_VALUE, SAMPLE_SIZE_VALUE)
+      .put(OccurrenceSearchParameter.SAMPLE_SIZE_UNIT, SAMPLE_SIZE_UNIT)
+      .put(OccurrenceSearchParameter.RELATIVE_ORGANISM_QUANTITY, RELATIVE_ORGANISM_QUANTITY)
+      .put(OccurrenceSearchParameter.COLLECTION_KEY, COLLECTION_KEY)
+      .put(OccurrenceSearchParameter.INSTITUTION_KEY, INSTITUTION_KEY)
+      .put(OccurrenceSearchParameter.IDENTIFIED_BY_ID, IDENTIFIED_BY_ID)
+      .put(OccurrenceSearchParameter.RECORDED_BY_ID, RECORDED_BY_ID)
+      .put(OccurrenceSearchParameter.OCCURRENCE_STATUS, OCCURRENCE_STATUS)
+      .put(OccurrenceSearchParameter.LIFE_STAGE, LIFE_STAGE)
+      .put(OccurrenceSearchParameter.IS_IN_CLUSTER, IS_IN_CLUSTER)
+      .put(OccurrenceSearchParameter.DWCA_EXTENSION, EXTENSIONS)
+      .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
+      .put(OccurrenceSearchParameter.DATASET_ID, DATASET_ID)
+      .put(OccurrenceSearchParameter.DATASET_NAME, DATASET_NAME)
+      .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
+      .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
+      .build();
+
+  private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);
+
+  public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
+      return OccurrenceBaseEsFieldMapper.builder()
+        .fullTextField(FULL_TEXT)
+        .geoShapeField(COORDINATE_SHAPE)
+        .geoDistanceField(COORDINATE_POINT)
+        .uniqueIdField(ID)
+        .defaultFilter(Optional.empty())
+        .defaultSort(ImmutableList.of(SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
+                                      SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC),
+                                      SortBuilders.fieldSort(ID.getSearchFieldName()).order(SortOrder.ASC)))
+        .searchToEsMapping(SEARCH_TO_ES_MAPPING)
+        .dateFields(DATE_FIELDS)
+        .fieldEnumClass(OccurrenceEsField.class)
+        .build();
   }
 
-  /** @return the fieldName */
+  @Override
   public String getSearchFieldName() {
-    return searchFieldName;
+    return esField.getSearchFieldName();
   }
 
-  /** @return the field that holds the value to use in responses.*/
+  @Override
   public String getValueFieldName() {
-    return valueFieldName;
+    return esField.getValueFieldName();
   }
 
-  public String getExactMatchFieldName() {
-    if (autosuggest) {
-      return searchFieldName + ".keyword";
-    }
-    return searchFieldName;
-  }
-
-  public String getVerbatimFieldName() {
-    if (autosuggest) {
-      return searchFieldName + ".verbatim";
-    }
-    return searchFieldName;
-  }
-
-  public String getSuggestFieldName() {
-    if (autosuggest) {
-      return searchFieldName + ".suggest";
-    }
-    return searchFieldName;
-  }
-
-  /** @return the term */
+  @Override
   public Term getTerm() {
-    return term;
+    return esField.getTerm();
   }
 
-  public boolean isAutosuggest() {
-    return autosuggest;
+  @Override
+  public boolean isAutoSuggest() {
+    return esField.isAutoSuggest();
   }
 }

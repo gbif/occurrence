@@ -16,7 +16,6 @@ package org.gbif.occurrence.download.conf;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
@@ -35,6 +34,10 @@ import com.google.common.base.Throwables;
  * parameter as java Properties class.
  */
 public class WorkflowConfiguration {
+
+  public enum SearchType {
+    EVENT, OCCURRENCE;
+  }
 
   private final Properties settings;
   private final Configuration hadoopConf;
@@ -121,9 +124,9 @@ public class WorkflowConfiguration {
    *
    * @return Index object type to use as main object
    */
-  public EsFieldMapper.SearchType getEsIndexType() {
+  public SearchType getEsIndexType() {
     Preconditions.checkNotNull(settings);
-    return EsFieldMapper.SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
+    return SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
   }
 
   /**

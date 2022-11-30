@@ -68,8 +68,8 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.NETWORK_KEY;
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
-  public SearchHitOccurrenceConverter(EsFieldMapper esFieldMapper, boolean excludeInterpretedFromVerbatim) {
-    super(esFieldMapper);
+  public SearchHitOccurrenceConverter(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, boolean excludeInterpretedFromVerbatim) {
+    super(occurrenceBaseEsFieldMapper);
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
 
@@ -90,7 +90,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setGrscicollFields(hit, occ);
 
     // issues
-    getListValue(hit, ISSUE)
+    getListValue(hit, ISSUE.getValueFieldName())
       .ifPresent(
         v ->
           occ.setIssues(
@@ -108,7 +108,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
+    getMapValue(hit, VERBATIM.getValueFieldName()).ifPresent(verbatimData -> {
       if (verbatimData.containsKey("extensions" )) {
         occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
       }
@@ -147,7 +147,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .ifPresent(vOcc::setPublishingOrgKey);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(vOcc::setProtocol);
 
-    getListValue(hit, NETWORK_KEY)
+    getListValue(hit, NETWORK_KEY.getValueFieldName())
       .ifPresent(
         v -> vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
@@ -163,7 +163,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setIdentifier(hit, vOcc);
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
+    getMapValue(hit, VERBATIM.getValueFieldName()).ifPresent(verbatimData -> {
       vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
       if (verbatimData.containsKey("extensions" )) {
         vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
@@ -242,7 +242,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
     getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
-    getListValueAsString(hit, TYPE_STATUS).ifPresent(occ::setTypeStatus);
+    getListValueAsString(hit, TYPE_STATUS.getValueFieldName()).ifPresent(occ::setTypeStatus);
     getStringValue(hit, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
     getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(occ::setIndividualCount);
     getStringValue(hit, IDENTIFIER)
@@ -271,13 +271,13 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
     getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
     getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(occ::setIsInCluster);
-    getListValueAsString(hit, DATASET_ID).ifPresent(occ::setDatasetID);
-    getListValueAsString(hit, DATASET_NAME).ifPresent(occ::setDatasetName);
-    getListValueAsString(hit, RECORDED_BY).ifPresent(occ::setRecordedBy);
-    getListValueAsString(hit, IDENTIFIED_BY).ifPresent(occ::setIdentifiedBy);
-    getListValueAsString(hit, PREPARATIONS).ifPresent(occ::setPreparations);
-    getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(occ::setSamplingProtocol);
-    getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(occ::setOtherCatalogNumbers);
+    getListValueAsString(hit, DATASET_ID.getValueFieldName()).ifPresent(occ::setDatasetID);
+    getListValueAsString(hit, DATASET_NAME.getValueFieldName()).ifPresent(occ::setDatasetName);
+    getListValueAsString(hit, RECORDED_BY.getValueFieldName()).ifPresent(occ::setRecordedBy);
+    getListValueAsString(hit, IDENTIFIED_BY.getValueFieldName()).ifPresent(occ::setIdentifiedBy);
+    getListValueAsString(hit, PREPARATIONS.getValueFieldName()).ifPresent(occ::setPreparations);
+    getListValueAsString(hit, SAMPLING_PROTOCOL.getValueFieldName()).ifPresent(occ::setSamplingProtocol);
+    getListValueAsString(hit, OTHER_CATALOG_NUMBERS.getValueFieldName()).ifPresent(occ::setOtherCatalogNumbers);
   }
 
   private void parseAgentIds(SearchHit hit, Occurrence occ) {
@@ -288,11 +288,11 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       return ai;
     };
 
-    getObjectsListValue(hit, RECORDED_BY_ID)
+    getObjectsListValue(hit, RECORDED_BY_ID.getSearchFieldName().replace(".value", ""))
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setRecordedByIds);
 
-    getObjectsListValue(hit, IDENTIFIED_BY_ID)
+    getObjectsListValue(hit, IDENTIFIED_BY_ID.getSearchFieldName().replace(".value", ""))
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setIdentifiedByIds);
   }
@@ -390,7 +390,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
     getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
 
-    getListValue(hit, NETWORK_KEY)
+    getListValue(hit, NETWORK_KEY.getValueFieldName())
       .ifPresent(
         v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
@@ -430,7 +430,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       return mediaObject;
     };
 
-    getObjectsListValue(hit, MEDIA_ITEMS)
+    getObjectsListValue(hit, MEDIA_ITEMS.getValueFieldName())
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setMedia);
   }

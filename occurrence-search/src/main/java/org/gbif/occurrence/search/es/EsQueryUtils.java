@@ -30,7 +30,6 @@ import org.apache.http.protocol.HTTP;
 import org.elasticsearch.client.RequestOptions;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 public class EsQueryUtils {
@@ -188,40 +187,22 @@ public class EsQueryUtils {
         return builder.build();
       };
 
-  static final Map<OccurrenceEsField, Integer> CARDINALITIES =
-      ImmutableMap.<OccurrenceEsField, Integer>builder()
-          .put(OccurrenceEsField.BASIS_OF_RECORD, BasisOfRecord.values().length)
-          .put(OccurrenceEsField.COUNTRY_CODE, Country.values().length)
-          .put(OccurrenceEsField.PUBLISHING_COUNTRY, Country.values().length)
-          .put(OccurrenceEsField.CONTINENT, Continent.values().length)
-          .put(OccurrenceEsField.ESTABLISHMENT_MEANS, EstablishmentMeans.values().length)
-          .put(OccurrenceEsField.ISSUE, OccurrenceIssue.values().length)
-          .put(OccurrenceEsField.LICENSE, License.values().length)
-          .put(OccurrenceEsField.MEDIA_TYPE, MediaType.values().length)
-          .put(OccurrenceEsField.TYPE_STATUS, TypeStatus.values().length)
-          .put(OccurrenceEsField.KINGDOM_KEY, Kingdom.values().length)
-          .put(OccurrenceEsField.MONTH, 12)
-          .put(OccurrenceEsField.IUCN_RED_LIST_CATEGORY, ThreatStatus.values().length)
+  static final Map<OccurrenceSearchParameter, Integer> CARDINALITIES =
+      ImmutableMap.<OccurrenceSearchParameter, Integer>builder()
+          .put(OccurrenceSearchParameter.BASIS_OF_RECORD, BasisOfRecord.values().length)
+          .put(OccurrenceSearchParameter.COUNTRY, Country.values().length)
+          .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, Country.values().length)
+          .put(OccurrenceSearchParameter.CONTINENT, Continent.values().length)
+          .put(OccurrenceSearchParameter.ESTABLISHMENT_MEANS, EstablishmentMeans.values().length)
+          .put(OccurrenceSearchParameter.ISSUE, OccurrenceIssue.values().length)
+          .put(OccurrenceSearchParameter.LICENSE, License.values().length)
+          .put(OccurrenceSearchParameter.MEDIA_TYPE, MediaType.values().length)
+          .put(OccurrenceSearchParameter.TYPE_STATUS, TypeStatus.values().length)
+          .put(OccurrenceSearchParameter.KINGDOM_KEY, Kingdom.values().length)
+          .put(OccurrenceSearchParameter.MONTH, 12)
+          .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, ThreatStatus.values().length)
           .build();
 
-  static final List<OccurrenceEsField> DATE_FIELDS =
-    ImmutableList.of(
-      OccurrenceEsField.EVENT_DATE,
-      OccurrenceEsField.DATE_IDENTIFIED,
-      OccurrenceEsField.MODIFIED,
-      OccurrenceEsField.LAST_INTERPRETED,
-      OccurrenceEsField.LAST_CRAWLED,
-      OccurrenceEsField.LAST_PARSED);
-
-  static final Map<String, OccurrenceSearchParameter> ES_TO_SEARCH_MAPPING =
-      new HashMap<>(EsFieldMapper.SEARCH_TO_ES_MAPPING.size());
-
-  static {
-    for (Map.Entry<OccurrenceSearchParameter, OccurrenceEsField> paramField :
-        EsFieldMapper.SEARCH_TO_ES_MAPPING.entrySet()) {
-      ES_TO_SEARCH_MAPPING.put(paramField.getValue().getSearchFieldName(), paramField.getKey());
-    }
-  }
 
 
   static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {

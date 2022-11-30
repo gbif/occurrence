@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 package org.gbif.occurrence.search.heatmap.es;
-import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
@@ -42,8 +42,7 @@ public class EsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(EsFieldMapper.builder().nestedIndex(false).searchType(
-    EsFieldMapper.SearchType.OCCURRENCE).build());
+  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper());
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -105,7 +104,7 @@ public class EsHeatmapRequestBuilderTest {
   /**
    * Tries to find a field in the list of term filters.
    */
-  private static Optional<String> findTermFilter(JsonNode node, OccurrenceEsField field) {
+  private static Optional<String> findTermFilter(JsonNode node, EsField field) {
     ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
     return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
               .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))

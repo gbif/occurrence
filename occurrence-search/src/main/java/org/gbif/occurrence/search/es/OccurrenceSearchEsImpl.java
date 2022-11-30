@@ -30,7 +30,6 @@ import org.gbif.occurrence.search.SearchTermService;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -68,7 +67,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final int maxLimit;
   private final int maxOffset;
   private final EsFulltextSuggestBuilder esFulltextSuggestBuilder;
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper esFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Occurrence> esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
@@ -80,8 +79,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
-    @Value("${occurrence.search.es.type:#{null}}") Optional<EsFieldMapper.SearchType> searchType,
-    @Value("${occurrence.search.es.nestedIndex:FALSE}") Boolean nestedIndex) {
+    OccurrenceBaseEsFieldMapper esFieldMapper) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -90,10 +88,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    EsFieldMapper.EsFieldMapperBuilder builder = EsFieldMapper.builder().nestedIndex(nestedIndex);
-    searchType.ifPresent(builder::searchType);
-    esFieldMapper = builder.build();
-    this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().esFieldMapper(esFieldMapper).build();
+    this.esFieldMapper = esFieldMapper;
+    this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
@@ -127,8 +123,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return getByQuery(QueryBuilders.boolQuery()
                         .filter(
                           QueryBuilders.boolQuery()
-                          .must(QueryBuilders.termQuery(esFieldMapper.getSearchFieldName(OccurrenceEsField.DATASET_KEY), datasetKey.toString()))
-                          .must(QueryBuilders.termQuery(esFieldMapper.getExactMatchFieldName(OccurrenceEsField.OCCURRENCE_ID), occurrenceId))),
+                          .must(QueryBuilders.termQuery(esFieldMapper.getSearchFieldName(OccurrenceSearchParameter.DATASET_KEY), datasetKey.toString()))
+                          .must(QueryBuilders.termQuery(esFieldMapper.getExactMatchFieldName(OccurrenceSearchParameter.OCCURRENCE_ID), occurrenceId))),
                       mapper);
   }
 

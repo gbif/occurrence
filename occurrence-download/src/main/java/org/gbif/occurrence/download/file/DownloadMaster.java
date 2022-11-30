@@ -21,8 +21,8 @@ import org.gbif.occurrence.download.file.dwca.akka.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
@@ -82,7 +82,7 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
   private int calcNrOfWorkers;
   private int nrOfResults;
 
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final Function<T,Map<String,String>> verbatimMapper;
   private final Function<T,Map<String,String>> interpretedMapper;
   private final SearchHitConverter<T> searchHitConverter;
@@ -112,7 +112,7 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    esFieldMapper = downloadWorkflowModule.esFieldMapper();
+    occurrenceBaseEsFieldMapper = downloadWorkflowModule.esFieldMapper();
     this.interpretedMapper =interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
@@ -218,7 +218,8 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
       ActorRef workerRouter =
         getContext().actorOf(new Props(DownloadActorsFactory.<T>builder()
                                          .downloadFormat(jobConfiguration.getDownloadFormat())
-                                         .searchQueryProcessor(new SearchQueryProcessor<>(new EsResponseParser<>(esFieldMapper, searchHitConverter)))
+                                         .searchQueryProcessor(new SearchQueryProcessor<>(new EsResponseParser<>(
+                                           occurrenceBaseEsFieldMapper, searchHitConverter)))
                                          .verbatimMapper(verbatimMapper)
                                          .interpretedMapper(interpretedMapper)
                                          .build()

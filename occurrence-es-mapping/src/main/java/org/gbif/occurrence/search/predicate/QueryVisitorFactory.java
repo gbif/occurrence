@@ -14,8 +14,7 @@
 package org.gbif.occurrence.search.predicate;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,15 +24,9 @@ public class QueryVisitorFactory {
   @JsonDeserialize(as = OccurrenceSearchParameter.class)
   public static class OccurrenceSearchParameterMixin {}
 
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      org.gbif.occurrence.search.es.EsFieldMapper.SearchType searchType, boolean isNestedIndex) {
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
     return new EsQueryVisitor<>(
-        new EsFieldMapper<OccurrenceSearchParameter>() {
-          private final org.gbif.occurrence.search.es.EsFieldMapper fieldMapper =
-              org.gbif.occurrence.search.es.EsFieldMapper.builder()
-                  .searchType(searchType)
-                  .nestedIndex(isNestedIndex)
-                  .build();
+        new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
 
           @Override
           public String getVerbatimFieldName(OccurrenceSearchParameter searchParameter) {
@@ -47,16 +40,17 @@ public class QueryVisitorFactory {
 
           @Override
           public String getGeoDistanceField() {
-            return fieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT);
+            return fieldMapper.getGeoDistanceEsField().getSearchFieldName();
           }
 
           @Override
           public String getGeoShapeField() {
-            return fieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_SHAPE);
+            return fieldMapper.getGeoShapeEsField().getSearchFieldName();
           }
+
           @Override
           public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
-            return org.gbif.occurrence.search.es.EsFieldMapper.isVocabulary(fieldMapper.getOccurrenceEsField(searchParameter));
+            return fieldMapper.isVocabulary(searchParameter);
           }
         });
   }

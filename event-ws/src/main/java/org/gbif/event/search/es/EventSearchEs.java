@@ -26,9 +26,10 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.EventEsField;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 
@@ -71,7 +72,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Event> esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
 
   private final SearchHitConverter<Occurrence> searchHitOccurrenceConverter;
@@ -85,9 +86,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     NameUsageMatchingService nameUsageMatchingService,
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
-    @Value("${occurrence.search.es.index}") String esIndex,
-    @Value("${occurrence.search.es.type:#{null}}") Optional<EsFieldMapper.SearchType> searchType,
-    @Value("${occurrence.search.es.nestedIndex:FALSE}") Boolean nestedIndex
+    @Value("${occurrence.search.es.index}") String esIndex
   ) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -97,13 +96,11 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    EsFieldMapper.EsFieldMapperBuilder builder = EsFieldMapper.builder().childrenFieldsMapping(ChildrenFieldsMapping.childrenFieldsMappings()).nestedIndex(nestedIndex);
-    searchType.ifPresent(builder::searchType);
-    esFieldMapper = builder.build();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
-    searchHitEventConverter = new SearchHitEventConverter(esFieldMapper);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
-    this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitEventConverter);
+    occurrenceBaseEsFieldMapper = EventEsField.buildFieldMapper();
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper);
+    searchHitEventConverter = new SearchHitEventConverter(occurrenceBaseEsFieldMapper, true);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceBaseEsFieldMapper, true);
+    this.esResponseParser = new EsResponseParser<>(occurrenceBaseEsFieldMapper, searchHitEventConverter);
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {

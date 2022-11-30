@@ -13,7 +13,7 @@
  */
 package org.gbif.event.search.es;
 
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.es.EsField;
 
 import java.util.Map;
 
@@ -21,27 +21,27 @@ import com.google.common.collect.ImmutableMap;
 
 import lombok.experimental.UtilityClass;
 
-import static org.gbif.occurrence.search.es.OccurrenceEsField.CLASS_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.FAMILY_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.GENUS_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.KINGDOM_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.ORDER_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.PHYLUM_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.SCIENTIFIC_NAME;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.SPECIES_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.SUBGENUS_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.TAXON_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.TAXON_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.TYPE_STATUS;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.VERBATIM_SCIENTIFIC_NAME;
+import static org.gbif.occurrence.search.es.EventEsField.CLASS_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.FAMILY_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.GENUS_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.KINGDOM_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.ORDER_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.PHYLUM_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.SCIENTIFIC_NAME;
+import static org.gbif.occurrence.search.es.EventEsField.SPECIES_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.SUBGENUS_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.TAXON_ID;
+import static org.gbif.occurrence.search.es.EventEsField.TAXON_KEY;
+import static org.gbif.occurrence.search.es.EventEsField.TYPE_STATUS;
+import static org.gbif.occurrence.search.es.EventEsField.VERBATIM_SCIENTIFIC_NAME;
 
 @UtilityClass
 public class ChildrenFieldsMapping {
 
   private static final String OCCURRENCE_RELATION = "occurrence";
 
-  private static final ImmutableMap<OccurrenceEsField,String> CHILDREN_FIELDS_MAPPING =
-    ImmutableMap.<OccurrenceEsField,String>builder()
+  private static final ImmutableMap<EsField,String> CHILDREN_FIELDS_MAPPING =
+    ImmutableMap.<EsField,String>builder()
       .put(TAXON_KEY, OCCURRENCE_RELATION)
       .put(KINGDOM_KEY, OCCURRENCE_RELATION)
       .put(PHYLUM_KEY, OCCURRENCE_RELATION)
@@ -57,7 +57,7 @@ public class ChildrenFieldsMapping {
       .put(TYPE_STATUS, OCCURRENCE_RELATION)
       .build();
 
-  public static Map<OccurrenceEsField,String> childrenFieldsMappings() {
+  public static Map<EsField,String> childrenFieldsMappings() {
     return CHILDREN_FIELDS_MAPPING;
   }
 }

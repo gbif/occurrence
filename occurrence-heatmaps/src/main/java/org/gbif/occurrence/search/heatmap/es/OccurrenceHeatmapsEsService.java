@@ -14,7 +14,7 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 
@@ -52,10 +52,10 @@ public class OccurrenceHeatmapsEsService implements OccurrenceHeatmapService<Sea
   private final EsHeatmapRequestBuilder esHeatmapRequestBuilder;
 
   @Autowired
-  public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex, EsFieldMapper esFieldMapper) {
+  public OccurrenceHeatmapsEsService(RestHighLevelClient esClient, String esIndex, OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper) {
     this.esIndex = esIndex;
     this.esClient = esClient;
-    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(esFieldMapper);
+    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper);
   }
 
   @Override
