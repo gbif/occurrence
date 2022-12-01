@@ -141,7 +141,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
 
   @Override
   public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
-    return searchToEsMapping.get(searchParameter).isVocabulary();
+    return Optional.ofNullable(searchToEsMapping.get(searchParameter)).map(EsField::isVocabulary).orElse(false);
   }
 
   public boolean isDateField(OccurrenceSearchParameter searchParameter) {

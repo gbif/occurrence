@@ -21,6 +21,8 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
@@ -146,6 +148,11 @@ public class OccurrenceWsItConfiguration {
   @Bean
   public RestHighLevelClient restHighLevelClient(EsManageServer esManageServer) {
     return esManageServer.getRestClient();
+  }
+
+  @Bean
+  public OccurrenceBaseEsFieldMapper esFieldMapper() {
+    return OccurrenceEsField.buildFieldMapper();
   }
 
   /** Mock name matching service. */
