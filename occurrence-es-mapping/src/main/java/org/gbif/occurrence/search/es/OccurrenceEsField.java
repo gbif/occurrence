@@ -21,7 +21,6 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
 
 import java.util.Optional;
 import java.util.Set;
@@ -170,7 +169,7 @@ public enum OccurrenceEsField implements EsField {
 
   //Media
   MEDIA_TYPE(new BaseEsField("mediaTypes", GbifTerm.mediaType)),
-  MEDIA_ITEMS(new BaseEsField("multimediaItems", null)),
+  MEDIA_ITEMS(new BaseEsField("multimediaItems", EsField.MEDIA_ITEMS)),
 
   //Issues
   ISSUE(new BaseEsField("issues", GbifTerm.issue)),
@@ -178,9 +177,9 @@ public enum OccurrenceEsField implements EsField {
   ESTABLISHMENT_MEANS(new BaseEsField("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans)),
   DEGREE_OF_ESTABLISHMENT_MEANS(new BaseEsField("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment)),
   PATHWAY(new BaseEsField("pathway.lineage", "pathway.concept", DwcTerm.pathway)),
-  FACTS(new BaseEsField("measurementOrFactItems", null)),
+  FACTS(new BaseEsField("measurementOrFactItems", EsField.FACTS)),
   GBIF_ID(new BaseEsField("gbifId", GbifTerm.gbifID)),
-  FULL_TEXT(new BaseEsField("all", null)),
+  FULL_TEXT(new BaseEsField("all", EsField.ALL)),
   IS_IN_CLUSTER(new BaseEsField("isClustered", GbifInternalTerm.isInCluster)),
   EXTENSIONS(new BaseEsField("extensions", GbifInternalTerm.dwcaExtension)),
 
@@ -189,10 +188,10 @@ public enum OccurrenceEsField implements EsField {
   END_DAY_OF_YEAR(new BaseEsField("endDayOfYear", DwcTerm.startDayOfYear)),
   EVENT_TYPE(new BaseEsField("eventType", GbifTerm.eventType)),
   LOCATION_ID(new BaseEsField("locationID", DwcTerm.locationID)),
-  PARENTS_LINEAGE(new BaseEsField("parentsLineage", UnknownTerm.build("parentsLineage"))),
+  PARENTS_LINEAGE(new BaseEsField("parentsLineage", EsField.PARENTS_LINEAGE)),
 
   //Verbatim
-  VERBATIM(new BaseEsField("verbatim", UnknownTerm.build("verbatim")));
+  VERBATIM(new BaseEsField("verbatim", EsField.VERBATIM));
 
   private final BaseEsField esField;
 

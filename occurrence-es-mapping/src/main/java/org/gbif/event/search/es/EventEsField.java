@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.es;
+package org.gbif.event.search.es;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -22,6 +22,9 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.occurrence.search.es.BaseEsField;
+import org.gbif.occurrence.search.es.EsField;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
 import java.util.Optional;
 import java.util.Set;

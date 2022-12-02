@@ -14,9 +14,16 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
 public interface EsField {
+
+  UnknownTerm MEDIA_ITEMS = UnknownTerm.build("multimediaItems");
+  UnknownTerm VERBATIM = UnknownTerm.build("verbatim");
+  UnknownTerm ALL = UnknownTerm.build("all");
+  UnknownTerm FACTS = UnknownTerm.build("measurementOrFactItems");
+  UnknownTerm PARENTS_LINEAGE = UnknownTerm.build("parentsLineage");
 
   String getSearchFieldName();
 

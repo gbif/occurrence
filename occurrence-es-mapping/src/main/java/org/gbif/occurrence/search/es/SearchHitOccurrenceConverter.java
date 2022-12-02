@@ -36,8 +36,12 @@ import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
@@ -58,13 +62,6 @@ import org.elasticsearch.search.SearchHit;
 
 import com.google.common.collect.Maps;
 
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.CRAWL_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_CRAWLED;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_INTERPRETED;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_PARSED;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.MEDIA_ITEMS;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.NETWORK_KEY;
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
@@ -90,7 +87,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setGrscicollFields(hit, occ);
 
     // issues
-    getListValue(hit, ISSUE.getValueFieldName())
+    getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.issue).getValueFieldName())
       .ifPresent(
         v ->
           occ.setIssues(
@@ -108,7 +105,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     occ.getVerbatimFields().putAll(extractVerbatimFields(hit));
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM.getValueFieldName()).ifPresent(verbatimData -> {
+    getMapValue(hit, occurrenceBaseEsFieldMapper.getEsField(UnknownTerm.build("verbatim")).getValueFieldName()).ifPresent(verbatimData -> {
       if (verbatimData.containsKey("extensions" )) {
         occ.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
       }
@@ -139,21 +136,21 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
    */
   public VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
-    getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.publishingCountry), v -> Country.fromIsoCode(v.toUpperCase()))
       .ifPresent(vOcc::setPublishingCountry);
-    getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(vOcc::setDatasetKey);
-    getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(vOcc::setInstallationKey);
-    getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.datasetKey), UUID::fromString).ifPresent(vOcc::setDatasetKey);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.installationKey), UUID::fromString).ifPresent(vOcc::setInstallationKey);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.publishingOrgKey), UUID::fromString)
       .ifPresent(vOcc::setPublishingOrgKey);
-    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(vOcc::setProtocol);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.protocol), EndpointType::fromString).ifPresent(vOcc::setProtocol);
 
-    getListValue(hit, NETWORK_KEY.getValueFieldName())
+    getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.networkKey).getValueFieldName())
       .ifPresent(
         v -> vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
-    getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
-    getDateValue(hit, LAST_PARSED).ifPresent(vOcc::setLastParsed);
-    getDateValue(hit, LAST_CRAWLED).ifPresent(vOcc::setLastCrawled);
-    getValue(hit, GBIF_ID, Long::valueOf)
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.crawlId), Integer::valueOf).ifPresent(vOcc::setCrawlId);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(vOcc::setLastParsed);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(vOcc::setLastCrawled);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.gbifID), Long::valueOf)
       .ifPresent(
         id -> {
           vOcc.setKey(id);
@@ -163,7 +160,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setIdentifier(hit, vOcc);
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM.getValueFieldName()).ifPresent(verbatimData -> {
+    getMapValue(hit, occurrenceBaseEsFieldMapper.getEsField(UnknownTerm.build("multimediaItems")).getValueFieldName()).ifPresent(verbatimData -> {
       vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
       if (verbatimData.containsKey("extensions" )) {
         vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
@@ -222,30 +219,30 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     String gbifId = Optional.ofNullable(occ.getKey()).map(x -> Long.toString(x)).orElse("");
     String occId = occ.getVerbatimField(DwcTerm.occurrenceID);
 
-    getStringValue(hit, ID)
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.identifier))
       .filter(k -> !k.equals(gbifId) && (!Strings.isNullOrEmpty(occId) || !k.equals(triplet)))
       .ifPresent(result -> occ.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
   private void setOccurrenceFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, GBIF_ID, Long::valueOf)
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.gbifID), Long::valueOf)
       .ifPresent(
         id -> {
           occ.setKey(id);
           occ.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
         });
-    getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
-    getStringValue(hit, ESTABLISHMENT_MEANS).ifPresent(occ::setEstablishmentMeans);
-    getStringValue(hit, LIFE_STAGE).ifPresent(occ::setLifeStage);
-    getStringValue(hit, DEGREE_OF_ESTABLISHMENT_MEANS).ifPresent(occ::setDegreeOfEstablishment);
-    getStringValue(hit, PATHWAY).ifPresent(occ::setPathway);
-    getDateValue(hit, MODIFIED).ifPresent(occ::setModified);
-    getValue(hit, REFERENCES, URI::create).ifPresent(occ::setReferences);
-    getValue(hit, SEX, Sex::valueOf).ifPresent(occ::setSex);
-    getListValueAsString(hit, TYPE_STATUS.getValueFieldName()).ifPresent(occ::setTypeStatus);
-    getStringValue(hit, TYPIFIED_NAME).ifPresent(occ::setTypifiedName);
-    getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(occ::setIndividualCount);
-    getStringValue(hit, IDENTIFIER)
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.basisOfRecord), BasisOfRecord::valueOf).ifPresent(occ::setBasisOfRecord);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.establishmentMeans)).ifPresent(occ::setEstablishmentMeans);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.lifeStage)).ifPresent(occ::setLifeStage);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.degreeOfEstablishment)).ifPresent(occ::setDegreeOfEstablishment);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.pathway)).ifPresent(occ::setPathway);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.modified)).ifPresent(occ::setModified);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.references), URI::create).ifPresent(occ::setReferences);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sex), Sex::valueOf).ifPresent(occ::setSex);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.typeStatus).getValueFieldName()).ifPresent(occ::setTypeStatus);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.typifiedName)).ifPresent(occ::setTypifiedName);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.individualCount), Integer::valueOf).ifPresent(occ::setIndividualCount);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.identifier))
       .ifPresent(
         v -> {
           Identifier identifier = new Identifier();
@@ -253,31 +250,31 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
           occ.setIdentifiers(Collections.singletonList(identifier));
         });
 
-    getStringValue(hit, RELATION)
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.relation))
       .ifPresent(
         v -> {
           OccurrenceRelation occRelation = new OccurrenceRelation();
           occRelation.setId(v);
           occ.setRelations(Collections.singletonList(occRelation));
         });
-    getStringValue(hit, PROJECT_ID).ifPresent(occ::setProjectId);
-    getStringValue(hit, PROGRAMME).ifPresent(occ::setProgrammeAcronym);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.projectId)).ifPresent(occ::setProjectId);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.programmeAcronym)).ifPresent(occ::setProgrammeAcronym);
 
-    getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(occ::setSampleSizeUnit);
-    getDoubleValue(hit, SAMPLE_SIZE_VALUE).ifPresent(occ::setSampleSizeValue);
-    getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(occ::setOrganismQuantity);
-    getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(occ::setOrganismQuantityType);
-    getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(occ::setRelativeOrganismQuantity);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sampleSizeUnit)).ifPresent(occ::setSampleSizeUnit);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sampleSizeValue)).ifPresent(occ::setSampleSizeValue);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.organismQuantity)).ifPresent(occ::setOrganismQuantity);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.organismQuantityType)).ifPresent(occ::setOrganismQuantityType);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.relativeOrganismQuantity)).ifPresent(occ::setRelativeOrganismQuantity);
 
-    getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
-    getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(occ::setIsInCluster);
-    getListValueAsString(hit, DATASET_ID.getValueFieldName()).ifPresent(occ::setDatasetID);
-    getListValueAsString(hit, DATASET_NAME.getValueFieldName()).ifPresent(occ::setDatasetName);
-    getListValueAsString(hit, RECORDED_BY.getValueFieldName()).ifPresent(occ::setRecordedBy);
-    getListValueAsString(hit, IDENTIFIED_BY.getValueFieldName()).ifPresent(occ::setIdentifiedBy);
-    getListValueAsString(hit, PREPARATIONS.getValueFieldName()).ifPresent(occ::setPreparations);
-    getListValueAsString(hit, SAMPLING_PROTOCOL.getValueFieldName()).ifPresent(occ::setSamplingProtocol);
-    getListValueAsString(hit, OTHER_CATALOG_NUMBERS.getValueFieldName()).ifPresent(occ::setOtherCatalogNumbers);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.occurrenceStatus), OccurrenceStatus::valueOf).ifPresent(occ::setOccurrenceStatus);
+    getBooleanValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.isInCluster)).ifPresent(occ::setIsInCluster);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.datasetID).getValueFieldName()).ifPresent(occ::setDatasetID);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.datasetName).getValueFieldName()).ifPresent(occ::setDatasetName);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.recordedBy).getValueFieldName()).ifPresent(occ::setRecordedBy);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.identifiedBy).getValueFieldName()).ifPresent(occ::setIdentifiedBy);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.preparations).getValueFieldName()).ifPresent(occ::setPreparations);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.samplingProtocol).getValueFieldName()).ifPresent(occ::setSamplingProtocol);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.otherCatalogNumbers).getValueFieldName()).ifPresent(occ::setOtherCatalogNumbers);
   }
 
   private void parseAgentIds(SearchHit hit, Occurrence occ) {
@@ -288,118 +285,118 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       return ai;
     };
 
-    getObjectsListValue(hit, RECORDED_BY_ID.getSearchFieldName().replace(".value", ""))
+    getObjectsListValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.recordedByID).getSearchFieldName().replace(".value", ""))
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setRecordedByIds);
 
-    getObjectsListValue(hit, IDENTIFIED_BY_ID.getSearchFieldName().replace(".value", ""))
+    getObjectsListValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.identifiedByID).getSearchFieldName().replace(".value", ""))
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setIdentifiedByIds);
   }
 
   private void setTemporalFields(SearchHit hit, Occurrence occ) {
-    getDateValue(hit, DATE_IDENTIFIED).ifPresent(occ::setDateIdentified);
-    getValue(hit, DAY, Integer::valueOf).ifPresent(occ::setDay);
-    getValue(hit, MONTH, Integer::valueOf).ifPresent(occ::setMonth);
-    getValue(hit, YEAR, Integer::valueOf).ifPresent(occ::setYear);
-    getDateValue(hit, EVENT_DATE).ifPresent(occ::setEventDate);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.dateIdentified)).ifPresent(occ::setDateIdentified);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.day), Integer::valueOf).ifPresent(occ::setDay);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.month), Integer::valueOf).ifPresent(occ::setMonth);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.year), Integer::valueOf).ifPresent(occ::setYear);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate)).ifPresent(occ::setEventDate);
   }
 
   private void setLocationFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, CONTINENT, Continent::valueOf).ifPresent(occ::setContinent);
-    getStringValue(hit, STATE_PROVINCE).ifPresent(occ::setStateProvince);
-    getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(occ::setCountry);
-    getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(occ::setCoordinateAccuracy);
-    getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(occ::setCoordinatePrecision);
-    getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS).ifPresent(occ::setCoordinateUncertaintyInMeters);
-    getDoubleValue(hit, LATITUDE).ifPresent(occ::setDecimalLatitude);
-    getDoubleValue(hit, LONGITUDE).ifPresent(occ::setDecimalLongitude);
-    getDoubleValue(hit, DEPTH).ifPresent(occ::setDepth);
-    getDoubleValue(hit, DEPTH_ACCURACY).ifPresent(occ::setDepthAccuracy);
-    getDoubleValue(hit, ELEVATION).ifPresent(occ::setElevation);
-    getDoubleValue(hit, ELEVATION_ACCURACY).ifPresent(occ::setElevationAccuracy);
-    getStringValue(hit, WATER_BODY).ifPresent(occ::setWaterBody);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.continent), Continent::valueOf).ifPresent(occ::setContinent);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.stateProvince)).ifPresent(occ::setStateProvince);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.countryCode), Country::fromIsoCode).ifPresent(occ::setCountry);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.coordinateAccuracy)).ifPresent(occ::setCoordinateAccuracy);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.coordinatePrecision)).ifPresent(occ::setCoordinatePrecision);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.coordinateUncertaintyInMeters)).ifPresent(occ::setCoordinateUncertaintyInMeters);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.decimalLatitude)).ifPresent(occ::setDecimalLatitude);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.decimalLongitude)).ifPresent(occ::setDecimalLongitude);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.depth)).ifPresent(occ::setDepth);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.depthAccuracy)).ifPresent(occ::setDepthAccuracy);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.elevation)).ifPresent(occ::setElevation);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.elevationAccuracy)).ifPresent(occ::setElevationAccuracy);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.waterBody)).ifPresent(occ::setWaterBody);
 
     Gadm g = new Gadm();
-    getStringValue(hit, GADM_LEVEL_0_GID).ifPresent(gid -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level0Gid)).ifPresent(gid -> {
       g.setLevel0(new GadmFeature());
       g.getLevel0().setGid(gid);
     });
-    getStringValue(hit, GADM_LEVEL_1_GID).ifPresent(gid -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level1Gid)).ifPresent(gid -> {
       g.setLevel1(new GadmFeature());
       g.getLevel1().setGid(gid);
     });
-    getStringValue(hit, GADM_LEVEL_2_GID).ifPresent(gid -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level2Gid)).ifPresent(gid -> {
       g.setLevel2(new GadmFeature());
       g.getLevel2().setGid(gid);
     });
-    getStringValue(hit, GADM_LEVEL_3_GID).ifPresent(gid -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level3Gid)).ifPresent(gid -> {
       g.setLevel3(new GadmFeature());
       g.getLevel3().setGid(gid);
     });
-    getStringValue(hit, GADM_LEVEL_0_NAME).ifPresent(name -> g.getLevel0().setName(name));
-    getStringValue(hit, GADM_LEVEL_1_NAME).ifPresent(name -> g.getLevel1().setName(name));
-    getStringValue(hit, GADM_LEVEL_2_NAME).ifPresent(name -> g.getLevel2().setName(name));
-    getStringValue(hit, GADM_LEVEL_3_NAME).ifPresent(name -> g.getLevel3().setName(name));
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level0Name)).ifPresent(name -> g.getLevel0().setName(name));
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level1Name)).ifPresent(name -> g.getLevel1().setName(name));
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level2Name)).ifPresent(name -> g.getLevel2().setName(name));
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level3Name)).ifPresent(name -> g.getLevel3().setName(name));
 
     occ.setGadm(g);
   }
 
   private void setTaxonFields(SearchHit hit, Occurrence occ) {
-    getIntValue(hit, KINGDOM_KEY).ifPresent(occ::setKingdomKey);
-    getStringValue(hit, KINGDOM).ifPresent(occ::setKingdom);
-    getIntValue(hit, PHYLUM_KEY).ifPresent(occ::setPhylumKey);
-    getStringValue(hit, PHYLUM).ifPresent(occ::setPhylum);
-    getIntValue(hit, CLASS_KEY).ifPresent(occ::setClassKey);
-    getStringValue(hit, CLASS).ifPresent(occ::setClazz);
-    getIntValue(hit, ORDER_KEY).ifPresent(occ::setOrderKey);
-    getStringValue(hit, ORDER).ifPresent(occ::setOrder);
-    getIntValue(hit, FAMILY_KEY).ifPresent(occ::setFamilyKey);
-    getStringValue(hit, FAMILY).ifPresent(occ::setFamily);
-    getIntValue(hit, GENUS_KEY).ifPresent(occ::setGenusKey);
-    getStringValue(hit, GENUS).ifPresent(occ::setGenus);
-    getIntValue(hit, SUBGENUS_KEY).ifPresent(occ::setSubgenusKey);
-    getStringValue(hit, SUBGENUS).ifPresent(occ::setSubgenus);
-    getIntValue(hit, SPECIES_KEY).ifPresent(occ::setSpeciesKey);
-    getStringValue(hit, SPECIES).ifPresent(occ::setSpecies);
-    getStringValue(hit, SCIENTIFIC_NAME).ifPresent(occ::setScientificName);
-    getStringValue(hit, SPECIFIC_EPITHET).ifPresent(occ::setSpecificEpithet);
-    getStringValue(hit, INFRA_SPECIFIC_EPITHET).ifPresent(occ::setInfraspecificEpithet);
-    getStringValue(hit, GENERIC_NAME).ifPresent(occ::setGenericName);
-    getStringValue(hit, TAXON_RANK).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-    getIntValue(hit, USAGE_TAXON_KEY).ifPresent(occ::setTaxonKey);
-    getIntValue(hit, ACCEPTED_TAXON_KEY).ifPresent(occ::setAcceptedTaxonKey);
-    getStringValue(hit, ACCEPTED_SCIENTIFIC_NAME).ifPresent(occ::setAcceptedScientificName);
-    getValue(hit, TAXONOMIC_STATUS, TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
-    getStringValue(hit, IUCN_RED_LIST_CATEGORY).ifPresent(occ::setIucnRedListCategory);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.kingdomKey)).ifPresent(occ::setKingdomKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.kingdom)).ifPresent(occ::setKingdom);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.phylumKey)).ifPresent(occ::setPhylumKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.phylum)).ifPresent(occ::setPhylum);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.classKey)).ifPresent(occ::setClassKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.class_)).ifPresent(occ::setClazz);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.orderKey)).ifPresent(occ::setOrderKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.order)).ifPresent(occ::setOrder);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.familyKey)).ifPresent(occ::setFamilyKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.family)).ifPresent(occ::setFamily);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.genusKey)).ifPresent(occ::setGenusKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.genus)).ifPresent(occ::setGenus);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.subgenusKey)).ifPresent(occ::setSubgenusKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.subgenus)).ifPresent(occ::setSubgenus);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.speciesKey)).ifPresent(occ::setSpeciesKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.species)).ifPresent(occ::setSpecies);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.scientificName)).ifPresent(occ::setScientificName);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.specificEpithet)).ifPresent(occ::setSpecificEpithet);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.infraspecificEpithet)).ifPresent(occ::setInfraspecificEpithet);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.genericName)).ifPresent(occ::setGenericName);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.taxonRank)).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.taxonKey)).ifPresent(occ::setTaxonKey);
+    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.acceptedTaxonKey)).ifPresent(occ::setAcceptedTaxonKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.acceptedScientificName)).ifPresent(occ::setAcceptedScientificName);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.taxonomicStatus), TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(IucnTerm.iucnRedListCategory)).ifPresent(occ::setIucnRedListCategory);
   }
 
   private void setGrscicollFields(SearchHit hit, Occurrence occ) {
-    getStringValue(hit, INSTITUTION_KEY).ifPresent(occ::setInstitutionKey);
-    getStringValue(hit, COLLECTION_KEY).ifPresent(occ::setCollectionKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.institutionKey)).ifPresent(occ::setInstitutionKey);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.collectionKey)).ifPresent(occ::setCollectionKey);
   }
 
   private void setDatasetFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.publishingCountry), v -> Country.fromIsoCode(v.toUpperCase()))
       .ifPresent(occ::setPublishingCountry);
-    getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(occ::setDatasetKey);
-    getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(occ::setInstallationKey);
-    getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.datasetKey), UUID::fromString).ifPresent(occ::setDatasetKey);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.installationKey), UUID::fromString).ifPresent(occ::setInstallationKey);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.publishingOrgKey), UUID::fromString)
       .ifPresent(occ::setPublishingOrgKey);
-    getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
-    getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(occ::setProtocol);
-    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.license), v -> License.fromString(v).orElse(null)).ifPresent(occ::setLicense);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.protocol), EndpointType::fromString).ifPresent(occ::setProtocol);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.hostingOrganizationKey), UUID::fromString).ifPresent(occ::setHostingOrganizationKey);
 
-    getListValue(hit, NETWORK_KEY.getValueFieldName())
+    getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.networkKey).getValueFieldName())
       .ifPresent(
         v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
 
   private void setCrawlingFields(SearchHit hit, Occurrence occ) {
-    getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(occ::setCrawlId);
-    getDateValue(hit, LAST_INTERPRETED).ifPresent(occ::setLastInterpreted);
-    getDateValue(hit, LAST_PARSED).ifPresent(occ::setLastParsed);
-    getDateValue(hit, LAST_CRAWLED).ifPresent(occ::setLastCrawled);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.crawlId), Integer::valueOf).ifPresent(occ::setCrawlId);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastInterpreted)).ifPresent(occ::setLastInterpreted);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(occ::setLastParsed);
+    getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(occ::setLastCrawled);
   }
 
   private void parseMultimediaItems(SearchHit hit, Occurrence occ) {
@@ -430,7 +427,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       return mediaObject;
     };
 
-    getObjectsListValue(hit, MEDIA_ITEMS.getValueFieldName())
+
+    getObjectsListValue(hit, occurrenceBaseEsFieldMapper.getEsField(UnknownTerm.build("multimediaItems")).getValueFieldName())
       .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
       .ifPresent(occ::setMedia);
   }

@@ -37,7 +37,6 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.search.es.EventEsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 
@@ -60,15 +59,15 @@ import org.elasticsearch.search.SearchHit;
 
 import com.google.common.collect.Maps;
 
-import static org.gbif.occurrence.search.es.EventEsField.*;
-import static org.gbif.occurrence.search.es.EventEsField.CRAWL_ID;
-import static org.gbif.occurrence.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.LAST_CRAWLED;
-import static org.gbif.occurrence.search.es.EventEsField.LAST_INTERPRETED;
-import static org.gbif.occurrence.search.es.EventEsField.LAST_PARSED;
-import static org.gbif.occurrence.search.es.EventEsField.MEDIA_ITEMS;
-import static org.gbif.occurrence.search.es.EventEsField.NETWORK_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.PROTOCOL;
+import static org.gbif.event.search.es.EventEsField.*;
+import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
+import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
+import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
+import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
+import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
+import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
+import static org.gbif.event.search.es.EventEsField.PROTOCOL;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
 import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
 

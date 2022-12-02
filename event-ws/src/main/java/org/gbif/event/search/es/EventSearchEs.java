@@ -28,7 +28,6 @@ import org.gbif.api.service.common.SearchService;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.EventEsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
@@ -72,7 +71,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Event> esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
+  private final OccurrenceBaseEsFieldMapper eventEsFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
 
   private final SearchHitConverter<Occurrence> searchHitOccurrenceConverter;
@@ -96,11 +96,12 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    occurrenceBaseEsFieldMapper = EventEsField.buildFieldMapper();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper);
-    searchHitEventConverter = new SearchHitEventConverter(occurrenceBaseEsFieldMapper, true);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceBaseEsFieldMapper, true);
-    this.esResponseParser = new EsResponseParser<>(occurrenceBaseEsFieldMapper, searchHitEventConverter);
+    eventEsFieldMapper = EventEsField.buildFieldMapper();
+    occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper();
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper);
+    searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
+    this.esResponseParser = new EsResponseParser<>(eventEsFieldMapper, searchHitEventConverter);
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {

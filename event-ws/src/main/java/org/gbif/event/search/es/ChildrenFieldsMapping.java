@@ -21,19 +21,19 @@ import com.google.common.collect.ImmutableMap;
 
 import lombok.experimental.UtilityClass;
 
-import static org.gbif.occurrence.search.es.EventEsField.CLASS_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.FAMILY_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.GENUS_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.KINGDOM_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.ORDER_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.PHYLUM_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.SCIENTIFIC_NAME;
-import static org.gbif.occurrence.search.es.EventEsField.SPECIES_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.SUBGENUS_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.TAXON_ID;
-import static org.gbif.occurrence.search.es.EventEsField.TAXON_KEY;
-import static org.gbif.occurrence.search.es.EventEsField.TYPE_STATUS;
-import static org.gbif.occurrence.search.es.EventEsField.VERBATIM_SCIENTIFIC_NAME;
+import static org.gbif.event.search.es.EventEsField.CLASS_KEY;
+import static org.gbif.event.search.es.EventEsField.FAMILY_KEY;
+import static org.gbif.event.search.es.EventEsField.GENUS_KEY;
+import static org.gbif.event.search.es.EventEsField.KINGDOM_KEY;
+import static org.gbif.event.search.es.EventEsField.ORDER_KEY;
+import static org.gbif.event.search.es.EventEsField.PHYLUM_KEY;
+import static org.gbif.event.search.es.EventEsField.SCIENTIFIC_NAME;
+import static org.gbif.event.search.es.EventEsField.SPECIES_KEY;
+import static org.gbif.event.search.es.EventEsField.SUBGENUS_KEY;
+import static org.gbif.event.search.es.EventEsField.TAXON_ID;
+import static org.gbif.event.search.es.EventEsField.TAXON_KEY;
+import static org.gbif.event.search.es.EventEsField.TYPE_STATUS;
+import static org.gbif.event.search.es.EventEsField.VERBATIM_SCIENTIFIC_NAME;
 
 @UtilityClass
 public class ChildrenFieldsMapping {
