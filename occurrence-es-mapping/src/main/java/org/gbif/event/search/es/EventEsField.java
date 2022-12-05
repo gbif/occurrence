@@ -245,6 +245,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, VERBATIM_SCIENTIFIC_NAME)
       .put(OccurrenceSearchParameter.TAXON_ID, TAXON_ID)
       .put(OccurrenceSearchParameter.TYPE_STATUS, TYPE_STATUS)
+      .put(OccurrenceSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
       .put(OccurrenceSearchParameter.ISSUE, ISSUE)
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, OCCURRENCE_ID)
