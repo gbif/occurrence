@@ -100,6 +100,7 @@ public final class CitationsPersister extends CitationsFileReader {
       }
 
       try {
+        LOG.debug("Create usage for download key: {}", downloadKey);
         downloadService.createUsages(downloadKey, datasetsCitation);
       } catch (Exception e) {
         LOG.error("Error persisting dataset usage information: {}", datasetsCitation, e);
